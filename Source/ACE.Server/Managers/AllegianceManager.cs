@@ -73,8 +73,9 @@ namespace ACE.Server.Managers
 
             AddPlayers(allegiance);
 
-            if (!Allegiances.ContainsKey(allegiance.Guid))
-                Allegiances.Add(allegiance.Guid, allegiance);
+            //if (!Allegiances.ContainsKey(allegiance.Guid))
+                //Allegiances.Add(allegiance.Guid, allegiance);
+            Allegiances[allegiance.Guid] = allegiance;
 
             return allegiance;
         }
@@ -101,8 +102,12 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void LoadPlayer(IPlayer player)
         {
+            if (player == null) return;
+
             player.Allegiance = GetAllegiance(player);
             player.AllegianceNode = GetAllegianceNode(player);
+
+            // TODO: update chat channels for online players here?
         }
 
         /// <summary>
@@ -328,7 +333,7 @@ namespace ACE.Server.Managers
 
         public static void HandleNoAllegiance(IPlayer player)
         {
-            if (player.Allegiance != null)
+            if (player == null || player.Allegiance != null)
                 return;
 
             var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
@@ -378,7 +383,9 @@ namespace ACE.Server.Managers
             if (player.PatronId != null)
             {
                 var patron = PlayerManager.FindByGuid(player.PatronId.Value);
-                players.Add(patron);
+
+                if (patron != null)
+                    players.Add(patron);
             }
 
             player.PatronId = null;
@@ -388,6 +395,8 @@ namespace ACE.Server.Managers
             foreach (var vassal in allegianceNode.Vassals.Values)
             {
                 var vassalPlayer = PlayerManager.FindByGuid(vassal.PlayerGuid, out bool isOnline);
+
+                if (vassalPlayer == null) continue;
 
                 vassalPlayer.PatronId = null;
                 vassalPlayer.MonarchId = null;

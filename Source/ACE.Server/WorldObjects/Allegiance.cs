@@ -290,6 +290,8 @@ namespace ACE.Server.WorldObjects
                 var player = PlayerManager.FindByGuid(member.Key);
                 var onlinePlayer = PlayerManager.GetOnlinePlayer(member.Key);
 
+                if (player == null) continue;
+
                 // if changed, update monarch id
                 if ((player.MonarchId ?? 0) != member.Value.Allegiance.MonarchId)
                 {
@@ -310,6 +312,19 @@ namespace ACE.Server.WorldObjects
 
                 if (onlinePlayer != null)
                     onlinePlayer.Session.Network.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, this, member.Value), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
+            }
+        }
+
+        public void ShowMembers()
+        {
+            Console.WriteLine($"Total members: {Members.Count}");
+
+            foreach (var member in Members)
+            {
+                var player = PlayerManager.FindByGuid(member.Key, out bool isOnline);
+                var prefix = isOnline ? "* " : "";
+
+                Console.WriteLine($"{prefix}{player.Name}");
             }
         }
     }

@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         public Allegiance Allegiance { get; set; }
         public AllegianceNode AllegianceNode { get; set; }
 
-        public bool HasAllegiance { get => Allegiance != null && Allegiance.TotalMembers > 1; }
+        public bool HasAllegiance { get => Allegiance != null && AllegianceNode != null && Allegiance.TotalMembers > 1; }
 
         public ulong AllegianceXPCached
         {
@@ -89,6 +89,8 @@ namespace ACE.Server.WorldObjects
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
+
+            UpdateChatChannels();
         }
 
 
@@ -115,6 +117,8 @@ namespace ACE.Server.WorldObjects
             if (!IsBreakable(targetGuid)) return;
 
             var target = PlayerManager.FindByGuid(targetGuid, out var targetIsOnline);
+
+            if (target == null) return;
 
             //Console.WriteLine(Name + " breaking allegiance to " + target.Name);
 
@@ -150,6 +154,9 @@ namespace ACE.Server.WorldObjects
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
+
+            // TODO: update chat channel for orphaned players in OnBreakAllegiance()
+            UpdateChatChannels();
         }
 
         public static float Allegiance_MaxSwearDistance = 4.0f;
@@ -205,7 +212,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // verify max distance
-            if (Location.DistanceTo(target.Location) > Allegiance_MaxSwearDistance)
+            if (GetCylinderDistance(target) > Allegiance_MaxSwearDistance)
             {
                 CreateMoveToChain(target, (success) =>
                 {
