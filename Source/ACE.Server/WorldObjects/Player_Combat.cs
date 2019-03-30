@@ -5,6 +5,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
@@ -614,9 +615,12 @@ namespace ACE.Server.WorldObjects
                 Fellowship.OnVitalUpdate(this);
 
             // send damage text message
-            var nether = damageType == DamageType.Nether ? "nether " : "";
-            var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
-            Session.Network.EnqueueSend(text);
+            if (PropertyManager.GetBool("show_dot_messages").Item)
+            {
+                var nether = damageType == DamageType.Nether ? "nether " : "";
+                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
+                Session.Network.EnqueueSend(text);
+            }
 
             // splatter effects
             //var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
