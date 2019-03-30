@@ -102,6 +102,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void LoadPlayer(IPlayer player)
         {
+            if (player == null) return;
+
             player.Allegiance = GetAllegiance(player);
             player.AllegianceNode = GetAllegianceNode(player);
 
@@ -331,7 +333,7 @@ namespace ACE.Server.Managers
 
         public static void HandleNoAllegiance(IPlayer player)
         {
-            if (player.Allegiance != null)
+            if (player == null || player.Allegiance != null)
                 return;
 
             var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
