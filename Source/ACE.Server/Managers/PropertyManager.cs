@@ -443,7 +443,8 @@ namespace ACE.Server.Managers
                 ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
-                ("pk_server", false)
+                ("pk_server", false),
+                ("show_dot_messages", false)        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
