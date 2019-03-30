@@ -89,6 +89,8 @@ namespace ACE.Server.WorldObjects
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
+
+            UpdateChatChannels();
         }
 
 
@@ -150,6 +152,9 @@ namespace ACE.Server.WorldObjects
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
+
+            // TODO: update chat channel for orphaned players in OnBreakAllegiance()
+            UpdateChatChannels();
         }
 
         public static float Allegiance_MaxSwearDistance = 4.0f;
@@ -205,7 +210,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // verify max distance
-            if (Location.DistanceTo(target.Location) > Allegiance_MaxSwearDistance)
+            if (GetCylinderDistance(target) > Allegiance_MaxSwearDistance)
             {
                 CreateMoveToChain(target, (success) =>
                 {

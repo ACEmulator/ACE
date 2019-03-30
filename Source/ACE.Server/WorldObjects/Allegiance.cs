@@ -312,5 +312,18 @@ namespace ACE.Server.WorldObjects
                     onlinePlayer.Session.Network.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, this, member.Value), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
             }
         }
+
+        public void ShowMembers()
+        {
+            Console.WriteLine($"Total members: {Members.Count}");
+
+            foreach (var member in Members)
+            {
+                var player = PlayerManager.FindByGuid(member.Key, out bool isOnline);
+                var prefix = isOnline ? "* " : "";
+
+                Console.WriteLine($"{prefix}{player.Name}");
+            }
+        }
     }
 }

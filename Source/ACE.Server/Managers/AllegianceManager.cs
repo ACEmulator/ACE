@@ -73,8 +73,9 @@ namespace ACE.Server.Managers
 
             AddPlayers(allegiance);
 
-            if (!Allegiances.ContainsKey(allegiance.Guid))
-                Allegiances.Add(allegiance.Guid, allegiance);
+            //if (!Allegiances.ContainsKey(allegiance.Guid))
+                //Allegiances.Add(allegiance.Guid, allegiance);
+            Allegiances[allegiance.Guid] = allegiance;
 
             return allegiance;
         }
@@ -103,6 +104,8 @@ namespace ACE.Server.Managers
         {
             player.Allegiance = GetAllegiance(player);
             player.AllegianceNode = GetAllegianceNode(player);
+
+            // TODO: update chat channels for online players here?
         }
 
         /// <summary>
