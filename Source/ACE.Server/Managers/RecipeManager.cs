@@ -26,6 +26,12 @@ namespace ACE.Server.Managers
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
+            if (player.IsBusy)
+            {
+                player.SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             if (source == target)
             {
                 var message = new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft);
@@ -62,6 +68,8 @@ namespace ACE.Server.Managers
             bool success = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
 
+            player.IsBusy = true;
+
             if (player.CombatMode != CombatMode.NonCombat)
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
@@ -88,6 +96,7 @@ namespace ACE.Server.Managers
                     {
                         log.Warn("Unexpectedly missing skill in Recipe usage");
                         player.SendUseDoneEvent();
+                        player.IsBusy = false;
                         return;
                     }
 
@@ -111,6 +120,7 @@ namespace ACE.Server.Managers
                         var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
                         player.Session.Network.EnqueueSend(message);
                         player.SendUseDoneEvent(WeenieError.YouAreNotTrainedInThatTradeSkill);
+                        player.IsBusy = false;
                         return;
                     }
                 }
@@ -131,6 +141,7 @@ namespace ACE.Server.Managers
                     player.Session.Network.EnqueueSend(updateObj);
 
                 player.SendUseDoneEvent();
+                player.IsBusy = false;
             });
 
             craftChain.EnqueueChain();
