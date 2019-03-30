@@ -343,7 +343,7 @@ namespace ACE.Server.Managers
                 player.MonarchId = null;
 
                 if (onlinePlayer != null)
-                    onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, player.MonarchId.Value));
+                    onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, 0));
             }
 
             if (player.AllegianceRank != null)
