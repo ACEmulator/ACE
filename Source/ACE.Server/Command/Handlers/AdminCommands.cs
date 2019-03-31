@@ -301,7 +301,10 @@ namespace ACE.Server.Command.Handlers
 
                 if (character != null)
                 {
-                    message = $"Login name: {character.Account.AccountName}      Character: {character.Name}\n";
+                    if (character.Account != null)
+                        message = $"Login name: {character.Account.AccountName}      Character: {character.Name}\n";
+                    else
+                        message = $"Login name: account not found, character is orphaned.      Character: {character.Name}\n";
                 }
                 else
                     message = $"There was no active character named \"{charName}\" found in the database.\n";
