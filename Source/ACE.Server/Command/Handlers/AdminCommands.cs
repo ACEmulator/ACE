@@ -306,7 +306,7 @@ namespace ACE.Server.Command.Handlers
                 else
                     message = $"There was no active character named \"{charName}\" found in the database.\n";
             }
-            else/* if (lookupByAccount)*/
+            else
             {
                 Account account;
                 if (lookupCharAndAccount)
@@ -354,10 +354,6 @@ namespace ACE.Server.Command.Handlers
                 else
                     message = $"There was no account named \"{charName}\" found in the database.\n";
             }
-            //else
-            //{
-
-            //}
 
             CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
         }
