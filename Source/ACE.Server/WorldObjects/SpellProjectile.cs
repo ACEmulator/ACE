@@ -484,6 +484,9 @@ namespace ACE.Server.WorldObjects
             var target = _target as Creature;
             var targetPlayer = _target as Player;
 
+            if (targetPlayer != null && (targetPlayer.Invincible ?? false) || targetPlayer.IsDead)
+                return;
+
             {
                 uint amount;
                 var percent = 0.0f;
