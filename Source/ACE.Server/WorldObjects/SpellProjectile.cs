@@ -484,7 +484,7 @@ namespace ACE.Server.WorldObjects
             var target = _target as Creature;
             var targetPlayer = _target as Player;
 
-            if (targetPlayer != null && (targetPlayer.Invincible ?? false) || targetPlayer.IsDead)
+            if (targetPlayer != null && ((targetPlayer.Invincible ?? false) || targetPlayer.IsDead))
                 return;
 
             {

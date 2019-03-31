@@ -630,7 +630,8 @@ namespace ACE.Database
                 .Where(r => r.Name == name.ToLower() && !r.IsDeleted)
                 .FirstOrDefault();
 
-            CharacterContexts.Add(result, context);
+            if (result != null)
+                CharacterContexts.Add(result, context);
 
             return result;
         }
