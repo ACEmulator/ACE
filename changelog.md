@@ -3,10 +3,10 @@
 ### 2019-03-31
 [Ripley]
 * Update Logout to include server population and limits when character list is resent.
-* Updated acehelp and acecommands to not be individual messages, so not to be broken up by other chat spew.
+* Updated @acehelp and @acecommands to not be individual messages, so not to be broken up by other chat spew.
 * Added @pop command -- Tells you how many players are online.
 * Added @watchmen command -- Displays accounts of a specific access level.
-* Added finger command -- Displays information about a character and/or account.
+* Added @finger command -- Displays information about a character and/or account.
 
 ### 2019-03-30
 [Ripley]
