@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
                 return true;
 
             // players can loot monsters they killed
-            if ((KillerId != null && player.Guid.Full == KillerId) || IsLooted)
+            if (KillerId != null && player.Guid.Full == KillerId || IsLooted)
                 return true;
 
             // players can /permit other players to loot their corpse
