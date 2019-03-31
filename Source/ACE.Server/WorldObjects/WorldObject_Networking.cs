@@ -1068,7 +1068,10 @@ namespace ACE.Server.WorldObjects
         protected void AddBaseModelData(ACE.Entity.ObjDesc objDesc)
         {
             // Hair/head
-            if (HeadObjectDID.HasValue && !HairStyle.HasValue)
+
+            // if (HeadObjectDID.HasValue && !HairStyle.HasValue)
+            // This Heritage check has been added for backwards compatibility. It works around the butthead Gear Knights appearance.
+            if (HeadObjectDID.HasValue && !HairStyle.HasValue && Heritage.HasValue && Heritage != (int)HeritageGroup.Gearknight)
                 objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = 0x10, PartID = HeadObjectDID.Value });
             else if (HairStyle.HasValue && Heritage.HasValue && Gender.HasValue)
             {
