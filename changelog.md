@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2019-03-30
+[OptimShi]
+* Fixed Gear Knights being literal buttheads. (Their abdomen was being swapped with their heads)
+
 [Ripley]
 * Fixed CharGen issue for Dual Wield characters. 2x Melee Weapons are created if Dual Wield is trained or specialized.
 
