@@ -341,12 +341,16 @@ namespace ACE.Server.Managers
 
             var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
 
+            var updated = false;
+
             if (player.MonarchId != null)
             {
                 player.MonarchId = null;
 
                 if (onlinePlayer != null)
                     onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, 0));
+
+                updated = true;
             }
 
             if (player.AllegianceRank != null)
@@ -355,7 +359,12 @@ namespace ACE.Server.Managers
 
                 if (onlinePlayer != null)
                     onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, 0));
+
+                updated = true;
             }
+
+            if (updated)
+                player.SaveBiotaToDatabase();
 
             if (onlinePlayer != null)
                 onlinePlayer.Session.Network.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, onlinePlayer.Allegiance, onlinePlayer.AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
