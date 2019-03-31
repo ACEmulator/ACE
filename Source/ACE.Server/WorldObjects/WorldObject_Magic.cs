@@ -1176,6 +1176,8 @@ namespace ACE.Server.WorldObjects
             {
                 playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
+                playerTarget.HandleMaxVitalUpdate(spell);
+
                 if (playerTarget != this)
                     playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
             }
