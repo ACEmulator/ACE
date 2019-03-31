@@ -865,7 +865,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
-        /// Teleports a player to your current location
+        /// Teleports a player to their previous position
         /// </summary>
         [CommandHandler("telereturn", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Return a player to their previous location.", "PlayerName")]
         public static void HandleTeleReturn(Session session, params string[] parameters)
@@ -877,6 +877,13 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
                 return;
             }
+
+            if (player.TeleportedCharacter == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} does not have a return position saved.", ChatMessageType.Broadcast));
+                return;
+            }
+
             player.Teleport(new Position(player.TeleportedCharacter));
             player.SetPosition(PositionType.TeleportedCharacter, null);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has returned you to your previous location.", ChatMessageType.Magic));

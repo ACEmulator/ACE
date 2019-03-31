@@ -5,6 +5,7 @@
 * Update Logout to include server population and limits when character list is resent.
 * Updated @acehelp and @acecommands to not be individual messages, so not to be broken up by other chat spew.
 * Added @pop command -- Tells you how many players are online.
+* Added @telereturn -- Teleport a character to their previous position saved when using @teletome.
 * Added @watchmen command -- Displays accounts of a specific access level.
 * Added @finger command -- Displays information about a character and/or account.
 * Hide launcher pings and pongs.
