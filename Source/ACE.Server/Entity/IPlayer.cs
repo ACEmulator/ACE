@@ -81,5 +81,12 @@ namespace ACE.Server.Entity
         Allegiance Allegiance { get; set; }
 
         AllegianceNode AllegianceNode { get; set; }
+
+        /// <summary>
+        /// This method forces a player to be immediately saved to the database
+        /// It should only be called in critical sections that must guarantee
+        /// lock-step with other players
+        /// </summary>
+        void SaveBiotaToDatabase(bool enqueueSave = true);
     }
 }

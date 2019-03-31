@@ -84,5 +84,13 @@ namespace ACE.Server.Entity
 
             Rank = Math.Max(lower + 1, higher);
         }
+
+        public void ShowInfo(int depth = 0)
+        {
+            var prefix = "".PadLeft(depth * 2, ' ');
+            Console.WriteLine($"{prefix}- {Player.Name}");
+            foreach (var vassal in Vassals.Values)
+                vassal.ShowInfo(depth + 1);
+        }
     }
 }

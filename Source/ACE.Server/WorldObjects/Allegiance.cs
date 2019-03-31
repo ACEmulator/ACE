@@ -292,6 +292,8 @@ namespace ACE.Server.WorldObjects
 
                 if (player == null) continue;
 
+                var updated = false;
+
                 // if changed, update monarch id
                 if ((player.MonarchId ?? 0) != member.Value.Allegiance.MonarchId)
                 {
@@ -299,6 +301,8 @@ namespace ACE.Server.WorldObjects
 
                     if (onlinePlayer != null)
                         onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, player.MonarchId.Value));
+
+                    updated = true;
                 }
 
                 // if changed, update rank
@@ -308,7 +312,12 @@ namespace ACE.Server.WorldObjects
 
                     if (onlinePlayer != null)
                         onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, player.AllegianceRank.Value));
+
+                    updated = true;
                 }
+
+                if (updated)
+                    player.SaveBiotaToDatabase();
 
                 if (onlinePlayer != null)
                     onlinePlayer.Session.Network.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, this, member.Value), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
@@ -326,6 +335,11 @@ namespace ACE.Server.WorldObjects
 
                 Console.WriteLine($"{prefix}{player.Name}");
             }
+        }
+
+        public void ShowInfo()
+        {
+            Monarch.ShowInfo();
         }
     }
 }

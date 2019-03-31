@@ -2175,5 +2175,46 @@ namespace ACE.Server.Command.Handlers
         {
             PropertyManager.ResyncVariables();
         }
+
+        [CommandHandler("fix-allegiances", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Fixes the monarch data for allegiances", "")]
+        public static void HandleFixAllegiances(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllPlayers();
+
+            // build allegiances
+            foreach (var player in players)
+                AllegianceManager.GetAllegiance(player);
+
+            foreach (var player in players.Where(i => i.MonarchId != null))
+            {
+                var monarchID = player.MonarchId.Value;
+
+                // find multi allegiances
+                foreach (var allegiance in AllegianceManager.Allegiances.Values)
+                {
+                    if (allegiance.MonarchId == monarchID)
+                        continue;
+
+                    if (allegiance.Members.TryGetValue(new ObjectGuid(monarchID), out var member))
+                    {
+                        var desynced = PlayerManager.FindByGuid(monarchID);
+                        Console.WriteLine($"{player.Name} has references to {desynced.Name} as monarch, but should be {allegiance.Monarch.Player.Name} -- fixing");
+
+                        var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
+                        if (onlinePlayer != null)
+                        {
+                            onlinePlayer.UpdateProperty(onlinePlayer, PropertyInstanceId.Monarch, allegiance.MonarchId);
+                            onlinePlayer.SaveBiotaToDatabase();
+                        }
+                        else
+                        {
+                            var offlinePlayer = PlayerManager.GetOfflinePlayer(player.Guid);
+                            offlinePlayer.MonarchId = allegiance.MonarchId;
+                            offlinePlayer.SaveBiotaToDatabase();
+                        }
+                    }
+                }
+            }
+        }
     }
 }

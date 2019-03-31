@@ -67,6 +67,8 @@ namespace ACE.Server.WorldObjects
             PatronId = targetGuid;
             MonarchId = AllegianceManager.GetMonarch(patron).Guid.Full;
 
+            SaveBiotaToDatabase();
+
             //Console.WriteLine("Patron: " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
             //Console.WriteLine("Monarch: " + PlayerManager.GetOfflinePlayerByGuidId(Monarch.Value).Name);
 
@@ -131,11 +133,15 @@ namespace ACE.Server.WorldObjects
             {
                 target.PatronId = null;
                 target.MonarchId = null;
+
+                target.SaveBiotaToDatabase();
             }
             else
             {
                 PatronId = null;
                 MonarchId = null;
+
+                SaveBiotaToDatabase();
             }
 
             // send message to target if online
