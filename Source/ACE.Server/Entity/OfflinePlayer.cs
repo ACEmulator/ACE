@@ -33,11 +33,10 @@ namespace ACE.Server.Entity
         public OfflinePlayer(Biota biota)
         {
             Biota = biota;
-            Guid = new ObjectGuid(Biota.Id);            
+            Guid = new ObjectGuid(Biota.Id);
 
             InitializePropertyDictionaries();
 
-            //Account = DatabaseManager.Authentication.GetAccountById(DatabaseManager.Shard.GetCharacterByName(GetProperty(PropertyString.Name)).AccountId);
             Account = DatabaseManager.Authentication.GetAccountById(DatabaseManager.Shard.GetCharacterByName(Name).AccountId);
         }
 
