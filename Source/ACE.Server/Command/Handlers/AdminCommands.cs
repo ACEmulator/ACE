@@ -784,8 +784,28 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
                 return;
             }
+            var currentPos = new Position(player.Location);
             player.Teleport(session.Player.Location);
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you to their current location.", ChatMessageType.Broadcast));
+            player.SetPosition(PositionType.TeleportedCharacter, currentPos);
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you to their current location.", ChatMessageType.Magic));
+        }
+
+        /// <summary>
+        /// Teleports a player to your current location
+        /// </summary>
+        [CommandHandler("telereturn", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Return a player to their previous location.", "PlayerName")]
+        public static void HandleTeleReturn(Session session, params string[] parameters)
+        {
+            var playerName = string.Join(" ", parameters);
+            var player = PlayerManager.GetOnlinePlayer(playerName);
+            if (player == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
+                return;
+            }
+            player.Teleport(new Position(player.TeleportedCharacter));
+            player.SetPosition(PositionType.TeleportedCharacter, null);
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has returned you to your previous location.", ChatMessageType.Magic));
         }
 
         // teleallto [char]
@@ -1761,12 +1781,41 @@ namespace ACE.Server.Command.Handlers
         }
 
         // watchmen
-        [CommandHandler("watchmen", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("watchmen", AccessLevel.Admin, CommandHandlerFlag.None, 0,
+            "Displays a list of accounts with the specified level of admin access.",
+            "(accesslevel)")]
         public static void Handlewatchmen(Session session, params string[] parameters)
         {
             // @watchmen - Displays a list of accounts with the specified level of admin access.
 
-            // TODO: output
+            var defaultAccessLevel = AccessLevel.Advocate;
+
+            var accessLevel = defaultAccessLevel;
+
+            if (parameters.Length > 0)
+            {
+                if (Enum.TryParse(parameters[0], true, out accessLevel))
+                {
+                    if (!Enum.IsDefined(typeof(AccessLevel), accessLevel))
+                        accessLevel = defaultAccessLevel;
+                }
+            }
+
+            var list = DatabaseManager.Authentication.GetListofAccountsByAccessLevel(accessLevel);
+            var message = "";
+
+            if (list.Count > 0)
+            {
+                message = $"The following accounts have been granted {accessLevel.ToString()} rights:\n";
+                foreach (var item in list)
+                    message += item + "\n";
+            }
+            else
+            {
+                message = $"There are no accounts with {accessLevel.ToString()} rights.";
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
         }
 
         // gamecastemote <message>
