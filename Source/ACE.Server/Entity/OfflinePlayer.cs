@@ -37,7 +37,10 @@ namespace ACE.Server.Entity
 
             InitializePropertyDictionaries();
 
-            Account = DatabaseManager.Authentication.GetAccountById(DatabaseManager.Shard.GetCharacterByName(Name).AccountId);
+            var character = DatabaseManager.Shard.GetCharacterByName(Name);
+
+            if (character != null)
+                Account = DatabaseManager.Authentication.GetAccountById(character.AccountId);
         }
 
         private void InitializePropertyDictionaries()

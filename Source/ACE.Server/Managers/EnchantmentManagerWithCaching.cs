@@ -124,6 +124,7 @@ namespace ACE.Server.Managers
             armorModCache = null;
             armorModVsTypeModCache.Clear();
             ratingCache.Clear();
+            xpModCache = null;
         }
 
 
@@ -429,6 +430,16 @@ namespace ACE.Server.Managers
             ratingCache[property] = value;
 
             return value;
+        }
+
+        private float? xpModCache;
+
+        public override float GetXPMod()
+        {
+            if (xpModCache == null)
+                xpModCache = base.GetXPMod();
+
+            return xpModCache.Value;
         }
     }
 }

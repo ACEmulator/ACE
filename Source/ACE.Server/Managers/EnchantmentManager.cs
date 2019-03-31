@@ -676,6 +676,22 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the modifier from XP enchantments, such as Augmented Understanding
+        /// </summary>
+        /// <returns></returns>
+        public virtual float GetXPMod()
+        {
+            var enchantments = GetEnchantments(SpellCategory.TrinketXPRaising);
+
+            // multiplier
+            var modifier = 1.0f;
+            foreach (var enchantment in enchantments)
+                modifier *= enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
         /// Returns the bonus to a skill from enchantments
         /// </summary>
         public virtual int GetSkillMod(Skill skill)
