@@ -11,6 +11,9 @@
 * Hide launcher pings and pongs.
 
 ### 2019-03-30
+[OptimShi]
+* Fixed Gear Knights being literal buttheads. (Their abdomen was being swapped with their heads)
+
 [Ripley]
 * Update Shard DB Enchantment Registry composite key.
 * Fixed CharGen issue for Dual Wield characters. 2x Melee Weapons are created if Dual Wield is trained or specialized.

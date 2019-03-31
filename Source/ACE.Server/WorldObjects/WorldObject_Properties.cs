@@ -1478,6 +1478,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
         }
 
+        public int? HairStyle
+        {
+            get => GetProperty(PropertyInt.Hairstyle);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Hairstyle); else SetProperty(PropertyInt.Hairstyle, value.Value); }
+        }
 
         // ========================================
         // =========== Other Properties ===========
