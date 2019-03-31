@@ -307,6 +307,7 @@ namespace ACE.Server.WorldObjects
             // not found - create a new salvage bag
             var wcid = (uint)MaterialSalvage[(int)materialType];
             var salvageBag = WorldObjectFactory.CreateNewWorldObject(wcid);
+            salvageBag.Structure = 0;   // bugged: green garnet 21050
 
             salvageBags.Add(salvageBag);
 
