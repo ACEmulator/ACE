@@ -323,6 +323,12 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
                     account = character.Account;
+                    if (account == null)
+                    {
+                        message = $"Login name: account not found, character is orphaned.      Character: {character.Name}\n";
+                        CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
+                        return;
+                    }
                 }
                 else
                     account = DatabaseManager.Authentication.GetAccountByName(charName);
