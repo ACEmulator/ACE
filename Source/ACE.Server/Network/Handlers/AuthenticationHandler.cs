@@ -96,7 +96,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (loginRequest.Account == "acservertracker:jj9h26hcsggc")
                 {
-                    log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
+                    //log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
 
                     session.BootSession("Pong sent, closing connection.", new GameMessageCharacterError(CharacterError.Undefined));
 

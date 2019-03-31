@@ -1,5 +1,7 @@
 using System;
 
+using ACE.Database.Models.Auth;
+
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
@@ -14,6 +16,7 @@ namespace ACE.Server.Entity
     {
         ObjectGuid Guid { get; }
 
+        Account Account { get; }
 
         bool? GetProperty(PropertyBool property);
         uint? GetProperty(PropertyDataId property);

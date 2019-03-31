@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -22,12 +23,15 @@ using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
+using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
     public partial class Player : Creature, IPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public Account Account { get; }
 
         public Character Character { get; }
 
@@ -51,6 +55,8 @@ namespace ACE.Server.WorldObjects
             Character.Name = GetProperty(PropertyString.Name);
             CharacterChangesDetected = true;
 
+            Account = DatabaseManager.Authentication.GetAccountById(Character.AccountId);
+
             SetEphemeralValues();
 
             // Make sure properties this WorldObject requires are not null.
@@ -69,6 +75,8 @@ namespace ACE.Server.WorldObjects
         {
             Character = character;
             Session = session;
+
+            Account = DatabaseManager.Authentication.GetAccountById(Character.AccountId);
 
             SetEphemeralValues();
 
