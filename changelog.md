@@ -7,6 +7,7 @@
 * Added @pop command -- Tells you how many players are online.
 * Added @watchmen command -- Displays accounts of a specific access level.
 * Added @finger command -- Displays information about a character and/or account.
+* Hide launcher pings and pongs.
 
 ### 2019-03-30
 [Ripley]

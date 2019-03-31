@@ -227,7 +227,8 @@ namespace ACE.Server.Network
 
         public void DropSession(string reason)
         {
-            log.Info($"Session dropped. Account: {Account}, Player: {Player?.Name}, Reason: {reason}");
+            if (reason != "Pong sent, closing connection.")
+                log.Info($"Session dropped. Account: {Account}, Player: {Player?.Name}, Reason: {reason}");
 
             if (Player != null)
             {
