@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
                 // get the destination salvage bag
 
                 // if there are no existing salvage bags for this material type,
-                // of all of the salvage bags for this material type are full,
+                // or all of the salvage bags for this material type are full,
                 // this will create a new salvage bag, and adds it to salvageBags
 
                 var salvageBag = GetSalvageBag(materialType, salvageBags);

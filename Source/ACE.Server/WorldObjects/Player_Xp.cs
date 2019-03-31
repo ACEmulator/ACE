@@ -137,7 +137,7 @@ namespace ACE.Server.WorldObjects
                 EnchantmentManager.SendUpdateVitae();
             }
 
-            if (vitaePenalty.EpsilonEquals(1.0f))
+            if (vitaePenalty.EpsilonEquals(1.0f) || vitaePenalty > 1.0f)
             {
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(2.0f);
@@ -147,7 +147,7 @@ namespace ACE.Server.WorldObjects
                     if (vitae != null)
                     {
                         var curPenalty = vitae.StatModValue;
-                        if (curPenalty.EpsilonEquals(1.0f))
+                        if (curPenalty.EpsilonEquals(1.0f) || vitaePenalty > 1.0f)
                             EnchantmentManager.RemoveVitae();
                     }
                 });
