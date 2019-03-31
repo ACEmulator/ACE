@@ -320,6 +320,9 @@ namespace ACE.Server.Managers
 
                 if (sound && entry.SpellCategory != SpellCategory_Cooldown)
                     Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
+
+                var spell = new Spell(spellID);
+                Player.HandleMaxVitalUpdate(spell);
             }
             else
             {
@@ -464,7 +467,12 @@ namespace ACE.Server.Managers
                 WorldObject.ChangesDetected = true;
 
             if (Player != null)
+            {
                 Player.Session.Network.EnqueueSend(new GameEventMagicDispelEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
+
+                var spell = new Spell(spellID);
+                Player.HandleMaxVitalUpdate(spell);
+            }
         }
 
         /// <summary>
@@ -479,8 +487,13 @@ namespace ACE.Server.Managers
             {
                 if (WorldObject.Biota.TryRemoveEnchantment(entry, out _, WorldObject.BiotaDatabaseLock))
                     WorldObject.ChangesDetected = true;
-            }
 
+                if (Player != null)
+                {
+                    var spell = new Spell(entry.SpellId);
+                    Player.HandleMaxVitalUpdate(spell);
+                }
+            }
             if (Player != null)
                 Player.Session.Network.EnqueueSend(new GameEventMagicDispelMultipleEnchantments(Player.Session, entries));
         }
@@ -660,7 +673,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Gets the direct modifiers to a vital / secondary attribute
         /// </summary>
-        public virtual float GetVitalMod(CreatureVital vital)
+        public virtual float GetVitalMod_Additives(CreatureVital vital)
         {
             var typeFlags = EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
             var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)vital.Vital);
@@ -671,6 +684,19 @@ namespace ACE.Server.Managers
                 modifier += enchantment.StatModValue;
 
             return modifier;
+        }
+
+        public virtual float GetVitalMod_Multiplier(CreatureVital vital)
+        {
+            // multiplicatives (asheron's lesser benediction)
+            var typeFlags = EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+            var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)vital.Vital);
+
+            var multiplier = 1.0f;
+            foreach (var enchantment in enchantments)
+                multiplier *= enchantment.StatModValue;
+
+            return multiplier;
         }
 
         /// <summary>

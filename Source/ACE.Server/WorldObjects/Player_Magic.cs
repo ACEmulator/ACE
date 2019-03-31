@@ -1189,5 +1189,31 @@ namespace ACE.Server.WorldObjects
 
             // send error message?
         }
+
+        /// <summary>
+        /// Called when an enchantment is added or removed,
+        /// checks if the spell affects the max vitals,
+        /// and if so, updates the client immediately
+        /// </summary>
+        public void HandleMaxVitalUpdate(Spell spell)
+        {
+            var maxVitals = spell.UpdatesMaxVitals;
+
+            if (maxVitals.Count == 0)
+                return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(1.0f);      // client needs time for primary attribute updates
+            actionChain.AddAction(this, () =>
+            {
+                foreach (var maxVital in maxVitals)
+                {
+                    var playerVital = Vitals[maxVital];
+
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, playerVital.ToEnum(), playerVital.Current));
+                }
+            });
+            actionChain.EnqueueChain();
+        }
     }
 }

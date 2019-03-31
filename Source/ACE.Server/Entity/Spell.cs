@@ -5,6 +5,7 @@ using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Entity
 {
@@ -222,6 +223,39 @@ namespace ACE.Server.Entity
                     || Category == SpellCategory.WeaponTimeRaising
                     || Category == SpellCategory.AppraisalResistanceLowering
                     || Category == SpellCategory.SpellDamageRaising;
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of MaxVitals affected by this spell
+        /// </summary>
+        public List<PropertyAttribute2nd> UpdatesMaxVitals
+        {
+            get
+            {
+                var maxVitals = new List<PropertyAttribute2nd>();
+
+                if (_spell == null)
+                    return maxVitals;
+
+                if (StatModType.HasFlag(EnchantmentTypeFlags.SecondAtt))
+                    maxVitals.Add((PropertyAttribute2nd)StatModKey);
+
+                else if (StatModType.HasFlag(EnchantmentTypeFlags.Attribute))
+                {
+                    switch ((PropertyAttribute)StatModKey)
+                    {
+                        case PropertyAttribute.Endurance:
+                            maxVitals.Add(PropertyAttribute2nd.MaxHealth);
+                            maxVitals.Add(PropertyAttribute2nd.MaxStamina);
+                            break;
+
+                        case PropertyAttribute.Self:
+                            maxVitals.Add(PropertyAttribute2nd.MaxMana);
+                            break;
+                    }
+                }
+                return maxVitals;
             }
         }
 
