@@ -1,3 +1,4 @@
+using ACE.Common.Extensions;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,6 +30,12 @@ namespace ACE.Server.Network.Structure
             CreatureSpells = BuildList(creatureSpells, player);
             Cooldowns = BuildList(cooldowns, player);
             Vitae = BuildList(vitae, player).FirstOrDefault();
+
+            if (Vitae != null && (Vitae.StatModValue.EpsilonEquals(1.0f) || Vitae.StatModValue > 1.0f))
+            {
+                player.EnchantmentManager.Dispel(vitae.First());
+                Vitae = null;
+            }
 
             SetEnchantMask();
         }

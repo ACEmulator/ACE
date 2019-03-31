@@ -417,7 +417,9 @@ namespace ACE.Server.Managers
             var minVitae = GetMinVitae((uint)Player.Level);
 
             if (vitae.StatModValue < minVitae)
-                vitae.StatModValue = minVitae;            
+                vitae.StatModValue = minVitae;
+            if (vitae.StatModValue > 1.0f)
+                vitae.StatModValue = 1.0f;
 
             return vitae.StatModValue;
         }
@@ -430,7 +432,7 @@ namespace ACE.Server.Managers
             var vitae = GetVitae();
             vitae.StatModValue += 0.01f;
 
-            if (Math.Abs(vitae.StatModValue - 1.0f) < PhysicsGlobals.EPSILON)
+            if (vitae.StatModValue.EpsilonEquals(1.0f) || vitae.StatModValue > 1.0f)
                 return 1.0f;
 
             return vitae.StatModValue;

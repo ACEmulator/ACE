@@ -646,7 +646,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
-            if (Invincible ?? false) return;
+            if (Invincible ?? false || IsDead) return;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
