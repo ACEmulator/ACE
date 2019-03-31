@@ -20,6 +20,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using ACE.Database.Models.Auth;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -274,14 +275,91 @@ namespace ACE.Server.Command.Handlers
         }
 
         // finger [ [-a] character] [-m account]
-        [CommandHandler("finger", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("finger", AccessLevel.Sentinel, CommandHandlerFlag.None, 1,
+            "Show the given character's account name or vice-versa.",
+            "[ [-a] character] [-m account]\n"
+            + "Given a character name, this command displays the name of the owning account.\nIf the -m option is specified, the argument is considered an account name and the characters owned by that account are displayed.\nIf the -a option is specified, then the character name is fingered but their account is implicitly fingered as well.")]
         public static void HandleFinger(Session session, params string[] parameters)
         {
             // usage: @finger[ [-a] character] [-m account]
             // Given a character name, this command displays the name of the owning account.If the -m option is specified, the argument is considered an account name and the characters owned by that account are displayed.If the -a option is specified, then the character name is fingered but their account is implicitly fingered as well.
             // @finger - Show the given character's account name or vice-versa.
 
-            // TODO: output
+            var lookupCharAndAccount = parameters.Contains("-a");
+            var lookupByAccount = parameters.Contains("-m");
+
+            var charName = "";
+            if (lookupByAccount || lookupCharAndAccount)
+                charName = string.Join(" ", parameters.Skip(1));
+            else
+                charName = string.Join(" ", parameters);
+
+            var message = "";
+            if (!lookupByAccount && !lookupCharAndAccount)
+            {
+                var character = PlayerManager.FindByName(charName);
+
+                if (character != null)
+                {
+                    message = $"Login name: {character.Account.AccountName}      Character: {character.Name}\n";
+                }
+                else
+                    message = $"There was no active character named \"{charName}\" found in the database.\n";
+            }
+            else/* if (lookupByAccount)*/
+            {
+                Account account;
+                if (lookupCharAndAccount)
+                {
+                    var character = PlayerManager.FindByName(charName);
+
+                    if (character == null)
+                    {
+                        message = $"There was no active character named \"{charName}\" found in the database.\n";
+                        CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
+                        return;
+                    }
+                    account = character.Account;
+                }
+                else
+                    account = DatabaseManager.Authentication.GetAccountByName(charName);
+
+                if (account != null)
+                {
+                    message = $"Account '{account.AccountName}' is not banned.\n"; //todo: fix this when banning works
+                    if (account.AccessLevel > (int)AccessLevel.Player)
+                        message += $"Account '{account.AccountName}' has been granted AccessLevel.{((AccessLevel)account.AccessLevel).ToString()} rights.\n";
+                    var characters = DatabaseManager.Shard.GetCharacters(account.AccountId, true);
+                    message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
+                    message += "-------------------\n";
+                    foreach (var character in characters.Where(x => !x.IsDeleted && x.DeleteTime == 0))
+                        message += $"\"{(character.IsPlussed ? "+" : "")}{character.Name}\", ID 0x{character.Id.ToString("X8")}\n";                    
+                    var pendingDeletedCharacters = characters.Where(x => !x.IsDeleted && x.DeleteTime > 0).ToList();
+                    if (pendingDeletedCharacters.Count > 0)
+                    {
+                        message += "-------------------\n";
+                        foreach (var character in pendingDeletedCharacters)
+                            message += $"\"{(character.IsPlussed ? "+" : "")}{character.Name}\", ID 0x{character.Id.ToString("X8")} -- Will be deleted at server time {new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(character.DeleteTime).ToLocalTime().ToString("MMM d yyyy h:mm tt")}\n";
+                    }
+                    message += "-------------------\n";
+                    var deletedCharacters = characters.Where(x => x.IsDeleted).ToList();
+                    if (deletedCharacters.Count > 0)
+                    {
+                        foreach (var character in deletedCharacters)
+                            message += $"\"{(character.IsPlussed ? "+" : "")}{character.Name}\", ID 0x{character.Id.ToString("X8")} -- Deleted at server time {new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(character.DeleteTime).ToLocalTime().ToString("MMM d yyyy h:mm tt")}\n";
+                    }
+                    else
+                        message += "No deleted characters.\n";
+                }
+                else
+                    message = $"There was no account named \"{charName}\" found in the database.\n";
+            }
+            //else
+            //{
+
+            //}
+
+            CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
         }
 
         // freeze
@@ -787,7 +865,7 @@ namespace ACE.Server.Command.Handlers
             var currentPos = new Position(player.Location);
             player.Teleport(session.Player.Location);
             player.SetPosition(PositionType.TeleportedCharacter, currentPos);
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you to their current location.", ChatMessageType.Magic));
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you.", ChatMessageType.Magic));
         }
 
         /// <summary>

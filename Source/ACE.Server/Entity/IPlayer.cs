@@ -14,6 +14,7 @@ namespace ACE.Server.Entity
     {
         ObjectGuid Guid { get; }
 
+        Database.Models.Auth.Account Account { get; }
 
         bool? GetProperty(PropertyBool property);
         uint? GetProperty(PropertyDataId property);

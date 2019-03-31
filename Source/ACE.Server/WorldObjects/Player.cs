@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -28,6 +29,8 @@ namespace ACE.Server.WorldObjects
     public partial class Player : Creature, IPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public Account Account { get; }
 
         public Character Character { get; }
 

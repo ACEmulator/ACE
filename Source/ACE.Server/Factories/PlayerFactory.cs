@@ -33,7 +33,12 @@ namespace ACE.Server.Factories
         {
             var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[characterCreateInfo.Heritage];
 
-            player = new Player(weenie, guid, accountId);
+            if (weenie.Type == (int)WeenieType.Admin)
+                player = new Admin(weenie, guid, accountId);
+            else if (weenie.Type == (int)WeenieType.Sentinel)
+                player = new Sentinel(weenie, guid, accountId);
+            else
+                player = new Player(weenie, guid, accountId);
 
             player.SetProperty(PropertyInt.HeritageGroup, (int)characterCreateInfo.Heritage);
             player.SetProperty(PropertyString.HeritageGroup, heritageGroup.Name);
