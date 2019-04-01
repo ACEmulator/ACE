@@ -86,6 +86,7 @@
 
 ### 2019-03-24
 [gmriggs]
+* Added support for Luminance augs
 * Fixed an outdoor->indoor visibility bug
 
 ### 2019-03-22
