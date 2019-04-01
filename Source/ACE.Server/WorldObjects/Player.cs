@@ -444,6 +444,9 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(general, trade, lfg, roleplay);
             }
 
+            if (CurrentActiveCombatPet != null)
+                CurrentActiveCombatPet.Destroy();
+
             if (CurrentLandblock != null)
             {
                 var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);

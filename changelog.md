@@ -9,6 +9,9 @@
 * Added @watchmen command -- Displays accounts of a specific access level.
 * Added @finger command -- Displays information about a character and/or account.
 * Hide launcher pings and pongs.
+* Exclude summoned pets from saving to Shard DB.
+* Update PetDevice and Pet with class defaults.
+* Change PetDevice to not consume on final use.
 
 [gmriggs]
 * Added support for Asherons's Benediction and Augmented Understanding

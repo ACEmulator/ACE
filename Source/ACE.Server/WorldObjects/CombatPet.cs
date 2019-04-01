@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
     /// <summary>
     /// Summonable monsters combat AI
     /// </summary>
-    public class CombatPet: Creature
+    public class CombatPet : Creature
     {
         public DateTime ExpirationTime;
 
@@ -37,7 +37,9 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-
+            Ethereal = true;
+            RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
+            Usable = ACE.Entity.Enum.Usable.No;
         }
 
         public void Init(Player player, DamageType damageType, PetDevice petDevice)
@@ -55,6 +57,7 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
             MonsterState = State.Awake;
             IsAwake = true;
+            player.CurrentActiveCombatPet = this;
 
             // copy ratings from pet device
             DamageRating = petDevice.GearDamage;
