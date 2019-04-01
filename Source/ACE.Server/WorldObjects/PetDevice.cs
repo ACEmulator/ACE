@@ -137,7 +137,9 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"Couldn't find pet wcid #{wcid}");
                 return false;
             }
-            player.EnchantmentManager.StartCooldown(this);
+
+            if (weenie.Type != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                weenie.Type = (int)WeenieType.CombatPet;
 
             var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
             if (combatPet == null)
