@@ -131,7 +131,8 @@ namespace ACE.Server.WorldObjects
             if (IsGenerator || Generator != null)
                 return false;
 
-            if (WeenieType == WeenieType.Missile || WeenieType == WeenieType.Ammunition || WeenieType == WeenieType.ProjectileSpell || WeenieType == WeenieType.GamePiece)
+            if (WeenieType == WeenieType.Missile || WeenieType == WeenieType.Ammunition || WeenieType == WeenieType.ProjectileSpell || WeenieType == WeenieType.GamePiece
+                || WeenieType == WeenieType.Pet || WeenieType == WeenieType.CombatPet)
                 return false;
 
             if (WeenieType == WeenieType.Corpse && this is Corpse corpse && corpse.IsMonster)
