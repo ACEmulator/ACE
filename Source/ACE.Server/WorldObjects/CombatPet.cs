@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
     /// <summary>
     /// Summonable monsters combat AI
     /// </summary>
-    public class CombatPet: Creature
+    public class CombatPet : Creature
     {
         public DateTime ExpirationTime;
 
