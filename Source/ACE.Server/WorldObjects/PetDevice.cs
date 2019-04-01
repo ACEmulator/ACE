@@ -93,14 +93,19 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (Structure == 0)
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You must refill the essence to use it again."));
+                return;
+            }
+
             var wcid = petData.Item1;
             var damageType = petData.Item2;
 
             if (SummonCreature(player, wcid, damageType))
             {
                 // decrease remaining uses
-                if (--Structure <= 0)
-                    player.TryConsumeFromInventoryWithNetworking(this, 1);
+                Structure--;
 
                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
             }
