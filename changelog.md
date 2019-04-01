@@ -5,6 +5,7 @@
 * Add some null checks to try to catch issue with SelectDispel.
 * Add logging to Spell.Init
 * Add warning to players about potential rollback issues when SaveBiota fails.
+* Exclude Cooldowns from HandleMaxVitalUpdate
 
 ### 2019-03-31
 [Ripley]
