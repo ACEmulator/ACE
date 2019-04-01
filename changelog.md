@@ -10,6 +10,12 @@
 * Added @finger command -- Displays information about a character and/or account.
 * Hide launcher pings and pongs.
 
+[gmriggs]
+* Added support for Asherons's Benediction and Augmented Understanding
+* Updated monster corpse looting permissions - after the top damager finishes looting, other players may loot
+* Fixed a bug with vitae not expiring
+* Fixed a salvaging bug with Green Garnet and Mahogany items
+
 ### 2019-03-30
 [OptimShi]
 * Fixed Gear Knights being literal buttheads. (Their abdomen was being swapped with their heads)
@@ -18,19 +24,119 @@
 * Update Shard DB Enchantment Registry composite key.
 * Fixed CharGen issue for Dual Wield characters. 2x Melee Weapons are created if Dual Wield is trained or specialized.
 
+[gmriggs]
+* Additional null checks for allegiances and fellowships
+* Fixed a bug where crafting components were being removed from the shortcut bar on usage
+* The fellowship 'disband' button when clicked by non-leaders no longer acts as a 'leave' button, as per retail
+* Added IsBusy checks to healing and recipe crafting for vtank
+* Added option to enable/disable DoT messages
+* Updated PKLite messages to match retail
+* Fixed a bug where players could cast spells from inside portal space
+* Improved allegiance data sync
+
 ### 2019-03-29
 [Ripley]
 * Change action that occurs for selling items to vendors so they appear in the buy window if they aren't destroyed on sell.
 * Prevent selling objects (via drag-drop on vendor) that vendor doesn't accept in its MerchandiseItemTypes field. These same items would red-circle using traditional drop into panel method.
 * Set minimum for hotspot cycles. Prevents hotspot of doom (HotspotCycleTime == 0)
 
+[gmriggs]
+* Improved jump with low stamina
+* Fixed Holtburg sentries running in circles
+* Fixing chests stuck in open state
+* Updated War Magic spell projectile and resisted messages to match retail exactly (this was causing a delay in vtank between spellcasts)
+* Added Monarch/Patron/Vassal prefixes to allegiance login messages, updated colors
+
+[Ripley, gmriggs]
+* Fixed Cow Tipping Quest
+
+### 2019-03-28
+[gmriggs]
+* Fixed scroll usage in vtank
+* Added /teledungeon command for Sentinels / Admins
+* Added support for Encapsulated Spirit
+* Added alternate currency for vendors
+* Additional fixes for decal crashes when entering Portals, and around Holtburg
+* Fixed a bug with items in chests sometimes appearing incorrectly in client
+
+[Jyrus]
+* Added IOUs for EmoteType.Give w/ missing wcids
+* Emote skill check: ranks -> current
+* Updated Active flag and chest logic
+* Improved spell duration logic
+
 ### 2019-03-27
 [Ripley]
 * Support AdvocateItem changing/updating Radar Blip Color in similar fashion to retail servers.
 
+[Jyrus]
+* Added landblock spawns from Friend and Foe patch
+
+### 2019-03-26
+[Jyrus]
+* Adding preliminary content for Friend and Foe monthly patch
+
 ### 2019-03-25
 [OptimShi]
-* Appraised items on houseing hooks now show the details on the hooked item.
+* Appraised items on housing hooks now show the details on the hooked item.
+
+[gmriggs]
+* Ensure monsters have a targeting tactic
+* Added option to enable chess AI
+
+### 2019-03-24
+[gmriggs]
+* Added support for Luminance augs
+* Fixed an outdoor->indoor visibility bug
+
+### 2019-03-22
+[gmriggs]
+* Adding support for Enlightenment
+* Updating burden from ammo / spell component usage
+
+[gmriggs, Cyberkiller]
+* Fixed a bug with run backwards state / jump frozen bug
+
+### 2019-03-21
+[gmriggs]
+* Fixed a bug with spell trap durations
+* Improved handling for edge cases for refreshing spells w/ augs
+* Improved chess piece movement
+
+### 2019-03-20
+
+[gmriggs]
+* Added Aetheria!
+* Additional ratings added to appraisal panel
+
+[Jyrus]
+* Added Tailoring NPCs
+* Better orgnanization and restructuring for -Patches folders (now grouped by date)
+* Updated spell info, added spells for item sets
+
+### 2019-03-19
+
+[Phenyl, gmriggs]
+* Added Tailoring. Much thanks and credit to Phenyl for originally authoring this code!
+
+### 2019-03-18
+
+[gmriggs]
+* Added spell procs / cast on strike
+* Added support for item leveling
+* Fixed a bug where enchantments from items were being cleared on death
+* More visual updates for dye recipes
+
+[OptimShi + gmriggs]
+* Updated barber shop
+
+### 2019-03-16
+
+[Anahera, gmriggs]
+* Added Chess. Much thanks and credit to Anahera for originally authoring this code!
+
+[Mag-nus]
+* AddWorldObjectInternal fix
 
 ### 2019-03-15
 [Ripley]
@@ -42,11 +148,62 @@
 [Ripley]
 * Allow passthrough of permaload flag to landblocks loaded by adjacent load.
 
+[gmriggs]
+* Improved 'out of missile ammo' animation state / feedback
+* More consistency for create lists and moving items to corpses
+* Consolidated pyreals in death messages, added corpse_destroy_pyreals server option (defaults to true / end of retail)
+* Additional checks for built-in weapon spells
+* Added rare timers
+* Added some missing types / info to login
+
+[Mag-nus]
+* Enqueue action message cleanup
+
+### 2019-03-13
+[Mag-nus]
+* Fixed the legacy Open/Close virtual functions in WorldOjbect base
+
+[gmriggs]
+* Additional error messages for allegaince swearing
+* Added local broadcast range to spell words
+* Revising indoor fellowship distances
+* Continued refactoring of HandleUseOnTarget
+
 ### 2019-03-12
+[Jyrus]
+* Player.HandleActionUseWithTarget refactoring
+
 [gmriggs, Ripley]
 * Fix Vendors to handle 0 value items properly in buy/sell.
 
+[gmriggs]
+* Added fellowship names to player appraisal panel
+* Fixed an invisible player bug when players re-enter visibility to an unmoving player
+
+[Mag-nus]
+* Ensuring prior container is closed before opening a new one
+
+### 2019-03-11
+[gmriggs]
+* Fixed some issues with CombatPet aggro
+
 ### 2019-03-10
+[fartwhif]
+* Network stability:
+  - fixed bug causing disconnects due to NAK requests being ignored.
+  - fixed bug causing session to enter an unspecified state after connect request packet sent to the client is corrupted in transit
+  - fixed bug during handshake causing defunct session to linger
+  - fixed bug whenever a bad handshake occurs causing crash
+  - added asynchronous verification of encrypted CRCs
+  - added checksum caching to ClientPacket
+  - added handling of trusted packet with ClientSentNetErrorDisconnect flag
+  - added parsing of optional "flow" header data
+  - added more network logging
+  - removed "generational ISAAC" debugging tools
+
+[Mag-nus]
+* Cleaned up UseWithTarget and GameMessageInventoryRemoveObject
+
 [Ripley]
 * Changed the way Name property is handled with regards to + (Admin/Sentinel characters).
 * Set up basic path to support replicating accesslevel changes on to existing characters.
@@ -54,10 +211,19 @@
 * Add @pk command.
 * Revise @cloak command.
 
+[Jyrus]
+* Loot Generator refactoring / organizing
+
 ### 2019-03-09
 [OptimShi]
 * Added LanguageInfo to DatLoader (0x41 in client_local_English.dat)
 * Added improved feedback when issuing invalid console commands or using incorrect syntax
+
+[gmriggs]
+* Added Natural Resistances for players
+
+[Ripley]
+* Added configurable BCrypt WorkFactor for password hashing
 
 ### 2019-03-08
 [Ripley]
@@ -66,11 +232,44 @@
 [OptimShi]
 * Corrected DatDatabaseType values
 
+[gmriggs]
+* Adjusted trained skill check for reading magic scrolls
+
+### 2019-03-07
+[Mag-nus]
+* Added system for reusing dynamic guids. The database is now queried for guid fragmentation on startup, with support for recycling guids during the game
+
+### 2019-03-06
+[gmriggs]
+* Added the ability for player to use all Augmentation Gems
+* Added /teletome command for admins
+
+### 2019-03-05
+[gmriggs]
+* Cleaned up welcome message / server mtod
+* Added substates to initial player broadcasts
+* Added RNG ratings to Summoning essences
+
+[Jyrus]
+* Disabled the portal messages to match retail
+
+### 2019-03-03
+[Jyrus]
+* Added Void Magic scrolls and Summoning essences to loot generator
+
+[gmriggs]
+* Fixed a bug with dropping items from scatter generators
+
 ### 2019-03-02
 [Ripley]
 * Added migration coding to support migrating from previous SHA512 Hash/Salt method to BCrypt.
 * Script for Updating Auth database added to default passwords to BCrypt.
 * Added `passwd` and `set-accountpassword` commands for self-service password changing and admin-only override password changes.
+
+[gmriggs]
+* Added support for Magic Professors
+* Updated spellcasting / healing movement check messages to match retail
+* Updated salvaging result messages
 
 ### 2019-03-01
 [zegegerslittlesis]
