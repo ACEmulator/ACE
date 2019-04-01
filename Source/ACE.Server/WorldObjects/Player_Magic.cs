@@ -8,6 +8,7 @@ using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
@@ -1198,6 +1199,19 @@ namespace ACE.Server.WorldObjects
         public void HandleMaxVitalUpdate(Spell spell)
         {
             var maxVitals = spell.UpdatesMaxVitals;
+
+            if (spell.Id == 666) // Vitae
+            {
+                maxVitals.Remove(PropertyAttribute2nd.Undef);
+                maxVitals.Add(PropertyAttribute2nd.MaxHealth);
+                maxVitals.Add(PropertyAttribute2nd.MaxStamina);
+                maxVitals.Add(PropertyAttribute2nd.MaxMana);
+            }
+            else
+            {
+                if (maxVitals.Contains(PropertyAttribute2nd.Undef))
+                    maxVitals.Remove(PropertyAttribute2nd.Undef);
+            }
 
             if (maxVitals.Count == 0)
                 return;
