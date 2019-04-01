@@ -553,14 +553,14 @@ namespace ACE.Server.Managers
 
             var filterSpells = spells;
             if (dispelSchool != MagicSchool.None)
-                filterSpells = filterSpells.Where(s => s.Spell.School == dispelSchool).ToList();
+                filterSpells = filterSpells.Where(s => s.Spell != null && s.Spell.School == dispelSchool).ToList();
 
             if (align != DispelType.All)
             {
                 if (align == DispelType.Positive)
-                    filterSpells = filterSpells.Where(s => s.Spell.IsBeneficial).ToList();
+                    filterSpells = filterSpells.Where(s => s.Spell != null && s.Spell.IsBeneficial).ToList();
                 else if (align == DispelType.Negative)
-                    filterSpells = filterSpells.Where(s => s.Spell.IsHarmful).ToList();
+                    filterSpells = filterSpells.Where(s => s.Spell != null && s.Spell.IsHarmful).ToList();
             }
 
             // dispel all
