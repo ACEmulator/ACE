@@ -26,12 +26,17 @@ namespace ACE.Server.WorldObjects
 
         public void FellowshipQuit(bool disband)
         {
+            if (Fellowship == null) return;
+
             Fellowship.QuitFellowship(this, disband);
+
             Fellowship = null;
         }
 
         public void FellowshipDismissPlayer(Player player)
         {
+            if (Fellowship == null) return;
+
             if (Guid.Full == Fellowship.FellowshipLeaderGuid)
                 Fellowship.RemoveFellowshipMember(player);
             else
@@ -40,6 +45,8 @@ namespace ACE.Server.WorldObjects
 
         public void FellowshipRecruit(Player newPlayer)
         {
+            if (newPlayer == null) return;
+
             if (newPlayer.GetCharacterOption(CharacterOption.IgnoreFellowshipRequests))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{newPlayer.Name} is not accepting fellowing requests.", ChatMessageType.Fellowship));
@@ -55,6 +62,9 @@ namespace ACE.Server.WorldObjects
 
         public void FellowshipNewLeader(Player newLeader)
         {
+            if (Fellowship == null || newLeader == null)
+                return;
+
             Fellowship.AssignNewLeader(newLeader);
         }
     }

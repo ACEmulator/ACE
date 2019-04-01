@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
         {
             var deathMessage = Strings.GetDeathMessage(damageType, criticalHit);
 
-            if (lastDamager == this)
+            if (lastDamager == null || lastDamager == this)
                 deathMessage = Strings.General[1];
 
             // if killed by a player, send them a message
