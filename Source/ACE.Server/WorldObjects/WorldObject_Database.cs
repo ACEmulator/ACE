@@ -62,23 +62,10 @@ namespace ACE.Server.WorldObjects
                         if (this is Player player)
                         {
                             //todo: remove this later?
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("WARNING: A database save for this characters failed. Log off at a safe point and log back in to avoid significant rollback.", ChatMessageType.WorldBroadcast));
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("WARNING: A database save for this character has failed. In order to avoid potentially significant character rollback, please find a safe place, log out of the game and then reconnect & re-login. This error has also been logged to be further reviewed by ACEmulator team.", ChatMessageType.WorldBroadcast));
                         }
                     }
-                    //test(this, result);
                 });
-        }
-
-        private static void test(WorldObject wo, bool result)
-        {
-            if (!result)
-            {
-                if (wo is Player player)
-                {
-                    //todo: remove this later?
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("WARNING: A database save for this characters failed. Log off at a safe point and log back in to avoid significant rollback.", ChatMessageType.WorldBroadcast));
-                }
-            }
         }
 
         /// <summary>
