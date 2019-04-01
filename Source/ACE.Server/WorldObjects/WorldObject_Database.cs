@@ -4,6 +4,7 @@ using System.Threading;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -53,7 +54,31 @@ namespace ACE.Server.WorldObjects
             ChangesDetected = false;
 
             if (enqueueSave)
-                DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
+                //DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
+                DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, result =>
+                {
+                    if (!result)
+                    {
+                        if (this is Player player)
+                        {
+                            //todo: remove this later?
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("WARNING: A database save for this characters failed. Log off at a safe point and log back in to avoid significant rollback.", ChatMessageType.WorldBroadcast));
+                        }
+                    }
+                    //test(this, result);
+                });
+        }
+
+        private static void test(WorldObject wo, bool result)
+        {
+            if (!result)
+            {
+                if (wo is Player player)
+                {
+                    //todo: remove this later?
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("WARNING: A database save for this characters failed. Log off at a safe point and log back in to avoid significant rollback.", ChatMessageType.WorldBroadcast));
+                }
+            }
         }
 
         /// <summary>
