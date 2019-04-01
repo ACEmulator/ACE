@@ -6,6 +6,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using log4net;
 
 namespace ACE.Server.Entity
 {
@@ -15,6 +16,8 @@ namespace ACE.Server.Entity
     /// </summary>
     public partial class Spell: IEquatable<Spell>
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The spell information from the client DAT
         /// </summary>
@@ -72,6 +75,9 @@ namespace ACE.Server.Entity
 
             if (_spellBase != null)
                 Formula = new SpellFormula(this, _formula);
+
+            if (loadDB && (_spell == null || _spellBase == null))
+                log.Error($"Spell.Init(spellID = {spellID}, loadDB = {loadDB}) failed! {(_spell == null ? "_spell was null" : "")} {(_spellBase == null ? "_spellBase was null" : "")}");
         }
 
         /// <summary>

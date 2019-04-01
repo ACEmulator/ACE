@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-04-01
+[Ripley]
+* Add some null checks to try to catch issue with SelectDispel.
+* Add logging to Spell.Init
+
 ### 2019-03-31
 [Ripley]
 * Update Logout to include server population and limits when character list is resent.
