@@ -321,8 +321,11 @@ namespace ACE.Server.Managers
                 if (sound && entry.SpellCategory != SpellCategory_Cooldown)
                     Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
 
-                var spell = new Spell(spellID);
-                Player.HandleMaxVitalUpdate(spell);
+                if (entry.SpellCategory != SpellCategory_Cooldown)
+                {
+                    var spell = new Spell(spellID);
+                    Player.HandleMaxVitalUpdate(spell);
+                }
             }
             else
             {
