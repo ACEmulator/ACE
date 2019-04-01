@@ -1200,19 +1200,6 @@ namespace ACE.Server.WorldObjects
         {
             var maxVitals = spell.UpdatesMaxVitals;
 
-            if (spell.Id == 666) // Vitae
-            {
-                maxVitals.Remove(PropertyAttribute2nd.Undef);
-                maxVitals.Add(PropertyAttribute2nd.MaxHealth);
-                maxVitals.Add(PropertyAttribute2nd.MaxStamina);
-                maxVitals.Add(PropertyAttribute2nd.MaxMana);
-            }
-            else
-            {
-                if (maxVitals.Contains(PropertyAttribute2nd.Undef))
-                    maxVitals.Remove(PropertyAttribute2nd.Undef);
-            }
-
             if (maxVitals.Count == 0)
                 return;
 

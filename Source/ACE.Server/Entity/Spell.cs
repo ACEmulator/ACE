@@ -244,7 +244,7 @@ namespace ACE.Server.Entity
                 if (_spell == null)
                     return maxVitals;
 
-                if (StatModType.HasFlag(EnchantmentTypeFlags.SecondAtt))
+                if (StatModType.HasFlag(EnchantmentTypeFlags.SecondAtt) && StatModKey != 0)
                     maxVitals.Add((PropertyAttribute2nd)StatModKey);
 
                 else if (StatModType.HasFlag(EnchantmentTypeFlags.Attribute))
@@ -261,6 +261,14 @@ namespace ACE.Server.Entity
                             break;
                     }
                 }
+
+                //if (_spell.Id == 666) // Vitae
+                //{
+                //    maxVitals.Add(PropertyAttribute2nd.MaxHealth);
+                //    maxVitals.Add(PropertyAttribute2nd.MaxStamina);
+                //    maxVitals.Add(PropertyAttribute2nd.MaxMana);
+                //}
+
                 return maxVitals;
             }
         }
