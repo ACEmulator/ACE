@@ -364,6 +364,8 @@ namespace ACE.Server.WorldObjects
 
         public string GetPrefix(Player allegianceMember)
         {
+            return "";
+
             var prefix = "";
             if (allegianceMember.Guid == AllegianceNode.Monarch.PlayerGuid)
                 prefix = "Your monarch ";

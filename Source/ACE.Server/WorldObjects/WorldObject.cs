@@ -867,7 +867,7 @@ namespace ACE.Server.WorldObjects
 
             if (this is CombatPet combatPet)
             {
-                if (combatPet.P_PetOwner.CurrentActiveCombatPet == this)
+                if (combatPet.P_PetOwner != null && combatPet.P_PetOwner.CurrentActiveCombatPet == this)
                     combatPet.P_PetOwner.CurrentActiveCombatPet = null;
             }
 

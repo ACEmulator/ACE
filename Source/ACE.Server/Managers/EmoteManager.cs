@@ -995,17 +995,25 @@ namespace ACE.Server.Managers
                                 var questName = QuestManager.GetQuestName(emote.Message);
                                 var quest = DatabaseManager.World.GetCachedQuest(questName);
 
-                                var playerQuest = player.QuestManager.Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-
-                                if (playerQuest != null)
+                                if (quest != null)
                                 {
-                                    var isMaxSolves = player.QuestManager.IsMaxSolves(questName);
-                                    if (isMaxSolves)
-                                        text = $"You have killed {quest.MaxSolves} {WorldObject.Name}s. Your task is complete!";
-                                    else
-                                        text = $"You have killed {playerQuest.NumTimesCompleted} {WorldObject.Name}s. You must kill {quest.MaxSolves} to complete your task!";
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                                    var playerQuest = player.QuestManager.Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+                                    if (playerQuest != null)
+                                    {
+                                        var isMaxSolves = player.QuestManager.IsMaxSolves(questName);
+                                        if (WorldObject != null)
+                                        {
+                                            if (isMaxSolves)
+                                                text = $"You have killed {quest.MaxSolves} {WorldObject.Name}s. Your task is complete!";
+                                            else
+                                                text = $"You have killed {playerQuest.NumTimesCompleted} {WorldObject.Name}s. You must kill {quest.MaxSolves} to complete your task!";
+                                        }
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                                    }
                                 }
+                                else
+                                    log.Error($"Couldn't find kill task {questName} in database");
                             }
                         }
                         else
@@ -1220,6 +1228,7 @@ namespace ACE.Server.Managers
 
             IsBusy = true;
             var emote = emoteSet.BiotaPropertiesEmoteAction.ElementAt(emoteIdx);
+            if (emote == null) return;
 
             var actionChain = new ActionChain();
 
