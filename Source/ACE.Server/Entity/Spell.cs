@@ -244,7 +244,7 @@ namespace ACE.Server.Entity
                 if (_spell == null)
                     return maxVitals;
 
-                if (StatModType.HasFlag(EnchantmentTypeFlags.SecondAtt))
+                if (StatModType.HasFlag(EnchantmentTypeFlags.SecondAtt) && StatModKey != 0)
                     maxVitals.Add((PropertyAttribute2nd)StatModKey);
 
                 else if (StatModType.HasFlag(EnchantmentTypeFlags.Attribute))

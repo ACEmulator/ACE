@@ -1197,8 +1197,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleMaxVitalUpdate(Spell spell)
         {
-            return;
-
             var maxVitals = spell.UpdatesMaxVitals;
 
             if (maxVitals.Count == 0)
