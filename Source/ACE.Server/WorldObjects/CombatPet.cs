@@ -57,6 +57,7 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
             MonsterState = State.Awake;
             IsAwake = true;
+            player.CurrentActiveCombatPet = this;
 
             // copy ratings from pet device
             DamageRating = petDevice.GearDamage;

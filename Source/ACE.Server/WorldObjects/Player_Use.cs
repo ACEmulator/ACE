@@ -135,5 +135,7 @@ namespace ACE.Server.WorldObjects
             if (container != null && container.Viewer == Guid.Full)
                 container.Close(this);
         }
+
+        public CombatPet CurrentActiveCombatPet { get; set; }
     }
 }
