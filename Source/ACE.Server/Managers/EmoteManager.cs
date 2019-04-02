@@ -1034,7 +1034,7 @@ namespace ACE.Server.Managers
                             var itemTaken = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(emote.WeenieClassId ?? 0), ObjectGuid.Invalid);
                             if (itemTaken != null)
                             {
-                                var msg = $"You hand over {emote.StackSize} of your {(((emote.StackSize ?? 1) > 1) ? $"{itemTaken.GetPluralName()}" : $"{itemTaken.Name}")}.";
+                                var msg = $"You hand over {emote.StackSize} of your {itemTaken.GetPluralName()}.";
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                             }
                         }
