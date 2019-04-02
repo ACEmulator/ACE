@@ -136,6 +136,7 @@ namespace ACE.Server.WorldObjects
                 {
                     cs.AdvancementClass = SkillAdvancementClass.Untrained;
                     cs.InitLevel -= 5;
+                    AvailableSkillCredits += creditsSpent;
                 }
 
                 cs.Ranks = 0;
