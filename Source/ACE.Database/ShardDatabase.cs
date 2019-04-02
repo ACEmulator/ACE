@@ -329,7 +329,6 @@ namespace ACE.Database
             return result;
         }
 
-
         public bool RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock)
         {
             if (BiotaContexts.TryGetValue(biota, out var cachedContext))

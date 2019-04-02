@@ -328,6 +328,7 @@ namespace ACE.Database
             }));
         }
 
+
         public void AddCharacterInParallel(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
