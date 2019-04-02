@@ -324,8 +324,11 @@ namespace ACE.Server.Managers
                 RemoveCache(self.Allegiance);
 
             // rebuild for self and target
-            Rebuild(GetAllegiance(self));
-            Rebuild(GetAllegiance(target));
+            var selfAllegiance = GetAllegiance(self);
+            var targetAllegiance = GetAllegiance(target);
+
+            Rebuild(selfAllegiance);
+            Rebuild(targetAllegiance);
 
             LoadPlayer(self);
             LoadPlayer(target);
