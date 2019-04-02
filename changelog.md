@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2019-04-02
+[Theran]
+* Add Coelesced Aetheria to loot drops
+* Adjust LootGenerationFactory.GetValue() to take the inherent weenie value of items into account, rather than a seemingly arbitrary random value
+
 [Ripley]
 * Change the way GiveObjecttoNPC and HandleNPCReceiveItem deal with emotes.
 
