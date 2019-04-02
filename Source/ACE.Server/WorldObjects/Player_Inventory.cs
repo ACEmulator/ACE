@@ -1225,9 +1225,9 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // We make sure the stack is still valid. It could have changed during our movement
-                    if (stack.StackSize < amount)
+                    if (stackOriginalContainer != stack.ContainerId || stack.StackSize < amount)
                     {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split failed!")); // Custom error message
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
                         return;
                     }
@@ -1236,19 +1236,10 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
-                        // Make sure the stack hasn't moved
-                        if (stackOriginalContainer != stack.ContainerId)
-                        {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Source stack moved!")); // Custom error message
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
-                            EnqueueBroadcastMotion(returnStance);
-                            return;
-                        }
-
                         // We make sure the stack is still valid. It could have changed during our pickup animation
-                        if (stack.StackSize < amount)
+                        if (stackOriginalContainer != stack.ContainerId || stack.StackSize < amount)
                         {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
+                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split failed!")); // Custom error message
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
                             EnqueueBroadcastMotion(returnStance);
                             return;
@@ -1486,9 +1477,9 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // We make sure the stack is still valid. It could have changed during our movement
-                    if (sourceStack.StackSize < amount)
+                    if (sourceStackOriginalContainer != sourceStack.ContainerId || sourceStack.StackSize < amount)
                     {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge Failed!")); // Custom error message
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
                         return;
                     }
@@ -1497,19 +1488,10 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
-                        // Make sure the source stack hasn't moved
-                        if (sourceStackOriginalContainer != sourceStack.ContainerId)
-                        {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Source stack moved!")); // Custom error message
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
-                            EnqueueBroadcastMotion(returnStance);
-                            return;
-                        }
-
                         // We make sure the stack is still valid. It could have changed during our pickup animation
-                        if (sourceStack.StackSize < amount)
+                        if (sourceStackOriginalContainer != sourceStack.ContainerId || sourceStack.StackSize < amount)
                         {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
+                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge Failed!")); // Custom error message
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
                             EnqueueBroadcastMotion(returnStance);
                             return;
