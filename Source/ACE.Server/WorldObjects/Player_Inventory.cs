@@ -1667,9 +1667,7 @@ namespace ACE.Server.WorldObjects
 
             var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && (item.Attuned ?? 0) != (int)AttunedStatus.Sticky;
 
-            var result = target.Biota.BiotaPropertiesEmote.FirstOrDefault(emote => emote.WeenieClassId == item.WeenieClassId);
-
-            if (result != null && target.HandleNPCReceiveItem(item, this) || acceptAll)
+            if (target.HandleNPCReceiveItem(item, this, out var result) || acceptAll)
             {
                 if (acceptAll || result.Category == (uint)EmoteCategory.Give)
                 {
@@ -1688,7 +1686,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // Item rejected by npc
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.Name}.", ChatMessageType.Broadcast));
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeAiRefuseEmote));
                 }
             }
             else
