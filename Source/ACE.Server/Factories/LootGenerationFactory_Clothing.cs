@@ -9386,7 +9386,6 @@ namespace ACE.Server.Factories
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
 
             if (wieldDifficulty > 0)
                 wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
@@ -9578,6 +9577,9 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemSpellcraft);
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
+
+            // To be expanded upon
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, (wo.Value ?? 0)));
 
             return wo;
         }

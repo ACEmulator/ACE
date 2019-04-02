@@ -4,11 +4,8 @@ using System;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Factories;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -72,6 +69,7 @@ namespace ACE.Server.Factories
             }
 
             var itemChance = ThreadSafeRandom.Next(1, 100);
+
             if (itemChance <= profile.ItemChance)
             {
                 numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
@@ -88,12 +86,34 @@ namespace ACE.Server.Factories
 
             if (itemChance <= profile.MagicItemChance)
             {
+                int aetheriaDropChance;
+                bool aetheriaGenerated = false;
                 numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
                 {
-                    lootWorldObject = CreateRandomLootObjects(profile.Tier, true, lootBias);
-                    if (lootWorldObject != null)
-                        loot.Add(lootWorldObject);
+                    // Coalesced Aetheria don't drop for tiers less than 5
+                    // According to wiki, Weapon Mana Forge chests don't drop Aetheria
+                    // Otherwise, 50% chance to drop a Coalesced Aetheria 
+                    if (aetheriaGenerated == false && profile.Tier > 4 && lootBias != LootBias.Weapons)
+                        aetheriaDropChance = ThreadSafeRandom.Next(1, 2);
+                    else
+                        aetheriaDropChance = 0;
+
+                    if (aetheriaDropChance == 2)
+                    {
+                        lootWorldObject = CreateAetheria(profile.Tier);
+                        if (lootWorldObject != null)
+                        {
+                            loot.Add(lootWorldObject);
+                            aetheriaGenerated = true;
+                        }
+                    }
+                    else
+                    {
+                        lootWorldObject = CreateRandomLootObjects(profile.Tier, true, lootBias);
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
                 }
             }
 
@@ -113,8 +133,8 @@ namespace ACE.Server.Factories
             }
 
             // 25% chance to drop a scroll
-            itemChance = ThreadSafeRandom.Next(0, 3);
-            if (itemChance == 3)
+            itemChance = ThreadSafeRandom.Next(1, 4);
+            if (itemChance == 4)
             {
                 if (lootBias == LootBias.UnBiased && profile.MagicItemMinAmount > 0)
                 {
@@ -125,11 +145,14 @@ namespace ACE.Server.Factories
                 }
             }
 
-            if (lootBias != LootBias.Armor && lootBias != LootBias.Weapons && lootBias != LootBias.MagicEquipment && profile.MagicItemMinAmount > 0)
+            if (lootBias != LootBias.Armor &&
+                lootBias != LootBias.Weapons &&
+                lootBias != LootBias.MagicEquipment &&
+                profile.MagicItemMinAmount > 0)
             {
                 // 33% chance to drop a summoning essence
-                itemChance = ThreadSafeRandom.Next(0, 2);
-                if (itemChance == 2)
+                itemChance = ThreadSafeRandom.Next(1, 3);
+                if (itemChance == 3)
                 {
                     lootWorldObject = CreateSummoningEssence(profile.Tier);
 
@@ -172,19 +195,19 @@ namespace ACE.Server.Factories
             switch (type)
             {
                 case 1:
-                    //jewels
+                    // jewels
                     wo = CreateJewels(tier, isMagical);
                     return wo;
                 case 2:
-                    //armor
+                    // armor
                     wo = CreateArmor(tier, isMagical, lootBias);
                     return wo;
                 case 3:
-                    //weapons
+                    // weapons
                     wo = CreateWeapon(tier, isMagical);
                     return wo;
                 default:
-                    //jewelry
+                    // jewelry
                     wo = CreateJewelry(tier, isMagical);
                     return wo;
             }
@@ -2165,11 +2188,13 @@ namespace ACE.Server.Factories
             return m2;
         }
 
-        private static int GetValue(int tier, int work)
+        private static int GetValue(int tier, int work, int baseWeenieValue)
         {
             ///This is just a placeholder. This doesnt return a final value used retail, just a quick value for now.
             ///Will use, tier, material type, amount of gems set into item, type of gems, spells on item
-            int value = ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, work) * ThreadSafeRandom.Next(1, 250) + ThreadSafeRandom.Next(1, 50);
+            int value = ThreadSafeRandom.Next(Math.Max(1, tier - 3), tier) * ThreadSafeRandom.Next(Math.Max(1, work - 2), work) * baseWeenieValue;
+
+            if (value < baseWeenieValue) value = baseWeenieValue;
 
             return value;
         }

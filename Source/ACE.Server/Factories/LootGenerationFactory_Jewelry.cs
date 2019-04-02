@@ -31,7 +31,6 @@ namespace ACE.Server.Factories
 
             workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
 
             gemLootMatrixIndex = tier - 1;
             if (isMagical)
@@ -88,6 +87,9 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyDataId.Spell);
             }
 
+            // To be expanded upon
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, (wo.Value ?? 0)));
+
             return wo;
         }
 
@@ -111,8 +113,6 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
             int workmanship = GetWorkmanship(tier);
-            int value = GetValue(tier, workmanship);
-            wo.SetProperty(PropertyInt.Value, value);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             int mT = GetMaterialType(1, tier);
@@ -221,6 +221,9 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
                 wo.RemoveProperty(PropertyFloat.ManaRate);
             }
+
+            // To be expanded upon
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, (wo.Value ?? 0)));
 
             return wo;
         }
