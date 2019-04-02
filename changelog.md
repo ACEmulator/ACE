@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-02
+[Ripley]
+* Change the way GiveObjecttoNPC and HandleNPCReceiveItem deal with emotes.
+
 ### 2019-04-01
 [Ripley]
 * Add some null checks to try to catch issue with SelectDispel.
