@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -22,12 +23,15 @@ using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
+using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
     public partial class Player : Creature, IPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public Account Account { get; }
 
         public Character Character { get; }
 
@@ -36,6 +40,7 @@ namespace ACE.Server.WorldObjects
         public QuestManager QuestManager;
 
         public bool LastContact = true;
+        public bool IsJumping = false;
 
         public SquelchDB Squelches;
 
@@ -49,6 +54,8 @@ namespace ACE.Server.WorldObjects
             Character.AccountId = accountId;
             Character.Name = GetProperty(PropertyString.Name);
             CharacterChangesDetected = true;
+
+            Account = DatabaseManager.Authentication.GetAccountById(Character.AccountId);
 
             SetEphemeralValues();
 
@@ -68,6 +75,8 @@ namespace ACE.Server.WorldObjects
         {
             Character = character;
             Session = session;
+
+            Account = DatabaseManager.Authentication.GetAccountById(Character.AccountId);
 
             SetEphemeralValues();
 
@@ -435,6 +444,9 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(general, trade, lfg, roleplay);
             }
 
+            if (CurrentActiveCombatPet != null)
+                CurrentActiveCombatPet.Destroy();
+
             if (CurrentLandblock != null)
             {
                 var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
@@ -451,14 +463,20 @@ namespace ACE.Server.WorldObjects
                 // remove the player from landblock management -- after the animation has run
                 logoutChain.AddAction(this, () =>
                 {
-                    if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-                        PlayerKillerStatus = PlayerKillerStatus.NPK;
-
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
                     PlayerManager.SwitchPlayerFromOnlineToOffline(this);
                 });
+
+                // close any open chests
+                if (LastOpenedContainerId != ObjectGuid.Invalid)
+                {
+                    var chest = CurrentLandblock.GetObject(LastOpenedContainerId) as Chest;
+
+                    if (chest != null)
+                        chest.Close(this);
+                }
 
                 logoutChain.EnqueueChain();
             }
@@ -734,16 +752,36 @@ namespace ACE.Server.WorldObjects
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
             // calculate stamina cost for this jump
-            var staminaCost = MovementSystem.JumpStaminaCost(jump.Extent, burden, false);
+            var extent = Math.Clamp(jump.Extent, 0.0f, 1.0f);
+            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, false);
 
             //Console.WriteLine($"Strength: {strength}, Capacity: {capacity}, Encumbrance: {EncumbranceVal ?? 0}, Burden: {burden}, StaminaCost: {staminaCost}");
 
-            // TODO: ensure player has enough stamina to jump
+            // ensure player has enough stamina to jump
+
+            /*if (staminaCost > Stamina.Current)
+            {
+                // get adjusted power
+                extent = MovementSystem.GetJumpPower(Stamina.Current, burden, false);
+
+                staminaCost = (int)Stamina.Current;
+
+                // adjust jump velocity
+                var velocityZ = MovementSystem.GetJumpHeight(burden, GetCreatureSkill(Skill.Jump).Current, extent, 1.0f);
+
+                jump.Velocity.Z = velocityZ;
+            }*/
+
+            IsJumping = true;
+
             UpdateVitalDelta(Stamina, -staminaCost);
+
+            IsJumping = false;
 
             //Console.WriteLine($"Jump velocity: {jump.Velocity}");
 
             // set jump velocity
+            // TODO: have server verify / scale magnitude
             PhysicsObj.set_velocity(jump.Velocity, true);
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
@@ -765,7 +803,7 @@ namespace ACE.Server.WorldObjects
         public void OnExhausted()
         {
             // adjust player speed if running
-            if (CurrentMotionCommand == MotionCommand.RunForward)
+            if (CurrentMotionCommand == MotionCommand.RunForward && !IsJumping)
             {
                 // verify - forced commands from server should be non-autonomous, but could have been sent as autonomous in retail?
                 // if set to autonomous here, the desired effect doesn't happen
@@ -930,9 +968,11 @@ namespace ACE.Server.WorldObjects
             // ensure permanent npk
             if (PlayerKillerStatus != PlayerKillerStatus.NPK || MinimumTimeSincePk != null)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Only Non-Player Killers may enter PK Lite. Please see @help pklite for more details about this command.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyNonPKsMayEnterPKLite));
                 return;
             }
+
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast));
 
             // perform pk lite entry motion / effect
             var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
@@ -945,14 +985,11 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(this, () =>
             {
-                PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite);
 
-                var status = new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus);
-                var msg = new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast);
-
-                EnqueueBroadcast(status, msg);
-
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
             });
+
             actionChain.EnqueueChain();
         }
 

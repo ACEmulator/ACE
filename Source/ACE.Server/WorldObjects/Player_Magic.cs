@@ -8,6 +8,7 @@ using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
@@ -704,7 +705,7 @@ namespace ACE.Server.WorldObjects
         {
             var castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
 
-            if (IsBusy)
+            if (IsBusy || Teleporting)
             {
                 Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.YoureTooBusy));
                 return;
@@ -1188,6 +1189,32 @@ namespace ACE.Server.WorldObjects
                 return SpellIsKnown(spellId);
 
             // send error message?
+        }
+
+        /// <summary>
+        /// Called when an enchantment is added or removed,
+        /// checks if the spell affects the max vitals,
+        /// and if so, updates the client immediately
+        /// </summary>
+        public void HandleMaxVitalUpdate(Spell spell)
+        {
+            var maxVitals = spell.UpdatesMaxVitals;
+
+            if (maxVitals.Count == 0)
+                return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(1.0f);      // client needs time for primary attribute updates
+            actionChain.AddAction(this, () =>
+            {
+                foreach (var maxVital in maxVitals)
+                {
+                    var playerVital = Vitals[maxVital];
+
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, playerVital.ToEnum(), playerVital.Current));
+                }
+            });
+            actionChain.EnqueueChain();
         }
     }
 }

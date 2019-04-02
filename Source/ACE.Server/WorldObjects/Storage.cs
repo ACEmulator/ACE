@@ -41,6 +41,10 @@ namespace ACE.Server.WorldObjects
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
+            var baseRequirements = base.CheckUseRequirements(activator);
+            if (!baseRequirements.Success)
+                return baseRequirements;
+
             if (!(activator is Player player))
                 return new ActivationResult(false);
 

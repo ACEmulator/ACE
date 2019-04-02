@@ -33,7 +33,12 @@ namespace ACE.Server.Factories
         {
             var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[characterCreateInfo.Heritage];
 
-            player = new Player(weenie, guid, accountId);
+            if (weenie.Type == (int)WeenieType.Admin)
+                player = new Admin(weenie, guid, accountId);
+            else if (weenie.Type == (int)WeenieType.Sentinel)
+                player = new Sentinel(weenie, guid, accountId);
+            else
+                player = new Player(weenie, guid, accountId);
 
             player.SetProperty(PropertyInt.HeritageGroup, (int)characterCreateInfo.Heritage);
             player.SetProperty(PropertyString.HeritageGroup, heritageGroup.Name);
@@ -59,6 +64,11 @@ namespace ACE.Server.Factories
             // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
             var hairstyle = sex.HairStyleList[Convert.ToInt32(characterCreateInfo.Apperance.HairStyle)];
 
+            // Olthoi and Gear Knights have a "Body Style" instead of a hair style. These styles have multiple model/texture changes, instead of a single head/hairstyle.
+            // Storing this value allows us to send the proper appearance ObjDesc
+            if (hairstyle.ObjDesc.AnimPartChanges.Count > 1)
+                player.SetProperty(PropertyInt.Hairstyle, (int)characterCreateInfo.Apperance.HairStyle);
+
             // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
             if (hairstyle.AlternateSetup > 0)
                 player.SetProperty(PropertyDataId.Setup, hairstyle.AlternateSetup);
@@ -71,7 +81,10 @@ namespace ACE.Server.Factories
             player.SetProperty(PropertyDataId.DefaultMouthTexture, sex.GetDefaultMouthTexture(characterCreateInfo.Apperance.Mouth));
             player.Character.HairTexture = sex.GetHairTexture(characterCreateInfo.Apperance.HairStyle);
             player.Character.DefaultHairTexture = sex.GetDefaultHairTexture(characterCreateInfo.Apperance.HairStyle);
-            player.SetProperty(PropertyDataId.HeadObject, sex.GetHeadObject(characterCreateInfo.Apperance.HairStyle));
+            // HeadObject can be null if we're dealing with GearKnight or Olthoi
+            var headObject = sex.GetHeadObject(characterCreateInfo.Apperance.HairStyle);
+            if(headObject != null)
+                player.SetProperty(PropertyDataId.HeadObject, (uint)headObject);
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             var skinPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.SkinPalSet);
@@ -198,6 +211,8 @@ namespace ACE.Server.Factories
                     player.UntrainSkill((Skill) i, 0);
             }
 
+            var isDualWieldTrainedOrSpecialized = player.Skills[Skill.DualWield].AdvancementClass > SkillAdvancementClass.Untrained;
+
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
             var grantedWeenies = new List<uint>();
@@ -228,11 +243,26 @@ namespace ACE.Server.Factories
                         else
                         {
                             player.TryAddToInventory(CreateIOU(player, item.WeenieId));
-                            continue;
                         }
 
-                        if (player.TryAddToInventory(loot))
+                        if (loot != null && player.TryAddToInventory(loot))
                             grantedWeenies.Add(item.WeenieId);
+
+                        if (isDualWieldTrainedOrSpecialized && loot != null)
+                        {
+                            if (loot.WeenieType == WeenieType.MeleeWeapon)
+                            {
+                                var dualloot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                                if (dualloot != null)
+                                {
+                                    player.TryAddToInventory(dualloot);
+                                }
+                                else
+                                {
+                                    player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                }
+                            }
+                        }
                     }
 
                     var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == characterCreateInfo.Heritage);
@@ -259,11 +289,26 @@ namespace ACE.Server.Factories
                             else
                             {
                                 player.TryAddToInventory(CreateIOU(player, item.WeenieId));
-                                continue;
                             }
 
-                            if (player.TryAddToInventory(loot))
+                            if (loot != null && player.TryAddToInventory(loot))
                                 grantedWeenies.Add(item.WeenieId);
+
+                            if (isDualWieldTrainedOrSpecialized && loot != null)
+                            {
+                                if (loot.WeenieType == WeenieType.MeleeWeapon)
+                                {
+                                    var dualloot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                                    if (dualloot != null)
+                                    {
+                                        player.TryAddToInventory(dualloot);
+                                    }
+                                    else
+                                    {
+                                        player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                    }
+                                }
+                            }
                         }
                     }
 

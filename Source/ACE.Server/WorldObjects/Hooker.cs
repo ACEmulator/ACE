@@ -29,10 +29,7 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject activator)
         {
-            if (!(activator is Creature creature))
-                return;
-
-            EmoteManager.OnUse(creature);
+            // handled in base.OnActivate -> EmoteManager.OnUse()
         }
     }
 }

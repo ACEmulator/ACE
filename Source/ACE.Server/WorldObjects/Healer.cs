@@ -43,6 +43,12 @@ namespace ACE.Server.WorldObjects
         }
         public override void HandleActionUseOnTarget(Player healer, WorldObject target)
         {
+            if (healer.IsBusy)
+            {
+                healer.SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             if (!(target is Player targetPlayer))
             {
                 healer.SendUseDoneEvent(WeenieError.YouCantHealThat);
@@ -67,7 +73,13 @@ namespace ACE.Server.WorldObjects
 
         public void DoHealMotion(Player healer, Player target, bool success)
         {
-            if (!success) return;
+            if (!success)
+            {
+                healer.SendUseDoneEvent();
+                return;
+            }
+
+            healer.IsBusy = true;
 
             var motionCommand = healer.Equals(target) ? MotionCommand.SkillHealSelf : MotionCommand.SkillHealOther;
 
@@ -90,6 +102,8 @@ namespace ACE.Server.WorldObjects
                     DoHealing(healer, target);
                 else
                     healer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
+
+                healer.IsBusy = false;
 
                 healer.SendUseDoneEvent();
             });

@@ -484,6 +484,9 @@ namespace ACE.Server.WorldObjects
             var target = _target as Creature;
             var targetPlayer = _target as Player;
 
+            if (targetPlayer != null && ((targetPlayer.Invincible ?? false) || targetPlayer.IsDead))
+                return;
+
             {
                 uint amount;
                 var percent = 0.0f;
@@ -545,18 +548,18 @@ namespace ACE.Server.WorldObjects
                     Strings.GetAttackVerb(Spell.DamageType, percent, ref verb, ref plural);
                     var type = Spell.DamageType.GetName().ToLower();
 
-                    var critMsg = critical ? "Critical hit!  " : "";
+                    var critMsg = critical ? "Critical hit! " : "";
                     var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
                     if (player != null)
                     {
-                        var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points of {type} damage!", ChatMessageType.Magic);
+                        var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.", ChatMessageType.Magic);
                         var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
 
                         player.Session.Network.EnqueueSend(attackerMsg, updateHealth);
                     }
 
                     if (targetPlayer != null)
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.", ChatMessageType.Magic));
                 }
                 else
                 {

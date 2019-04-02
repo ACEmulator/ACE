@@ -101,7 +101,12 @@ namespace ACE.Server.WorldObjects
 
             // default use action
             if (ActivationResponse.HasFlag(ActivationResponse.Use))
+            {
+                if (player != null)
+                    EmoteManager.OnUse(player);
+
                 target.ActOnUse(activator);
+            }
 
             // perform motion animation - rarely used (only 4 instances in PY16 db)
             if (ActivationResponse.HasFlag(ActivationResponse.Animate))

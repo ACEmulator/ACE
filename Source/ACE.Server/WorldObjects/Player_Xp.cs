@@ -25,12 +25,14 @@ namespace ACE.Server.WorldObjects
 
             // apply xp modifier
             var modifier = PropertyManager.GetDouble("xp_modifier").Item;
-            var m_amount = (long)Math.Round(amount * modifier);
+            var enchantment = EnchantmentManager.GetXPMod();
+
+            var m_amount = (long)Math.Round(amount * enchantment * modifier);
 
             if (m_amount < 0)
             {
                 log.Warn($"{Name}.EarnXP({amount}, {shareable})");
-                log.Warn($"Modifier: {modifier}, m_amount: {m_amount}");
+                log.Warn($"modifier: {modifier}, enchantment: {enchantment}, m_amount: {m_amount}");
                 return;
             }
 
@@ -137,7 +139,7 @@ namespace ACE.Server.WorldObjects
                 EnchantmentManager.SendUpdateVitae();
             }
 
-            if (vitaePenalty.EpsilonEquals(1.0f))
+            if (vitaePenalty.EpsilonEquals(1.0f) || vitaePenalty > 1.0f)
             {
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(2.0f);
@@ -147,7 +149,7 @@ namespace ACE.Server.WorldObjects
                     if (vitae != null)
                     {
                         var curPenalty = vitae.StatModValue;
-                        if (curPenalty.EpsilonEquals(1.0f))
+                        if (curPenalty.EpsilonEquals(1.0f) || vitaePenalty > 1.0f)
                             EnchantmentManager.RemoveVitae();
                     }
                 });

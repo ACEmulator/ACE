@@ -7,6 +7,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -272,24 +273,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TakeDamageOverTime_NotifySource(Player source, DamageType damageType, float amount)
         {
-            var iAmount = (uint)Math.Round(amount);
-
-            // damage text notification
-            GameMessageSystemChat text = null;
-
-            if (damageType == DamageType.Nether)
+            if (PropertyManager.GetBool("show_dot_messages").Item)
             {
-                string verb = null, plural = null;
-                var percent = amount / Health.MaxValue;
-                Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
-                text = new GameMessageSystemChat($"You {verb} {Name} for {iAmount} points of periodic nether damage!", ChatMessageType.Magic);
+                var iAmount = (uint)Math.Round(amount);
+
+                // damage text notification
+                GameMessageSystemChat text = null;
+
+                if (damageType == DamageType.Nether)
+                {
+                    string verb = null, plural = null;
+                    var percent = amount / Health.MaxValue;
+                    Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
+                    text = new GameMessageSystemChat($"You {verb} {Name} for {iAmount} points of periodic nether damage!", ChatMessageType.Magic);
+                }
+                else
+                    text = new GameMessageSystemChat($"You bleed {Name} for {iAmount} points of periodic damage!", ChatMessageType.CombatSelf);
+
+                source.Session.Network.EnqueueSend(text);
             }
-            else
-                text = new GameMessageSystemChat($"You bleed {Name} for {iAmount} points of periodic damage!", ChatMessageType.CombatSelf);
 
-            var updateHealth = new GameEventUpdateHealth(source.Session, Guid.Full, (float)Health.Current / Health.MaxValue);
-
-            source.Session.Network.EnqueueSend(text, updateHealth);
+            source.Session.Network.EnqueueSend(new GameEventUpdateHealth(source.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
         }
 
         /// <summary>

@@ -123,7 +123,7 @@ namespace ACE.Server.WorldObjects
                 var owner = PlayerManager.FindByGuid(ownerId);
 
                 houseProfile.OwnerID = new ObjectGuid(ownerId);
-                houseProfile.OwnerName = owner.Name;
+                houseProfile.OwnerName = owner?.Name;
             }
             houseProfile.SetBuyItems(GetBuyItems());
             houseProfile.SetRentItems(GetRentItems());

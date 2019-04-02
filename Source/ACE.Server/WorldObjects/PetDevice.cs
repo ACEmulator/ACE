@@ -93,14 +93,19 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (Structure == 0)
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You must refill the essence to use it again."));
+                return;
+            }
+
             var wcid = petData.Item1;
             var damageType = petData.Item2;
 
             if (SummonCreature(player, wcid, damageType))
             {
                 // decrease remaining uses
-                if (--Structure <= 0)
-                    player.TryConsumeFromInventoryWithNetworking(this, 1);
+                Structure--;
 
                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
             }
@@ -137,7 +142,9 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"Couldn't find pet wcid #{wcid}");
                 return false;
             }
-            player.EnchantmentManager.StartCooldown(this);
+
+            if (weenie.Type != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                weenie.Type = (int)WeenieType.CombatPet;
 
             var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
             if (combatPet == null)

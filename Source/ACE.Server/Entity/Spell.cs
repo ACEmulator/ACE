@@ -5,6 +5,8 @@ using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using log4net;
 
 namespace ACE.Server.Entity
 {
@@ -14,6 +16,8 @@ namespace ACE.Server.Entity
     /// </summary>
     public partial class Spell: IEquatable<Spell>
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The spell information from the client DAT
         /// </summary>
@@ -71,6 +75,9 @@ namespace ACE.Server.Entity
 
             if (_spellBase != null)
                 Formula = new SpellFormula(this, _formula);
+
+            if (loadDB && (_spell == null || _spellBase == null))
+                log.Error($"Spell.Init(spellID = {spellID}, loadDB = {loadDB}) failed! {(_spell == null ? "_spell was null" : "")} {(_spellBase == null ? "_spellBase was null" : "")}");
         }
 
         /// <summary>
@@ -222,6 +229,47 @@ namespace ACE.Server.Entity
                     || Category == SpellCategory.WeaponTimeRaising
                     || Category == SpellCategory.AppraisalResistanceLowering
                     || Category == SpellCategory.SpellDamageRaising;
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of MaxVitals affected by this spell
+        /// </summary>
+        public List<PropertyAttribute2nd> UpdatesMaxVitals
+        {
+            get
+            {
+                var maxVitals = new List<PropertyAttribute2nd>();
+
+                if (_spell == null)
+                    return maxVitals;
+
+                if (StatModType.HasFlag(EnchantmentTypeFlags.SecondAtt) && StatModKey != 0)
+                    maxVitals.Add((PropertyAttribute2nd)StatModKey);
+
+                else if (StatModType.HasFlag(EnchantmentTypeFlags.Attribute))
+                {
+                    switch ((PropertyAttribute)StatModKey)
+                    {
+                        case PropertyAttribute.Endurance:
+                            maxVitals.Add(PropertyAttribute2nd.MaxHealth);
+                            maxVitals.Add(PropertyAttribute2nd.MaxStamina);
+                            break;
+
+                        case PropertyAttribute.Self:
+                            maxVitals.Add(PropertyAttribute2nd.MaxMana);
+                            break;
+                    }
+                }
+
+                //if (_spell.Id == 666) // Vitae
+                //{
+                //    maxVitals.Add(PropertyAttribute2nd.MaxHealth);
+                //    maxVitals.Add(PropertyAttribute2nd.MaxStamina);
+                //    maxVitals.Add(PropertyAttribute2nd.MaxMana);
+                //}
+
+                return maxVitals;
             }
         }
 

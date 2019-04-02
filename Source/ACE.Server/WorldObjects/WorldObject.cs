@@ -865,6 +865,12 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
+            if (this is CombatPet combatPet)
+            {
+                if (combatPet.P_PetOwner.CurrentActiveCombatPet == this)
+                    combatPet.P_PetOwner.CurrentActiveCombatPet = null;
+            }
+
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
 
@@ -873,6 +879,16 @@ namespace ACE.Server.WorldObjects
 
             if (Guid.IsDynamic())
                 GuidManager.RecycleDynamicGuid(Guid);
+        }
+
+        public void FadeOutAndDestroy(bool raiseNotifyOfDestructionEvent = true)
+        {
+            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Destroy));
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(1.0f);
+            actionChain.AddAction(this, () => Destroy(raiseNotifyOfDestructionEvent));
+            actionChain.EnqueueChain();
         }
 
         public string GetPluralName()

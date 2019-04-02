@@ -1068,9 +1068,32 @@ namespace ACE.Server.WorldObjects
         protected void AddBaseModelData(ACE.Entity.ObjDesc objDesc)
         {
             // Hair/head
-            if (HeadObjectDID.HasValue)
+
+            // if (HeadObjectDID.HasValue && !HairStyle.HasValue)
+            // This Heritage check has been added for backwards compatibility. It works around the butthead Gear Knights appearance.
+            if (HeadObjectDID.HasValue && !HairStyle.HasValue && Heritage.HasValue && Heritage != (int)HeritageGroup.Gearknight)
                 objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = 0x10, PartID = HeadObjectDID.Value });
-            //AddModel(0x10, HeadObjectDID.Value);
+            else if (HairStyle.HasValue && Heritage.HasValue && Gender.HasValue)
+            {
+                // This indicates we have a Gear Knight or Olthoi(that is, player types treat "hairstyle" as a "Body Style")
+
+                // Load the CharGen data. It has all the anim & texture changes for the Body Style defined within it
+                var cg = DatManager.PortalDat.CharGen;
+                SexCG sex = cg.HeritageGroups[(uint)Heritage].Genders[(int)Gender];
+                if (sex.HairStyleList.Count > (int)HairStyle) // just check for a valid entry...
+                {
+                    HairStyleCG hairstyle = sex.HairStyleList[(int)HairStyle];
+
+                    // Add all the texture changes
+                    foreach (var tm in hairstyle.ObjDesc.TextureChanges)
+                        objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = tm.PartIndex, OldTexture = tm.OldTexture, NewTexture = tm.NewTexture });
+
+                    // Add all the animation part changes
+                    foreach (var part in hairstyle.ObjDesc.AnimPartChanges)
+                        objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = part.PartIndex, PartID = part.PartID });
+                }
+            }
+
             if (this is Player player)
                 objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = player.Character.DefaultHairTexture, NewTexture = player.Character.HairTexture });
             //AddTexture(0x10, DefaultHairTextureDID.Value, HairTextureDID.Value);

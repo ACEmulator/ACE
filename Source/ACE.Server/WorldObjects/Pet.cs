@@ -27,7 +27,10 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-
+            Ethereal = true;
+            RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
+            Usable = ACE.Entity.Enum.Usable.No;
+            RadarColor = ACE.Entity.Enum.RadarColor.Yellow;
         }
     }
 }

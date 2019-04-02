@@ -4,6 +4,7 @@ using System.Threading;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -53,7 +54,18 @@ namespace ACE.Server.WorldObjects
             ChangesDetected = false;
 
             if (enqueueSave)
-                DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
+                //DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
+                DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, result =>
+                {
+                    if (!result)
+                    {
+                        if (this is Player player)
+                        {
+                            //todo: remove this later?
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("WARNING: A database save for this character has failed. As a result of this failure, it is possible for future saves to also fail. In order to avoid a potentially significant character rollback, please find a safe place, log out of the game and then reconnect & re-login. This error has also been logged to be further reviewed by ACEmulator team.", ChatMessageType.WorldBroadcast));
+                        }
+                    }
+                });
         }
 
         /// <summary>
@@ -131,7 +143,8 @@ namespace ACE.Server.WorldObjects
             if (IsGenerator || Generator != null)
                 return false;
 
-            if (WeenieType == WeenieType.Missile || WeenieType == WeenieType.Ammunition || WeenieType == WeenieType.ProjectileSpell || WeenieType == WeenieType.GamePiece)
+            if (WeenieType == WeenieType.Missile || WeenieType == WeenieType.Ammunition || WeenieType == WeenieType.ProjectileSpell || WeenieType == WeenieType.GamePiece
+                || WeenieType == WeenieType.Pet || WeenieType == WeenieType.CombatPet)
                 return false;
 
             if (WeenieType == WeenieType.Corpse && this is Corpse corpse && corpse.IsMonster)

@@ -5,6 +5,7 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
@@ -42,20 +43,39 @@ namespace ACE.Server.WorldObjects
             SendSelf();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
-            var allegianceChannel = Allegiance != null ? Allegiance.Biota.Id : 0u;
+            UpdateChatChannels();
 
-            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, allegianceChannel);
             var general = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "General");
             var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Trade");
             var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Roleplay");
-            Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+            Session.Network.EnqueueSend(general, trade, lfg, roleplay);
 
             // check if vassals earned XP while offline
             HandleAllegianceOnLogin();
             HandleHouseOnLogin();
 
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(3.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
+                });
+                actionChain.EnqueueChain();
+            }
+
             HandleDBUpdates();
+        }
+
+        public void UpdateChatChannels()
+        {
+            var allegianceChannel = Allegiance != null ? Allegiance.Biota.Id : 0u;
+
+            Session.Network.EnqueueSend(new GameEventSetTurbineChatChannels(Session, allegianceChannel));
         }
 
         private void SendSelf()

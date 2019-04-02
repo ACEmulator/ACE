@@ -104,7 +104,9 @@ namespace ACE.Server.Managers
         private void ClearCache()
         {
             attributeModCache.Clear();
-            vitalModCache.Clear();
+            vitalModAdditiveCache.Clear();
+            vitalModMultiplierCache.Clear();
+
             skillModCache.Clear();
 
             bodyArmorModCache = null;
@@ -124,6 +126,7 @@ namespace ACE.Server.Managers
             armorModCache = null;
             armorModVsTypeModCache.Clear();
             ratingCache.Clear();
+            xpModCache = null;
         }
 
 
@@ -144,19 +147,35 @@ namespace ACE.Server.Managers
             return value;
         }
 
-        private readonly Dictionary<CreatureVital, float> vitalModCache = new Dictionary<CreatureVital, float>();
+        private readonly Dictionary<CreatureVital, float> vitalModAdditiveCache = new Dictionary<CreatureVital, float>();
+        private readonly Dictionary<CreatureVital, float> vitalModMultiplierCache = new Dictionary<CreatureVital, float>();
 
         /// <summary>
-        /// Gets the direct modifiers to a vital / secondary attribute
+        /// Gets the additive modifiers to a vital / secondary attribute
         /// </summary>
-        public override float GetVitalMod(CreatureVital vital)
+        public override float GetVitalMod_Additives(CreatureVital vital)
         {
-            if (vitalModCache.TryGetValue(vital, out var value))
+            if (vitalModAdditiveCache.TryGetValue(vital, out var value))
                 return value;
 
-            value = base.GetVitalMod(vital);
+            value = base.GetVitalMod_Additives(vital);
 
-            vitalModCache[vital] = value;
+            vitalModAdditiveCache[vital] = value;
+
+            return value;
+        }
+
+        /// <summary>
+        /// Gets the multiplicative modifiers to a vital / secondary attribute
+        /// </summary>
+        public override float GetVitalMod_Multiplier(CreatureVital vital)
+        {
+            if (vitalModMultiplierCache.TryGetValue(vital, out var value))
+                return value;
+
+            value = base.GetVitalMod_Multiplier(vital);
+
+            vitalModMultiplierCache[vital] = value;
 
             return value;
         }
@@ -429,6 +448,16 @@ namespace ACE.Server.Managers
             ratingCache[property] = value;
 
             return value;
+        }
+
+        private float? xpModCache;
+
+        public override float GetXPMod()
+        {
+            if (xpModCache == null)
+                xpModCache = base.GetXPMod();
+
+            return xpModCache.Value;
         }
     }
 }

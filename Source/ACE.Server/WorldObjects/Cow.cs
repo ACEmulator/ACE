@@ -1,9 +1,6 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -37,36 +34,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject activator)
         {
-            if (!(activator is Player player) || AllowedActivator != null)
-                return;
-
-            AllowedActivator = activator.Guid.Full;
-
-            // Stamp Cow tipping quest here;
-            EmoteManager.IsBusy = true;
-
-            //var dir = player.GetSplatterDir(this);
-            //var motion = dir.Contains("Left") ? MotionCommand.TippedRight : MotionCommand.TippedLeft;
-
-            var motion = MotionCommand.TippedRight;     // left bugged?
-
-            var actionChain = new ActionChain();
-            EnqueueMotion(actionChain, motion);
-            actionChain.AddAction(this, () => ResetCow());
-            actionChain.EnqueueChain();
-
-            UseTimestamp++;
-        }
-
-        private void ResetCow()
-        {
-            CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
-
-            EmoteManager.IsBusy = false;
-
-            AllowedActivator = null;
-
-            ResetTimestamp++;
+            // handled in base.OnActivate -> EmoteManager.OnUse()
         }
     }
 }

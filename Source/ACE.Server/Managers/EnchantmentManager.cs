@@ -320,6 +320,12 @@ namespace ACE.Server.Managers
 
                 if (sound && entry.SpellCategory != SpellCategory_Cooldown)
                     Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
+
+                if (entry.SpellCategory != SpellCategory_Cooldown)
+                {
+                    var spell = new Spell(spellID);
+                    Player.HandleMaxVitalUpdate(spell);
+                }
             }
             else
             {
@@ -417,7 +423,9 @@ namespace ACE.Server.Managers
             var minVitae = GetMinVitae((uint)Player.Level);
 
             if (vitae.StatModValue < minVitae)
-                vitae.StatModValue = minVitae;            
+                vitae.StatModValue = minVitae;
+            if (vitae.StatModValue > 1.0f)
+                vitae.StatModValue = 1.0f;
 
             return vitae.StatModValue;
         }
@@ -430,7 +438,7 @@ namespace ACE.Server.Managers
             var vitae = GetVitae();
             vitae.StatModValue += 0.01f;
 
-            if (Math.Abs(vitae.StatModValue - 1.0f) < PhysicsGlobals.EPSILON)
+            if (vitae.StatModValue.EpsilonEquals(1.0f) || vitae.StatModValue > 1.0f)
                 return 1.0f;
 
             return vitae.StatModValue;
@@ -464,7 +472,12 @@ namespace ACE.Server.Managers
                 WorldObject.ChangesDetected = true;
 
             if (Player != null)
+            {
                 Player.Session.Network.EnqueueSend(new GameEventMagicDispelEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
+
+                var spell = new Spell(spellID);
+                Player.HandleMaxVitalUpdate(spell);
+            }
         }
 
         /// <summary>
@@ -479,8 +492,13 @@ namespace ACE.Server.Managers
             {
                 if (WorldObject.Biota.TryRemoveEnchantment(entry, out _, WorldObject.BiotaDatabaseLock))
                     WorldObject.ChangesDetected = true;
-            }
 
+                if (Player != null)
+                {
+                    var spell = new Spell(entry.SpellId);
+                    Player.HandleMaxVitalUpdate(spell);
+                }
+            }
             if (Player != null)
                 Player.Session.Network.EnqueueSend(new GameEventMagicDispelMultipleEnchantments(Player.Session, entries));
         }
@@ -538,14 +556,14 @@ namespace ACE.Server.Managers
 
             var filterSpells = spells;
             if (dispelSchool != MagicSchool.None)
-                filterSpells = filterSpells.Where(s => s.Spell.School == dispelSchool).ToList();
+                filterSpells = filterSpells.Where(s => s.Spell != null && s.Spell.School == dispelSchool).ToList();
 
             if (align != DispelType.All)
             {
                 if (align == DispelType.Positive)
-                    filterSpells = filterSpells.Where(s => s.Spell.IsBeneficial).ToList();
+                    filterSpells = filterSpells.Where(s => s.Spell != null && s.Spell.IsBeneficial).ToList();
                 else if (align == DispelType.Negative)
-                    filterSpells = filterSpells.Where(s => s.Spell.IsHarmful).ToList();
+                    filterSpells = filterSpells.Where(s => s.Spell != null && s.Spell.IsHarmful).ToList();
             }
 
             // dispel all
@@ -660,7 +678,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Gets the direct modifiers to a vital / secondary attribute
         /// </summary>
-        public virtual float GetVitalMod(CreatureVital vital)
+        public virtual float GetVitalMod_Additives(CreatureVital vital)
         {
             var typeFlags = EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
             var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)vital.Vital);
@@ -669,6 +687,35 @@ namespace ACE.Server.Managers
             var modifier = 0.0f;
             foreach (var enchantment in enchantments)
                 modifier += enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        public virtual float GetVitalMod_Multiplier(CreatureVital vital)
+        {
+            // multiplicatives (asheron's lesser benediction)
+            var typeFlags = EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+            var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)vital.Vital);
+
+            var multiplier = 1.0f;
+            foreach (var enchantment in enchantments)
+                multiplier *= enchantment.StatModValue;
+
+            return multiplier;
+        }
+
+        /// <summary>
+        /// Returns the modifier from XP enchantments, such as Augmented Understanding
+        /// </summary>
+        /// <returns></returns>
+        public virtual float GetXPMod()
+        {
+            var enchantments = GetEnchantments(SpellCategory.TrinketXPRaising);
+
+            // multiplier
+            var modifier = 1.0f;
+            foreach (var enchantment in enchantments)
+                modifier *= enchantment.StatModValue;
 
             return modifier;
         }

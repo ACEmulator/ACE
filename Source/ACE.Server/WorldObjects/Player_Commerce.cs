@@ -225,6 +225,8 @@ namespace ACE.Server.WorldObjects
 
             var sellList = new List<WorldObject>();
 
+            var acceptedItemTypes = (ItemType)(vendor.MerchandiseItemTypes ?? 0);
+
             foreach (ItemProfile profile in itemprofiles)
             {
                 var item = allPossessions.FirstOrDefault(i => i.Guid.Full == profile.ObjectGuid);
@@ -232,7 +234,7 @@ namespace ACE.Server.WorldObjects
                 if (item == null)
                     continue;
 
-                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false))
+                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || (acceptedItemTypes & item.ItemType) == 0)
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold")); // TODO: find retail messages
@@ -271,7 +273,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in sellList)
             {
                 if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.SellItem))
-                    Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, vendor));
                 else
                     log.WarnFormat("Item 0x{0:X8}:{1} for player {2} not found in HandleActionSellItem.", item.Guid.Full, item.Name, Name); // This shouldn't happen
             }

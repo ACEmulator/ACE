@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         public Allegiance Allegiance { get; set; }
         public AllegianceNode AllegianceNode { get; set; }
 
-        public bool HasAllegiance { get => Allegiance != null && Allegiance.TotalMembers > 1; }
+        public bool HasAllegiance { get => Allegiance != null && AllegianceNode != null && Allegiance.TotalMembers > 1; }
 
         public ulong AllegianceXPCached
         {
@@ -67,6 +67,8 @@ namespace ACE.Server.WorldObjects
             PatronId = targetGuid;
             MonarchId = AllegianceManager.GetMonarch(patron).Guid.Full;
 
+            SaveBiotaToDatabase();
+
             //Console.WriteLine("Patron: " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
             //Console.WriteLine("Monarch: " + PlayerManager.GetOfflinePlayerByGuidId(Monarch.Value).Name);
 
@@ -89,6 +91,8 @@ namespace ACE.Server.WorldObjects
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
+
+            UpdateChatChannels();
         }
 
 
@@ -116,6 +120,8 @@ namespace ACE.Server.WorldObjects
 
             var target = PlayerManager.FindByGuid(targetGuid, out var targetIsOnline);
 
+            if (target == null) return;
+
             //Console.WriteLine(Name + " breaking allegiance to " + target.Name);
 
             // target can be either patron or vassal
@@ -127,11 +133,15 @@ namespace ACE.Server.WorldObjects
             {
                 target.PatronId = null;
                 target.MonarchId = null;
+
+                target.SaveBiotaToDatabase();
             }
             else
             {
                 PatronId = null;
                 MonarchId = null;
+
+                SaveBiotaToDatabase();
             }
 
             // send message to target if online
@@ -150,6 +160,9 @@ namespace ACE.Server.WorldObjects
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
+
+            // TODO: update chat channel for orphaned players in OnBreakAllegiance()
+            UpdateChatChannels();
         }
 
         public static float Allegiance_MaxSwearDistance = 4.0f;
@@ -205,7 +218,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // verify max distance
-            if (Location.DistanceTo(target.Location) > Allegiance_MaxSwearDistance)
+            if (GetCylinderDistance(target) > Allegiance_MaxSwearDistance)
             {
                 CreateMoveToChain(target, (success) =>
                 {
@@ -324,7 +337,11 @@ namespace ACE.Server.WorldObjects
                 foreach (var member in Allegiance.OnlinePlayers)
                 {
                     if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
-                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} is online.", ChatMessageType.Allegiance));
+                    {
+                        var prefix = member.GetPrefix(this);
+
+                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{prefix}{Name} is online.", ChatMessageType.Broadcast));
+                    }
                 }
             }
         }
@@ -336,9 +353,26 @@ namespace ACE.Server.WorldObjects
                 foreach (var member in Allegiance.OnlinePlayers)
                 {
                     if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
-                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} is offline.", ChatMessageType.Allegiance));
+                    {
+                        var prefix = member.GetPrefix(this);
+
+                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{prefix}{Name} is offline.", ChatMessageType.Broadcast));
+                    }
                 }
             }
+        }
+
+        public string GetPrefix(Player allegianceMember)
+        {
+            var prefix = "";
+            if (allegianceMember.Guid == AllegianceNode.Monarch.PlayerGuid)
+                prefix = "Your monarch ";
+            else if (allegianceMember.Guid == AllegianceNode.Patron.PlayerGuid)
+                prefix = "Your patron ";
+            else if (AllegianceNode.Vassals.ContainsKey(allegianceMember.Guid.Full))
+                prefix = "Your vassal ";
+
+            return prefix;
         }
 
         /// <summary>

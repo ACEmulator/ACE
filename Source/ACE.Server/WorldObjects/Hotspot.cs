@@ -18,13 +18,19 @@ namespace ACE.Server.WorldObjects
         {
             SetEphemeralValues();
         }
+
         public Hotspot(Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }
+
         private void SetEphemeralValues()
         {
+            // If CycleTime is less than 1, player has a very bad time.
+            if ((CycleTime ?? 0) < 1)
+                CycleTime = 1;
         }
+
         public override void OnCollideObjectEnd(WorldObject wo)
         {
             var player = wo as Player;
@@ -32,8 +38,11 @@ namespace ACE.Server.WorldObjects
             if (Players.Any(k => k == player))
                 Players.Remove(player);
         }
+
         private List<Player> Players = new List<Player>();
+
         private ActionChain ActionLoop = null;
+
         public override void OnCollideObject(WorldObject wo)
         {
             var player = wo as Player;
@@ -67,6 +76,7 @@ namespace ACE.Server.WorldObjects
                 return ActionLoop;
             }
         }
+
         private double CycleTimeNext
         {
             get
@@ -77,16 +87,19 @@ namespace ACE.Server.WorldObjects
                 return (double)ThreadSafeRandom.Next((float)min, (float)max);
             }
         }
+
         public double? CycleTime
         {
             get => GetProperty(PropertyFloat.HotspotCycleTime);
             set { if (value == null) RemoveProperty(PropertyFloat.HotspotCycleTime); else SetProperty(PropertyFloat.HotspotCycleTime, (double)value); }
         }
+
         public double? CycleTimeVariance
         {
             get => GetProperty(PropertyFloat.HotspotCycleTimeVariance);
             set { if (value == null) RemoveProperty(PropertyFloat.HotspotCycleTimeVariance); else SetProperty(PropertyFloat.HotspotCycleTimeVariance, (double)value); }
         }
+
         private float DamageNext
         {
             get
@@ -96,15 +109,18 @@ namespace ACE.Server.WorldObjects
                 return p;
             }
         }
+
         private int? _DamageType
         {
             get => GetProperty(PropertyInt.DamageType);
             set { if (value == null) RemoveProperty(PropertyInt.DamageType); else SetProperty(PropertyInt.DamageType, (int)value); }
         }
+
         public DamageType DamageType
         {
             get { return (DamageType)_DamageType; }
         }
+
         private void Activate()
         {
             Players.ForEach(player =>
@@ -112,6 +128,7 @@ namespace ACE.Server.WorldObjects
                 Activate(player);
             });
         }
+
         private void Activate(Player plr)
         {
             var amount = DamageNext;
