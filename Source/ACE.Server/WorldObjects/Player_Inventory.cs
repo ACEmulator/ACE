@@ -1206,6 +1206,8 @@ namespace ACE.Server.WorldObjects
                 else
                     moveToObject = stackRootOwner ?? stack;
 
+                var stackOriginalContainer = stack.ContainerId;
+
                 CreateMoveToChain(moveToObject, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to split the item
@@ -1234,6 +1236,15 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
+                        // Make sure the stack hasn't moved
+                        if (stackOriginalContainer != stack.ContainerId)
+                        {
+                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Source stack moved!")); // Custom error message
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
+                            EnqueueBroadcastMotion(returnStance);
+                            return;
+                        }
+
                         // We make sure the stack is still valid. It could have changed during our pickup animation
                         if (stack.StackSize < amount)
                         {
@@ -1456,6 +1467,8 @@ namespace ACE.Server.WorldObjects
                 else
                     moveToObject = sourceStackRootOwner ?? sourceStack;
 
+                var sourceStackOriginalContainer = sourceStack.ContainerId;
+
                 CreateMoveToChain(moveToObject, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to split the item
@@ -1484,6 +1497,15 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
+                        // Make sure the source stack hasn't moved
+                        if (sourceStackOriginalContainer != sourceStack.ContainerId)
+                        {
+                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Source stack moved!")); // Custom error message
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                            EnqueueBroadcastMotion(returnStance);
+                            return;
+                        }
+
                         // We make sure the stack is still valid. It could have changed during our pickup animation
                         if (sourceStack.StackSize < amount)
                         {
