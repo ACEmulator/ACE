@@ -1197,9 +1197,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-            newStack.SetStackSize(amount);
-
             if ((stackRootOwner == this && containerRootOwner != this)  || (stackRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
                 WorldObject moveToObject;
@@ -1222,7 +1219,14 @@ namespace ACE.Server.WorldObjects
                     if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
-                        EnqueueBroadcastMotion(returnStance);
+                        return;
+                    }
+
+                    // We make sure the stack is still valid. It could have changed during our movement
+                    if (stack.StackSize < amount)
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
                         return;
                     }
 
@@ -1230,6 +1234,18 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
+                        // We make sure the stack is still valid. It could have changed during our pickup animation
+                        if (stack.StackSize < amount)
+                        {
+                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
+                            EnqueueBroadcastMotion(returnStance);
+                            return;
+                        }
+
+                        var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+                        newStack.SetStackSize(amount);
+
                         if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount))
                         {
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
@@ -1251,6 +1267,9 @@ namespace ACE.Server.WorldObjects
             }
             else // This is a self-contained movement
             {
+                var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+                newStack.SetStackSize(amount);
+
                 DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount);
             }
         }
@@ -1368,7 +1387,7 @@ namespace ACE.Server.WorldObjects
         /// This is raised when we:
         /// - try to merge two stacks stack in the same container
         /// - try to merge two stacks stack in different container
-        /// - try to merge a stack fron the landblock into a container
+        /// - try to merge a stack from the landblock into a container
         /// - try to split a stack into a different container that has a stack that can support a merge
         /// </summary>
         public void HandleActionStackableMerge(uint mergeFromGuid, uint mergeToGuid, int amount)
@@ -1450,7 +1469,14 @@ namespace ACE.Server.WorldObjects
                     if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid, WeenieError.ActionCancelled));
-                        EnqueueBroadcastMotion(returnStance);
+                        return;
+                    }
+
+                    // We make sure the stack is still valid. It could have changed during our movement
+                    if (sourceStack.StackSize < amount)
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
                         return;
                     }
 
@@ -1458,8 +1484,21 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
+                        // We make sure the stack is still valid. It could have changed during our pickup animation
+                        if (sourceStack.StackSize < amount)
+                        {
+                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                            EnqueueBroadcastMotion(returnStance);
+                            return;
+                        }
+
                         if (DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount))
                         {
+                            // If the client used the R key to merge a partial stack from the landscape, it also tries to add the "ghosted" item of the picked up stack to the inventory as well.
+                            if (sourceStackRootOwner != this && sourceStack.StackSize > 0)
+                                Session.Network.EnqueueSend(new GameMessageCreateObject(sourceStack));
+
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                             if (sourceStack.WeenieType == WeenieType.Coin)
