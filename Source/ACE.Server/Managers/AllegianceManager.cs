@@ -297,6 +297,8 @@ namespace ACE.Server.Managers
         /// <param name="vassal">The vassal swearing into the Allegiance</param>
         public static void OnSwearAllegiance(Player vassal)
         {
+            if (vassal == null) return;
+
             // was this vassal previously a Monarch?
             if (vassal.Allegiance != null)
                 RemoveCache(vassal.Allegiance);
@@ -308,7 +310,7 @@ namespace ACE.Server.Managers
             LoadPlayer(vassal);
 
             // maintain approved vassals list
-            if (allegiance.ApprovedVassals.Contains(vassal.Guid))
+            if (allegiance != null && allegiance.ApprovedVassals != null && allegiance.ApprovedVassals.Contains(vassal.Guid))
                 allegiance.ApprovedVassals.Remove(vassal.Guid);
         }
 
