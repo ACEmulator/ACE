@@ -61,7 +61,7 @@ namespace ACE.Server.Command
             Console.WriteLine("Type \"acecommands\" for help.");
             Console.WriteLine("");
 
-            for (; ; )
+            for (;;)
             {
                 Console.Write("ACE >> ");
 
@@ -110,7 +110,7 @@ namespace ACE.Server.Command
                 parameters = null;
                 return;
             }
-            var commandSplit = commandLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var commandSplit = commandLine.Split(' ',StringSplitOptions.RemoveEmptyEntries);
             command = commandSplit[0];
             parameters = new string[commandSplit.Length - 1];
 

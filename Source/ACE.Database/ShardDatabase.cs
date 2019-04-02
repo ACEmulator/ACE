@@ -329,6 +329,7 @@ namespace ACE.Database
             return result;
         }
 
+
         public bool RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock)
         {
             if (BiotaContexts.TryGetValue(biota, out var cachedContext))
@@ -687,6 +688,7 @@ namespace ACE.Database
                 rwLock.ExitReadLock();
             }
         }
+
 
         public bool AddCharacterInParallel(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock)
         {
