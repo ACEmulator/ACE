@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace ACE
 {
     // important class, ensure unit tests pass for this
@@ -39,19 +37,6 @@ namespace ACE
             {
                 return (uint)random.Next((int)min, (int)(max + 1));
             }
-        }
-
-        public static string NextString(string charSelection, int stringLength)
-        {
-            StringBuilder product = new StringBuilder();
-            lock (randomMutex)
-            {
-                for (int i = 0; i < stringLength; i++)
-                {
-                    product.Append(charSelection[random.Next(0, charSelection.Length)]);
-                }
-            }
-            return product.ToString();
         }
     }
 }

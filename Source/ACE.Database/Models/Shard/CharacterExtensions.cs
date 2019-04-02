@@ -155,19 +155,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static uint[] GetFriendsIds(this Character character, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterUpgradeableReadLock();
-            try
-            {
-                return character.CharacterPropertiesFriendList.Select(k => k.CharacterId).ToArray();
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
-            }
-        }
-
         public static bool TryRemoveFriend(this Character character, uint friendId, out CharacterPropertiesFriendList entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();

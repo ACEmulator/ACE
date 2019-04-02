@@ -342,7 +342,7 @@ namespace ACE.Server.Command.Handlers
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
                     message += "-------------------\n";
                     foreach (var character in characters.Where(x => !x.IsDeleted && x.DeleteTime == 0))
-                        message += $"\"{(character.IsPlussed ? "+" : "")}{character.Name}\", ID 0x{character.Id.ToString("X8")}\n";                    
+                        message += $"\"{(character.IsPlussed ? "+" : "")}{character.Name}\", ID 0x{character.Id.ToString("X8")}\n";
                     var pendingDeletedCharacters = characters.Where(x => !x.IsDeleted && x.DeleteTime > 0).ToList();
                     if (pendingDeletedCharacters.Count > 0)
                     {
@@ -925,7 +925,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a named Point of Interest",
             "[POI|list]\n" +
-            "@telepoi Arwic\n"+
+            "@telepoi Arwic\n" +
             "Get the list of POIs\n" +
             "@telepoi list")]
         public static void HandleTeleportPoi(Session session, params string[] parameters)
@@ -1210,7 +1210,7 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
                 return;
             }
-            
+
 
             WorldObject loot;
             if (wcid)
@@ -1231,7 +1231,7 @@ namespace ACE.Server.Command.Handlers
                 else if (loot.MaxStackSize != null && stackSize <= loot.MaxStackSize)
                     loot.SetStackSize(stackSize);
             }
-            
+
 
             // todo set the palette, shade here
 
@@ -1568,7 +1568,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));            
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));
 
             var guid = GuidManager.NewPlayerGuid();
 
@@ -2017,11 +2017,6 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server statistics and usage")]
         public static void HandleServerStatus(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, GetServerStatus());
-        }
-
-        public static string GetServerStatus()
-        {
             // This is formatted very similarly to GDL.
 
             var sb = new StringBuilder();
@@ -2074,7 +2069,7 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
 
-            return sb.ToString();
+            CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]

@@ -328,24 +328,6 @@ namespace ACE.Database
             }));
         }
 
-        public void GetCharacterTransfers(Action<List<CharacterTransfer>> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetCharacterTransfers();
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void SaveCharacterTransfer(CharacterTransfer characterTransfer, ReaderWriterLockSlim rwLock, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.SaveCharacterTransfer(characterTransfer, rwLock);
-                callback?.Invoke(result);
-            }));
-        }
-
         public void AddCharacterInParallel(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
