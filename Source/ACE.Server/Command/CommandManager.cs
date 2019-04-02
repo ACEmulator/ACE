@@ -53,6 +53,69 @@ namespace ACE.Server.Command
             thread.Start();
         }
 
+        public class ConsoleCommandOverallResult
+        {
+            public CommandHandlerResponse? CommandHandlerResponse { get; set; }
+            public ConsoleCommandDigestionResult ConsoleCommandResult { get; set; }
+        }
+        public enum ConsoleCommandDigestionResult
+        {
+            Success,
+            ParseError,
+            InvocationError,
+            CommandHandlerException,
+            CommandHandlerResponseError
+        }
+
+        /// <summary>
+        /// execute a command submitted via the console
+        /// </summary>
+        /// <param name="commandLine">the submitted command</param>
+        /// <returns></returns>
+        public static ConsoleCommandOverallResult DigestCommand(string commandLine)
+        {
+            string command = null;
+            string[] parameters = null;
+            try
+            {
+                ParseCommand(commandLine, out command, out parameters);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception while parsing command: {commandLine}", ex);
+                return new ConsoleCommandOverallResult() { ConsoleCommandResult = ConsoleCommandDigestionResult.ParseError };
+            }
+            CommandHandlerResponse chr = CommandHandlerResponse.InvalidCommand;
+            CommandHandlerInfo commandHandler = null;
+            try
+            {
+                chr = GetCommandHandler(null, command, parameters, out commandHandler);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception while getting command handler for: {commandLine}", ex);
+                return new ConsoleCommandOverallResult() { ConsoleCommandResult = ConsoleCommandDigestionResult.CommandHandlerException };
+            }
+            if (chr == CommandHandlerResponse.Ok)
+            {
+                try
+                {
+                    // Add command to world manager's main thread...
+                    ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
+                    return new ConsoleCommandOverallResult() { ConsoleCommandResult = ConsoleCommandDigestionResult.Success, CommandHandlerResponse = chr };
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception while invoking command handler for: {commandLine}", ex);
+                    return new ConsoleCommandOverallResult() { ConsoleCommandResult = ConsoleCommandDigestionResult.InvocationError, CommandHandlerResponse = chr };
+                }
+            }
+            else
+            {
+                return new ConsoleCommandOverallResult() { ConsoleCommandResult = ConsoleCommandDigestionResult.CommandHandlerResponseError, CommandHandlerResponse = chr };
+            }
+        }
+
         private static void CommandThread()
         {
             Console.WriteLine("");
@@ -61,7 +124,7 @@ namespace ACE.Server.Command
             Console.WriteLine("Type \"acecommands\" for help.");
             Console.WriteLine("");
 
-            for (;;)
+            for (; ; )
             {
                 Console.Write("ACE >> ");
 
@@ -69,36 +132,7 @@ namespace ACE.Server.Command
                 if (string.IsNullOrWhiteSpace(commandLine))
                     continue;
 
-                string command = null;
-                string[] parameters = null;
-                try
-                {
-                    ParseCommand(commandLine, out command, out parameters);
-                }
-                catch (Exception ex)
-                {
-                    log.Error($"Exception while parsing command: {commandLine}", ex);
-                    return;
-                }
-                try
-                {
-                    if (GetCommandHandler(null, command, parameters, out var commandHandler) == CommandHandlerResponse.Ok)
-                    {
-                        try
-                        {
-                            // Add command to world manager's main thread...
-                            ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
-                        }
-                        catch (Exception ex)
-                        {
-                            log.Error($"Exception while invoking command handler for: {commandLine}", ex);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    log.Error($"Exception while getting command handler for: {commandLine}", ex);
-                }
+                DigestCommand(commandLine);
             }
         }
 

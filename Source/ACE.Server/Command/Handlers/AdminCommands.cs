@@ -2017,8 +2017,16 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server statistics and usage")]
         public static void HandleServerStatus(Session session, params string[] parameters)
         {
-            // This is formatted very similarly to GDL.
+            CommandHandlerHelper.WriteOutputInfo(session, $"{GetServerStatus()}");
+        }
 
+        /// <summary>
+        /// This is formatted very similarly to GDL.
+        /// Keep this public so that ACE.Server.API can use it.
+        /// </summary>
+        /// <returns>human readable server status</returns>
+        public static string GetServerStatus()
+        {
             var sb = new StringBuilder();
 
             var proc = Process.GetCurrentProcess();
@@ -2069,7 +2077,7 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
 
-            CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
+            return sb.ToString();
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]
