@@ -6,11 +6,11 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageTurbineChat : GameMessage
     {
-        public GameMessageTurbineChat(TurbineChatType turbineChatType, uint channel, string senderName, string message, uint senderID)
+        public GameMessageTurbineChat(ChatNetworkBlobType chatNetworkBlobType, uint channel, string senderName, string message, uint senderID, ChatType chatType)
             : base(GameMessageOpcode.TurbineChat, GameMessageGroup.LoginQueue)
         {
             /*uint messageSize;       // the number of bytes that follow after this DWORD
-            TurbineChatType type;   // the type of data contained in this message
+            ChatNetworkBlobType type;   // the type of data contained in this message
             uint blobDispatchType;  // 1?
             int targetType;         // 1?
             int targetID;           // Unique ID? Both ID's always match. These numbers change between 0x000B0000 - 0x000B00FF I think.
@@ -19,9 +19,9 @@ namespace ACE.Server.Network.GameMessages.Messages
             int cookie;             // 0?
             uint payloadSize;       // the number of bytes that follow after this DWORD
 
-            // Select one section based on the value of TurbineChatType
+            // Select one section based on the value of ChatNetworkBlobType
 
-            // 0x1 - TurbineChatType.InboundMessage
+            // 0x1 - ChatNetworkBlobType.NETBLOB_EVENT_BINARY
 
                 // Select one section based on the value of blobDispatchType
 
@@ -34,7 +34,7 @@ namespace ACE.Server.Network.GameMessages.Messages
                     int hResult;
                     uint chatType;
 
-            // 0x3 - TurbineChatType.OutboundMessage
+            // 0x3 - ChatNetworkBlobType.NETBLOB_REQUEST_BINARY
 
                 // Select one section based on the value of blobDispatchType
 
@@ -49,7 +49,7 @@ namespace ACE.Server.Network.GameMessages.Messages
                     int hResult;
                     uint chatType;
 
-                // 0x2 - SendToRoomByIDRequest, this is the only one used by the client i believe
+                // 0x2 - SendToRoomByIDRequest, this is the only one used by the client I believe
                     uint contextID;
                     uint responseID = 2;
                     uint methodID = 2;
@@ -60,7 +60,7 @@ namespace ACE.Server.Network.GameMessages.Messages
                     int hResult;
                     uint chatType;
 
-            // 0x5 - TurbineChatType.OutboundMessageAck - inbound acknowledgement to client of outbound message
+            // 0x5 - ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY - inbound acknowledgement to client of outbound message
 
                 // Select one section based on the value of blobDispatchType
 
@@ -76,11 +76,11 @@ namespace ACE.Server.Network.GameMessages.Messages
                     uint methodID = 2;      // type of request, should be 2 here
                     int hResult;*/
 
-            if (turbineChatType == TurbineChatType.InboundMessage)
+            if (chatNetworkBlobType == ChatNetworkBlobType.NETBLOB_EVENT_BINARY)
             {
                 var firstSizePos = Writer.BaseStream.Position;
                 Writer.Write(0u); // Bytes to follow
-                Writer.Write((uint)turbineChatType);
+                Writer.Write((uint)chatNetworkBlobType);
                 Writer.Write(1u);
                 Writer.Write(1u);
                 Writer.Write(0x000B00B5); // Unique ID? Both ID's always match. These numbers change between 0x000B0000 - 0x000B00FF I think.
@@ -92,22 +92,28 @@ namespace ACE.Server.Network.GameMessages.Messages
 
                 Writer.Write(channel);
 
-                Writer.Write((byte)senderName.Length);
+                if (senderName.Length < 128)
+                    Writer.Write((byte)senderName.Length);
+                else
+                    Writer.Write((ushort)(0x80 | (message.Length << 8)));
                 Writer.Write(Encoding.Unicode.GetBytes(senderName));
 
-                Writer.Write((byte)message.Length);
+                if (message.Length < 128)
+                    Writer.Write((byte)message.Length);
+                else
+                    Writer.Write((ushort)(0x80 | (message.Length << 8)));
                 Writer.Write(Encoding.Unicode.GetBytes(message));
 
                 Writer.Write(0x0Cu);
                 Writer.Write(senderID);
                 Writer.Write(0u);
-                Writer.Write(1u);
+                Writer.Write((uint)chatType);
 
                 Writer.WritePosition((uint)(Writer.BaseStream.Position - firstSizePos + 4), firstSizePos);
                 Writer.WritePosition((uint)(Writer.BaseStream.Position - secondSizePos + 4), secondSizePos);
             }
             else
-                Console.WriteLine($"Unhandled GameMessageTurbineChat TurbineChatType: 0x{(uint)turbineChatType:X4}");
+                Console.WriteLine($"Unhandled GameMessageTurbineChat ChatNetworkBlobType: 0x{(uint)chatNetworkBlobType:X4}");
         }
     }
 }

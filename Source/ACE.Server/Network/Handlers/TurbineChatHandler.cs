@@ -16,7 +16,7 @@ namespace ACE.Server.Network.Handlers
         public static void TurbineChatReceived(ClientMessage clientMessage, Session session)
         {
             clientMessage.Payload.ReadUInt32(); // Bytes to follow
-            var turbineChatType = (TurbineChatType)clientMessage.Payload.ReadUInt32();
+            var chatBlobType = (ChatNetworkBlobType)clientMessage.Payload.ReadUInt32();
             clientMessage.Payload.ReadUInt32(); // Always 2
             clientMessage.Payload.ReadUInt32(); // Always 1
             clientMessage.Payload.ReadUInt32(); // Always 0
@@ -25,21 +25,26 @@ namespace ACE.Server.Network.Handlers
             clientMessage.Payload.ReadUInt32(); // Always 0
             clientMessage.Payload.ReadUInt32(); // Bytes to follow
 
-            if (turbineChatType == TurbineChatType.OutboundMessage)
+            if (chatBlobType == ChatNetworkBlobType.NETBLOB_REQUEST_BINARY)
             {
                 clientMessage.Payload.ReadUInt32(); // 0x01 - 0x71 (maybe higher), typically though 0x01 - 0x0F
                 clientMessage.Payload.ReadUInt32(); // Always 2
                 clientMessage.Payload.ReadUInt32(); // Always 2
                 var channelID = clientMessage.Payload.ReadUInt32();
 
-                var messageLen = clientMessage.Payload.ReadByte();
+                int messageLen = clientMessage.Payload.ReadByte();
+                if ((messageLen & 0x80) > 0) // PackedByte
+                {
+                    byte lowbyte = clientMessage.Payload.ReadByte();
+                    messageLen = ((messageLen & 0x7F) << 8) | lowbyte;
+                }
                 var messageBytes = clientMessage.Payload.ReadBytes(messageLen * 2);
                 var message = Encoding.Unicode.GetString(messageBytes);
 
                 clientMessage.Payload.ReadUInt32(); // Always 0x0C
                 var senderID = clientMessage.Payload.ReadUInt32();
                 clientMessage.Payload.ReadUInt32(); // Always 0
-                clientMessage.Payload.ReadUInt32(); // Always 1 or 2
+                var chatType = (ChatType)clientMessage.Payload.ReadUInt32();
 
                 if (channelID == TurbineChatChannel.Society)
                 {
@@ -47,7 +52,7 @@ namespace ACE.Server.Network.Handlers
                     return;
                 }
 
-                var gameMessageTurbineChat = new GameMessageTurbineChat(TurbineChatType.InboundMessage, channelID, session.Player.Name, message, senderID);
+                var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, channelID, session.Player.Name, message, senderID, chatType);
 
                 var allegiance = AllegianceManager.FindAllegiance(channelID);
                 if (allegiance != null)
@@ -92,7 +97,7 @@ namespace ACE.Server.Network.Handlers
                 }
             }
             else
-                Console.WriteLine($"Unhandled TurbineChatHandler TurbineChatType: 0x{(uint)turbineChatType:X4}");
+                Console.WriteLine($"Unhandled TurbineChatHandler ChatNetworkBlobType: 0x{(uint)chatBlobType:X4}");
         }
     }
 }
