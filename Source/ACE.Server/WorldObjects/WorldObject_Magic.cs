@@ -956,6 +956,9 @@ namespace ACE.Server.WorldObjects
             gateway.MaxLevel = portal.MaxLevel;
             gateway.PortalRestrictions = portal.PortalRestrictions;
 
+            if (PropertyManager.GetBool("allow_gateway_ties_to_be_summonable", false).Item)
+                gateway.PortalRestrictions |= PortalBitmask.NoSummon;
+
             gateway.EnterWorld();
 
             return true;

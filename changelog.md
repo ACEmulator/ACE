@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-03
+[Ripley]
+* Add allow_gateway_ties_to_be_summonable configurable option
+
 ### 2019-04-02
 [Ripley]
 * Change the way GiveObjecttoNPC and HandleNPCReceiveItem deal with emotes.
