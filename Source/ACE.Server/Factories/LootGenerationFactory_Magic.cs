@@ -373,6 +373,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
 
+            wo = RandomizeColor(wo);
             return wo;
         }
     }

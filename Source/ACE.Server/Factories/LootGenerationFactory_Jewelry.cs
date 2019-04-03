@@ -88,6 +88,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyDataId.Spell);
             }
 
+            wo = RandomizeColor(wo);
             return wo;
         }
 

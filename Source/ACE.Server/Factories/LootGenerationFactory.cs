@@ -10,6 +10,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
 using ACE.Server.WorldObjects;
+using System.Linq;
 
 namespace ACE.Server.Factories
 {
@@ -2816,6 +2817,42 @@ namespace ACE.Server.Factories
             }
 
             return amount;
+        }
+
+        /// <summary>
+        /// This will assign a completely random, valid color to the item in question. It will also randomize the shade and set the appropriate icon.
+        ///
+        /// This is probably a temporary function to give some color to loot until further work/investigation can be put in to work out how colors should be assigned.
+        /// </summary>
+        private static WorldObject RandomizeColor(WorldObject wo)
+        {
+            // TODO - Are there restrictions on colors? e.g. are the Dye colors available in loot? Does the material affect the colors available?
+
+            // Make sure the item has a ClothingBase...otherwise we can't properly randomize the colors.
+            if (wo.ClothingBase != null)
+            {
+                DatLoader.FileTypes.ClothingTable item = DatLoader.DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ClothingTable>((uint)wo.ClothingBase);
+
+                // Get a random PaletteTemplate index from the ClothingBase entry
+                // But make sure there's some valid ClothingSubPalEffects (in a valid loot/clothingbase item, there always SHOULD be)
+                if (item.ClothingSubPalEffects.Count > 0)
+                {
+                    int randIndex = ThreadSafeRandom.Next(0, item.ClothingSubPalEffects.Count - 1);
+                    var cloSubPal = item.ClothingSubPalEffects.ElementAt(randIndex);
+
+                    // Make sure this entry has a valid icon, otherwise there's likely something wrong with the ClothingBase value for this WorldObject (e.g. not supposed to be a loot item)
+                    if (cloSubPal.Value.Icon > 0)
+                    {
+                        // Assign the appropriate Icon and PaletteTemplate
+                        wo.IconId = cloSubPal.Value.Icon;
+                        wo.PaletteTemplate = (int)cloSubPal.Key;
+
+                        // Throw some shade, at random
+                        wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
+                    }
+                }
+            }
+            return wo;
         }
     }
 }
