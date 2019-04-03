@@ -955,7 +955,6 @@ namespace ACE.Server.WorldObjects
             gateway.MinLevel = portal.MinLevel;
             gateway.MaxLevel = portal.MaxLevel;
             gateway.PortalRestrictions = portal.PortalRestrictions;
-            gateway.PortalRestrictions |= PortalBitmask.NoSummon;
 
             gateway.EnterWorld();
 
