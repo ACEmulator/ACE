@@ -183,7 +183,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.WeeniePropertiesCreateList != null && input.WeeniePropertiesCreateList.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesCreateList.OrderBy(r => r.DestinationType).ThenBy(r => r.WeenieClassId).ToList(), writer);
+                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesCreateList.OrderBy(r => r.DestinationType).ToList(), writer);
             }
 
             if (input.WeeniePropertiesBook != null)
