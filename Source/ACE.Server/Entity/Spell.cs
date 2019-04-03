@@ -6,6 +6,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.WorldObjects;
 using log4net;
 
 namespace ACE.Server.Entity
@@ -118,12 +119,18 @@ namespace ACE.Server.Entity
 
         public bool IsProjectile => NumProjectiles > 0;
 
-        public List<uint> TryBurnComponents()
+        public List<uint> TryBurnComponents(Player player)
         {
             var consumed = new List<uint>();
 
             // the base rate for each component is defined per-spell
             var baseRate = ComponentLoss;
+
+            // get magic skill mod
+            var magicSkill = GetMagicSkill();
+            var playerSkill = player.GetCreatureSkill(magicSkill);
+            var skillMod = Math.Min(1.0f, (float)Power / playerSkill.Current);
+            //Console.WriteLine($"TryBurnComponents.SkillMod: {skillMod}");
 
             //DebugComponents();
 
@@ -135,9 +142,10 @@ namespace ACE.Server.Entity
                     continue;
                 }
 
-                // component burn rate = spell base rate * component destruction modifier
-                var burnRate = baseRate * spellComponent.CDM;
+                // component burn rate = spell base rate * component destruction modifier * skillMod?
+                var burnRate = baseRate * spellComponent.CDM * skillMod;
 
+                // TODO: curve?
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
                 if (rng < burnRate)
                     consumed.Add(component);

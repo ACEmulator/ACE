@@ -683,7 +683,7 @@ namespace ACE.Server.WorldObjects
                             var items = ((Player)target).EquippedObjects.Values;
                             foreach (var item in items)
                             {
-                                if (item.WeenieType == WeenieType.Clothing)
+                                if (item.WeenieType == WeenieType.Clothing || item.IsShield)
                                 {
                                     enchantmentStatus = ItemMagic(item, spell);
                                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -1058,7 +1058,7 @@ namespace ACE.Server.WorldObjects
         {
             if (SafeSpellComponents) return;
 
-            var burned = spell.TryBurnComponents();
+            var burned = spell.TryBurnComponents(this);
             if (burned.Count == 0) return;
 
             // decrement components
