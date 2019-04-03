@@ -632,12 +632,16 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var returnStance = new Motion(CurrentMotionState.Stance);
-
                     if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
-                        EnqueueBroadcastMotion(returnStance);
+                        return;
+                    }
+
+                    // Was this item picked up by someone else?
+                    if (itemRootOwner == null && item.CurrentLandblock == null)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
                         return;
                     }
 
@@ -645,6 +649,16 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
+                        var returnStance = new Motion(CurrentMotionState.Stance);
+
+                        // Was this item picked up by someone else?
+                        if (itemRootOwner == null && item.CurrentLandblock == null)
+                        {
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
+                            EnqueueBroadcastMotion(returnStance);
+                            return;
+                        }
+
                         var questSolve = false;
 
                         if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
@@ -690,6 +704,7 @@ namespace ACE.Server.WorldObjects
                                     QuestManager.Update(item.Quest);
                             }
                         }
+
                         EnqueueBroadcastMotion(returnStance);
                     });
 
@@ -883,12 +898,16 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var returnStance = new Motion(CurrentMotionState.Stance);
-
                     if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
-                        EnqueueBroadcastMotion(returnStance);
+                        return;
+                    }
+
+                    // Was this item picked up by someone else?
+                    if (rootOwner == null && item.CurrentLandblock == null)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
                         return;
                     }
 
@@ -896,6 +915,16 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
+                        var returnStance = new Motion(CurrentMotionState.Stance);
+
+                        // Was this item picked up by someone else?
+                        if (rootOwner == null && item.CurrentLandblock == null)
+                        {
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
+                            EnqueueBroadcastMotion(returnStance);
+                            return;
+                        }
+
                         if (DoHandleActionGetAndWieldItem(item, rootOwner, wasEquipped, wieldedLocation))
                         {
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
@@ -905,6 +934,7 @@ namespace ACE.Server.WorldObjects
                             item.EmoteManager.OnPickup(this);
                             item.NotifyOfEvent(RegenerationType.PickUp);
                         }
+
                         EnqueueBroadcastMotion(returnStance);
                     });
 
