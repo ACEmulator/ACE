@@ -445,7 +445,7 @@ namespace ACE.Server.Managers
                 ("house_rent_enabled", true),
                 ("pk_server", false),
                 ("show_dot_messages", false),        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
-                ("allow_gateway_ties_to_be_summonable", false)        // if enabled, players can summon ties from gateways. defaults to disabled, as in retail
+                ("disable_gateway_ties_to_be_summonable", false)        // if enabled, players cannot summon ties from gateways. defaults to enabled, as in retail
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =

@@ -880,7 +880,7 @@ namespace ACE.Server.WorldObjects
                             }
 
                             var summonPortal = GetPortal(portalId);
-                            if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && !PropertyManager.GetBool("allow_gateway_ties_to_be_summonable", false).Item))
+                            if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && PropertyManager.GetBool("disable_gateway_ties_to_be_summonable", false).Item))
                             {
                                 // You cannot summon that portal!
                                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
@@ -956,8 +956,7 @@ namespace ACE.Server.WorldObjects
             gateway.MaxLevel = portal.MaxLevel;
             gateway.PortalRestrictions = portal.PortalRestrictions;
 
-            if (PropertyManager.GetBool("allow_gateway_ties_to_be_summonable", false).Item)
-                gateway.PortalRestrictions |= PortalBitmask.NoSummon;
+            gateway.PortalRestrictions |= PortalBitmask.NoSummon;
 
             gateway.EnterWorld();
 
