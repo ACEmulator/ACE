@@ -956,7 +956,7 @@ namespace ACE.Server.WorldObjects
             gateway.MaxLevel = portal.MaxLevel;
             gateway.PortalRestrictions = portal.PortalRestrictions;
 
-            gateway.PortalRestrictions |= PortalBitmask.NoSummon;
+            gateway.PortalRestrictions |= PortalBitmask.NoSummon; // all gateways are marked NoSummon but by default ruleset, the OriginalPortal is the one that is checked against
 
             gateway.EnterWorld();
 
