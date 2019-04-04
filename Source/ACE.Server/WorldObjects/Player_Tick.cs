@@ -40,13 +40,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// If TRUE, when the player receives items from an NPC, they will be saved immediately
-        /// For maximum performance in code, this is a field instead of a Dictionary lookup in PropertyManager
-        /// This option could add a bit of extra writes to db, so performance should be monitored
-        /// </summary>
-        public static bool NPCReceiveImmediateSave = false;
-
-        /// <summary>
         /// Called every ~5 seconds for Players
         /// </summary>
         public override void Heartbeat(double currentUnixTime)
@@ -65,7 +58,7 @@ namespace ACE.Server.WorldObjects
             if (LastRequestedDatabaseSave == DateTime.MinValue)
                 LastRequestedDatabaseSave = DateTime.UtcNow;
 
-            if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow || NPCReceiveChangesDetected && NPCReceiveImmediateSave)
+            if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow)
                 SavePlayerToDatabase();
 
             base.Heartbeat(currentUnixTime);

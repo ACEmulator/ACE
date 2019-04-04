@@ -334,7 +334,8 @@ namespace ACE.Server.Managers
                             var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
                             player.Session.Network.EnqueueSend(msg, sound);
 
-                            player.NPCReceiveChangesDetected = true;
+                            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                                player.RushNextPlayerSave(5);
                         }
                     }
                     break;

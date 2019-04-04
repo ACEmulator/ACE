@@ -5,6 +5,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -199,7 +200,8 @@ namespace ACE.Server.WorldObjects
 
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
 
-                NPCReceiveChangesDetected = true;
+                if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                    RushNextPlayerSave(5);
             }
 
             vendor.BuyItems_FinalTransaction(this, uqlist, valid);
