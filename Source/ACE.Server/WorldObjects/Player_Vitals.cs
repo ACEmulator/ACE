@@ -180,7 +180,7 @@ namespace ACE.Server.WorldObjects
             // check for exhaustion
             if (vital.Vital == PropertyAttribute2nd.Stamina || vital.Vital == PropertyAttribute2nd.MaxStamina)
             {
-                if (change != 0 && vital.Current == 0)
+                if (change != 0 && vital.Current <= 0)
                     OnExhausted();
 
             }
@@ -200,7 +200,7 @@ namespace ACE.Server.WorldObjects
             if (target == null)
                 return;
 
-            if (target.Health.Current == 0)
+            if (target.Health.Current <= 0)
                 return;
 
             var healthPercent = (float)target.Health.Current / target.Health.MaxValue;

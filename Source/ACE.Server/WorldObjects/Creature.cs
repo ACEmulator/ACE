@@ -67,11 +67,11 @@ namespace ACE.Server.WorldObjects
             foreach (var skillProperty in Biota.BiotaPropertiesSkill)
                 Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, skillProperty);
 
-            if (Health.Current == 0)
+            if (Health.Current <= 0)
                 Health.Current = Health.MaxValue;
-            if (Stamina.Current == 0)
+            if (Stamina.Current <= 0)
                 Stamina.Current = Stamina.MaxValue;
-            if (Mana.Current == 0)
+            if (Mana.Current <= 0)
                 Mana.Current = Mana.MaxValue;
 
             if (!(this is Player))

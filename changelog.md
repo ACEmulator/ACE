@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-04
+[Ripley]
+* Fix to prevent multiple death stacking. You can only die one time until you resurrect at lifestone.
+
 ### 2019-04-02
 [Ripley]
 * Change the way GiveObjecttoNPC and HandleNPCReceiveItem deal with emotes.
