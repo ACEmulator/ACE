@@ -3,6 +3,7 @@ using System;
 
 using log4net;
 
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -2824,7 +2825,7 @@ namespace ACE.Server.Factories
         ///
         /// This is probably a temporary function to give some color to loot until further work/investigation can be put in to work out how colors should be assigned.
         /// </summary>
-        private static WorldObject RandomizeColor(WorldObject wo)
+        private static WorldObject RandomizeColorByClothingBase(WorldObject wo)
         {
             // TODO - Are there restrictions on colors? e.g. are the Dye colors available in loot? Does the material affect the colors available?
 
@@ -2852,6 +2853,30 @@ namespace ACE.Server.Factories
                     }
                 }
             }
+            return wo;
+        }
+
+        private static WorldObject RandomizeColor(WorldObject wo)
+        {
+            if(wo.MaterialType != null && wo.GetProperty(PropertyInt.TsysMutationData) != null && wo.ClothingBase != null)
+            {
+                uint tsysByte = ((uint)wo.GetProperty(PropertyInt.TsysMutationData) >> 16) &0xFF;
+                var colorOptions =  DatabaseManager.World.GetCachedTreasureMaterial((uint)wo.MaterialType, tsysByte);
+                var test = "here";
+
+                // Calculate our total chance in the sub items (See Monster_Inventory.cs)
+                if (colorOptions == null) return wo;
+                var prob = colorOptions.Select(i => i.Chance).ToList();
+
+                var totalSum = prob.Sum();
+                var totalProduct = prob.Product();
+
+                var totalChance = totalSum - totalProduct;
+
+                // Reference WorldObject_Equipment.cs
+                // public List<WorldObject> GenerateWieldedTreasureSet(TreasureWieldedSet set)
+            }
+
             return wo;
         }
     }

@@ -100,6 +100,8 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllDeathTreasures();
                 log.Info("Precaching Wielded Treasures...");
                 DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
+                log.Info("Precaching Wielded Treasures Color Materials...");
+                DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
             }
             else
                 log.Info("Precaching World Database Disabled...");

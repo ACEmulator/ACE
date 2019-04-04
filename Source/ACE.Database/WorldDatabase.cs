@@ -876,6 +876,51 @@ namespace ACE.Database
             }
         }
 
+        private readonly ConcurrentDictionary<uint, List<TreasureMaterialColor>> cachedTreasureMaterialColor = new ConcurrentDictionary<uint, List<TreasureMaterialColor>>();
+
+        /// <summary>
+        /// Returns the number of TreasureMaterialColor currently cached.
+        /// </summary>
+        public int GetTreasureMaterialColorCacheCount()
+        {
+            return cachedTreasureMaterialColor.Count(r => r.Value != null);
+        }
+
+        public List<TreasureMaterialColor> GetCachedTreasureMaterial(uint materialId, uint tsysMutationCode)
+        {
+            if (cachedTreasureMaterialColor.TryGetValue(materialId, out var value))
+                return value;
+
+            using (var context = new WorldDbContext())
+            {
+                var results = context.TreasureMaterialColor
+                    .AsNoTracking()
+                    .Where(r => r.MaterialId == materialId)
+                    .Where(r => r.TsysMutationColor == tsysMutationCode)
+                    .ToList();
+
+                cachedTreasureMaterialColor[materialId] = results;
+                return results;
+            }
+        }
+
+        /// <summary>
+        /// This takes under 1 second to complete.
+        /// </summary>
+        public void CacheAllTreasuresMaterialColorInParallel()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.TreasureMaterialColor
+                    .AsNoTracking()
+                    .GroupBy(r => r.MaterialId)
+                    .ToList();
+
+                foreach (var result in results)
+                    cachedTreasureMaterialColor[result.Key] = result.ToList();
+            }
+        }
+
         private readonly ConcurrentDictionary<string, Quest> cachedQuest = new ConcurrentDictionary<string, Quest>();
 
         public Quest GetCachedQuest(string questName)

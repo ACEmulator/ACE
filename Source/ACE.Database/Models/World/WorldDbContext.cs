@@ -40,6 +40,7 @@ namespace ACE.Database.Models.World
         public virtual DbSet<Spell> Spell { get; set; }
         public virtual DbSet<TreasureDeath> TreasureDeath { get; set; }
         public virtual DbSet<TreasureWielded> TreasureWielded { get; set; }
+        public virtual DbSet<TreasureMaterialColor> TreasureMaterialColor { get; set; }
         public virtual DbSet<Weenie> Weenie { get; set; }
         public virtual DbSet<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
         public virtual DbSet<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
@@ -1176,6 +1177,17 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Unknown9).HasColumnName("unknown_9");
 
                 entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
+            });
+
+            modelBuilder.Entity<TreasureMaterialColor>(entity =>
+            {
+                entity.ToTable("treasure_material_color");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.MaterialId).HasColumnName("material_Id");
+                entity.Property(e => e.TsysMutationColor).HasColumnName("tsys_Mutation_Color");
+                entity.Property(e => e.PaletteTemplate).HasColumnName("palette_Template");
+                entity.Property(e => e.Chance).HasColumnName("chance");
             });
 
             modelBuilder.Entity<Weenie>(entity =>
