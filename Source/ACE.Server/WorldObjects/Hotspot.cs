@@ -27,8 +27,8 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             // If CycleTime is less than 1, player has a very bad time.
-            //if ((CycleTime ?? 0) < 1)
-            //    CycleTime = 1;
+            if ((CycleTime ?? 0) < 1)
+                CycleTime = 1;
         }
 
         public override void OnCollideObjectEnd(WorldObject wo)
