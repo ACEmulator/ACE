@@ -2060,8 +2060,10 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"{activeLandblocks.Count:N0} active landblocks - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
-            sb.Append($"UpdateGameWorld {(DateTime.UtcNow - WorldManager.UpdateGameWorld5MinLastReset).TotalMinutes:N2} min - {WorldManager.UpdateGameWorld5MinRM}.{'\n'}");
-            sb.Append($"UpdateGameWorld {(DateTime.UtcNow - WorldManager.UpdateGameWorld60MinLastReset).TotalMinutes:N2} min - {WorldManager.UpdateGameWorld60MinRM}.{'\n'}");
+            if (ServerPerformanceMonitor.IsRunning)
+                sb.Append($"Server Performance Monitor - UpdateGameWorld ~5m {ServerPerformanceMonitor.GetMonitor5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3}, ~1h {ServerPerformanceMonitor.GetMonitor1h(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3} s{'\n'}");
+            else
+                sb.Append($"Server Performance Monitor - Not running. To start use /serverperformance start{'\n'}");
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");
@@ -2070,6 +2072,43 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
 
             CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
+        }
+
+        // serverstatus
+        [CommandHandler("serverperformance", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server performance statistics")]
+        public static void HandleServerPerformance(Session session, params string[] parameters)
+        {
+            if (parameters != null && parameters.Length == 1)
+            {
+                if (parameters[0].ToLower() == "start")
+                {
+                    ServerPerformanceMonitor.Start();
+                    CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor started");
+                    return;
+                }
+
+                if (parameters[0].ToLower() == "stop")
+                {
+                    ServerPerformanceMonitor.Stop();
+                    CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor stopped");
+                    return;
+                }
+
+                if (parameters[0].ToLower() == "reset")
+                {
+                    ServerPerformanceMonitor.Reset();
+                    CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor reset");
+                    return;
+                }
+            }
+
+            if (!ServerPerformanceMonitor.IsRunning)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor not running. To start use /serverperformance start");
+                return;
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, ServerPerformanceMonitor.ToString());
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]
