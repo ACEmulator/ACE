@@ -4,6 +4,10 @@
 [Ripley]
 * Fix to prevent multiple death stacking. You can only die one time until you resurrect at lifestone.
 
+### 2019-04-03
+[Mag-nus]
+* /serverperformance command added. Optional parameters: start, stop, reset
+
 ### 2019-04-02
 [Ripley]
 * Change the way GiveObjecttoNPC and HandleNPCReceiveItem deal with emotes.

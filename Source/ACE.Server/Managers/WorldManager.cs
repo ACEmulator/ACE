@@ -32,7 +32,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
 {
-    public class WorldManager
+    public static class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
@@ -519,18 +519,32 @@ namespace ACE.Server.Managers
 
                 worldTickTimer.Restart();
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick);
                 PlayerManager.Tick();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick);
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueue_RunActions);
                 InboundClientMessageQueue.RunActions();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueue_RunActions);
 
                 // This will consist of PlayerEnterWorld actions, as well as other game world actions that require thread safety
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
                 actionQueue.RunActions();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DelayManager_RunActions);
                 DelayManager.RunActions();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DelayManager_RunActions);
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld);
                 var gameWorldUpdated = UpdateGameWorld();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld);
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork);
                 int sessionCount = DoSessionWork();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork);
+
+                ServerPerformanceMonitor.Tick();
 
                 // We only relax the CPU if our game world is able to update at the target rate.
                 // We do not sleep if our game world just updated. This is to prevent the scenario where our game world can't keep up. We don't want to add further delays.
@@ -545,11 +559,6 @@ namespace ACE.Server.Managers
             WorldActive = false;
         }
 
-        public static readonly RateMonitor UpdateGameWorld5MinRM = new RateMonitor();
-        public static DateTime UpdateGameWorld5MinLastReset = DateTime.UtcNow;
-        public static readonly RateMonitor UpdateGameWorld60MinRM = new RateMonitor();
-        public static DateTime UpdateGameWorld60MinLastReset = DateTime.UtcNow;
-
         /// <summary>
         /// Projected to run at a reasonable rate for gameplay (30-60fps)
         /// </summary>
@@ -560,13 +569,15 @@ namespace ACE.Server.Managers
 
             updateGameWorldRateLimiter.RegisterEvent();
 
-            UpdateGameWorld5MinRM.RegisterEventStart();
-            UpdateGameWorld60MinRM.RegisterEventStart();
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
 
             // update positions through physics engine
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_HandlePhysics);
             var movedObjects = HandlePhysics(Timers.PortalYearTicks);
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_HandlePhysics);
 
             // iterate through objects that have changed landblocks
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_RelocateObjectForPhysics);
             foreach (var movedObject in movedObjects)
             {
                 // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
@@ -575,32 +586,22 @@ namespace ACE.Server.Managers
                 // assume adjacency move here?
                 LandblockManager.RelocateObjectForPhysics(movedObject, true);
             }
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_RelocateObjectForPhysics);
 
             // Tick all of our Landblocks and WorldObjects
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
             var activeLandblocks = LandblockManager.GetActiveLandblocks();
 
             foreach (var landblock in activeLandblocks)
                 landblock.Tick(Time.GetUnixTime());
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
 
             // clean up inactive landblocks
             LandblockManager.UnloadLandblocks();
 
-            UpdateGameWorld5MinRM.RegisterEventEnd();
-            UpdateGameWorld60MinRM.RegisterEventEnd();
-
-            if (UpdateGameWorld5MinRM.TotalSeconds > 300)
-            {
-                UpdateGameWorld5MinRM.ClearEventHistory();
-                UpdateGameWorld5MinLastReset = DateTime.UtcNow;
-            }
-
-            if (UpdateGameWorld60MinRM.TotalSeconds > 3600)
-            {
-                UpdateGameWorld60MinRM.ClearEventHistory();
-                UpdateGameWorld60MinLastReset = DateTime.UtcNow;
-            }
-
             HouseManager.Tick();
+
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
 
             return true;
         }
@@ -705,16 +706,21 @@ namespace ACE.Server.Managers
                 sessionCount = sessions.Count;
 
                 // The session tick inbound processes all inbound GameAction messages
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
                 foreach (var s in sessions)
                     s.TickInbound();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
 
                 // Do not combine the above and below loops. All inbound messages should be processed first and then all outbound messages should be processed second.
 
                 // The session tick outbound processes pending actions and handles outgoing messages
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
                 foreach (var s in sessions)
                     s.TickOutbound();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
                 for (int i = sessions.Count - 1; i >= 0; i--)
                 {
                     var sesh = sessions[i];
@@ -728,6 +734,7 @@ namespace ACE.Server.Managers
                             break;
                     }
                 }
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
             }
             finally
             {
