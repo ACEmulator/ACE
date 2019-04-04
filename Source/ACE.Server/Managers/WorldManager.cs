@@ -146,6 +146,11 @@ namespace ACE.Server.Managers
                     log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
                     SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
                 }
+                else if (ServerManager.ShutdownInitiated)
+                {
+                    log.InfoFormat("Login Request from {0} rejected. Server shutting down.", endPoint);
+                    SendLoginRequestReject(endPoint, CharacterError.ServerCrash);
+                }
                 else
                 {
                     log.DebugFormat("Login Request from {0}", endPoint);

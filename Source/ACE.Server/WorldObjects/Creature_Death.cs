@@ -224,8 +224,9 @@ namespace ACE.Server.WorldObjects
             else
                 corpse.LongDesc = $"Killed by misadventure.";
 
-            var player = this as Player;
-            if (player != null)
+            bool saveCorpse = false;
+
+            if (this is Player player)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 var dropped = player.CalculateDeathItems(corpse);
@@ -237,7 +238,10 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
 
                     if (dropped.Count > 0)
+                    {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
+                        saveCorpse = true;
+                    }
                 }
             }
             else
@@ -248,6 +252,9 @@ namespace ACE.Server.WorldObjects
 
             corpse.RemoveProperty(PropertyInt.Value);
             LandblockManager.AddObject(corpse);
+
+            if (saveCorpse)
+                corpse.SaveBiotaToDatabase();
         }
 
         /// <summary>

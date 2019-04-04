@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-04
+[Ripley]
+* Fix to prevent multiple death stacking. You can only die one time until you resurrect at lifestone.
+
 ### 2019-04-03
 [Mag-nus]
 * /serverperformance command added. Optional parameters: start, stop, reset

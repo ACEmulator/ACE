@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -98,13 +99,15 @@ namespace ACE.Server.WorldObjects
 
             uint preCost = 0;
 
-            if ((spell.School == MagicSchool.ItemEnchantment) && (spell.MetaSpellType == SpellType.Enchantment))
+            if ((spell.School == MagicSchool.ItemEnchantment) && (spell.MetaSpellType == SpellType.Enchantment) &&
+                (spell.Category >= SpellCategory.ArmorValueRaising) && (spell.Category <= SpellCategory.AcidicResistanceLowering) && target is Player)
             {
                 var targetPlayer = target as Player;
 
                 int numTargetItems = 1;
                 if (targetPlayer != null)
-                    numTargetItems = targetPlayer.EquippedObjects.Count;
+                    numTargetItems = targetPlayer.EquippedObjects.Values.Where(i => i is Clothing || i.IsShield).Count();
+
                 preCost = (uint)Math.Round((baseCost + (spell.ManaMod * numTargetItems)) * baseManaPercent);
             }
             else if ((spell.Flags & SpellFlags.FellowshipSpell) != 0)

@@ -443,6 +443,7 @@ namespace ACE.Server.Managers
                 ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
+                ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
                 ("pk_server", false),
                 ("show_dot_messages", false)        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
                 );
