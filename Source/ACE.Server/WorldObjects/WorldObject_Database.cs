@@ -20,6 +20,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool ChangesDetected { get; set; }
 
+        public bool NPCReceiveChangesDetected { get; set; }
+
         /// <summary>
         /// Best practice says you should use this lock any time you read/write the Biota.<para />
         /// However, it's only a requirement to do this for properties/collections that will be modified after the initial biota has been created.<para />
@@ -52,6 +54,7 @@ namespace ACE.Server.WorldObjects
 
             LastRequestedDatabaseSave = DateTime.UtcNow;
             ChangesDetected = false;
+            NPCReceiveChangesDetected = false;
 
             if (enqueueSave)
                 //DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);

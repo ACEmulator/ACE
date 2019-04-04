@@ -198,6 +198,8 @@ namespace ACE.Server.WorldObjects
                 }
 
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
+
+                NPCReceiveChangesDetected = true;
             }
 
             vendor.BuyItems_FinalTransaction(this, uqlist, valid);
