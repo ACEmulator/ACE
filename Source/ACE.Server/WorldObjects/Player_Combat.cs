@@ -668,7 +668,7 @@ namespace ACE.Server.WorldObjects
             if (Fellowship != null)
                 Fellowship.OnVitalUpdate(this);
 
-            if (Health.Current == 0)
+            if (Health.Current <= 0)
             {
                 OnDeath(source, damageType, crit);
                 Die();
