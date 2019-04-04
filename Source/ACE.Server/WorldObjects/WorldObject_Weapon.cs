@@ -21,6 +21,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, value.Value); }
         }
 
+        public Skill WeaponSkill
+        {
+            get => (Skill)(GetProperty(PropertyInt.WeaponSkill) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WeaponSkill); else SetProperty(PropertyInt.WeaponSkill, (int)value); }
+        }
+
         public int? W_DamageType
         {
             get => GetProperty(PropertyInt.DamageType) ?? 0;
