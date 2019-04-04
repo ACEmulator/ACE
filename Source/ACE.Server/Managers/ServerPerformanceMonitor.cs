@@ -51,9 +51,9 @@ namespace ACE.Server.Managers
         private static readonly TimeSpan last1hClearInteval = TimeSpan.FromHours(1);
         private static readonly TimeSpan last24hClearInterval = TimeSpan.FromHours(24);
 
-        private static DateTime last5mClear = DateTime.MinValue;
-        private static DateTime last1hClear = DateTime.MinValue;
-        private static DateTime last24hClear = DateTime.MinValue;
+        private static DateTime last5mClear;
+        private static DateTime last1hClear;
+        private static DateTime last24hClear;
 
         private static TimeSpan Monitors5mRunTime => DateTime.UtcNow - last5mClear;
         private static TimeSpan Monitors1hRunTime => DateTime.UtcNow - last1hClear;
@@ -131,6 +131,10 @@ namespace ACE.Server.Managers
                 monitors1h[i].ClearEventHistory();
                 monitors24h[i].ClearEventHistory();
             }
+
+            last5mClear = DateTime.UtcNow;
+            last1hClear = DateTime.UtcNow;
+            last24hClear = DateTime.UtcNow;
         }
 
 
