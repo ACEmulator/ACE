@@ -28,7 +28,12 @@ namespace ACE.Server.Network.GameAction.Actions
                 session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {targetPlayer.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
 
             if (targetPlayer.Squelches.Contains(session.Player))
+            {
+                //todo: remove debug msg.
+                session.Network.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.MessageBlocked_,$"{target} has you squelched."),
+                                            new GameMessageSystemChat($"DEBUG: This messages was blocked. Report seeing this block to devs in discord, please ", ChatMessageType.AdminTell));
                 return;
+            }
 
             var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
             targetPlayer.Session.Network.EnqueueSend(tell);
