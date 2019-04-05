@@ -34,7 +34,7 @@ namespace ACE.Server.Network.GameAction.Actions
             {
                 //todo: remove debug msg.
                 session.Network.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.MessageBlocked_,$"{target} has you squelched."),
-                                            new GameMessageSystemChat($"DEBUG: This message was blocked. Report seeing this block to devs in discord, please ", ChatMessageType.AdminTell));
+                                            new GameMessageSystemChat($"DEBUG: This message was blocked. Report seeing this block to devs in discord, please.", ChatMessageType.AdminTell));
                 log.Warn($"Tell from {session.Player.Name} (0x{session.Player.Guid.ToString()}) to {targetPlayer.Name} (0x{targetPlayer.Guid.ToString()}) blocked due to squelch");
                 return;
             }
