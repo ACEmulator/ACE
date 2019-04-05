@@ -472,11 +472,8 @@ namespace ACE.Server.Network
                 var currentBundle = currentBundles[(int)GameMessageGroup.InvalidQueue];
 
                 // Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
-                if (clientTime > currentBundle.ClientTime)
-                {
-                    currentBundle.ClientTime = clientTime;
-                    currentBundle.EncryptedChecksum = true;
-                }
+                currentBundle.ClientTime = clientTime;
+                currentBundle.EncryptedChecksum = true;
             }
         }
 
