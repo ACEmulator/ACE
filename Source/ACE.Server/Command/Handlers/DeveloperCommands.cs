@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Numerics;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -174,7 +175,6 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, NetworkStatistics.Summary(), ChatMessageType.Broadcast);
         }
 
-#if NETDIAG
         [CommandHandler("trash_c2s", AccessLevel.Developer, CommandHandlerFlag.None, "Trash (corrupt) the next C2S packet that arrives.")]
         public static void HandleTrashNextPacketC2S(Session session, params string[] parameters)
         {
@@ -212,7 +212,6 @@ namespace ACE.Server.Command.Handlers
             HandleJunkC2S(session, parameters);
             HandleJunkS2C(session, parameters);
         }
-#endif
 
         /// <summary>
         /// List all clothing bases which are compatible with setup
@@ -397,7 +396,10 @@ namespace ACE.Server.Command.Handlers
                 distance = Convert.ToInt16(parameters[0]);
 
             WorldObject loot = WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
+            loot.Location = session.Player.Location.InFrontOf((loot.UseRadius ?? 2) > 2 ? loot.UseRadius.Value : 2);
+            loot.Location.LandblockId = new LandblockId(loot.Location.GetCell());
+
+            loot.EnterWorld();
 
             session.Player.HandleActionPutItemInContainer(loot.Guid.Full, session.Player.Guid.Full);
         }
@@ -488,24 +490,10 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("propertydump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Lists all properties for the last world object you examined.")]
         public static void HandlePropertyDump(Session session, params string[] parameters)
         {
-            var targetID = session.Player.CurrentAppraisalTarget;
-            if (targetID == null)
-            {
-                ChatPacket.SendServerMessage(session, "ERROR: no examined history", ChatMessageType.System);
-                return;
-            }
-            var target = session.Player.FindObject(targetID.Value, Player.SearchLocations.Everywhere, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
-            if (target == null)
-            {
-                target = session.Player.CurrentLandblock.GetWieldedObject(targetID.Value);
-                if (target == null)
-                {
-                    ChatPacket.SendServerMessage(session, $"ERROR: couldn't find {targetID:X8}", ChatMessageType.System);
-                    return;
-                }
-            }
-            session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{target.DebugOutputString(target)}", ChatMessageType.System));
+            var target = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (target != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"\n{target.DebugOutputString(target)}", ChatMessageType.System));
         }
 
 
@@ -768,7 +756,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("addalltitles", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Add all titles to yourself")]
         public static void HandleAddAllTitles(Session session, params string[] parameters)
         {
-            foreach(CharacterTitle title in Enum.GetValues(typeof(CharacterTitle)))
+            foreach (CharacterTitle title in Enum.GetValues(typeof(CharacterTitle)))
                 session.Player.AddTitle((uint)title);
         }
 
@@ -800,8 +788,11 @@ namespace ACE.Server.Command.Handlers
                 {
                     try
                     {
-                        var xp = (long)aceParams[1].AsLong;
-                        aceParams[0].AsPlayer.GrantXP(xp);
+                        var amount = aceParams[1].AsLong;
+                        aceParams[0].AsPlayer.GrantXP(amount, XpType.Admin, false); 
+
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted.", ChatMessageType.Advancement));
+
                         return;
                     }
                     catch
@@ -915,11 +906,7 @@ namespace ACE.Server.Command.Handlers
                 var stackSizeForThisWeenieId = stackSize ?? loot.MaxStackSize;
 
                 if (stackSizeForThisWeenieId > 1)
-                {
-                    loot.StackSize = stackSizeForThisWeenieId;
-                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSizeForThisWeenieId ?? 1);
-                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSizeForThisWeenieId ?? 1);
-                }
+                    loot.SetStackSize(stackSizeForThisWeenieId);
 
                 session.Player.TryCreateInInventoryWithNetworking(loot);
             }
@@ -952,7 +939,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("comps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates spell component items in your inventory for testing.")]
         public static void HandleComps(Session session, params string[] parameters)
         {
-            HashSet<uint> weenieIds = new HashSet<uint> { 686, 687, 688, 689, 690, 691, 740, 741, 742, 743, 744, 745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778, 779 ,780, 781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792, 1643, 1644, 1645, 1646, 1647, 1648, 1649, 1650, 1651, 1652, 1653, 1654, 7299, 8897, 20631 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 686, 687, 688, 689, 690, 691, 740, 741, 742, 743, 744, 745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778, 779, 780, 781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792, 1643, 1644, 1645, 1646, 1647, 1648, 1649, 1650, 1651, 1652, 1653, 1654, 7299, 7581, 8897, 20631 };
 
             AddWeeniesToInventory(session, weenieIds, 1);
         }
@@ -960,7 +947,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("food", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates some food items in your inventory for testing.")]
         public static void HandleFood(Session session, params string[] parameters)
         {
-            HashSet<uint> weenieIds = new HashSet<uint> { 259, 259, 260, 377,  378,  379 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 259, 259, 260, 377, 378, 379 };
 
             AddWeeniesToInventory(session, weenieIds);
         }
@@ -983,7 +970,7 @@ namespace ACE.Server.Command.Handlers
             {
                 try
                 {
-                    weenieTypeNumber = (uint) Enum.Parse(typeof(WeenieType), weenieTypeName);
+                    weenieTypeNumber = (uint)Enum.Parse(typeof(WeenieType), weenieTypeName);
                 }
                 catch
                 {
@@ -1281,29 +1268,7 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine("Visible: " + visible);
         }
 
-        public static WorldObject GetLastAppraisedObject(Session session)
-        {
-            // get the wo emotemanager for the last appraised object
-            var targetID = session.Player.CurrentAppraisalTarget;
-            if (targetID == null)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: no appraisal target");
-                return null;
-            }
-            var targetGuid = new ObjectGuid(targetID.Value);
-            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
-            if (target == null)
-                target = session.Player.CurrentLandblock?.GetWieldedObject(targetGuid);
-
-            if (target == null)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: couldn't find " + targetGuid);
-                return null;
-            }
-            return target;
-        }
-
-        [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shows a list of player's current attribute/skill levels in console window", "showstats")]
+        [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows a list of player's current attribute/skill levels in console window", "showstats")]
         public static void HandleShowStats(Session session, params string[] parameters)
         {
             var player = session.Player;
@@ -1464,6 +1429,18 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
+        /// Shows the list of voyeurs for this player
+        /// </summary>
+        [CommandHandler("voyeurs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of voyeurs for this player", "/voyeurs")]
+        public static void HandleVoyeurs(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nVoyeurs for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VoyeurTable.Values.Where(o => o.IsPlayer).Count()}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VoyeurTable.Values.Where(o => o.IsPlayer))
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
         /// Shows the list of previously visible objects queued for destruction for this player
         /// </summary>
         [CommandHandler("destructionqueue", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of previously visible objects queued for destruction for this player", "/destructionqueue")]
@@ -1516,6 +1493,379 @@ namespace ACE.Server.Command.Handlers
         public static void HandleMyLoc(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {session.Player.PhysicsObj.Position}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Gets a property for the last appraised object
+        /// </summary>
+        [CommandHandler("getproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Gets a property for the last appraised object", "/getproperty <property>")]
+        public static void HandleGetProperty(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (obj == null) return;
+
+            if (parameters.Length < 1)
+                return;
+
+            var prop = parameters[0];
+
+            var props = prop.Split('.');
+            if (props.Length != 2)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown {prop}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var propType = props[0];
+            var propName = props[1];
+
+            Type pType;
+            if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyInt);
+            else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyInt64);
+            else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyBool);
+            else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyFloat);
+            else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyString);
+            else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyInstanceId);
+            else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyDataId);
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown property type: {propType}", ChatMessageType.Broadcast));
+                return;
+
+            }
+
+            if (!Enum.TryParse(pType, propName, out var result))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var value = "";
+            if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyInt)result));
+            else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyInt64)result));
+            else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyBool)result));
+            else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyFloat)result));
+            else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyString)result));
+            else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyInstanceId)result));
+            else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyDataId)result));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Sets a property for the last appraised object
+        /// </summary>
+        [CommandHandler("setproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sets a property for the last appraised object", "/setproperty <property> <value>")]
+        public static void HandleSetProperty(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (obj == null) return;
+
+            if (parameters.Length < 2)
+                return;
+
+            var prop = parameters[0];
+            var value = parameters[1];
+
+            var props = prop.Split('.');
+            if (props.Length != 2)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown {prop}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var propType = props[0];
+            var propName = props[1];
+
+            Type pType;
+            if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyInt);
+            else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyInt64);
+            else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyBool);
+            else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyFloat);
+            else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyString);
+            else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyInstanceId);
+            else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyDataId);
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown property type: {propType}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (!Enum.TryParse(pType, propName, out var result))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (value == "null")
+            {
+                if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
+                    obj.RemoveProperty((PropertyInt)result);
+                else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
+                    obj.RemoveProperty((PropertyInt64)result);
+                else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
+                    obj.RemoveProperty((PropertyBool)result);
+                else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                    obj.RemoveProperty((PropertyFloat)result);
+                else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
+                    obj.RemoveProperty((PropertyString)result);
+                else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
+                    obj.RemoveProperty((PropertyInstanceId)result);
+                else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
+                    obj.RemoveProperty((PropertyDataId)result);
+            }
+            else
+            {
+                try
+                {
+                    if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
+                    {
+                        obj.SetProperty((PropertyInt)result, Convert.ToInt32(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(obj, (PropertyInt)result, Convert.ToInt32(value)));
+                    }
+                    else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
+                    {
+                        obj.SetProperty((PropertyInt64)result, Convert.ToInt64(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt64(obj, (PropertyInt64)result, Convert.ToInt64(value)));
+                    }
+                    else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
+                    {
+                        obj.SetProperty((PropertyBool)result, Convert.ToBoolean(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(obj, (PropertyBool)result, Convert.ToBoolean(value)));
+                    }
+                    else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                    {
+                        obj.SetProperty((PropertyFloat)result, Convert.ToDouble(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyFloat(obj, (PropertyFloat)result, Convert.ToDouble(value)));
+                    }
+                    else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
+                    {
+                        obj.SetProperty((PropertyString)result, value);
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(obj, (PropertyString)result, value));
+                    }
+                    else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
+                    {
+                        obj.SetProperty((PropertyInstanceId)result, Convert.ToUInt32(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(obj, (PropertyInstanceId)result, new ObjectGuid(Convert.ToUInt32(value))));
+                    }
+                    else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
+                    {
+                        obj.SetProperty((PropertyDataId)result, Convert.ToUInt32(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyDataID(obj, (PropertyDataId)result, Convert.ToUInt32(value)));
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return;
+                }
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Sets the house purchase time for this player
+        /// </summary>
+        [CommandHandler("setpurchasetime", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Sets the house purchase time for this player", "/setpurchasetime")]
+        public static void HandleSetPurchaseTime(Session session, params string[] parameters)
+        {
+            var currentTime = DateTime.UtcNow;
+            Console.WriteLine($"Current time: {currentTime}");
+            // subtract 30 days
+            var purchaseTime = currentTime - TimeSpan.FromDays(30);
+            // add buffer
+            purchaseTime += TimeSpan.FromSeconds(1);
+            //purchaseTime += TimeSpan.FromMinutes(2);
+            var rentDue = DateTimeOffset.FromUnixTimeSeconds(session.Player.House.GetRentDue((uint)Time.GetUnixTime(purchaseTime))).UtcDateTime;
+
+            var prevPurchaseTime = DateTimeOffset.FromUnixTimeSeconds(session.Player.HousePurchaseTimestamp ?? 0).UtcDateTime;
+            var prevRentDue = DateTimeOffset.FromUnixTimeSeconds(session.Player.House.GetRentDue((uint)(session.Player.HousePurchaseTimestamp ?? 0))).UtcDateTime;
+
+            Console.WriteLine($"Previous purchase time: {prevPurchaseTime}");
+            Console.WriteLine($"New purchase time: {purchaseTime}");
+
+            Console.WriteLine($"Previous rent time: {prevRentDue}");
+            Console.WriteLine($"New rent time: {rentDue}");
+
+            session.Player.HousePurchaseTimestamp = (int)Time.GetUnixTime(purchaseTime);
+            session.Player.HouseRentTimestamp = (int)session.Player.House.GetRentDue((uint)Time.GetUnixTime(purchaseTime));
+
+            HouseManager.BuildRentQueue();
+        }
+
+        /// <summary>
+        /// Toggles the display for player damage info
+        /// </summary>
+        [CommandHandler("debugdamage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles the display for player damage info", "/debugdamage <attack|defense|all|on|off>")]
+        public static void HandleDebugDamage(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                // toggle
+                if (session.Player.DebugDamage == Player.DebugDamageType.None)
+                    session.Player.DebugDamage = Player.DebugDamageType.All;
+                else
+                    session.Player.DebugDamage = Player.DebugDamageType.None;
+            }
+            else
+            {
+                var param = parameters[0].ToLower();
+                if (param.Equals("on") || param.Equals("all"))
+                    session.Player.DebugDamage = Player.DebugDamageType.All;
+                else if (param.Equals("off"))
+                    session.Player.DebugDamage = Player.DebugDamageType.None;
+                else if (param.StartsWith("attack"))
+                    session.Player.DebugDamage = Player.DebugDamageType.Attacker;
+                else if (param.StartsWith("defen"))
+                    session.Player.DebugDamage = Player.DebugDamageType.Defender;
+                else
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: unknown {param}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: {session.Player.DebugDamage}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Enables the aetheria slots for the player
+        /// </summary>
+        [CommandHandler("enable-aetheria", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables the aetheria slots for the player")]
+        public static void HandleEnableAetheria(Session session, params string[] parameters)
+        {
+            var flags = (int)AetheriaBitfield.All;
+
+            if (parameters.Length > 0)
+                int.TryParse(parameters[0], out flags);
+
+            session.Player.UpdateProperty(session.Player, PropertyInt.AetheriaBitfield, flags);
+        }
+
+        [CommandHandler("debugchess", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Shows the chess move history for a player")]
+        public static void HandleDebugChess(Session session, params string[] parameters)
+        {
+            session.Player.ChessMatch?.DebugMove();
+        }
+
+        [CommandHandler("debugboard", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Shows the current chess board state")]
+        public static void HandleDebugBoard(Session session, params string[] parameters)
+        {
+            session.Player.ChessMatch?.Logic?.DebugBoard();
+        }
+
+        /// <summary>
+        /// Teleports directly to a dungeon by name or landblock
+        /// </summary>
+        [CommandHandler("teledungeon", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "<dungeon name or landblock>")]
+        public static void HandleTeleDungeon(Session session, params string[] parameters)
+        {
+            var isBlock = true;
+            var param = parameters[0];
+            if (parameters.Length > 1)
+                isBlock = false;
+
+            var landblock = 0u;
+            if (isBlock)
+            {
+                try
+                {
+                    landblock = Convert.ToUInt32(param, 16);
+
+                    if (landblock >= 0xFFFF)
+                        landblock = landblock >> 16;
+                }
+                catch (Exception)
+                {
+                    isBlock = false;
+                }
+            }
+
+            // teleport to dungeon landblock
+            if (isBlock)
+                HandleTeleDungeonBlock(session, landblock);
+
+            // teleport to dungeon by name
+            else
+                HandleTeleDungeonName(session, parameters);
+        }
+
+        public static void HandleTeleDungeonBlock(Session session, uint landblock)
+        {
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
+                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination
+                            select new
+                            {
+                                Weenie = weenie,
+                                Dest = wpos
+                            };
+
+                var results = query.ToList();
+
+                var dest = results.Where(i => i.Dest.ObjCellId >> 16 == landblock).Select(i => i.Dest).FirstOrDefault();
+
+                if (dest == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon {landblock:X4}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+            }
+        }
+
+        public static void HandleTeleDungeonName(Session session, params string[] parameters)
+        {
+            var searchName = string.Join(" ", parameters);
+
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join wstr in ctx.WeeniePropertiesString on weenie.ClassId equals wstr.ObjectId
+                            join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
+                            where weenie.Type == (int)WeenieType.Portal && wstr.Type == (int)PropertyString.Name && wpos.PositionType == (int)PositionType.Destination
+                            select new
+                            {
+                                Weenie = weenie,
+                                Name = wstr,
+                                Dest = wpos
+                            };
+
+                var results = query.ToList();
+
+                var dest = results.Where(i => i.Name.Value.Equals(searchName, StringComparison.OrdinalIgnoreCase)).Select(i => i.Dest).FirstOrDefault();
+
+                if (dest == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon name {searchName}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+            }
         }
     }
 }

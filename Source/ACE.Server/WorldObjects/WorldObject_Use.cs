@@ -4,6 +4,7 @@ using ACE.Server.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -31,9 +32,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Used to determine how close you need to be to use an item.
         /// </summary>
-        public bool IsWithinUseRadiusOf(WorldObject wo)
+        public bool IsWithinUseRadiusOf(WorldObject wo, float? useRadius = null)
         {
-            var useRadius = wo.UseRadius ?? 0.6f;
+            if (useRadius == null)
+                useRadius = wo.UseRadius ?? 0.6f;
+
             var cylDist = GetCylinderDistance(wo);
 
             return cylDist <= useRadius;
@@ -45,12 +48,20 @@ namespace ACE.Server.WorldObjects
                 wo.PhysicsObj.GetRadius(), wo.PhysicsObj.GetHeight(), wo.PhysicsObj.Position);
         }
 
+        /// <summary>
+        /// Handles the 'GameAction 0x35 - UseWithTarget' network message
+        /// on a per-object type basis.
+        public virtual void HandleActionUseOnTarget(Player player, WorldObject target)
+        {
+            RecipeManager.UseObjectOnTarget(player, this, target);
+        }
+
         public virtual void OnActivate(WorldObject activator)
         {
             //Console.WriteLine($"{Name}.OnActivate({activator.Name})");
 
-            // when players double click an object in the 3d world,
-            // and the packet comes in as GameAction 0x35 - UseWithTarget
+            // when players double click an object,
+            // and the packet comes in as GameAction 0x36 - UseItem
             // from the game perspective, technically this starts as an 'Activate',
             // which can have a list of possible ActivationResponses - 
             // Use (by far the most common), Animate, Talk, Emote, CastSpell, Generate
@@ -61,9 +72,10 @@ namespace ACE.Server.WorldObjects
             // verify use requirements
             var result = CheckUseRequirements(activator);
 
+            var player = activator as Player;
             if (!result.Success)
             {
-                if (result.Message != null && activator is Player player)
+                if (result.Message != null && player != null)
                     player.Session.Network.EnqueueSend(result.Message);
 
                 return;
@@ -81,12 +93,20 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (player != null)
+                player.EnchantmentManager.StartCooldown(this);
+
             // if ActivationTarget is another object,
             // should this be checking the ActivationResponse of the target object?
 
             // default use action
             if (ActivationResponse.HasFlag(ActivationResponse.Use))
+            {
+                if (player != null)
+                    EmoteManager.OnUse(player);
+
                 target.ActOnUse(activator);
+            }
 
             // perform motion animation - rarely used (only 4 instances in PY16 db)
             if (ActivationResponse.HasFlag(ActivationResponse.Animate))
@@ -113,7 +133,7 @@ namespace ACE.Server.WorldObjects
         {
             // empty base - individual WorldObject types should override
 
-            var msg = $"{Name}.OnUse({activator.Name}) - undefined for wcid {WeenieClassId}";
+            var msg = $"{Name}.ActOnUse({activator.Name}) - undefined for wcid {WeenieClassId} type {WeenieType}";
             log.Error(msg);
 
             if (activator is Player _player)
@@ -144,7 +164,7 @@ namespace ACE.Server.WorldObjects
             if (SpellDID != null)
             {
                 var spell = new Spell(SpellDID.Value);
-                TryCastSpell(spell, activator);
+                TryCastSpell(spell, activator, this);
             }
         }
 
@@ -161,10 +181,8 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.CheckUseRequirements({activator.Name})");
 
-            if (!(activator is Player))
+            if (!(activator is Player player))
                 return new ActivationResult(false);
-
-            var player = activator as Player;
 
             // verify arcane lore requirement
             if (ItemDifficulty != null)
@@ -191,7 +209,11 @@ namespace ACE.Server.WorldObjects
                 var playerSkill = player.GetCreatureSkill(skill);
 
                 if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, playerSkill.Skill.ToSentence()));
+                {
+                    //return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, playerSkill.Skill.ToSentence()));
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You must have {playerSkill.Skill.ToSentence()} trained to use that item's magic"));
+                    return new ActivationResult(false);
+                }
 
                 // verify skill level
                 if (UseRequiresSkillLevel != null)
@@ -226,6 +248,19 @@ namespace ACE.Server.WorldObjects
                 var playerLevel = player.Level ?? 1;
                 if (playerLevel < UseRequiresLevel.Value)
                     return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, $"level {UseRequiresLevel.Value}"));
+            }
+
+            // Check for a cooldown
+            if (!player.EnchantmentManager.CheckCooldown(CooldownId))
+            {
+                // TODO: werror/string not found, find exact message
+
+                /*var cooldown = player.GetCooldown(this);
+                var timer = cooldown.GetFriendlyString();
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} can be activated again in {timer}", ChatMessageType.Broadcast));*/
+
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
+                return new ActivationResult(false);
             }
 
             return new ActivationResult(true);

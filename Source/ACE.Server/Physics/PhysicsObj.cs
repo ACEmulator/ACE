@@ -80,6 +80,7 @@ namespace ACE.Server.Physics
         public PhysicsObj ProjectileTarget;
         public double PhysicsTimer_CurrentTime;
         public bool DatObject = false;
+        public int Order = 1;
 
         /// <summary>
         /// This is managed by MovementManager.MotionInterpreter, and should not be updated anywhere else.
@@ -2195,6 +2196,8 @@ namespace ACE.Server.Physics
                 {
                     newlyVisible = player.handle_visible_cells();
                     player.enqueue_objs(newlyVisible);
+
+                    player.ObjMaint.AddVoyeur(this);
                 }
             }
         }
@@ -2518,7 +2521,7 @@ namespace ACE.Server.Physics
                 //Console.WriteLine(visibleObject.Name);
 
             // get the difference between current and previous visible
-            var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjectTable.Values).ToList();
+            //var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjectTable.Values).ToList();
             var newlyOccluded = ObjMaint.VisibleObjectTable.Values.Except(visibleObjects).ToList();
             //Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
             //Console.WriteLine("Newly occluded objects: " + newlyOccluded.Count);
@@ -2527,6 +2530,7 @@ namespace ACE.Server.Physics
 
             // add newly visible objects, and get the previously unknowns
             var createObjs = ObjMaint.AddVisibleObjects(visibleObjects);
+            //Console.WriteLine("Create objects: " + createObjs.Count);
             /*if (createObjs.Count != newlyVisible.Count)
             {
                 Console.WriteLine($"Create objs differs from newly visible ({createObjs.Count} vs. {newlyVisible.Count})");

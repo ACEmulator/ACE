@@ -41,39 +41,70 @@ namespace ACE.Server.WorldObjects
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Healer;
         }
-        public void HandleActionUseOnTarget(Player healer, Player target)
+        public override void HandleActionUseOnTarget(Player healer, WorldObject target)
         {
-            if (target.Health.Current == target.Health.MaxValue)
+            if (healer.IsBusy)
+            {
+                healer.SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
+            if (!(target is Player targetPlayer))
+            {
+                healer.SendUseDoneEvent(WeenieError.YouCantHealThat);
+                return;
+            }
+
+            if (targetPlayer.Health.Current == targetPlayer.Health.MaxValue)
             {
                 healer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(healer.Session, WeenieErrorWithString._IsAtFullHealth, target.Name));
                 healer.SendUseDoneEvent();
                 return;
             }
 
-            if (!healer.Equals(target))
+            if (!healer.Equals(targetPlayer))
             {
                 // perform moveto
-                healer.CreateMoveToChain(target, (success) => DoHealMotion(healer, target, success));
+                healer.CreateMoveToChain(target, (success) => DoHealMotion(healer, targetPlayer, success));
             }
             else
-                DoHealMotion(healer, target, true);
+                DoHealMotion(healer, targetPlayer, true);
         }
 
         public void DoHealMotion(Player healer, Player target, bool success)
         {
-            if (!success) return;
+            if (!success)
+            {
+                healer.SendUseDoneEvent();
+                return;
+            }
+
+            healer.IsBusy = true;
 
             var motionCommand = healer.Equals(target) ? MotionCommand.SkillHealSelf : MotionCommand.SkillHealOther;
 
             var motion = new Motion(healer, motionCommand);
             var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, motionCommand);
 
+            var startPos = new Position(healer.Location);
+
             var actionChain = new ActionChain();
             actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {
-                DoHealing(healer, target);
+                // check windup move distance cap
+                var endPos = new Position(healer.Location);
+                var dist = startPos.DistanceTo(endPos);
+
+                // only PKs affected by these caps?
+                if (dist < Player.Windup_MaxMove || PlayerKillerStatus == PlayerKillerStatus.NPK)
+                    DoHealing(healer, target);
+                else
+                    healer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
+
+                healer.IsBusy = false;
+
                 healer.SendUseDoneEvent();
             });
             actionChain.EnqueueChain();
@@ -165,8 +196,12 @@ namespace ACE.Server.WorldObjects
             var healMax = healBase * 0.5f;
             var healAmount = ThreadSafeRandom.Next(healMin, healMax);
 
-            // verify this scales healing amount, and not difficulty
-            healAmount *= target.EnchantmentManager.GetHealingResistRatingMod();
+            // verify healing boost comes from target instead of healer?
+            // sounds like target in LumAugHealingRating...
+            var healRatingMod = Creature.GetPositiveRatingMod(target.GetHealingBoostRating());
+            var healResistRatingMod = Creature.GetNegativeRatingMod(target.GetHealingResistRating());
+
+            healAmount *= healRatingMod * healResistRatingMod;
 
             // chance for critical healing
             criticalHeal = ThreadSafeRandom.Next(0.0f, 1.0f) < 0.1f;

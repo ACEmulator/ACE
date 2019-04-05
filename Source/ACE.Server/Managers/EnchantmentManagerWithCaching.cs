@@ -104,7 +104,9 @@ namespace ACE.Server.Managers
         private void ClearCache()
         {
             attributeModCache.Clear();
-            vitalModCache.Clear();
+            vitalModAdditiveCache.Clear();
+            vitalModMultiplierCache.Clear();
+
             skillModCache.Clear();
 
             bodyArmorModCache = null;
@@ -123,10 +125,8 @@ namespace ACE.Server.Managers
             varianceModCache = null;
             armorModCache = null;
             armorModVsTypeModCache.Clear();
-
-            damageRatingCache = null;
-            damageResistRatingCache = null;
-            healingResistRatingModCache = null;
+            ratingCache.Clear();
+            xpModCache = null;
         }
 
 
@@ -147,19 +147,35 @@ namespace ACE.Server.Managers
             return value;
         }
 
-        private readonly Dictionary<CreatureVital, float> vitalModCache = new Dictionary<CreatureVital, float>();
+        private readonly Dictionary<CreatureVital, float> vitalModAdditiveCache = new Dictionary<CreatureVital, float>();
+        private readonly Dictionary<CreatureVital, float> vitalModMultiplierCache = new Dictionary<CreatureVital, float>();
 
         /// <summary>
-        /// Gets the direct modifiers to a vital / secondary attribute
+        /// Gets the additive modifiers to a vital / secondary attribute
         /// </summary>
-        public override float GetVitalMod(CreatureVital vital)
+        public override float GetVitalMod_Additives(CreatureVital vital)
         {
-            if (vitalModCache.TryGetValue(vital, out var value))
+            if (vitalModAdditiveCache.TryGetValue(vital, out var value))
                 return value;
 
-            value = base.GetVitalMod(vital);
+            value = base.GetVitalMod_Additives(vital);
 
-            vitalModCache[vital] = value;
+            vitalModAdditiveCache[vital] = value;
+
+            return value;
+        }
+
+        /// <summary>
+        /// Gets the multiplicative modifiers to a vital / secondary attribute
+        /// </summary>
+        public override float GetVitalMod_Multiplier(CreatureVital vital)
+        {
+            if (vitalModMultiplierCache.TryGetValue(vital, out var value))
+                return value;
+
+            value = base.GetVitalMod_Multiplier(vital);
+
+            vitalModMultiplierCache[vital] = value;
 
             return value;
         }
@@ -420,47 +436,28 @@ namespace ACE.Server.Managers
             return value;
         }
 
+        private readonly Dictionary<PropertyInt, int> ratingCache = new Dictionary<PropertyInt, int>();
 
-        private int? damageRatingCache;
-
-        /// <summary>
-        /// Returns the damage rating modifier from enchantments as an int rating (additive)
-        /// </summary>
-        public override int GetDamageRating()
+        public override int GetRating(PropertyInt property)
         {
-            if (damageRatingCache.HasValue)
-                return damageRatingCache.Value;
+            if (ratingCache.TryGetValue(property, out var value))
+                return value;
 
-            damageRatingCache = base.GetDamageRating();
+            value = base.GetRating(property);
 
-            return damageRatingCache.Value;
+            ratingCache[property] = value;
+
+            return value;
         }
 
-        private int? damageResistRatingCache;
+        private float? xpModCache;
 
-        public override int GetDamageResistRating()
+        public override float GetXPMod()
         {
-            if (damageResistRatingCache.HasValue)
-                return damageResistRatingCache.Value;
+            if (xpModCache == null)
+                xpModCache = base.GetXPMod();
 
-            damageResistRatingCache = base.GetDamageResistRating();
-
-            return damageResistRatingCache.Value;
-        }
-
-        private float? healingResistRatingModCache;
-
-        /// <summary>
-        /// Returns the healing resistance rating enchantment modifier
-        /// </summary>
-        public override float GetHealingResistRatingMod()
-        {
-            if (healingResistRatingModCache.HasValue)
-                return healingResistRatingModCache.Value;
-
-            healingResistRatingModCache = base.GetHealingResistRatingMod();
-
-            return healingResistRatingModCache.Value;
+            return xpModCache.Value;
         }
     }
 }

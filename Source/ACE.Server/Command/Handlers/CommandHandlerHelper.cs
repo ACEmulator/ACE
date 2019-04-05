@@ -55,16 +55,11 @@ namespace ACE.Server.Command.Handlers
                 WriteOutputInfo(session, "GetLastAppraisedObject() - no appraisal target");
                 return null;
             }
-            var targetGuid = new ObjectGuid(targetID.Value);
-            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
-            if (target == null)
-                target = session.Player.CurrentLandblock?.GetWieldedObject(targetGuid);
-            if (target == null)
-                target = session.Player.GetInventoryItem(targetGuid);
 
+            var target = session.Player.FindObject(targetID.Value, Player.SearchLocations.Everywhere, out _, out _, out _);
             if (target == null)
             {
-                WriteOutputInfo(session, "GetLastAppraisedObject() - couldn't find " + targetGuid);
+                WriteOutputInfo(session, $"GetLastAppraisedObject() - couldn't find {targetID:X8}");
                 return null;
             }
             return target;

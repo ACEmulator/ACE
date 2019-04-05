@@ -1,9 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <Platforms>x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,7 +42,8 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="copy &quot;$(ProjectDir)Config.json&quot; &quot;$(TargetDir)Config.json&quot;" />
+    <Exec Command="if not exist &quot;$(ProjectDir)Config.js&quot; if exist &quot;$(ProjectDir)Config.json&quot; move &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot;&#xD;&#xA;copy &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;" Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec Command="if [ ! -f &quot;$(ProjectDir)Config.js&quot; ] &amp;&amp; [ -f &quot;$(ProjectDir)Config.json&quot; ] ; then mv &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot; ; fi&#xA;cp &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;" Condition="'$(OS)' != 'Windows_NT'" />
   </Target>
 
 </Project>

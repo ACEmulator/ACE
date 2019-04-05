@@ -33,14 +33,25 @@ namespace ACE.Server.WorldObjects
         {
             var deathMessage = base.OnDeath(lastDamager, damageType, criticalHit);
 
-            lastDamager.EmoteManager.OnKill(this);
+            if (lastDamager != null)
+                lastDamager.EmoteManager.OnKill(this);
 
-            var playerMsg = string.Format(deathMessage.Victim, Name, lastDamager.Name);
+            var playerMsg = "";
+            if (lastDamager != null)
+                playerMsg = string.Format(deathMessage.Victim, Name, lastDamager.Name);
+            else
+                playerMsg = deathMessage.Victim;
+
             var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
             Session.Network.EnqueueSend(msgYourDeath);
 
             // broadcast to nearby players
-            var nearbyMsg = string.Format(deathMessage.Broadcast, Name, lastDamager.Name);
+            var nearbyMsg = "";
+            if (lastDamager != null)
+                nearbyMsg = string.Format(deathMessage.Broadcast, Name, lastDamager.Name);
+            else
+                nearbyMsg = deathMessage.Broadcast;
+
             var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
 
             var excludePlayers = new List<Player>();
@@ -89,7 +100,7 @@ namespace ACE.Server.WorldObjects
 
             var spellID = (uint)SpellId.Vitae;
             var spell = new Spell(spellID);
-            var vitaeEnchantment = new Enchantment(this, Guid.Full, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
+            var vitaeEnchantment = new Enchantment(this, Guid.Full, spellID, 0, (EnchantmentMask)spell.StatModType, vitae);
             Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
         }
 
@@ -120,7 +131,7 @@ namespace ACE.Server.WorldObjects
 
             // TODO: death sounds? seems to play automatically in client
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
-            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
+            var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths);
 
             // send network messages for player death
             Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths);
@@ -133,20 +144,25 @@ namespace ACE.Server.WorldObjects
                 InflictVitaePenalty();
             }
 
-            var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
-            EnchantmentManager.RemoveAllEnchantments();
-            Session.Network.EnqueueSend(msgPurgeEnchantments);
+            if (AugmentationSpellsRemainPastDeath == 0 || topDamager is Player && topDamager.PlayerKillerStatus == PlayerKillerStatus.PK)
+            {
+                var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
+                EnchantmentManager.RemoveAllEnchantments();
+                Session.Network.EnqueueSend(msgPurgeEnchantments);
+            }
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead);
             dieChain.AddDelaySeconds(animLength + 1.0f);
 
-            // enter portal space
-            dieChain.AddAction(this, () => CreateCorpse(topDamager));
-            dieChain.AddAction(this, TeleportOnDeath);
-            dieChain.AddAction(this, SetLifestoneProtection);
-            dieChain.AddAction(this, SetMinimumTimeSincePK);
+            dieChain.AddAction(this, () =>
+            {
+                CreateCorpse(topDamager);
+                TeleportOnDeath();      // enter portal space
+                SetLifestoneProtection();
+                SetMinimumTimeSincePK();
+            });
 
             dieChain.EnqueueChain();
         }
@@ -329,9 +345,10 @@ namespace ACE.Server.WorldObjects
             // if player dies in a PKLite battle,
             // they don't drop any items, and revert back to NPK status
 
+            var killer = CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0));
+
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
             {
-                var killer = CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0));
                 if (killer is Player)
                 {
                     PlayerKillerStatus = PlayerKillerStatus.NPK;
@@ -340,7 +357,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            var numItemsDropped = GetNumItemsDropped();
+            var numItemsDropped = GetNumItemsDropped(killer);
 
             var numCoinsDropped = GetNumCoinsDropped();
 
@@ -419,11 +436,13 @@ namespace ACE.Server.WorldObjects
             var slipperyItems = GetSlipperyItems();
             dropItems.AddRange(slipperyItems);
 
+            var destroyCoins = PropertyManager.GetBool("corpse_destroy_pyreals").Item;
+
             // add items to corpse
             foreach (var dropItem in dropItems)
             {
                 // coins already removed from SpendCurrency
-                if (dropItem.WeenieType == WeenieType.Coin)
+                if (destroyCoins && dropItem.WeenieType == WeenieType.Coin)
                     continue;
 
                 if (!corpse.TryAddToInventory(dropItem))
@@ -439,7 +458,7 @@ namespace ACE.Server.WorldObjects
             dropItems.AddRange(destroyedItems);
 
             // send network messages
-            var dropList = DropMessage(dropItems);
+            var dropList = DropMessage(dropItems, numCoinsDropped);
             Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
 
             return dropItems;
@@ -454,7 +473,7 @@ namespace ACE.Server.WorldObjects
         /// Rolls for the # of items to drop for a player death
         /// </summary>
         /// <returns></returns>
-        public int GetNumItemsDropped()
+        public int GetNumItemsDropped(WorldObject killer)
         {
             // Original formula:
 
@@ -491,8 +510,12 @@ namespace ACE.Server.WorldObjects
             // TODO: PK deaths
 
             // The number of items you drop can be reduced with the Clutch of the Miser augmentation. If you get the
-            // augmentation three times you will no longer drop any items(except half of your Pyreals and all Rares except if you're a PK).
+            // augmentation three times you will no longer drop any items (except half of your Pyreals and all Rares except if you're a PK).
             // If you drop no items, you will not leave a corpse.
+            if (!(killer is Player) && AugmentationLessDeathItemLoss > 0)
+            {
+                numItemsDropped = Math.Max(0, numItemsDropped - AugmentationLessDeathItemLoss * 5);
+            }
 
             return numItemsDropped;
         }
@@ -512,13 +535,19 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Builds the network text message for list of items dropped
         /// </summary>
-        public string DropMessage(List<WorldObject> dropItems)
+        public string DropMessage(List<WorldObject> dropItems, int numCoinsDropped)
         {
             var msg = "";
+            var coinMsg = true;
 
             for (var i = 0; i < dropItems.Count; i++)
             {
                 var dropItem = dropItems[i];
+
+                var isCoin = dropItem.Name.Equals("Pyreal");
+
+                if (isCoin && !coinMsg)
+                    continue;
 
                 if (i == 0)
                     msg += "You've lost ";
@@ -530,10 +559,14 @@ namespace ACE.Server.WorldObjects
                         msg += "and ";
                 }
 
-                if (!dropItem.Name.Equals("Pyreal"))
-                    msg += "your ";
-
                 var stackSize = dropItem.StackSize ?? 1;
+                if (isCoin)
+                {
+                    stackSize = numCoinsDropped;
+                    coinMsg = false;
+                }
+                else
+                    msg += "your ";
 
                 if (stackSize == 1)
                     msg += dropItem.Name;
@@ -759,7 +792,7 @@ namespace ACE.Server.WorldObjects
 
         public double? MinimumTimeSincePk
         {
-            get => GetProperty(PropertyFloat.MinimumTimeSincePk) ?? null;
+            get => GetProperty(PropertyFloat.MinimumTimeSincePk);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.MinimumTimeSincePk); else SetProperty(PropertyFloat.MinimumTimeSincePk, value.Value); }
         }
 

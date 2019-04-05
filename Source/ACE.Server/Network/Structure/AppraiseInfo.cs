@@ -8,6 +8,7 @@ using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.WorldObjects;
@@ -18,8 +19,8 @@ namespace ACE.Server.Network.Structure
     {
         public enum _EnchantmentState : uint
         {
-            Off = 0x00000000u,
-            On = 0x80000000u
+            Off = 0x00000000,
+            On  = 0x80000000
         }
 
         public ushort SpellId { get; set; }
@@ -65,11 +66,16 @@ namespace ACE.Server.Network.Structure
         /// </summary>
         public AppraiseInfo(WorldObject wo, Player examiner, bool success = true)
         {
+            generateAppraisalInfo(wo, examiner, success);
+        }
+
+        private void generateAppraisalInfo(WorldObject wo, Player examiner, bool success = true)
+        {
             //Console.WriteLine("Appraise: " + wo.Guid);
             Success = success;
 
             // get wielder, if applicable
-            var wielder = GetWielder(wo);
+            var wielder = GetWielder(wo, examiner);
 
             BuildProperties(wo, wielder);
             BuildSpells(wo);
@@ -84,7 +90,7 @@ namespace ACE.Server.Network.Structure
             if (wo is Creature creature)
                 BuildCreature(creature);
 
-            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster )
+            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster)
                 BuildWeapon(wo, wielder);
 
             if (wo is Door || wo is Chest)
@@ -104,12 +110,51 @@ namespace ACE.Server.Network.Structure
 
                     if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
                         PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)lockpickSuccessPercent);
-                }
+                }                
+            }
 
-                if (wo is Portal)
+            if (wo is Portal)
+            {
+                if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
+                    PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+            }
+
+            if (wo is Hook)
+            {
+                // If the hook has any inventory, we need to send THOSE properties instead.
+                var hook = wo as Container;
+                if (hook.Inventory.Count == 1)
                 {
-                    if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
-                        PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+                    WorldObject hookedItem = hook.Inventory.First().Value;
+
+                    // Hooked items have a custom "description", containing the desc of the sub item and who the owner of the house is (if any)
+                    generateAppraisalInfo(hookedItem, examiner, success);
+                    string baseDescString = "";
+                    if (wo.ParentLink.HouseOwner != null)
+                    {
+                        // This is for backwards compatibility. This value was not set/saved in earlier versions.
+                        // It will get the player's name and save that to the HouseOwnerName property of the house. This is now done when a player purchases a house.
+                        if(wo.ParentLink.HouseOwnerName == null)
+                        {
+                            var houseOwnerPlayer = PlayerManager.FindByGuid((uint)wo.ParentLink.HouseOwner);
+                            if(houseOwnerPlayer != null)
+                            {
+                                wo.ParentLink.HouseOwnerName = houseOwnerPlayer.Name;
+                                wo.ParentLink.SaveBiotaToDatabase();
+                            }
+                        }
+                        baseDescString = "This hook is owned by " + wo.ParentLink.HouseOwnerName + ". "; //if house is owned, display this text
+                    }
+                    if (PropertiesString.ContainsKey(PropertyString.LongDesc) && PropertiesString[PropertyString.LongDesc] != null)
+                    {
+                        PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.LongDesc];
+                    }
+                    else if (PropertiesString.ContainsKey(PropertyString.ShortDesc) && PropertiesString[PropertyString.ShortDesc] != null)
+                    {
+                        PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.ShortDesc];
+                    }
+
+                    BuildHookProfile(hookedItem);
                 }
             }
 
@@ -124,6 +169,43 @@ namespace ACE.Server.Network.Structure
             PropertiesFloat = wo.GetAllPropertyFloat().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesString = wo.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesDID = wo.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
+
+            if (wo is Player player)
+            {
+                // handle character options
+                if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourDateOfBirth))
+                    PropertiesString.Remove(PropertyString.DateOfBirth);
+                if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourAge))
+                    PropertiesInt.Remove(PropertyInt.Age);
+                if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourChessRank))
+                    PropertiesInt.Remove(PropertyInt.ChessRank);
+                if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourFishingSkill))
+                    PropertiesInt.Remove(PropertyInt.FakeFishingSkill);
+                if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourNumberOfDeaths))
+                    PropertiesInt.Remove(PropertyInt.NumDeaths);
+                if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourNumberOfTitles))
+                    PropertiesInt.Remove(PropertyInt.NumCharacterTitles);
+
+                // handle dynamic properties for appraisal
+                if (player.Allegiance != null && player.AllegianceNode != null)
+                {
+                    if (player.AllegianceNode.IsMonarch)
+                    {
+                        PropertiesInt[PropertyInt.AllegianceFollowers] = player.AllegianceNode.TotalFollowers;
+                    }
+                    else
+                    {
+                        var monarch = player.Allegiance.Monarch;
+                        var patron = player.AllegianceNode.Patron;
+
+                        PropertiesString[PropertyString.MonarchsTitle] = AllegianceTitle.GetTitle((HeritageGroup)(monarch.Player.Heritage ?? 0), (Gender)(monarch.Player.Gender ?? 0), monarch.Rank) + " " + monarch.Player.Name;
+                        PropertiesString[PropertyString.PatronsTitle] = AllegianceTitle.GetTitle((HeritageGroup)(patron.Player.Heritage ?? 0), (Gender)(patron.Player.Gender ?? 0), patron.Rank) + " " + patron.Player.Name;
+                    }
+                }
+
+                if (player.Fellowship != null)
+                    PropertiesString[PropertyString.Fellowship] = player.Fellowship.FellowshipName;
+            }
 
             AddPropertyEnchantments(wo, wielder);
         }
@@ -140,7 +222,7 @@ namespace ACE.Server.Network.Structure
 
             if (wielder == null || !wo.IsEnchantable) return;
 
-            if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Ammunition))
+            if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Missile) && !(wo is Ammunition))
                 PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.ManaConversionMod))
@@ -179,7 +261,7 @@ namespace ACE.Server.Network.Structure
             if (wo.SpellDID.HasValue)
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)wo.SpellDID.Value, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
 
-            foreach ( var biotaPropertiesSpellBook in wo.Biota.BiotaPropertiesSpellBook)
+            foreach ( var biotaPropertiesSpellBook in wo.Biota.BiotaPropertiesSpellBook.Where(i => i.Spell != wo.SpellDID))
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)biotaPropertiesSpellBook.Spell, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
         }
 
@@ -219,7 +301,7 @@ namespace ACE.Server.Network.Structure
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                     }
-                    else if (worldObject is Ammunition)
+                    else if (worldObject is Missile || worldObject is Ammunition)
                     {
                         if ((enchantment.SpellCategory == (uint)SpellCategory.DamageLowering))
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -252,7 +334,7 @@ namespace ACE.Server.Network.Structure
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }
                         }
-                        else if (worldObject is Ammunition)
+                        else if (worldObject is Missile || worldObject is Ammunition)
                         {
                             if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising))
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -300,6 +382,63 @@ namespace ACE.Server.Network.Structure
             ResistColor = ResistMaskHelper.GetColorMask(creature);
 
             ArmorLevels = new ArmorLevel(creature);
+
+            AddRatings(creature);
+        }
+
+        private void AddRatings(Creature creature)
+        {
+            var damageRating = creature.GetDamageRating();
+
+            // include heritage / weapon type rating?
+            var weapon = creature.GetEquippedWeapon();
+            if (creature.GetHeritageBonus(weapon))
+                damageRating += 5;
+
+            // factor in weakness here?
+
+            var damageResistRating = creature.GetDamageResistRating();
+
+            // factor in nether dot damage here?
+
+            var critRating = creature.GetCritRating();
+            var critDamageRating = creature.GetCritDamageRating();
+
+            var critResistRating = creature.GetCritResistRating();
+            var critDamageResistRating = creature.GetCritDamageResistRating();
+
+            var healingBoostRating = creature.GetHealingBoostRating();
+            var netherResistRating = creature.GetNetherResistRating();
+
+            var lifeResistRating = creature.GetLifeResistRating();  // drain / harm resistance
+            var gearMaxHealth = creature.GetGearMaxHealth();
+
+            if (damageRating != 0)
+                PropertiesInt[PropertyInt.DamageRating] = damageRating;
+            if (damageResistRating != 0)
+                PropertiesInt[PropertyInt.DamageResistRating] = damageResistRating;
+
+            if (critRating != 0)
+                PropertiesInt[PropertyInt.CritRating] = critRating;
+            if (critDamageRating != 0)
+                PropertiesInt[PropertyInt.CritDamageRating] = critDamageRating;
+
+            if (critResistRating != 0)
+                PropertiesInt[PropertyInt.CritResistRating] = critResistRating;
+            if (critDamageResistRating != 0)
+                PropertiesInt[PropertyInt.CritDamageResistRating] = critDamageResistRating;
+
+            if (healingBoostRating != 0)
+                PropertiesInt[PropertyInt.HealingBoostRating] = healingBoostRating;
+            if (netherResistRating != 0)
+                PropertiesInt[PropertyInt.NetherResistRating] = netherResistRating;
+
+            if (lifeResistRating != 0)
+                PropertiesInt[PropertyInt.LifeResistRating] = lifeResistRating;
+            if (gearMaxHealth != 0)
+                PropertiesInt[PropertyInt.GearMaxHealth] = gearMaxHealth;
+
+            // add ratings from equipped items?
         }
 
         private void BuildWeapon(WorldObject weapon, WorldObject wielder)
@@ -318,12 +457,33 @@ namespace ACE.Server.Network.Structure
             AddSpells(SpellBook, weapon, wielder);
         }
 
-        private WorldObject GetWielder(WorldObject weapon)
+        private WorldObject GetWielder(WorldObject weapon, Player examiner)
         {
             if (weapon.WielderId == null)
                 return null;
 
-            return PlayerManager.GetOnlinePlayer(weapon.WielderId.Value);
+            return examiner.FindObject(weapon.WielderId.Value, Player.SearchLocations.Landblock);
+        }
+
+        private void BuildHookProfile(WorldObject hookedItem)
+        {
+            HookProfile = new HookProfile();
+            if (hookedItem.Inscription != null)
+                HookProfile.Flags |= HookFlags.Inscribable;
+            if (hookedItem.ValidLocations != null)
+                HookProfile.ValidLocations = (uint)hookedItem.ValidLocations;
+
+            // This only handles basic Arrow, Quarrels and Darts. It does not, for instance, handle Crystal Arrows.
+            // How were those handled?
+            if (hookedItem.AmmoType != null)
+            {
+                if ((hookedItem.AmmoType & AmmoType.Arrow) != 0)
+                    HookProfile.AmmoType |= HookAmmoType.Arrow;
+                if ((hookedItem.AmmoType & AmmoType.Bolt) != 0)
+                    HookProfile.AmmoType |= HookAmmoType.Bolt;
+                if ((hookedItem.AmmoType & AmmoType.Atlatl) != 0)
+                    HookProfile.AmmoType |= HookAmmoType.Dart;
+            }
         }
 
         /// <summary>

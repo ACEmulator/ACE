@@ -47,12 +47,14 @@ namespace ACE.Server.Network
         public UIntSequence PacketSequence { get; set; }
         public uint FragmentSequence { get; set; }
 
-#if NETDIAG
-        public ISAAC IssacClient { get; set; }
-#else
-        public ISAAC IssacClient { get; }
-#endif
-        public ISAAC IssacServer { get; }
+        /// <summary>
+        /// Client->Server stream cipher wrapper
+        /// </summary>
+        public CryptoSystem CryptoClient = null;
+        /// <summary>
+        /// Server->Client stream cipher
+        /// </summary>
+        public ISAAC IssacServer = null;
 
         /// <summary>
         /// This is just a wrapper around Timers.PortalYearTicks.<para />
@@ -73,7 +75,7 @@ namespace ACE.Server.Network
             rand.NextBytes(ClientSeed);
             rand.NextBytes(ServerSeed);
 
-            IssacClient = new ISAAC(ClientSeed);
+            CryptoClient = new CryptoSystem(ClientSeed);
             IssacServer = new ISAAC(ServerSeed);
 
             byte[] bytes = new byte[8];
@@ -91,6 +93,11 @@ namespace ACE.Server.Network
         {
             ClientSeed = null;
             ServerSeed = null;
+        }
+
+        public override string ToString()
+        {
+            return $"Seeds: [Client {BitConverter.ToString(ClientSeed).Replace("-","")}, Server {BitConverter.ToString(ServerSeed).Replace("-", "")}]";
         }
     }
 }

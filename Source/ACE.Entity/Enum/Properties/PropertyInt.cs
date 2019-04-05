@@ -18,7 +18,7 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         PaletteTemplate                          = 3,
         ClothingPriority                         = 4,
-        [Ephemeral][SendOnLogin]
+        [SendOnLogin]
         EncumbranceVal                           = 5, // ENCUMB_VAL_INT,
         [SendOnLogin]
         ItemsCapacity                            = 6,
@@ -45,7 +45,6 @@ namespace ACE.Entity.Enum.Properties
         RareId                                   = 17,
         [ServerOnly]
         UiEffects                                = 18,
-        [Ephemeral]
         Value                                    = 19,
         [Ephemeral][SendOnLogin]
         CoinValue                                = 20,
@@ -137,7 +136,6 @@ namespace ACE.Entity.Enum.Properties
         PhysicsState                             = 93,
         [ServerOnly]
         TargetType                               = 94,
-        [Ephemeral]
         RadarBlipColor                           = 95,
         EncumbranceCapacity                      = 96,
         LoginTimestamp                           = 97,
@@ -237,6 +235,7 @@ namespace ACE.Entity.Enum.Properties
         GemType                                  = 178,
         ImbuedEffect                             = 179,
         AttackersRawSkillValue                   = 180,
+        [SendOnLogin]
         ChessRank                                = 181,
         ChessTotalGames                          = 182,
         ChessGamesWon                            = 183,
@@ -274,42 +273,69 @@ namespace ACE.Entity.Enum.Properties
         RaresTierThree                           = 212,
         RaresTierFour                            = 213,
         RaresTierFive                            = 214,
+        [SendOnLogin]
         AugmentationStat                         = 215,
+        [SendOnLogin]
         AugmentationFamilyStat                   = 216,
+        [SendOnLogin]
         AugmentationInnateFamily                 = 217,
+        [SendOnLogin]
         AugmentationInnateStrength               = 218,
+        [SendOnLogin]
         AugmentationInnateEndurance              = 219,
+        [SendOnLogin]
         AugmentationInnateCoordination           = 220,
+        [SendOnLogin]
         AugmentationInnateQuickness              = 221,
+        [SendOnLogin]
         AugmentationInnateFocus                  = 222,
+        [SendOnLogin]
         AugmentationInnateSelf                   = 223,
+        [SendOnLogin]
         AugmentationSpecializeSalvaging          = 224,
+        [SendOnLogin]
         AugmentationSpecializeItemTinkering      = 225,
+        [SendOnLogin]
         AugmentationSpecializeArmorTinkering     = 226,
+        [SendOnLogin]
         AugmentationSpecializeMagicItemTinkering = 227,
+        [SendOnLogin]
         AugmentationSpecializeWeaponTinkering    = 228,
+        [SendOnLogin]
         AugmentationExtraPackSlot                = 229,
+        [SendOnLogin]
         AugmentationIncreasedCarryingCapacity    = 230,
         [SendOnLogin]
         AugmentationLessDeathItemLoss            = 231,
+        [SendOnLogin]
         AugmentationSpellsRemainPastDeath        = 232,
         [SendOnLogin]
         AugmentationCriticalDefense              = 233,
+        [SendOnLogin]
         AugmentationBonusXp                      = 234,
         [SendOnLogin]
         AugmentationBonusSalvage                 = 235,
+        [SendOnLogin]
         AugmentationBonusImbueChance             = 236,
+        [SendOnLogin]
         AugmentationFasterRegen                  = 237,
         [SendOnLogin]
         AugmentationIncreasedSpellDuration       = 238,
+        [SendOnLogin]
         AugmentationResistanceFamily             = 239,
+        [SendOnLogin]
         AugmentationResistanceSlash              = 240,
+        [SendOnLogin]
         AugmentationResistancePierce             = 241,
+        [SendOnLogin]
         AugmentationResistanceBlunt              = 242,
         [SendOnLogin]
         AugmentationResistanceAcid               = 243,
+        [SendOnLogin]
         AugmentationResistanceFire               = 244,
+        [SendOnLogin]
         AugmentationResistanceFrost              = 245,
+        [SendOnLogin]
         AugmentationResistanceLightning          = 246,
         RaresTierOneLogin                        = 247,
         RaresTierTwoLogin                        = 248,
@@ -357,10 +383,15 @@ namespace ACE.Entity.Enum.Properties
         HearLocalSignals                         = 290,
         HearLocalSignalsRadius                   = 291,
         Cleaving                                 = 292,
+        [SendOnLogin]
         AugmentationSpecializeGearcraft          = 293,
+        [SendOnLogin]
         AugmentationInfusedCreatureMagic         = 294,
+        [SendOnLogin]
         AugmentationInfusedItemMagic             = 295,
+        [SendOnLogin]
         AugmentationInfusedLifeMagic             = 296,
+        [SendOnLogin]
         AugmentationInfusedWarMagic              = 297,
         [SendOnLogin]
         AugmentationCriticalExpertise            = 298,
@@ -368,7 +399,9 @@ namespace ACE.Entity.Enum.Properties
         AugmentationCriticalPower                = 299,
         [SendOnLogin]
         AugmentationSkilledMelee                 = 300,
+        [SendOnLogin]
         AugmentationSkilledMissile               = 301,
+        [SendOnLogin]
         AugmentationSkilledMagic                 = 302,
         ImbuedEffect2                            = 303,
         ImbuedEffect3                            = 304,
@@ -406,12 +439,11 @@ namespace ACE.Entity.Enum.Properties
         HealingBoostRating                       = 323,
         HeritageSpecificArmor                    = 324,
         AlternateRacialSkills                    = 325,
-        /// <summary>
-        /// why was this defaulted to 1?  leaving comment
-        /// </summary>
         [SendOnLogin]
         AugmentationJackOfAllTrades              = 326,
+        [SendOnLogin]
         AugmentationResistanceNether             = 327,
+        [SendOnLogin]
         AugmentationInfusedVoidMagic             = 328,
         [SendOnLogin]
         WeaknessRating                           = 329,
@@ -428,6 +460,7 @@ namespace ACE.Entity.Enum.Properties
         LumAugCritDamageRating                   = 335,
         [SendOnLogin]
         LumAugCritReductionRating                = 336,
+        [SendOnLogin]
         LumAugSurgeEffectRating                  = 337,
         [SendOnLogin]
         LumAugSurgeChanceRating                  = 338,
@@ -435,6 +468,7 @@ namespace ACE.Entity.Enum.Properties
         LumAugItemManaUsage                      = 339,
         [SendOnLogin]
         LumAugItemManaGain                       = 340,
+        [SendOnLogin]
         LumAugVitality                           = 341,
         [SendOnLogin]
         LumAugHealingRating                      = 342,
@@ -442,6 +476,7 @@ namespace ACE.Entity.Enum.Properties
         LumAugSkilledCraft                       = 343,
         [SendOnLogin]
         LumAugSkilledSpec                        = 344,
+        [SendOnLogin]
         LumAugNoDestroyCraft                     = 345,
         RestrictInteraction                      = 346,
         OlthoiLootTimestamp                      = 347,
@@ -541,7 +576,16 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         CurrentLoyaltyAtLastLogoff              = 9008,
         [ServerOnly]
-        CurrentLeadershipAtLastLogoff           = 9009
+        CurrentLeadershipAtLastLogoff           = 9009,
+        [ServerOnly]
+        AllegianceOfficerRank                   = 9010,
+        [ServerOnly]
+        HouseRentTimestamp                      = 9011,
+        /// <summary>
+        ///  Stores the player's selected hairstyle at creation or after a barber use. This is used only for Gear Knights and Olthoi characters who have more than a single part/texture for a "hairstyle" (BodyStyle)
+        /// </summary>
+        [ServerOnly]
+        Hairstyle = 9012,
     }
 
     public static class PropertyIntExtensions
@@ -666,6 +710,15 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyInt.GeneratorStartTime:
                 case PropertyInt.GeneratorEndTime:
                     return DateTimeOffset.FromUnixTimeSeconds(value).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
+
+                case PropertyInt.ArmorType:
+                    return System.Enum.GetName(typeof(ArmorType), value);
+                case PropertyInt.ParentLocation:
+                    return System.Enum.GetName(typeof(ParentLocation), value);
+                case PropertyInt.PlacementPosition:
+                    return System.Enum.GetName(typeof(Placement), value);
+                case PropertyInt.HouseStatus:
+                    return System.Enum.GetName(typeof(HouseStatus), value);
             }
 
             return null;

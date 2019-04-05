@@ -122,6 +122,42 @@ namespace ACE.Server.Managers
             return null;
         }
 
+        /// <summary>
+        /// This will return null of the name was not found.
+        /// </summary>
+        public static OfflinePlayer GetOfflinePlayer(string name)
+        {
+            var admin = "+" + name;
+
+            playersLock.EnterReadLock();
+            try
+            {
+                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || p.Name.Equals(admin, StringComparison.OrdinalIgnoreCase));
+
+                if (offlinePlayer != null)
+                    return offlinePlayer;
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
+
+            return null;
+        }
+
+        public static List<IPlayer> GetAllPlayers()
+        {
+            var offlinePlayers = GetAllOffline();
+            var onlinePlayers = GetAllOnline();
+
+            var allPlayers = new List<IPlayer>();
+
+            allPlayers.AddRange(offlinePlayers);
+            allPlayers.AddRange(onlinePlayers);
+
+            return allPlayers;
+        }
+
         public static List<OfflinePlayer> GetAllOffline()
         {
             var results = new List<OfflinePlayer>();
@@ -269,8 +305,19 @@ namespace ACE.Server.Managers
             }
 
             player.SendFriendStatusUpdates(false);
+            player.HandleAllegianceOnLogout();
 
             return true;
+        }
+
+        /// <summary>
+        /// Called when a character is initially deleted on the character select screen
+        /// </summary>
+        public static void HandlePlayerDelete(uint characterGuid)
+        {
+            AllegianceManager.HandlePlayerDelete(characterGuid);
+
+            HouseManager.HandlePlayerDelete(characterGuid);
         }
 
         /// <summary>
@@ -284,8 +331,6 @@ namespace ACE.Server.Managers
             {
                 if (!offlinePlayers.Remove(guid, out var offlinePlayer))
                     return false; // This should never happen
-
-                // TODO break allegiance, etc...
             }
             finally
             {
@@ -309,12 +354,10 @@ namespace ACE.Server.Managers
         /// </summary>
         public static IPlayer FindByName(string name, out bool isOnline)
         {
-            var admin = "+" + name;
-
             playersLock.EnterReadLock();
             try
             {
-                var onlinePlayer = onlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || p.Name.Equals(admin, StringComparison.OrdinalIgnoreCase));
+                var onlinePlayer = onlinePlayers.Values.FirstOrDefault(p => p.Name.TrimStart('+').Equals(name.TrimStart('+'), StringComparison.OrdinalIgnoreCase));
 
                 if (onlinePlayer != null)
                 {
@@ -324,7 +367,7 @@ namespace ACE.Server.Managers
 
                 isOnline = false;
 
-                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.TrimStart('+').Equals(name.TrimStart('+'), StringComparison.OrdinalIgnoreCase));
 
                 if (offlinePlayer != null)
                     return offlinePlayer;
@@ -401,8 +444,8 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
-                onlinePlayersResult = onlinePlayers.Values.Where(p => p.Monarch == monarch.Full);
-                offlinePlayersResult = offlinePlayers.Values.Where(p => p.Monarch == monarch.Full);
+                onlinePlayersResult = onlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
+                offlinePlayersResult = offlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
             }
             finally
             {

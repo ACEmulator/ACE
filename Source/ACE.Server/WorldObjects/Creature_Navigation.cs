@@ -248,7 +248,11 @@ namespace ACE.Server.WorldObjects
             var motion = new Motion(this, target, MovementType.MoveToObject);
             motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
             motion.MoveToParameters.WalkRunThreshold = 1.0f;
-            motion.RunRate = runRate;
+
+            if (runRate > 0)
+                motion.RunRate = runRate;
+            else
+                motion.MoveToParameters.MovementParameters &= ~MovementParams.CanRun;
 
             CurrentMotionState = motion;
 
@@ -264,12 +268,17 @@ namespace ACE.Server.WorldObjects
             motion.MovementType = MovementType.MoveToPosition;
             //motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.MoveAway;
             motion.MoveToParameters.WalkRunThreshold = 1.0f;
-            motion.RunRate = runRate;
 
             // always use final heading?
             var frame = new AFrame(position.Pos, position.Rotation);
             motion.MoveToParameters.DesiredHeading = frame.get_heading();
             motion.MoveToParameters.MovementParameters |= MovementParams.UseFinalHeading;
+            motion.MoveToParameters.DistanceToObject = 0.6f;
+
+            if (runRate > 0)
+                motion.RunRate = runRate;
+            else
+                motion.MoveToParameters.MovementParameters &= ~MovementParams.CanRun;
 
             // todo: use better movement system
             Location = new Position(position);

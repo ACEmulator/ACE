@@ -27,5 +27,21 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(true)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool AllowAutoAccountCreation { get; set; }
+
+        /// <summary>
+        /// Default WorkFactor for account passwords.
+        /// 8 by default.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(8)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public int PasswordHashWorkFactor { get; set; }
+
+        /// <summary>
+        /// Upgrade or downgrade passwords to match PasswordHashWorkFactor specified in config 
+        /// True by default.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(true)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool ForceWorkFactorMigration { get; set; }
     }
 }

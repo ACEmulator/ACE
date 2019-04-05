@@ -39,6 +39,8 @@ namespace ACE.Server.Network.Structure
             Weapon = weapon;
             Wielder = wielder;
 
+            WeaponDefense = GetWeaponDefense(weapon, wielder);
+
             if (weapon is Caster)
                 return;
 
@@ -54,7 +56,6 @@ namespace ACE.Server.Network.Structure
             WeaponLength = weapon.GetProperty(PropertyFloat.WeaponLength) ?? 1.0f;
             MaxVelocity = weapon.GetProperty(PropertyFloat.MaximumVelocity) ?? 1.0f;
             WeaponOffense = GetWeaponOffense(weapon, wielder);
-            WeaponDefense = GetWeaponDefense(weapon, wielder);
             MaxVelocityEstimated = (uint)Math.Round(MaxVelocity);   // ??
         }
 
@@ -88,7 +89,7 @@ namespace ACE.Server.Network.Structure
         public float GetDamageVariance(WorldObject weapon, WorldObject wielder)
         {
             // are there any spells which modify damage variance?
-            var baseVariance = weapon.GetProperty(PropertyFloat.DamageVariance) ?? 1.0f;   // safe to assume defaults here?
+            var baseVariance = weapon.GetProperty(PropertyFloat.DamageVariance) ?? 0.0f;   // safe to assume defaults here?
             var varianceMod = weapon.EnchantmentManager.GetVarianceMod();
             var auraVarianceMod = wielder != null ? wielder.EnchantmentManager.GetVarianceMod() : 1.0f;
             Enchantment_DamageVariance = weapon.IsEnchantable ? varianceMod * auraVarianceMod : varianceMod;

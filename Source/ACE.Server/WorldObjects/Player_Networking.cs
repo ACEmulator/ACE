@@ -5,6 +5,7 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
@@ -31,21 +32,53 @@ namespace ACE.Server.WorldObjects
 
             Sequences.SetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)Character.TotalLogins));
 
+            if (BarberActive)
+                BarberActive = false;
+
+            HandleAugsForwardCompatibility();
+
+            if (AllegianceNode != null)
+                AllegianceRank = (int)AllegianceNode.Rank;
+            else
+                AllegianceRank = null;
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
-            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
+            UpdateChatChannels();
+
             var general = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "General");
             var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Trade");
             var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Roleplay");
-            Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
+            Session.Network.EnqueueSend(general, trade, lfg, roleplay);
 
             // check if vassals earned XP while offline
-            AddAllegianceXP(true);
+            HandleAllegianceOnLogin();
+            HandleHouseOnLogin();
+
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(3.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
+                });
+                actionChain.EnqueueChain();
+            }
 
             HandleDBUpdates();
+        }
+
+        public void UpdateChatChannels()
+        {
+            var allegianceChannel = Allegiance != null ? Allegiance.Biota.Id : 0u;
+
+            Session.Network.EnqueueSend(new GameEventSetTurbineChatChannels(Session, allegianceChannel));
         }
 
         private void SendSelf()
@@ -87,7 +120,10 @@ namespace ACE.Server.WorldObjects
             }
 
             foreach (var item in EquippedObjects.Values)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(item));
+            {
+                item.Wielder = this;
+                Session.Network.EnqueueSend(new GameMessageCreateObject(item));                
+            }
         }
 
         /// <summary>
@@ -144,6 +180,21 @@ namespace ACE.Server.WorldObjects
             {
                 // this lowercase stance field in Player doesn't really seem to be used anywhere
                 stance = state.CurrentStyle;
+            }
+
+            // update CurrentMotionState here for substates?
+            if ((state.Flags & RawMotionFlags.ForwardCommand) != 0)
+            {
+                if (((uint)state.ForwardCommand & (uint)CommandMask.SubState) != 0)
+                    CurrentMotionState.SetForwardCommand(state.ForwardCommand);
+            }
+            else
+                CurrentMotionState.SetForwardCommand(MotionCommand.Ready);
+
+            if (state.CommandListLength > 0)
+            {
+                if (((uint)state.Commands[0].MotionCommand & (uint)CommandMask.SubState) != 0)
+                    CurrentMotionState.SetForwardCommand(state.Commands[0].MotionCommand);
             }
 
             var movementData = new MovementData(this, moveToState);

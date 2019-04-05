@@ -203,20 +203,34 @@ namespace ACE.Server.Network
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
             NetworkStatistics.C2S_Packets_Aggregate_Increment();
 
-            // If the client is requesting a retransmission, pull those packets from the queue and resend them.
+            // If the client is requesting a retransmission, verify the CRC and process it immediately
+            // TO-DO: Theory: Would it be possible to verify all unencrypted CRCs here as well?
             if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
             {
-                if (VerifyCRC(packet))
+                if (!packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
                 {
+                    // discard retransmission request with cleartext CRC
+                    // client sends one encrypted version and one non encrypted version of each retransmission request
+                    // honoring these causes client to drop because it's only expecting one of the two retransmission requests to be honored
+                    // and it's more secure to only accept the trusted version
+                    return;
+                }
+                if (packet.VerifyCRC(ConnectionData.CryptoClient, false))
+                {
+                    packet.CRCVerified = true;
                     foreach (uint sequence in packet.HeaderOptional.RetransmitData)
                     {
                         Retransmit(sequence);
                     }
                     NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
                 }
-                return;
+                else
+                {
+                    return;
+                }
             }
-           
+
+            // Reordering stage
             // Check if this packet's sequence is a sequence which we have already processed.
             // There are some exceptions:
             // Sequence 0 as we have several Seq 0 packets during connect.  This also cathes a case where it seems CICMDCommand arrives at any point with 0 sequence value too.
@@ -244,9 +258,11 @@ namespace ACE.Server.Network
                 return;
             }
 
+            // Processing stage
             // If we reach here, this is a packet we should proceed with processing.
             HandlePacket(packet);
 
+            // Process data now in sequence
             // Finally check if we have any out of order packets or fragments we need to process;
             CheckOutOfOrderPackets();
             CheckOutOfOrderFragments();
@@ -281,146 +297,35 @@ namespace ACE.Server.Network
         }
         private DateTime LastRequestForRetransmitTime = DateTime.MinValue;
 
-#if NETDIAG
-        private bool GetPastGeneration(Common.Cryptography.ISAAC state, ClientPacket packet, ref int Generation, int limit)
-        {
-            limit--;
-            if (limit < 1)
-            {
-                return false;
-            }
-            Generation--;
-            uint x = state.GetOffset();
-            if (packet.VerifyChecksum(x))
-            {
-                return true;
-            }
-            else
-            {
-                return GetPastGeneration(state.Parent, packet, ref Generation, limit);
-            }
-        }
-        private bool GetFutureGeneration(Common.Cryptography.ISAAC state, ClientPacket packet, ref int Generation, int limit)
-        {
-            limit--;
-            if (limit < 1)
-            {
-                return false;
-            }
-            Generation++;
-            uint x = state.GetOffset();
-            if (packet.VerifyChecksum(x))
-            {
-                return true;
-            }
-            else
-            {
-                return GetFutureGeneration(state, packet, ref Generation, limit);
-            }
-        }
-        private int? GetGeneration(Common.Cryptography.ISAAC state, ClientPacket packet)
-        {
-            int gen = 0;
-            if (GetFutureGeneration(state.Copy(), packet, ref gen, 10))
-            {
-                return gen;
-            }
-            if (GetPastGeneration(state.Copy(), packet, ref gen, 10))
-            {
-                return gen;
-            }
-            return null;
-        }
-        private Common.Cryptography.ISAAC GetGeneration(Common.Cryptography.ISAAC current, int cursor)
-        {
-            if (cursor > 0)
-            {
-                for (int i = 0; i < cursor; i++)
-                {
-                    current.GetOffset();
-                }
-                return current;
-            }
-            else if (cursor < 0)
-            {
-                for (int i = 0; i > cursor; i--)
-                {
-                    current = current.Parent;
-                }
-                return current;
-            }
-            else if (cursor == 0)
-            {
-                return current;
-            }
-            return null;
-        }
-#endif
-        private bool VerifyCRC(ClientPacket packet)
-        {
-            bool encryptedChecksum =
-                !packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit) &&
-                packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum);
-            if (encryptedChecksum)
-            {
-#if NETDIAG
-                int? gen = GetGeneration(ConnectionData.IssacClient, packet);
-                if (gen != null)
-                {
-                    // gen should always be 1 notch forward, but some programming errors have revealed gen to be 2 or more and since fixed
-                    // generational ISSAC helps immensely when troubleshooting certain kinds of protocol problems
-                    ConnectionData.IssacClient = GetGeneration(ConnectionData.IssacClient, gen.Value);
-                    if (gen.Value != 1)
-                    {
-                        packetLog.Warn($"Packet CRC encryption generation out of sequence for packet {packet.Header.Sequence} gen {gen} {UnfoldFlags(packet.Header.Flags)}");
-                    }
-                    packetLog.Debug($"Verified encrypted CRC for packet {packet.Header.Sequence} gen {gen} {UnfoldFlags(packet.Header.Flags)}");
-                    return true;
-                }
-#else
-                if (packet.VerifyChecksum(ConnectionData.IssacClient.GetOffset()))
-                    return true;
-#endif
-            }
-            else
-            {
-                if (packet.VerifyChecksum(0))
-                {
-                    packetLog.Debug($"Verified CRC for packet {packet.Header.Sequence} {UnfoldFlags(packet.Header.Flags)}");
-                    return true;
-                }
-            }
-            NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
-            return false;
-        }
-        public static string UnfoldFlags(PacketHeaderFlags flags)
-        {
-            List<string> result = new List<string>();
-            foreach (PacketHeaderFlags r in System.Enum.GetValues(typeof(PacketHeaderFlags)))
-            {
-                if ((flags & r) != 0)
-                {
-                    result.Add(r.ToString());
-                }
-            }
-            if (result.Count == 0)
-            {
-                return string.Empty;
-            }
-            return result.Aggregate((a, b) => a + " | " + b);
-        }
-
         /// <summary>
-        /// Handles a packet, reading the flags and processing all fragments.
+        /// Handles a packet<para />
+        /// Packets at this stage are already reordered
         /// </summary>
         /// <param name="packet">ClientPacket to handle</param>
         private void HandlePacket(ClientPacket packet)
         {
             packetLog.DebugFormat("[{0}] Handling packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
 
-            if (!VerifyCRC(packet))
+            if (!packet.CRCVerified)
             {
-                //DoRequestForRetransmission(packet.Header.Sequence);
+                if (packet.VerifyCRC(ConnectionData.CryptoClient, true))
+                {
+                    packet.CRCVerified = true; 
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else
+            {
+                // Packet includes a request for retransmit and was already verified and half processed without advancing, so advance now
+                ConnectionData.CryptoClient.RangeAdvance();
+            }
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.NetErrorDisconnect))
+            {
+                session.State = Enum.SessionState.ClientSentNetErrorDisconnect;
                 return;
             }
 
@@ -439,7 +344,7 @@ namespace ACE.Server.Network
 
             // If we have an AcknowledgeSequence flag, we can clear our cached packet buffer up to that sequence.
             if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
-                AcknowledgeSequence(packet.HeaderOptional.Sequence);
+                AcknowledgeSequence(packet.HeaderOptional.AckSequence);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.TimeSync))
             {
@@ -613,6 +518,10 @@ namespace ACE.Server.Network
 
                 SendPacketRaw(cachedPacket);
             }
+            else
+            {
+                log.Error($"retransmit requested packet {sequence} not in cache.");
+            }
         }
 
         private void FlushPackets()
@@ -649,7 +558,7 @@ namespace ACE.Server.Network
 
             if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
-                uint issacXor = session.GetIssacValue(PacketDirection.Server);
+                uint issacXor = ConnectionData.IssacServer.GetOffset();
                 packetLog.DebugFormat("[{0}] Setting Issac for packet {1} to {2}", session.LoggingIdentifier, packet.GetHashCode(), issacXor);
                 packet.IssacXor = issacXor;
             }
@@ -667,9 +576,9 @@ namespace ACE.Server.Network
 
                 packet.CreateReadyToSendPacket(buffer, out var size);
 
-#if NETDIAG
-                payload = NetworkSyntheticTesting.SyntheticCorruption_S2C(payload);
-#endif
+                packetLog.Debug(packet.ToString());
+
+                buffer = NetworkSyntheticTesting.SyntheticCorruption_S2C(buffer);
 
                 if (packetLog.IsDebugEnabled)
                 {

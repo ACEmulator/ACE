@@ -6,7 +6,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        private const double monsterTickInterval = 0.2;
+        protected const double monsterTickInterval = 0.2;
 
         public double NextMonsterTickTime;
 
@@ -15,7 +15,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
-        public void Monster_Tick(double currentUnixTime)
+        public virtual void Monster_Tick(double currentUnixTime)
         {
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
@@ -27,16 +27,16 @@ namespace ACE.Server.WorldObjects
 
             CheckMissHome();    // tickrate?
 
-            if (AttackTarget == null && MonsterState != State.Return)
-            {
-                Sleep();
-                return;
-            }
-
             var pet = this as CombatPet;
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
             {
                 Destroy();
+                return;
+            }
+
+            if (AttackTarget == null && MonsterState != State.Return)
+            {
+                Sleep();
                 return;
             }
 
@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
                 var ammo = GetEquippedAmmo();
                 if (ammo == null)
                 {
-                    TryDequipObjectWithBroadcasting(weapon.Guid, out _, out _);
+                    TryUnwieldObjectWithBroadcasting(weapon.Guid, out _, out _);
                     EquipInventoryItems(true);
                     DoAttackStance();
                     CurrentAttack = null;
@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects
             // decide current type of attack
             if (CurrentAttack == null)
             {
-                CurrentAttack = GetAttackType();
+                CurrentAttack = GetNextAttackType();
                 MaxRange = GetMaxRange();
 
                 //if (CurrentAttack == AttackType.Magic)

@@ -8,7 +8,6 @@ namespace ACE.Database.Models.World
         public uint Id { get; set; }
         public string Name { get; set; }
         public uint WeenieClassId { get; set; }
-
-        public Weenie WeenieClass { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

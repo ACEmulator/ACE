@@ -8,6 +8,7 @@ namespace ACE.Database.Models.World
         public uint Id { get; set; }
         public uint ParentGuid { get; set; }
         public uint ChildGuid { get; set; }
+        public DateTime LastModified { get; set; }
 
         public LandblockInstance ParentGu { get; set; }
     }

@@ -123,6 +123,11 @@ namespace ACE.Server.Physics.Common
             return newObjs;
         }
 
+        public static bool InitialClamp = true;
+
+        public static float InitialClamp_Dist = 112.5f;
+        public static float InitialClamp_DistSq = InitialClamp_Dist * InitialClamp_Dist;
+
         /// <summary>
         /// Adds an object to the list of visible objects
         /// </summary>
@@ -130,6 +135,13 @@ namespace ACE.Server.Physics.Common
         {
             if (!VisibleObjectTable.ContainsKey(obj.ID))
             {
+                if (InitialClamp && !ObjectTable.ContainsKey(obj.ID))
+                {
+                    var distSq = PhysicsObj.WeenieObj.WorldObject.Location.Distance2DSquared(obj.WeenieObj.WorldObject.Location);
+                    if (distSq > InitialClamp_DistSq)
+                        return false;
+                }
+
                 VisibleObjectTable.Add(obj.ID, obj);
                 return true;
             }
@@ -141,12 +153,16 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> AddVisibleObjects(List<PhysicsObj> objs)
         {
-            foreach (var obj in objs)
-                AddVisibleObject(obj);
+            var visibleAdded = new List<PhysicsObj>();
 
+            foreach (var obj in objs)
+            {
+                if (AddVisibleObject(obj))
+                    visibleAdded.Add(obj);
+            }
             RemoveObjectsToBeDestroyed(objs);
 
-            return AddObjects(objs);
+            return AddObjects(visibleAdded);
         }
 
         /// <summary>
@@ -249,6 +265,20 @@ namespace ACE.Server.Physics.Common
             return cells;
         }
 
+        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell)
+        {
+            var visibleObjs = GetVisibleObjects(cell);
+
+            var dist = new List<PhysicsObj>();
+            foreach (var obj in visibleObjs)
+            {
+                var distSq = PhysicsObj.WeenieObj.WorldObject.Location.Distance2DSquared(obj.WeenieObj.WorldObject.Location);
+                if (distSq <= InitialClamp_DistSq)
+                    dist.Add(obj);
+            }
+            return dist;
+        }
+
         /// <summary>
         /// Returns a list of objects that are currently visible from a cell
         /// in an outdoor landblock
@@ -259,8 +289,7 @@ namespace ACE.Server.Physics.Common
 
             // use PVS / VisibleCells for EnvCells not seen outside
             // (mostly dungeons, also some large indoor areas ie. caves)
-            var envCell = cell as EnvCell;
-            if (envCell != null && !envCell.SeenOutside)
+            if (cell is EnvCell envCell && !envCell.SeenOutside)
                 return GetVisibleObjects(envCell);
 
             // use current landblock + adjacents for outdoors,
@@ -274,7 +303,7 @@ namespace ACE.Server.Physics.Common
                     visibleObjs.AddRange(adjacent.ServerObjects);
             }
 
-            return visibleObjs.Where(i => i.ID != PhysicsObj.ID).ToList();
+            return visibleObjs.Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
 
             /*var cells = GetOutdoorCells(cell);
 
@@ -447,7 +476,7 @@ namespace ACE.Server.Physics.Common
         {
             if (PhysicsObj.DatObject) return;
 
-            var visiblePlayers = GetVisibleObjects(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList();
+            var visiblePlayers = GetVisibleObjectsDist(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList();
             AddVoyeurs(visiblePlayers);
         }
 

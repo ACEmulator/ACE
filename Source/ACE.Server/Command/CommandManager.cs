@@ -181,7 +181,13 @@ namespace ACE.Server.Command
             }
 
             if (!commandHandlers.TryGetValue(command, out commandInfo))
+            {
+                // Provide some feedback for why the console command failed
+                if (session == null)
+                    Console.WriteLine($"Invalid Command");
+
                 return CommandHandlerResponse.InvalidCommand;
+            }
 
             if ((commandInfo.Attribute.Flags & CommandHandlerFlag.ConsoleInvoke) != 0 && session != null)
                 return CommandHandlerResponse.NoConsoleInvoke;
@@ -203,7 +209,12 @@ namespace ACE.Server.Command
             }
 
             if (commandInfo.Attribute.ParameterCount != -1 && parameters.Length < commandInfo.Attribute.ParameterCount)
+            {
+                // Provide some feedback for why the console command failed
+                if (session == null)
+                    Console.WriteLine($"The syntax of the command is incorrect.\nUsage: " + commandInfo.Attribute.Command + " " + commandInfo.Attribute.Usage);
                 return CommandHandlerResponse.InvalidParameterCount;
+            }
 
             if ((commandInfo.Attribute.Flags & CommandHandlerFlag.RequiresWorld) != 0 && (session == null || session.Player == null || session.Player.CurrentLandblock == null))
                 return CommandHandlerResponse.NotInWorld;

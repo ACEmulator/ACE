@@ -65,7 +65,7 @@ namespace ACE.Server.Network.Handlers
             catch (Exception ex)
             {
                 log.Error("Error in HandleLoginRequest trying to find the account.", ex);
-                AccountSelectCallback(null, session, null);
+                session.DropSession("AccountSelectCallback threw an exception.");
             }
         }
 
@@ -73,6 +73,13 @@ namespace ACE.Server.Network.Handlers
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
             packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
+
+            if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
+            {
+                // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
+                session.BootSession("Bad handshake", new GameMessageCharacterError(CharacterError.Undefined));
+                return;
+            }
 
             var connectRequest = new PacketOutboundConnectRequest(
                 session.Network.ConnectionData.ServerTime,
@@ -89,7 +96,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (loginRequest.Account == "acservertracker:jj9h26hcsggc")
                 {
-                    log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
+                    //log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
 
                     session.BootSession("Pong sent, closing connection.", new GameMessageCharacterError(CharacterError.Undefined));
 
@@ -111,13 +118,8 @@ namespace ACE.Server.Network.Handlers
 
             if (WorldManager.Find(account.AccountName) != null)
             {
-                var foundSession = WorldManager.Find(account.AccountName);
-
-                if (foundSession.State == SessionState.AuthConnected)
-                {
-                    session.SendCharacterError(CharacterError.AccountInUse);
-                    session.BootSession("Account In Use: Found another session already logged in for this account.", new GameMessageCharacterError(CharacterError.AccountInUse));
-                }
+                session.SendCharacterError(CharacterError.AccountInUse);
+                session.BootSession("Account In Use: Found another session already logged in for this account.", new GameMessageCharacterError(CharacterError.AccountInUse));
                 return;
             }
 

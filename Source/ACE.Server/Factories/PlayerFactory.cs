@@ -33,7 +33,12 @@ namespace ACE.Server.Factories
         {
             var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[characterCreateInfo.Heritage];
 
-            player = new Player(weenie, guid, accountId);
+            if (weenie.Type == (int)WeenieType.Admin)
+                player = new Admin(weenie, guid, accountId);
+            else if (weenie.Type == (int)WeenieType.Sentinel)
+                player = new Sentinel(weenie, guid, accountId);
+            else
+                player = new Player(weenie, guid, accountId);
 
             player.SetProperty(PropertyInt.HeritageGroup, (int)characterCreateInfo.Heritage);
             player.SetProperty(PropertyString.HeritageGroup, heritageGroup.Name);
@@ -59,6 +64,11 @@ namespace ACE.Server.Factories
             // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
             var hairstyle = sex.HairStyleList[Convert.ToInt32(characterCreateInfo.Apperance.HairStyle)];
 
+            // Olthoi and Gear Knights have a "Body Style" instead of a hair style. These styles have multiple model/texture changes, instead of a single head/hairstyle.
+            // Storing this value allows us to send the proper appearance ObjDesc
+            if (hairstyle.ObjDesc.AnimPartChanges.Count > 1)
+                player.SetProperty(PropertyInt.Hairstyle, (int)characterCreateInfo.Apperance.HairStyle);
+
             // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
             if (hairstyle.AlternateSetup > 0)
                 player.SetProperty(PropertyDataId.Setup, hairstyle.AlternateSetup);
@@ -71,7 +81,10 @@ namespace ACE.Server.Factories
             player.SetProperty(PropertyDataId.DefaultMouthTexture, sex.GetDefaultMouthTexture(characterCreateInfo.Apperance.Mouth));
             player.Character.HairTexture = sex.GetHairTexture(characterCreateInfo.Apperance.HairStyle);
             player.Character.DefaultHairTexture = sex.GetDefaultHairTexture(characterCreateInfo.Apperance.HairStyle);
-            player.SetProperty(PropertyDataId.HeadObject, sex.GetHeadObject(characterCreateInfo.Apperance.HairStyle));
+            // HeadObject can be null if we're dealing with GearKnight or Olthoi
+            var headObject = sex.GetHeadObject(characterCreateInfo.Apperance.HairStyle);
+            if(headObject != null)
+                player.SetProperty(PropertyDataId.HeadObject, (uint)headObject);
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             var skinPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.SkinPalSet);
@@ -91,26 +104,26 @@ namespace ACE.Server.Factories
                 if (hat != null)
                     player.TryEquipObject(hat, hat.ValidLocations ?? 0);
                 else
-                    CreateIOU(player, sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle));
+                    player.TryAddToInventory(CreateIOU(player, sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle)));
             }
 
             var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle), characterCreateInfo.Apperance.ShirtColor, characterCreateInfo.Apperance.ShirtHue);
             if (shirt != null)
                 player.TryEquipObject(shirt, shirt.ValidLocations ?? 0);
             else
-                CreateIOU(player, sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle));
+                player.TryAddToInventory(CreateIOU(player, sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle)));
 
             var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle), characterCreateInfo.Apperance.PantsColor, characterCreateInfo.Apperance.PantsHue);
             if (pants != null)
                 player.TryEquipObject(pants, pants.ValidLocations ?? 0);
             else
-                CreateIOU(player, sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle));
+                player.TryAddToInventory(CreateIOU(player, sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle)));
 
             var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle), characterCreateInfo.Apperance.FootwearColor, characterCreateInfo.Apperance.FootwearHue);
             if (shoes != null)
                 player.TryEquipObject(shoes, shoes.ValidLocations ?? 0);
             else
-                CreateIOU(player, sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle));
+                player.TryAddToInventory(CreateIOU(player, sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle)));
 
             string templateName = heritageGroup.Templates[characterCreateInfo.TemplateOption].Name;
             //player.SetProperty(PropertyString.Title, templateName);
@@ -198,6 +211,8 @@ namespace ACE.Server.Factories
                     player.UntrainSkill((Skill) i, 0);
             }
 
+            var isDualWieldTrainedOrSpecialized = player.Skills[Skill.DualWield].AdvancementClass > SkillAdvancementClass.Untrained;
+
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
             var grantedWeenies = new List<uint>();
@@ -215,7 +230,7 @@ namespace ACE.Server.Factories
                             if (existingItem == null || (existingItem.MaxStackSize ?? 1) <= 1)
                                 continue;
 
-                            existingItem.StackSize += item.StackSize;
+                            existingItem.SetStackSize(existingItem.StackSize + item.StackSize);
                             continue;
                         }
 
@@ -223,16 +238,31 @@ namespace ACE.Server.Factories
                         if (loot != null)
                         {
                             if (loot.StackSize.HasValue && loot.MaxStackSize.HasValue)
-                                loot.StackSize = (item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize;
+                                loot.SetStackSize((item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize);
                         }
                         else
                         {
-                            CreateIOU(player, item.WeenieId);
-                            continue;
+                            player.TryAddToInventory(CreateIOU(player, item.WeenieId));
                         }
 
-                        if (player.TryAddToInventory(loot))
+                        if (loot != null && player.TryAddToInventory(loot))
                             grantedWeenies.Add(item.WeenieId);
+
+                        if (isDualWieldTrainedOrSpecialized && loot != null)
+                        {
+                            if (loot.WeenieType == WeenieType.MeleeWeapon)
+                            {
+                                var dualloot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                                if (dualloot != null)
+                                {
+                                    player.TryAddToInventory(dualloot);
+                                }
+                                else
+                                {
+                                    player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                }
+                            }
+                        }
                     }
 
                     var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == characterCreateInfo.Heritage);
@@ -246,7 +276,7 @@ namespace ACE.Server.Factories
                                 if (existingItem == null || (existingItem.MaxStackSize ?? 1) <= 1)
                                     continue;
 
-                                existingItem.StackSize += item.StackSize;
+                                existingItem.SetStackSize(existingItem.StackSize + item.StackSize);
                                 continue;
                             }
 
@@ -254,16 +284,31 @@ namespace ACE.Server.Factories
                             if (loot != null)
                             {
                                 if (loot.StackSize.HasValue && loot.MaxStackSize.HasValue)
-                                    loot.StackSize = (item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize;
+                                    loot.SetStackSize((item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize);
                             }
                             else
                             {
-                                CreateIOU(player, item.WeenieId);
-                                continue;
+                                player.TryAddToInventory(CreateIOU(player, item.WeenieId));
                             }
 
-                            if (player.TryAddToInventory(loot))
+                            if (loot != null && player.TryAddToInventory(loot))
                                 grantedWeenies.Add(item.WeenieId);
+
+                            if (isDualWieldTrainedOrSpecialized && loot != null)
+                            {
+                                if (loot.WeenieType == WeenieType.MeleeWeapon)
+                                {
+                                    var dualloot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                                    if (dualloot != null)
+                                    {
+                                        player.TryAddToInventory(dualloot);
+                                    }
+                                    else
+                                    {
+                                        player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -286,7 +331,7 @@ namespace ACE.Server.Factories
             }
 
             player.Name = characterCreateInfo.Name;
-            player.Character.Name = player.Name;
+            player.Character.Name = characterCreateInfo.Name;
 
 
             // Index used to determine the starting location
@@ -298,9 +343,14 @@ namespace ACE.Server.Factories
                 starterArea.Locations[0].Frame.Origin.X, starterArea.Locations[0].Frame.Origin.Y, starterArea.Locations[0].Frame.Origin.Z,
                 starterArea.Locations[0].Frame.Orientation.X, starterArea.Locations[0].Frame.Orientation.Y, starterArea.Locations[0].Frame.Orientation.Z, starterArea.Locations[0].Frame.Orientation.W);
 
-            player.Instantiation = player.Location;
-            player.Sanctuary = player.Location;
+            player.Instantiation = new Position(player.Location);
+            player.Sanctuary = new Position(player.Location);
 
+            if (player is Sentinel || player is Admin)
+            {
+                player.Character.IsPlussed = true;
+                player.CloakStatus = CloakStatus.Off;
+            }
 
             CharacterCreateSetDefaultCharacterOptions(player);
 
@@ -374,14 +424,14 @@ namespace ACE.Server.Factories
             return worldObject;
         }
 
-        private static void CreateIOU(Player player, uint missingWeenieId)
+        public static WorldObject CreateIOU(Player player, uint missingWeenieId)
         {
-            var book = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
+            var iou = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
 
-            book.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "ACEmulator", "prewritten");
-            book.AddPage(player.Guid.Full, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
+            iou.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "ACEmulator", "prewritten");
+            iou.AddPage(player.Guid.Full, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
 
-            player.TryAddToInventory(book);
+            return iou;
         }
 
         /// <summary>
@@ -562,11 +612,7 @@ namespace ACE.Server.Factories
                     stackSize = loot.MaxStackSize;
 
                 if (stackSize > 1)
-                {
-                    loot.StackSize = stackSize;
-                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSize ?? 1);
-                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSize ?? 1);
-                }
+                    loot.SetStackSize(stackSize);
 
                 player.TryAddToInventory(loot);
             }

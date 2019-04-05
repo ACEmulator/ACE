@@ -12,5 +12,16 @@ namespace ACE.Common.Extensions
 
             return isVowel;
         }
+
+        /// <summary>
+        /// For objects that don't have a PropertyString.PluralName
+        /// </summary>
+        public static string Pluralize(this string name)
+        {
+            if (name.EndsWith("ch") || name.EndsWith("s") || name.EndsWith("sh") || name.EndsWith("x") || name.EndsWith("z"))
+                return name + "es";
+            else
+                return name + "s";
+        }
     }
 }

@@ -19,55 +19,57 @@ namespace ACE.Server.WorldObjects
         private bool IsTrading = false;
         public ObjectGuid TradePartner;
 
-        public bool HandleActionOpenTradeNegotiations(Session session, Player tradePartner, bool initiator = false)
+        public void HandleActionOpenTradeNegotiations(uint tradePartnerGuid, bool initiator = false)
         {
-            session.Player.TradePartner = tradePartner.Guid;
+            var tradePartner = PlayerManager.GetOnlinePlayer(tradePartnerGuid);
+            if (tradePartner == null) return;
+
+            TradePartner = tradePartner.Guid;
 
             //Check to see if partner is not allowing trades
-            if ((initiator) && (tradePartner.GetCharacterOption(CharacterOption.IgnoreAllTradeRequests)))
+            if (initiator && tradePartner.GetCharacterOption(CharacterOption.IgnoreAllTradeRequests))
             {
-                session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeIgnoringRequests));
-                return false;
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TradeIgnoringRequests));
+                return;
             }
 
             //Check to see if either party is already part of an in process trade session
-            if ((session.Player.IsTrading) || (tradePartner.IsTrading))
+            if (IsTrading || tradePartner.IsTrading)
             {
-                session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeAlreadyTrading));
-                return false;
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TradeAlreadyTrading));
+                return;
             }
 
             //Check to see if either party is in combat mode
-            if ((session.Player.CombatMode != CombatMode.NonCombat) || (tradePartner.CombatMode != CombatMode.NonCombat))
+            if (CombatMode != CombatMode.NonCombat || tradePartner.CombatMode != CombatMode.NonCombat)
             {
-                session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeNonCombatMode));
-                return false;
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TradeNonCombatMode));
+                return;
             }
 
             //Check to see if trade partner is in range, if so, rotate and move to
-            var valid = false;
-            bool ret = CurrentLandblock != null ? !CurrentLandblock.WithinUseRadius(session.Player, tradePartner.Guid, out valid) : false;
-
-            if (valid)
+            CreateMoveToChain(tradePartner, (success) =>
             {
-                session.Player.ItemsInTradeWindow.Clear();
-
-                session.Player.Rotate(tradePartner);
-                session.Player.MoveTo(tradePartner);
-
-                session.Network.EnqueueSend(new GameEventRegisterTrade(session, session.Player.Guid, tradePartner.Guid));
-
-                if (!initiator)
+                if (!success)
                 {
-                    session.Player.IsTrading = true;
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TradeMaxDistanceExceeded));
+                    return;
+                }
+
+                ItemsInTradeWindow.Clear();
+
+                Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, Guid, tradePartner.Guid));
+
+                if (initiator)
+                {
+                    tradePartner.HandleActionOpenTradeNegotiations(Guid.Full, false);
+                }
+                else
+                {
+                    IsTrading = true;
                     tradePartner.IsTrading = true;
                 }
-                
-                return true;
-            }
-
-            session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeMaxDistanceExceeded));
-            return false;
+            });
         }
 
         public void HandleActionCloseTradeNegotiations(Session session, EndTradeReason endTradeReason = EndTradeReason.Normal)
@@ -75,7 +77,7 @@ namespace ACE.Server.WorldObjects
             session.Player.IsTrading = false;
             session.Player.TradeAccepted = false;
             session.Player.ItemsInTradeWindow.Clear();
-            session.Player.TradePartner = new ObjectGuid(0);
+            session.Player.TradePartner = ObjectGuid.Invalid;
 
             session.Network.EnqueueSend(new GameEventCloseTrade(session, endTradeReason));
             session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeClosed));
@@ -93,7 +95,7 @@ namespace ACE.Server.WorldObjects
 
                 if (wo != null)
                 {
-                    if ((wo.Attuned ?? 0) == 1)
+                    if ((wo.Attuned ?? 0) >= 1)
                     {
                         session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "You cannot trade that!"));
                         session.Network.EnqueueSend(new GameEventTradeFailure(session, itemGuid, WeenieError.AttunedItem));
@@ -168,8 +170,8 @@ namespace ACE.Server.WorldObjects
                     session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeComplete));
                     target.Session.Network.EnqueueSend(new GameEventWeenieError(target.Session, WeenieError.TradeComplete));
 
-                    session.Player.HandleActionResetTrade(session, new ObjectGuid(0));
-                    target.HandleActionResetTrade(target.Session, new ObjectGuid(0));
+                    session.Player.HandleActionResetTrade(session, ObjectGuid.Invalid);
+                    target.HandleActionResetTrade(target.Session, ObjectGuid.Invalid);
 
                     DatabaseManager.Shard.SaveBiotasInParallel(tradedItems, null);
                 }

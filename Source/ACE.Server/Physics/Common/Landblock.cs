@@ -642,5 +642,10 @@ namespace ACE.Server.Physics.Common
             }
             return envcells;
         }
+
+        public void SortObjects()
+        {
+            ServerObjects = ServerObjects.OrderBy(i => i.Order).ToList();
+        }
     }
 }

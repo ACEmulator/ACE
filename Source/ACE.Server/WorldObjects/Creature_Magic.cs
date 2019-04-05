@@ -1,8 +1,9 @@
 using System;
-
+using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -98,13 +99,15 @@ namespace ACE.Server.WorldObjects
 
             uint preCost = 0;
 
-            if ((spell.School == MagicSchool.ItemEnchantment) && (spell.MetaSpellType == SpellType.Enchantment))
+            if ((spell.School == MagicSchool.ItemEnchantment) && (spell.MetaSpellType == SpellType.Enchantment) &&
+                (spell.Category >= SpellCategory.ArmorValueRaising) && (spell.Category <= SpellCategory.AcidicResistanceLowering) && target is Player)
             {
                 var targetPlayer = target as Player;
 
                 int numTargetItems = 1;
                 if (targetPlayer != null)
-                    numTargetItems = targetPlayer.EquippedObjects.Count;
+                    numTargetItems = targetPlayer.EquippedObjects.Values.Where(i => i is Clothing || i.IsShield).Count();
+
                 preCost = (uint)Math.Round((baseCost + (spell.ManaMod * numTargetItems)) * baseManaPercent);
             }
             else if ((spell.Flags & SpellFlags.FellowshipSpell) != 0)
@@ -123,6 +126,80 @@ namespace ACE.Server.WorldObjects
 
             uint manaUsed = ThreadSafeRandom.Next(1, preCost);
             return manaUsed;
+        }
+
+        /// <summary>
+        /// Handles an item casting a spell on player or creature
+        /// </summary>
+        public virtual EnchantmentStatus CreateItemSpell(WorldObject item, uint spellID)
+        {
+            var enchantmentStatus = new EnchantmentStatus(spellID);
+
+            var spell = enchantmentStatus.Spell;
+
+            if (spell.NotFound)
+                return enchantmentStatus;
+
+            switch (spell.School)
+            {
+                case MagicSchool.CreatureEnchantment:
+
+                    enchantmentStatus = CreatureMagic(this, spell, item);
+                    if (enchantmentStatus.Message != null)
+                        EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                    break;
+
+                case MagicSchool.LifeMagic:
+
+                    LifeMagic(this, spell, out uint damage, out bool critical, out enchantmentStatus, item);
+                    if (enchantmentStatus.Message != null)
+                        EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                    break;
+
+                case MagicSchool.ItemEnchantment:
+
+                    if (spell.HasItemCategory || spell.IsPortalSpell)
+                        enchantmentStatus = ItemMagic(this, spell, item);
+                    else
+                        enchantmentStatus = ItemMagic(item, spell, item);
+
+                    var playScript = spell.IsPortalSpell && spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
+                    EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));
+
+                    break;
+            }
+            return enchantmentStatus;
+        }
+
+        /// <summary>
+        /// Removes an item's spell from the appropriate enchantment registry (either the wielder, or the item)
+        /// </summary>
+        /// <param name="silent">if TRUE, silently removes the spell, without sending a message to the target player</param>
+        public void RemoveItemSpell(WorldObject item, uint spellId, bool silent = false)
+        {
+            if (item == null) return;
+
+            var spell = new Spell(spellId);
+
+            if (spell._spellBase == null)
+            {
+                if (this is Player player)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"SpellId {spellId} Invalid."));
+
+                return;
+            }
+            var target = spell.School == MagicSchool.ItemEnchantment && !spell.HasItemCategory ? item : this;
+
+            // Retrieve enchantment on target and remove it, if present
+            if (target.EnchantmentManager.HasSpell(spellId))
+            {
+                if (!silent)
+                    target.EnchantmentManager.Remove(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
+                else
+                    target.EnchantmentManager.Dispel(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
+            }
         }
     }
 }

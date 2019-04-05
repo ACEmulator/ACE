@@ -1,4 +1,5 @@
 using ACE.Common.Extensions;
+using ACE.Entity.Enum;
 using ACE.Server.Network.Enum;
 
 namespace ACE.Server.Network.Packets
@@ -17,13 +18,13 @@ namespace ACE.Server.Network.Packets
 
         public PacketInboundLoginRequest(ClientPacket packet)
         {
-            string someString = packet.Payload.ReadString16L(); // always "1802"
-            uint len = packet.Payload.ReadUInt32(); // data length left in packet including ticket
+            string someString = packet.Payload.ReadString16L();         // always "1802"
+            uint len = packet.Payload.ReadUInt32();                     // data length left in packet including ticket
             NetAuthType = (NetAuthType)packet.Payload.ReadUInt32();
-            uint unknown2 = packet.Payload.ReadUInt32();
-            Timestamp = packet.Payload.ReadUInt32();
+            var authFlags = (AuthFlags)packet.Payload.ReadUInt32();
+            Timestamp = packet.Payload.ReadUInt32();                    // sequence
             Account = packet.Payload.ReadString16L();
-            string unknown3 = packet.Payload.ReadString16L();
+            string accountToLoginAs = packet.Payload.ReadString16L();   // special admin only, AuthFlags has 2
 
             // int consumed = (someString.Length + 2) + 4 * sizeof(uint) + (ClientAccountString.Length + 2) + (unknown3.Length + 2);
 

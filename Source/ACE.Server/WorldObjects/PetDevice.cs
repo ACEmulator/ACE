@@ -8,7 +8,9 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -18,6 +20,42 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     public class PetDevice : WorldObject
     {
+        public int? GearDamage
+        {
+            get => GetProperty(PropertyInt.GearDamage);
+            set { if (value.HasValue) SetProperty(PropertyInt.GearDamage, value.Value); else RemoveProperty(PropertyInt.GearDamage); }
+        }
+
+        public int? GearDamageResist
+        {
+            get => GetProperty(PropertyInt.GearDamageResist);
+            set { if (value.HasValue) SetProperty(PropertyInt.GearDamageResist, value.Value); else RemoveProperty(PropertyInt.GearDamageResist); }
+        }
+
+        public int? GearCritDamage
+        {
+            get => GetProperty(PropertyInt.GearCritDamage);
+            set { if (value.HasValue) SetProperty(PropertyInt.GearCritDamage, value.Value); else RemoveProperty(PropertyInt.GearCritDamage); }
+        }
+
+        public int? GearCritDamageResist
+        {
+            get => GetProperty(PropertyInt.GearCritDamageResist);
+            set { if (value.HasValue) SetProperty(PropertyInt.GearCritDamageResist, value.Value); else RemoveProperty(PropertyInt.GearCritDamageResist); }
+        }
+
+        public int? GearCrit
+        {
+            get => GetProperty(PropertyInt.GearCrit);
+            set { if (value.HasValue) SetProperty(PropertyInt.GearCrit, value.Value); else RemoveProperty(PropertyInt.GearCrit); }
+        }
+
+        public int? GearCritResist
+        {
+            get => GetProperty(PropertyInt.GearCritResist);
+            set { if (value.HasValue) SetProperty(PropertyInt.GearCritResist, value.Value); else RemoveProperty(PropertyInt.GearCritResist); }
+        }
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -55,17 +93,19 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (Structure == 0)
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You must refill the essence to use it again."));
+                return;
+            }
+
             var wcid = petData.Item1;
             var damageType = petData.Item2;
 
             if (SummonCreature(player, wcid, damageType))
             {
-                // track usage for cooldown
-                player.UpdateCooldown(this);
-
                 // decrease remaining uses
-                if (--Structure <= 0)
-                    player.TryConsumeFromInventoryWithNetworking(this, 1);
+                Structure--;
 
                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
             }
@@ -86,10 +126,6 @@ namespace ACE.Server.WorldObjects
 
             // cooldowns for gems and pet devices, anything else?
 
-            // should this verification be in base CheckUseRequirements?
-            if (!player.CheckCooldown(this))
-                return new ActivationResult(false);
-
             // TODO: limit non-golems to summoning mastery
 
             return new ActivationResult(true);
@@ -106,13 +142,17 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"Couldn't find pet wcid #{wcid}");
                 return false;
             }
+
+            if (weenie.Type != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                weenie.Type = (int)WeenieType.CombatPet;
+
             var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
             if (combatPet == null)
             {
                 Console.WriteLine($"PetDevice.UseItem(): failed to create pet for wcid {wcid}");
                 return false;
             }
-            combatPet.Init(player, damageType);
+            combatPet.Init(player, damageType, this);
             return true;
         }
 
@@ -448,5 +488,48 @@ namespace ACE.Server.WorldObjects
             { 49322, new Tuple<uint, DamageType>(7127, DamageType.Electric) }, // lightning wisp (180)
             { 49323, new Tuple<uint, DamageType>(25667, DamageType.Electric) }, // voltaic wisp (200)
         };
+
+        /// <summary>
+        /// Returns TRUE if wo is Encapsulated Spirit
+        /// </summary>
+        public static bool IsEncapsulatedSpirit(WorldObject wo)
+        {
+            return wo.WeenieClassId == 49485;
+        }
+
+        /// <summary>
+        /// Applies an encapsulated spirit to a PetDevice
+        /// </summary>
+        public void Refill(Player player, GenericObject spirit)
+        {
+            // TODO: this should be moved to recipe system
+            if (!IsEncapsulatedSpirit(spirit))
+                return;
+
+            var actionChain = new ActionChain();
+
+            // handle switching to peace mode
+            if (player.CombatMode != CombatMode.NonCombat)
+            {
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                actionChain.AddDelaySeconds(stanceTime);
+            }
+
+            // perform clapping motion
+            player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
+
+            actionChain.AddAction(player, () =>
+            {
+                player.UpdateProperty(this, PropertyInt.Structure, MaxStructure);
+
+                player.TryConsumeFromInventoryWithNetworking(spirit, 1);
+
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You add the spirit to the essence.", ChatMessageType.Broadcast));
+
+                player.SendUseDoneEvent();
+            });
+
+            actionChain.EnqueueChain();
+        }
     }
 }

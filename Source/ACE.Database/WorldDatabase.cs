@@ -47,34 +47,6 @@ namespace ACE.Database
         }
 
 
-        /// <summary>
-        /// Will return uint.MaxValue if no records were found within the range provided.
-        /// </summary>
-        public uint GetMaxGuidFoundInRange(uint min, uint max)
-        {
-            using (var context = new WorldDbContext())
-            {
-                var results = context.LandblockInstance
-                    .AsNoTracking()
-                    .Where(r => r.Guid >= min && r.Guid <= max)
-                    .ToList();
-
-                if (!results.Any())
-                    return uint.MaxValue;
-
-                var maxId = min;
-
-                foreach (var result in results)
-                {
-                    if (result.Guid > maxId)
-                        maxId = result.Guid;
-                }
-
-                return maxId;
-            }
-        }
-
-
         private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
 
         /// <summary>
@@ -299,7 +271,6 @@ namespace ACE.Database
                         weenie = query.FirstOrDefault();
 
                         scrollsBySpellID[spellID] = weenie;
-
                     }
                 }
             }
@@ -483,6 +454,7 @@ namespace ACE.Database
             }
         }
 
+
         public List<HouseListResults> GetHousesAll()
         {
             using (var context = new WorldDbContext())
@@ -496,8 +468,13 @@ namespace ACE.Database
             }
         }
 
-        public List<HousePortal> GetHousePortals(uint houseId)
+        private readonly ConcurrentDictionary<uint, List<HousePortal>> cachedHousePortals = new ConcurrentDictionary<uint, List<HousePortal>>();
+
+        public List<HousePortal> GetCachedHousePortals(uint houseId)
         {
+            if (cachedHousePortals.TryGetValue(houseId, out var value))
+                return value;
+
             using (var context = new WorldDbContext())
             {
                 var results = context.HousePortal
@@ -505,18 +482,44 @@ namespace ACE.Database
                     .Where(p => p.HouseId == houseId)
                     .ToList();
 
+                cachedHousePortals[houseId] = results;
+
                 return results;
             }
         }
 
-        public List<HousePortal> GetHousePortalsByLandblock(uint landblockId)
+        /// <summary>
+        /// This takes under ? second to complete.
+        /// </summary>
+        public void CacheAllHousePortals()
         {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.HousePortal
+                    .AsNoTracking()
+                    .GroupBy(r => r.HouseId)
+                    .ToList();
+
+                foreach (var result in results)
+                    cachedHousePortals[result.Key] = result.ToList();
+            }
+        }
+
+        private readonly ConcurrentDictionary<uint, List<HousePortal>> cachedHousePortalsByLandblock = new ConcurrentDictionary<uint, List<HousePortal>>();
+
+        public List<HousePortal> GetCachedHousePortalsByLandblock(uint landblockId)
+        {
+            if (cachedHousePortalsByLandblock.TryGetValue(landblockId, out var value))
+                return value;
+
             using (var context = new WorldDbContext())
             {
                 var results = context.HousePortal
                     .AsNoTracking()
                     .Where(p => landblockId == p.ObjCellId >> 16)
                     .ToList();
+
+                cachedHousePortalsByLandblock[landblockId] = results;
 
                 return results;
             }

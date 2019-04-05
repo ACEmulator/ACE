@@ -17,8 +17,8 @@ namespace ACE.Database.Tests
         [ClassInitialize]
         public static void TestSetup(TestContext context)
         {
-            // copy config.json
-            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.json"), ".\\Config.json", true);
+            // copy config.js
+            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.js"), ".\\Config.js", true);
 
             ConfigManager.Initialize();
             authDb = new AuthenticationDatabase();
@@ -38,7 +38,6 @@ namespace ACE.Database.Tests
         public void UpdateAccountAccessLevelToSentinelAndBackToPlayer_ReturnsAccount()
         {
             Account newAccount = new Account();
-            newAccount.CreateRandomSalt();
             newAccount.AccountName = "testaccount1";
 
             authDb.UpdateAccountAccessLevel(1, AccessLevel.Sentinel);
@@ -56,7 +55,6 @@ namespace ACE.Database.Tests
         public void GetAccountIdByName_ReturnsAccount()
         {
             Account newAccount = new Account();
-            newAccount.CreateRandomSalt();
             newAccount.AccountName = "testaccount1";
 
             var id = authDb.GetAccountIdByName(newAccount.AccountName);

@@ -45,7 +45,7 @@ namespace ACE.Server.Network.GameEvent.Events
             var propertyFlags = DescriptionPropertyFlag.None;
             var propertyFlagsPos = Writer.BaseStream.Position;
             Writer.Write(0u);
-            Writer.Write(0x0Au);
+            Writer.Write((uint)Session.Player.WeenieType);
 
             var propertiesInt = Session.Player.GetAllPropertyInt().Where(x => SendOnLoginProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
 
@@ -123,7 +123,15 @@ namespace ACE.Server.Network.GameEvent.Events
                 foreach (var property in propertiesString)
                 {
                     Writer.Write((uint)property.Key);
-                    Writer.WriteString16L(property.Value);
+                    if (property.Key == PropertyString.Name)
+                    {
+                        if (Session.Player.IsPlussed && Session.Player.CloakStatus.HasValue && Session.Player.CloakStatus < CloakStatus.Player)
+                            Writer.WriteString16L("+" + property.Value);
+                        else
+                            Writer.WriteString16L(property.Value);
+                    }
+                    else
+                        Writer.WriteString16L(property.Value);
                 }
             }
 
@@ -190,7 +198,8 @@ namespace ACE.Server.Network.GameEvent.Events
                 vectorFlags |= DescriptionVectorFlag.Enchantment;
 
             Writer.Write((uint)vectorFlags);
-            Writer.Write(1u);
+
+            Writer.Write(Convert.ToUInt32(Session.Player.Health != null));
 
             if ((vectorFlags & DescriptionVectorFlag.Attribute) != 0)
             {
@@ -383,7 +392,7 @@ namespace ACE.Server.Network.GameEvent.Events
             {
                 Writer.Write(item.Guid.Full);
                 Writer.Write((uint)(item.CurrentWieldedLocation ?? 0));
-                Writer.Write((uint)(item.Priority ?? 0));
+                Writer.Write((uint)(item.ClothingPriority ?? 0));
             }
         }
     }

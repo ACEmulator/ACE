@@ -6,25 +6,10 @@ using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
 {
-    /// <summary>
-    /// Determines when a monster will attack
-    /// </summary>
-    [Flags]
-    public enum Tolerance
-    {
-        None      = 0,  // attack targets in range
-        NoAttack  = 1,  // never attack
-        Appraise  = 2,  // attack when ID'd or attacked
-        Unknown   = 4,  // unused?
-        Provoke   = 8,  // used in conjunction with 32
-        Unknown2  = 16, // unused?
-        Target    = 32, // only target original attacker
-        Retaliate = 64  // only attack after attacked
-    };
-
     /// <summary>
     /// Determines when a monster wakes up from idle state
     /// </summary>
@@ -96,8 +81,18 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"{Name}.TargetingTactics: {TargetingTactic}");
 
-            var possibleTactics = EnumHelper.GetFlags(TargetingTactic);
+            // if targeting tactic is none,
+            // use the most common targeting tactic
+            // TODO: ensure all monsters in the db have a targeting tactic
+            var targetingTactic = TargetingTactic;
+            if (targetingTactic == TargetingTactic.None)
+                targetingTactic = TargetingTactic.Random | TargetingTactic.TopDamager;
+
+            var possibleTactics = EnumHelper.GetFlags(targetingTactic);
             var rng = ThreadSafeRandom.Next(1, possibleTactics.Count - 1);
+
+            if (targetingTactic == 0)
+                rng = 0;
 
             CurrentTargetingTactic = (TargetingTactic)possibleTactics[rng];
 
@@ -296,6 +291,48 @@ namespace ACE.Server.WorldObjects
         {
             PhysicsObj.ObjMaint.RemoveAllObjects();
             PhysicsObj.handle_visible_cells();
+        }
+
+        /// <summary>
+        /// Called when a monster is first spawning in
+        /// </summary>
+        public void CheckPlayers()
+        {
+            var attackable = Attackable ?? false;
+            var tolerance = (Tolerance)(GetProperty(PropertyInt.Tolerance) ?? 0);
+
+            if (!attackable && TargetingTactic == 0 || tolerance != Tolerance.None)
+                return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(0.75f);
+            actionChain.AddAction(this, CheckPlayers_Inner);
+            actionChain.EnqueueChain();
+        }
+
+        public void CheckPlayers_Inner()
+        { 
+            var visiblePlayers = PhysicsObj.ObjMaint.VoyeurTable.Values;
+
+            Player closestPlayer = null;
+            var closestDistSq = float.MaxValue;
+
+            foreach (var visiblePlayer in visiblePlayers)
+            {
+                var player = visiblePlayer.WeenieObj.WorldObject as Player;
+                if (player == null || !player.IsAttackable || (player.Hidden ?? false)) continue;
+
+                var distSq = Location.SquaredDistanceTo(player.Location);
+                if (distSq < closestDistSq)
+                {
+                    closestDistSq = distSq;
+                    closestPlayer = player;
+                }
+            }
+            if (closestPlayer == null || closestDistSq > RadiusAwarenessSquared)
+                return;
+
+            closestPlayer.AlertMonster(this);
         }
 
         public double? VisualAwarenessRange

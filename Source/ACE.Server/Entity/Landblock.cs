@@ -52,6 +52,12 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool Permaload = false;
 
+        /// <summary>
+        /// This must be true before a player enters a landblock.
+        /// This prevents a player from possibly pasing through a door that hasn't spawned in yet, and other scenarios.
+        /// </summary>
+        public bool CreateWorldObjectsCompleted { get; private set; }
+
         private DateTime lastActiveTime;
 
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
@@ -108,7 +114,7 @@ namespace ACE.Server.Entity
         public List<ModelMesh> Scenery { get; private set; }
 
 
-        public Landblock(LandblockId id, bool sync = false)
+        public Landblock(LandblockId id)
         {
             //Console.WriteLine($"Loading landblock {(id.Raw | 0xFFFF):X8}");
 
@@ -119,30 +125,18 @@ namespace ACE.Server.Entity
 
             lastActiveTime = DateTime.UtcNow;
 
-            if (sync)
+            Task.Run(() =>
             {
-                LoadLandblock(sync);
-            }
-            else
-            {
-                Task.Run(() => LoadLandblock(sync));
-            }
+                _landblock = LScape.get_landblock(Id.Raw);
+
+                CreateWorldObjects();
+
+                SpawnDynamicShardObjects();
+
+                SpawnEncounters();
+            });
 
             //LoadMeshes(objects);
-        }
-
-        private void LoadLandblock(bool sync)
-        {
-            _landblock = LScape.get_landblock(Id.Raw);
-
-            if (sync)
-                CreateWorldObjects();
-            else
-                actionQueue.EnqueueAction(new ActionEventDelegate(CreateWorldObjects));
-
-            SpawnDynamicShardObjects();
-
-            SpawnEncounters();
         }
 
         /// <summary>
@@ -155,28 +149,43 @@ namespace ACE.Server.Entity
             var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
 
-            // for mansion linking
-            var houses = new List<House>();
-
-            foreach (var fo in factoryObjects)
+            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
             {
-                WorldObject parent = null;
-                if (fo.WeenieType == WeenieType.House && fo.HouseType == HouseType.Mansion)
-                {
-                    var house = fo as House;
-                    houses.Add(house);
-                    house.LinkedHouses.Add(houses[0]);
+                // for mansion linking
+                var houses = new List<House>();
 
-                    if (houses.Count > 1)
+                foreach (var fo in factoryObjects)
+                {
+                    WorldObject parent = null;
+                    if (fo.WeenieType == WeenieType.House)
                     {
-                        houses[0].LinkedHouses.Add(house);
-                        parent = houses[0];
+                        var house = fo as House;
+                        Houses.Add(house);
+
+                        if (fo.HouseType == HouseType.Mansion)
+                        {
+                            houses.Add(house);
+                            house.LinkedHouses.Add(houses[0]);
+
+                            if (houses.Count > 1)
+                            {
+                                houses[0].LinkedHouses.Add(house);
+                                parent = houses[0];
+                            }
+                        }
                     }
+
+                    AddWorldObject(fo);
+                    fo.ActivateLinks(objects, shardObjects, parent);
+
+                    if (fo.PhysicsObj != null)
+                        fo.PhysicsObj.Order = 0;
                 }
 
-                AddWorldObject(fo);
-                fo.ActivateLinks(objects, shardObjects, parent);
-            }
+                CreateWorldObjectsCompleted = true;
+
+                _landblock.SortObjects();
+            }));
         }
 
         /// <summary>
@@ -221,6 +230,10 @@ namespace ACE.Server.Entity
                 pos.Frame.Origin.Z = _landblock.GetZ(pos.Frame.Origin);
 
                 wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
+
+                var sortCell = LScape.get_landcell(pos.ObjCellID) as SortCell;
+                if (sortCell != null && sortCell.has_building())
+                    continue;
 
                 actionQueue.EnqueueAction(new ActionEventDelegate(() =>
                 {
@@ -293,15 +306,20 @@ namespace ACE.Server.Entity
 
         public void Tick(double currentUnixTime)
         {
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
             actionQueue.RunActions();
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
 
             ProcessPendingWorldObjectAdditionsAndRemovals();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
 
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Player_Tick);
             foreach (var player in players)
                 player.Player_Tick(currentUnixTime);
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Player_Tick);
 
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick);
             while (sortedCreaturesByNextTick.Count > 0) // Monster_Tick()
             {
                 var first = sortedCreaturesByNextTick.First.Value;
@@ -318,7 +336,9 @@ namespace ACE.Server.Entity
                     break;
                 }
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick);
 
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_WorldObject_Heartbeat);
             while (sortedWorldObjectsByNextHeartbeat.Count > 0) // Heartbeat()
             {
                 var first = sortedWorldObjectsByNextHeartbeat.First.Value;
@@ -335,7 +355,9 @@ namespace ACE.Server.Entity
                     break;
                 }
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_WorldObject_Heartbeat);
 
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
             while (sortedGeneratorsByNextGeneratorHeartbeat.Count > 0) // GeneratorHeartbeat()
             {
                 var first = sortedGeneratorsByNextGeneratorHeartbeat.First.Value;
@@ -352,8 +374,10 @@ namespace ACE.Server.Entity
                     break;
                 }
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
 
             // Heartbeat
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Heartbeat);
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
             {
                 var thisHeartBeat = DateTime.UtcNow;
@@ -372,8 +396,10 @@ namespace ACE.Server.Entity
 
                 lastHeartBeat = thisHeartBeat;
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Heartbeat);
 
             // Database Save
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Database_Save);
             if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
             {
                 ProcessPendingWorldObjectAdditionsAndRemovals();
@@ -381,6 +407,7 @@ namespace ACE.Server.Entity
                 SaveDB();
                 lastDatabaseSave = DateTime.UtcNow;
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Database_Save);
         }
 
         private void ProcessPendingWorldObjectAdditionsAndRemovals()
@@ -525,23 +552,26 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            pendingAdditions[wo.Guid] = wo;
-            pendingRemovals.Remove(wo.Guid);
-
             wo.CurrentLandblock = this;
 
             if (wo.PhysicsObj == null)
                 wo.InitPhysicsObj();
 
             if (wo.PhysicsObj.CurCell == null)
-            { 
+            {
                 var success = wo.AddPhysicsObj();
                 if (!success)
                 {
+                    wo.CurrentLandblock = null;
                     log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
                     return;
                 }
             }
+
+            if (!worldObjects.ContainsKey(wo.Guid))
+                pendingAdditions[wo.Guid] = wo;
+            else
+                pendingRemovals.Remove(wo.Guid);
 
             // if adding a player to this landblock,
             // tell them about other nearby objects
@@ -572,16 +602,17 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
         {
-            //log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
-
-            if (!pendingAdditions.Remove(objectId, out var wo) && !worldObjects.TryGetValue(objectId, out wo))
+            if (worldObjects.TryGetValue(objectId, out var wo))
+                pendingRemovals.Add(objectId);
+            else if (!pendingAdditions.Remove(objectId, out wo))
+            {
+                log.Warn($"RemoveWorldObjectInternal: Couldn't find {objectId.Full:X8}");
                 return;
-
-            pendingRemovals.Add(objectId);
+            }
 
             wo.CurrentLandblock = null;
 
-            // Weenies can come with a default of 0 or -1. If they still have that value, we want to retain it.
+            // Weenies can come with a default of 0 (Instant Rot) or -1 (Never Rot). If they still have that value, we want to retain it.
             // We also want to make sure fromPickup is true so that we're not clearing out TimeToRot on server shutdown (unloads all landblocks and removed all objects).
             if (fromPickup && wo.TimeToRot.HasValue && wo.TimeToRot != 0 && wo.TimeToRot != -1)
                 wo.TimeToRot = null;
@@ -598,14 +629,14 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
         /// </summary>
-        public bool WithinUseRadius(Player player, ObjectGuid targetGuid, out bool validTargetGuid)
+        public bool WithinUseRadius(Player player, ObjectGuid targetGuid, out bool validTargetGuid, float? useRadius = null)
         {
             var target = GetObject(targetGuid);
 
             validTargetGuid = target != null;
 
             if (target != null)
-                return player.IsWithinUseRadiusOf(target);
+                return player.IsWithinUseRadiusOf(target, useRadius);
 
             return false;
         }
@@ -734,8 +765,17 @@ namespace ACE.Server.Entity
             SaveDB();
 
             // remove all objects
-            foreach (var wo in worldObjects.Keys.ToList())
-                RemoveWorldObjectInternal(wo);
+            foreach (var wo in worldObjects.ToList())
+            {
+                if (!wo.Value.BiotaOriginatedFromOrHasBeenSavedToDatabase())
+                    wo.Value.Destroy(false);
+                else
+                    RemoveWorldObjectInternal(wo.Key);
+            }
+
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            actionQueue.Clear();
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);
@@ -835,10 +875,12 @@ namespace ACE.Server.Entity
                 if (isHouseDungeon != null)
                     return isHouseDungeon.Value;
 
-                isHouseDungeon = IsDungeon ? DatabaseManager.World.GetHousePortalsByLandblock(Id.Landblock).Count > 0 : false;
+                isHouseDungeon = IsDungeon ? DatabaseManager.World.GetCachedHousePortalsByLandblock(Id.Landblock).Count > 0 : false;
 
                 return isHouseDungeon.Value;
             }
         }
+
+        public List<House> Houses = new List<House>();
     }
 }

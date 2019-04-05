@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using log4net;
@@ -51,13 +52,29 @@ namespace ACE.Server.WorldObjects
 
         public void SetUiEffect(Player player, UiEffects effect)
         {
-            player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.UiEffects, (int)effect));
             UiEffects = effect;
+            player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.UiEffects, (int)effect));
         }
 
-        public void HandleActionUseOnTarget(Player player, WorldObject target)
+        public override void HandleActionUseOnTarget(Player player, WorldObject target)
         {
+            WorldObject invTarget;
+
             var useResult = WeenieError.None;
+
+            if (player != target)
+            {
+                invTarget = player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
+                if (invTarget == null)
+                {
+                    // Haven't looked to see if an error was sent for this case; however, this one fits
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDoNotOwnThatItem));
+                    return;
+                }
+
+                target = invTarget;
+            }
+
             if (!ItemCurMana.HasValue)
             {
                 if (target == player)
@@ -72,10 +89,17 @@ namespace ACE.Server.WorldObjects
                         if (!player.TryConsumeFromInventoryWithNetworking(target))
                         {
                             log.Error($"Failed to remove {target.Name} from player inventory.");
-                            return;
+                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.ActionCancelled));
                         }
+
+                        //The Mana Stone drains 5,253 points of mana from the Wand.
+                        //The Wand is destroyed.
+
+                        //The Mana Stone drains 4,482 points of mana from the Pantaloons.
+                        //The Pantaloons is destroyed.
+
                         ItemCurMana = (int)Math.Round(Efficiency.Value * target.ItemCurMana.Value);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} drains {ItemCurMana.Value.ToString("N0")} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Mana Stone drains {ItemCurMana.Value:N0} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
                         SetUiEffect(player, ACE.Entity.Enum.UiEffects.Magical);
                     }
                 }
@@ -89,46 +113,60 @@ namespace ACE.Server.WorldObjects
                 if (target == player)
                 {
                     // dump mana into equipped items
-                    if (player.EquippedObjectsLoaded)
+                    var origItemsNeedingMana = player.EquippedObjects.Values.Where(k => k.ItemCurMana.HasValue && k.ItemMaxMana.HasValue && k.ItemCurMana < k.ItemMaxMana).ToList();
+                    var itemsGivenMana = new Dictionary<WorldObject, int>();
+
+                    while (ItemCurMana > 0)
                     {
-                        var manaAvailable = ItemCurMana.Value;
-                        var origItemsNeedingMana = player.EquippedObjects.Where(k => k.Value.ItemCurMana.HasValue && k.Value.ItemMaxMana.HasValue && k.Value.ItemCurMana.Value < k.Value.ItemMaxMana.Value).ToList();
-                        origItemsNeedingMana.ForEach(m => m.Value.ManaGiven = 0);
-                        while (manaAvailable > 0)
+                        var itemsNeedingMana = origItemsNeedingMana.Where(k => k.ItemCurMana < k.ItemMaxMana).ToList();
+                        if (itemsNeedingMana.Count < 1)
+                            break;
+
+                        var ration = Math.Max(ItemCurMana.Value / itemsNeedingMana.Count, 1);
+
+                        foreach (var item in itemsNeedingMana)
                         {
-                            var itemsNeedingMana = origItemsNeedingMana.Where(k => k.Value.ItemCurMana.Value + k.Value.ManaGiven < k.Value.ItemMaxMana.Value).ToList();
-                            if (itemsNeedingMana.Count < 1)
+                            var manaNeededForTopoff = (int)(item.ItemMaxMana - item.ItemCurMana);
+                            var adjustedRation = Math.Min(ration, manaNeededForTopoff);
+
+                            ItemCurMana -= adjustedRation;
+
+                            if (player.LumAugItemManaGain != 0)
+                                adjustedRation = (int)Math.Round(adjustedRation * Creature.GetPositiveRatingMod(player.LumAugItemManaGain));
+
+                            item.ItemCurMana += adjustedRation;
+                            if (!itemsGivenMana.ContainsKey(item))
+                                itemsGivenMana[item] = adjustedRation;
+                            else
+                                itemsGivenMana[item] += adjustedRation;
+
+                            if (ItemCurMana <= 0)
                                 break;
-
-                            var ration = manaAvailable / itemsNeedingMana.Count;
-                            itemsNeedingMana.ForEach(k =>
-                            {
-                                var manaNeededForTopoff = (int)(k.Value.ItemMaxMana - k.Value.ItemCurMana - k.Value.ManaGiven);
-                                var adjustedRation = Math.Min(ration, manaNeededForTopoff);
-                                k.Value.ManaGiven += adjustedRation;
-                                manaAvailable -= adjustedRation;
-                            });
                         }
-                        var itemsGivenMana = origItemsNeedingMana.Where(k => k.Value.ManaGiven > 0).ToList();
-                        if (itemsGivenMana.Count < 1)
-                        {
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have no items equipped that need mana.", ChatMessageType.Broadcast));
-                            useResult = WeenieError.ActionCancelled;
-                        }
-                        else
-                        {
-                            var itemsNeedingMana = origItemsNeedingMana.Where(k => k.Value.ItemCurMana.Value + k.Value.ManaGiven < k.Value.ItemMaxMana.Value).ToList();
-                            var additionalManaNeeded = itemsNeedingMana.Sum(k => k.Value.ItemMaxMana.Value - k.Value.ItemCurMana.Value - k.Value.ManaGiven);
-                            var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded.ToString("N0")} more mana to fully charge your items." : string.Empty;
-                            var msg = $"The {Name} gives {itemsGivenMana.Sum(k => k.Value.ManaGiven).ToString("N0")} points of mana to the following items: {itemsGivenMana.Select(c => c.Value.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
-                            itemsGivenMana.ForEach(k => k.Value.ItemCurMana += k.Value.ManaGiven);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                    }
 
-                            if (!DoDestroyDiceRoll(player))
-                            {
-                                ItemCurMana = null;
-                                SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
-                            }
+                    if (itemsGivenMana.Count < 1)
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have no items equipped that need mana.", ChatMessageType.Broadcast));
+                        useResult = WeenieError.ActionCancelled;
+                    }
+                    else
+                    {
+                        //The Mana Stone gives 4,496 points of mana to the following items: Fire Compound Crossbow, Qafiya, Celdon Sleeves, Amuli Leggings, Messenger's Collar, Heavy Bracelet, Scalemail Bracers, Olthoi Alduressa Gauntlets, Studded Leather Girth, Shoes, Chainmail Greaves, Loose Pants, Mechanical Scarab, Ring, Ring, Heavy Bracelet
+                        //Your items are fully charged.
+
+                        //The Mana Stone gives 1,921 points of mana to the following items: Haebrean Girth, Chiran Helm, Ring, Baggy Breeches, Scalemail Greaves, Alduressa Boots, Heavy Bracelet, Heavy Bracelet, Lorica Breastplate, Pocket Watch, Heavy Necklace
+                        //You need 2,232 more mana to fully charge your items.
+
+                        var additionalManaNeeded = origItemsNeedingMana.Sum(k => k.ItemMaxMana.Value - k.ItemCurMana.Value);
+                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded:N0} more mana to fully charge your items." : "\nYour items are fully charged.";
+                        var msg = $"The Mana Stone gives {itemsGivenMana.Values.Sum():N0} points of mana to the following items: {itemsGivenMana.Select(c => c.Key.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+                        if (!DoDestroyDiceRoll(player))
+                        {
+                            ItemCurMana = null;
+                            SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
                         }
                     }
                 }
@@ -140,13 +178,14 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        // dump mana into the item
+                        // The Mana Stone gives 3,502 points of mana to the Focusing Stone.
+
+                        // The Mana Stone gives 3,267 points of mana to the Protective Drudge Charm.
+
                         var targetManaNeeded = target.ItemCurMana.HasValue ? (target.ItemMaxMana.Value - target.ItemCurMana.Value) : target.ItemMaxMana.Value;
                         var manaToPour = Math.Min(targetManaNeeded, ItemCurMana.Value);
                         target.ItemCurMana += manaToPour;
-                        var additionalManaNeeded = targetManaNeeded - manaToPour;
-                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded.ToString("N0")} more mana to fully charge your {target.Name}." : string.Empty;
-                        var msg = $"The {Name} gives {manaToPour.ToString("N0")} points of mana to the {target.Name}.{additionalManaText}";
+                        var msg = $"The Mana Stone gives {manaToPour:N0} points of mana to the {target.Name}.";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                         if (!DoDestroyDiceRoll(player))
@@ -165,7 +204,7 @@ namespace ACE.Server.WorldObjects
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, useResult));
         }
 
-        public bool DoDestroyDiceRoll(Player player)
+        private bool DoDestroyDiceRoll(Player player)
         {
             if (DestroyChance == 0)
                 return false;

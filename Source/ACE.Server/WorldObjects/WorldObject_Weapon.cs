@@ -1,6 +1,8 @@
 using System;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -11,6 +13,52 @@ namespace ACE.Server.WorldObjects
         {
             get => (AttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
             set { if (value == AttackType.Undef) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
+        }
+
+        public int? W_WeaponType
+        {
+            get => GetProperty(PropertyInt.WeaponType) ?? 0;
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, value.Value); }
+        }
+
+        public Skill WeaponSkill
+        {
+            get => (Skill)(GetProperty(PropertyInt.WeaponSkill) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WeaponSkill); else SetProperty(PropertyInt.WeaponSkill, (int)value); }
+        }
+
+        public int? W_DamageType
+        {
+            get => GetProperty(PropertyInt.DamageType) ?? 0;
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DamageType); else SetProperty(PropertyInt.DamageType, value.Value); }
+        }
+
+        /// <summary>
+        /// Spell ID for 'Cast on Strike'
+        /// </summary>
+        public uint? ProcSpell
+        {
+            get => GetProperty(PropertyDataId.ProcSpell);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ProcSpell); else SetProperty(PropertyDataId.ProcSpell, value.Value); }
+        }
+
+        /// <summary>
+        /// The chance for activating 'Cast on strike' spell
+        /// </summary>
+        public double? ProcSpellRate
+        {
+            get => GetProperty(PropertyFloat.ProcSpellRate);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ProcSpellRate); else SetProperty(PropertyFloat.ProcSpellRate, value.Value); }
+        }
+
+        /// <summary>
+        /// If TRUE, 'Cast on strike' spell targets self
+        /// instead of the target
+        /// </summary>
+        public bool ProcSpellSelfTargeted
+        {
+            get => GetProperty(PropertyBool.ProcSpellSelfTargeted) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.ProcSpellSelfTargeted); else SetProperty(PropertyBool.ProcSpellSelfTargeted, value); }
         }
 
         /// <summary>
@@ -72,7 +120,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the Mana Conversion skill modifier for the primary weapon
+        /// Returns the Mana Conversion skill modifier for the current weapon
         /// </summary>
         public static float GetWeaponManaConversionModifier(Creature wielder)
         {
@@ -85,7 +133,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the Melee Defense skill modifier for the primary weapon
+        /// Returns the Melee Defense skill modifier for the current weapon
         /// </summary>
         public static float GetWeaponMeleeDefenseModifier(Creature wielder)
         {
@@ -108,7 +156,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the attack skill modifier for the primary weapon
+        /// Returns the attack skill modifier for the current weapon
         /// </summary>
         public static float GetWeaponOffenseModifier(Creature wielder)
         {
@@ -131,9 +179,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the critical chance modifier for the primary weapon
+        /// Returns the critical chance modifier for the current weapon
         /// </summary>
-        public static float GetWeaponPhysicalCritFrequencyModifier(Creature wielder, CreatureSkill skill)
+        public static float GetWeaponCritChanceModifier(Creature wielder, CreatureSkill skill, Creature target)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -142,12 +190,20 @@ namespace ACE.Server.WorldObjects
 
             var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultPhysicalCritFrequency);
 
+            // multipliers before additives?
+            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.GetCritRating());
+            critRateMod *= chanceRatingMod;
+
             // TODO: handle AlwaysCritical upstream
             if (weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
             {
                 var criticalStrikeMod = GetCriticalStrikeMod(skill);
                 critRateMod += criticalStrikeMod;
             }
+
+            // mitigation
+            var critResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritResistRating());
+            critRateMod *= critResistRatingMod;
 
             // 50% cap here, or only in criticalStrikeMod?
             critRateMod = Math.Min(critRateMod, 0.5f);
@@ -171,9 +227,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the magic critical chance modifier for the primary weapon
+        /// Returns the magic critical chance modifier for the current weapon
         /// </summary>
-        public static float GetWeaponMagicCritFrequencyModifier(Creature wielder, CreatureSkill skill)
+        public static float GetWeaponMagicCritFrequencyModifier(Creature wielder, CreatureSkill skill, Creature target)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -182,12 +238,20 @@ namespace ACE.Server.WorldObjects
 
             var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultMagicCritFrequency);
 
+            // multipliers before additives?
+            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.GetCritRating());
+            critRateMod *= chanceRatingMod;
+
             // TODO: handle AlwaysCritical upstream
             if (weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike) && skill != null)
             {
                 var criticalStrikeMod = GetCriticalStrikeMod(skill);
                 critRateMod += criticalStrikeMod;
             }
+
+            // mitigation
+            var critResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritResistRating());
+            critRateMod *= critResistRatingMod;
 
             // 50% cap here, or only in criticalStrikeMod?
             critRateMod = Math.Min(critRateMod, 0.5f);
@@ -196,9 +260,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the critical damage multiplier for the primary weapon
+        /// Returns the critical damage multiplier for the current weapon
         /// </summary>
-        public static float GetWeaponCritMultiplierModifier(Creature wielder, CreatureSkill skill)
+        public static float GetWeaponCritDamageMod(Creature wielder, CreatureSkill skill, Creature target)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -207,11 +271,19 @@ namespace ACE.Server.WorldObjects
 
             var critDamageMod = (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritMultiplier);
 
+            // multipliers before additive?
+            var critDamageRatingMod = Creature.GetPositiveRatingMod(wielder.GetCritDamageRating());
+            critDamageMod *= critDamageRatingMod;
+
             if (weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
             {
                 var cripplingBlowMod = GetCripplingBlowMod(skill);
                 critDamageMod += cripplingBlowMod;      // additive float?
             }
+
+            // mitigation
+            var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritDamageResistRating());
+            critDamageMod *= critDamageResistRatingMod;
 
             // caps at 6x upstream?
             critDamageMod = Math.Min(critDamageMod, 5.0f);
@@ -220,7 +292,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the slayer 2x+ damage bonus for the primary weapon
+        /// Returns the slayer 2x+ damage bonus for the current weapon
         /// against a particular creature type
         /// </summary>
         public static float GetWeaponCreatureSlayerModifier(Creature wielder, Creature target)
@@ -235,6 +307,7 @@ namespace ACE.Server.WorldObjects
             if (weapon.GetProperty(PropertyInt.SlayerCreatureType) != null && target != null)
                 if ((CreatureType)weapon.GetProperty(PropertyInt.SlayerCreatureType) == target.CreatureType)
                     modifier = (float)(weapon.GetProperty(PropertyFloat.SlayerDamageBonus) ?? modifier);
+
             return modifier;
         }
 
@@ -266,7 +339,6 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
-
             return modifier;
         }
 
@@ -350,6 +422,8 @@ namespace ACE.Server.WorldObjects
                     return ImbuedEffectType.AcidRending;
                 case DamageType.Electric:
                     return ImbuedEffectType.ElectricRending;
+                case DamageType.Nether:
+                    return ImbuedEffectType.Undef;  // none?
                 default:
                     Console.WriteLine($"GetRendDamageType({damageType}) unexpected damage type");
                     return ImbuedEffectType.Undef;
@@ -569,6 +643,7 @@ namespace ACE.Server.WorldObjects
                 case Skill.HeavyWeapons:
                 case Skill.FinesseWeapons:
                 case Skill.DualWield:
+                case Skill.TwoHandedCombat:
 
                 // legacy
                 case Skill.Axe:
@@ -601,6 +676,45 @@ namespace ACE.Server.WorldObjects
                     Console.WriteLine($"WorldObject_Weapon.GetImbuedSkillType({skill.Skill}): unexpected skill");
                     return ImbuedSkillType.Undef;
             }
+        }
+
+        /// <summary>
+        /// Returns TRUE if this item has a proc / 'cast on strike' spell
+        /// </summary>
+        public bool HasProc => ProcSpell != null;
+
+        /// <summary>
+        /// Returns TRUE if this item has a proc spell
+        /// that matches the input spell
+        /// </summary>
+        public bool HasProcSpell(uint spellID)
+        {
+            return HasProc && ProcSpell == spellID;
+        }
+
+        public void TryProcItem(Creature wielder, Creature target)
+        {
+            // roll for a chance of casting spell
+            var chance = ProcSpellRate ?? 0.0f;
+
+            // special handling for aetheria
+            if (Aetheria.IsAetheria(WeenieClassId))
+                chance = Aetheria.CalcProcRate(this, wielder);
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            if (rng > chance)
+                return;
+
+            var spell = new Spell(ProcSpell.Value);
+
+            if (spell.NotFound)
+            {
+                if (wielder is Player player)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+
+                return;
+            }
+            wielder.TryCastSpell(spell, target, wielder);
         }
     }
 }

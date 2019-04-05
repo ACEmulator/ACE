@@ -29,7 +29,7 @@ namespace ACE.Server.WorldObjects
         private readonly Dictionary<PropertyDataId, uint?> ephemeralPropertyDataIds = new Dictionary<PropertyDataId, uint?>();
         private readonly Dictionary<PropertyFloat, double?> ephemeralPropertyFloats = new Dictionary<PropertyFloat, double?>();
         private readonly Dictionary<PropertyInstanceId, uint?> ephemeralPropertyInstanceIds = new Dictionary<PropertyInstanceId, uint?>();
-        private readonly Dictionary<PropertyInt, int?> ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();
+        protected readonly Dictionary<PropertyInt, int?> ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();
         private readonly Dictionary<PropertyInt64, long?> ephemeralPropertyInt64s = new Dictionary<PropertyInt64, long?>();
         private readonly Dictionary<PropertyString, string> ephemeralPropertyStrings = new Dictionary<PropertyString, string>();
 
@@ -829,6 +829,12 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyString.Name, value);
         }
 
+        public string DisplayName
+        {
+            get => GetProperty(PropertyString.DisplayName);
+            set { if (value == null) RemoveProperty(PropertyString.DisplayName); else SetProperty(PropertyString.DisplayName, value); }
+        }
+
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
@@ -855,7 +861,7 @@ namespace ACE.Server.WorldObjects
         // ======= Weenie Header Properties =======
         // ========================================
         // used in CalculatedWeenieHeaderFlag()
-        public string NamePlural
+        public string PluralName
         {
             get => GetProperty(PropertyString.PluralName);
             set { if (value == null) RemoveProperty(PropertyString.PluralName); else SetProperty(PropertyString.PluralName, value); }
@@ -879,10 +885,8 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AmmoType); else SetProperty(PropertyInt.AmmoType, (int)value.Value); }
         }
 
-        public virtual int? Value
+        public int? Value
         {
-            // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
-            //get => (StackUnitValue * (StackSize ?? 1));
             get => GetProperty(PropertyInt.Value);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Value); else SetProperty(PropertyInt.Value, value.Value); }
         }
@@ -1044,6 +1048,9 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStructure); else SetProperty(PropertyInt.MaxStructure, value.Value); }
         }
 
+        /// <summary>
+        /// Instead of setting this directly, consider using SetStackSize() instead which also sets EncumbranceVal and Value
+        /// </summary>
         public int? StackSize
         {
             get => GetProperty(PropertyInt.StackSize);
@@ -1080,7 +1087,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CurrentWieldedLocation); else SetProperty(PropertyInt.CurrentWieldedLocation, (int)value.Value); }
         }
 
-        public CoverageMask? Priority
+        public CoverageMask? ClothingPriority
         {
             get => (CoverageMask?)GetProperty(PropertyInt.ClothingPriority);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ClothingPriority); else SetProperty(PropertyInt.ClothingPriority, (int)value.Value); }
@@ -1104,7 +1111,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
         }
 
-        private int? ItemWorkmanship
+        public int? ItemWorkmanship
         {
             get => GetProperty(PropertyInt.ItemWorkmanship);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemWorkmanship); else SetProperty(PropertyInt.ItemWorkmanship, value.Value); }
@@ -1180,13 +1187,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HouseOwner); else SetProperty(PropertyInstanceId.HouseOwner, value.Value); }
         }
 
-        /// <summary>
-        /// The timestamp the player originally purchased house
-        /// </summary>
-        public int? HousePurchaseTimestamp
+        public string HouseOwnerName
         {
-            get => GetProperty(PropertyInt.HousePurchaseTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.HousePurchaseTimestamp); else SetProperty(PropertyInt.HousePurchaseTimestamp, value.Value); }
+            get => GetProperty(PropertyString.HouseOwnerName);
+            set { if (value == null) RemoveProperty(PropertyString.HouseOwnerName); else SetProperty(PropertyString.HouseOwnerName, value); }
         }
 
         public int HouseStatus
@@ -1213,13 +1217,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HookPlacement); else SetProperty(PropertyInt.HookPlacement, value.Value); }
         }
 
-        public uint? Monarch
+        public uint? MonarchId
         {
             get => GetProperty(PropertyInstanceId.Monarch);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Monarch); else SetProperty(PropertyInstanceId.Monarch, value.Value); }
         }
 
-        public uint? Patron
+        public uint? PatronId
         {
             get => GetProperty(PropertyInstanceId.Patron);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Patron); else SetProperty(PropertyInstanceId.Patron, value.Value); }
@@ -1474,6 +1478,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
         }
 
+        public int? HairStyle
+        {
+            get => GetProperty(PropertyInt.Hairstyle);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Hairstyle); else SetProperty(PropertyInt.Hairstyle, value.Value); }
+        }
 
         // ========================================
         // =========== Other Properties ===========
@@ -1656,7 +1665,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitEncumbrance); else SetProperty(PropertyInt.StackUnitEncumbrance, value.Value); }
         }
 
-        public virtual int? EncumbranceVal
+        public int? EncumbranceVal
         {
             get => GetProperty(PropertyInt.EncumbranceVal);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
@@ -1800,7 +1809,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.HealkitMod); else SetProperty(PropertyFloat.HealkitMod, value.Value); }
         }
 
-        public virtual int? CoinValue
+        public int? CoinValue
         {
             get => GetProperty(PropertyInt.CoinValue);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, value.Value); }
@@ -1864,12 +1873,6 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.DealMagicalItems);
             set { if (!value.HasValue) RemoveProperty(PropertyBool.DealMagicalItems); else SetProperty(PropertyBool.DealMagicalItems, value.Value); }
-        }
-
-        public uint? AlternateCurrencyDID
-        {
-            get => GetProperty(PropertyDataId.AlternateCurrency);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AlternateCurrency); else SetProperty(PropertyDataId.AlternateCurrency, value.Value); }
         }
 
         public double? HeartbeatInterval
@@ -1939,6 +1942,24 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.Shade);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade); else SetProperty(PropertyFloat.Shade, value.Value); }
+        }
+
+        public double? Shade2
+        {
+            get => GetProperty(PropertyFloat.Shade2);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade2); else SetProperty(PropertyFloat.Shade2, value.Value); }
+        }
+
+        public double? Shade3
+        {
+            get => GetProperty(PropertyFloat.Shade3);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade3); else SetProperty(PropertyFloat.Shade3, value.Value); }
+        }
+
+        public double? Shade4
+        {
+            get => GetProperty(PropertyFloat.Shade4);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade4); else SetProperty(PropertyFloat.Shade4, value.Value); }
         }
 
         public int NumTimesTinkered
@@ -2247,6 +2268,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.XpOverride); else SetProperty(PropertyInt.XpOverride, value.Value); }
         }
 
+        public int? MinLevel
+        {
+            get => GetProperty(PropertyInt.MinLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
+        }
+
+        public int? MaxLevel
+        {
+            get => GetProperty(PropertyInt.MaxLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxLevel); else SetProperty(PropertyInt.MaxLevel, value.Value); }
+        }
+
         /// <summary>
         /// Currently used by Generators and Players
         /// </summary>
@@ -2385,7 +2418,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Active
         {
-            get => (GetProperty(PropertyInt.Active) ?? 1) == 1;
+            get => (GetProperty(PropertyInt.Active) ?? 1) != 0;
             set { if (value) RemoveProperty(PropertyInt.Active); else SetProperty(PropertyInt.Active, 0); }
         }
 
@@ -2467,6 +2500,99 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.Killer);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Killer); else SetProperty(PropertyInstanceId.Killer, value.Value); }
+        }
+
+        /* Ratings */
+
+        public int? DamageRating
+        {
+            get => GetProperty(PropertyInt.DamageRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DamageRating); else SetProperty(PropertyInt.DamageRating, value.Value); }
+        }
+
+        public int? DamageResistRating
+        {
+            get => GetProperty(PropertyInt.DamageResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DamageResistRating); else SetProperty(PropertyInt.DamageResistRating, value.Value); }
+        }
+
+        public int? CritDamageRating
+        {
+            get => GetProperty(PropertyInt.CritDamageRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageRating); else SetProperty(PropertyInt.CritDamageRating, value.Value); }
+        }
+
+        public int? CritDamageResistRating
+        {
+            get => GetProperty(PropertyInt.CritDamageResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageRating); else SetProperty(PropertyInt.CritDamageRating, value.Value); }
+        }
+
+        /// <summary>
+        /// Increases the chance of landing a critical hit
+        /// </summary>
+        public int? CritRating
+        {
+            get => GetProperty(PropertyInt.CritRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritRating); else SetProperty(PropertyInt.CritRating, value.Value); }
+        }
+
+        /// <summary>
+        /// Decreases the chance of landing a critical hit
+        /// </summary>
+        public int? CritResistRating
+        {
+            get => GetProperty(PropertyInt.CritResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritResistRating); else SetProperty(PropertyInt.CritResistRating, value.Value); }
+        }
+
+        public int? HealingBoostRating
+        {
+            get => GetProperty(PropertyInt.HealingBoostRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HealingBoostRating); else SetProperty(PropertyInt.HealingBoostRating, value.Value); }
+        }
+
+        public int? HealingResistRating
+        {
+            get => GetProperty(PropertyInt.HealingResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HealingResistRating); else SetProperty(PropertyInt.HealingResistRating, value.Value); }
+        }
+
+        public int? LifeResistRating
+        {
+            get => GetProperty(PropertyInt.LifeResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LifeResistRating); else SetProperty(PropertyInt.LifeResistRating, value.Value); }
+        }
+
+        public int? NetherResistRating
+        {
+            get => GetProperty(PropertyInt.NetherResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.NetherResistRating); else SetProperty(PropertyInt.NetherResistRating, value.Value); }
+        }
+
+        public int? PKDamageRating
+        {
+            get => GetProperty(PropertyInt.PKDamageRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageRating); else SetProperty(PropertyInt.PKDamageRating, value.Value); }
+        }
+
+        public int? PKDamageResistRating
+        {
+            get => GetProperty(PropertyInt.PKDamageResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageResistRating); else SetProperty(PropertyInt.PKDamageResistRating, value.Value); }
+        }
+        
+
+        /// <summary>
+        /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetStackSize(int? value)
+        {
+            StackSize = value;
+
+            EncumbranceVal = (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
+            Value = (StackUnitValue ?? 0) * (StackSize ?? 1);
         }
     }
 }

@@ -114,8 +114,12 @@ namespace ACE.Server.WorldObjects
             // (regeneration / rejuvenation / mana renewal / etc.)
             var enchantmentMod = EnchantmentManager.GetRegenerationMod(vital);
 
+            var augMod = 1.0f;
+            if (this is Player player && player.AugmentationFasterRegen > 0)
+                augMod += player.AugmentationFasterRegen;
+
             // cap rate?
-            var currentTick = vital.RegenRate * attributeMod * stanceMod * enchantmentMod;
+            var currentTick = vital.RegenRate * attributeMod * stanceMod * enchantmentMod * augMod;
 
             // add in partially accumulated / rounded vitals from previous tick(s)
             var totalTick = currentTick + vital.PartialRegen;
@@ -140,7 +144,7 @@ namespace ACE.Server.WorldObjects
         public float GetAttributeMod(CreatureVital vital)
         {
             // only applies to players
-            if ((this as Player) == null) return 1.0f;
+            if (!(this is Player)) return 1.0f;
 
             // only applies for health?
             if (vital.Vital != PropertyAttribute2nd.MaxHealth) return 1.0f;
@@ -154,10 +158,16 @@ namespace ACE.Server.WorldObjects
 
             var strAndEnd = strength + (endurance * 2);
 
-            var modifier = 1.0 + (0.0494 * Math.Pow(strAndEnd, 1.179) / 100.0f);    // formula deduced from values present in the client pdb
-            var attributeMod = Math.Clamp(modifier, 1.0, 2.1);      // cap between + 0-110%
+            //var modifier = 1.0 + (0.0494 * Math.Pow(strAndEnd, 1.179) / 100.0f);    // formula deduced from values present in the client pdb
+            //var attributeMod = Math.Clamp(modifier, 1.0, 2.1);      // cap between + 0-110%
 
-            return (float)attributeMod;
+            if (strAndEnd <= 200)
+                return 1.0f;
+
+            var modifier = 1.0f + (float)(strAndEnd - 200) / 600 * 1.1f;
+            var attributeMod = Math.Min(modifier, 2.1f);
+
+            return attributeMod;
         }
 
         /// <summary>

@@ -46,6 +46,8 @@ namespace ACE.Server.WorldObjects
                 wo.Location = new Position(link.ObjCellId, link.OriginX, link.OriginY, link.OriginZ, link.AnglesX, link.AnglesY, link.AnglesZ, link.AnglesW);
                 parent.SetLinkProperties(wo);
                 CurrentLandblock?.AddWorldObject(wo);
+                if (wo.PhysicsObj != null)
+                    wo.PhysicsObj.Order = 0;
 
                 wo.ParentLink = parent;
                 parent.ChildLinks.Add(wo);

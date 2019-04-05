@@ -123,7 +123,7 @@ namespace ACE.Server.Entity
             {
                 var lastDamager = Log.LastOrDefault(l => l.Amount < 0);
                 var lastDamagerObj = lastDamager != null ? lastDamager.DamageSource : null;
-                var lastDamagerName = lastDamagerObj != null ? lastDamagerObj.Name : null;
+                //var lastDamagerName = lastDamagerObj != null ? lastDamagerObj.Name : null;
                 //Console.WriteLine($"DamageHistory.LastDamager: {lastDamagerName}");
                 return lastDamagerObj;
             }
@@ -139,7 +139,7 @@ namespace ACE.Server.Entity
             {
                 var sorted = TotalDamage.OrderByDescending(wo => wo.Value);
                 var topDamager = sorted.FirstOrDefault().Key;
-                var topDamagerName = topDamager != null ? topDamager.Name : null;
+                //var topDamagerName = topDamager != null ? topDamager.Name : null;
                 //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
                 return topDamager;
             }

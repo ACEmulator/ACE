@@ -57,7 +57,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(Recipe input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `recipe` WHERE `recipe_Id` = {input.Id};");
+            writer.WriteLine($"DELETE FROM `recipe` WHERE `id` = {input.Id};");
         }
 
         public void CreateSQLINSERTStatement(Recipe input, StreamWriter writer)
@@ -65,7 +65,7 @@ namespace ACE.Database.SQLFormatters.World
             writer.WriteLine("INSERT INTO `recipe` (`id`, `unknown_1`, `skill`, `difficulty`, `salvage_Type`, `success_W_C_I_D`, `success_Amount`, `success_Message`, `fail_W_C_I_D`, `fail_Amount`, `fail_Message`, " +
                              "`success_Destroy_Source_Chance`, `success_Destroy_Source_Amount`, `success_Destroy_Source_Message`, `success_Destroy_Target_Chance`, `success_Destroy_Target_Amount`, `success_Destroy_Target_Message`, " +
                              "`fail_Destroy_Source_Chance`, `fail_Destroy_Source_Amount`, `fail_Destroy_Source_Message`, `fail_Destroy_Target_Chance`, `fail_Destroy_Target_Amount`, `fail_Destroy_Target_Message`, " +
-                             "`data_Id`)");
+                             "`data_Id`, `last_Modified`)");
 
             string skillLabel = null;
             if (input.Skill != 0)
@@ -103,7 +103,8 @@ namespace ACE.Database.SQLFormatters.World
                          $"{input.FailDestroyTargetChance}, " +
                          $"{input.FailDestroyTargetAmount}, " +
                          $"{GetSQLString(input.FailDestroyTargetMessage)}, " +
-                         $"{input.DataId}" +
+                         $"{input.DataId}, " +
+                         $"'{input.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'" +
                          ");";
 
             output = FixNullFields(output);

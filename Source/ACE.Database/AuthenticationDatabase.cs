@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
+using System.Collections.Generic;
+using System;
 
 namespace ACE.Database
 {
@@ -51,10 +53,10 @@ namespace ACE.Database
         public Account CreateAccount(string name, string password, AccessLevel accessLevel)
         {
             var account = new Account();
-            account.CreateRandomSalt();
 
             account.AccountName = name;
             account.SetPassword(password);
+            account.SetSaltForBCrypt();
             account.AccessLevel = (uint)accessLevel;
 
             using (var context = new AuthDbContext())
@@ -134,6 +136,25 @@ namespace ACE.Database
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Will return null if the accountId was not found.
+        /// </summary>
+        public List<string> GetListofAccountsByAccessLevel(AccessLevel accessLevel)
+        {
+            using (var context = new AuthDbContext())
+            {
+                var results = context.Account
+                    .AsNoTracking()
+                    .Where(r => r.AccessLevel == Convert.ToUInt32(accessLevel)).ToList();
+
+                var result = new List<string>();
+                foreach (var account in results)
+                    result.Add(account.AccountName);
+
+                return result;
+            }
         }
     }
 }

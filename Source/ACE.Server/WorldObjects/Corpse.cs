@@ -5,6 +5,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
@@ -112,7 +113,7 @@ namespace ACE.Server.WorldObjects
                 return true;
 
             // players can loot monsters they killed
-            if (KillerId != null && player.Guid.Full == KillerId)
+            if (KillerId != null && player.Guid.Full == KillerId || IsLooted)
                 return true;
 
             // players can /permit other players to loot their corpse
@@ -127,6 +128,16 @@ namespace ACE.Server.WorldObjects
                     return true;
             }
             return false;
+        }
+
+        public bool IsLooted;
+
+        public override void Close(Player player)
+        {
+            base.Close(player);
+
+            if (VictimId != null && !new ObjectGuid(VictimId.Value).IsPlayer())
+                IsLooted = true;
         }
     }
 }

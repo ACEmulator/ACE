@@ -13,6 +13,7 @@ using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -74,6 +75,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Builds a HouseData structure for this house
+        /// This is used to populate the info in the House panel
         /// </summary>
         public HouseData GetHouseData(Player owner)
         {
@@ -94,7 +96,8 @@ namespace ACE.Server.WorldObjects
             if (owner != null)
             {
                 houseData.BuyTime = (uint)(owner.HousePurchaseTimestamp ?? 0);
-                houseData.RentTime = GetRentTimestamp(owner);
+                houseData.RentTime = GetRentTimestamp(houseData.BuyTime);
+                houseData.SetPaidItems(SlumLord);
             }
             return houseData;
         }
@@ -111,7 +114,20 @@ namespace ACE.Server.WorldObjects
             foreach (var linkedHouse in linkedHouses)
                 linkedHouse.ActivateLinks(instances, new List<Biota>() { biota }, linkedHouses[0]);
 
-            return (House)linkedHouses[0];
+            var house = (House)linkedHouses[0];
+
+            // load slumlord biota for rent
+            var slumlordGuid = house.SlumLord.Guid.Full;
+            var slumlordBiota = DatabaseManager.Shard.GetBiota(slumlordGuid);
+            if (slumlordBiota != null)
+            {
+                var slumlord = WorldObjectFactory.CreateWorldObject(slumlordBiota);
+                house.SetLinkProperties(slumlord);
+
+                house.ChildLinks.Remove(house.SlumLord);
+                house.ChildLinks.Add(slumlord);
+            }
+            return house;
         }
 
         /// <summary>
@@ -122,10 +138,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the beginning of the current maintenance period
         /// </summary>
-        public uint GetRentTimestamp(Player owner)
+        public uint GetRentTimestamp(uint purchaseTime)
         {
             // get the purchaseTime -> currentTime offset
-            var purchaseTime = (uint)(owner.HousePurchaseTimestamp ?? 0);
+            //var purchaseTime = (uint)(owner.HousePurchaseTimestamp ?? 0);
 
             var currentTime = (uint)Time.GetUnixTime();
             var offset = currentTime - purchaseTime;
@@ -138,6 +154,21 @@ namespace ACE.Server.WorldObjects
 
             // return beginning of current period
             return purchaseTime + (rentIntervalSecs * periods);
+        }
+
+        /// <summary>
+        /// Returns the end of the current maintenance period
+        /// </summary>
+        public uint GetRentDue(uint purchaseTime)
+        {
+            var currentPeriod = GetRentTimestamp(purchaseTime);
+
+            var rentIntervalSecs = (uint)RentInterval.TotalSeconds;
+            if (IsApartment)
+                rentIntervalSecs *= 3;      // apartment maintenance every 90 days
+
+            var rentDue = currentPeriod + rentIntervalSecs;
+            return rentDue;
         }
 
         public override void SetLinkProperties(WorldObject wo)
@@ -210,6 +241,21 @@ namespace ACE.Server.WorldObjects
             if (player.Guid.Full == HouseOwner.Value)
                 return true;
 
+            // handle allegiance permissions
+            if (MonarchId != null && player.Allegiance != null && player.Allegiance.MonarchId == MonarchId)
+            {
+                if (storage)
+                {
+                    if (StorageAccess.Contains(new ObjectGuid(MonarchId.Value)))
+                        return true;
+                }
+                else
+                {
+                    if (Guests.ContainsKey(new ObjectGuid(MonarchId.Value)))
+                        return true;
+                }
+            }
+
             if (storage)
                 return StorageAccess.Contains(player.Guid);
             else
@@ -249,9 +295,15 @@ namespace ACE.Server.WorldObjects
 
             Biota.AddHousePermission(housePermission, BiotaDatabaseLock);
             ChangesDetected = true;
+
+            BuildGuests();
+            UpdateRestrictionDB();
+
+            if (CurrentLandblock == null)
+                SaveBiotaToDatabase();
         }
 
-        public void UpdateGuest(IPlayer guest, bool storage)
+        public void ModifyGuest(IPlayer guest, bool storage)
         {
             var existing = FindGuest(guest);
 
@@ -260,12 +312,38 @@ namespace ACE.Server.WorldObjects
 
             existing.Storage = storage;
             ChangesDetected = true;
+
+            BuildGuests();
+            UpdateRestrictionDB();
+
+            if (CurrentLandblock == null)
+                SaveBiotaToDatabase();
         }
 
         public void RemoveGuest(IPlayer guest)
         {
             Biota.TryRemoveHousePermission(guest.Guid.Full, out var entity, BiotaDatabaseLock);
             ChangesDetected = true;
+
+            BuildGuests();
+            UpdateRestrictionDB();
+
+            if (CurrentLandblock == null)
+                SaveBiotaToDatabase();
+        }
+
+        public void ClearPermissions()
+        {
+            foreach (var guest in Guests.Keys)
+            {
+                var player = PlayerManager.FindByGuid(guest);
+                if (player == null)
+                {
+                    Console.WriteLine($"{Name}.ClearPermissions(): couldn't find {guest}");
+                    continue;
+                }
+                RemoveGuest(player);
+            }
         }
 
         public HousePermission FindGuest(IPlayer guest)
@@ -288,7 +366,7 @@ namespace ACE.Server.WorldObjects
             // the database house portals are different from the HousePortal weenie objects
             // the db info contains the portal destinations
 
-            return DatabaseManager.World.GetHousePortals(HouseId.Value);
+            return DatabaseManager.World.GetCachedHousePortals(HouseId.Value);
         }
 
         public bool HasDungeon => HousePortal != null;
@@ -324,7 +402,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private House _rootHouse;
+        //private House _rootHouse;
 
         /// <summary>
         /// For villas and mansions, the basement dungeons contain their own House weenie
@@ -335,40 +413,175 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                // return cached value
-                if (_rootHouse != null)
-                    return _rootHouse;
+                var landblock = (ushort)((RootGuid.Full >> 12) & 0xFFFF);
 
-                // handle outdoor house weenies
+                var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
+                var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+                if (!isLoaded)
+                {
+                    //if (_rootHouse == null)
+                    //_rootHouse = Load(RootGuid.Full);
+
+                    //return _rootHouse;  // return offline copy
+                    // do not cache, in case permissions have changed
+                    return Load(RootGuid.Full);
+                }
+                   
+                var loaded = LandblockManager.GetLandblock(landblockId, false);
+                return loaded.GetObject(RootGuid) as House;
+            }
+        }
+
+        private ObjectGuid? _rootGuid;
+
+        public ObjectGuid RootGuid
+        {
+            get
+            {
+                if (_rootGuid != null)
+                    return _rootGuid.Value;
+
                 if (!CurrentLandblock.IsDungeon)
                 {
-                    _rootHouse = this;
-                    return _rootHouse;
+                    _rootGuid = Guid;
+                    return Guid;
                 }
 
                 var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location?.Landblock);
                 if (biota == null)
                 {
-                    Console.WriteLine($"{Name}.RootHouse: couldn't find root house for {WeenieClassId} on landblock {Location.Landblock:X8}");
+                    Console.WriteLine($"{Name}.RootGuid: couldn't find root guid for {WeenieClassId} on landblock {Location.Landblock:X8}");
 
-                    _rootHouse = this;
-                    return _rootHouse;
+                    _rootGuid = Guid;
+                    return Guid;
                 }
 
-                var location = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
-                if (location == null)
-                {
-                    Console.WriteLine($"{Name}.RootHouse: couldn't find root house location for {WeenieClassId} on landblock {Location.Landblock:X8}");
+                _rootGuid = new ObjectGuid(biota.Id);
+                return _rootGuid.Value;
+            }
+        }
 
-                    _rootHouse = this;
-                    return _rootHouse;
-                }
+        public bool? GetAllegianceAccessLevel()
+        {
+            if (MonarchId == null)
+                return null;
 
-                var landblockId = new LandblockId(location.ObjCellId | 0xFFFF);
+            if (!Guests.TryGetValue(new ObjectGuid(MonarchId.Value), out bool storage))
+                return null;
 
-                var loaded = LandblockManager.GetLandblock(landblockId, false, false, true);
+            return storage;
+        }
 
-                return loaded.GetObject(new ObjectGuid(biota.Id)) as House;
+        public static House GetHouse(uint houseGuid)
+        {
+            var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
+
+            var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
+            var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+            if (!isLoaded)
+                return House.Load(houseGuid);
+
+            var loaded = LandblockManager.GetLandblock(landblockId, false);
+            return loaded.GetObject(new ObjectGuid(houseGuid)) as House;
+        }
+
+        public House GetDungeonHouse()
+        {
+            var landblockId = new LandblockId(DungeonLandblockID);
+            var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+            if (!isLoaded)
+                return null;
+
+            var loaded = LandblockManager.GetLandblock(landblockId, false);
+            var wos = loaded.GetWorldObjectsForPhysicsHandling();
+            return wos.FirstOrDefault(wo => wo.WeenieClassId == WeenieClassId) as House;
+        }
+
+        public bool OnProperty(Player player)
+        {
+            if (player.Location.GetOutdoorCell() == Location.GetOutdoorCell())
+                return true;
+
+            foreach (var linkedHouse in LinkedHouses)
+                if (player.Location.GetOutdoorCell() == linkedHouse.Location.GetOutdoorCell())
+                    return true;
+
+            if (HasDungeon)
+            {
+                if ((player.Location.Cell | 0xFFFF) == DungeonLandblockID)
+                    return true;
+            }
+            return false;
+        }
+
+        public int BootAll(Player booter, bool guests = true, bool allegianceHouse = false)
+        {
+            var players = PlayerManager.GetAllOnline();
+
+            var booted = 0;
+            foreach (var player in players)
+            {
+                // exclude booter
+                if (player.Equals(booter)) continue;
+
+                if (!OnProperty(player)) continue;
+
+                // keep guests if closing house
+                if (!guests && HasPermission(player, false))
+                    continue;
+
+                booter.HandleActionBoot(player.Name, allegianceHouse);
+                booted++;
+            }
+            return booted;
+        }
+
+        public void UpdateRestrictionDB()
+        {
+            // get restrictions for root house
+            var restrictions = new RestrictionDB(this);
+
+            UpdateRestrictionDB(restrictions);
+
+            // for mansions, update the linked houses
+            foreach (var linkedHouse in LinkedHouses)
+                linkedHouse.UpdateRestrictionDB(restrictions);
+
+            // update house dungeon
+            if (HasDungeon)
+            {
+                var dungeonHouse = GetDungeonHouse();
+                if (dungeonHouse == null || dungeonHouse.PhysicsObj == null) return;
+
+                dungeonHouse.UpdateRestrictionDB(restrictions);
+            }
+        }
+
+        public void UpdateRestrictionDB(RestrictionDB restrictions)
+        {
+            if (PhysicsObj == null)
+                return;
+
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            foreach (var player in nearbyPlayers)
+                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictions));
+        }
+
+        public void ClearRestrictions()
+        {
+            if (PhysicsObj == null) return;
+
+            var restrictionDB = new RestrictionDB();
+
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            foreach (var player in nearbyPlayers)
+            {
+                // clear house owner
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(this, PropertyInstanceId.HouseOwner, ObjectGuid.Invalid));
+                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictionDB));
             }
         }
     }

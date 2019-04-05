@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using log4net;
+
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -12,8 +15,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 
-using log4net;
-
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
@@ -21,23 +22,27 @@ namespace ACE.Server.WorldObjects
     ///
     /// Player.HandleActionBuyItem -> Vendor.BuyItems_ValidateTransaction -> Player.FinalizeBuyTransaction -> Vendor.BuyItems_FinalTransaction
     ///     
-    /// ** Sell Data Flow **
-    ///
-    /// Player.HandleActionSellItem -> Vendor.SellItems_ValidateTransaction -> Player.FinalizeSellTransaction -> Vendor.SellItems_FinalTransaction
-    /// 
     /// </summary>
     public class Vendor : Creature
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
-        public Dictionary<ObjectGuid, WorldObject> UniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
+        public readonly Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
+
+        // unique items purchased from other players
+        public readonly Dictionary<ObjectGuid, WorldObject> UniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
         public Dictionary<ObjectGuid, WorldObject> AllItemsForSale => DefaultItemsForSale.Concat(UniqueItemsForSale).ToDictionary(i => i.Key, i => i.Value);
 
         private bool inventoryloaded;
 
         public Player LastPlayer;
+
+        public uint? AlternateCurrency
+        {
+            get => GetProperty(PropertyDataId.AlternateCurrency);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AlternateCurrency); else SetProperty(PropertyDataId.AlternateCurrency, value.Value); }
+        }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -58,6 +63,47 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Vendor;
+        }
+
+
+        public void DoVendorEmote(VendorType vendorType, WorldObject player)
+        {
+            switch (vendorType)
+            {
+                case VendorType.Open:
+                    EmoteManager.DoVendorEmote(vendorType, player);
+                    break;
+
+                case VendorType.Buy:    // player buys item from vendor
+                    EmoteManager.DoVendorEmote(vendorType, player);
+                    break;
+
+                case VendorType.Sell:   // player sells item to vendor
+                    EmoteManager.DoVendorEmote(vendorType, player);
+                    break;
+
+                default:
+                    log.Warn($"Vendor.DoVendorEmote - Encountered Unhandled VendorType {vendorType} for {Name} ({WeenieClassId})");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Sends the latest vendor inventory list to player, rotates vendor towards player, and performs the appropriate emote.
+        /// </summary>
+        /// <param name="action">The action performed by the player</param>
+        private void ApproachVendor(Player player, VendorType action = VendorType.Undef)
+        {
+            var vendorList = AllItemsForSale.Values.ToList();
+
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorList));
+
+            var rotateTime = Rotate(player); // vendor rotates to player
+
+            if (action != VendorType.Undef)
+                DoVendorEmote(action, player);
+
+            player.LastOpenedContainerId = Guid;
         }
 
         /// <summary>
@@ -99,26 +145,95 @@ namespace ACE.Server.WorldObjects
         private void LoadInventory()
         {
             // Load Vendor Inventory from database.
-            if (!inventoryloaded)
-            {
-                foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
-                {
-                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+            if (inventoryloaded)
+                return;
 
-                    if (wo != null)
-                    {
-                        if (item.Palette > 0)
-                            wo.PaletteTemplate = item.Palette;
-                        if (item.Shade > 0)
-                            wo.Shade = item.Shade;
-                        wo.ContainerId = Guid.Full;
-                        wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.
-                        DefaultItemsForSale.Add(wo.Guid, wo);
-                    }
+            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
+            {
+                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
+                if (wo != null)
+                {
+                    if (item.Palette > 0)
+                        wo.PaletteTemplate = item.Palette;
+                    if (item.Shade > 0)
+                        wo.Shade = item.Shade;
+                    wo.ContainerId = Guid.Full;
+                    wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.
+                    DefaultItemsForSale.Add(wo.Guid, wo);
                 }
-                inventoryloaded = true;
             }
+
+            inventoryloaded = true;
         }
+
+
+        public void AddDefaultItem(WorldObject item)
+        {
+            var existing = GetDefaultItemsByWcid(item.WeenieClassId);
+
+            // add to existing stack?
+            if (existing.Count > 0)
+            {
+                var stackLeft = existing.FirstOrDefault(i => (i.StackSize ?? 1) < (i.MaxStackSize ?? 1));
+                if (stackLeft != null)
+                {
+                    stackLeft.SetStackSize((stackLeft.StackSize ?? 1) + 1);
+                    return;
+                }
+            }
+
+            // create new item
+            item.ContainerId = Guid.Full;
+
+            item.CalculateObjDesc();
+
+            DefaultItemsForSale.Add(item.Guid, item);
+        }
+
+        public List<WorldObject> GetDefaultItemsByWcid(uint wcid)
+        {
+            return DefaultItemsForSale.Values.Where(i => i.WeenieClassId == wcid).ToList();
+        }
+
+
+        public float CloseInterval = 1.5f;
+
+        public void CheckClose()
+        {
+            if (LastPlayer == null)
+                return;
+
+            // handles player logging out at vendor
+            if (LastPlayer.CurrentLandblock == null)
+            {
+                LastPlayer = null;
+                return;
+            }
+
+            var dist = GetCylinderDistance(LastPlayer);
+
+            if (dist > UseRadius)
+            {
+                if (LastPlayer.LastOpenedContainerId == Guid)
+                    LastPlayer.LastOpenedContainerId = ObjectGuid.Invalid;
+
+                EmoteManager.DoVendorEmote(VendorType.Close, LastPlayer);
+                LastPlayer = null;
+
+                return;
+            }
+
+            var closeChain = new ActionChain();
+            closeChain.AddDelaySeconds(CloseInterval);
+            closeChain.AddAction(this, CheckClose);
+            closeChain.EnqueueChain();
+        }
+
+
+        // =========================
+        // Helper Functions - Buying
+        // =========================
 
         /// <summary>
         /// Used to convert Weenie based objects / not used for unique items
@@ -141,13 +256,13 @@ namespace ACE.Server.WorldObjects
                 {
                     if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value <= itemprofile.Amount))
                     {
-                        wo.StackSize = wo.MaxStackSize.Value;
+                        wo.SetStackSize(wo.MaxStackSize.Value);
                         worldobjects.Add(wo);
                         itemprofile.Amount = itemprofile.Amount - wo.MaxStackSize.Value;
                     }
                     else // we cant stack this but its not a single item
                     {
-                        wo.StackSize = (ushort)itemprofile.Amount;
+                        wo.SetStackSize((int)itemprofile.Amount);
                         worldobjects.Add(wo);
                         itemprofile.Amount = itemprofile.Amount - itemprofile.Amount;
                     }
@@ -168,40 +283,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Sends the latest vendor inventory list to player,
-        /// rotates vendor towards player, and performs the appropriate emote.
-        /// </summary>
-        /// <param name="action">The action performed by the player</param>
-        private void ApproachVendor(Player player, VendorType action = VendorType.Undef)
-        {
-            // default inventory
-            List<WorldObject> vendorlist = new List<WorldObject>();
-
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in DefaultItemsForSale)
-                vendorlist.Add(wo.Value);
-
-            // unique inventory - items sold by other players
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in UniqueItemsForSale)
-                vendorlist.Add(wo.Value);
-
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorlist));
-
-            var rotateTime = Rotate(player); // vendor rotates to player
-
-            if (action != VendorType.Undef)
-                DoVendorEmote(action, player);
-
-            player.lastUsedContainerId = Guid;
-        }
-
-
-        /// <summary>
         /// Handles validation for player buying items from vendor
         /// </summary>
-        /// <param name="vendorGuid">GUID of Vendor</param>
         /// <param name="items">Item Profile, Ammount and ID</param>
         /// <param name="player"></param>
-        public void BuyItems_ValidateTransaction(uint vendorGuid, List<ItemProfile> items, Player player)
+        public void BuyItems_ValidateTransaction(List<ItemProfile> items, Player player)
         {
             // queue transactions
             List<ItemProfile> filteredlist = new List<ItemProfile>();
@@ -209,6 +295,7 @@ namespace ACE.Server.WorldObjects
             List<WorldObject> genlist = new List<WorldObject>();
 
             uint goldcost = 0;
+            uint altcost = 0;
 
             // filter items out vendor no longer has in stock or never had in stock
             foreach (ItemProfile item in items)
@@ -246,20 +333,25 @@ namespace ACE.Server.WorldObjects
                 if (wo.ItemType == ItemType.PromissoryNote)
                     sellRate = 1.15;
 
-                goldcost += (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1);
+                goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
             }
 
             foreach (WorldObject wo in genlist)
             {
-                var sellRate = SellPrice ?? 1.0;
-                if (wo.ItemType == ItemType.PromissoryNote)
-                    sellRate = 1.15;
+                if (AlternateCurrency == null)
+                {
+                    var sellRate = SellPrice ?? 1.0;
+                    if (wo.ItemType == ItemType.PromissoryNote)
+                        sellRate = 1.15;
 
-                goldcost += (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1);
+                    goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
+                }
+                else
+                    altcost += (uint)((wo.StackSize ?? 1) * (wo.StackUnitValue ?? 1));
             }
 
             // send transaction to player for further processing and.
-            player.FinalizeBuyTransaction(this, uqlist, genlist, true, goldcost);
+            player.FinalizeBuyTransaction(this, uqlist, genlist, goldcost, altcost);
         }
 
         /// <summary>
@@ -279,107 +371,65 @@ namespace ACE.Server.WorldObjects
             ApproachVendor(player, VendorType.Buy);
         }
 
-        /// <summary>
-        /// Handles validation for player selling items to vendor
-        /// </summary>
-        public void SellItems_ValidateTransaction(Player player, List<WorldObject> items)
+        // ==========================
+        // Helper Functions - Selling
+        // ==========================
+
+        public int CalculatePayoutCoinAmount(IList<WorldObject> items)
         {
-            // todo: filter rejected / accepted send item spec result back to player
-            uint payout = 0;
-            List<WorldObject> accepted = new List<WorldObject>();
-            List<WorldObject> rejected = new List<WorldObject>();
+            int payout = 0;
 
             foreach (WorldObject wo in items)
             {
                 var buyRate = BuyPrice ?? 1;
+
                 if (wo.ItemType == ItemType.PromissoryNote)
                     buyRate = 1.0;
 
                 // payout scaled by the vendor's buy rate
-                payout += (uint)Math.Floor((wo.Value ?? 0) * buyRate + 0.1);
+                payout += Math.Max(1, (int)Math.Floor((wo.Value ?? 0) * buyRate + 0.1));
+            }
+
+            return payout;
+        }
+
+        /// <summary>
+        /// This will either add the item to the vendors temporary sellables, or destroy it.<para />
+        /// In both cases, the item will be removed from the database.<para />
+        /// The item should already have been removed from the players inventory
+        /// </summary>
+        public void ProcessItemsForPurchase(Player player, List<WorldObject> items)
+        {
+            foreach (var item in items)
+            {
+                bool resellItem = true;
 
                 // don't resell DestroyOnSell
-                var destroyOnSell = wo.GetProperty(PropertyBool.DestroyOnSell) ?? false;
+                if (item.GetProperty(PropertyBool.DestroyOnSell) ?? false)
+                    resellItem = false;
 
                 // don't resell stackables?
-                if (wo.MaxStackSize == null && wo.MaxStructure == null && !destroyOnSell)
+                if (item.MaxStackSize != null || item.MaxStructure != null)
+                    resellItem = false;
+
+                if (resellItem)
                 {
-                    wo.Location = null;
-                    wo.ContainerId = Guid.Full;
-                    wo.PlacementPosition = null;
-                    wo.WielderId = null;
-                    wo.CurrentWieldedLocation = null;
-                    wo.Placement = ACE.Entity.Enum.Placement.Resting;
+                    item.ContainerId = Guid.Full;
 
-                    UniqueItemsForSale.Add(wo.Guid, wo);
+                    UniqueItemsForSale.Add(item.Guid, item);
+
+                    // remove object from shard db, but keep a reference to it in memory
+                    // for DestroyOnSell items, these will effectively be destroyed immediately
+                    // for other items, if a player re-purchases, it will be added to the shard db again
+                    item.RemoveBiotaFromDatabase();
                 }
-
-                // remove object from shard db, but keep a reference to it in memory
-                // for DestroyOnSell items, these will effectively be destroyed immediately
-                // for other items, if a player re-purchases, it will be added to the shard db again
-                wo.RemoveBiotaFromDatabase();
-
-                accepted.Add(wo);
+                else
+                {
+                    item.Destroy();
+                }
             }
 
             ApproachVendor(player, VendorType.Sell);
-
-            player.FinalizeSellTransaction(this, true, accepted, payout);
-        }
-
-        public void DoVendorEmote(VendorType vendorType, WorldObject player)
-        {
-            switch (vendorType)
-            {
-                case VendorType.Open:
-                    EmoteManager.DoVendorEmote(vendorType, player);
-                    break;
-
-                case VendorType.Buy:    // player buys item from vendor
-                    EmoteManager.DoVendorEmote(vendorType, player);
-                    break;
-
-                case VendorType.Sell:   // player sells item to vendor
-                    EmoteManager.DoVendorEmote(vendorType, player);
-                    break;
-
-                default:
-                    log.Warn($"Vendor.DoVendorEmote - Encountered Unhandled VendorType {vendorType} for {Name} ({WeenieClassId})");
-                    break;
-            }
-        }
-
-        public float CloseInterval = 1.5f;
-
-        public void CheckClose()
-        {
-            if (LastPlayer == null)
-                return;
-
-            // handles player logging out at vendor
-            if (LastPlayer.CurrentLandblock == null)
-            {
-                LastPlayer = null;
-                return;
-            }
-
-            var dist = GetCylinderDistance(LastPlayer);
-
-            if (dist > UseRadius)
-            {
-                if (LastPlayer.lastUsedContainerId == Guid)
-                    LastPlayer.lastUsedContainerId = new ObjectGuid(0);
-
-                EmoteManager.DoVendorEmote(VendorType.Close, LastPlayer);
-                LastPlayer = null;
-
-                return;
-            }
-
-            var closeChain = new ActionChain();
-            closeChain.AddDelaySeconds(CloseInterval);
-            closeChain.AddAction(this, CheckClose);
-            closeChain.EnqueueChain();
         }
     }
 }

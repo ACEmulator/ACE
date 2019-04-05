@@ -1,4 +1,5 @@
 using System;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
@@ -56,10 +57,10 @@ namespace ACE.Server.WorldObjects
             var tolerance = (Tolerance)(monster.GetProperty(PropertyInt.Tolerance) ?? 0);
             var hasTolerance = monster.GetProperty(PropertyInt.Tolerance).HasValue;
 
-            Console.WriteLine("OnAttackMonster(" + monster.Name + ")");
+            /*Console.WriteLine("OnAttackMonster(" + monster.Name + ")");
             Console.WriteLine("Attackable: " + attackable);
             Console.WriteLine("Tolerance: " + tolerance);
-            Console.WriteLine("HasTolerance: " + hasTolerance);
+            Console.WriteLine("HasTolerance: " + hasTolerance);*/
 
             if (monster.MonsterState == State.Idle && !tolerance.HasFlag(Tolerance.NoAttack))
             {

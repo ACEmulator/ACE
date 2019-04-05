@@ -22,8 +22,8 @@ namespace ACE.Database.Models.World
         public float AnglesY { get; set; }
         public float AnglesZ { get; set; }
         public bool IsLinkChild { get; set; }
+        public DateTime LastModified { get; set; }
 
-        public Weenie WeenieClass { get; set; }
         public ICollection<LandblockInstanceLink> LandblockInstanceLink { get; set; }
     }
 }

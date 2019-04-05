@@ -30,5 +30,10 @@ namespace ACE.Server.Entity.Actions
         {
             Queue.Enqueue(action);
         }
+
+        public void Clear()
+        {
+            Queue.Clear();
+        }
     }
 }

@@ -1,11 +1,28 @@
-
+using ACE.Common;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        public override string Name
+        {
+            get => IsPlussed ? (((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Off) < ACE.Entity.Enum.CloakStatus.Player) ? "+" + base.Name : base.Name) : base.Name;
+
+            set
+            {
+                var name = value;
+
+                if (name.StartsWith("+"))
+                    name = name.Substring(1);
+
+                base.Name = name;
+            }
+        }
+
         // ========================================
         // ========= Admin Tier Properties ========
         // ========================================
@@ -44,6 +61,11 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.IsAdvocate) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsAdvocate); else SetProperty(PropertyBool.IsAdvocate, value); }
+        }
+
+        public bool IsPlussed
+        {
+            get => Character.IsPlussed || (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
         }
 
 
@@ -150,10 +172,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.TotalSkillCredits); else SetProperty(PropertyInt.TotalSkillCredits, value.Value); }
         }
 
-        public int? NumDeaths
+        public int NumDeaths
         {
-            get => GetProperty(PropertyInt.NumDeaths);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.NumDeaths); else SetProperty(PropertyInt.NumDeaths, value.Value); }
+            get => GetProperty(PropertyInt.NumDeaths) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.NumDeaths); else SetProperty(PropertyInt.NumDeaths, value); }
         }
 
         public int? DeathLevel
@@ -186,6 +208,25 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// The timestamp the player originally purchased house
+        /// </summary>
+        public int? HousePurchaseTimestamp
+        {
+            get => GetProperty(PropertyInt.HousePurchaseTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HousePurchaseTimestamp); else SetProperty(PropertyInt.HousePurchaseTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the current maintenance period ends
+        /// </summary>
+        public int? HouseRentTimestamp
+        {
+            get => GetProperty(PropertyInt.HouseRentTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HouseRentTimestamp); else SetProperty(PropertyInt.HouseRentTimestamp, value.Value); }
+        }
+
+
         // ========================================
         // ===== Player Properties - Titles========
         // ========================================
@@ -200,6 +241,706 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.NumCharacterTitles);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.NumCharacterTitles); else SetProperty(PropertyInt.NumCharacterTitles, value.Value); }
+        }
+
+        // ========================================
+        // =========== Augmentations ==============
+        // ========================================
+
+        /// <summary>
+        /// All of your skills are increased by 5. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationJackOfAllTrades
+        {
+            get => GetProperty(PropertyInt.AugmentationJackOfAllTrades) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationJackOfAllTrades); else SetProperty(PropertyInt.AugmentationJackOfAllTrades, value); }
+        }
+
+        /// <summary>
+        /// Eye of the Remorseless
+        /// Increases your chance of critical hits by 1%. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationCriticalExpertise
+        {
+            get => GetProperty(PropertyInt.AugmentationCriticalExpertise) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationCriticalExpertise); else SetProperty(PropertyInt.AugmentationCriticalExpertise, value); }
+        }
+
+        /// <summary>
+        /// Iron Skin of the Invincible
+        /// Increases your damage reduction rating by 3. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationDamageReduction
+        {
+            get => GetProperty(PropertyInt.AugmentationDamageReduction) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationDamageReduction); else SetProperty(PropertyInt.AugmentationDamageReduction, value); }
+        }
+
+        /// <summary>
+        /// Critical Protection
+        /// Grants you limited protection from critical hits. 25% of critical hits from creatures,
+        /// and 5% critical hits from players will strike you for normal damage.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationCriticalDefense
+        {
+            get => GetProperty(PropertyInt.AugmentationCriticalDefense) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationCriticalDefense); else SetProperty(PropertyInt.AugmentationCriticalDefense, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for Life Magic (Foci of Verdancy)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedLifeMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedLifeMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedLifeMagic); else SetProperty(PropertyInt.AugmentationInfusedLifeMagic, value); }
+        }
+
+        /// <summary>
+        /// Hand of the Remorseless
+        /// Increases critical damage by 3%. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationCriticalPower
+        {
+            get => GetProperty(PropertyInt.AugmentationCriticalPower) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationCriticalPower); else SetProperty(PropertyInt.AugmentationCriticalPower, value); }
+        }
+
+        /// <summary>
+        /// Might of the Seventh Mule
+        /// Gives the player 20% more burden-carrying capacity for each gem used (max x5)
+        /// </summary>
+        public int AugmentationIncreasedCarryingCapacity
+        {
+            get => GetProperty(PropertyInt.AugmentationIncreasedCarryingCapacity) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationIncreasedCarryingCapacity); else SetProperty(PropertyInt.AugmentationIncreasedCarryingCapacity, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for Creature Magic (Foci of Enchantment)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedCreatureMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedCreatureMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedCreatureMagic); else SetProperty(PropertyInt.AugmentationInfusedCreatureMagic, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for Item Magic (Foci of Artifice)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedItemMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedItemMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedItemMagic); else SetProperty(PropertyInt.AugmentationInfusedItemMagic, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for Void Magic (Foci of Shadow)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedVoidMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedVoidMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedVoidMagic); else SetProperty(PropertyInt.AugmentationInfusedVoidMagic, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for War Magic (Foci of Strife)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedWarMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedWarMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedWarMagic); else SetProperty(PropertyInt.AugmentationInfusedWarMagic, value); }
+        }
+
+        /// <summary>
+        /// Clutch of the Miser
+        /// The player loses 5 fewer items at death. (stacks 3x)
+        /// If the player is killed in a PK battle, they still drop items.
+        /// </summary>
+        public int AugmentationLessDeathItemLoss
+        {
+            get => GetProperty(PropertyInt.AugmentationLessDeathItemLoss) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationLessDeathItemLoss); else SetProperty(PropertyInt.AugmentationLessDeathItemLoss, value); }
+        }
+
+        /// <summary>
+        /// Enduring Enchantment
+        /// The player keeps their enchantments after dying, unless killed in a PK battle.
+        /// </summary>
+        public int AugmentationSpellsRemainPastDeath
+        {
+            get => GetProperty(PropertyInt.AugmentationSpellsRemainPastDeath) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationSpellsRemainPastDeath); else SetProperty(PropertyInt.AugmentationSpellsRemainPastDeath, value); }
+        }
+
+        /// <summary>
+        /// Quick Learner
+        /// The player receives +5% bonus XP earned via hunting / killing creatures.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationBonusXp
+        {
+            get => GetProperty(PropertyInt.AugmentationBonusXp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationBonusXp); else SetProperty(PropertyInt.AugmentationBonusXp, value); }
+        }
+
+        /// <summary>
+        /// Innate Renewal
+        /// The player receives a 100% bonus to vital regeneration rate
+        /// The player can augment themselves twice in this way.
+        /// </summary>
+        public int AugmentationFasterRegen
+        {
+            get => GetProperty(PropertyInt.AugmentationFasterRegen) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationFasterRegen); else SetProperty(PropertyInt.AugmentationFasterRegen, value); }
+        }
+
+        // "augs" - Asheron's Lesser Benediction, Asheron's Bendiction, Blackmoor's Favor
+        // these don't use PropertyInt.Augmentation*, but they are reusable enchantments
+
+        /// <summary>
+        /// Shadow of the Seventh Mule
+        /// Grants the player an extra, 8th pack slot. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationExtraPackSlot
+        {
+            get => GetProperty(PropertyInt.AugmentationExtraPackSlot) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationExtraPackSlot); else SetProperty(PropertyInt.AugmentationExtraPackSlot, value); }
+        }
+
+        /// <summary>
+        /// Reinforcement of the Lugians
+        /// Grants the player 5 extra points to their innate Strength attribute
+        /// This augmentation will not increase innate Strength (your Strength at character creatoin) beyond 100.
+        /// You can augment each of your attributes in this way, but only ten times in combination.
+        /// </summary>
+        public int AugmentationInnateStrength
+        {
+            get => GetProperty(PropertyInt.AugmentationInnateStrength) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInnateStrength); else SetProperty(PropertyInt.AugmentationInnateStrength, value); }
+        }
+
+        /// <summary>
+        /// Bleeargh's Fortitude
+        /// Grants the player 5 extra points to their innate Endurance attribute
+        /// This augmentation will not increase innate Endurance (your Endurance at character creation) beyond 100.
+        /// You can augment each of your attributes in this way, but only ten times in combination.
+        /// </summary>
+        public int AugmentationInnateEndurance
+        {
+            get => GetProperty(PropertyInt.AugmentationInnateEndurance) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInnateEndurance); else SetProperty(PropertyInt.AugmentationInnateEndurance, value); }
+        }
+
+        /// <summary>
+        /// Oswald's Enhancement
+        /// Grants the player 5 extra points to their innate Coordination attribute
+        /// This augmentation will not increase innate Coordination (your Coordination at character creation) beyond 100.
+        /// You can augment each of your attributes in this way, but only ten times in combination.
+        /// </summary>
+        public int AugmentationInnateCoordination
+        {
+            get => GetProperty(PropertyInt.AugmentationInnateCoordination) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInnateCoordination); else SetProperty(PropertyInt.AugmentationInnateCoordination, value); }
+        }
+
+        /// <summary>
+        /// Siraluun's Blessing
+        /// Grants the player 5 extra points to their innate Quickness attribute
+        /// This augmentation will not increase innate Quickness (your Quickness at character creation) beyond 100.
+        /// You can augment each of your attributes in this way, but only ten times in combination.
+        /// </summary>
+        public int AugmentationInnateQuickness
+        {
+            get => GetProperty(PropertyInt.AugmentationInnateQuickness) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInnateQuickness); else SetProperty(PropertyInt.AugmentationInnateQuickness, value); }
+        }
+
+        /// <summary>
+        /// Enduring Calm
+        /// Grants the player 5 extra points to their innate Focus attribute
+        /// This augmentation will not increase innate Focus (your Focus at character creation) beyond 100.
+        /// You can augment each of your attributes in this way, but only ten times in combination.
+        /// </summary>
+        public int AugmentationInnateFocus
+        {
+            get => GetProperty(PropertyInt.AugmentationInnateFocus) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInnateFocus); else SetProperty(PropertyInt.AugmentationInnateFocus, value); }
+        }
+
+        /// <summary>
+        /// Steadfast Will
+        /// Grants the player 5 extra points to their innate Self attribute
+        /// This augmentation will not increase innate Self (your Strength at Self creation) beyond 100.
+        /// You can augment each of your attributes in this way, but only ten times in combination.
+        /// </summary>
+        public int AugmentationInnateSelf
+        {
+            get => GetProperty(PropertyInt.AugmentationInnateSelf) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInnateSelf); else SetProperty(PropertyInt.AugmentationInnateSelf, value); }
+        }
+
+        /// <summary>
+        /// The number of innate attribute augs that have been applied (max 10)
+        /// </summary>
+        public int AugmentationInnateFamily
+        {
+            get => GetProperty(PropertyInt.AugmentationInnateFamily) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInnateFamily); else SetProperty(PropertyInt.AugmentationInnateFamily, value); }
+        }
+
+        /// <summary>
+        /// Enhancement of the Blade Turner
+        /// Grants the player 10% extra resistance to slashing damage. You may only have 2 resistance augmentations in effect at any time.
+        /// </summary>
+        public int AugmentationResistanceSlash
+        {
+            get => GetProperty(PropertyInt.AugmentationResistanceSlash) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceSlash); else SetProperty(PropertyInt.AugmentationResistanceSlash, value); }
+        }
+
+        /// <summary>
+        /// Enhancement of the Arrow Turner
+        /// Grants the player 10% extra resistance to piercing damage. You may only have 2 resistance augmentations in effect at any time.
+        /// </summary>
+        public int AugmentationResistancePierce
+        {
+            get => GetProperty(PropertyInt.AugmentationResistancePierce) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistancePierce); else SetProperty(PropertyInt.AugmentationResistancePierce, value); }
+        }
+
+        /// <summary>
+        /// Enhancement of the Mace Turner
+        /// Grants the player 10% extra resistance to bludgeon damage. You may only have 2 resistance augmentations in effect at any time.
+        /// </summary>
+        public int AugmentationResistanceBlunt
+        {
+            get => GetProperty(PropertyInt.AugmentationResistanceBlunt) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceBlunt); else SetProperty(PropertyInt.AugmentationResistanceBlunt, value); }
+        }
+
+        /// <summary>
+        /// Fiery Enhancement
+        /// Grants the player 10% extra resistance to fire damage. You may only have 2 resistance augmentations in effect at any time.
+        /// </summary>
+        public int AugmentationResistanceFire
+        {
+            get => GetProperty(PropertyInt.AugmentationResistanceFire) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceFire); else SetProperty(PropertyInt.AugmentationResistanceFire, value); }
+        }
+
+        /// <summary>
+        /// Icy Enhancement
+        /// Grants the player 10% extra resistance to cold damage. You may only have 2 resistance augmentations in effect at any time.
+        /// </summary>
+        public int AugmentationResistanceFrost
+        {
+            get => GetProperty(PropertyInt.AugmentationResistanceFrost) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceFrost); else SetProperty(PropertyInt.AugmentationResistanceFrost, value); }
+        }
+
+        /// <summary>
+        /// Caustic Enhancement
+        /// Grants the player 10% extra resistance to acid damage. You may only have 2 resistance augmentations in effect at any time.
+        /// </summary>
+        public int AugmentationResistanceAcid
+        {
+            get => GetProperty(PropertyInt.AugmentationResistanceAcid) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceAcid); else SetProperty(PropertyInt.AugmentationResistanceAcid, value); }
+        }
+
+        /// <summary>
+        /// Storm's Enhancement
+        /// Grants the player 10% extra resistance to lightning damage. You may only have 2 resistance augmentations in effect at any time.
+        /// </summary>
+        public int AugmentationResistanceLightning
+        {
+            get => GetProperty(PropertyInt.AugmentationResistanceLightning) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceLightning); else SetProperty(PropertyInt.AugmentationResistanceLightning, value); }
+        }
+
+        /// <summary>
+        /// The number of resistance augs that have been applied (max 2)
+        /// </summary>
+        public int AugmentationResistanceFamily
+        {
+            get => GetProperty(PropertyInt.AugmentationResistanceFamily) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceFamily); else SetProperty(PropertyInt.AugmentationResistanceFamily, value); }
+        }
+
+        /// <summary>
+        /// Frenzy of the Slayer
+        /// Increases the player's damage rating by 3. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationDamageBonus
+        {
+            get => GetProperty(PropertyInt.AugmentationDamageBonus) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationDamageBonus); else SetProperty(PropertyInt.AugmentationDamageBonus, value); }
+        }
+
+        /// <summary>
+        /// Ciandra's Fortune
+        /// The player receives 25% more material from salavaging (max 4x)
+        /// </summary>
+        public int AugmentationBonusSalvage
+        {
+            get => GetProperty(PropertyInt.AugmentationBonusSalvage) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationBonusSalvage); else SetProperty(PropertyInt.AugmentationBonusSalvage, value); }
+        }
+
+        /// <summary>
+        /// Charmed Smith
+        /// The player has 5% increased chance to succeed when imbuing items.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationBonusImbueChance
+        {
+            get => GetProperty(PropertyInt.AugmentationBonusImbueChance) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationBonusImbueChance); else SetProperty(PropertyInt.AugmentationBonusImbueChance, value); }
+        }
+
+        /// <summary>
+        /// Jibril's Essence
+        /// Using this gem will specialize your skill in Armor Tinkering and raise your skill points accordingly.
+        /// Once specialized, you will not be able to unspecialize or untrain Armor Tinkering.
+        /// You must have this skill Trained in order to use this gem.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationSpecializeArmorTinkering
+        {
+            get => GetProperty(PropertyInt.AugmentationSpecializeArmorTinkering) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationSpecializeArmorTinkering); else SetProperty(PropertyInt.AugmentationSpecializeArmorTinkering, value); }
+        }
+
+        /// <summary>
+        /// Yoshi's Essence
+        /// Using this gem will specialize your skill in Item Tinkering and raise your skill points accordingly.
+        /// Once specialized, you will not be able to unspecialize or untrain Item Tinkering.
+        /// You must have this skill Trained in order to use this gem.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationSpecializeItemTinkering
+        {
+            get => GetProperty(PropertyInt.AugmentationSpecializeItemTinkering) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationSpecializeItemTinkering); else SetProperty(PropertyInt.AugmentationSpecializeItemTinkering, value); }
+        }
+
+        /// <summary>
+        /// Celdiseth's Essence
+        /// Using this gem will specialize your skill in Magic Item Tinkering and raise your skill points accordingly.
+        /// Once specialized, you will not be able to unspecialize or untrain Magic Item Tinkering.
+        /// You must have this skill Trained in order to use this gem.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationSpecializeMagicItemTinkering
+        {
+            get => GetProperty(PropertyInt.AugmentationSpecializeMagicItemTinkering) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationSpecializeMagicItemTinkering); else SetProperty(PropertyInt.AugmentationSpecializeMagicItemTinkering, value); }
+        }
+
+        /// <summary>
+        /// Koga's Essence
+        /// Using this gem will specialize your skill in Weapon Tinkering and raise your skill points accordingly.
+        /// Once specialized, you will not be able to unspecialize or untrain Weapon Tinkering.
+        /// You must have this skill Trained in order to use this gem.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationSpecializeWeaponTinkering
+        {
+            get => GetProperty(PropertyInt.AugmentationSpecializeWeaponTinkering) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationSpecializeWeaponTinkering); else SetProperty(PropertyInt.AugmentationSpecializeWeaponTinkering, value); }
+        }
+
+        /// <summary>
+        /// Ciandra's Essence
+        /// Using this gem will specialize your skill in Salvaging and raise your skill points accordingly.
+        /// Once specialized, you will not be able to unspecialize or untrain Salvaging.
+        /// You must have this skill Trained in order to use this gem.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationSpecializeSalvaging
+        {
+            get => GetProperty(PropertyInt.AugmentationSpecializeSalvaging) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationSpecializeSalvaging); else SetProperty(PropertyInt.AugmentationSpecializeSalvaging, value); }
+        }
+
+        /// <summary>
+        /// Master of the Steel Circle
+        /// Your effective melee skill when using any melee weapon is increased by +10.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationSkilledMelee
+        {
+            get => GetProperty(PropertyInt.AugmentationSkilledMelee) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationSkilledMelee); else SetProperty(PropertyInt.AugmentationSkilledMelee, value); }
+        }
+
+        /// <summary>
+        /// Master of the Five Fold Path
+        /// Your effective magic skill when using any magic weapon is increased by +10.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationSkilledMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationSkilledMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationSkilledMagic); else SetProperty(PropertyInt.AugmentationSkilledMagic, value); }
+        }
+
+        /// <summary>
+        /// Master of the Focused Eye
+        /// Your effective missile skill when using any missile weapon is increased by +10.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationSkilledMissile
+        {
+            get => GetProperty(PropertyInt.AugmentationSkilledMissile) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationSkilledMissile); else SetProperty(PropertyInt.AugmentationSkilledMissile, value); }
+        }
+
+        /// <summary>
+        /// Archmage's Endurance
+        /// +20% spell duration (max 5 stacks)
+        /// </summary>
+        public int AugmentationIncreasedSpellDuration
+        {
+            get => GetProperty(PropertyInt.AugmentationIncreasedSpellDuration) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationIncreasedSpellDuration); else SetProperty(PropertyInt.AugmentationIncreasedSpellDuration, value); }
+        }
+
+        // ========================================
+        // ======= Luminance Augmentations ========
+        // ========================================
+
+        /// <summary>
+        /// Aura of Aetheric Vision
+        /// Slightly increase your chance to gain an Aetheria Surge on a successful hit with a weapon or spell (max 5 stacks)
+        /// </summary>
+        public int LumAugSurgeChanceRating
+        {
+            get => GetProperty(PropertyInt.LumAugSurgeChanceRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugSurgeChanceRating); else SetProperty(PropertyInt.LumAugSurgeChanceRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of the Craftsman
+        /// Increases the effective skill level of your crafting and tinkering skills by 1 point (max 5 stacks)
+        /// </summary>
+        public int LumAugSkilledCraft
+        {
+            get => GetProperty(PropertyInt.LumAugSkilledCraft) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugSkilledCraft); else SetProperty(PropertyInt.LumAugSkilledCraft, value); }
+        }
+
+        /// <summary>
+        /// Aura of Glory / Aura of Retribution (Seer)
+        /// Increases your critical damage rating by 1 point (max 5 stacks glory, max 5 stacks retribution)
+        /// </summary>
+        public int LumAugCritDamageRating
+        {
+            get => GetProperty(PropertyInt.LumAugCritDamageRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugCritDamageRating); else SetProperty(PropertyInt.LumAugCritDamageRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of Mana Flow
+        /// Reduces the mana consumption of your items equal to 1 rating point per level (max 5 stacks)
+        /// This is expressed as a rating, where the mana consumption is multiplied by the following: 100 / (100 + Mana Consumption Reduction Rating)
+        /// </summary>
+        public int LumAugItemManaUsage
+        {
+            get => GetProperty(PropertyInt.LumAugItemManaUsage) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugItemManaUsage); else SetProperty(PropertyInt.LumAugItemManaUsage, value); }
+        }
+
+        /// <summary>
+        /// Aura of Mana Infusion
+        /// Increases the mana provided by Mana Stones to your items (max 5 stacks)
+        /// The mana is increased by a rating of 1 per level.
+        /// </summary>
+        public int LumAugItemManaGain
+        {
+            get => GetProperty(PropertyInt.LumAugItemManaGain) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugItemManaGain); else SetProperty(PropertyInt.LumAugItemManaGain, value); }
+        }
+
+        /// <summary>
+        /// Aura of Protection / Aura of Invulnerability (Seer)
+        /// Increases your damage reduction rating by 1 (max 5 stacks protection, max 5 stacks invulnerability)
+        /// </summary>
+        public int LumAugDamageReductionRating
+        {
+            get => GetProperty(PropertyInt.LumAugDamageReductionRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugDamageReductionRating); else SetProperty(PropertyInt.LumAugDamageReductionRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of Purity
+        /// Increases the amount that healing affects you by 1 heal rating (max 5 stacks)
+        /// </summary>
+        public int LumAugHealingRating
+        {
+            get => GetProperty(PropertyInt.LumAugHealingRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugHealingRating); else SetProperty(PropertyInt.LumAugHealingRating, value); }
+        }
+
+        /// <summary>
+        /// Skill
+        /// Gain an additional skill credit (max 2 stacks)
+        /// </summary>
+
+        // where to store the stack data for this?
+
+        /// <summary>
+        /// Aura of Temperance / Aura of Hardening (Seer)
+        /// Increases your critical damage reduction rating by 1 (max 5 stacks temperance, max 5 stacks hardening)
+        /// </summary>
+        public int LumAugCritReductionRating
+        {
+            get => GetProperty(PropertyInt.LumAugCritReductionRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugCritReductionRating); else SetProperty(PropertyInt.LumAugCritReductionRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of Valor / Aura of Destruction (Seer)
+        /// Increases your damage rating by 1 (max 5 stacks valor, max 5 stacks destruction)
+        /// </summary>
+        public int LumAugDamageRating
+        {
+            get => GetProperty(PropertyInt.LumAugDamageRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugDamageRating); else SetProperty(PropertyInt.LumAugDamageRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of the World
+        /// Increases the effective skill level of all your skills by 1 point (max 10 stacks)
+        /// </summary>
+        public int LumAugAllSkills
+        {
+            get => GetProperty(PropertyInt.LumAugAllSkills) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugAllSkills); else SetProperty(PropertyInt.LumAugAllSkills, value); }
+        }
+
+        // ============= Seer Auras ===============
+
+        /// <summary>
+        /// Aura of Specialization
+        /// Increases your specialized skills by 2 (max 5 stacks)
+        /// </summary>
+        public int LumAugSkilledSpec
+        {
+            get => GetProperty(PropertyInt.LumAugSkilledSpec) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugSkilledSpec); else SetProperty(PropertyInt.LumAugSkilledSpec, value); }
+        }
+
+        // ============ Enlightenment =============
+
+        public int Enlightenment
+        {
+            get => GetProperty(PropertyInt.Enlightenment) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.Enlightenment); else SetProperty(PropertyInt.Enlightenment, value); }
+        }
+
+        public int LumAugVitality
+        {
+            get => GetProperty(PropertyInt.LumAugVitality) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugVitality); else SetProperty(PropertyInt.LumAugVitality, value); }
+        }
+
+        // ========================================
+        // =============== Rares ==================
+        // ========================================
+        public double? LastRareUsedTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastRareUsedTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value.Value); }
+        }
+
+        // ========================================
+        // =============== Barber =================
+        // ========================================
+        public bool BarberActive
+        {
+            get => GetProperty(PropertyBool.BarberActive) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.BarberActive); else SetProperty(PropertyBool.BarberActive, value); }
+        }
+
+
+        public void UpdateProperty(WorldObject obj, PropertyInt prop, int? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyBool prop, bool? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyFloat prop, double? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyDataId prop, uint? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyInstanceId prop, uint? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0)));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyString prop, string value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value);
+            else
+                obj.RemoveProperty(prop);
+
+            // the client seems to cache these values somewhere,
+            // and the object will not update until relogging or CO
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyString(obj, prop, value));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyInt64 prop, long? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0));
         }
     }
 }

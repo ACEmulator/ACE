@@ -44,11 +44,6 @@ namespace ACE.Server.WorldObjects
 
         public double Default_ChestResetInterval = 120;
 
-        /// <summary>
-        /// The current player who has a chest opened
-        /// </summary>
-        public Player CurrentViewer;
-
         public bool ResetMessagePending
         {
             get => GetProperty(PropertyBool.ResetMessagePending) ?? false;
@@ -78,7 +73,9 @@ namespace ACE.Server.WorldObjects
             ContainerCapacity = ContainerCapacity ?? 10;
             ItemCapacity = ItemCapacity ?? 120;
 
-            CurrentMotionState = motionClosed;  // do any chests default to open?
+            ActivationResponse |= ActivationResponse.Use;   // todo: fix broken data
+
+            CurrentMotionState = motionClosed;              // do any chests default to open?
 
             if (IsLocked)
                 DefaultLocked = true;
@@ -88,6 +85,43 @@ namespace ACE.Server.WorldObjects
 
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
         protected static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
+
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
+        {
+            var baseRequirements = base.CheckUseRequirements(activator);
+            if (!baseRequirements.Success)
+                return baseRequirements;
+
+            if (!(activator is Player player))
+                return new ActivationResult(false);
+
+            if (IsLocked)
+            {
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
+                return new ActivationResult(false);
+            }
+
+            if (IsOpen)
+            {
+                // player has this chest open, close it
+                if (Viewer == player.Guid.Full)
+                    Close(player);
+
+                // else another player has this chest open - send error message?
+                else
+                {
+                    var currentViewer = CurrentLandblock.GetObject(Viewer) as Player;
+
+                    // current viewer not found, close it
+                    if (currentViewer == null)
+                        Close(null);
+                }
+
+                return new ActivationResult(false);
+            }
+
+            return new ActivationResult(true);
+        }
 
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
@@ -100,29 +134,12 @@ namespace ACE.Server.WorldObjects
             if (!(wo is Player player))
                 return;
 
-            if (IsLocked)
-            {
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
-                return;
-            }
-
-            if (IsOpen)
-            {
-                // player has this chest open, close it
-                if (Viewer == player.Guid.Full)
-                    Close(player);
-
-                // else another player has this chest open - send error message?
-                return;
-            }
-
             // open chest
             Open(player);
         }
 
         public override void Open(Player player)
         {
-            CurrentViewer = player;
             base.Open(player);
 
             // chests can have a couple of different profiles
@@ -152,19 +169,6 @@ namespace ACE.Server.WorldObjects
 
                 //UseTimestamp++;
             }
-
-            if (ActivationTalk != null)
-            {
-                // send only to activator?
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
-            }
-
-            if (SpellDID.HasValue)
-            {
-                var spell = new Server.Entity.Spell((uint)SpellDID);
-
-                TryCastSpell(spell, player, this);
-            }
         }
 
         /// <summary>
@@ -173,7 +177,6 @@ namespace ACE.Server.WorldObjects
         public void Close(Player player, bool tryReset = true)
         {
             base.Close(player);
-            CurrentViewer = null;
 
             if (ChestRegenOnClose && tryReset)
                 Reset();
@@ -183,8 +186,10 @@ namespace ACE.Server.WorldObjects
         {
             // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
 
+            var player = CurrentLandblock.GetObject(Viewer) as Player;
+
             if (IsOpen)
-                Close(CurrentViewer, false);
+                Close(player, false);
 
             if (DefaultLocked && !IsLocked)
             {

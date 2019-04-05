@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
 using ACE.Server.Managers;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -15,7 +16,7 @@ namespace ACE.Server.Entity
 
         public readonly AllegianceNode Monarch;
         public readonly AllegianceNode Patron;
-        public List<AllegianceNode> Vassals;
+        public Dictionary<uint, AllegianceNode> Vassals;
 
         public uint Rank;
 
@@ -31,7 +32,7 @@ namespace ACE.Server.Entity
             {
                 var totalFollowers = 0;
 
-                foreach (var vassal in Vassals)
+                foreach (var vassal in Vassals.Values)
                     totalFollowers += vassal.TotalFollowers + 1;
 
                 return totalFollowers;
@@ -48,16 +49,16 @@ namespace ACE.Server.Entity
 
         public void BuildChain(Allegiance allegiance, List<IPlayer> players)
         {
-            var vassals = players.Where(p => p.Patron == PlayerGuid.Full).ToList();
+            var vassals = players.Where(p => p.PatronId == PlayerGuid.Full).ToList();
 
-            Vassals = new List<AllegianceNode>();
+            Vassals = new Dictionary<uint, AllegianceNode>();
 
             foreach (var vassal in vassals)
             {
                 var node = new AllegianceNode(vassal.Guid, allegiance, Monarch, this);
                 node.BuildChain(allegiance, players);
 
-                Vassals.Add(node);
+                Vassals.Add(vassal.Guid.Full, node);
             }
 
             CalculateRank();
@@ -72,7 +73,7 @@ namespace ACE.Server.Entity
             // one higher than the lower of the two, or equal to the highest rank vassal, whichever is greater.
 
             // sort vassals by rank
-            var sortedVassals = Vassals.OrderBy(v => v.Rank).ToList();
+            var sortedVassals = Vassals.Values.OrderBy(v => v.Rank).ToList();
 
             // get 2 highest rank vassals
             var r1 = sortedVassals.Count > 0 ? sortedVassals[0].Rank : 0;
@@ -82,6 +83,14 @@ namespace ACE.Server.Entity
             var higher = Math.Max(r1, r2);
 
             Rank = Math.Max(lower + 1, higher);
+        }
+
+        public void ShowInfo(int depth = 0)
+        {
+            var prefix = "".PadLeft(depth * 2, ' ');
+            Console.WriteLine($"{prefix}- {Player.Name}");
+            foreach (var vassal in Vassals.Values)
+                vassal.ShowInfo(depth + 1);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader.Entity;
@@ -8,9 +9,11 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -36,31 +39,6 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        public override ActivationResult CheckUseRequirements(WorldObject activator)
-        {
-            if (!(activator is Player player))
-                return new ActivationResult(false);
-
-            var baseRequirements = base.CheckUseRequirements(activator);
-            if (!baseRequirements.Success)
-                return baseRequirements;
-
-            // are cooldown timers specific to gems, or should they be in base?
-            if (!player.CheckCooldown(this))
-            {
-                // TODO: werror/string not found, find exact message
-
-                /*var cooldown = player.GetCooldown(this);
-                var timer = cooldown.GetFriendlyString();
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} can be activated again in {timer}", ChatMessageType.Broadcast));*/
-
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
-                return new ActivationResult(false);
-            }
-
-            return new ActivationResult(true);
-        }
-
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
@@ -75,8 +53,6 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return;
 
-            player.UpdateCooldown(this);
-
             if (UseCreateContractId == null)
             {
                 if (SpellDID.HasValue)
@@ -88,6 +64,16 @@ namespace ACE.Server.WorldObjects
 
                 if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
                     player.TryConsumeFromInventoryWithNetworking(this, 1);
+
+                if (RareUsesTimer)
+                {
+                    // should this be using an enchantment cooldown,
+                    // to prevent stacking by logging off during the cooldown time?
+                    player.LastRareUsedTimestamp = Time.GetUnixTime();
+
+                    // local broadcast usage
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} used the rare item {Name}", ChatMessageType.Broadcast));
+                }
             }
             else
                 ActOnUseContract(player);
@@ -144,7 +130,7 @@ namespace ACE.Server.WorldObjects
                 //const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
                 var spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
                 // cooldown not being used in network packet?
-                var gem = new Enchantment(player, player.Guid.Full, spellBase, spellBase.Duration, layer, /*CooldownId.Value,*/ EnchantmentMask.Cooldown);
+                var gem = new Enchantment(player, spellBase, layer, /*CooldownId.Value,*/ EnchantmentMask.Cooldown);
                 player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
@@ -153,6 +139,37 @@ namespace ACE.Server.WorldObjects
             }
             else
                 ChatPacket.SendServerMessage(player.Session, "You already have this quest tracked: " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
+        }
+
+        public int? RareId
+        {
+            get => GetProperty(PropertyInt.RareId);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RareId); else SetProperty(PropertyInt.RareId, value.Value); }
+        }
+
+        public bool RareUsesTimer
+        {
+            get => GetProperty(PropertyBool.RareUsesTimer) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.RareUsesTimer); else SetProperty(PropertyBool.RareUsesTimer, value); }
+        }
+
+        public override void HandleActionUseOnTarget(Player player, WorldObject target)
+        {
+            // should tailoring kit / aetheria be subtyped?
+            if (Tailoring.IsTailoringKit(WeenieClassId))
+            {
+                Tailoring.UseObjectOnTarget(player, this, target);
+                return;
+            }
+
+            if (WeenieClassId == Aetheria.AetheriaManaStone)
+            {
+                Aetheria.UseObjectOnTarget(player, this, target);
+                return;
+            }
+
+            // fallback on recipe manager?
+            base.HandleActionUseOnTarget(player, target);
         }
     }
 }

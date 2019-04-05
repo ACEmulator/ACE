@@ -14,6 +14,8 @@ namespace ACE.Server.Network.GameAction.Actions
 
             // whether we are adding or removing permissions
             var add = Convert.ToBoolean(message.Payload.ReadUInt32());
+
+            session.Player.HandleActionModifyAllegianceStoragePermission(add);
         }
     }
 }

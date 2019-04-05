@@ -52,6 +52,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsBusy) return;
+
+            IsBusy = true;
+
             var actionChain = new ActionChain();
 
             if (player.CombatMode != CombatMode.NonCombat)
@@ -79,17 +83,15 @@ namespace ACE.Server.WorldObjects
                 var skill = Spell.GetMagicSkill();
                 var playerSkill = player.GetCreatureSkill(skill);
 
-                if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
-                {
-                    // verify trained skill
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are not trained in {playerSkill.Skill.ToSentence()}!", ChatMessageType.Broadcast));
-                    return;
-                }
-
                 if (!player.CanReadScroll(this))
                 {
-                    // verify skill level
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are not skilled enough in {playerSkill.Skill.ToSentence()} to learn this spell.", ChatMessageType.Broadcast));
+                    var msg = "";
+                    if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
+                        msg = $"You are not trained in {playerSkill.Skill.ToSentence()}!";
+                    else
+                        msg = $"You are not skilled enough in {playerSkill.Skill.ToSentence()} to learn this spell.";
+
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                     return;
                 }
 
@@ -103,6 +105,8 @@ namespace ACE.Server.WorldObjects
             player.LastUseTime += animTime;     // return stance
 
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
+
+            actionChain.AddAction(this, () => IsBusy = false);
 
             actionChain.EnqueueChain();
         }

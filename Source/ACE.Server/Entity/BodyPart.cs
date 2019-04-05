@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
@@ -10,6 +11,7 @@ namespace ACE.Server.Entity
     [Flags]
     public enum BodyPart
     {
+        // this is more like a combined coverage mask?
         Head        = 0x1,
         Chest       = 0x2,
         Abdomen     = 0x4,
@@ -31,6 +33,7 @@ namespace ACE.Server.Entity
 
         static BodyParts()
         {
+            // these map to CombatBodyPart
             Indices = new Dictionary<BodyPart, int>()
             {
                 { BodyPart.Head, 0 },
@@ -81,7 +84,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        public static EquipMask GetEquipMask(BodyPart bodyPart)
+        /*public static EquipMask GetEquipMask(BodyPart bodyPart)
         {
             switch (bodyPart)
             {
@@ -106,6 +109,60 @@ namespace ACE.Server.Entity
                 default:
                     return EquipMask.None;
             }
+        }*/
+
+        public static CoverageMask GetCoverageMask(BodyPart bodyPart)
+        {
+            switch (bodyPart)
+            {
+                case BodyPart.Abdomen:
+                    return CoverageMask.OuterwearAbdomen | CoverageMask.UnderwearAbdomen;
+                case BodyPart.Chest:
+                    return CoverageMask.OuterwearChest | CoverageMask.UnderwearChest;
+                case BodyPart.Foot:
+                    return CoverageMask.Feet;
+                case BodyPart.Hand:
+                    return CoverageMask.Hands;
+                case BodyPart.Head:
+                    return CoverageMask.Head;
+                case BodyPart.LowerArm:
+                    return CoverageMask.OuterwearLowerArms | CoverageMask.UnderwearLowerArms;
+                case BodyPart.LowerLeg:
+                    return CoverageMask.OuterwearLowerLegs | CoverageMask.UnderwearLowerLegs;
+                case BodyPart.UpperArm:
+                    return CoverageMask.OuterwearUpperArms | CoverageMask.UnderwearUpperArms;
+                case BodyPart.UpperLeg:
+                    return CoverageMask.OuterwearUpperLegs | CoverageMask.UnderwearUpperLegs;
+                default:
+                    return CoverageMask.Unknown;
+            }
+        }
+
+        public static CoverageMask GetCoverageMask(CombatBodyPart bodyPart)
+        {
+            switch (bodyPart)
+            {
+                case CombatBodyPart.Abdomen:
+                    return CoverageMask.OuterwearAbdomen | CoverageMask.UnderwearAbdomen;
+                case CombatBodyPart.Chest:
+                    return CoverageMask.OuterwearChest | CoverageMask.UnderwearChest;
+                case CombatBodyPart.Foot:
+                    return CoverageMask.Feet;
+                case CombatBodyPart.Hand:
+                    return CoverageMask.Hands;
+                case CombatBodyPart.Head:
+                    return CoverageMask.Head;
+                case CombatBodyPart.LowerArm:
+                    return CoverageMask.OuterwearLowerArms | CoverageMask.UnderwearLowerArms;
+                case CombatBodyPart.LowerLeg:
+                    return CoverageMask.OuterwearLowerLegs | CoverageMask.UnderwearLowerLegs;
+                case CombatBodyPart.UpperArm:
+                    return CoverageMask.OuterwearUpperArms | CoverageMask.UnderwearUpperArms;
+                case CombatBodyPart.UpperLeg:
+                    return CoverageMask.OuterwearUpperLegs | CoverageMask.UnderwearUpperLegs;
+                default:
+                    return CoverageMask.Unknown;
+            }
         }
 
         public static List<BodyPart> GetFlags(BodyPart bodyParts)
@@ -113,18 +170,34 @@ namespace ACE.Server.Entity
             return Enum.GetValues(typeof(BodyPart)).Cast<BodyPart>().Where(p => bodyParts.HasFlag(p)).ToList();
         }
 
-        public static List<EquipMask> GetFlags(EquipMask locations)
+        /*public static List<EquipMask> GetFlags(EquipMask locations)
         {
             return Enum.GetValues(typeof(EquipMask)).Cast<EquipMask>().Where(p => p != EquipMask.None && locations.HasFlag(p)).ToList();
+        }*/
+
+        public static List<CoverageMask> GetFlags(CoverageMask coverage)
+        {
+            return Enum.GetValues(typeof(CoverageMask)).Cast<CoverageMask>().Where(p => p != CoverageMask.Unknown && coverage.HasFlag(p)).ToList();
         }
 
-        public static bool HasAny(EquipMask? location, List<EquipMask> flags)
+        /*public static bool HasAny(EquipMask? location, List<EquipMask> flags)
         {
             if (location == null)
                 return false;
 
             foreach (var flag in flags)
                 if (location.Value.HasFlag(flag))
+                    return true;
+            return false;
+        }*/
+
+        public static bool HasAny(CoverageMask? coverage, List<CoverageMask> flags)
+        {
+            if (coverage == null)
+                return false;
+
+            foreach (var flag in flags)
+                if (coverage.Value.HasFlag(flag))
                     return true;
             return false;
         }

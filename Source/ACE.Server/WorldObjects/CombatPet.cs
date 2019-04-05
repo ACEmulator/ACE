@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
     /// <summary>
     /// Summonable monsters combat AI
     /// </summary>
-    public class CombatPet: Creature
+    public class CombatPet : Creature
     {
         public DateTime ExpirationTime;
 
@@ -37,10 +37,12 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-
+            Ethereal = true;
+            RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
+            Usable = ACE.Entity.Enum.Usable.No;
         }
 
-        public void Init(Player player, DamageType damageType)
+        public void Init(Player player, DamageType damageType, PetDevice petDevice)
         {
             SuppressGenerateEffect = true;
             NoCorpse = true;
@@ -55,6 +57,15 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
             MonsterState = State.Awake;
             IsAwake = true;
+            player.CurrentActiveCombatPet = this;
+
+            // copy ratings from pet device
+            DamageRating = petDevice.GearDamage;
+            DamageResistRating = petDevice.GearDamageResist;
+            CritDamageRating = petDevice.GearCritDamage;
+            CritDamageResistRating = petDevice.GearCritDamageResist;
+            CritRating = petDevice.GearCrit;
+            CritResistRating = petDevice.GearCritResist;
 
             /*var spellBase = DatManager.PortalDat.SpellTable.Spells[32981];
             var spell = DatabaseManager.World.GetCachedSpell(32981);
@@ -93,7 +104,7 @@ namespace ACE.Server.WorldObjects
 
             // get nearest monster
             var nearest = BuildTargetDistance(nearbyMonsters);
-            if (nearest[0].Distance > RadiusAwarenessSquared)
+            if (nearest[0].Distance > RadiusAwareness)
             {
                 //Console.WriteLine($"{Name}.FindNextTarget(): next object out-of-range (dist: {Math.Round(Math.Sqrt(nearest[0].Distance))})");
                 return false;

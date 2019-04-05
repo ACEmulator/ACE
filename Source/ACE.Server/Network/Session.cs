@@ -85,11 +85,6 @@ namespace ACE.Server.Network
                 DropSession("PacketHeader Disconnect");
         }
 
-        public uint GetIssacValue(PacketDirection direction)
-        {
-            return (direction == PacketDirection.Client ? Network.ConnectionData.IssacClient.GetOffset() : Network.ConnectionData.IssacServer.GetOffset());
-        }
-
 
         /// <summary>
         /// This will process all inbound GameActions.
@@ -214,7 +209,7 @@ namespace ACE.Server.Network
 
             Network.EnqueueSend(new GameMessageCharacterList(Characters, this));
 
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetAllOnline().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
             Network.EnqueueSend(serverNameMessage);
 
             State = SessionState.AuthConnected;
@@ -232,7 +227,8 @@ namespace ACE.Server.Network
 
         public void DropSession(string reason)
         {
-            log.Info($"Session dropped. Account: {Account}, Player: {Player?.Name}, Reason: {reason}");
+            if (reason != "Pong sent, closing connection.")
+                log.Info($"Session dropped. Account: {Account}, Player: {Player?.Name}, Reason: {reason}");
 
             if (Player != null)
             {

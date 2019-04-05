@@ -101,12 +101,12 @@ namespace ACE.Server.Managers
 
             bool useFallback = dbValue?.Value == null;
 
-            var boolVal = dbValue?.Value ?? fallback;
+            var value = dbValue?.Value ?? fallback;
 
             if (!useFallback || cacheFallback)
-                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(useFallback, boolVal, dbValue.Description);
+                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(useFallback, value, dbValue?.Description);
 
-            return new Property<bool>(boolVal, dbValue.Description);
+            return new Property<bool>(value, dbValue?.Description);
         }
 
         /// <summary>
@@ -146,12 +146,12 @@ namespace ACE.Server.Managers
 
             bool useFallback = dbValue?.Value == null;
 
-            var intVal = dbValue?.Value ?? fallback;
+            var value = dbValue?.Value ?? fallback;
 
             if (!useFallback || cacheFallback)
-                CachedLongSettings[key] = new ConfigurationEntry<long>(useFallback, intVal, dbValue.Description);
+                CachedLongSettings[key] = new ConfigurationEntry<long>(useFallback, value, dbValue?.Description);
 
-            return new Property<long>(intVal, dbValue.Description);
+            return new Property<long>(value, dbValue?.Description);
         }
 
         /// <summary>
@@ -191,12 +191,12 @@ namespace ACE.Server.Managers
 
             bool useFallback = dbValue?.Value == null;
 
-            var floatVal = dbValue?.Value ?? fallback;
+            var value = dbValue?.Value ?? fallback;
 
             if (!useFallback || cacheFallback)
-                CachedDoubleSettings[key] = new ConfigurationEntry<double>(useFallback, floatVal, dbValue.Description);
+                CachedDoubleSettings[key] = new ConfigurationEntry<double>(useFallback, value, dbValue?.Description);
 
-            return new Property<double>(CachedDoubleSettings[key].Item, CachedDoubleSettings[key].Description);
+            return new Property<double>(value, dbValue?.Description);
         }
 
         /// <summary>
@@ -236,12 +236,12 @@ namespace ACE.Server.Managers
 
             bool useFallback = dbValue?.Value == null;
 
-            var stringVal = dbValue?.Value ?? fallback;
+            var value = dbValue?.Value ?? fallback;
 
             if (!useFallback || cacheFallback)
-                CachedStringSettings[key] = new ConfigurationEntry<string>(useFallback, stringVal, dbValue.Description);
+                CachedStringSettings[key] = new ConfigurationEntry<string>(useFallback, value, dbValue?.Description);
 
-            return new Property<string>(stringVal, dbValue.Description);
+            return new Property<string>(value, dbValue?.Description);
         }
 
         /// <summary>
@@ -432,25 +432,44 @@ namespace ACE.Server.Managers
                 PropertyManager.ModifyString(item.Key, item.Value);
         }
 
+        // ==================================================================================
+        // To change these values for the server,
+        // please use the /modifybool, /modifylong, /modifydouble, and /modifystring commands
+        // ==================================================================================
+
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
-                ("alwaysshowwelcome", false),
-                ("pk_server", false)
+                ("chess_enabled", true),
+                ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
+                ("house_purchase_requirements", true),
+                ("house_rent_enabled", true),
+                ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
+                ("pk_server", false),
+                ("show_dot_messages", false)        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
                 );
 
-        public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties = DictOf<string, long>();
+        public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
+            DictOf<string, long>(
+                ("char_delete_time", 3600),     // the amount of time in seconds a deleted character can be restored
+                ("mansion_min_rank", 6),        // overrides the default allegiance rank required to own a mansion
+                ("max_chars_per_account", 11)   // retail defaults to 11, client supports up to 20
+                );
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
-                ("xp_modifier", 1.0d),
-                ("luminance_modifier", 1.0d),
-                ("vitae_penalty", 0.05d),
-                ("vitae_min", 0.60d)
+                ("chess_ai_start_time", -1.0),  // the number of seconds for the chess ai to start. defaults to -1 (disabled)
+                ("luminance_modifier", 1.0),
+                ("vitae_penalty", 0.05),
+                ("vitae_penalty_max", 0.40),
+                ("xp_modifier", 1.0)
                 );
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
             DictOf(
-                ("motd_string", "Welcome to Asheron's Call" + "\n" + "  powered by ACEmulator  " + " \n" + "\n" + "For more information on commands supported by this server, type @acehelp" + "\n")
+                ("popup_header", "Welcome to Asheron's Call!"),
+                ("popup_welcome", "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation."),
+                ("popup_motd", ""),
+                ("server_motd", "")
                 );
     }
 }

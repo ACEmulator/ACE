@@ -1,8 +1,12 @@
 using System;
+using System.Linq;
+using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -22,6 +26,16 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Player
     {
+        public enum DebugDamageType
+        {
+            None     = 0x0,
+            Attacker = 0x1,
+            Defender = 0x2,
+            All      = Attacker | Defender
+        };
+
+        public DebugDamageType DebugDamage;
+
         /// <summary>
         /// Returns the current attack skill for the player
         /// </summary>
@@ -43,6 +57,9 @@ namespace ACE.Server.WorldObjects
             // missile weapon
             if (weapon != null && weapon.CurrentWieldedLocation == EquipMask.MissileWeapon)
                 return GetCreatureSkill(Skill.MissileWeapons).Skill;
+
+            if (weapon != null && weapon.WeaponSkill == Skill.TwoHandedCombat)
+                return Skill.TwoHandedCombat;
 
             // hack for converting pre-MoA skills
             var maxMelee = GetCreatureSkill(GetHighestMeleeSkill());
@@ -79,7 +96,7 @@ namespace ACE.Server.WorldObjects
             return maxMelee.Skill;
         }
 
-        public override CombatType GetAttackType()
+        public override CombatType GetCombatType()
         {
             var weapon = GetEquippedWeapon();
 
@@ -89,13 +106,10 @@ namespace ACE.Server.WorldObjects
                 return CombatType.Missile;
         }
 
-        public float? DamageTarget(Creature target, WorldObject damageSource)
+        public DamageEvent DamageTarget(Creature target, WorldObject damageSource)
         {
             if (target.Health.Current <= 0)
-                return 0.0f;
-
-            var critical = false;
-            var sneakAttack = false;
+                return null;
 
             // check PK status
             var targetPlayer = target as Player;
@@ -104,34 +118,22 @@ namespace ACE.Server.WorldObjects
                 var pkError = CheckPKStatusVsTarget(this, targetPlayer, null);
                 if (pkError != null)
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)pkError, target.Name));
-                    return 0.0f;
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, pkError[0], target.Name));
+                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], Name));
+                    return null;
                 }
             }
-            var bodyPart = BodyPart.Chest;
-            var damageType = GetDamageType();
 
-            float? damage = null;
-            if (targetPlayer != null)
+            var damageEvent = DamageEvent.CalculateDamage(this, target, damageSource);
+
+            if (damageEvent.HasDamage)
             {
-                damage = CalculateDamagePVP(target, damageSource, damageType, ref critical, ref sneakAttack, ref bodyPart);
-
-                // TODO: level up shield mod?
-                if (targetPlayer.Invincible ?? false)
-                    damage = 0.0f;
-            }
-            else
-                damage = CalculateDamage(target, damageSource, ref critical, ref sneakAttack);
-
-            if (damage != null)
-            {
-                var attackType = GetAttackType();
-                OnDamageTarget(target, attackType, critical);
+                OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
 
                 if (targetPlayer != null)
-                    targetPlayer.TakeDamage(this, damageType, damage.Value, bodyPart, critical);
+                    targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical);
                 else
-                    target.TakeDamage(this, damageType, damage.Value, critical);
+                    target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);
             }
             else
             {
@@ -141,32 +143,24 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
             }
 
-            if (damage != null && target.Health.Current > 0)
+            if (damageEvent.HasDamage && target.IsAlive)
             {
-                var recklessnessMod = critical ? 1.0f : GetRecklessnessMod();
-
                 var attackConditions = new AttackConditions();
-                if (recklessnessMod > 1.0f)
+                if (damageEvent.RecklessnessMod > 1.0f)
                     attackConditions |= AttackConditions.Recklessness;
-                if (sneakAttack)
+                if (damageEvent.SneakAttackMod > 1.0f)
                     attackConditions |= AttackConditions.SneakAttack;
 
                 // notify attacker
-                var intDamage = (uint)Math.Round(damage.Value);
-                if (damageSource?.ItemType == ItemType.MissileWeapon)
-                {
-                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / target.Health.MaxValue, intDamage, critical, attackConditions));
-                }
-                else
-                {
-                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / target.Health.MaxValue, intDamage, critical, attackConditions));
-                }
+                var intDamage = (uint)Math.Round(damageEvent.Damage);
+
+                Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, attackConditions));
 
                 // splatter effects
                 if (targetPlayer == null)
                 {
                     Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
-                    if (damage >= target.Health.MaxValue * 0.25f)
+                    if (damageEvent.Damage >= target.Health.MaxValue * 0.25f)
                     {
                         var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + ThreadSafeRandom.Next(1, 3), true);
                         Session.Network.EnqueueSend(new GameMessageSound(target.Guid, painSound, 1.0f));
@@ -180,13 +174,13 @@ namespace ACE.Server.WorldObjects
                     FightDirty(target);
             }
 
-            if (damage != null && damage > 0.0f)
+            if (damageEvent.Damage > 0.0f)
                 Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
 
             if (targetPlayer == null)
                 OnAttackMonster(target);
 
-            return damage;
+            return damageEvent;
         }
 
         /// <summary>
@@ -203,12 +197,13 @@ namespace ACE.Server.WorldObjects
             Proficiency.OnSuccessUse(this, attackSkill, difficulty);
         }
 
-        public uint GetEffectiveAttackSkill()
+        public override uint GetEffectiveAttackSkill()
         {
-            var attackType = GetAttackType();
+            var weapon = GetEquippedWeapon();
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill()).Current;
             var offenseMod = GetWeaponOffenseModifier(this);
-            var accuracyMod = attackType == CombatType.Missile ? AccuracyLevel + 0.6f : 1.0f;
+            var accuracyMod = GetAccuracyMod(weapon);
+
             attackSkill = (uint)Math.Round(attackSkill * accuracyMod * offenseMod);
 
             //if (IsExhausted)
@@ -225,7 +220,7 @@ namespace ACE.Server.WorldObjects
             var creature = target as Creature;
             if (creature == null) return 0;
 
-            var attackType = GetAttackType();
+            var attackType = GetCombatType();
             var defenseSkill = attackType == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(creature) : 1.0f;
             var effectiveDefense = (uint)Math.Round(creature.GetCreatureSkill(defenseSkill).Current * defenseMod);
@@ -298,7 +293,7 @@ namespace ACE.Server.WorldObjects
 
         public override Range GetBaseDamage()
         {
-            var attackType = GetAttackType();
+            var attackType = GetCombatType();
             var damageSource = attackType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
 
             return damageSource != null ? damageSource.GetDamageMod(this) : new Range(1, 5);
@@ -310,6 +305,7 @@ namespace ACE.Server.WorldObjects
         public float? CalculateDamagePVP(WorldObject target, WorldObject damageSource, DamageType damageType, ref bool criticalHit, ref bool sneakAttack, ref BodyPart bodyPart)
         {
             // verify target player killer
+            var targetCreature = target as Creature;
             var targetPlayer = target as Player;
             if (targetPlayer == null)
                 return null;
@@ -332,44 +328,65 @@ namespace ACE.Server.WorldObjects
             var baseDamage = ThreadSafeRandom.Next(baseDamageRange.Min, baseDamageRange.Max);
 
             // get damage mods
-            var attackType = GetAttackType();
+            var attackType = GetCombatType();
             var attributeMod = GetAttributeMod(weapon);
-            var powerAccuracyMod = GetPowerAccuracyMod();
+            var powerMod = GetPowerMod(weapon);
             var recklessnessMod = GetRecklessnessMod(this, targetPlayer);
             var sneakAttackMod = GetSneakAttackMod(target);
             sneakAttack = sneakAttackMod > 1.0f;
 
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
+            // heritage damge mod
+            var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
+
+            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
-            var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
+            var damage = baseDamage * attributeMod * powerMod * damageRatingMod;
 
             // critical hit
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
-            var critical = GetWeaponPhysicalCritFrequencyModifier(this, attackSkill);
+            var critical = GetWeaponCritChanceModifier(this, attackSkill, targetCreature);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * (1.0f + GetWeaponCritMultiplierModifier(this, attackSkill));
-                criticalHit = true;
+                if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
+                {
+                    var protChance = targetPlayer.AugmentationCriticalDefense * 0.05f;
+                    if (ThreadSafeRandom.Next(0.0f, 1.0f) > protChance)
+                        criticalHit = true;
+                }
+                else
+                    criticalHit = true; 
             }
+
+            if (criticalHit)
+            {
+                // not effective for criticals: recklessness
+                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
+                damage = baseDamageRange.Max * attributeMod * powerMod * damageRatingMod * (1.0f + GetWeaponCritDamageMod(this, attackSkill, targetCreature));
+            }
+
+            // get armor rending mod here?
+            var armorRendingMod = 1.0f;
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
+                armorRendingMod = GetArmorRendingMod(attackSkill);
 
             // select random body part @ current attack height
             bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
 
             // get armor piece
-            var armor = GetArmor(bodyPart);
+            var armor = GetArmorLayers(bodyPart);
 
             // get armor modifiers
-            var armorMod = GetArmorMod(armor, damageSource, damageType, attackSkill);
+            var armorMod = GetArmorMod(damageType, armor, damageSource, armorRendingMod);
 
             // get resistance modifiers (protect/vuln)
             var resistanceMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
 
             // weapon resistance mod?
-            var damageResistRatingMod = GetNegativeRatingMod(AttackTarget.EnchantmentManager.GetDamageResistRating());
+            var attackTarget = AttackTarget as Creature;
+            var damageResistRatingMod = GetNegativeRatingMod(attackTarget.GetDamageResistRating());
 
             // get shield modifier
-            var attackTarget = AttackTarget as Creature;
             var shieldMod = attackTarget.GetShieldMod(this, damageType);
 
             var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
@@ -396,24 +413,27 @@ namespace ACE.Server.WorldObjects
             var baseDamage = ThreadSafeRandom.Next(baseDamageRange.Min, baseDamageRange.Max);
 
             // get damage mods
-            var attackType = GetAttackType();
+            var attackType = GetCombatType();
             var attributeMod = GetAttributeMod(weapon);
-            var powerAccuracyMod = GetPowerAccuracyMod();
+            var powerAccuracyMod = GetPowerMod(weapon);
             var recklessnessMod = GetRecklessnessMod(this, creature);
             var sneakAttackMod = GetSneakAttackMod(target);
             sneakAttack = sneakAttackMod > 1.0f;
 
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
+            // heritage damge mod
+            var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
+
+            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetPositiveRatingMod(GetDamageRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
 
             // critical hit
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
-            var critical = GetWeaponPhysicalCritFrequencyModifier(this, attackSkill);
+            var critical = GetWeaponCritChanceModifier(this, attackSkill, creature);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
-                var criticalDamageMod = 1.0f + GetWeaponCritMultiplierModifier(this, attackSkill);
+                var criticalDamageMod = 1.0f + GetWeaponCritDamageMod(this, attackSkill, creature);
                 damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * criticalDamageMod;
                 criticalHit = true;
             }
@@ -441,7 +461,7 @@ namespace ACE.Server.WorldObjects
             var resistance = GetResistance(creaturePart, damageType);
 
             // ratings
-            var damageResistRatingMod = GetNegativeRatingMod(creature.EnchantmentManager.GetDamageResistRating());
+            var damageResistRatingMod = GetNegativeRatingMod(creature.GetDamageResistRating());
             //Console.WriteLine("Damage resistance rating: " + NegativeModToRating(damageResistRatingMod));
 
             // scale damage for armor and shield
@@ -453,12 +473,17 @@ namespace ACE.Server.WorldObjects
             return (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod * damageResistRatingMod;
         }
 
-        public float GetPowerAccuracyMod()
+        public override float GetPowerMod(WorldObject weapon)
         {
-            var attackType = GetAttackType();
-            if (attackType == CombatType.Melee)
+            if (weapon == null || !weapon.IsBow)
                 return PowerLevel + 0.5f;
-            else if (attackType == CombatType.Missile)
+            else
+                return 1.0f;
+        }
+
+        public override float GetAccuracyMod(WorldObject weapon)
+        {
+            if (weapon != null && weapon.IsBow)
                 return AccuracyLevel + 0.6f;
             else
                 return 1.0f;
@@ -466,7 +491,7 @@ namespace ACE.Server.WorldObjects
 
         public float GetPowerAccuracyBar()
         {
-            return GetAttackType() == CombatType.Missile ? AccuracyLevel : PowerLevel;
+            return GetCombatType() == CombatType.Missile ? AccuracyLevel : PowerLevel;
         }
 
         public double GetLifeResistance(DamageType damageType)
@@ -476,7 +501,7 @@ namespace ACE.Server.WorldObjects
             switch (damageType)
             {
                 case DamageType.Slash:
-                    resistance = ResistAcidMod;
+                    resistance = ResistSlashMod;
                     break;
 
                 case DamageType.Pierce:
@@ -593,9 +618,12 @@ namespace ACE.Server.WorldObjects
                 Fellowship.OnVitalUpdate(this);
 
             // send damage text message
-            var nether = damageType == DamageType.Nether ? "nether " : "";
-            var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
-            Session.Network.EnqueueSend(text);
+            if (PropertyManager.GetBool("show_dot_messages").Item)
+            {
+                var nether = damageType == DamageType.Nether ? "nether " : "";
+                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
+                Session.Network.EnqueueSend(text);
+            }
 
             // splatter effects
             //var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
@@ -621,7 +649,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
-            if (Invincible ?? false) return;
+            if (Invincible ?? false || IsDead) return;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
@@ -643,7 +671,7 @@ namespace ACE.Server.WorldObjects
             if (Fellowship != null)
                 Fellowship.OnVitalUpdate(this);
 
-            if (Health.Current == 0)
+            if (Health.Current <= 0)
             {
                 OnDeath(source, damageType, crit);
                 Die();
@@ -838,8 +866,14 @@ namespace ACE.Server.WorldObjects
                             var equippedAmmo = GetEquippedAmmo();
                             if (equippedAmmo == null)
                             {
+                                var animTime = SetCombatMode(newCombatMode);
                                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
-                                newCombatMode = CombatMode.NonCombat;
+
+                                var actionChain = new ActionChain();
+                                actionChain.AddDelaySeconds(animTime);
+                                actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
+                                actionChain.EnqueueChain();
+                                return;
                             }
                             else
                             {
@@ -860,6 +894,91 @@ namespace ACE.Server.WorldObjects
             }
 
             SetCombatMode(newCombatMode);
+        }
+
+        /// <summary>
+        /// Returns the current attack maneuver for a player
+        /// </summary>
+        public override AttackType GetAttackType(WorldObject weapon, CombatManeuver combatManuever)
+        {
+            // should probably come from combat maneuvers table, even for players
+            return GetWeaponAttackType(weapon);
+        }
+
+        public override bool CanDamage(Creature target)
+        {
+            return true;    // handled elsewhere
+        }
+
+        // http://acpedia.org/wiki/Announcements_-_2002/04_-_Betrayal
+
+        // Some combination of strength and endurance (the two are roughly of equivalent importance) now allows one to have a level of "natural resistances" to the 7 damage types,
+        // and to partially resist drain health and harm attacks.
+
+        // This caps out at a 50% resistance (the equivalent to level 5 life prots) to these damage types.
+
+        // This resistance is not additive to life protections: higher level life protections will overwrite these natural resistances,
+        // although life vulns will take these natural resistances into account, if the player does not have a higher level life protection cast upon them.
+
+        // For example, a player will not get a free protective bonus from natural resistances if they have both Prot 7 and Vuln 7 cast upon them.
+        // The Prot and Vuln will cancel each other out, and since the Prot has overwritten the natural resistances, there will be no resistance bonus.
+
+        // The natural resistances, drain resistances, and regeneration rate info are now visible on the Character Information Panel, in what was once the Burden panel.
+
+        // The 5 categories for the endurance benefits are, in order from lowest benefit to highest: Poor, Mediocre, Hardy, Resilient, and Indomitable,
+        // with each range of benefits divided up equally amongst the 5 (e.g. Poor describes having anywhere from 1-10% resistance against drain health attacks, etc.).
+
+        // A few other important notes:
+
+        // - The abilities that Endurance or Endurance/Strength conveys are not increased by Strength or Endurance buffs.
+        //   It is the raw Strength and/or Endurance scores that determine the various bonuses.
+        // - For April, natural resistances will offer some protection versus hollow type damage, whether it is from a Hollow Minion or a Hollow weapon. This will be changed in May.
+        // - These abilities are player-only, creatures with high endurance will not benefit from any of these changes.
+        // - Come May, you can type @help endurance for a summary of the April changes to Endurance.
+
+        public override float GetNaturalResistance(DamageType damageType)
+        {
+            // base strength and endurance give the player a natural resistance to damage,
+            // which caps at 50% (equivalent to level 5 life prots)
+            // these do not stack with life protection spells
+
+            // - natural resistances are ignored by hollow damage
+
+            var strAndEnd = Strength.Base + Endurance.Base;
+
+            if (strAndEnd <= 200)
+                return 1.0f;
+
+            var naturalResistance = 1.0f - (float)(strAndEnd - 200) / 300 * 0.5f;
+            naturalResistance = Math.Max(naturalResistance, 0.5f);
+
+            return naturalResistance;
+        }
+
+        public string GetNaturalResistanceString(ResistanceType resistanceType)
+        {
+            var strAndEnd = Strength.Base + Endurance.Base;
+
+            if (strAndEnd > 440)        return "Indomitable";
+            else if (strAndEnd > 380)   return "Resilient";
+            else if (strAndEnd > 320)   return "Hardy";
+            else if (strAndEnd > 260)   return "Mediocre";
+            else if (strAndEnd > 200)   return "Poor";
+            else
+                return "None";
+        }
+
+        public string GetRegenBonusString()
+        {
+            var strAndEnd = Strength.Base + 2 * Endurance.Base;
+
+            if (strAndEnd > 690)        return "Indomitable";
+            else if (strAndEnd > 580)   return "Resilient";
+            else if (strAndEnd > 470)   return "Hardy";
+            else if (strAndEnd > 346)   return "Mediocre";
+            else if (strAndEnd > 200)   return "Poor";
+            else
+                return "None";
         }
     }
 }

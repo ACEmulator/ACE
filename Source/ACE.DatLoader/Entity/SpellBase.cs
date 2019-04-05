@@ -12,7 +12,7 @@ namespace ACE.DatLoader.Entity
         public string Desc { get; private set; }
         public MagicSchool School { get; private set; }
         public uint Icon { get; private set; }
-        public uint Category { get; private set; } // All related levels of the same spell. Same category spells will not stack. (Strength Self I & Strength Self II)
+        public SpellCategory Category { get; private set; } // All related levels of the same spell. Same category spells will not stack. (Strength Self I & Strength Self II)
         public uint Bitfield { get; private set; }
         public uint BaseMana { get; private set; } // Mana Cost
         public float BaseRangeConstant { get; private set; }
@@ -63,7 +63,7 @@ namespace ACE.DatLoader.Entity
             reader.AlignBoundary();
             School = (MagicSchool)reader.ReadUInt32();
             Icon = reader.ReadUInt32();
-            Category = reader.ReadUInt32();
+            Category = (SpellCategory)reader.ReadUInt32();
             Bitfield = reader.ReadUInt32();
             BaseMana = reader.ReadUInt32();
             BaseRangeConstant = reader.ReadSingle();

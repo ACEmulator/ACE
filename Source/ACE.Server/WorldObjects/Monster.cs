@@ -1,4 +1,5 @@
 using System;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects

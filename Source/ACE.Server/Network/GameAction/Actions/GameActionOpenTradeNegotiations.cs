@@ -9,15 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var tradePartnerGuid = message.Payload.ReadUInt32();
 
-            var tradePartner = PlayerManager.GetOnlinePlayer(tradePartnerGuid);
-
-            if (tradePartner != null)
-            {
-                //Open the trade window for the trade partner
-                if (session.Player.HandleActionOpenTradeNegotiations(session, tradePartner, true))
-                    //Trade partner met all criteria to initiate trade, open their window
-                    tradePartner.HandleActionOpenTradeNegotiations(tradePartner.Session, session.Player);
-            }
+            session.Player.HandleActionOpenTradeNegotiations(tradePartnerGuid, true);
         }
     }
 }

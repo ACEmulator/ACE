@@ -7,6 +7,7 @@ using System.Text;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -59,8 +60,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Landblock CurrentLandblock { get; internal set; }
 
-        public int ManaGiven { get; set; }
-
         public DateTime? ItemManaDepletionMessageTimestamp { get; set; } = null;
         public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;
 
@@ -79,6 +78,8 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
+
+        public WorldObject Wielder;
 
         public WorldObject() { }
 
@@ -251,8 +252,6 @@ namespace ACE.Server.WorldObjects
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
-            EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
-
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManagerWithCaching(this);
 
@@ -267,23 +266,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HandleNPCReceiveItem(WorldObject item, WorldObject giver)
+        public bool HandleNPCReceiveItem(WorldObject item, WorldObject giver, out BiotaPropertiesEmote emote)
         {
-            // NPC accepts this item
-            var giveItem = EmoteManager.GetEmoteSet(EmoteCategory.Give, null, null, item.WeenieClassId);
-            if (giveItem != null)
-            {
-                EmoteManager.ExecuteEmoteSet(giveItem, giver);
-                return true;
-            }
-
             // NPC refuses this item, with a custom response
             var refuseItem = EmoteManager.GetEmoteSet(EmoteCategory.Refuse, null, null, item.WeenieClassId);
             if (refuseItem != null)
             {
+                emote = refuseItem;
                 EmoteManager.ExecuteEmoteSet(refuseItem, giver);
                 return true;
+            }            
+
+            // NPC accepts this item
+            var giveItem = EmoteManager.GetEmoteSet(EmoteCategory.Give, null, null, item.WeenieClassId);
+            if (giveItem != null)
+            {
+                emote = giveItem;
+                EmoteManager.ExecuteEmoteSet(giveItem, giver);
+                return true;
             }
+
+            emote = null;
             return false;
         }
 
@@ -497,7 +500,7 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {obj.CurrentWieldedLocation}" + " (" + (uint)obj.CurrentWieldedLocation + ")");
                         break;
                     case "priority":
-                        sb.AppendLine($"{prop.Name} = {obj.Priority}" + " (" + (uint)obj.Priority + ")");
+                        sb.AppendLine($"{prop.Name} = {obj.ClothingPriority}" + " (" + (uint)obj.ClothingPriority + ")");
                         break;
                     case "radarcolor":
                         sb.AppendLine($"{prop.Name} = {obj.RadarColor}" + " (" + (uint)obj.RadarColor + ")");
@@ -551,7 +554,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in obj.GetAllPropertyDataId())
                 sb.AppendLine($"PropertyDataId.{Enum.GetName(typeof(PropertyDataId), item.Key)} ({(int)item.Key}) = {item.Value}");
             foreach (var item in obj.GetAllPropertyFloat())
-                sb.AppendLine($"PropertyDouble.{Enum.GetName(typeof(PropertyFloat), item.Key)} ({(int)item.Key}) = {item.Value}");
+                sb.AppendLine($"PropertyFloat.{Enum.GetName(typeof(PropertyFloat), item.Key)} ({(int)item.Key}) = {item.Value}");
             foreach (var item in obj.GetAllPropertyInstanceId())
                 sb.AppendLine($"PropertyInstanceId.{Enum.GetName(typeof(PropertyInstanceId), item.Key)} ({(int)item.Key}) = {item.Value}");
             foreach (var item in obj.GetAllPropertyInt())
@@ -714,16 +717,6 @@ namespace ACE.Server.WorldObjects
             return adjusted;
         }
 
-        public virtual void Open(WorldObject opener)
-        {
-            // empty base, override in child objects
-        }
-
-        public virtual void Close(WorldObject closer)
-        {
-            // empty base, override in child objects
-        }
-
         /// <summary>
         /// Returns a strike message based on damage type and severity
         /// </summary>
@@ -823,7 +816,7 @@ namespace ACE.Server.WorldObjects
                 return DamageType.Bludgeon;
 
             DamageType damageTypes;
-            var attackType = creature.GetAttackType();
+            var attackType = creature.GetCombatType();
             if (attackType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher)
                 damageTypes = (DamageType)(weapon.GetProperty(PropertyInt.DamageType) ?? 0);
             else
@@ -848,11 +841,22 @@ namespace ACE.Server.WorldObjects
             return damageTypes;
         }
 
+        private bool isDestroyed;
+
         /// <summary>
-        /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.
+        /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.<para />
+        /// An object should only be destroyed once.
         /// </summary>
-        public virtual void Destroy()
+        public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
         {
+            if (isDestroyed)
+            {
+                log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
+                return;
+            }
+
+            isDestroyed = true;
+
             if (this is Container container)
             {
                 foreach (var item in container.Inventory.Values)
@@ -865,14 +869,40 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
-            NotifyOfEvent(RegenerationType.Destruction);
+            if (this is CombatPet combatPet)
+            {
+                if (combatPet.P_PetOwner.CurrentActiveCombatPet == this)
+                    combatPet.P_PetOwner.CurrentActiveCombatPet = null;
+            }
+
+            if (raiseNotifyOfDestructionEvent)
+                NotifyOfEvent(RegenerationType.Destruction);
+
             CurrentLandblock?.RemoveWorldObject(Guid);
             RemoveBiotaFromDatabase();
+
+            if (Guid.IsDynamic())
+                GuidManager.RecycleDynamicGuid(Guid);
+        }
+
+        public void FadeOutAndDestroy(bool raiseNotifyOfDestructionEvent = true)
+        {
+            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Destroy));
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(1.0f);
+            actionChain.AddAction(this, () => Destroy(raiseNotifyOfDestructionEvent));
+            actionChain.EnqueueChain();
         }
 
         public string GetPluralName()
         {
-            return Name + "s";
+            var pluralName = PluralName;
+
+            if (pluralName == null)
+                pluralName = Name.Pluralize();
+
+            return pluralName;
         }
 
         /// <summary>
@@ -941,6 +971,8 @@ namespace ACE.Server.WorldObjects
         public static readonly float LocalBroadcastRange = 96.0f;
 
         public SetPosition ScatterPos;
+
+        public DestinationType DestinationType;
 
         public Skill ConvertToMoASkill(Skill skill)
         {

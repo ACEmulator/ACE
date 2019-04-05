@@ -23,12 +23,12 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<TreasureWielded> input, StreamWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteLine($"DELETE FROM `treasure_wielded` WHERE `treasure_Type` = {input[0].TreasureType};");
         }
 
         public void CreateSQLINSERTStatement(IList<TreasureWielded> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `treasure_wielded` (`treasure_Type`, `weenie_Class_Id`, `palette_Id`, `unknown_1`, `shade`, `stack_Size`, `stack_Size_Variance`, `probability`, `unknown_3`, `unknown_4`, `unknown_5`, `set_Start`, `has_Sub_Set`, `continues_Previous_Set`, `unknown_9`, `unknown_10`, `unknown_11`, `unknown_12`)");
+            writer.WriteLine("INSERT INTO `treasure_wielded` (`treasure_Type`, `weenie_Class_Id`, `palette_Id`, `unknown_1`, `shade`, `stack_Size`, `stack_Size_Variance`, `probability`, `unknown_3`, `unknown_4`, `unknown_5`, `set_Start`, `has_Sub_Set`, `continues_Previous_Set`, `unknown_9`, `unknown_10`, `unknown_11`, `unknown_12`, `last_Modified`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {
@@ -54,7 +54,9 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].Unknown9}, " +
                     $"{input[i].Unknown10}, " +
                     $"{input[i].Unknown11}, " +
-                    $"{input[i].Unknown12}) /* {weenieLabel} */";
+                    $"{input[i].Unknown12}, " +
+                    $"'{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'" +
+                    $") /* {weenieLabel} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);

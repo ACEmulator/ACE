@@ -69,7 +69,41 @@ namespace ACE.Server.WorldObjects.Entity
             {
                 uint total = Ranks + StartingValue;
 
-                // TODO: augs
+                // TODO: cap at 10x of these augs across the board elsewhere
+                // verify this with client formula
+
+                // NOTE: this has been moved to InitLevel
+
+                /*if (creature is Player player)
+                {
+                    switch (Attribute)
+                    {
+                        case PropertyAttribute.Strength:
+                            if (player.AugmentationInnateStrength > 0)
+                                total += (uint)(player.AugmentationInnateStrength * 5);
+                            break;
+                        case PropertyAttribute.Endurance:
+                            if (player.AugmentationInnateEndurance > 0)
+                                total += (uint)(player.AugmentationInnateEndurance * 5);
+                            break;
+                        case PropertyAttribute.Coordination:
+                            if (player.AugmentationInnateCoordination > 0)
+                                total += (uint)(player.AugmentationInnateCoordination * 5);
+                            break;
+                        case PropertyAttribute.Quickness:
+                            if (player.AugmentationInnateQuickness > 0)
+                                total += (uint)(player.AugmentationInnateQuickness * 5);
+                            break;
+                        case PropertyAttribute.Focus:
+                            if (player.AugmentationInnateFocus > 0)
+                                total += (uint)(player.AugmentationInnateFocus * 5);
+                            break;
+                        case PropertyAttribute.Self:
+                            if (player.AugmentationInnateSelf > 0)
+                                total += (uint)(player.AugmentationInnateSelf * 5);
+                            break;
+                    }
+                }*/
 
                 return total;
             }

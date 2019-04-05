@@ -84,5 +84,11 @@ namespace ACE.Server.Network
         }
 
         public bool HasFlag(PacketHeaderFlags flags) { return (flags & Flags) != 0; }
+
+        public override string ToString()
+        {
+            var c = HasFlag(PacketHeaderFlags.EncryptedChecksum) ? "X" : "";
+            return $"Seq: {Sequence} Id: {Id} Iter: {Iteration} {c}CRC: {Checksum} {PacketHeaderFlagsUtil.UnfoldFlags(Flags)}";
+        }
     }
 }

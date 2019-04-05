@@ -74,10 +74,15 @@ namespace ACE.DatLoader.Entity
         }
 
         // Hair (Head)
-        public uint GetHeadObject(uint hairStyle)
+        public uint? GetHeadObject(uint hairStyle)
         {
             HairStyleCG hairstyle = HairStyleList[Convert.ToInt32(hairStyle)];
-            return hairstyle.ObjDesc.AnimPartChanges[0].PartID;
+
+            // Gear Knights, both Olthoi types have multiple anim part changes.
+            if (hairstyle.ObjDesc.AnimPartChanges.Count == 1)
+                return hairstyle.ObjDesc.AnimPartChanges[0].PartID;
+            else
+                return null;
         }
         public uint GetHairTexture(uint hairStyle)
         {

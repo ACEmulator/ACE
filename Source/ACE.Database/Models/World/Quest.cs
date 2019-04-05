@@ -10,5 +10,6 @@ namespace ACE.Database.Models.World
         public uint MinDelta { get; set; }
         public int MaxSolves { get; set; }
         public string Message { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
@@ -49,6 +50,30 @@ namespace ACE.Server.Network.Structure
             Rent = new List<HousePayment>();
             foreach (var rentItem in rentItems)
                 Rent.Add(new HousePayment(rentItem));
+        }
+
+        /// <summary>
+        /// Sets the items that have already been paid for rent
+        /// </summary>
+        public void SetPaidItems(SlumLord slumlord)
+        {
+            foreach (var item in slumlord.Inventory.Values)
+            {
+                var wcid = item.WeenieClassId;
+                var value = (uint)(item.StackSize ?? 1);
+                if (item.WeenieClassName.StartsWith("tradenote"))
+                {
+                    wcid = 273;
+                    value = (uint)item.Value;
+                }
+                var rentItem = Rent.FirstOrDefault(i => i.WeenieID == wcid);
+                if (rentItem == null)
+                {
+                    Console.WriteLine($"HouseData.SetPaidItems({slumlord.Name}): couldn't find rent item {item.WeenieClassId}");
+                    continue;
+                }
+                rentItem.Paid = Math.Min(rentItem.Num, rentItem.Paid + value);
+            }
         }
     }
 
