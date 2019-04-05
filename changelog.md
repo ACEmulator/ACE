@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-05
+[Ripley]
+* Add support for Barber NPCs.
+
 ### 2019-04-04
 [Ripley]
 * Fix to prevent multiple death stacking. You can only die one time until you resurrect at lifestone.

@@ -32,6 +32,9 @@ namespace ACE.Server.WorldObjects
 
             Sequences.SetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)Character.TotalLogins));
 
+            if (BarberActive)
+                BarberActive = false;
+
             HandleAugsForwardCompatibility();
 
             if (AllegianceNode != null)

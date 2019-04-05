@@ -1017,6 +1017,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.StartBarber:
+                    if (player != null)
+                        player.StartBarber();
                     break;
 
                 case EmoteType.StartEvent:
