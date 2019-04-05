@@ -45,24 +45,23 @@ namespace ACE.Server.WorldObjects
             var sourcePlayer = ProjectileSource as Player;
             var targetCreature = target as Creature;
 
+            DamageEvent damageEvent = null;
+
             if (targetCreature != null)
             {
                 if (sourcePlayer != null)
                 {
                     // player damage monster
-                    var damageEvent = sourcePlayer.DamageTarget(targetCreature, WorldObject);
+                    damageEvent = sourcePlayer.DamageTarget(targetCreature, WorldObject);
 
-                    if (damageEvent != null && damageEvent.Damage > 0)
-                        sourcePlayer.Session.Network.EnqueueSend(new GameMessageSound(WorldObject.Guid, Sound.Collision, 1.0f));    // todo: landblock broadcast?
+                    if (damageEvent != null && damageEvent.HasDamage)
+                        WorldObject.EnqueueBroadcast(new GameMessageSound(WorldObject.Guid, Sound.Collision, 1.0f));
                 }
                 else if (sourceCreature != null && sourceCreature.AttackTarget != null)
                 {
                     var targetPlayer = sourceCreature.AttackTarget as Player;
-                    var bodyPart = BodyParts.GetBodyPart(sourceCreature.AttackHeight.Value);
 
-                    var damageEvent = DamageEvent.CalculateDamage(sourceCreature, targetCreature, WorldObject);
-
-                    //var damage = sourceCreature.CalculateDamage(ref damageType, null, bodyPart, ref critical, ref shieldMod);
+                    damageEvent = DamageEvent.CalculateDamage(sourceCreature, targetCreature, WorldObject);
 
                     if (targetPlayer != null)
                     {
@@ -98,6 +97,10 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 }
+
+                // handle target procs
+                if (damageEvent != null && damageEvent.HasDamage)
+                    sourceCreature?.TryProcEquippedItems(targetCreature, false);
             }
 
             WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, false);

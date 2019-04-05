@@ -8,6 +8,7 @@ using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
@@ -483,6 +484,10 @@ namespace ACE.Server.WorldObjects
                             foreach (var fellow in fellows)
                                 CreatePlayerSpell(fellow, spell);
                         }
+
+                        // handle self procs
+                        TryProcEquippedItems(this, true);
+
                         break;
 
                     case CastingPreCheckStatus.InvalidPKStatus:
@@ -580,7 +585,13 @@ namespace ACE.Server.WorldObjects
                         player.Session.Network.EnqueueSend(enchantmentStatus.Message);
 
                     if (spell.IsHarmful)
+                    {
                         Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+
+                        // handle target procs
+                        if (creatureTarget != null && creatureTarget != this)
+                            TryProcEquippedItems(creatureTarget, false);
+                    }
                     else
                         Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
 
@@ -612,7 +623,13 @@ namespace ACE.Server.WorldObjects
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
                         if (spell.IsHarmful)
+                        {
                             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+
+                            // handle target procs
+                            if (creatureTarget != null && creatureTarget != this)
+                                TryProcEquippedItems(creatureTarget, false);
+                        }
                         else
                             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), spell.PowerMod);
                     }
@@ -666,7 +683,7 @@ namespace ACE.Server.WorldObjects
                             var items = ((Player)target).EquippedObjects.Values;
                             foreach (var item in items)
                             {
-                                if (item.WeenieType == WeenieType.Clothing)
+                                if (item.WeenieType == WeenieType.Clothing || item.IsShield)
                                 {
                                     enchantmentStatus = ItemMagic(item, spell);
                                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -688,7 +705,7 @@ namespace ACE.Server.WorldObjects
         {
             var castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
 
-            if (IsBusy)
+            if (IsBusy || Teleporting)
             {
                 Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.YoureTooBusy));
                 return;
@@ -803,6 +820,10 @@ namespace ACE.Server.WorldObjects
                                 Session.Network.EnqueueSend(new GameMessageSystemChat("Untargeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
                                 break;
                         }
+
+                        // handle self procs
+                        TryProcEquippedItems(this, true);
+
                         break;
                     default:
                         useDone = WeenieError.YourSpellFizzled;
@@ -1037,7 +1058,7 @@ namespace ACE.Server.WorldObjects
         {
             if (SafeSpellComponents) return;
 
-            var burned = spell.TryBurnComponents();
+            var burned = spell.TryBurnComponents(this);
             if (burned.Count == 0) return;
 
             // decrement components
@@ -1059,11 +1080,7 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                item.SetStackSize(item.StackSize - 1);
-                if (item.StackSize > 0)
-                    Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
-                else
-                    TryConsumeFromInventoryWithNetworking(item);
+                TryConsumeFromInventoryWithNetworking(item, 1);
             }
 
             // send message to player
@@ -1172,6 +1189,32 @@ namespace ACE.Server.WorldObjects
                 return SpellIsKnown(spellId);
 
             // send error message?
+        }
+
+        /// <summary>
+        /// Called when an enchantment is added or removed,
+        /// checks if the spell affects the max vitals,
+        /// and if so, updates the client immediately
+        /// </summary>
+        public void HandleMaxVitalUpdate(Spell spell)
+        {
+            var maxVitals = spell.UpdatesMaxVitals;
+
+            if (maxVitals.Count == 0)
+                return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(1.0f);      // client needs time for primary attribute updates
+            actionChain.AddAction(this, () =>
+            {
+                foreach (var maxVital in maxVitals)
+                {
+                    var playerVital = Vitals[maxVital];
+
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, playerVital.ToEnum(), playerVital.Current));
+                }
+            });
+            actionChain.EnqueueChain();
         }
     }
 }

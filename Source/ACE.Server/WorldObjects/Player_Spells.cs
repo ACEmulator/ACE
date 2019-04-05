@@ -1,7 +1,10 @@
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -72,6 +75,53 @@ namespace ACE.Server.WorldObjects
 
             GameEventMagicRemoveSpell removeSpellEvent = new GameEventMagicRemoveSpell(Session, (ushort)spellId);
             Session.Network.EnqueueSend(removeSpellEvent);
+        }
+
+        public void EquipItemFromSet(WorldObject item)
+        {
+            if (!item.HasItemSet) return;
+
+            var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
+
+            var spells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+
+            // get the spells from before / without this item
+            setItems.Remove(item);
+            var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+
+            EquipDequipItemFromSet(item, spells, prevSpells);
+        }
+
+        public void EquipDequipItemFromSet(WorldObject item, List<Spell> spells, List<Spell> prevSpells)
+        {
+            // compare these 2 spell sets -
+            // see which spells are being added, and which are being removed
+            var addSpells = spells.Except(prevSpells);
+            var removeSpells = prevSpells.Except(spells);
+
+            // set spells are not affected by mana
+            // if it's equipped, it's active.
+
+            foreach (var spell in removeSpells)
+                EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spell.Id, item.EquipmentSetId.Value));
+
+            foreach (var spell in addSpells)
+                CreateItemSpell(item, spell.Id);
+        }
+
+        public void DequipItemFromSet(WorldObject item)
+        {
+            if (!item.HasItemSet) return;
+
+            var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
+
+            var spells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+
+            // get the spells from before / with this item
+            setItems.Add(item);
+            var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+
+            EquipDequipItemFromSet(item, spells, prevSpells);
         }
     }
 }

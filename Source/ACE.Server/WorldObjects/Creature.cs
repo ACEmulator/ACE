@@ -67,11 +67,11 @@ namespace ACE.Server.WorldObjects
             foreach (var skillProperty in Biota.BiotaPropertiesSkill)
                 Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, skillProperty);
 
-            if (Health.Current == 0)
+            if (Health.Current <= 0)
                 Health.Current = Health.MaxValue;
-            if (Stamina.Current == 0)
+            if (Stamina.Current <= 0)
                 Stamina.Current = Stamina.MaxValue;
-            if (Mana.Current == 0)
+            if (Mana.Current <= 0)
                 Mana.Current = Mana.MaxValue;
 
             if (!(this is Player))
@@ -258,17 +258,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
-            var player = worldObject as Player;
-            if (player == null) return;
-
-            var rotateTime = player.Rotate(this);
-
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(rotateTime);
-
-            actionChain.AddAction(this, () => EmoteManager.ExecuteEmoteSet(EmoteCategory.Use, null, player));
-            actionChain.EnqueueChain();
-       }
+            // handled in base.OnActivate -> EmoteManager.OnUse()
+        }
 
         public override void OnCollideObject(WorldObject target)
         {

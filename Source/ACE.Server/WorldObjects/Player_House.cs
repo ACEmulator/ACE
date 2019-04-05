@@ -133,6 +133,7 @@ namespace ACE.Server.WorldObjects
             {
                 house.HouseOwner = null;
                 house.MonarchId = null;
+                house.HouseOwnerName = null;
                 house.ClearPermissions();
 
                 house.SaveBiotaToDatabase();
@@ -235,6 +236,7 @@ namespace ACE.Server.WorldObjects
 
             // set house properties
             house.HouseOwner = Guid.Full;
+            house.HouseOwnerName = Name;
             house.SaveBiotaToDatabase();
 
             // relink

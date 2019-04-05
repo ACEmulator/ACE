@@ -54,6 +54,8 @@ namespace ACE.Server.Managers
                     var inviter = PlayerManager.GetOnlinePlayer(confirm.Source.Guid);
                     var invited = PlayerManager.GetOnlinePlayer(confirm.Target.Guid);
 
+                    if (inviter == null || invited == null || inviter.Fellowship == null) return;
+
                     inviter.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
 
                     if (response)

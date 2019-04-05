@@ -33,14 +33,25 @@ namespace ACE.Server.WorldObjects
         {
             var deathMessage = base.OnDeath(lastDamager, damageType, criticalHit);
 
-            lastDamager.EmoteManager.OnKill(this);
+            if (lastDamager != null)
+                lastDamager.EmoteManager.OnKill(this);
 
-            var playerMsg = string.Format(deathMessage.Victim, Name, lastDamager.Name);
+            var playerMsg = "";
+            if (lastDamager != null)
+                playerMsg = string.Format(deathMessage.Victim, Name, lastDamager.Name);
+            else
+                playerMsg = deathMessage.Victim;
+
             var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
             Session.Network.EnqueueSend(msgYourDeath);
 
             // broadcast to nearby players
-            var nearbyMsg = string.Format(deathMessage.Broadcast, Name, lastDamager.Name);
+            var nearbyMsg = "";
+            if (lastDamager != null)
+                nearbyMsg = string.Format(deathMessage.Broadcast, Name, lastDamager.Name);
+            else
+                nearbyMsg = deathMessage.Broadcast;
+
             var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
 
             var excludePlayers = new List<Player>();

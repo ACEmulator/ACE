@@ -1,6 +1,7 @@
 using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 
@@ -72,7 +73,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Handles the 'GameAction 0x36 - UseItem' network message
-        /// when player double clicks an item in the 3d world
+        /// when player double clicks an item
         /// </summary>
         public void HandleActionUseItem(uint itemGuid)
         {
@@ -134,6 +135,14 @@ namespace ACE.Server.WorldObjects
 
             if (container != null && container.Viewer == Guid.Full)
                 container.Close(this);
+        }
+
+        public CombatPet CurrentActiveCombatPet { get; set; }
+
+        public void StartBarber()
+        {
+            BarberActive = true;
+            Session.Network.EnqueueSend(new GameEventStartBarber(Session));
         }
     }
 }

@@ -104,5 +104,15 @@ namespace ACE.Server.WorldObjects
 
             return wo;
         }
+
+        public virtual void OnWield(Creature creature)
+        {
+            EmoteManager.OnWield(creature);
+        }
+
+        public virtual void OnUnWield(Creature creature)
+        {
+            EmoteManager.OnUnwield(creature);
+        }
     }
 }

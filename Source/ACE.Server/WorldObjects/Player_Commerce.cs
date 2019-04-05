@@ -5,6 +5,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -137,38 +138,70 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if player meets the gold / alternate currency costs for purchase
+        /// </summary>
+        public bool ValidateBuyTransaction(Vendor vendor, uint goldcost, uint altcost)
+        {
+            // validation
+            var valid = true;
+
+            if (goldcost > CoinValue)
+                valid = false;
+
+            if (altcost > 0)
+            {
+                var altCurrency = vendor.AlternateCurrency ?? 0;
+
+                var numItems = GetNumInventoryItemsOfWCID(altCurrency);
+
+                if (numItems < altcost)
+                    valid = false;
+            }
+
+            return valid;
+        }
+
+        /// <summary>
         /// Vendor has validated the transactions and sent a list of items for processing.
         /// </summary>
-        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
+        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, uint goldcost, uint altcost)
         {
             // todo research packets more for both buy and sell. ripley thinks buy is update..
             // vendor accepted the transaction
+
+            var valid = ValidateBuyTransaction(vendor, goldcost, altcost);
+
             if (valid)
             {
-                if (SpendCurrency(goldcost, WeenieType.Coin) != null)
-                {
-                    foreach (WorldObject wo in uqlist)
-                        TryCreateInInventoryWithNetworking(wo);
+                SpendCurrency(goldcost, WeenieType.Coin);
 
-                    foreach (var gen in genlist)
+                foreach (WorldObject wo in uqlist)
+                    TryCreateInInventoryWithNetworking(wo);
+
+                foreach (var gen in genlist)
+                {
+                    var service = gen.GetProperty(PropertyBool.VendorService) ?? false;
+
+                    if (!service)
+                        TryCreateInInventoryWithNetworking(gen);
+                    else
                     {
-                        var service = gen.GetProperty(PropertyBool.VendorService) ?? false;
-
-                        if (!service)
-                            TryCreateInInventoryWithNetworking(gen);
-                        else
-                        {
-                            var spell = new Spell(gen.SpellDID ?? 0);
-                            TryCastSpell(spell, this, null, false, false);
-                        }
+                        var spell = new Spell(gen.SpellDID ?? 0);
+                        TryCastSpell(spell, this, null, false, false);
                     }
+                }
 
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
-                }
-                else // not enough cash.
+                if (altcost > 0)
                 {
-                    valid = false;
+                    var altCurrency = vendor.AlternateCurrency ?? 0;
+
+                    TryConsumeFromInventoryWithNetworking(altCurrency, (int)altcost);
                 }
+
+                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
+
+                if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                    RushNextPlayerSave(5);
             }
 
             vendor.BuyItems_FinalTransaction(this, uqlist, valid);
@@ -196,6 +229,8 @@ namespace ACE.Server.WorldObjects
 
             var sellList = new List<WorldObject>();
 
+            var acceptedItemTypes = (ItemType)(vendor.MerchandiseItemTypes ?? 0);
+
             foreach (ItemProfile profile in itemprofiles)
             {
                 var item = allPossessions.FirstOrDefault(i => i.Guid.Full == profile.ObjectGuid);
@@ -203,7 +238,7 @@ namespace ACE.Server.WorldObjects
                 if (item == null)
                     continue;
 
-                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false))
+                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || (acceptedItemTypes & item.ItemType) == 0)
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold")); // TODO: find retail messages
@@ -242,7 +277,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in sellList)
             {
                 if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.SellItem))
-                    Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, vendor));
                 else
                     log.WarnFormat("Item 0x{0:X8}:{1} for player {2} not found in HandleActionSellItem.", item.Guid.Full, item.Name, Name); // This shouldn't happen
             }

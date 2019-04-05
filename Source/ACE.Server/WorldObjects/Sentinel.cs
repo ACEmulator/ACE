@@ -15,7 +15,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Sentinel(Weenie weenie, ObjectGuid guid, uint accountId) : base(weenie, guid, accountId)
         {
-            Character.IsPlussed = true;
+            if (!Character.IsPlussed)
+            {
+                Character.IsPlussed = true;
+                CharacterChangesDetected = true;
+            }
 
             SetEphemeralValues();
         }
@@ -25,6 +29,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Sentinel(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota, inventory, wieldedItems, character, session)
         {
+            if (!Character.IsPlussed)
+            {
+                Character.IsPlussed = true;
+                CharacterChangesDetected = true;
+            }
+
             SetEphemeralValues();
         }
 

@@ -215,6 +215,7 @@ namespace ACE.Server.WorldObjects
 
             worldObject.CurrentWieldedLocation = wieldedLocation;
             worldObject.WielderId = Biota.Id;
+            worldObject.Wielder = this;
 
             EquippedObjects[worldObject.Guid] = worldObject;
 
@@ -223,7 +224,7 @@ namespace ACE.Server.WorldObjects
 
             TrySetChild(worldObject);
 
-            worldObject.EmoteManager.OnWield(this);
+            worldObject.OnWield(this);
 
             return true;
         }
@@ -279,6 +280,7 @@ namespace ACE.Server.WorldObjects
 
             worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);
+            worldObject.Wielder = null;
 
             worldObject.IsAffecting = false;
 
@@ -290,7 +292,7 @@ namespace ACE.Server.WorldObjects
             var wo = worldObject;
             Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
 
-            worldObject.EmoteManager.OnUnwield(this);
+            worldObject.OnUnWield(this);
 
             return true;
         }
@@ -344,6 +346,22 @@ namespace ACE.Server.WorldObjects
 
             if (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0)
                 return true;
+
+            if (((EquipMask)item.CurrentWieldedLocation & EquipMask.MissileAmmo) != 0)
+            {
+                var wielder = item.Wielder;
+
+                if (wielder != null && wielder is Creature creature)
+                {
+                    var weapon = creature.GetEquippedMissileWeapon();
+
+                    if (weapon == null)
+                        return false;
+
+                    if (creature.CombatMode == CombatMode.Missile && weapon.WeenieType == WeenieType.MissileLauncher)
+                        return true;
+                }
+            }
 
             return false;
         }

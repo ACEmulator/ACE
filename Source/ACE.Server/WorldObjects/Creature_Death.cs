@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
         {
             var deathMessage = Strings.GetDeathMessage(damageType, criticalHit);
 
-            if (lastDamager == this)
+            if (lastDamager == null || lastDamager == this)
                 deathMessage = Strings.General[1];
 
             // if killed by a player, send them a message
@@ -143,10 +143,11 @@ namespace ACE.Server.WorldObjects
                 var damagePercent = totalDamage / Health.MaxValue;
                 var totalXP = (XpOverride ?? 0) * damagePercent;
 
+                // should this be passed upstream to fellowship / allegiance?
                 if (playerDamager.AugmentationBonusXp > 0)
                     totalXP *= 1.0f + playerDamager.AugmentationBonusXp * 0.05f;
 
-                playerDamager.EarnXP((long)Math.Round(totalXP));
+                playerDamager.EarnXP((long)Math.Round(totalXP), XpType.Kill);
             }
         }
 
@@ -223,8 +224,9 @@ namespace ACE.Server.WorldObjects
             else
                 corpse.LongDesc = $"Killed by misadventure.";
 
-            var player = this as Player;
-            if (player != null)
+            bool saveCorpse = false;
+
+            if (this is Player player)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 var dropped = player.CalculateDeathItems(corpse);
@@ -236,7 +238,10 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
 
                     if (dropped.Count > 0)
+                    {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
+                        saveCorpse = true;
+                    }
                 }
             }
             else
@@ -247,6 +252,9 @@ namespace ACE.Server.WorldObjects
 
             corpse.RemoveProperty(PropertyInt.Value);
             LandblockManager.AddObject(corpse);
+
+            if (saveCorpse)
+                corpse.SaveBiotaToDatabase();
         }
 
         /// <summary>

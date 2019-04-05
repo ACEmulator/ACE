@@ -21,10 +21,15 @@ namespace ACE.Common
         /// <summary>
         /// initializes from a Config.js file specified by the path
         /// </summary>
-        public static void Initialize(string path = @"Config.js")
+        public static void Initialize(string filename = @"Config.js")
         {
-            string fpOld = Path.Combine(Environment.CurrentDirectory, Path.GetFileNameWithoutExtension(path) + ".json");
-            string fpNew = Path.Combine(Environment.CurrentDirectory, Path.GetFileNameWithoutExtension(path) + ".js");
+            var path = Path.GetDirectoryName(filename);
+
+            if (string.IsNullOrWhiteSpace(path))
+                path = Environment.CurrentDirectory;
+
+            string fpOld = Path.Combine(path, Path.GetFileNameWithoutExtension(filename) + ".json");
+            string fpNew = Path.Combine(path, Path.GetFileNameWithoutExtension(filename) + ".js");
             string fpChoice = null;
             try
             {

@@ -1,7 +1,8 @@
-
 using ACE.Common;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -713,12 +714,233 @@ namespace ACE.Server.WorldObjects
         }
 
         // ========================================
+        // ======= Luminance Augmentations ========
+        // ========================================
+
+        /// <summary>
+        /// Aura of Aetheric Vision
+        /// Slightly increase your chance to gain an Aetheria Surge on a successful hit with a weapon or spell (max 5 stacks)
+        /// </summary>
+        public int LumAugSurgeChanceRating
+        {
+            get => GetProperty(PropertyInt.LumAugSurgeChanceRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugSurgeChanceRating); else SetProperty(PropertyInt.LumAugSurgeChanceRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of the Craftsman
+        /// Increases the effective skill level of your crafting and tinkering skills by 1 point (max 5 stacks)
+        /// </summary>
+        public int LumAugSkilledCraft
+        {
+            get => GetProperty(PropertyInt.LumAugSkilledCraft) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugSkilledCraft); else SetProperty(PropertyInt.LumAugSkilledCraft, value); }
+        }
+
+        /// <summary>
+        /// Aura of Glory / Aura of Retribution (Seer)
+        /// Increases your critical damage rating by 1 point (max 5 stacks glory, max 5 stacks retribution)
+        /// </summary>
+        public int LumAugCritDamageRating
+        {
+            get => GetProperty(PropertyInt.LumAugCritDamageRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugCritDamageRating); else SetProperty(PropertyInt.LumAugCritDamageRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of Mana Flow
+        /// Reduces the mana consumption of your items equal to 1 rating point per level (max 5 stacks)
+        /// This is expressed as a rating, where the mana consumption is multiplied by the following: 100 / (100 + Mana Consumption Reduction Rating)
+        /// </summary>
+        public int LumAugItemManaUsage
+        {
+            get => GetProperty(PropertyInt.LumAugItemManaUsage) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugItemManaUsage); else SetProperty(PropertyInt.LumAugItemManaUsage, value); }
+        }
+
+        /// <summary>
+        /// Aura of Mana Infusion
+        /// Increases the mana provided by Mana Stones to your items (max 5 stacks)
+        /// The mana is increased by a rating of 1 per level.
+        /// </summary>
+        public int LumAugItemManaGain
+        {
+            get => GetProperty(PropertyInt.LumAugItemManaGain) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugItemManaGain); else SetProperty(PropertyInt.LumAugItemManaGain, value); }
+        }
+
+        /// <summary>
+        /// Aura of Protection / Aura of Invulnerability (Seer)
+        /// Increases your damage reduction rating by 1 (max 5 stacks protection, max 5 stacks invulnerability)
+        /// </summary>
+        public int LumAugDamageReductionRating
+        {
+            get => GetProperty(PropertyInt.LumAugDamageReductionRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugDamageReductionRating); else SetProperty(PropertyInt.LumAugDamageReductionRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of Purity
+        /// Increases the amount that healing affects you by 1 heal rating (max 5 stacks)
+        /// </summary>
+        public int LumAugHealingRating
+        {
+            get => GetProperty(PropertyInt.LumAugHealingRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugHealingRating); else SetProperty(PropertyInt.LumAugHealingRating, value); }
+        }
+
+        /// <summary>
+        /// Skill
+        /// Gain an additional skill credit (max 2 stacks)
+        /// </summary>
+
+        // where to store the stack data for this?
+
+        /// <summary>
+        /// Aura of Temperance / Aura of Hardening (Seer)
+        /// Increases your critical damage reduction rating by 1 (max 5 stacks temperance, max 5 stacks hardening)
+        /// </summary>
+        public int LumAugCritReductionRating
+        {
+            get => GetProperty(PropertyInt.LumAugCritReductionRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugCritReductionRating); else SetProperty(PropertyInt.LumAugCritReductionRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of Valor / Aura of Destruction (Seer)
+        /// Increases your damage rating by 1 (max 5 stacks valor, max 5 stacks destruction)
+        /// </summary>
+        public int LumAugDamageRating
+        {
+            get => GetProperty(PropertyInt.LumAugDamageRating) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugDamageRating); else SetProperty(PropertyInt.LumAugDamageRating, value); }
+        }
+
+        /// <summary>
+        /// Aura of the World
+        /// Increases the effective skill level of all your skills by 1 point (max 10 stacks)
+        /// </summary>
+        public int LumAugAllSkills
+        {
+            get => GetProperty(PropertyInt.LumAugAllSkills) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugAllSkills); else SetProperty(PropertyInt.LumAugAllSkills, value); }
+        }
+
+        // ============= Seer Auras ===============
+
+        /// <summary>
+        /// Aura of Specialization
+        /// Increases your specialized skills by 2 (max 5 stacks)
+        /// </summary>
+        public int LumAugSkilledSpec
+        {
+            get => GetProperty(PropertyInt.LumAugSkilledSpec) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugSkilledSpec); else SetProperty(PropertyInt.LumAugSkilledSpec, value); }
+        }
+
+        // ============ Enlightenment =============
+
+        public int Enlightenment
+        {
+            get => GetProperty(PropertyInt.Enlightenment) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.Enlightenment); else SetProperty(PropertyInt.Enlightenment, value); }
+        }
+
+        public int LumAugVitality
+        {
+            get => GetProperty(PropertyInt.LumAugVitality) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugVitality); else SetProperty(PropertyInt.LumAugVitality, value); }
+        }
+
+        // ========================================
         // =============== Rares ==================
         // ========================================
         public double? LastRareUsedTimestamp
         {
             get => GetProperty(PropertyFloat.LastRareUsedTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value.Value); }
+        }
+
+        // ========================================
+        // =============== Barber =================
+        // ========================================
+        public bool BarberActive
+        {
+            get => GetProperty(PropertyBool.BarberActive) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.BarberActive); else SetProperty(PropertyBool.BarberActive, value); }
+        }
+
+
+        public void UpdateProperty(WorldObject obj, PropertyInt prop, int? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyBool prop, bool? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyFloat prop, double? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyDataId prop, uint? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyInstanceId prop, uint? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0)));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyString prop, string value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value);
+            else
+                obj.RemoveProperty(prop);
+
+            // the client seems to cache these values somewhere,
+            // and the object will not update until relogging or CO
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyString(obj, prop, value));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyInt64 prop, long? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0));
         }
     }
 }

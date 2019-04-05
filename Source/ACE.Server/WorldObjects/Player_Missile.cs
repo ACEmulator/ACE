@@ -99,6 +99,9 @@ namespace ACE.Server.WorldObjects
             // launch projectile
             actionChain.AddAction(this, () =>
             {
+                // handle self-procs
+                TryProcEquippedItems(this, true);
+
                 var sound = GetLaunchMissileSound(weapon);
                 EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
 
@@ -180,6 +183,17 @@ namespace ACE.Server.WorldObjects
                 case ACE.Entity.Enum.AttackHeight.Low: return 3.0f;
             }
             return 2.0f;
+        }
+
+        public override void UpdateAmmoAfterLaunch(WorldObject ammo)
+        {
+            // hide previously held ammo
+            EnqueueBroadcast(new GameMessagePickupEvent(ammo));
+
+            if (ammo.StackSize == 1)
+                TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);
+            else
+                TryConsumeFromInventoryWithNetworking(ammo, 1);
         }
     }
 }

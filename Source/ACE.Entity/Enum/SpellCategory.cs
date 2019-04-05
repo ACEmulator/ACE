@@ -701,5 +701,35 @@ namespace ACE.Entity.Enum
         SummoningLowering = 697,
         ExtraSummoningSkillRaising = 698,
         SetSummoningRaising = 699,
+        ParagonEnduranceRaising = 704,
+        ParagonManaRaising = 705,
+        ParagonStaminaRaising = 706,
+        ParagonDirtyFightingRaising = 707,
+        ParagonDualWieldRaising = 708,
+        ParagonRecklessnessRaising = 709,
+        ParagonSneakAttackRaising = 710,
+        ParagonDamageRatingRaising = 711,
+        ParagonDamageReductionRatingRaising = 712,
+        ParagonCriticalDamageRatingRaising = 713,
+        ParagonCriticalDamageReductionRatingRaising = 714,
+        ParagonAxeRaising = 715,        // light weapons
+        ParagonDaggerRaising = 716,     // finesse weapons
+        ParagonSwordRaising = 717,      // heavy weapons
+        ParagonWarMagicRaising = 718,
+        ParagonLifeMagicRaising = 719,
+        ParagonVoidMagicRaising = 720,
+        ParagonBowRaising = 721,        // missile weapons
+        ParagonStrengthRaising = 722,
+        ParagonCoordinationRaising = 723,
+        ParagonQuicknessRaising = 724,
+        ParagonFocusRaising = 725,
+        ParagonWillpowerRaising = 726,
+        ParagonTwoHandedRaising = 727,
+        GauntletDamageReductionRatingRaising = 728,
+        GauntletDamageRatingRaising = 729,
+        GauntletHealingRatingRaising = 730,
+        GauntletVitalityRaising = 731,
+        GauntletCriticalDamageRatingRaising = 732,
+        GauntletCriticalDamageReductionRatingRaising = 733,
     }
 }

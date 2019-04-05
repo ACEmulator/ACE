@@ -439,11 +439,13 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
+                ("chess_enabled", true),
                 ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
-                                                    // or should they be dropped on corpse (release)
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
-                ("pk_server", false)
+                ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
+                ("pk_server", false),
+                ("show_dot_messages", false)        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
@@ -455,6 +457,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
+                ("chess_ai_start_time", -1.0),  // the number of seconds for the chess ai to start. defaults to -1 (disabled)
                 ("luminance_modifier", 1.0),
                 ("vitae_penalty", 0.05),
                 ("vitae_penalty_max", 0.40),

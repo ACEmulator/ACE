@@ -868,7 +868,7 @@ namespace ACE.Server.WorldObjects
         // ======= Weenie Header Properties =======
         // ========================================
         // used in CalculatedWeenieHeaderFlag()
-        public string NamePlural
+        public string PluralName
         {
             get => GetProperty(PropertyString.PluralName);
             set { if (value == null) RemoveProperty(PropertyString.PluralName); else SetProperty(PropertyString.PluralName, value); }
@@ -1118,7 +1118,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
         }
 
-        private int? ItemWorkmanship
+        public int? ItemWorkmanship
         {
             get => GetProperty(PropertyInt.ItemWorkmanship);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemWorkmanship); else SetProperty(PropertyInt.ItemWorkmanship, value.Value); }
@@ -1192,6 +1192,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.HouseOwner);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HouseOwner); else SetProperty(PropertyInstanceId.HouseOwner, value.Value); }
+        }
+
+        public string HouseOwnerName
+        {
+            get => GetProperty(PropertyString.HouseOwnerName);
+            set { if (value == null) RemoveProperty(PropertyString.HouseOwnerName); else SetProperty(PropertyString.HouseOwnerName, value); }
         }
 
         public int HouseStatus
@@ -1479,6 +1485,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
         }
 
+        public int? HairStyle
+        {
+            get => GetProperty(PropertyInt.Hairstyle);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Hairstyle); else SetProperty(PropertyInt.Hairstyle, value.Value); }
+        }
 
         // ========================================
         // =========== Other Properties ===========
@@ -1871,12 +1882,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyBool.DealMagicalItems); else SetProperty(PropertyBool.DealMagicalItems, value.Value); }
         }
 
-        public uint? AlternateCurrencyDID
-        {
-            get => GetProperty(PropertyDataId.AlternateCurrency);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AlternateCurrency); else SetProperty(PropertyDataId.AlternateCurrency, value.Value); }
-        }
-
         public double? HeartbeatInterval
         {
             get => GetProperty(PropertyFloat.HeartbeatInterval);
@@ -1944,6 +1949,24 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.Shade);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade); else SetProperty(PropertyFloat.Shade, value.Value); }
+        }
+
+        public double? Shade2
+        {
+            get => GetProperty(PropertyFloat.Shade2);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade2); else SetProperty(PropertyFloat.Shade2, value.Value); }
+        }
+
+        public double? Shade3
+        {
+            get => GetProperty(PropertyFloat.Shade3);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade3); else SetProperty(PropertyFloat.Shade3, value.Value); }
+        }
+
+        public double? Shade4
+        {
+            get => GetProperty(PropertyFloat.Shade4);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade4); else SetProperty(PropertyFloat.Shade4, value.Value); }
         }
 
         public int NumTimesTinkered
@@ -2402,7 +2425,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Active
         {
-            get => (GetProperty(PropertyInt.Active) ?? 1) == 1;
+            get => (GetProperty(PropertyInt.Active) ?? 1) != 0;
             set { if (value) RemoveProperty(PropertyInt.Active); else SetProperty(PropertyInt.Active, 0); }
         }
 
@@ -2529,6 +2552,43 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.CritResistRating);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CritResistRating); else SetProperty(PropertyInt.CritResistRating, value.Value); }
         }
+
+        public int? HealingBoostRating
+        {
+            get => GetProperty(PropertyInt.HealingBoostRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HealingBoostRating); else SetProperty(PropertyInt.HealingBoostRating, value.Value); }
+        }
+
+        public int? HealingResistRating
+        {
+            get => GetProperty(PropertyInt.HealingResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HealingResistRating); else SetProperty(PropertyInt.HealingResistRating, value.Value); }
+        }
+
+        public int? LifeResistRating
+        {
+            get => GetProperty(PropertyInt.LifeResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LifeResistRating); else SetProperty(PropertyInt.LifeResistRating, value.Value); }
+        }
+
+        public int? NetherResistRating
+        {
+            get => GetProperty(PropertyInt.NetherResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.NetherResistRating); else SetProperty(PropertyInt.NetherResistRating, value.Value); }
+        }
+
+        public int? PKDamageRating
+        {
+            get => GetProperty(PropertyInt.PKDamageRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageRating); else SetProperty(PropertyInt.PKDamageRating, value.Value); }
+        }
+
+        public int? PKDamageResistRating
+        {
+            get => GetProperty(PropertyInt.PKDamageResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageResistRating); else SetProperty(PropertyInt.PKDamageResistRating, value.Value); }
+        }
+        
 
         /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.

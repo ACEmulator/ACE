@@ -136,7 +136,6 @@ namespace ACE.Entity.Enum.Properties
         PhysicsState                             = 93,
         [ServerOnly]
         TargetType                               = 94,
-        [Ephemeral]
         RadarBlipColor                           = 95,
         EncumbranceCapacity                      = 96,
         LoginTimestamp                           = 97,
@@ -236,6 +235,7 @@ namespace ACE.Entity.Enum.Properties
         GemType                                  = 178,
         ImbuedEffect                             = 179,
         AttackersRawSkillValue                   = 180,
+        [SendOnLogin]
         ChessRank                                = 181,
         ChessTotalGames                          = 182,
         ChessGamesWon                            = 183,
@@ -383,10 +383,15 @@ namespace ACE.Entity.Enum.Properties
         HearLocalSignals                         = 290,
         HearLocalSignalsRadius                   = 291,
         Cleaving                                 = 292,
+        [SendOnLogin]
         AugmentationSpecializeGearcraft          = 293,
+        [SendOnLogin]
         AugmentationInfusedCreatureMagic         = 294,
+        [SendOnLogin]
         AugmentationInfusedItemMagic             = 295,
+        [SendOnLogin]
         AugmentationInfusedLifeMagic             = 296,
+        [SendOnLogin]
         AugmentationInfusedWarMagic              = 297,
         [SendOnLogin]
         AugmentationCriticalExpertise            = 298,
@@ -394,7 +399,9 @@ namespace ACE.Entity.Enum.Properties
         AugmentationCriticalPower                = 299,
         [SendOnLogin]
         AugmentationSkilledMelee                 = 300,
+        [SendOnLogin]
         AugmentationSkilledMissile               = 301,
+        [SendOnLogin]
         AugmentationSkilledMagic                 = 302,
         ImbuedEffect2                            = 303,
         ImbuedEffect3                            = 304,
@@ -432,12 +439,11 @@ namespace ACE.Entity.Enum.Properties
         HealingBoostRating                       = 323,
         HeritageSpecificArmor                    = 324,
         AlternateRacialSkills                    = 325,
-        /// <summary>
-        /// why was this defaulted to 1?  leaving comment
-        /// </summary>
         [SendOnLogin]
         AugmentationJackOfAllTrades              = 326,
+        [SendOnLogin]
         AugmentationResistanceNether             = 327,
+        [SendOnLogin]
         AugmentationInfusedVoidMagic             = 328,
         [SendOnLogin]
         WeaknessRating                           = 329,
@@ -454,6 +460,7 @@ namespace ACE.Entity.Enum.Properties
         LumAugCritDamageRating                   = 335,
         [SendOnLogin]
         LumAugCritReductionRating                = 336,
+        [SendOnLogin]
         LumAugSurgeEffectRating                  = 337,
         [SendOnLogin]
         LumAugSurgeChanceRating                  = 338,
@@ -461,6 +468,7 @@ namespace ACE.Entity.Enum.Properties
         LumAugItemManaUsage                      = 339,
         [SendOnLogin]
         LumAugItemManaGain                       = 340,
+        [SendOnLogin]
         LumAugVitality                           = 341,
         [SendOnLogin]
         LumAugHealingRating                      = 342,
@@ -468,6 +476,7 @@ namespace ACE.Entity.Enum.Properties
         LumAugSkilledCraft                       = 343,
         [SendOnLogin]
         LumAugSkilledSpec                        = 344,
+        [SendOnLogin]
         LumAugNoDestroyCraft                     = 345,
         RestrictInteraction                      = 346,
         OlthoiLootTimestamp                      = 347,
@@ -572,6 +581,11 @@ namespace ACE.Entity.Enum.Properties
         AllegianceOfficerRank                   = 9010,
         [ServerOnly]
         HouseRentTimestamp                      = 9011,
+        /// <summary>
+        ///  Stores the player's selected hairstyle at creation or after a barber use. This is used only for Gear Knights and Olthoi characters who have more than a single part/texture for a "hairstyle" (BodyStyle)
+        /// </summary>
+        [ServerOnly]
+        Hairstyle = 9012,
     }
 
     public static class PropertyIntExtensions

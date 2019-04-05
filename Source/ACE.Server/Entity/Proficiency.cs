@@ -62,7 +62,7 @@ namespace ACE.Server.Entity
                 player.RaiseSkillGameAction(skill.Skill, pp, true);
 
                 // send CP to player as unassigned XP
-                player.GrantXP(cp, false, true, false);
+                player.GrantXP(cp, XpType.Proficiency, false);
             }
         }
     }

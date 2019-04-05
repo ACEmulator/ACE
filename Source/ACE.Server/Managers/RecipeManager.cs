@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using log4net;
 
 using ACE.Common.Extensions;
@@ -26,6 +27,12 @@ namespace ACE.Server.Managers
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
+            if (player.IsBusy)
+            {
+                player.SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             if (source == target)
             {
                 var message = new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft);
@@ -62,6 +69,14 @@ namespace ACE.Server.Managers
             bool success = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
 
+            player.IsBusy = true;
+
+            if (player.CombatMode != CombatMode.NonCombat)
+            {
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                craftChain.AddDelaySeconds(stanceTime);
+            }
+
             var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
             craftChain.AddAction(player, () => player.EnqueueBroadcastMotion(motion));
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
@@ -82,6 +97,7 @@ namespace ACE.Server.Managers
                     {
                         log.Warn("Unexpectedly missing skill in Recipe usage");
                         player.SendUseDoneEvent();
+                        player.IsBusy = false;
                         return;
                     }
 
@@ -105,6 +121,7 @@ namespace ACE.Server.Managers
                         var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
                         player.Session.Network.EnqueueSend(message);
                         player.SendUseDoneEvent(WeenieError.YouAreNotTrainedInThatTradeSkill);
+                        player.IsBusy = false;
                         return;
                     }
                 }
@@ -115,7 +132,23 @@ namespace ACE.Server.Managers
 
                 CreateDestroyItems(player, recipe.Recipe, source, target, success);
 
+                // this code was intended for dyes, but UpdateObj seems to remove crafting components
+                // from shortcut bar, if they are hotkeyed
+                // more specifity for this, only if relevant properties are modified?
+                var shortcuts = player.GetShortcuts();
+                if (!shortcuts.Select(i => i.ObjectId).Contains(target.Guid.Full))
+                {
+                    var updateObj = new GameMessageUpdateObject(target);
+                    var updateDesc = new GameMessageObjDescEvent(player);
+
+                    if (target.CurrentWieldedLocation != null)
+                        player.EnqueueBroadcast(updateObj, updateDesc);
+                    else
+                        player.Session.Network.EnqueueSend(updateObj);
+                }
+
                 player.SendUseDoneEvent();
+                player.IsBusy = false;
             });
 
             craftChain.EnqueueChain();

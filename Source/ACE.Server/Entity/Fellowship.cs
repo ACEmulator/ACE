@@ -51,6 +51,9 @@ namespace ACE.Server.Entity
 
         public void AddFellowshipMember(Player inviter, Player newMember)
         {
+            if (inviter == null || newMember == null)
+                return;
+
             if (FellowshipMembers.Count == MaxFellows)
             {
                 inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", ChatMessageType.Fellowship));
@@ -79,6 +82,8 @@ namespace ACE.Server.Entity
 
         public void AddConfirmedMember(Player inviter, Player player, bool response)
         {
+            if (inviter == null || player == null) return;
+
             if (response)
             {
                 if (FellowshipMembers.Count == 9)
@@ -106,6 +111,8 @@ namespace ACE.Server.Entity
         
         public void RemoveFellowshipMember(Player player)
         {
+            if (player == null) return;
+
             foreach (var member in FellowshipMembers)
             {
                 member.Session.Network.EnqueueSend(new GameEventFellowshipDismiss(member.Session, player));
@@ -121,6 +128,9 @@ namespace ACE.Server.Entity
         {
             foreach (var member in FellowshipMembers)
             {
+                if (member == null || member.Session == null)
+                    continue;
+
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
                 //member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
             }
@@ -130,6 +140,9 @@ namespace ACE.Server.Entity
         {
             foreach (var member in FellowshipMembers)
             {
+                if (member == null || member.Session == null)
+                    continue;
+
                 member.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Fellowship));
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
                 //member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
@@ -138,12 +151,16 @@ namespace ACE.Server.Entity
 
         public void QuitFellowship(Player player, bool disband)
         {
+            if (player == null) return;
+
             if (player.Guid.Full == FellowshipLeaderGuid)
             {
                 if (disband)
                 {
                     foreach (var member in FellowshipMembers)
                     {
+                        if (member == null || member.Session == null) continue;
+
                         member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
                         if (member.Guid.Full == FellowshipLeaderGuid)
                         {
@@ -161,13 +178,12 @@ namespace ACE.Server.Entity
                     FellowshipMembers.Remove(player);
                     oldFellows.TryAdd(player.Guid.Full, DateTime.Now);
                     player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
-                    //member.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(member.Session, player.Guid.Full));
                     AssignNewLeader(null);
                     CalculateXPSharing();
                     SendMessageAndUpdate($"{player.Name} left the fellowship");
                 }
             }
-            else
+            else if (!disband)
             {
                 FellowshipMembers.Remove(player);
                 oldFellows.TryAdd(player.Guid.Full, DateTime.Now);
@@ -279,32 +295,46 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Grants XP to each sharable fellowship member
+        /// Splits XP amongst fellowship members, depending on XP type and fellow settings
         /// </summary>
-        /// <param name="amount">The pre-scaled amount of XP to be shared</param>
-        /// <param name="fixedAmount">If false, XP is divided up and scaled by the fellowship bonus</param>
-        public void SplitXp(ulong amount, bool fixedAmount)
+        /// <param name="amount">The input amount of XP</param>
+        /// <param name="xpType">The type of XP (quest XP is handled differently)</param>
+        /// <param name="player">The fellowship member who originated the XP</param>
+        public void SplitXp(ulong amount, XpType xpType, Player player)
         {
-            if (EvenShare)
+            // handle sharing quest XP with fellows
+            if (xpType == XpType.Quest)
             {
-                var shareAmount = amount;
+                foreach (var member in SharableMembers)
+                {
+                    var fellowXpType = player == member ? XpType.Quest : XpType.Fellowship;
 
-                if (!fixedAmount)
-                    shareAmount = (ulong)Math.Round(shareAmount * GetMemberSharePercent());
-                else
-                    shareAmount = (ulong)Math.Round((float)amount / SharableMembers.Count);
+                    member.GrantXP((long)amount, fellowXpType, false);
+                }
+            }
+
+            // divides XP evenly to all the sharable fellows within level range,
+            // but with a significant boost to the amount of xp, based on # of fellowship members
+            else if (EvenShare)
+            {
+                var totalAmount = (ulong)Math.Round(amount * GetMemberSharePercent());
 
                 foreach (var member in SharableMembers)
                 {
-                    if (!fixedAmount)
-                        shareAmount = (ulong)Math.Round(shareAmount * GetDistanceScalar(member));
+                    var shareAmount = (ulong)Math.Round(totalAmount * GetDistanceScalar(member));
 
-                    member.EarnXP((long)shareAmount, false);
+                    var fellowXpType = player == member ? xpType : XpType.Fellowship;
+
+                    member.GrantXP((long)shareAmount, fellowXpType, false);
                 }
+
+                return;
             }
+
+            // divides XP to all sharable fellows within level range
+            // based on each fellowship member's level
             else
             {
-                // Calc distribution %
                 var levelSum = SharableMembers.Select(p => p.Level ?? 1).Sum();
 
                 foreach (var member in SharableMembers)
@@ -312,7 +342,10 @@ namespace ACE.Server.Entity
                     var levelScale = (float)(member.Level ?? 1) / levelSum;
 
                     var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(member));
-                    member.EarnXP((long)playerTotal, false);
+
+                    var fellowXpType = player == member ? xpType : XpType.Fellowship;
+
+                    member.GrantXP((long)playerTotal, fellowXpType, false);
                 }
             }
         }
@@ -379,14 +412,19 @@ namespace ACE.Server.Entity
         public void OnVitalUpdate(Player player)
         {
             foreach (var fellow in FellowshipMembers)
+            {
+                if (fellow == null || fellow.Session == null)
+                    continue;
+
                 fellow.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(fellow.Session, player, ShareXP, FellowUpdateType.Vitals));
+            }
         }
 
         public void OnDeath(Player player)
         {
             foreach (var fellow in FellowshipMembers)
             {
-                if (fellow != player)
+                if (fellow != null && fellow.Session != null && fellow != player)
                     fellow.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your fellow {player.Name} has died!", ChatMessageType.Broadcast));
             }
         }

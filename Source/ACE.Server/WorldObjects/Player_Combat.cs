@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
@@ -55,6 +57,9 @@ namespace ACE.Server.WorldObjects
             // missile weapon
             if (weapon != null && weapon.CurrentWieldedLocation == EquipMask.MissileWeapon)
                 return GetCreatureSkill(Skill.MissileWeapons).Skill;
+
+            if (weapon != null && weapon.WeaponSkill == Skill.TwoHandedCombat)
+                return Skill.TwoHandedCombat;
 
             // hack for converting pre-MoA skills
             var maxMelee = GetCreatureSkill(GetHighestMeleeSkill());
@@ -118,18 +123,6 @@ namespace ACE.Server.WorldObjects
                     return null;
                 }
             }
-
-            /*float? damage = null;
-            if (targetPlayer != null)
-            {
-                damage = CalculateDamagePVP(target, damageSource, damageType, ref critical, ref sneakAttack, ref bodyPart);
-
-                // TODO: level up shield mod?
-                if (targetPlayer.Invincible ?? false)
-                    damage = 0.0f;
-            }
-            else
-                damage = CalculateDamage(target, damageSource, ref critical, ref sneakAttack);*/
 
             var damageEvent = DamageEvent.CalculateDamage(this, target, damageSource);
 
@@ -345,7 +338,7 @@ namespace ACE.Server.WorldObjects
             // heritage damge mod
             var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
 
-            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetPositiveRatingMod(EnchantmentManager.GetDamageRating()));
+            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerMod * damageRatingMod;
@@ -368,7 +361,7 @@ namespace ACE.Server.WorldObjects
             if (criticalHit)
             {
                 // not effective for criticals: recklessness
-                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetPositiveRatingMod(EnchantmentManager.GetDamageRating()));
+                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
                 damage = baseDamageRange.Max * attributeMod * powerMod * damageRatingMod * (1.0f + GetWeaponCritDamageMod(this, attackSkill, targetCreature));
             }
 
@@ -390,10 +383,10 @@ namespace ACE.Server.WorldObjects
             var resistanceMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
 
             // weapon resistance mod?
-            var damageResistRatingMod = GetNegativeRatingMod(AttackTarget.EnchantmentManager.GetDamageResistRating());
+            var attackTarget = AttackTarget as Creature;
+            var damageResistRatingMod = GetNegativeRatingMod(attackTarget.GetDamageResistRating());
 
             // get shield modifier
-            var attackTarget = AttackTarget as Creature;
             var shieldMod = attackTarget.GetShieldMod(this, damageType);
 
             var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
@@ -430,7 +423,7 @@ namespace ACE.Server.WorldObjects
             // heritage damge mod
             var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
 
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetPositiveRatingMod(EnchantmentManager.GetDamageRating()));
+            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetPositiveRatingMod(GetDamageRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
@@ -468,7 +461,7 @@ namespace ACE.Server.WorldObjects
             var resistance = GetResistance(creaturePart, damageType);
 
             // ratings
-            var damageResistRatingMod = GetNegativeRatingMod(creature.EnchantmentManager.GetDamageResistRating());
+            var damageResistRatingMod = GetNegativeRatingMod(creature.GetDamageResistRating());
             //Console.WriteLine("Damage resistance rating: " + NegativeModToRating(damageResistRatingMod));
 
             // scale damage for armor and shield
@@ -625,9 +618,12 @@ namespace ACE.Server.WorldObjects
                 Fellowship.OnVitalUpdate(this);
 
             // send damage text message
-            var nether = damageType == DamageType.Nether ? "nether " : "";
-            var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
-            Session.Network.EnqueueSend(text);
+            if (PropertyManager.GetBool("show_dot_messages").Item)
+            {
+                var nether = damageType == DamageType.Nether ? "nether " : "";
+                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
+                Session.Network.EnqueueSend(text);
+            }
 
             // splatter effects
             //var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
@@ -653,7 +649,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
-            if (Invincible ?? false) return;
+            if (Invincible ?? false || IsDead) return;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
@@ -675,7 +671,7 @@ namespace ACE.Server.WorldObjects
             if (Fellowship != null)
                 Fellowship.OnVitalUpdate(this);
 
-            if (Health.Current == 0)
+            if (Health.Current <= 0)
             {
                 OnDeath(source, damageType, crit);
                 Die();

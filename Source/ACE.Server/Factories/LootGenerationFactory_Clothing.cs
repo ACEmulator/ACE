@@ -1070,7 +1070,7 @@ namespace ACE.Server.Factories
                         switch (armorPiece)
                         {
                             case 0:
-                                armorWeenie = 28367;
+                                armorWeenie = 28627;
                                 armorPieceType = 1;
                                 spellArray = 4;
                                 cantripArray = 4;
@@ -3019,7 +3019,7 @@ namespace ACE.Server.Factories
                         switch (armorPiece)
                         {
                             case 0:
-                                armorWeenie = 28367;
+                                armorWeenie = 28627;
                                 armorPieceType = 1;
                                 spellArray = 4;
                                 cantripArray = 4;
@@ -4088,7 +4088,7 @@ namespace ACE.Server.Factories
                         switch (armorPiece)
                         {
                             case 0:
-                                armorWeenie = 28367;
+                                armorWeenie = 28627;
                                 armorPieceType = 1;
                                 spellArray = 4;
                                 cantripArray = 4;
@@ -5396,7 +5396,7 @@ namespace ACE.Server.Factories
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
                         if (armorPiece == 0)
                         {
-                            armorWeenie = 28367;
+                            armorWeenie = 28627;
                             armorPieceType = 1;
                             spellArray = 4;
                             cantripArray = 4;
@@ -6877,7 +6877,7 @@ namespace ACE.Server.Factories
                         switch (armorPiece)
                         {
                             case 0:
-                                armorWeenie = 28367;
+                                armorWeenie = 28627;
                                 armorPieceType = 1;
                                 spellArray = 4;
                                 cantripArray = 4;
@@ -8353,7 +8353,7 @@ namespace ACE.Server.Factories
                         switch (armorPiece)
                         {
                             case 0:
-                                armorWeenie = 28367;
+                                armorWeenie = 28627;
                                 armorPieceType = 1;
                                 spellArray = 4;
                                 cantripArray = 4;

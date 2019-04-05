@@ -309,6 +309,11 @@ namespace ACE.Database
             }));
         }
 
+        public List<Character> GetCharacters(uint accountId, bool includeDeleted)
+        {
+            return _wrappedDatabase.GetCharacters(accountId, includeDeleted);
+        }
+
         public Character GetCharacterByName(string name)
         {
             return _wrappedDatabase.GetCharacterByName(name);

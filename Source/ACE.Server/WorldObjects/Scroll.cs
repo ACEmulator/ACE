@@ -52,6 +52,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsBusy) return;
+
+            IsBusy = true;
+
             var actionChain = new ActionChain();
 
             if (player.CombatMode != CombatMode.NonCombat)
@@ -101,6 +105,8 @@ namespace ACE.Server.WorldObjects
             player.LastUseTime += animTime;     // return stance
 
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
+
+            actionChain.AddAction(this, () => IsBusy = false);
 
             actionChain.EnqueueChain();
         }
