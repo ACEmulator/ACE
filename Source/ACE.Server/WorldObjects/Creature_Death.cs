@@ -223,10 +223,8 @@ namespace ACE.Server.WorldObjects
             }
             else
                 corpse.LongDesc = $"Killed by misadventure.";
-
-            bool saveCorpse = false;
-
-            if (this is Player player)
+            var player = this as Player;
+            if (player != null)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 var dropped = player.CalculateDeathItems(corpse);
@@ -238,23 +236,22 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
 
                     if (dropped.Count > 0)
-                    {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
-                        saveCorpse = true;
-                    }
                 }
             }
             else
             {
                 corpse.IsMonster = true;
                 GenerateTreasure(corpse);
+                if (killer is Player && (Level >= 100 || Level >= killer.Level + 5))
+                {
+                    corpse.SetProperty(PropertyBool.CanGenerateRare, true);
+                }
             }
 
             corpse.RemoveProperty(PropertyInt.Value);
             LandblockManager.AddObject(corpse);
-
-            if (saveCorpse)
-                corpse.SaveBiotaToDatabase();
+            corpse.placeRareIfPossible((Player)killer);
         }
 
         /// <summary>

@@ -9,6 +9,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Factories;
 
 namespace ACE.Server.WorldObjects
 {
@@ -138,6 +139,29 @@ namespace ACE.Server.WorldObjects
 
             if (VictimId != null && !new ObjectGuid(VictimId.Value).IsPlayer())
                 IsLooted = true;
+        }
+
+        /// <summary>
+        /// Called to place rare and broadcast sound
+        /// </summary>
+        public void placeRareIfPossible(Player killer)
+        {
+            if (this.GetProperty(PropertyBool.CanGenerateRare) == true)
+            {
+                WorldObject wo = LootGenerationFactory.CreateRare();
+                if (wo != null)
+                {
+                    this.TryAddToInventory(wo);
+                    killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{killer.Name} has discovered the {wo.Name}.", ChatMessageType.System));
+                    killer.EnqueueBroadcast(new GameMessageSound(killer.Guid, Sound.UI_Bell, 1.0f));
+                    //var visiblePlayers = PhysicsObj.ObjMaint.VoyeurTable.Values;
+                    //foreach (var visiblePlayer in visiblePlayers)
+                    //{
+                    //    var p1 = visiblePlayer.WeenieObj.WorldObject as Player;
+                    //    p1.Session.Network.EnqueueSend(new GameMessageSound(p1.Guid, Sound.UI_Bell, 1.0f));
+                    //}
+                }
+            }
         }
     }
 }
