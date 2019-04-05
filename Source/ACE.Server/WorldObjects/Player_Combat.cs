@@ -58,6 +58,9 @@ namespace ACE.Server.WorldObjects
             if (weapon != null && weapon.CurrentWieldedLocation == EquipMask.MissileWeapon)
                 return GetCreatureSkill(Skill.MissileWeapons).Skill;
 
+            if (weapon != null && weapon.WeaponSkill == Skill.TwoHandedCombat)
+                return Skill.TwoHandedCombat;
+
             // hack for converting pre-MoA skills
             var maxMelee = GetCreatureSkill(GetHighestMeleeSkill());
 

@@ -861,6 +861,15 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value.Value); }
         }
 
+        // ========================================
+        // =============== Barber =================
+        // ========================================
+        public bool BarberActive
+        {
+            get => GetProperty(PropertyBool.BarberActive) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.BarberActive); else SetProperty(PropertyBool.BarberActive, value); }
+        }
+
 
         public void UpdateProperty(WorldObject obj, PropertyInt prop, int? value)
         {

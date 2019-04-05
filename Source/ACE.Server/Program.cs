@@ -82,6 +82,12 @@ namespace ACE.Server
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
+            if (ConfigManager.Config.Server.ServerPerformanceMonitorAutoStart)
+            {
+                log.Info("Server Performance Monitor auto starting...");
+                ServerPerformanceMonitor.Start();
+            }
+
             if (ConfigManager.Config.Server.WorldDatabasePrecaching)
             {
                 log.Info("Precaching Weenies...");

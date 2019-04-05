@@ -583,6 +583,7 @@ namespace ACE.Server.WorldObjects
 
             // Broadcast updated character appearance
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
+            BarberActive = false;
         }
 
         /// <summary>
