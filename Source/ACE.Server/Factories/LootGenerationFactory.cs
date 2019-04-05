@@ -2825,7 +2825,7 @@ namespace ACE.Server.Factories
         ///
         /// This is probably a temporary function to give some color to loot until further work/investigation can be put in to work out how colors should be assigned.
         /// </summary>
-        private static WorldObject RandomizeColorByClothingBase(WorldObject wo)
+        private static WorldObject RandomizeColor_OLD(WorldObject wo)
         {
             // TODO - Are there restrictions on colors? e.g. are the Dye colors available in loot? Does the material affect the colors available?
 
@@ -2860,24 +2860,78 @@ namespace ACE.Server.Factories
         {
             if(wo.MaterialType != null && wo.GetProperty(PropertyInt.TsysMutationData) != null && wo.ClothingBase != null)
             {
-                uint tsysByte = ((uint)wo.GetProperty(PropertyInt.TsysMutationData) >> 16) &0xFF;
-                var colorOptions =  DatabaseManager.World.GetCachedTreasureMaterial((uint)wo.MaterialType, tsysByte);
-                var test = "here";
+                uint tsysByte = ((uint)wo.GetProperty(PropertyInt.TsysMutationData) >> 16) & 0xFF;
 
-                // Calculate our total chance in the sub items (See Monster_Inventory.cs)
-                if (colorOptions == null) return wo;
-                var prob = colorOptions.Select(i => i.Chance).ToList();
+                // BYTE spellCode = (tsysMutationData >> 24) & 0xFF;
+                // BYTE colorCode = (tsysMutationData >> 16) & 0xFF;
+                // BYTE gemCode = (tsysMutationData >> 8) & 0xFF;
+                // BYTE materialCode = (tsysMutationData >> 0) & 0xFF;
 
-                var totalSum = prob.Sum();
-                var totalProduct = prob.Product();
+                tsysByte = 0;
+                var colors =  DatabaseManager.World.GetCachedTreasureMaterial((uint)wo.MaterialType, tsysByte);
 
-                var totalChance = totalSum - totalProduct;
+                float totalProbability = GetTotalProbability(colors);
+                // If there's zero change to get a random color, no point in continuing.
+                if (totalProbability == 0) return wo;
 
-                // Reference WorldObject_Equipment.cs
-                // public List<WorldObject> GenerateWieldedTreasureSet(TreasureWieldedSet set)
+                var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
+
+                uint paletteTemplate = 0;
+                float probability = 0.0f;
+                // Loop through the colors until we've reach our target value
+                foreach (var color in colors)
+                {
+                    probability += color.Probability;
+                    if (rng >= probability)
+                    {
+                        paletteTemplate = color.PaletteTemplate;
+                        break;
+                    }
+                }
+                if (paletteTemplate > 0)
+                {
+                    // We've now got the paletteTemplate we want to use. Now, let's verify that it's actually valid!
+                    DatLoader.FileTypes.ClothingTable clothingBase = DatLoader.DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ClothingTable>((uint)wo.ClothingBase);
+                    if (clothingBase.ClothingSubPalEffects.ContainsKey(paletteTemplate) == false)
+                    {
+                        log.Warn($"Invalid palette template lookup for {wo.MaterialType}({(int)wo.MaterialType}) in LootGenerationFactory for wcid {wo.WeenieClassId} - {wo.Name}");
+                        return wo;
+                    }
+                    else
+                    {
+                        var cloSubPal = clothingBase.ClothingSubPalEffects[paletteTemplate];
+                        // Make sure this entry has a valid icon, otherwise there's likely something wrong with the ClothingBase value for this WorldObject (e.g. not supposed to be a loot item)
+                        if (cloSubPal.Icon > 0)
+                        {
+                            // Assign the appropriate Icon and PaletteTemplate
+                            wo.IconId = cloSubPal.Icon;
+                            wo.PaletteTemplate = (int)paletteTemplate;
+
+                            // Throw some shade, at random
+                            wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+                            log.Warn($"Success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}");
+                        }
+                    }
+                }
             }
 
             return wo;
         }
+
+        private static float GetTotalProbability(List<TreasureMaterialColor> colors)
+        {
+            if (colors == null || colors.Count == 0) return 0.0f;
+
+            var prob = colors.Select(i => i.Probability).ToList();
+
+            var totalSum = prob.Sum();
+            return totalSum;
+
+            var totalProduct = prob.Product();
+
+            return totalSum - totalProduct;
+        }
+
     }
 }

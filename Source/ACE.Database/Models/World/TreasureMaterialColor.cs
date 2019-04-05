@@ -9,6 +9,6 @@ namespace ACE.Database.Models.World
         public uint MaterialId { get; set; }
         public uint TsysMutationColor { get; set; }
         public uint PaletteTemplate { get; set; }
-        public float Chance { get; set; }
+        public float Probability { get; set; }
     }
 }
