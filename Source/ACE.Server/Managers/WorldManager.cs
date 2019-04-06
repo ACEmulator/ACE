@@ -729,6 +729,11 @@ namespace ACE.Server.Managers
                         case SessionState.NetworkTimeout:
                             sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "Network Timeout" : sesh.BootSessionReason);
                             break;
+                        case SessionState.ClientConnectionFailure:
+                            // needs to send the client the "git outa here" message or client will zombie out and appear to the player like it's still in game.
+                            // TO-DO: see if PacketHeaderFlags.NetErrorDisconnect will work for this
+                            sesh.BootSession("Client connection failure", new GameMessageBootAccount(sesh));
+                            break;
                         case SessionState.ClientSentNetErrorDisconnect:
                             sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "client sent network error disconnect" : sesh.BootSessionReason);
                             break;
