@@ -119,6 +119,8 @@ namespace ACE.Server.Entity
 
         public bool IsProjectile => NumProjectiles > 0;
 
+        public bool IsSelfTargeted => Flags.HasFlag(SpellFlags.SelfTargeted);
+
         public List<uint> TryBurnComponents(Player player)
         {
             var consumed = new List<uint>();

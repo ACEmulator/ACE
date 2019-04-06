@@ -36,6 +36,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!spell.IsSelfTargeted && target == null)
+                return;
+
             // spells only castable on creatures?
             /*var targetCreature = target as Creature;
             if (targetCreature == null)

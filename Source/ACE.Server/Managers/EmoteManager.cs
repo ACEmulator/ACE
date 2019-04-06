@@ -1370,11 +1370,10 @@ namespace ACE.Server.Managers
 
         public void OnDeath(DamageHistory damageHistory)
         {
-            foreach (var damager in damageHistory.Damagers)
-                ExecuteEmoteSet(EmoteCategory.Death, null, damager);
-
             if (damageHistory.Damagers.Count == 0)
                 ExecuteEmoteSet(EmoteCategory.Death, null, null);
+            else 
+                ExecuteEmoteSet(EmoteCategory.Death, null, damageHistory.LastDamager);
         }
 
         /// <summary>
