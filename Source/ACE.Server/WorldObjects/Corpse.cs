@@ -167,7 +167,7 @@ namespace ACE.Server.WorldObjects
         private string killerName;
 
         /// <summary>
-        /// Called to place rare and broadcast sound
+        /// Called to generate rare and add to corpse inventory
         /// </summary>
         public void GenerateRare(WorldObject killer)
         {
