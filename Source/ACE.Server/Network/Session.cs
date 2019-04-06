@@ -14,6 +14,9 @@ using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Packets;
+using ACE.Server.Network.GameMessages;
+
 
 namespace ACE.Server.Network
 {
@@ -48,7 +51,7 @@ namespace ACE.Server.Network
 
         private DateTime logOffRequestTime;
 
-        private bool bootSession;
+        public SessionTerminationDetails PendingTermination { get; set; } = null;
 
         public string BootSessionReason { get; private set; }
 
@@ -80,9 +83,6 @@ namespace ACE.Server.Network
                 return;
 
             Network.ProcessPacket(packet);
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                DropSession("PacketHeader Disconnect");
         }
 
 
@@ -100,14 +100,26 @@ namespace ACE.Server.Network
         /// </summary>
         public void TickOutbound()
         {
-            if (State == SessionState.NetworkTimeout)
+            // Check if the player has been booted
+            if (PendingTermination != null)
+            {
+                if (PendingTermination.TerminationStatus == SessionTerminationPhase.Initialized)
+                {
+                    State = SessionState.TerminationStarted;
+                    Network.Update(); // boot messages may need sending
+                    PendingTermination.TerminationStatus = SessionTerminationPhase.SessionWorkCompleted;
+                }
+                return;
+            }
+
+            if (State == SessionState.TerminationStarted)
                 return;
 
             // Checks if the session has stopped responding.
             if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)
             {
-                // Change the state to show that the Session has reached a timeout.
-                State = SessionState.NetworkTimeout;
+                // The Session has reached a timeout.  Send the client the error disconnect signal, and then drop the session
+                BootSession(BootReason.NetworkTimeout, new GameMessageBootAccount(this, BootReason.NetworkTimeout.GetDescription()));
                 return;
             }
 
@@ -117,10 +129,6 @@ namespace ACE.Server.Network
             // This could be made 0 for instant logoffs.
             if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
                 SendFinalLogOffMessages();
-
-            // Check if the player has been booted
-            if (bootSession)
-                State = SessionState.NetworkTimeout;
         }
 
 
@@ -215,20 +223,37 @@ namespace ACE.Server.Network
             State = SessionState.AuthConnected;
         }
 
-        public void BootSession(string reason = "", params GameMessages.GameMessage[] messages)
+        public void BootSession(BootReason reason, GameMessage message = null, ServerPacket packet = null, string extraReason = "")
         {
-            Network.EnqueueSend(messages);
-
-            if (!string.IsNullOrEmpty(reason))
-                BootSessionReason = reason;
-
-            bootSession = true;
+            if (packet != null)
+            {
+                Network.EnqueueSend(packet);
+            }
+            if (message != null)
+            {
+                Network.EnqueueSend(message);
+            }
+            PendingTermination = new SessionTerminationDetails()
+            {
+                ExtraReason = extraReason,
+                BootReason = reason
+            };
         }
 
-        public void DropSession(string reason)
+        public void DropSession()
         {
-            if (reason != "Pong sent, closing connection.")
-                log.Info($"Session dropped. Account: {Account}, Player: {Player?.Name}, Reason: {reason}");
+            if (PendingTermination == null || PendingTermination.TerminationStatus != SessionTerminationPhase.SessionWorkCompleted) return;
+
+            if (PendingTermination.BootReason != BootReason.PongSentClosingConnection)
+            {
+                var reason = PendingTermination.BootReason;
+                string reas = (reason != BootReason.None) ? $", Reason: {reason.GetDescription()}" : "";
+                if (PendingTermination.ExtraReason != null)
+                {
+                    reas = reas + ", " + PendingTermination.ExtraReason;
+                }
+                log.Info($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+            }
 
             if (Player != null)
             {

@@ -1,13 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.WorldObjects;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ACE.Server.Command
 {
@@ -26,30 +27,56 @@ namespace ACE.Server.Command
             /// </summary>
             Invalid,
             /// <summary>
-            /// normal coordinates, example: 37.3s,67w
+            /// normal coordinates, example: 37.3s,67w<para/>
             /// output is of type ACE.Entity.Position
             /// </summary>
             Location,
             /// <summary>
-            /// a character name, example: the fat bastard
-            /// output is of type ACE.Server.WorldObjects.Player
+            /// a character name of an online player, example: the fat bastard<para/>
+            /// output is of type ACE.Server.WorldObjects.Player<para/>
+            /// only one of OnlinePlayerName or OnlinePlayerNameOrIid or PlayerName parameter can be used for one command<para/>
+            /// must be the first parameter
             /// </summary>
-            Player,
+            OnlinePlayerName,
             /// <summary>
-            /// a number, example: 01231242
+            /// a character name of an online player, example: the fat bastard or an iid, example: 1342177281<para/>
+            /// output is of type ACE.Server.WorldObjects.Player<para/>
+            /// only one of OnlinePlayerName or OnlinePlayerNameOrIid or PlayerName parameter can be used for one command<para/>
+            /// must be the first parameter
+            /// </summary>
+            OnlinePlayerNameOrIid,
+            /// <summary>
+            /// a character name, example: the fat bastard<para/>
+            /// output is of type string<para/>
+            /// only one of OnlinePlayerName or OnlinePlayerNameOrIid or PlayerName parameter can be used for one command<para/>
+            /// must be the first parameter
+            /// </summary>
+            PlayerName,
+            /// <summary>
+            /// a url, example: http://someserver.net:4321/?get=blah <para/>
+            /// output is of type System.Uri
+            /// </summary>
+            Uri,
+            /// <summary>
+            /// a number, example: 01231242<para/>
             /// output is of type ulong: 1231242
             /// </summary>
             ULong,
             /// <summary>
-            /// a number, example: -01231242
+            /// a number, example: -01231242<para/>
             /// output is of type long: -1231242
             /// </summary>
             Long,
             /// <summary>
-            /// a number, example: 01231242
+            /// a number, example: 01231242<para/>
             /// output is of type long: 1231242
             /// </summary>
-            PositiveLong
+            PositiveLong,
+            /// <summary>
+            /// some text enclosed in double quotes, example: "the problem is solved"<para/>
+            /// Note:  To accept this kind of parameter IncludeRaw must be true for the command handler attribute decoration and RawIncluded argument must be true for the call to ResolveACEParameters
+            /// </summary>
+            DoubleQuoteEnclosedText
         }
         /// <summary>
         /// A player supplied parameter
@@ -72,10 +99,12 @@ namespace ACE.Server.Command
             /// The resultant parsed Value (or the default value)
             /// </summary>
             public object Value { get; set; } = null;
-            public Position AsPosition { get { return (Position)Value; } }
-            public Player AsPlayer { get { return (Player)Value; } }
-            public ulong AsULong { get { return (ulong)Value; } }
-            public long AsLong { get { return (long)Value; } }
+            public Position AsPosition => (Position)Value;
+            public Player AsPlayer => (Player)Value;
+            public ulong AsULong => (ulong)Value;
+            public long AsLong => (long)Value;
+            public string AsString => (string)Value;
+            public Uri AsUri => (Uri)Value;
             /// <summary>
             /// The parameter either wasn't supplied or was invalid (doesn't parse, player doesn't exist, etc.)
             /// </summary>
@@ -93,16 +122,25 @@ namespace ACE.Server.Command
         /// Resolve the parameters supplied by the player into usable values.
         /// </summary>
         /// <param name="session">the session of the player who sent the command</param>
-        /// <param name="rawParameters">the collection of parameters supplied by the default parameter parser</param>
+        /// <param name="aceParsedParameters">the collection of parameters supplied by the default parameter parser</param>
         /// <param name="parameters">the resolution details for every parameter</param>
+        /// <param name="rawIncluded">whether or not the raw unparsed command line minus the command name was included as the first parameter</param>
         /// <returns>the parameters were successfully resolved or not</returns>
-        public static bool ResolveACEParameters(Session session, IEnumerable<string> rawParameters, IEnumerable<ACECommandParameter> parameters)
+        public static bool ResolveACEParameters(Session session, IEnumerable<string> aceParsedParameters, IEnumerable<ACECommandParameter> parameters, bool rawIncluded = false)
         {
-            var parameterBlob = rawParameters.Count() > 0 ? rawParameters.Aggregate((a, b) => a + " " + b).Trim(new char[] { ' ', ',' }) : string.Empty;
-            var acps = parameters.ToList();
+            string parameterBlob = "";
+            if (rawIncluded)
+            {
+                parameterBlob = aceParsedParameters.First(); 
+            }
+            else
+            {
+                parameterBlob = aceParsedParameters.Count() > 0 ? aceParsedParameters.Aggregate((a, b) => a + " " + b).Trim(new char[] { ' ', ',' }) : string.Empty;
+            }
+            List<ACECommandParameter> acps = parameters.ToList();
             for (int i = acps.Count - 1; i > -1; i--)
             {
-                var acp = acps[i];
+                ACECommandParameter acp = acps[i];
                 acp.ParameterNo = i + 1;
                 if (parameterBlob.Length > 0)
                 {
@@ -111,7 +149,7 @@ namespace ACE.Server.Command
                         switch (acp.Type)
                         {
                             case ACECommandParameterType.PositiveLong:
-                                var match4 = Regex.Match(parameterBlob, @"(-?\d+)$", RegexOptions.IgnoreCase);
+                                Match match4 = Regex.Match(parameterBlob, @"(-?\d+)$", RegexOptions.IgnoreCase);
                                 if (match4.Success)
                                 {
                                     if (!long.TryParse(match4.Groups[1].Value, out long val))
@@ -128,7 +166,7 @@ namespace ACE.Server.Command
                                 }
                                 break;
                             case ACECommandParameterType.Long:
-                                var match3 = Regex.Match(parameterBlob, @"(-?\d+)$", RegexOptions.IgnoreCase);
+                                Match match3 = Regex.Match(parameterBlob, @"(-?\d+)$", RegexOptions.IgnoreCase);
                                 if (match3.Success)
                                 {
                                     if (!long.TryParse(match3.Groups[1].Value, out long val))
@@ -141,7 +179,7 @@ namespace ACE.Server.Command
                                 }
                                 break;
                             case ACECommandParameterType.ULong:
-                                var match2 = Regex.Match(parameterBlob, @"(-?\d+)$", RegexOptions.IgnoreCase);
+                                Match match2 = Regex.Match(parameterBlob, @"(-?\d+)$", RegexOptions.IgnoreCase);
                                 if (match2.Success)
                                 {
                                     if (!ulong.TryParse(match2.Groups[1].Value, out ulong val))
@@ -155,11 +193,11 @@ namespace ACE.Server.Command
                                 break;
                             case ACECommandParameterType.Location:
                                 Position position = null;
-                                var match = Regex.Match(parameterBlob, @"([\d\.]+[ns])[^\d\.]*([\d\.]+[ew])$", RegexOptions.IgnoreCase);
+                                Match match = Regex.Match(parameterBlob, @"([\d\.]+[ns])[^\d\.]*([\d\.]+[ew])$", RegexOptions.IgnoreCase);
                                 if (match.Success)
                                 {
-                                    var ns = match.Groups[1].Value;
-                                    var ew = match.Groups[2].Value;
+                                    string ns = match.Groups[1].Value;
+                                    string ew = match.Groups[2].Value;
                                     if (!TryParsePosition(new string[] { ns, ew }, out string errorMessage, out position))
                                     {
                                         ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
@@ -169,14 +207,18 @@ namespace ACE.Server.Command
                                     {
                                         acp.Value = position;
                                         acp.Defaulted = false;
-                                        var coordsStartPos = Math.Min(match.Groups[1].Index, match.Groups[2].Index);
+                                        int coordsStartPos = Math.Min(match.Groups[1].Index, match.Groups[2].Index);
                                         parameterBlob = (coordsStartPos == 0) ? string.Empty : parameterBlob.Substring(0, coordsStartPos).Trim(new char[] { ' ', ',' });
                                     }
                                 }
                                 break;
-                            case ACECommandParameterType.Player:
-                                if (i != 0) throw new Exception("Player name parameter must be the first parameter, since it can contain spaces.");
-                                var targetPlayer = PlayerManager.GetOnlinePlayer(parameterBlob);
+                            case ACECommandParameterType.OnlinePlayerName:
+                                if (i != 0)
+                                {
+                                    throw new Exception("Player parameter must be the first parameter, since it can contain spaces.");
+                                }
+
+                                Player targetPlayer = PlayerManager.GetOnlinePlayer(parameterBlob);
                                 if (targetPlayer == null)
                                 {
                                     ChatPacket.SendServerMessage(session, $"Unable to find player {parameterBlob}", ChatMessageType.Broadcast);
@@ -188,6 +230,93 @@ namespace ACE.Server.Command
                                     acp.Defaulted = false;
                                 }
                                 break;
+                            case ACECommandParameterType.OnlinePlayerNameOrIid:
+                                if (i != 0)
+                                {
+                                    throw new Exception("Player parameter must be the first parameter, since it can contain spaces.");
+                                }
+
+                                if (!parameterBlob.Contains(' '))
+                                {
+                                    if (uint.TryParse(parameterBlob, out uint iid))
+                                    {
+                                        Player targetPlayer2 = PlayerManager.GetOnlinePlayer(iid);
+                                        if (targetPlayer2 == null)
+                                        {
+                                            ChatPacket.SendServerMessage(session, $"Unable to find player with iid {iid}", ChatMessageType.Broadcast);
+                                            return false;
+                                        }
+                                        else
+                                        {
+                                            acp.Value = targetPlayer2;
+                                            acp.Defaulted = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                                Player targetPlayer3 = PlayerManager.GetOnlinePlayer(parameterBlob);
+                                if (targetPlayer3 == null)
+                                {
+                                    ChatPacket.SendServerMessage(session, $"Unable to find player {parameterBlob}", ChatMessageType.Broadcast);
+                                    return false;
+                                }
+                                else
+                                {
+                                    acp.Value = targetPlayer3;
+                                    acp.Defaulted = false;
+                                }
+                                break;
+                            case ACECommandParameterType.PlayerName:
+                                if (i != 0)
+                                {
+                                    throw new Exception("Player name parameter must be the first parameter, since it can contain spaces.");
+                                }
+
+                                if (string.IsNullOrWhiteSpace(parameterBlob))
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    acp.Value = parameterBlob;
+                                    acp.Defaulted = false;
+                                }
+                                break;
+                            case ACECommandParameterType.Uri:
+                                Match match5 = Regex.Match(parameterBlob, @"(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))$", RegexOptions.IgnoreCase);
+                                if (match5.Success)
+                                {
+                                    string strUri = match5.Groups[1].Value;
+                                    try
+                                    {
+                                        Uri url = new Uri(strUri);
+                                        acp.Value = url;
+                                        acp.Defaulted = false;
+                                        parameterBlob = (match5.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match5.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                    }
+                                    catch (Exception)
+                                    {
+                                        return false;
+                                    }
+                                }
+                                break;
+                            case ACECommandParameterType.DoubleQuoteEnclosedText:
+                                Match match6 = Regex.Match(parameterBlob.TrimEnd(), @"(\"".*\"")$", RegexOptions.IgnoreCase);
+                                if (match6.Success)
+                                {
+                                    string txt = match6.Groups[1].Value;
+                                    try
+                                    {
+                                        acp.Value = txt.Trim('"');
+                                        acp.Defaulted = false;
+                                        parameterBlob = (match6.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match6.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                    }
+                                    catch (Exception)
+                                    {
+                                        return false;
+                                    }
+                                }
+                                break;
                         }
                     }
                     catch
@@ -195,11 +324,18 @@ namespace ACE.Server.Command
                         return false;
                     }
                 }
-                if (acp.Defaulted) acp.Value = acp.DefaultValue;
+                if (acp.Defaulted)
+                {
+                    acp.Value = acp.DefaultValue;
+                }
+
                 if (acp.Required && acp.Defaulted)
                 {
                     if (!string.IsNullOrWhiteSpace(acp.ErrorMessage))
+                    {
                         ChatPacket.SendServerMessage(session, acp.ErrorMessage, ChatMessageType.Broadcast);
+                    }
+
                     return false;
                 }
             }
@@ -239,22 +375,27 @@ namespace ACE.Server.Command
                 return false;
             }
 
-            if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out var coordNS))
+            if (!float.TryParse(northSouth.Substring(0, northSouth.Length - 1), out float coordNS))
             {
                 errorMessage = "North/South coordinate is not a valid number.";
                 return false;
             }
 
-            if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out var coordEW))
+            if (!float.TryParse(eastWest.Substring(0, eastWest.Length - 1), out float coordEW))
             {
                 errorMessage = "East/West coordinate is not a valid number.";
                 return false;
             }
 
             if (northSouth.EndsWith("s"))
+            {
                 coordNS *= -1.0f;
+            }
+
             if (eastWest.EndsWith("w"))
+            {
                 coordEW *= -1.0f;
+            }
 
             try
             {

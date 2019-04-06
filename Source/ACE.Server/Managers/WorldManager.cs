@@ -723,20 +723,12 @@ namespace ACE.Server.Managers
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
                 for (int i = sessions.Count - 1; i >= 0; i--)
                 {
-                    var sesh = sessions[i];
-                    switch (sesh.State)
+                    var session = sessions[i];
+                    var pendingTerm = session.PendingTermination;
+                    if (session.PendingTermination != null && session.PendingTermination.TerminationStatus == SessionTerminationPhase.SessionWorkCompleted)
                     {
-                        case SessionState.NetworkTimeout:
-                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "Network Timeout" : sesh.BootSessionReason);
-                            break;
-                        case SessionState.ClientConnectionFailure:
-                            // needs to send the client the "git outa here" message or client will zombie out and appear to the player like it's still in game.
-                            // TO-DO: see if PacketHeaderFlags.NetErrorDisconnect will work for this
-                            sesh.BootSession("Client connection failure", new GameMessageBootAccount(sesh));
-                            break;
-                        case SessionState.ClientSentNetErrorDisconnect:
-                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "client sent network error disconnect" : sesh.BootSessionReason);
-                            break;
+                        session.DropSession();
+                        session.PendingTermination.TerminationStatus = SessionTerminationPhase.WorldManagerWorkCompleted;
                     }
                 }
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
