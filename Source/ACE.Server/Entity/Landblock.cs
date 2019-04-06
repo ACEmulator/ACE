@@ -60,6 +60,11 @@ namespace ACE.Server.Entity
 
         private DateTime lastActiveTime;
 
+        /// <summary>
+        /// Dormant landblocks suppress WorldObject ticking and physics processing
+        /// </summary>
+        public bool IsDormant;
+
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<ObjectGuid, WorldObject> pendingAdditions = new Dictionary<ObjectGuid, WorldObject>();
         private readonly List<ObjectGuid> pendingRemovals = new List<ObjectGuid>();
@@ -87,6 +92,11 @@ namespace ACE.Server.Entity
         private static readonly TimeSpan databaseSaveInterval = TimeSpan.FromMinutes(5);
 
         private DateTime lastDatabaseSave = DateTime.MinValue;
+
+        /// <summary>
+        /// Landblocks which have been inactive for this many seconds will be dormant
+        /// </summary>
+        private static readonly TimeSpan dormantInterval = TimeSpan.FromMinutes(1);
 
         /// <summary>
         /// Landblocks which have been inactive for this many seconds will be unloaded
@@ -313,68 +323,70 @@ namespace ACE.Server.Entity
             ProcessPendingWorldObjectAdditionsAndRemovals();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
+            if (!IsDormant)
+            { 
+                ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Player_Tick);
+                foreach (var player in players)
+                    player.Player_Tick(currentUnixTime);
+                ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Player_Tick);
 
-            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Player_Tick);
-            foreach (var player in players)
-                player.Player_Tick(currentUnixTime);
-            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Player_Tick);
-
-            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick);
-            while (sortedCreaturesByNextTick.Count > 0) // Monster_Tick()
-            {
-                var first = sortedCreaturesByNextTick.First.Value;
-
-                // If they wanted to run before or at now
-                if (first.NextMonsterTickTime <= currentUnixTime)
+                ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick);
+                while (sortedCreaturesByNextTick.Count > 0) // Monster_Tick()
                 {
-                    sortedCreaturesByNextTick.RemoveFirst();
-                    first.Monster_Tick(currentUnixTime);
-                    sortedCreaturesByNextTick.AddLast(first); // All creatures tick at a fixed interval
+                    var first = sortedCreaturesByNextTick.First.Value;
+
+                    // If they wanted to run before or at now
+                    if (first.NextMonsterTickTime <= currentUnixTime)
+                    {
+                        sortedCreaturesByNextTick.RemoveFirst();
+                        first.Monster_Tick(currentUnixTime);
+                        sortedCreaturesByNextTick.AddLast(first); // All creatures tick at a fixed interval
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-                else
+                ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick);
+
+                ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_WorldObject_Heartbeat);
+                while (sortedWorldObjectsByNextHeartbeat.Count > 0) // Heartbeat()
                 {
-                    break;
+                    var first = sortedWorldObjectsByNextHeartbeat.First.Value;
+
+                    // If they wanted to run before or at now
+                    if (first.NextHeartbeatTime <= currentUnixTime)
+                    {
+                        sortedWorldObjectsByNextHeartbeat.RemoveFirst();
+                        first.Heartbeat(currentUnixTime);
+                        InsertWorldObjectIntoSortedHeartbeatList(first); // WorldObjects can have heartbeats at different intervals
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+                ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_WorldObject_Heartbeat);
+
+                ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
+                while (sortedGeneratorsByNextGeneratorHeartbeat.Count > 0) // GeneratorHeartbeat()
+                {
+                    var first = sortedGeneratorsByNextGeneratorHeartbeat.First.Value;
+
+                    // If they wanted to run before or at now
+                    if (first.NextGeneratorHeartbeatTime <= currentUnixTime)
+                    {
+                        sortedGeneratorsByNextGeneratorHeartbeat.RemoveFirst();
+                        first.GeneratorHeartbeat(currentUnixTime);
+                        InsertWorldObjectIntoSortedGeneratorHeartbeatList(first); // Generators can have heartbeats at different intervals
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
             }
-            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick);
-
-            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_WorldObject_Heartbeat);
-            while (sortedWorldObjectsByNextHeartbeat.Count > 0) // Heartbeat()
-            {
-                var first = sortedWorldObjectsByNextHeartbeat.First.Value;
-
-                // If they wanted to run before or at now
-                if (first.NextHeartbeatTime <= currentUnixTime)
-                {
-                    sortedWorldObjectsByNextHeartbeat.RemoveFirst();
-                    first.Heartbeat(currentUnixTime);
-                    InsertWorldObjectIntoSortedHeartbeatList(first); // WorldObjects can have heartbeats at different intervals
-                }
-                else
-                {
-                    break;
-                }
-            }
-            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_WorldObject_Heartbeat);
-
-            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
-            while (sortedGeneratorsByNextGeneratorHeartbeat.Count > 0) // GeneratorHeartbeat()
-            {
-                var first = sortedGeneratorsByNextGeneratorHeartbeat.First.Value;
-
-                // If they wanted to run before or at now
-                if (first.NextGeneratorHeartbeatTime <= currentUnixTime)
-                {
-                    sortedGeneratorsByNextGeneratorHeartbeat.RemoveFirst();
-                    first.GeneratorHeartbeat(currentUnixTime);
-                    InsertWorldObjectIntoSortedGeneratorHeartbeatList(first); // Generators can have heartbeats at different intervals
-                }
-                else
-                {
-                    break;
-                }
-            }
-            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
 
             // Heartbeat
             ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Heartbeat);
@@ -391,8 +403,13 @@ namespace ACE.Server.Entity
                         wo.Decay(thisHeartBeat - lastHeartBeat);
                 }
 
-                if (!Permaload && lastActiveTime + unloadInterval < thisHeartBeat)
-                    LandblockManager.AddToDestructionQueue(this);
+                if (!Permaload)
+                {
+                    if (lastActiveTime + dormantInterval < thisHeartBeat)
+                        IsDormant = true;
+                    if (lastActiveTime + unloadInterval < thisHeartBeat)
+                        LandblockManager.AddToDestructionQueue(this);
+                }
 
                 lastHeartBeat = thisHeartBeat;
             }
@@ -739,6 +756,7 @@ namespace ACE.Server.Entity
         public void SetActive(bool isAdjacent = false)
         {
             lastActiveTime = DateTime.UtcNow;
+            IsDormant = false;
 
             if (isAdjacent || _landblock == null || _landblock.IsDungeon) return;
 

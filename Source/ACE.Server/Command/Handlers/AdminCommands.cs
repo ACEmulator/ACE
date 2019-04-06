@@ -2039,10 +2039,14 @@ namespace ACE.Server.Command.Handlers
             // 330 active objects, 1931 total objects(16777216 buckets.)
 
             // todo, expand this
-            var activeLandblocks = LandblockManager.GetActiveLandblocks();
+            var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
+            int dormantLandblocks = 0;
             int players = 0, creatures = 0, missiles = 0, other = 0, total = 0;
-            foreach (var landblock in activeLandblocks)
+            foreach (var landblock in loadedLandblocks)
             {
+                if (landblock.IsDormant)
+                    dormantLandblocks++;
+
                 foreach (var worldObject in landblock.GetAllWorldObjectsForDiagnostics())
                 {
                     if (worldObject is Player)
@@ -2057,7 +2061,7 @@ namespace ACE.Server.Command.Handlers
                     total++;
                 }
             }
-            sb.Append($"{activeLandblocks.Count:N0} active landblocks - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+            sb.Append($"Landblocks: {(loadedLandblocks.Count - dormantLandblocks):N0} active, {dormantLandblocks:N0} dormant - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
             if (ServerPerformanceMonitor.IsRunning)

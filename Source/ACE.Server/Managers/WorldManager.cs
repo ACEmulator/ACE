@@ -590,9 +590,9 @@ namespace ACE.Server.Managers
 
             // Tick all of our Landblocks and WorldObjects
             ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
-            var activeLandblocks = LandblockManager.GetActiveLandblocks();
+            var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
 
-            foreach (var landblock in activeLandblocks)
+            foreach (var landblock in loadedLandblocks)
                 landblock.Tick(Time.GetUnixTime());
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
 
