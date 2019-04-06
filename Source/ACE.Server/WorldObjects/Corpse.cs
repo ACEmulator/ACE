@@ -171,6 +171,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void GenerateRare(WorldObject killer)
         {
+            //todo: calculate chances for killer's luck (rare timers)
+
             WorldObject wo = LootGenerationFactory.CreateRare();
             if (wo != null)
             {
