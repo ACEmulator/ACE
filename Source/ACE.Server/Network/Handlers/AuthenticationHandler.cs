@@ -65,7 +65,7 @@ namespace ACE.Server.Network.Handlers
             catch (Exception ex)
             {
                 log.Error("Error in HandleLoginRequest trying to find the account.", ex);
-                session.BootSession(BootReason.AccountSelectCallbackException);
+                session.Terminate(SessionTerminationReason.AccountSelectCallbackException);
             }
         }
 
@@ -77,7 +77,7 @@ namespace ACE.Server.Network.Handlers
             if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
             {
                 // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
-                session.BootSession(BootReason.BadHandshake, new GameMessageCharacterError(CharacterError.Undefined));
+                session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(CharacterError.Undefined));
                 return;
             }
 
@@ -98,28 +98,28 @@ namespace ACE.Server.Network.Handlers
                 {
                     //log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
 
-                    session.BootSession(BootReason.PongSentClosingConnection, new GameMessageCharacterError(CharacterError.Undefined));
+                    session.Terminate(SessionTerminationReason.PongSentClosingConnection, new GameMessageCharacterError(CharacterError.Undefined));
 
                     return;
                 }
 
                 log.Info($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
                
-                session.BootSession(BootReason.NotAuthorizedNoPasswordOrGlsTicketIncludedInLoginReq, new GameMessageCharacterError(CharacterError.AccountInUse));
+                session.Terminate(SessionTerminationReason.NotAuthorizedNoPasswordOrGlsTicketIncludedInLoginReq, new GameMessageCharacterError(CharacterError.AccountInUse));
 
                 return;
             }
 
             if (account == null)
             {
-                session.BootSession(BootReason.NotAuthorizedAccountNotFound, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
+                session.Terminate(SessionTerminationReason.NotAuthorizedAccountNotFound, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
                 return;
             }
 
             if (WorldManager.Find(account.AccountName) != null)
             {
                 session.SendCharacterError(CharacterError.AccountInUse);
-                session.BootSession(BootReason.AccountInUse, new GameMessageCharacterError(CharacterError.AccountInUse));
+                session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.AccountInUse));
                 return;
             }
 
@@ -129,7 +129,7 @@ namespace ACE.Server.Network.Handlers
                 {
                     log.Info($"client {loginRequest.Account} connected with non matching password does so booting");
 
-                    session.BootSession(BootReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.AccountInUse));
+                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.AccountInUse));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account
@@ -144,7 +144,7 @@ namespace ACE.Server.Network.Handlers
                 log.Info($"client {loginRequest.Account} connected with GlsTicket which is not implemented yet so booting");
 
                 session.SendCharacterError(CharacterError.AccountInUse);
-                session.BootSession(BootReason.NotAuthorizedGlsTicketNotImplementedToProcLoginReq, new GameMessageCharacterError(CharacterError.AccountInUse));
+                session.Terminate(SessionTerminationReason.NotAuthorizedGlsTicketNotImplementedToProcLoginReq, new GameMessageCharacterError(CharacterError.AccountInUse));
 
                 return;
             }

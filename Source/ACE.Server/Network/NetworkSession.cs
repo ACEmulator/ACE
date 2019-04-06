@@ -91,7 +91,7 @@ namespace ACE.Server.Network
 
             ConnectionData.CryptoClient.OnCryptoSystemCatastrophicFailure += (sender, e) =>
             {
-                session.BootSession(BootReason.ClientConnectionFailure, new GameMessageBootAccount(session, BootReason.ClientConnectionFailure.GetDescription()));
+                session.Terminate(SessionTerminationReason.ClientConnectionFailure);
             };
         }
 
@@ -219,13 +219,13 @@ namespace ACE.Server.Network
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
             {
-                session.BootSession(BootReason.PacketHeaderDisconnect, new GameMessageBootAccount(session, BootReason.PacketHeaderDisconnect.GetDescription()));
+                session.Terminate(SessionTerminationReason.PacketHeaderDisconnect);
                 return;
             }
 
             if (packet.Header.HasFlag(PacketHeaderFlags.NetErrorDisconnect))
             {
-                session.BootSession(BootReason.ClientSentNetworkErrorDisconnect, new GameMessageBootAccount(session, BootReason.ClientSentNetworkErrorDisconnect.GetDescription()));
+                session.Terminate(SessionTerminationReason.ClientSentNetworkErrorDisconnect);
                 return;
             }
 
@@ -599,7 +599,7 @@ namespace ACE.Server.Network
                     sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
                     log.Error(sb.ToString());
 
-                    session.BootSession(BootReason.SendToSocketException, null, null, ex.Message);
+                    session.Terminate(SessionTerminationReason.SendToSocketException, null, null, ex.Message);
                 }
             }
             finally

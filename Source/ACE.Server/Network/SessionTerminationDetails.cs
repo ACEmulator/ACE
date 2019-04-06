@@ -6,6 +6,6 @@ namespace ACE.Server.Network
     {
         public string ExtraReason { get; set; } = null;
         public SessionTerminationPhase TerminationStatus { get; set; } = SessionTerminationPhase.Initialized;
-        public BootReason BootReason { get; set; } = BootReason.None;
+        public SessionTerminationReason Reason { get; set; } = SessionTerminationReason.None;
     }
 }

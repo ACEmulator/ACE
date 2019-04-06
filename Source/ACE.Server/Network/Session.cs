@@ -119,7 +119,7 @@ namespace ACE.Server.Network
             if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)
             {
                 // The Session has reached a timeout.  Send the client the error disconnect signal, and then drop the session
-                BootSession(BootReason.NetworkTimeout, new GameMessageBootAccount(this, BootReason.NetworkTimeout.GetDescription()));
+                Terminate(SessionTerminationReason.NetworkTimeout);
                 return;
             }
 
@@ -223,8 +223,10 @@ namespace ACE.Server.Network
             State = SessionState.AuthConnected;
         }
 
-        public void BootSession(BootReason reason, GameMessage message = null, ServerPacket packet = null, string extraReason = "")
+        public void Terminate(SessionTerminationReason reason, GameMessage message = null, ServerPacket packet = null, string extraReason = "")
         {
+            // TODO: graceful SessionTerminationReason.AccountBooted handling
+
             if (packet != null)
             {
                 Network.EnqueueSend(packet);
@@ -236,7 +238,7 @@ namespace ACE.Server.Network
             PendingTermination = new SessionTerminationDetails()
             {
                 ExtraReason = extraReason,
-                BootReason = reason
+                Reason = reason
             };
         }
 
@@ -244,10 +246,10 @@ namespace ACE.Server.Network
         {
             if (PendingTermination == null || PendingTermination.TerminationStatus != SessionTerminationPhase.SessionWorkCompleted) return;
 
-            if (PendingTermination.BootReason != BootReason.PongSentClosingConnection)
+            if (PendingTermination.Reason != SessionTerminationReason.PongSentClosingConnection)
             {
-                var reason = PendingTermination.BootReason;
-                string reas = (reason != BootReason.None) ? $", Reason: {reason.GetDescription()}" : "";
+                var reason = PendingTermination.Reason;
+                string reas = (reason != SessionTerminationReason.None) ? $", Reason: {reason.GetDescription()}" : "";
                 if (PendingTermination.ExtraReason != null)
                 {
                     reas = reas + ", " + PendingTermination.ExtraReason;

@@ -7,7 +7,7 @@ namespace ACE.Server.Network
 {
     public static class Extensions
     {
-        public static string GetDescription(this BootReason reason)
+        public static string GetDescription(this SessionTerminationReason reason)
         {
             if ((int)reason > BootReasonDescriptions.Length - 1)
             {

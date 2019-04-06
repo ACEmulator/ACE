@@ -1,6 +1,6 @@
 namespace ACE.Server.Network.Enum
 {
-    public enum BootReason
+    public enum SessionTerminationReason
     {
         None,
         PacketHeaderDisconnect,

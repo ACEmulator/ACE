@@ -141,7 +141,7 @@ namespace ACE.Server.Command.Handlers
             string specifiedReason = aceParams[1].Value != null ? aceParams[1].AsString : null;
 
             // Boot the player
-            playerSession.BootSession(BootReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);
+            playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);
 
             // TODO: to be replaced with usage of the proper "Audit Group Chat Channel"
             var interestedSessions = PlayerManager.GetAllOnline().Where(i => i.Account.AccessLevel > 2).Select(k => k.Session).ToList();
