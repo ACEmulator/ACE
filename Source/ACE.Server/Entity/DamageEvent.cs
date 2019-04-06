@@ -305,8 +305,10 @@ namespace ACE.Server.Entity
                 if (DamageType == DamageType.Base)
                 {
                     var weapon = attacker.GetEquippedWeapon();
-                    if (weapon != null && weapon.W_DamageType != null)
+                    if (weapon != null && (weapon.W_DamageType ?? 0) != 0)
                         DamageType = (DamageType)weapon.W_DamageType;
+                    else
+                        DamageType = DamageType.Pierce;
                 }
             }
             else
