@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-04-06
+[Ripley]
+* Fix OnDeath crash.
+* Adjusted OnDeath to use LastDamager instead of foreach.
+
 ### 2019-04-05
 [Ripley]
 * Add support for Barber NPCs.
