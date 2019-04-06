@@ -2248,20 +2248,63 @@ namespace ACE.Server.Command.Handlers
                         var desynced = PlayerManager.FindByGuid(monarchID);
                         Console.WriteLine($"{player.Name} has references to {desynced.Name} as monarch, but should be {allegiance.Monarch.Player.Name} -- fixing");
 
-                        var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
-                        if (onlinePlayer != null)
+                        player.MonarchId = allegiance.MonarchId;
+                        player.SaveBiotaToDatabase();
+                    }
+                }
+
+                // find missing players
+                var monarch = PlayerManager.FindByGuid(player.MonarchId.Value);
+                var _allegiance = AllegianceManager.GetAllegiance(monarch);
+
+                if (_allegiance != null && !_allegiance.Members.ContainsKey(player.Guid))
+                {
+                    // walk patrons to get the updated monarch
+                    var patron = PlayerManager.FindByGuid(player.PatronId.Value);
+                    if (patron == null)
+                    {
+                        Console.WriteLine($"{player.Name} has references to deleted patron {player.PatronId.Value:X8}, checking for vassals");
+                        player.PatronId = null;
+
+                        var vassals = players.Where(i => i.PatronId != null && i.PatronId == player.Guid.Full).ToList();
+                        if (vassals.Count > 0)
                         {
-                            onlinePlayer.UpdateProperty(onlinePlayer, PropertyInstanceId.Monarch, allegiance.MonarchId);
-                            onlinePlayer.SaveBiotaToDatabase();
+                            Console.WriteLine($"Vassals found, {player.Name} is the monarch");
+                            player.MonarchId = player.Guid.Full;
                         }
                         else
                         {
-                            var offlinePlayer = PlayerManager.GetOfflinePlayer(player.Guid);
-                            offlinePlayer.MonarchId = allegiance.MonarchId;
-                            offlinePlayer.SaveBiotaToDatabase();
+                            Console.WriteLine($"No vassals found, removing patron reference to deleted character");
+                            player.MonarchId = null;
                         }
+                        player.SaveBiotaToDatabase();
+                        continue;
                     }
+
+                    while (patron.PatronId != null)
+                        patron = PlayerManager.FindByGuid(patron.PatronId.Value);
+
+                    Console.WriteLine($"{player.Name} has references to {monarch.Name} as monarch, but should be {patron.Name} -- fixing missing player");
+
+                    player.MonarchId = patron.Guid.Full;
+                    player.SaveBiotaToDatabase();
                 }
+            }
+        }
+
+        [CommandHandler("show-allegiances", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Shows all of the allegiance chains on the server.", "")]
+        public static void HandleShowAllegiances(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllPlayers();
+
+            // build allegiances
+            foreach (var player in players)
+                AllegianceManager.GetAllegiance(player);
+
+            foreach (var allegiance in AllegianceManager.Allegiances.Values)
+            {
+                allegiance.ShowInfo();
+                Console.WriteLine("---------------");
             }
         }
     }
