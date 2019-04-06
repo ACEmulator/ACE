@@ -65,7 +65,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionMagicRemoveSpellId(uint spellId)
         {
-            if (!Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock, BiotaPropertySpells))
+            if (!Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock, BiotaPropertySpells))
             {
                 log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
                 return;

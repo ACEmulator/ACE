@@ -1332,7 +1332,35 @@ namespace ACE.Database.Models.Shard
 
         public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache, out bool spellAdded)
         {
-            throw new System.NotImplementedException();
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                if (cache.ContainsKey(spell))
+                {
+                    spellAdded = false;
+                    return cache[spell];
+                }
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    var entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Object = biota };
+                    biota.BiotaPropertiesSpellBook.Add(entity);
+
+                    cache[spell] = entity;
+
+                    spellAdded = true;
+                    return entity;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
         }
 
         public static bool TryRemoveKnownSpell(this Biota biota, int spell, out BiotaPropertiesSpellBook entity, ReaderWriterLockSlim rwLock)
@@ -1363,9 +1391,36 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static bool TryRemoveKnownSpell(this Biota biota, int spell, out BiotaPropertiesSpellBook entity, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache)
+        public static bool TryRemoveKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache)
         {
-            throw new System.NotImplementedException();
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                if (cache.ContainsKey(spell))
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        var entity = biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spell);
+
+                        biota.BiotaPropertiesSpellBook.Remove(entity);
+                        entity.Object = null;
+
+                        cache.Remove(spell);
+
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
         }
 
 
