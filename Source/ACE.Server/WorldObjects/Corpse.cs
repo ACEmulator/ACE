@@ -49,6 +49,8 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 10;
             ItemCapacity = 120;
+
+            SuppressGenerateEffect = true;
         }
 
         /// <summary>
@@ -141,25 +143,42 @@ namespace ACE.Server.WorldObjects
                 IsLooted = true;
         }
 
+        public bool CorpseGeneratedRare
+        {
+            get => GetProperty(PropertyBool.CorpseGeneratedRare) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.CorpseGeneratedRare); else SetProperty(PropertyBool.CorpseGeneratedRare, value); }
+        }
+
+        public override void EnterWorld()
+        {
+            base.EnterWorld();
+
+            if (Location != null)
+            {
+                if (CorpseGeneratedRare)
+                {
+                    EnqueueBroadcast(new GameMessageSystemChat($"{killerName} has discovered the {rareGenerated.Name}!", ChatMessageType.System));
+                    ApplySoundEffects(Sound.TriggerActivated, 10);
+                }
+            }
+        }
+
+        private WorldObject rareGenerated;
+        private string killerName;
+
         /// <summary>
         /// Called to place rare and broadcast sound
         /// </summary>
-        public void placeRareIfPossible(Player killer)
+        public void GenerateRare(WorldObject killer)
         {
-            if (this.GetProperty(PropertyBool.CanGenerateRare) == true)
+            WorldObject wo = LootGenerationFactory.CreateRare();
+            if (wo != null)
             {
-                WorldObject wo = LootGenerationFactory.CreateRare();
-                if (wo != null)
+                if (TryAddToInventory(wo))
                 {
-                    this.TryAddToInventory(wo);
-                    killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{killer.Name} has discovered the {wo.Name}.", ChatMessageType.System));
-                    killer.EnqueueBroadcast(new GameMessageSound(killer.Guid, Sound.UI_Bell, 1.0f));
-                    //var visiblePlayers = PhysicsObj.ObjMaint.VoyeurTable.Values;
-                    //foreach (var visiblePlayer in visiblePlayers)
-                    //{
-                    //    var p1 = visiblePlayer.WeenieObj.WorldObject as Player;
-                    //    p1.Session.Network.EnqueueSend(new GameMessageSound(p1.Guid, Sound.UI_Bell, 1.0f));
-                    //}
+                    rareGenerated = wo;
+                    killerName = killer.Name.TrimStart('+');
+                    CorpseGeneratedRare = true;
                 }
             }
         }

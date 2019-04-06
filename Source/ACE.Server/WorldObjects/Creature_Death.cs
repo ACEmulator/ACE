@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
             {
                 corpse.SetupTableId = SetupTableId;
                 corpse.MotionTableId = MotionTableId;
-                corpse.SoundTableId = SoundTableId;
+                //corpse.SoundTableId = SoundTableId; // Do not change sound table for corpses
                 corpse.PaletteBaseDID = PaletteBaseDID;
                 corpse.ClothingBase = ClothingBase;
                 corpse.PhysicsTableId = PhysicsTableId;
@@ -223,8 +223,10 @@ namespace ACE.Server.WorldObjects
             }
             else
                 corpse.LongDesc = $"Killed by misadventure.";
-            var player = this as Player;
-            if (player != null)
+
+            bool saveCorpse = false;
+
+            if (this is Player player)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 var dropped = player.CalculateDeathItems(corpse);
@@ -236,7 +238,10 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
 
                     if (dropped.Count > 0)
+                    {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
+                        saveCorpse = true;
+                    }
                 }
             }
             else
@@ -245,13 +250,25 @@ namespace ACE.Server.WorldObjects
                 GenerateTreasure(corpse);
                 if (killer is Player && (Level >= 100 || Level >= killer.Level + 5))
                 {
-                    corpse.SetProperty(PropertyBool.CanGenerateRare, true);
+                    CanGenerateRare = true;
                 }
             }
 
             corpse.RemoveProperty(PropertyInt.Value);
-            LandblockManager.AddObject(corpse);
-            corpse.placeRareIfPossible((Player)killer);
+
+            if (CanGenerateRare)
+                corpse.GenerateRare(killer);
+
+            corpse.EnterWorld();
+
+            if (saveCorpse)
+                corpse.SaveBiotaToDatabase();
+        }
+
+        public bool CanGenerateRare
+        {
+            get => GetProperty(PropertyBool.CanGenerateRare) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.CanGenerateRare); else SetProperty(PropertyBool.CanGenerateRare, value); }
         }
 
         /// <summary>

@@ -643,36 +643,35 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(msg, maxRange.Value);
         }
 
-        public void ApplyVisualEffects(PlayScript effect)
+        public void ApplyVisualEffects(PlayScript effect, float speed = 1)
         {
             if (CurrentLandblock != null)
-                PlayParticleEffect(effect, Guid);
+                PlayParticleEffect(effect, Guid, speed);
         }
 
         // plays particle effect like spell casting or bleed etc..
-        public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
+        public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId, float speed = 1)
         {
-            EnqueueBroadcast(new GameMessageScript(targetId, effectId));
+            EnqueueBroadcast(new GameMessageScript(targetId, effectId, speed));
         }
 
-        //public List<AceObjectInventory> CreateList => AceObject.CreateList;
-        //public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
-
-        /*public List<AceObjectInventory> WieldList
+        public void ApplySoundEffects(Sound sound, float volume = 1)
         {
-            get { return CreateList.Where(x => x.DestinationType == (uint)DestinationType.Wield).ToList(); }
+            if (CurrentLandblock != null)
+                PlaySoundEffect(sound, Guid, volume);
         }
 
-        public List<AceObjectInventory> ShopList
+        public void PlaySoundEffect(Sound soundId, ObjectGuid targetId, float volume = 1)
         {
-            get { return CreateList.Where(x => x.DestinationType == (uint)DestinationType.Shop).ToList(); }
-        }*/
+            EnqueueBroadcast(new GameMessageSound(targetId, soundId, volume));
+        }
 
-        public void EnterWorld()
+        public virtual void EnterWorld()
         {
             if (Location != null)
             {
                 LandblockManager.AddObject(this);
+
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
             }

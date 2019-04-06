@@ -22,7 +22,7 @@ namespace ACE.Server.Factories
                 new int[] { 30345, 30346, 30347, 30348, 30349, 30340, 30341, 30342, 30343, 30344, 30304, 30350, 30351, 30302, 30303, 30309, 30305, 30306, 30307, 30308, 30316, 30317, 30318, 30310, 30311, 30312, 30313, 30314, 30315, 30339, 30319, 30320, 30321, 30322, 30323, 30324, 30325, 30326, 30327, 30328, 30329, 30330, 30331, 30332, 30333, 30334, 30335, 30336, 30337, 30338, 30374, 30375, 30376, 30377, 30378 }
             };
 
-            if(ThreadSafeRandom.Next(0, 2499) == 0) ///2499
+            if (ThreadSafeRandom.Next(0, 2499) == 0) ///2499
             {
                 tier = 1;
                 if (ThreadSafeRandom.Next(0, 9) == 0) //9
@@ -47,11 +47,11 @@ namespace ACE.Server.Factories
                 }
             }
 
-            if(tier == 0)
+            if (tier == 0)
             {
                 return null;
             }
-            var wo = WorldObjectFactory.CreateNewWorldObject((uint)RaresMatrix[tier-1][ThreadSafeRandom.Next(0, RaresMatrix[tier-1].Length - 1)]);
+            var wo = WorldObjectFactory.CreateNewWorldObject((uint)RaresMatrix[tier - 1][ThreadSafeRandom.Next(0, RaresMatrix[tier - 1].Length - 1)]);
             return wo;
         }
     }
