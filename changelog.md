@@ -4,6 +4,7 @@
 [Ripley]
 * Fix OnDeath crash.
 * Adjusted OnDeath to use LastDamager instead of foreach.
+* Fix tells issue.
 
 ### 2019-04-05
 [Ripley]
