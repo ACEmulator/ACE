@@ -9,6 +9,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Factories;
 
 namespace ACE.Server.WorldObjects
 {
@@ -48,6 +49,8 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 10;
             ItemCapacity = 120;
+
+            SuppressGenerateEffect = true;
         }
 
         /// <summary>
@@ -138,6 +141,48 @@ namespace ACE.Server.WorldObjects
 
             if (VictimId != null && !new ObjectGuid(VictimId.Value).IsPlayer())
                 IsLooted = true;
+        }
+
+        public bool CorpseGeneratedRare
+        {
+            get => GetProperty(PropertyBool.CorpseGeneratedRare) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.CorpseGeneratedRare); else SetProperty(PropertyBool.CorpseGeneratedRare, value); }
+        }
+
+        public override void EnterWorld()
+        {
+            base.EnterWorld();
+
+            if (Location != null)
+            {
+                if (CorpseGeneratedRare)
+                {
+                    EnqueueBroadcast(new GameMessageSystemChat($"{killerName} has discovered the {rareGenerated.Name}!", ChatMessageType.System));
+                    ApplySoundEffects(Sound.TriggerActivated, 10);
+                }
+            }
+        }
+
+        private WorldObject rareGenerated;
+        private string killerName;
+
+        /// <summary>
+        /// Called to generate rare and add to corpse inventory
+        /// </summary>
+        public void GenerateRare(WorldObject killer)
+        {
+            //todo: calculate chances for killer's luck (rare timers)
+
+            WorldObject wo = LootGenerationFactory.CreateRare();
+            if (wo != null)
+            {
+                if (TryAddToInventory(wo))
+                {
+                    rareGenerated = wo;
+                    killerName = killer.Name.TrimStart('+');
+                    CorpseGeneratedRare = true;
+                }
+            }
         }
     }
 }
