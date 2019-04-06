@@ -29,7 +29,7 @@ namespace ACE.Server.Factories
                 {
                     tier = 2;
                 }
-                if (ThreadSafeRandom.Next(0, 99) == 0) //99
+                if (ThreadSafeRandom.Next(1, 100) == 0) //99
                 {
                     tier = 3;
                 }
