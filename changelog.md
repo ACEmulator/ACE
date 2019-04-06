@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-04-06
+[Ripley]
+* Fix OnDeath crash.
+* Adjusted OnDeath to use LastDamager instead of foreach.
+
 ### 2019-04-05
 [Ripley]
 * Add support for Barber NPCs.
@@ -9,6 +14,9 @@
 * Fix to prevent multiple death stacking. You can only die one time until you resurrect at lifestone.
 
 ### 2019-04-03
+[Ripley]
+* Add disable_gateway_ties_to_be_summonable configurable option.
+
 [Mag-nus]
 * /serverperformance command added. Optional parameters: start, stop, reset
 

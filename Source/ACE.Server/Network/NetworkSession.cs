@@ -9,6 +9,7 @@ using System.Text;
 
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
 
@@ -86,6 +87,11 @@ namespace ACE.Server.Network
                 currentBundleLocks[i] = new object();
                 currentBundles[i] = new NetworkBundle();
             }
+
+            ConnectionData.CryptoClient.OnCryptoSystemCatastrophicFailure += (sender, e) =>
+            {
+                session.State = Enum.SessionState.ClientConnectionFailure;
+            };
         }
 
         /// <summary>
@@ -203,32 +209,41 @@ namespace ACE.Server.Network
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
             NetworkStatistics.C2S_Packets_Aggregate_Increment();
 
-            // If the client is requesting a retransmission, verify the CRC and process it immediately
-            // TO-DO: Theory: Would it be possible to verify all unencrypted CRCs here as well?
+            if (!packet.VerifyCRC(ConnectionData.CryptoClient, true))
+            {
+                return;
+            }
+
+            #region order-insensitive "half-processing"
+
+            if (packet.Header.HasFlag(PacketHeaderFlags.NetErrorDisconnect))
+            {
+                session.State = Enum.SessionState.ClientSentNetErrorDisconnect;
+                return;
+            }
+
+            // If the client is requesting a retransmission process it immediately
             if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
             {
-                if (!packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
+                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
                 {
-                    // discard retransmission request with cleartext CRC
-                    // client sends one encrypted version and one non encrypted version of each retransmission request
-                    // honoring these causes client to drop because it's only expecting one of the two retransmission requests to be honored
-                    // and it's more secure to only accept the trusted version
-                    return;
+                    Retransmit(sequence);
                 }
-                if (packet.VerifyCRC(ConnectionData.CryptoClient, false))
-                {
-                    packet.CRCVerified = true;
-                    foreach (uint sequence in packet.HeaderOptional.RetransmitData)
-                    {
-                        Retransmit(sequence);
-                    }
-                    NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
-                }
-                else
-                {
-                    return;
-                }
+                NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
             }
+
+            // depending on the current session state:
+            // Set the next timeout tick value, to compare against in the WorldManager
+            // Sessions that have gone past the AuthLoginRequest step will stay active for a longer period of time (exposed via configuration) 
+            // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
+            // Example: Applications that check uptime will stay in the AuthLoginRequest state.
+            session.Network.TimeoutTick = (session.State == Enum.SessionState.AuthLoginRequest) ?
+                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks :
+                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
+
+            #endregion
+
+            #region Reordering stage
 
             // Reordering stage
             // Check if this packet's sequence is a sequence which we have already processed.
@@ -258,14 +273,20 @@ namespace ACE.Server.Network
                 return;
             }
 
+            #endregion
+
+            #region Final processing stage
+
             // Processing stage
             // If we reach here, this is a packet we should proceed with processing.
-            HandlePacket(packet);
-
+            HandleOrderedPacket(packet);
+        
             // Process data now in sequence
             // Finally check if we have any out of order packets or fragments we need to process;
             CheckOutOfOrderPackets();
             CheckOutOfOrderFragments();
+
+            #endregion
         }
         /// <summary>
         /// request retransmission of lost sequences
@@ -299,44 +320,12 @@ namespace ACE.Server.Network
 
         /// <summary>
         /// Handles a packet<para />
-        /// Packets at this stage are already reordered
+        /// Packets at this stage are already verified, "half processed", and reordered
         /// </summary>
         /// <param name="packet">ClientPacket to handle</param>
-        private void HandlePacket(ClientPacket packet)
+        private void HandleOrderedPacket(ClientPacket packet)
         {
             packetLog.DebugFormat("[{0}] Handling packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
-
-            if (!packet.CRCVerified)
-            {
-                if (packet.VerifyCRC(ConnectionData.CryptoClient, true))
-                {
-                    packet.CRCVerified = true; 
-                }
-                else
-                {
-                    return;
-                }
-            }
-            else
-            {
-                // Packet includes a request for retransmit and was already verified and half processed without advancing, so advance now
-                ConnectionData.CryptoClient.RangeAdvance();
-            }
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.NetErrorDisconnect))
-            {
-                session.State = Enum.SessionState.ClientSentNetErrorDisconnect;
-                return;
-            }
-
-            // depending on the current session state:
-            // Set the next timeout tick value, to compare against in the WorldManager
-            // Sessions that have gone past the AuthLoginRequest step will stay active for a longer period of time (exposed via configuration) 
-            // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
-            // Example: Applications that check uptime will stay in the AuthLoginRequest state.
-            session.Network.TimeoutTick = (session.State == Enum.SessionState.AuthLoginRequest) ?
-                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks :
-                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
             // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
@@ -365,8 +354,6 @@ namespace ACE.Server.Network
                 AuthenticationHandler.HandleLoginRequest(packet, session);
                 return;
             }
-
-
 
             // Process all fragments out of the packet
             foreach (ClientPacketFragment fragment in packet.Fragments)
@@ -460,7 +447,7 @@ namespace ACE.Server.Network
             while (outOfOrderPackets.TryRemove(lastReceivedPacketSequence + 1, out var packet))
             {
                 packetLog.DebugFormat("[{0}] Ready to handle out-of-order packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
-                HandlePacket(packet);
+                HandleOrderedPacket(packet);
             }
         }
 
