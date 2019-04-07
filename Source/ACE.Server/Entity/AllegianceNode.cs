@@ -85,6 +85,15 @@ namespace ACE.Server.Entity
             Rank = Math.Max(lower + 1, higher);
         }
 
+        public void Walk(Action<AllegianceNode> action, bool self = true)
+        {
+            if (self)
+                action(this);
+
+            foreach (var vassal in Vassals.Values)
+                vassal.Walk(action, true);
+        }
+
         public void ShowInfo(int depth = 0)
         {
             var prefix = "".PadLeft(depth * 2, ' ');

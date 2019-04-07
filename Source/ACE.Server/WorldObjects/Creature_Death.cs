@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
             {
                 corpse.SetupTableId = SetupTableId;
                 corpse.MotionTableId = MotionTableId;
-                corpse.SoundTableId = SoundTableId;
+                //corpse.SoundTableId = SoundTableId; // Do not change sound table for corpses
                 corpse.PaletteBaseDID = PaletteBaseDID;
                 corpse.ClothingBase = ClothingBase;
                 corpse.PhysicsTableId = PhysicsTableId;
@@ -248,13 +248,27 @@ namespace ACE.Server.WorldObjects
             {
                 corpse.IsMonster = true;
                 GenerateTreasure(corpse);
+                if (killer is Player && (Level >= 100 || Level >= killer.Level + 5))
+                {
+                    CanGenerateRare = true;
+                }
             }
 
             corpse.RemoveProperty(PropertyInt.Value);
-            LandblockManager.AddObject(corpse);
+
+            if (CanGenerateRare && killer != null)
+                corpse.GenerateRare(killer);
+
+            corpse.EnterWorld();
 
             if (saveCorpse)
                 corpse.SaveBiotaToDatabase();
+        }
+
+        public bool CanGenerateRare
+        {
+            get => GetProperty(PropertyBool.CanGenerateRare) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.CanGenerateRare); else SetProperty(PropertyBool.CanGenerateRare, value); }
         }
 
         /// <summary>
