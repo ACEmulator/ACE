@@ -40,6 +40,10 @@ namespace ACE.Server.Managers
             DoSessionWork_TickOutbound,
             DoSessionWork_RemoveSessions,
 
+            // These are all found in WorldManager.ProcessPacket()
+            ProcessPacket_0,
+            ProcessPacket_1,
+
             MonitorMaxItems // Keep this at the end to properly size our monitors array
         }
 
@@ -242,6 +246,10 @@ namespace ACE.Server.Managers
 
             sb.Append($"Calls from WorldManager.DoSessionWork(){'\n'}");
             for (int i = (int)MonitorType.DoSessionWork_TickInbound; i <= (int)MonitorType.DoSessionWork_RemoveSessions; i++)
+                AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
+
+            sb.Append($"Calls from WorldManager.ProcessPacket(){'\n'}");
+            for (int i = (int)MonitorType.ProcessPacket_0; i <= (int)MonitorType.ProcessPacket_1; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
             return sb.ToString();
