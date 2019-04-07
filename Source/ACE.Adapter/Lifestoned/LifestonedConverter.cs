@@ -10,7 +10,7 @@ namespace ACE.Adapter.Lifestoned
 {
     public static class LifestonedConverter
     {
-        public static bool TryConvert(global::Lifestoned.DataModel.Gdle.Weenie input, out Weenie result)
+        public static bool TryConvert(global::Lifestoned.DataModel.Gdle.Weenie input, out Weenie result, bool correctForEnumShift = false)
         {
             try
             {
@@ -21,7 +21,7 @@ namespace ACE.Adapter.Lifestoned
                 if (input.WeenieClassId <= ushort.MaxValue && System.Enum.IsDefined(typeof(WeenieClassId), (ushort)input.WeenieClassId))
                     result.ClassName = System.Enum.GetName(typeof(WeenieClassId), (ushort)input.WeenieClassId).ToLower();
                 else if (input.WeenieClassId <= ushort.MaxValue && System.Enum.IsDefined(typeof(WeenieClassName), (ushort)input.WeenieClassId))
-                    result.ClassName = System.Enum.GetName(typeof(WeenieClassName), (ushort)input.WeenieClassId).ToLower();
+                    result.ClassName = System.Enum.GetName(typeof(WeenieClassName), (ushort)input.WeenieClassId).TrimStart("W_".ToCharArray()).TrimEnd("_CLASS".ToCharArray()).ToLower();
                 else
                     result.ClassName = "ace" + input.WeenieClassId + "-" + input.Name.Replace("'", "").Replace(" ", "").Replace(".", "").Replace("(", "").Replace(")", "").Replace("+", "").Replace(":", "").Replace("_", "").Replace("-", "").Replace(",", "").ToLower();
 
@@ -135,7 +135,31 @@ namespace ACE.Adapter.Lifestoned
                 if (input.DidStats != null)
                 {
                     foreach (var value in input.DidStats)
-                        result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = value.Value });
+                    {
+                        if (!correctForEnumShift)
+                            result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = value.Value });
+                        else
+                        {
+                            var valCorrected = value.Value;
+
+                            // Fix PhysicsScript ENUM shift post 16PY data
+                            if (value.Key == (int)PropertyDataId.PhysicsScript)
+                            {
+                                // These are the only ones in 16PY database, not entirely certain where the shift started but the change below is correct for end of retail enum
+                                if (valCorrected >= 83 && valCorrected <= 89)
+                                    valCorrected++;
+                            }
+
+                            // Fix PhysicsScript ENUM shift post 16PY data
+                            if (value.Key == (int)PropertyDataId.RestrictionEffect)
+                            {
+                                if (valCorrected >= 83)
+                                    valCorrected++;
+                            }
+
+                            result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = valCorrected });
+                        }
+                    }
                 }
 
                 if (input.EmoteTable != null)
@@ -164,6 +188,28 @@ namespace ACE.Adapter.Lifestoned
                                 MinHealth = value.MinHealth,
                                 MaxHealth = value.MaxHealth
                             };
+
+                            // Fix MotionCommand ENUM shift post 16PY data
+                            if (correctForEnumShift && efEmote.Style.HasValue)
+                            {
+                                var oldStyle = (ACE.Entity.Enum.MotionCommand)efEmote.Style;
+                                var index = efEmote.Style.Value & 0xFFFF;
+                                if (index >= 0x115)
+                                {
+                                    var newStyle = (ACE.Entity.Enum.MotionCommand)efEmote.Style + 3;
+                                    efEmote.Style += 3;
+                                }
+                            }
+                            if (correctForEnumShift && efEmote.Substyle.HasValue)
+                            {
+                                var oldSubstyle = (ACE.Entity.Enum.MotionCommand)efEmote.Substyle;
+                                var index = efEmote.Substyle.Value & 0xFFFF;
+                                if (index >= 0x115)
+                                {
+                                    var newSubstyle = (ACE.Entity.Enum.MotionCommand)efEmote.Substyle + 3;
+                                    efEmote.Substyle += 3;
+                                }
+                            }
 
                             uint order = 0;
 
@@ -208,6 +254,25 @@ namespace ACE.Adapter.Lifestoned
 
                                     Sound = (int?)action.Sound
                                 };
+
+                                // Fix MotionCommand ENUM shift post 16PY data
+                                if (correctForEnumShift && efAction.Motion.HasValue)
+                                {
+                                    var oldMotion = (ACE.Entity.Enum.MotionCommand)efAction.Motion;
+                                    var index = efAction.Motion.Value & 0xFFFF;
+                                    if (index >= 0x115)
+                                    {
+                                        var newMotion = (ACE.Entity.Enum.MotionCommand)efAction.Motion + 3;
+                                        efAction.Motion += 3;
+                                    }
+                                }
+
+                                // Fix PhysicsScript ENUM shift post 16PY data
+                                if (correctForEnumShift && efAction.PScript.HasValue)
+                                {
+                                    if (efAction.PScript.Value >= 83)
+                                        efAction.PScript++;
+                                }
 
                                 order++;
 
