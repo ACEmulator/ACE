@@ -227,7 +227,7 @@ namespace ACE.Server.Managers
             var sb = new StringBuilder();
 
             sb.Append($"Monitoring Durations: ~5m {Monitors5mRunTime.TotalMinutes:N2} min, ~1h {Monitors1hRunTime.TotalMinutes:N2} min, ~24h {Monitors24hRunTime.TotalMinutes:N2} min{'\n'}");
-            sb.Append($"~5m Hits   Avg  Long  Last - ~1h Hits   Avg  Long  Last - ~24h Hits  Avg  Long  Last (s) - Name{'\n'}");
+            sb.Append($"~5m Hits   Avg  Long  Last Tot - ~1h Hits   Avg  Long  Last  Tot - ~24h Hits  Avg  Long  Last   Tot (s) - Name{'\n'}");
 
             sb.Append($"Calls from WorldManager.UpdateWorld(){'\n'}");
             for (int i = (int)MonitorType.PlayerManager_Tick; i <= (int)MonitorType.DoSessionWork; i++)
@@ -257,9 +257,9 @@ namespace ACE.Server.Managers
 
         private static void AddMonitorOutputToStringBuilder(RateMonitor monitor5m, RateMonitor monitor1h, RateMonitor monitor24h, MonitorType monitorType, StringBuilder sb)
         {
-            sb.Append($"{monitor5m.TotalEvents.ToString().PadLeft(7)} {monitor5m.AverageEventDuration:N4} {monitor5m.LongestEvent:N3} {monitor5m.LastEvent:N3} - " +
-                      $"{monitor1h.TotalEvents.ToString().PadLeft(7)} {monitor1h.AverageEventDuration:N4} {monitor1h.LongestEvent:N3} {monitor1h.LastEvent:N3} - " +
-                      $"{monitor24h.TotalEvents.ToString().PadLeft(7)} {monitor24h.AverageEventDuration:N4} {monitor24h.LongestEvent:N3} {monitor24h.LastEvent:N3} - " +
+            sb.Append($"{monitor5m.TotalEvents.ToString().PadLeft(7)} {monitor5m.AverageEventDuration:N4} {monitor5m.LongestEvent:N3} {monitor5m.LastEvent:N3} {monitor5m.TotalSeconds.ToString("N0").PadLeft(3)} - " +
+                      $"{monitor1h.TotalEvents.ToString().PadLeft(7)} {monitor1h.AverageEventDuration:N4} {monitor1h.LongestEvent:N3} {monitor1h.LastEvent:N3} {monitor1h.TotalSeconds.ToString("N0").PadLeft(4)} - " +
+                      $"{monitor24h.TotalEvents.ToString().PadLeft(7)} {monitor24h.AverageEventDuration:N4} {monitor24h.LongestEvent:N3} {monitor24h.LastEvent:N3} {monitor24h.TotalSeconds.ToString("N0").PadLeft(5)} - " +
                       $"{monitorType}{'\n'}");
         }
     }
