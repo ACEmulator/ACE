@@ -49,10 +49,8 @@ namespace ACE.Server.Managers
         /// </remarks>
         public static uint DefaultSessionTimeout = ConfigManager.Config.Server.Network.DefaultSessionTimeout;
 
-        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
-        private static readonly Session[] sessionMap = new Session[ConfigManager.Config.Server.Network.MaximumAllowedSessions];
-        private static readonly List<Session> sessions = new List<Session>();
-        private static readonly List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+        private static readonly ConcurrentDictionary<ushort, Session> Sessions = new ConcurrentDictionary<ushort, Session>();
+        private static ushort NextSessionId => (ushort)Enumerable.Range(1, ushort.MaxValue).Except(Sessions.Keys.Select(k => (int)k)).First();
 
         public static bool Concurrency = false;
 
@@ -99,23 +97,16 @@ namespace ACE.Server.Managers
 
                     // This should be set on the second packet to the server from the client.
                     // This completes the three-way handshake.
-                    sessionLock.EnterReadLock();
                     Session session = null;
-                    try
-                    {
+
                         session =
-                            (from k in sessionMap
+                            (from k in Sessions
                              where
-                                 k != null &&
-                                 k.State == SessionState.AuthConnectResponse &&
-                                 k.Network.ConnectionData.ConnectionCookie == connectResponse.Check &&
-                                 k.EndPoint.Address.Equals(endPoint.Address)
-                             select k).FirstOrDefault();
-                    }
-                    finally
-                    {
-                        sessionLock.ExitReadLock();
-                    }
+                                 k.Value.State == SessionState.AuthConnectResponse &&
+                                 k.Value.Network.ConnectionData.ConnectionCookie == connectResponse.Check &&
+                                 k.Value.EndPoint.Address.Equals(endPoint.Address)
+                             select k).FirstOrDefault().Value;
+                  
                     if (session != null)
                     {
                         session.State = SessionState.AuthConnected;
@@ -141,7 +132,7 @@ namespace ACE.Server.Managers
             else if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
                 packetLog.Debug($"{packet}, {endPoint}");
-                if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+                if (!Sessions.Any(k => k.Value.EndPoint.Equals(endPoint)) && Sessions.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                 {
                     log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
                     SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
@@ -173,30 +164,27 @@ namespace ACE.Server.Managers
                     }
                 }
             }
-            else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
-            {
-                var session = sessionMap[packet.Header.Id];
-                if (session != null)
-                {
-                    if (session.EndPoint.Equals(endPoint))
-                        session.ProcessPacket(packet);
-                    else
-                        log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
-                }
-                else
-                {
-                    log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
-                }
-            }
             else
             {
-                log.WarnFormat("unsolicited packet from {0}", endPoint);
+                var session = Sessions.FirstOrDefault(k => k.Value.Network.ClientId == packet.Header.Id).Value;
+
+                    if (session != null)
+                    {
+                        if (session.EndPoint.Equals(endPoint))
+                            session.ProcessPacket(packet);
+                        else
+                            log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                    }
+                else
+                {
+                    log.WarnFormat("unsolicited packet from {0}", endPoint);
+                }
             }
         }
 
         private static void SendLoginRequestReject(IPEndPoint endPoint, CharacterError error)
         {
-            var tempSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
+            var tempSession = new Session(endPoint, NextSessionId, ServerId);
 
             // First we must send the connect request response
             var connectRequest = new PacketOutboundConnectRequest(
@@ -217,40 +205,13 @@ namespace ACE.Server.Managers
         public static Session FindOrCreateSession(IPEndPoint endPoint)
         {
             Session session;
-
-            sessionLock.EnterUpgradeableReadLock();
-            try
+            session = Sessions.SingleOrDefault(s => endPoint.Equals(s.Value.EndPoint)).Value;
+            if (session == null)
             {
-                session = sessions.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
-                if (session == null)
-                {
-                    sessionLock.EnterWriteLock();
-                    try
-                    {
-                        for (ushort i = 0; i < sessionMap.Length; i++)
-                        {
-                            if (sessionMap[i] == null)
-                            {
-                                log.DebugFormat("Creating new session for {0} with id {1}", endPoint, i);
-                                session = new Session(endPoint, i, ServerId);
-                                sessions.Add(session);
-                                sessionMap[i] = session;
-                                loggedInClients.Add(endPoint);
-                                break;
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        sessionLock.ExitWriteLock();
-                    }
-                }
+                ushort cid = NextSessionId;
+                log.DebugFormat("Creating new session for {0} with id {1}", endPoint, cid);
+                session = Sessions.AddOrUpdate(cid, new Session(endPoint, cid, ServerId), (a, b) => b);
             }
-            finally
-            {
-                sessionLock.ExitUpgradeableReadLock();
-            }
-
             return session;
         }
 
@@ -259,58 +220,23 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void RemoveSession(Session session)
         {
-            sessionLock.EnterWriteLock();
-            try
-            {
-                log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
-                sessions.Remove(session);
-                if (sessionMap[session.Network.ClientId] == session)
-                    sessionMap[session.Network.ClientId] = null;
-                loggedInClients.Remove(session.EndPoint);
-            }
-            finally
-            {
-                sessionLock.ExitWriteLock();
-            }
+            log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
+            Sessions.Remove(session.Network.ClientId, out Session xSession);
         }
 
         public static int GetSessionCount()
         {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.Count;
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
+            return Sessions.Count;
         }
 
         public static Session Find(uint accountId)
         {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.SingleOrDefault(s => s.AccountId == accountId);
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
+            return Sessions.FirstOrDefault(k => k.Value.AccountId == accountId).Value;
         }
 
         public static Session Find(string account)
         {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.SingleOrDefault(s => s.Account == account);
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
+            return Sessions.FirstOrDefault(k => k.Value.Account == account).Value;
         }
 
         public static void PlayerEnterWorld(Session session, Character character)
@@ -698,53 +624,44 @@ namespace ACE.Server.Managers
         /// </summary>
         public static int DoSessionWork()
         {
-            int sessionCount;
+            int sessionCount = Sessions.Count;
 
-            sessionLock.EnterUpgradeableReadLock();
-            try
+            // The session tick inbound processes all inbound GameAction messages
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
+            foreach (var s in Sessions)
+                s.Value.TickInbound();
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
+
+            // Do not combine the above and below loops. All inbound messages should be processed first and then all outbound messages should be processed second.
+
+            // The session tick outbound processes pending actions and handles outgoing messages
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
+            foreach (var s in Sessions)
+                s.Value.TickOutbound();
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
+
+            // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
+
+            foreach (var session in Sessions)
             {
-                sessionCount = sessions.Count;
-
-                // The session tick inbound processes all inbound GameAction messages
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
-                foreach (var s in sessions)
-                    s.TickInbound();
-                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
-
-                // Do not combine the above and below loops. All inbound messages should be processed first and then all outbound messages should be processed second.
-
-                // The session tick outbound processes pending actions and handles outgoing messages
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
-                foreach (var s in sessions)
-                    s.TickOutbound();
-                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
-
-                // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
-                for (int i = sessions.Count - 1; i >= 0; i--)
+                switch (session.Value.State)
                 {
-                    var sesh = sessions[i];
-                    switch (sesh.State)
-                    {
-                        case SessionState.NetworkTimeout:
-                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "Network Timeout" : sesh.BootSessionReason);
-                            break;
-                        case SessionState.ClientConnectionFailure:
-                            // needs to send the client the "git outa here" message or client will zombie out and appear to the player like it's still in game.
-                            // TO-DO: see if PacketHeaderFlags.NetErrorDisconnect will work for this
-                            sesh.BootSession("Client connection failure", new GameMessageBootAccount(sesh));
-                            break;
-                        case SessionState.ClientSentNetErrorDisconnect:
-                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "client sent network error disconnect" : sesh.BootSessionReason);
-                            break;
-                    }
+                    case SessionState.NetworkTimeout:
+                        session.Value.DropSession(string.IsNullOrEmpty(session.Value.BootSessionReason) ? "Network Timeout" : session.Value.BootSessionReason);
+                        break;
+                    case SessionState.ClientConnectionFailure:
+                        // needs to send the client the "git outa here" message or client will zombie out and appear to the player like it's still in game.
+                        // TO-DO: see if PacketHeaderFlags.NetErrorDisconnect will work for this
+                        session.Value.BootSession("Client connection failure", new GameMessageBootAccount(session.Value));
+                        break;
+                    case SessionState.ClientSentNetErrorDisconnect:
+                        session.Value.DropSession(string.IsNullOrEmpty(session.Value.BootSessionReason) ? "client sent network error disconnect" : session.Value.BootSessionReason);
+                        break;
                 }
-                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
             }
-            finally
-            {
-                sessionLock.ExitUpgradeableReadLock();
-            }
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
+
             return sessionCount;
         }
     }
