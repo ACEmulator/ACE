@@ -830,9 +830,11 @@ namespace ACE.Server.WorldObjects
                 }
 
                 item.Location = new Position(Location.InFrontOf(1.1f));
+                item.Location.LandblockId = new LandblockId(item.Location.GetCell());
+
                 item.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
 
-                if (CurrentLandblock.AddWorldObject(item))
+                if (IsDirectVisible(item, item.Location) && CurrentLandblock.AddWorldObject(item))
                 {
                     Session.Network.EnqueueSend(
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid),
@@ -843,8 +845,9 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    // todo: if this happens, we should just put back the dropped item into inventory
-                    log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from HandleActionDropItem failure.", item.Guid.Full, item.Name, Name);
+                    // not enough room to drop item
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.BadDrop));
+                    TryAddToInventory(item);
                 }
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
