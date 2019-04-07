@@ -440,6 +440,8 @@ namespace ACE.Server.Factories
         /// <returns>The original value or the max allowed.</returns>
         private static ushort ValidateAttributeCredits(uint attributeValue, uint allAttributes, uint maxAttributes)
         {
+            attributeValue = Math.Clamp(attributeValue, 10, 100);
+
             if ((attributeValue + allAttributes) > maxAttributes)
                 return (ushort)(maxAttributes - allAttributes);
 
