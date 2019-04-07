@@ -557,9 +557,7 @@ namespace ACE.Server.Entity
                 return false;
             }
 
-            AddWorldObjectInternal(wo);
-
-            return true;
+            return AddWorldObjectInternal(wo);
         }
 
         public void AddWorldObjectForPhysics(WorldObject wo)
@@ -567,7 +565,7 @@ namespace ACE.Server.Entity
             AddWorldObjectInternal(wo);
         }
 
-        private void AddWorldObjectInternal(WorldObject wo)
+        private bool AddWorldObjectInternal(WorldObject wo)
         {
             wo.CurrentLandblock = this;
 
@@ -581,7 +579,7 @@ namespace ACE.Server.Entity
                 {
                     wo.CurrentLandblock = null;
                     log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
-                    return;
+                    return false;
                 }
             }
 
@@ -600,6 +598,8 @@ namespace ACE.Server.Entity
 
             // broadcast to nearby players
             wo.NotifyPlayers();
+
+            return true;
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)

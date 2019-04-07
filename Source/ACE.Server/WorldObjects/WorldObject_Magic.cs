@@ -391,7 +391,7 @@ namespace ACE.Server.WorldObjects
                             else
                             {
                                 msg = $"You cast {spell.Name} and drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
-                                enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                                enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
                             }
                         }
                         else

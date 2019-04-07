@@ -552,7 +552,12 @@ namespace ACE.Server.Managers
             // since dispels are not a time-critical function, this should still be fine
             var spells = new List<SpellEnchantment>();
             foreach (var filter in filtered)
-                spells.Add(new SpellEnchantment(filter));
+            {
+                var spellEnchantment = new SpellEnchantment(filter);
+
+                if (!spellEnchantment.Spell.NotFound)
+                    spells.Add(spellEnchantment);
+            }
 
             var filterSpells = spells;
             if (dispelSchool != MagicSchool.None)
