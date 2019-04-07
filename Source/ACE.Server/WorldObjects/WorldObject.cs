@@ -336,6 +336,35 @@ namespace ACE.Server.WorldObjects
             return isVisible;
         }
 
+        public bool IsDirectVisible(WorldObject wo, Position pos)
+        {
+            if (PhysicsObj == null)
+                return false;
+
+            var startPos = new Physics.Common.Position(PhysicsObj.Position);
+            var targetPos = new Physics.Common.Position(pos);
+
+            // set to eye level
+            startPos.Frame.Origin.Z += PhysicsObj.GetHeight() - SightObj.GetHeight();
+            targetPos.Frame.Origin.Z += SightObj.GetHeight();
+
+            var dir = Vector3.Normalize(targetPos.Frame.Origin - startPos.Frame.Origin);
+            var radsum = PhysicsObj.GetPhysicsRadius() + SightObj.GetPhysicsRadius();
+            startPos.Frame.Origin += dir * radsum;
+
+            SightObj.CurCell = PhysicsObj.CurCell;
+            SightObj.ProjectileTarget = PhysicsObj;
+
+            // perform line of sight test
+            var transition = SightObj.transition(targetPos, startPos, false);
+
+            if (transition == null) return false;
+
+            // check if target object was reached
+            var isVisible = transition.CollisionInfo.CollideObject.FirstOrDefault(c => c.ID == PhysicsObj.ID) != null;
+            return isVisible;
+        }
+
 
 
 
@@ -870,7 +899,7 @@ namespace ACE.Server.WorldObjects
 
             if (this is CombatPet combatPet)
             {
-                if (combatPet.P_PetOwner.CurrentActiveCombatPet == this)
+                if (combatPet.P_PetOwner != null && combatPet.P_PetOwner.CurrentActiveCombatPet == this)
                     combatPet.P_PetOwner.CurrentActiveCombatPet = null;
             }
 

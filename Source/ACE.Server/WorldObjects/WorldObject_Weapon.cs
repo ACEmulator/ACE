@@ -392,6 +392,9 @@ namespace ACE.Server.WorldObjects
             // and it seems like the calcs should work out the same (although the cap is now applied in different places)
 
             var rendDamageType = GetRendDamageType(damageType);
+            if (rendDamageType == ImbuedEffectType.Undef)
+                Console.WriteLine($"{wielder.Name}.GetRendDamageType({damageType}) unexpected damage type for {weapon.Name} ({weapon.Guid})");
+
             if (rendDamageType != ImbuedEffectType.Undef && weapon.HasImbuedEffect(rendDamageType) && skill != null)
             {
                 var rendingMod = GetRendingMod(skill);
@@ -425,7 +428,7 @@ namespace ACE.Server.WorldObjects
                 case DamageType.Nether:
                     return ImbuedEffectType.Undef;  // none?
                 default:
-                    Console.WriteLine($"GetRendDamageType({damageType}) unexpected damage type");
+                    //Console.WriteLine($"GetRendDamageType({damageType}) unexpected damage type");
                     return ImbuedEffectType.Undef;
             }
         }
