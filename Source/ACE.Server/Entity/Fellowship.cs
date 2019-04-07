@@ -88,15 +88,20 @@ namespace ACE.Server.Entity
             {
                 if (FellowshipMembers.Count == 9)
                 {
-                    inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", ChatMessageType.Fellowship));
+                    if (inviter.Session != null)
+                        inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", ChatMessageType.Fellowship));
                 }
                 else
                 {
                     FellowshipMembers.Add(player);
                     CalculateXPSharing();
-                    foreach (var member in FellowshipMembers)
+                    foreach (var member in FellowshipMembers.Where(i => i.Guid != player.Guid))
                     {
-                        inviter.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(inviter.Session, player, ShareXP));
+                        // TODO: remove fellow
+                        if (member == null || member.Session == null || member.Session.Player == null)
+                            continue;
+
+                        member.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(member.Session, player, ShareXP));
                         //inviter.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(inviter.Session));
                     }
                     player.Fellowship = inviter.Fellowship;
@@ -105,7 +110,8 @@ namespace ACE.Server.Entity
             }
             else
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} declines your invite", ChatMessageType.Fellowship));
+                if (inviter.Session != null)
+                    inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} declines your invite", ChatMessageType.Fellowship));
             }
         }
         
@@ -128,7 +134,7 @@ namespace ACE.Server.Entity
         {
             foreach (var member in FellowshipMembers)
             {
-                if (member == null || member.Session == null)
+                if (member == null || member.Session == null || member.Session.Player == null || member.Fellowship == null)
                     continue;
 
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
@@ -140,7 +146,7 @@ namespace ACE.Server.Entity
         {
             foreach (var member in FellowshipMembers)
             {
-                if (member == null || member.Session == null)
+                if (member == null || member.Session == null || member.Session.Player == null || member.Fellowship == null)
                     continue;
 
                 member.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Fellowship));
@@ -159,7 +165,7 @@ namespace ACE.Server.Entity
                 {
                     foreach (var member in FellowshipMembers)
                     {
-                        if (member == null || member.Session == null) continue;
+                        if (member == null || member.Session == null || member.Session.Player == null) continue;
 
                         member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
                         if (member.Guid.Full == FellowshipLeaderGuid)
@@ -256,7 +262,8 @@ namespace ACE.Server.Entity
             if (CountPlayerAbove() != FellowshipMembers.Count)
             {
                 var leader = PlayerManager.GetOnlinePlayer(FellowshipLeaderGuid);
-                SharableMembers = FellowshipMembers.Where(fellow => LevelDifference(leader, fellow) <= 10 || (fellow.Level ?? 1) >= 50).ToList();
+                SharableMembers = FellowshipMembers.Where(fellow => fellow != null && fellow.Session != null && fellow.Session.Player != null &&
+                    (LevelDifference(leader, fellow) <= 10 || (fellow.Level ?? 1) >= 50)).ToList();
             }
             else
                 SharableMembers = FellowshipMembers;
@@ -385,7 +392,14 @@ namespace ACE.Server.Entity
         /// </summary>
         private double GetDistanceScalar(Player player)
         {
-            Position leaderPosition = PlayerManager.GetOnlinePlayer(FellowshipLeaderGuid).Location;
+            if (player == null)
+                return 0.0f;
+
+            var leader = PlayerManager.GetOnlinePlayer(FellowshipLeaderGuid);
+            if (leader == null)
+                return 0.0f;
+
+            Position leaderPosition = leader.Location;
             Position memberPosition = player.Location;
 
             var dist = memberPosition.Distance2D(leaderPosition);
@@ -413,7 +427,8 @@ namespace ACE.Server.Entity
         {
             foreach (var fellow in FellowshipMembers)
             {
-                if (fellow == null || fellow.Session == null)
+                // TODO: remove fellow
+                if (fellow == null || fellow.Session == null || fellow.Session.Player == null)
                     continue;
 
                 fellow.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(fellow.Session, player, ShareXP, FellowUpdateType.Vitals));
@@ -424,7 +439,7 @@ namespace ACE.Server.Entity
         {
             foreach (var fellow in FellowshipMembers)
             {
-                if (fellow != null && fellow.Session != null && fellow != player)
+                if (fellow != null && fellow.Session != null && fellow.Session.Player != null && fellow != player)
                     fellow.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your fellow {player.Name} has died!", ChatMessageType.Broadcast));
             }
         }

@@ -52,9 +52,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsBusy) return;
+            if (player.IsBusy) return;
 
-            IsBusy = true;
+            player.IsBusy = true;
 
             var actionChain = new ActionChain();
 
@@ -106,7 +106,7 @@ namespace ACE.Server.WorldObjects
 
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
-            actionChain.AddAction(this, () => IsBusy = false);
+            actionChain.AddAction(player, () => player.IsBusy = false);
 
             actionChain.EnqueueChain();
         }
