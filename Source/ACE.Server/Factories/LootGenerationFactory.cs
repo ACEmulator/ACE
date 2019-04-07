@@ -17,6 +17,11 @@ namespace ACE.Server.Factories
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        static LootGenerationFactory()
+        {
+            InitRares();
+        }
+
         public static List<WorldObject> CreateRandomObjectsOfType(WeenieType type, int count)
         {
             var weenies = DatabaseManager.World.GetRandomWeeniesOfType((int)type, count);
