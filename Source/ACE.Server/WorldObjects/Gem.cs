@@ -68,6 +68,7 @@ namespace ACE.Server.WorldObjects
 
                 if (timeElapsed < RareTimer)
                 {
+                    // TODO: get retail message
                     var remainTime = (int)Math.Ceiling(RareTimer - timeElapsed);
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You may use another timed rare in {remainTime}s", ChatMessageType.Broadcast));
                     return;
