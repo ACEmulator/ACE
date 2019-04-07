@@ -97,7 +97,7 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        // this path for spec?
+                        // this path for temple spec?
                         cs.Ranks = (ushort)CalcSkillRank(SkillAdvancementClass.Specialized, cs.ExperienceSpent);
                     }
 
