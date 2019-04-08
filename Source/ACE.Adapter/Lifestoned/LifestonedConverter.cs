@@ -12,6 +12,12 @@ namespace ACE.Adapter.Lifestoned
     {
         public static bool TryConvert(global::Lifestoned.DataModel.Gdle.Weenie input, out Weenie result, bool correctForEnumShift = false)
         {
+            if (input.WeenieId == 0)
+            {
+                result = null;
+                return false;
+            }
+
             try
             {
                 result = new Weenie();
