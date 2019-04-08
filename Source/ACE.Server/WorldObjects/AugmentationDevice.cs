@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
                 // adjust rank?
                 // handle overages?
                 // if trained skill is maxed, there will be a ~103m xp overage...
-                var specRank = player.GetRankForXP(SkillAdvancementClass.Specialized, playerSkill.ExperienceSpent);
+                var specRank = Player.CalcSkillRank(SkillAdvancementClass.Specialized, playerSkill.ExperienceSpent);
                 playerSkill.Ranks = (ushort)specRank;
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, playerSkill));
             }
