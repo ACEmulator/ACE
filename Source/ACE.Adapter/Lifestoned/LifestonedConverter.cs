@@ -21,7 +21,6 @@ namespace ACE.Adapter.Lifestoned
                 if (input.WeenieClassId <= ushort.MaxValue && System.Enum.IsDefined(typeof(WeenieClassId), (ushort)input.WeenieClassId))
                     result.ClassName = System.Enum.GetName(typeof(WeenieClassId), (ushort)input.WeenieClassId).ToLower();
                 else if (input.WeenieClassId <= ushort.MaxValue && System.Enum.IsDefined(typeof(WeenieClassName), (ushort)input.WeenieClassId))
-                //result.ClassName = System.Enum.GetName(typeof(WeenieClassName), (ushort)input.WeenieClassId).TrimStart("W_".ToCharArray()).TrimEnd("_CLASS".ToCharArray()).ToLower();
                 {
                     var clsName = System.Enum.GetName(typeof(WeenieClassName), input.WeenieClassId).ToLower().Substring(2);
                     result.ClassName = clsName.Substring(0, clsName.Length - 6);
