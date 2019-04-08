@@ -53,30 +53,42 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return;
 
-            if (UseCreateContractId == null)
+            if (UseCreateContractId != null)
             {
-                if (SpellDID.HasValue)
-                {
-                    var spell = new Server.Entity.Spell((uint)SpellDID);
-
-                    TryCastSpell(spell, player, this);
-                }
-
-                if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
-                    player.TryConsumeFromInventoryWithNetworking(this, 1);
-
-                if (RareUsesTimer)
-                {
-                    // should this be using an enchantment cooldown,
-                    // to prevent stacking by logging off during the cooldown time?
-                    player.LastRareUsedTimestamp = Time.GetUnixTime();
-
-                    // local broadcast usage
-                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} used the rare item {Name}", ChatMessageType.Broadcast));
-                }
-            }
-            else
                 ActOnUseContract(player);
+                return;
+            }
+
+            // handle rare gems
+            if (RareUsesTimer)
+            {
+                var currentTime = Time.GetUnixTime();
+
+                var timeElapsed = currentTime - player.LastRareUsedTimestamp;
+
+                if (timeElapsed < RareTimer)
+                {
+                    // TODO: get retail message
+                    var remainTime = (int)Math.Ceiling(RareTimer - timeElapsed);
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You may use another timed rare in {remainTime}s", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                player.LastRareUsedTimestamp = currentTime;
+
+                // local broadcast usage
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} used the rare item {Name}", ChatMessageType.Broadcast));
+            }
+
+            if (SpellDID.HasValue)
+            {
+                var spell = new Server.Entity.Spell((uint)SpellDID);
+
+                TryCastSpell(spell, player, this);
+            }
+
+            if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
+                player.TryConsumeFromInventoryWithNetworking(this, 1);
         }
 
         public void ActOnUseContract(Player player)
@@ -171,5 +183,12 @@ namespace ACE.Server.WorldObjects
             // fallback on recipe manager?
             base.HandleActionUseOnTarget(player, target);
         }
+
+        /// <summary>
+        /// For Rares that use cooldown timers (RareUsesTimer),
+        /// any other rares with RareUsesTimer may not be used for 3 minutes
+        /// Note that if the player logs out, this cooldown timer continues to tick/expire (unlike enchantments)
+        /// </summary>
+        public static int RareTimer = 180;
     }
 }
