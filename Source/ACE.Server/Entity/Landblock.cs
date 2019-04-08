@@ -562,7 +562,7 @@ namespace ACE.Server.Entity
                 {
                     wo.CurrentLandblock = null;
                     if (wo.Generator != null)
-                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name} from generator 0x{wo.Generator.Guid.Full:X8}:{wo.Generator.Name}");
+                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid.Full:X8}:{wo.Generator.Name}");
                     else
                         log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name}");
                     return false;
