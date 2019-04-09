@@ -297,10 +297,20 @@ namespace ACE.Server.Entity
             BaseDamageRange = attacker.GetBaseDamage();
             BaseDamage = ThreadSafeRandom.Next(BaseDamageRange.Min, BaseDamageRange.Max);
 
-            DamageType = attacker.GetDamageType();
-
             if (DamageSource.ItemType == ItemType.MissileWeapon)
+            {
                 DamageType = (DamageType)DamageSource.GetProperty(PropertyInt.DamageType);
+
+                // handle prismatic arrows
+                if (DamageType == DamageType.Base)
+                {
+                    var weapon = attacker.GetEquippedWeapon();
+                    if (weapon != null && (weapon.W_DamageType ?? 0) != 0)
+                        DamageType = (DamageType)weapon.W_DamageType;
+                    else
+                        DamageType = DamageType.Pierce;
+                }
+            }
             else
                 DamageType = attacker.GetDamageType();
         }

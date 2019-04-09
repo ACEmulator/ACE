@@ -540,9 +540,7 @@ namespace ACE.Server.Entity
                 return false;
             }
 
-            AddWorldObjectInternal(wo);
-
-            return true;
+            return AddWorldObjectInternal(wo);
         }
 
         public void AddWorldObjectForPhysics(WorldObject wo)
@@ -550,7 +548,7 @@ namespace ACE.Server.Entity
             AddWorldObjectInternal(wo);
         }
 
-        private void AddWorldObjectInternal(WorldObject wo)
+        private bool AddWorldObjectInternal(WorldObject wo)
         {
             wo.CurrentLandblock = this;
 
@@ -563,8 +561,11 @@ namespace ACE.Server.Entity
                 if (!success)
                 {
                     wo.CurrentLandblock = null;
-                    log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
-                    return;
+                    if (wo.Generator != null)
+                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid.Full:X8}:{wo.Generator.Name}");
+                    else
+                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name}");
+                    return false;
                 }
             }
 
@@ -583,6 +584,8 @@ namespace ACE.Server.Entity
 
             // broadcast to nearby players
             wo.NotifyPlayers();
+
+            return true;
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)

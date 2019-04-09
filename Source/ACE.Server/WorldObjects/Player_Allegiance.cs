@@ -60,6 +60,8 @@ namespace ACE.Server.WorldObjects
 
             var patron = PlayerManager.GetOnlinePlayer(targetGuid);
 
+            log.Info($"{Name} swearing allegiance to {patron.Name}");
+
             PatronId = targetGuid;
             MonarchId = AllegianceManager.GetMonarch(patron).Guid.Full;
 
@@ -130,7 +132,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null) return;
 
-            //Console.WriteLine(Name + " breaking allegiance to " + target.Name);
+            log.Info(Name + " breaking allegiance to " + target.Name);
 
             // target can be either patron or vassal
             var isPatron = PatronId == target.Guid.Full;
@@ -140,12 +142,15 @@ namespace ACE.Server.WorldObjects
             if (isVassal)
             {
                 target.PatronId = null;
-                target.MonarchId = null;
+
+                Allegiance.Members.TryGetValue(target.Guid, out var targetNode);
+
+                target.MonarchId = targetNode.HasVassals ? (uint?)target.Guid.Full : null;
 
                 // walk the allegiance tree from this node, update monarch ids
-                target.AllegianceNode.Walk((node) =>
+                targetNode.Walk((node) =>
                 {
-                    node.Player.MonarchId = Guid.Full;
+                    node.Player.MonarchId = target.Guid.Full;
 
                     node.Player.SaveBiotaToDatabase();
 
@@ -1302,7 +1307,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionBreakAllegianceBoot(string playerName, bool accountBoot)
         {
-            //Console.WriteLine($"{Name}.HandleActionBreakAllegianceBoot({playerName}, {accountBoot})");
+            log.Info($"{Name}.HandleActionBreakAllegianceBoot({playerName}, {accountBoot})");
 
             // TODO: handle account boot
 
@@ -1356,7 +1361,9 @@ namespace ACE.Server.WorldObjects
             player.MonarchId = null;
 
             // walk the allegiance tree from this node, update monarch ids
-            player.AllegianceNode.Walk((node) =>
+            Allegiance.Members.TryGetValue(player.Guid, out var targetNode);
+
+            targetNode.Walk((node) =>
             {
                 node.Player.MonarchId = player.Guid.Full;
 

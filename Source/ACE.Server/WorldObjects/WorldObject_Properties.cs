@@ -476,6 +476,13 @@ namespace ACE.Server.WorldObjects
         #endregion
 
 
+        /// <summary>
+        /// This dictionary should ONLY be referenced by calls to BiotaExtensions functions: SpellIsKnown, GetOrAddKnownSpell, TryRemoveKnownSpell<para />
+        /// It should NOT be accessed directly to get spell.
+        /// </summary>
+        public readonly Dictionary<int, BiotaPropertiesSpellBook> BiotaPropertySpells = new Dictionary<int, BiotaPropertiesSpellBook>();
+
+
         private readonly Dictionary<PositionType, Position> ephemeralPositions = new Dictionary<PositionType, Position>();
 
         /// <summary>
@@ -2236,7 +2243,7 @@ namespace ACE.Server.WorldObjects
             get
             {
                 var pk_server = PropertyManager.GetBool("pk_server").Item;
-                if (pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
+                if (this is Player && pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
                     return PlayerKillerStatus.PK;
                 else
                     return _playerKillerStatus;

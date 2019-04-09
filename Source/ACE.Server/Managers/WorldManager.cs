@@ -90,6 +90,7 @@ namespace ACE.Server.Managers
         {
             if (listenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
             {
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
                 if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
                 {
                     packetLog.Debug($"{packet}, {endPoint}");
@@ -112,11 +113,6 @@ namespace ACE.Server.Managers
                         session.State = SessionState.AuthConnected;
                         session.Network.sendResync = true;
                         AuthenticationHandler.HandleConnectResponse(session);
-                        return;
-                    }
-                    else
-                    {
-                        return;
                     }
 
                 }
@@ -128,46 +124,50 @@ namespace ACE.Server.Managers
                 {
                     log.ErrorFormat("Packet from {0} rejected. Packet sent to listener 1 and is not a ConnectResponse or CICMDCommand", endPoint);
                 }
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
             }
-            else if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+            else // ConfigManager.Config.Server.Network.Port + 0
             {
-                packetLog.Debug($"{packet}, {endPoint}");
-                if (!Sessions.Any(k => k.Value.EndPoint.Equals(endPoint)) && Sessions.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
+                if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
                 {
-                    log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
-                    SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
-                }
-                else if (ServerManager.ShutdownInitiated)
-                {
-                    log.InfoFormat("Login Request from {0} rejected. Server shutting down.", endPoint);
-                    SendLoginRequestReject(endPoint, CharacterError.ServerCrash);
-                }
-                else
-                {
-                    log.DebugFormat("Login Request from {0}", endPoint);
-                    var session = FindOrCreateSession(endPoint);
-                    if (session != null)
+                    packetLog.Debug($"{packet}, {endPoint}");
+                    if (!Sessions.Any(k => k.Value.EndPoint.Equals(endPoint)) && Sessions.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                     {
-                        if (session.State == SessionState.AuthConnectResponse)
-                        {
-                            // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
-                            // ignore the request and remove the broken session and the client will start a new session.
-                            RemoveSession(session);
-                            log.Warn($"Bad handshake from {endPoint}, aborting session.");
-                        }
-                        session.ProcessPacket(packet);
+                        log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
+                        SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
+                    }
+                    else if (ServerManager.ShutdownInitiated)
+                    {
+                        log.InfoFormat("Login Request from {0} rejected. Server shutting down.", endPoint);
+                        SendLoginRequestReject(endPoint, CharacterError.ServerCrash);
                     }
                     else
                     {
-                        log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
-                        SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
+                        log.DebugFormat("Login Request from {0}", endPoint);
+                        var session = FindOrCreateSession(endPoint);
+                        if (session != null)
+                        {
+                            if (session.State == SessionState.AuthConnectResponse)
+                            {
+                                // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
+                                // ignore the request and remove the broken session and the client will start a new session.
+                                RemoveSession(session);
+                                log.Warn($"Bad handshake from {endPoint}, aborting session.");
+                            }
+
+                            session.ProcessPacket(packet);
+                        }
+                        else
+                        {
+                            log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
+                            SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
+                        }
                     }
                 }
-            }
-            else
-            {
-                var session = Sessions.FirstOrDefault(k => k.Value.Network.ClientId == packet.Header.Id).Value;
-
+                else
+                {
+                    var session = Sessions.FirstOrDefault(k => k.Value.Network.ClientId == packet.Header.Id).Value;
                     if (session != null)
                     {
                         if (session.EndPoint.Equals(endPoint))
@@ -175,10 +175,12 @@ namespace ACE.Server.Managers
                         else
                             log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
                     }
-                else
-                {
-                    log.WarnFormat("unsolicited packet from {0}", endPoint);
+                    else
+                    {
+                        log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
+                    }
                 }
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
             }
         }
 
