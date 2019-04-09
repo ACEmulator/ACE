@@ -20,8 +20,6 @@ namespace ACE.Server.Network
         private PacketHeader Header { get; set; }
         private MemoryStream headerBytes = new MemoryStream();
 
-        public byte[] Bytes => headerBytes.ToArray();
-
         public PacketHeaderOptional(BinaryReader payload, PacketHeader header)
         {
             Header = header;
@@ -128,7 +126,9 @@ namespace ACE.Server.Network
 
         public uint CalculateHash32()
         {
-            return Hash32.Calculate(Bytes, Bytes.Length);
+            var bytes = headerBytes.GetBuffer();
+
+            return Hash32.Calculate(bytes, (int)headerBytes.Length);
         }
 
         public override string ToString()
