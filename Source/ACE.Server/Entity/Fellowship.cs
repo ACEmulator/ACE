@@ -67,7 +67,8 @@ namespace ACE.Server.Entity
                 inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", ChatMessageType.Fellowship));
                 return;
             }
-            if (newMember.Fellowship != null)
+
+            if (newMember.Fellowship != null || FellowshipMembers.ContainsKey(newMember.Guid.Full))
             {
                 inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already in a fellowship", ChatMessageType.Fellowship));
             }
@@ -110,7 +111,7 @@ namespace ACE.Server.Entity
                 return;
             }
 
-            FellowshipMembers.Add(player.Guid.Full, new WeakReference<Player>(player));
+            FellowshipMembers.TryAdd(player.Guid.Full, new WeakReference<Player>(player));
             player.Fellowship = inviter.Fellowship;
 
             CalculateXPSharing();
@@ -123,7 +124,6 @@ namespace ACE.Server.Entity
             SendMessageAndUpdate($"{player.Name} joined the fellowship");
         }
 
-        
         public void RemoveFellowshipMember(Player player)
         {
             if (player == null) return;
@@ -190,8 +190,9 @@ namespace ACE.Server.Entity
                     }
                 }
                 else
-                {                 
+                {
                     FellowshipMembers.Remove(player.Guid.Full);
+                    player.Fellowship = null;
                     player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
                     AssignNewLeader(null);
                     CalculateXPSharing();
@@ -202,6 +203,7 @@ namespace ACE.Server.Entity
             {
                 FellowshipMembers.Remove(player.Guid.Full);
                 player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
+                player.Fellowship = null;
                 CalculateXPSharing();
                 SendMessageAndUpdate($"{player.Name} left the fellowship");
             }
@@ -353,7 +355,7 @@ namespace ACE.Server.Entity
 
                 foreach (var member in shareableMembers.Values)
                 {
-                    var shareAmount = (ulong)Math.Round(totalAmount * GetDistanceScalar(member));
+                    var shareAmount = (ulong)Math.Round(totalAmount * GetDistanceScalar(player, member));
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
@@ -373,7 +375,7 @@ namespace ACE.Server.Entity
                 {
                     var levelScale = (float)(member.Level ?? 1) / levelSum;
 
-                    var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(member));
+                    var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(player, member));
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
@@ -417,19 +419,15 @@ namespace ACE.Server.Entity
         /// Returns the amount to scale the XP for a fellow
         /// based on distance from the leader
         /// </summary>
-        private double GetDistanceScalar(Player player)
+        private double GetDistanceScalar(Player earner, Player fellow)
         {
-            if (player == null)
+            if (earner == null || fellow == null)
                 return 0.0f;
 
-            var leader = PlayerManager.GetOnlinePlayer(FellowshipLeaderGuid);
-            if (leader == null)
-                return 0.0f;
+            var earnerPosition = earner.Location;
+            var fellowPosition = fellow.Location;
 
-            Position leaderPosition = leader.Location;
-            Position memberPosition = player.Location;
-
-            var dist = memberPosition.Distance2D(leaderPosition);
+            var dist = fellowPosition.Distance2D(earnerPosition);
 
             if (dist >= MaxDistance * 2.0f)
                 return 0.0f;
@@ -489,7 +487,7 @@ namespace ACE.Server.Entity
 
                 playerRef.TryGetTarget(out var player);
 
-                if (player != null && player.Session != null && player.Session.Player != null)
+                if (player != null && player.Session != null && player.Session.Player != null && player.Fellowship != null)
                     results.Add(playerGuid, player);
                 else
                     dropped.Add(playerGuid);
