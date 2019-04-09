@@ -123,7 +123,7 @@ namespace ACE.Server.Physics.Common
             return newObjs;
         }
 
-        public static bool InitialClamp = false;
+        public static bool InitialClamp = true;
 
         public static float InitialClamp_Dist = 112.5f;
         public static float InitialClamp_DistSq = InitialClamp_Dist * InitialClamp_Dist;
