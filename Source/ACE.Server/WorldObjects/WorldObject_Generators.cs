@@ -353,7 +353,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CheckEventStatus()
         {
-            if (GeneratorEvent == null || GeneratorEvent == "")
+            if (string.IsNullOrEmpty(GeneratorEvent))
                 return;
 
             var prevState = GeneratorDisabled;
