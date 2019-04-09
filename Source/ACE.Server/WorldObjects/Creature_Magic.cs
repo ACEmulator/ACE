@@ -106,7 +106,7 @@ namespace ACE.Server.WorldObjects
 
                 int numTargetItems = 1;
                 if (targetPlayer != null)
-                    numTargetItems = targetPlayer.EquippedObjects.Values.Where(i => (i is Clothing || i.IsShield) && i.IsEnchantable).Count();
+                    numTargetItems = targetPlayer.EquippedObjects.Values.Count(i => (i is Clothing || i.IsShield) && i.IsEnchantable);
 
                 preCost = (uint)Math.Round((baseCost + (spell.ManaMod * numTargetItems)) * baseManaPercent);
             }

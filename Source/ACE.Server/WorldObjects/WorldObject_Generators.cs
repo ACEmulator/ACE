@@ -79,12 +79,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if all generator profiles are at init objects created
         /// </summary>
-        public bool AllProfilesInitted { get => GeneratorProfiles.Where(i => i.InitObjectsSpawned).Count() == GeneratorProfiles.Count; }
+        public bool AllProfilesInitted { get => GeneratorProfiles.Count(i => i.InitObjectsSpawned) == GeneratorProfiles.Count; }
 
         /// <summary>
         /// Retunrs TRUE if all generator profiles are at max objects created
         /// </summary>
-        public bool AllProfilesMaxed { get => GeneratorProfiles.Where(i => i.MaxObjectsSpawned).Count() == GeneratorProfiles.Count; }
+        public bool AllProfilesMaxed { get => GeneratorProfiles.Count(i => i.MaxObjectsSpawned) == GeneratorProfiles.Count; }
 
         /// <summary>
         /// Adds initial objects to the spawn queue based on RNG rolls
