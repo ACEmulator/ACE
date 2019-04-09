@@ -65,7 +65,7 @@ namespace ACE.Server.Entity
             Inventory = Inventory.Where(i => i.Category != DeathItemCategory.None).ToList();
 
             // sort by original value and category
-            Inventory = Inventory.OrderByDescending(i => i.AdjustedValue).OrderBy(i => i.Category).ToList();
+            Inventory = Inventory.OrderByDescending(i => i.AdjustedValue).ThenBy(i => i.Category).ToList();
 
             // halve the values of every item, except the most valued item in each category
             HalfValues(Inventory);
