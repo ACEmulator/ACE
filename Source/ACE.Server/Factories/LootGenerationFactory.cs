@@ -2860,15 +2860,33 @@ namespace ACE.Server.Factories
         {
             if(wo.MaterialType != null && wo.GetProperty(PropertyInt.TsysMutationData) != null && wo.ClothingBase != null)
             {
-                uint tsysByte = ((uint)wo.GetProperty(PropertyInt.TsysMutationData) >> 16) & 0xFF;
+                uint colorCode = ((uint)wo.GetProperty(PropertyInt.TsysMutationData) >> 16) & 0xFF;
 
                 // BYTE spellCode = (tsysMutationData >> 24) & 0xFF;
                 // BYTE colorCode = (tsysMutationData >> 16) & 0xFF;
                 // BYTE gemCode = (tsysMutationData >> 8) & 0xFF;
                 // BYTE materialCode = (tsysMutationData >> 0) & 0xFF;
 
-                tsysByte = 0;
-                var colors =  DatabaseManager.World.GetCachedTreasureMaterial((uint)wo.MaterialType, tsysByte);
+                List<TreasureMaterialColor> colors;
+                // This is a unique situation that typically applies to Under Clothes.
+                // If the Color Code is 0, they can be PaletteTemplate 1-18.
+                if (colorCode == 0 && (uint)wo.MaterialType > 0)
+                {
+                    colors = new List<TreasureMaterialColor>();
+                    for (uint i = 1; i < 19; i++)
+                    {
+                        TreasureMaterialColor tmc = new TreasureMaterialColor
+                        {
+                            PaletteTemplate = i,
+                            Probability = 1
+                        };
+                        colors.Add(tmc);
+                    }
+                }
+                else
+                {
+                    colors = DatabaseManager.World.GetCachedTreasureMaterial((uint)wo.MaterialType, colorCode);
+                }
 
                 float totalProbability = GetTotalProbability(colors);
                 // If there's zero change to get a random color, no point in continuing.
@@ -2927,10 +2945,6 @@ namespace ACE.Server.Factories
 
             var totalSum = prob.Sum();
             return totalSum;
-
-            var totalProduct = prob.Product();
-
-            return totalSum - totalProduct;
         }
 
     }

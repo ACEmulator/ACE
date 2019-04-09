@@ -886,20 +886,22 @@ namespace ACE.Database
             return cachedTreasureMaterialColor.Count(r => r.Value != null);
         }
 
-        public List<TreasureMaterialColor> GetCachedTreasureMaterial(uint materialId, uint tsysMutationCode)
+        public List<TreasureMaterialColor> GetCachedTreasureMaterial(uint materialId, uint tsysColorCode)
         {
             if (cachedTreasureMaterialColor.TryGetValue(materialId, out var value))
                 return value;
 
             using (var context = new WorldDbContext())
             {
-                var results = context.TreasureMaterialColor
+                var materialResults = context.TreasureMaterialColor
                     .AsNoTracking()
                     .Where(r => r.MaterialId == materialId)
-                    .Where(r => r.TsysMutationColor == tsysMutationCode)
                     .ToList();
 
-                cachedTreasureMaterialColor[materialId] = results;
+                cachedTreasureMaterialColor[materialId] = materialResults;
+
+                // Filter the materials by the colorCode
+                var results = materialResults.Where(r => r.TsysMutationColor == tsysColorCode).ToList();
                 return results;
             }
         }
