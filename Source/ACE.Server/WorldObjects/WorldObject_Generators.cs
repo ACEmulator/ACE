@@ -343,7 +343,7 @@ namespace ACE.Server.WorldObjects
 
             var now = (int)Time.GetUnixTime();
 
-            GeneratorDisabled = (now < GeneratorStartTime) || (now > GeneratorEndTime);
+            GeneratorDisabled = ((now < GeneratorStartTime) && (GeneratorStartTime > 0)) || ((now > GeneratorEndTime) && (GeneratorEndTime > 0));
 
             HandleStatus(prevDisabled);
         }

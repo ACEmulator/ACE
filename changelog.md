@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-09
+[Ripley]
+* Fix issue with RealTime generators that have either no StartTime or EndTime set. (eg: Heart of the Innocent Event Gen)
+
 ### 2019-04-08
 [Ripley]
 * Fix PK status for all objects on radar bug.
