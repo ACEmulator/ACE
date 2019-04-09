@@ -183,7 +183,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.WeeniePropertiesCreateList != null && input.WeeniePropertiesCreateList.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesCreateList.OrderBy(r => r.DestinationType).ThenBy(r => r.WeenieClassId).ToList(), writer);
+                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesCreateList.OrderBy(r => r.DestinationType).ToList(), writer);
             }
 
             if (input.WeeniePropertiesBook != null)
@@ -200,7 +200,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.WeeniePropertiesGenerator != null && input.WeeniePropertiesGenerator.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesGenerator.OrderBy(r => r.WhereCreate).ThenBy(r => r.WhenCreate).ThenBy(r => r.Probability).ThenBy(r => r.WeenieClassId).ToList(), writer);
+                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesGenerator.ToList(), writer);
             }
 
             if (input.WeeniePropertiesPalette != null && input.WeeniePropertiesPalette.Count > 0)

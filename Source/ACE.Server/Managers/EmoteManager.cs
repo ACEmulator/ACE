@@ -166,7 +166,7 @@ namespace ACE.Server.Managers
                     if (WorldObject != null && targetObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
-                        if (spell != null)
+                        if (!spell.NotFound)
                         {
                             var preCastTime = creature.PreCastMotion(targetObject);
                             delay = preCastTime * 2.0f;
@@ -188,7 +188,7 @@ namespace ACE.Server.Managers
                     if (WorldObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
-                        if (spell != null)
+                        if (!spell.NotFound)
                             WorldObject.TryCastSpell(spell, targetObject, WorldObject);
                     }
                     break;
@@ -333,6 +333,9 @@ namespace ACE.Server.Managers
                             var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
                             var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
                             player.Session.Network.EnqueueSend(msg, sound);
+
+                            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                                player.RushNextPlayerSave(5);
                         }
                     }
                     break;
@@ -995,18 +998,26 @@ namespace ACE.Server.Managers
                                 var questName = QuestManager.GetQuestName(emote.Message);
                                 var quest = DatabaseManager.World.GetCachedQuest(questName);
 
-                                var playerQuest = player.QuestManager.Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-
-                                if (playerQuest != null)
+                                if (quest != null)
                                 {
-                                    var isMaxSolves = player.QuestManager.IsMaxSolves(questName);
-                                    if (isMaxSolves)
-                                        text = $"You have killed {quest.MaxSolves} {WorldObject.Name}s. Your task is complete!";
-                                    else
-                                        text = $"You have killed {playerQuest.NumTimesCompleted} {WorldObject.Name}s. You must kill {quest.MaxSolves} to complete your task!";
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                                    var playerQuest = player.QuestManager.Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+                                    if (playerQuest != null)
+                                    {
+                                        var isMaxSolves = player.QuestManager.IsMaxSolves(questName);
+                                        if (WorldObject != null)
+                                        {
+                                            if (isMaxSolves)
+                                                text = $"You have killed {quest.MaxSolves} {WorldObject.Name}s. Your task is complete!";
+                                            else
+                                                text = $"You have killed {playerQuest.NumTimesCompleted} {WorldObject.Name}s. You must kill {quest.MaxSolves} to complete your task!";
+                                        }
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                                    }
                                 }
-                            }
+                                else
+                                    log.Error($"Couldn't find kill task {questName} in database");
+			    }
                         }
                         else
                             player.QuestManager.Stamp(emote.Message);
@@ -1014,6 +1025,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.StartBarber:
+                    if (player != null)
+                        player.StartBarber();
                     break;
 
                 case EmoteType.StartEvent:
@@ -1365,11 +1378,10 @@ namespace ACE.Server.Managers
 
         public void OnDeath(DamageHistory damageHistory)
         {
-            foreach (var damager in damageHistory.Damagers)
-                ExecuteEmoteSet(EmoteCategory.Death, null, damager);
-
             if (damageHistory.Damagers.Count == 0)
                 ExecuteEmoteSet(EmoteCategory.Death, null, null);
+            else 
+                ExecuteEmoteSet(EmoteCategory.Death, null, damageHistory.LastDamager);
         }
 
         /// <summary>

@@ -40,6 +40,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// This will make sure a player save happens no later than the current time + seconds
+        /// </summary>
+        public void RushNextPlayerSave(int seconds)
+        {
+            if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow.AddSeconds(seconds))
+                return;
+
+            LastRequestedDatabaseSave = DateTime.UtcNow.AddSeconds(seconds) - PlayerSaveInterval;
+        }
+
+        /// <summary>
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.<para />
         /// Will also save any possessions that are marked with ChangesDetected.
         /// </summary>

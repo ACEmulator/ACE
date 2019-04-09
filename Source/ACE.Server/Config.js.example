@@ -16,6 +16,7 @@
     },
     "DatFilesDirectory": "c:\\ACE\\",
     "ShutdownInterval": "60",
+    "ServerPerformanceMonitorAutoStart": false,
     "WorldDatabasePrecaching": false,
     "LandblockPreloading": true,
     "PreloadedLandblocks": [

@@ -1286,6 +1286,19 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static bool SpellIsKnown(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return cache.ContainsKey(spell);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, out bool spellAdded)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -1303,6 +1316,39 @@ namespace ACE.Database.Models.Shard
                 {
                     entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Object = biota };
                     biota.BiotaPropertiesSpellBook.Add(entity);
+                    spellAdded = true;
+                    return entity;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache, out bool spellAdded)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                if (cache.ContainsKey(spell))
+                {
+                    spellAdded = false;
+                    return cache[spell];
+                }
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    var entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Object = biota };
+                    biota.BiotaPropertiesSpellBook.Add(entity);
+
+                    cache[spell] = entity;
+
                     spellAdded = true;
                     return entity;
                 }
@@ -1344,6 +1390,43 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitUpgradeableReadLock();
             }
         }
+
+        public static bool TryRemoveKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                if (cache.ContainsKey(spell))
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        var entity = biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spell);
+
+                        biota.BiotaPropertiesSpellBook.Remove(entity);
+                        entity.Object = null;
+
+                        cache.Remove(spell);
+
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+
+        // =====================================
+        // HousePermission
+        // =====================================
 
         public static List<HousePermission> GetHousePermission(this Biota biota, ReaderWriterLockSlim rwLock)
         {

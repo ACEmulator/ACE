@@ -306,15 +306,20 @@ namespace ACE.Server.Entity
 
         public void Tick(double currentUnixTime)
         {
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
             actionQueue.RunActions();
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
 
             ProcessPendingWorldObjectAdditionsAndRemovals();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
 
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Player_Tick);
             foreach (var player in players)
                 player.Player_Tick(currentUnixTime);
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Player_Tick);
 
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick);
             while (sortedCreaturesByNextTick.Count > 0) // Monster_Tick()
             {
                 var first = sortedCreaturesByNextTick.First.Value;
@@ -331,7 +336,9 @@ namespace ACE.Server.Entity
                     break;
                 }
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick);
 
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_WorldObject_Heartbeat);
             while (sortedWorldObjectsByNextHeartbeat.Count > 0) // Heartbeat()
             {
                 var first = sortedWorldObjectsByNextHeartbeat.First.Value;
@@ -348,7 +355,9 @@ namespace ACE.Server.Entity
                     break;
                 }
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_WorldObject_Heartbeat);
 
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
             while (sortedGeneratorsByNextGeneratorHeartbeat.Count > 0) // GeneratorHeartbeat()
             {
                 var first = sortedGeneratorsByNextGeneratorHeartbeat.First.Value;
@@ -365,8 +374,10 @@ namespace ACE.Server.Entity
                     break;
                 }
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
 
             // Heartbeat
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Heartbeat);
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
             {
                 var thisHeartBeat = DateTime.UtcNow;
@@ -385,8 +396,10 @@ namespace ACE.Server.Entity
 
                 lastHeartBeat = thisHeartBeat;
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Heartbeat);
 
             // Database Save
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Database_Save);
             if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
             {
                 ProcessPendingWorldObjectAdditionsAndRemovals();
@@ -394,6 +407,7 @@ namespace ACE.Server.Entity
                 SaveDB();
                 lastDatabaseSave = DateTime.UtcNow;
             }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Database_Save);
         }
 
         private void ProcessPendingWorldObjectAdditionsAndRemovals()
@@ -526,9 +540,7 @@ namespace ACE.Server.Entity
                 return false;
             }
 
-            AddWorldObjectInternal(wo);
-
-            return true;
+            return AddWorldObjectInternal(wo);
         }
 
         public void AddWorldObjectForPhysics(WorldObject wo)
@@ -536,7 +548,7 @@ namespace ACE.Server.Entity
             AddWorldObjectInternal(wo);
         }
 
-        private void AddWorldObjectInternal(WorldObject wo)
+        private bool AddWorldObjectInternal(WorldObject wo)
         {
             wo.CurrentLandblock = this;
 
@@ -549,8 +561,11 @@ namespace ACE.Server.Entity
                 if (!success)
                 {
                     wo.CurrentLandblock = null;
-                    log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
-                    return;
+                    if (wo.Generator != null)
+                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid.Full:X8}:{wo.Generator.Name}");
+                    else
+                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name}");
+                    return false;
                 }
             }
 
@@ -569,6 +584,8 @@ namespace ACE.Server.Entity
 
             // broadcast to nearby players
             wo.NotifyPlayers();
+
+            return true;
         }
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using ACE.Adapter.Enum;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -10,8 +10,14 @@ namespace ACE.Adapter.Lifestoned
 {
     public static class LifestonedConverter
     {
-        public static bool TryConvert(global::Lifestoned.DataModel.Gdle.Weenie input, out Weenie result)
+        public static bool TryConvert(global::Lifestoned.DataModel.Gdle.Weenie input, out Weenie result, bool correctForEnumShift = false)
         {
+            if (input.WeenieId == 0)
+            {
+                result = null;
+                return false;
+            }
+
             try
             {
                 result = new Weenie();
@@ -21,7 +27,10 @@ namespace ACE.Adapter.Lifestoned
                 if (input.WeenieClassId <= ushort.MaxValue && System.Enum.IsDefined(typeof(WeenieClassId), (ushort)input.WeenieClassId))
                     result.ClassName = System.Enum.GetName(typeof(WeenieClassId), (ushort)input.WeenieClassId).ToLower();
                 else if (input.WeenieClassId <= ushort.MaxValue && System.Enum.IsDefined(typeof(WeenieClassName), (ushort)input.WeenieClassId))
-                    result.ClassName = System.Enum.GetName(typeof(WeenieClassName), (ushort)input.WeenieClassId).ToLower();
+                {
+                    var clsName = System.Enum.GetName(typeof(WeenieClassName), input.WeenieClassId).ToLower().Substring(2);
+                    result.ClassName = clsName.Substring(0, clsName.Length - 6);
+                }
                 else
                     result.ClassName = "ace" + input.WeenieClassId + "-" + input.Name.Replace("'", "").Replace(" ", "").Replace(".", "").Replace("(", "").Replace(")", "").Replace("+", "").Replace(":", "").Replace("_", "").Replace("-", "").Replace(",", "").ToLower();
 
@@ -123,7 +132,10 @@ namespace ACE.Adapter.Lifestoned
                 if (input.BoolStats != null)
                 {
                     foreach (var value in input.BoolStats)
-                        result.WeeniePropertiesBool.Add(new WeeniePropertiesBool { Type = (ushort)value.Key, Value = (value.Value != 0) });
+                    {
+                        if (result.WeeniePropertiesBool.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                            result.WeeniePropertiesBool.Add(new WeeniePropertiesBool { Type = (ushort)value.Key, Value = (value.Value != 0) });
+                    }
                 }
 
                 if (input.CreateList != null)
@@ -135,7 +147,32 @@ namespace ACE.Adapter.Lifestoned
                 if (input.DidStats != null)
                 {
                     foreach (var value in input.DidStats)
-                        result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = value.Value });
+                    {
+                        if (!correctForEnumShift)
+                            result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = value.Value });
+                        else
+                        {
+                            var valCorrected = value.Value;
+
+                            // Fix PhysicsScript ENUM shift post 16PY data
+                            if (value.Key == (int)PropertyDataId.PhysicsScript)
+                            {
+                                // These are the only ones in 16PY database, not entirely certain where the shift started but the change below is correct for end of retail enum
+                                if (valCorrected >= 83 && valCorrected <= 89)
+                                    valCorrected++;
+                            }
+
+                            // Fix PhysicsScript ENUM shift post 16PY data
+                            if (value.Key == (int)PropertyDataId.RestrictionEffect)
+                            {
+                                if (valCorrected >= 83)
+                                    valCorrected++;
+                            }
+
+                            if (result.WeeniePropertiesDID.Where(x=>x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                                result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = valCorrected });
+                        }
+                    }
                 }
 
                 if (input.EmoteTable != null)
@@ -164,6 +201,28 @@ namespace ACE.Adapter.Lifestoned
                                 MinHealth = value.MinHealth,
                                 MaxHealth = value.MaxHealth
                             };
+
+                            // Fix MotionCommand ENUM shift post 16PY data
+                            if (correctForEnumShift && efEmote.Style.HasValue)
+                            {
+                                var oldStyle = (ACE.Entity.Enum.MotionCommand)efEmote.Style;
+                                var index = efEmote.Style.Value & 0xFFFF;
+                                if (index >= 0x115)
+                                {
+                                    var newStyle = (ACE.Entity.Enum.MotionCommand)efEmote.Style + 3;
+                                    efEmote.Style += 3;
+                                }
+                            }
+                            if (correctForEnumShift && efEmote.Substyle.HasValue)
+                            {
+                                var oldSubstyle = (ACE.Entity.Enum.MotionCommand)efEmote.Substyle;
+                                var index = efEmote.Substyle.Value & 0xFFFF;
+                                if (index >= 0x115)
+                                {
+                                    var newSubstyle = (ACE.Entity.Enum.MotionCommand)efEmote.Substyle + 3;
+                                    efEmote.Substyle += 3;
+                                }
+                            }
 
                             uint order = 0;
 
@@ -208,6 +267,25 @@ namespace ACE.Adapter.Lifestoned
 
                                     Sound = (int?)action.Sound
                                 };
+
+                                // Fix MotionCommand ENUM shift post 16PY data
+                                if (correctForEnumShift && efAction.Motion.HasValue)
+                                {
+                                    var oldMotion = (ACE.Entity.Enum.MotionCommand)efAction.Motion;
+                                    var index = efAction.Motion.Value & 0xFFFF;
+                                    if (index >= 0x115)
+                                    {
+                                        var newMotion = (ACE.Entity.Enum.MotionCommand)efAction.Motion + 3;
+                                        efAction.Motion += 3;
+                                    }
+                                }
+
+                                // Fix PhysicsScript ENUM shift post 16PY data
+                                if (correctForEnumShift && efAction.PScript.HasValue)
+                                {
+                                    if (efAction.PScript.Value >= 83)
+                                        efAction.PScript++;
+                                }
 
                                 order++;
 
@@ -260,7 +338,10 @@ namespace ACE.Adapter.Lifestoned
                 if (input.FloatStats != null)
                 {
                     foreach (var value in input.FloatStats)
-                        result.WeeniePropertiesFloat.Add(new WeeniePropertiesFloat { Type = (ushort)value.Key, Value = value.Value });
+                    {
+                        if (result.WeeniePropertiesFloat.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                            result.WeeniePropertiesFloat.Add(new WeeniePropertiesFloat { Type = (ushort)value.Key, Value = value.Value });
+                    }
                 }
 
                 if (input.GeneratorTable != null)
@@ -301,19 +382,28 @@ namespace ACE.Adapter.Lifestoned
                 if (input.IidStats != null)
                 {
                     foreach (var value in input.IidStats)
-                        result.WeeniePropertiesIID.Add(new WeeniePropertiesIID { Type = (ushort)value.Key, Value = (uint)value.Value });
+                    {
+                        if (result.WeeniePropertiesIID.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                            result.WeeniePropertiesIID.Add(new WeeniePropertiesIID { Type = (ushort)value.Key, Value = (uint)value.Value });
+                    }
                 }
 
                 if (input.IntStats != null)
                 {
                     foreach (var value in input.IntStats)
-                        result.WeeniePropertiesInt.Add(new WeeniePropertiesInt { Type = (ushort)value.Key, Value = value.Value });
+                    {
+                        if (result.WeeniePropertiesInt.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                            result.WeeniePropertiesInt.Add(new WeeniePropertiesInt { Type = (ushort)value.Key, Value = value.Value });
+                    }
                 }
 
                 if (input.Int64Stats != null)
                 {
                     foreach (var value in input.Int64Stats)
-                        result.WeeniePropertiesInt64.Add(new WeeniePropertiesInt64 { Type = (ushort)value.Key, Value = value.Value });
+                    {
+                        if (result.WeeniePropertiesInt64.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                            result.WeeniePropertiesInt64.Add(new WeeniePropertiesInt64 { Type = (ushort)value.Key, Value = value.Value });
+                    }
                 }
 
                 // WeeniePropertiesPalette
@@ -322,38 +412,48 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.Positions)
                     {
-                        result.WeeniePropertiesPosition.Add(new WeeniePropertiesPosition()
-                        {
-                            PositionType = (ushort)value.PositionType,
+                        if (result.WeeniePropertiesPosition.Where(x => x.PositionType == (ushort)value.PositionType).FirstOrDefault() == null)
+                            result.WeeniePropertiesPosition.Add(new WeeniePropertiesPosition()
+                            {
+                                PositionType = (ushort)value.PositionType,
 
-                            ObjCellId = value.Position.LandCellId,
-                            OriginX = value.Position.Frame.Position.X,
-                            OriginY = value.Position.Frame.Position.Y,
-                            OriginZ = value.Position.Frame.Position.Z,
-                            AnglesW = value.Position.Frame.Rotations.W,
-                            AnglesX = value.Position.Frame.Rotations.X,
-                            AnglesY = value.Position.Frame.Rotations.Y,
-                            AnglesZ = value.Position.Frame.Rotations.Z,
-                        });
+                                ObjCellId = value.Position.LandCellId,
+                                OriginX = value.Position.Frame.Position.X,
+                                OriginY = value.Position.Frame.Position.Y,
+                                OriginZ = value.Position.Frame.Position.Z,
+                                AnglesW = value.Position.Frame.Rotations.W,
+                                AnglesX = value.Position.Frame.Rotations.X,
+                                AnglesY = value.Position.Frame.Rotations.Y,
+                                AnglesZ = value.Position.Frame.Rotations.Z,
+                            });
                     }
                 }
 
                 if (input.Skills != null)
                 {
                     foreach (var value in input.Skills)
-                        result.WeeniePropertiesSkill.Add(new WeeniePropertiesSkill { Type = (ushort)value.SkillId, LevelFromPP = (ushort)value.Skill.LevelFromPp, SAC = (uint?)value.Skill.TrainedLevel ?? 0, PP = value.Skill.XpInvested ?? 0, InitLevel = value.Skill.Ranks ?? 0, ResistanceAtLastCheck = value.Skill.ResistanceOfLastCheck ?? 0, LastUsedTime = value.Skill.LastUsed ?? 0 });
+                    {
+                        if (result.WeeniePropertiesSkill.Where(x => x.Type == (ushort)value.SkillId).FirstOrDefault() == null)
+                            result.WeeniePropertiesSkill.Add(new WeeniePropertiesSkill { Type = (ushort)value.SkillId, LevelFromPP = (ushort)value.Skill.LevelFromPp, SAC = (uint?)value.Skill.TrainedLevel ?? 0, PP = value.Skill.XpInvested ?? 0, InitLevel = value.Skill.Ranks ?? 0, ResistanceAtLastCheck = value.Skill.ResistanceOfLastCheck ?? 0, LastUsedTime = value.Skill.LastUsed ?? 0 });
+                    }
                 }
 
                 if (input.Spells != null)
                 {
                     foreach (var value in input.Spells)
-                        result.WeeniePropertiesSpellBook.Add(new WeeniePropertiesSpellBook { Spell = value.SpellId, Probability = (float?)value.Stats.CastingChance ?? 0f });
+                    {
+                        if (result.WeeniePropertiesDID.Where(x => x.Type == (int)PropertyDataId.Spell && x.Value == value.SpellId).FirstOrDefault() == null)
+                            result.WeeniePropertiesSpellBook.Add(new WeeniePropertiesSpellBook { Spell = value.SpellId, Probability = (float?)value.Stats.CastingChance ?? 0f });
+                    }
                 }
 
                 if (input.StringStats != null)
                 {
                     foreach (var value in input.StringStats)
-                        result.WeeniePropertiesString.Add(new WeeniePropertiesString { Type = (ushort)value.Key, Value = value.Value });
+                    {
+                        if (result.WeeniePropertiesString.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                            result.WeeniePropertiesString.Add(new WeeniePropertiesString { Type = (ushort)value.Key, Value = value.Value });
+                    }
                 }
 
                 // WeeniePropertiesTextureMap

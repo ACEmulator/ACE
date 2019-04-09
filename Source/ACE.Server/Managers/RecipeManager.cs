@@ -466,7 +466,7 @@ namespace ACE.Server.Managers
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
         {
-            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, out var added);
+            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, target.BiotaPropertySpells, out _);
             target.ChangesDetected = true;
 
             if (difficulty != 0)
@@ -973,8 +973,9 @@ namespace ACE.Server.Managers
                 case ModifyOp.AddSpell:
                     if (value != -1)
                     {
-                        target.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, out var added);
-                        target.ChangesDetected = true;
+                        target.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, target.BiotaPropertySpells, out var added);
+                        if (added)
+                            target.ChangesDetected = true;
                     }
                     break;
                 default:

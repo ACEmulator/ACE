@@ -176,8 +176,6 @@ namespace ACE.Server.Entity
                             registry.WeenieClassId = Biota.WeenieClassId;
                             registry.Timestamp = DateTime.UtcNow;
                             registry.WorldObject = obj;
-                            obj.Generator = _generator;
-                            obj.GeneratorId = _generator.Guid.Full;
 
                             Spawned.Add(obj.Guid.Full, registry);
                         }
@@ -222,6 +220,9 @@ namespace ACE.Server.Entity
             foreach (var obj in objects)
             {
                 //Console.WriteLine($"{_generator.Name}.Spawn({obj.Name})");
+
+                obj.Generator = _generator;
+                obj.GeneratorId = _generator.Guid.Full;
 
                 if (RegenLocationType.HasFlag(RegenLocationType.Specific))
                     Spawn_Specific(obj);

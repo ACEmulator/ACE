@@ -36,6 +36,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!spell.IsSelfTargeted && target == null)
+                return;
+
             // spells only castable on creatures?
             /*var targetCreature = target as Creature;
             if (targetCreature == null)
@@ -388,7 +391,7 @@ namespace ACE.Server.WorldObjects
                             else
                             {
                                 msg = $"You cast {spell.Name} and drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
-                                enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                                enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
                             }
                         }
                         else
@@ -880,7 +883,7 @@ namespace ACE.Server.WorldObjects
                             }
 
                             var summonPortal = GetPortal(portalId);
-                            if (summonPortal == null || summonPortal.NoSummon || linkSummoned)
+                            if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && PropertyManager.GetBool("disable_gateway_ties_to_be_summonable", false).Item))
                             {
                                 // You cannot summon that portal!
                                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
@@ -955,7 +958,8 @@ namespace ACE.Server.WorldObjects
             gateway.MinLevel = portal.MinLevel;
             gateway.MaxLevel = portal.MaxLevel;
             gateway.PortalRestrictions = portal.PortalRestrictions;
-            gateway.PortalRestrictions |= PortalBitmask.NoSummon;
+
+            gateway.PortalRestrictions |= PortalBitmask.NoSummon; // all gateways are marked NoSummon but by default ruleset, the OriginalPortal is the one that is checked against
 
             gateway.EnterWorld();
 

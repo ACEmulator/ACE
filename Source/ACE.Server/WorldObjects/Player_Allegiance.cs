@@ -58,14 +58,16 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsPledgable(targetGuid)) return;
 
-            // handle special case: monarch swearing into another allegiance
-            if (Allegiance != null && Allegiance.MonarchId == Guid.Full)
-                HandleMonarchSwear();
-
             var patron = PlayerManager.GetOnlinePlayer(targetGuid);
+
+            log.Info($"{Name} swearing allegiance to {patron.Name}");
 
             PatronId = targetGuid;
             MonarchId = AllegianceManager.GetMonarch(patron).Guid.Full;
+
+            // handle special case: monarch swearing into another allegiance
+            if (Allegiance != null && Allegiance.MonarchId == Guid.Full)
+                HandleMonarchSwear();
 
             SaveBiotaToDatabase();
 
@@ -101,6 +103,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleMonarchSwear()
         {
+            // walk the allegiance tree from this node, update monarch ids
+            AllegianceNode.Walk((node) =>
+            {
+                node.Player.MonarchId = MonarchId;
+
+                node.Player.SaveBiotaToDatabase();
+            });
+
             // TODO: allegiance officers should probably be stored in their own table
             foreach (var kvp in Allegiance.Officers)
             {
@@ -122,7 +132,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null) return;
 
-            //Console.WriteLine(Name + " breaking allegiance to " + target.Name);
+            log.Info(Name + " breaking allegiance to " + target.Name);
 
             // target can be either patron or vassal
             var isPatron = PatronId == target.Guid.Full;
@@ -132,7 +142,19 @@ namespace ACE.Server.WorldObjects
             if (isVassal)
             {
                 target.PatronId = null;
-                target.MonarchId = null;
+
+                Allegiance.Members.TryGetValue(target.Guid, out var targetNode);
+
+                target.MonarchId = targetNode.HasVassals ? (uint?)target.Guid.Full : null;
+
+                // walk the allegiance tree from this node, update monarch ids
+                targetNode.Walk((node) =>
+                {
+                    node.Player.MonarchId = target.Guid.Full;
+
+                    node.Player.SaveBiotaToDatabase();
+
+                }, false);
 
                 target.SaveBiotaToDatabase();
             }
@@ -140,6 +162,15 @@ namespace ACE.Server.WorldObjects
             {
                 PatronId = null;
                 MonarchId = null;
+
+                // walk the allegiance tree from this node, update monarch ids
+                AllegianceNode.Walk((node) =>
+                {
+                    node.Player.MonarchId = Guid.Full;
+
+                    node.Player.SaveBiotaToDatabase();
+
+                }, false);
 
                 SaveBiotaToDatabase();
             }
@@ -339,6 +370,8 @@ namespace ACE.Server.WorldObjects
                     if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
                     {
                         var prefix = member.GetPrefix(this);
+                        if (prefix == "")
+                            continue;
 
                         member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{prefix}{Name} is online.", ChatMessageType.Broadcast));
                     }
@@ -355,6 +388,8 @@ namespace ACE.Server.WorldObjects
                     if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
                     {
                         var prefix = member.GetPrefix(this);
+                        if (prefix == "")
+                            continue;
 
                         member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{prefix}{Name} is offline.", ChatMessageType.Broadcast));
                     }
@@ -365,9 +400,10 @@ namespace ACE.Server.WorldObjects
         public string GetPrefix(Player allegianceMember)
         {
             var prefix = "";
+
             if (allegianceMember.Guid == AllegianceNode.Monarch.PlayerGuid)
                 prefix = "Your monarch ";
-            else if (allegianceMember.Guid == AllegianceNode.Patron.PlayerGuid)
+            else if (AllegianceNode.Patron != null && allegianceMember.Guid == AllegianceNode.Patron.PlayerGuid)
                 prefix = "Your patron ";
             else if (AllegianceNode.Vassals.ContainsKey(allegianceMember.Guid.Full))
                 prefix = "Your vassal ";
@@ -1271,7 +1307,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionBreakAllegianceBoot(string playerName, bool accountBoot)
         {
-            //Console.WriteLine($"{Name}.HandleActionBreakAllegianceBoot({playerName}, {accountBoot})");
+            log.Info($"{Name}.HandleActionBreakAllegianceBoot({playerName}, {accountBoot})");
 
             // TODO: handle account boot
 
@@ -1323,6 +1359,16 @@ namespace ACE.Server.WorldObjects
 
             player.PatronId = null;
             player.MonarchId = null;
+
+            // walk the allegiance tree from this node, update monarch ids
+            Allegiance.Members.TryGetValue(player.Guid, out var targetNode);
+
+            targetNode.Walk((node) =>
+            {
+                node.Player.MonarchId = player.Guid.Full;
+
+                node.Player.SaveBiotaToDatabase();
+            });
 
             // rebuild allegiance tree structures
             AllegianceManager.OnBreakAllegiance(player, patron);

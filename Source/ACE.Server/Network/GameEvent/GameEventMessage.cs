@@ -1,4 +1,4 @@
-
+using ACE.Entity;
 using ACE.Server.Network.GameMessages;
 
 namespace ACE.Server.Network.GameEvent
@@ -14,7 +14,9 @@ namespace ACE.Server.Network.GameEvent
             EventType = eventType;
             Session = session;
 
-            Writer.WriteGuid(session.Player.Guid);
+            var guid = session.Player != null ? session.Player.Guid : new ObjectGuid(0);
+
+            Writer.WriteGuid(guid);
             //var debugMessage = $"GameEventSequence Update - {eventType} - GameEventSequence was {session.GameEventSequence}";
             Writer.Write(session.GameEventSequence++);
             //Console.WriteLine(debugMessage + $" and is now {session.GameEventSequence}");

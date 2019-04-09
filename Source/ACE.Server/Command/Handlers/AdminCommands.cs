@@ -2060,8 +2060,10 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"{activeLandblocks.Count:N0} active landblocks - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
-            sb.Append($"UpdateGameWorld {(DateTime.UtcNow - WorldManager.UpdateGameWorld5MinLastReset).TotalMinutes:N2} min - {WorldManager.UpdateGameWorld5MinRM}.{'\n'}");
-            sb.Append($"UpdateGameWorld {(DateTime.UtcNow - WorldManager.UpdateGameWorld60MinLastReset).TotalMinutes:N2} min - {WorldManager.UpdateGameWorld60MinRM}.{'\n'}");
+            if (ServerPerformanceMonitor.IsRunning)
+                sb.Append($"Server Performance Monitor - UpdateGameWorld ~5m {ServerPerformanceMonitor.GetMonitor5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3}, ~1h {ServerPerformanceMonitor.GetMonitor1h(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3} s{'\n'}");
+            else
+                sb.Append($"Server Performance Monitor - Not running. To start use /serverperformance start{'\n'}");
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");
@@ -2070,6 +2072,43 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
 
             CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
+        }
+
+        // serverstatus
+        [CommandHandler("serverperformance", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server performance statistics")]
+        public static void HandleServerPerformance(Session session, params string[] parameters)
+        {
+            if (parameters != null && parameters.Length == 1)
+            {
+                if (parameters[0].ToLower() == "start")
+                {
+                    ServerPerformanceMonitor.Start();
+                    CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor started");
+                    return;
+                }
+
+                if (parameters[0].ToLower() == "stop")
+                {
+                    ServerPerformanceMonitor.Stop();
+                    CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor stopped");
+                    return;
+                }
+
+                if (parameters[0].ToLower() == "reset")
+                {
+                    ServerPerformanceMonitor.Reset();
+                    CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor reset");
+                    return;
+                }
+            }
+
+            if (!ServerPerformanceMonitor.IsRunning)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor not running. To start use /serverperformance start");
+                return;
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, ServerPerformanceMonitor.ToString());
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]
@@ -2209,20 +2248,63 @@ namespace ACE.Server.Command.Handlers
                         var desynced = PlayerManager.FindByGuid(monarchID);
                         Console.WriteLine($"{player.Name} has references to {desynced.Name} as monarch, but should be {allegiance.Monarch.Player.Name} -- fixing");
 
-                        var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
-                        if (onlinePlayer != null)
+                        player.MonarchId = allegiance.MonarchId;
+                        player.SaveBiotaToDatabase();
+                    }
+                }
+
+                // find missing players
+                var monarch = PlayerManager.FindByGuid(player.MonarchId.Value);
+                var _allegiance = AllegianceManager.GetAllegiance(monarch);
+
+                if (_allegiance != null && !_allegiance.Members.ContainsKey(player.Guid))
+                {
+                    // walk patrons to get the updated monarch
+                    var patron = PlayerManager.FindByGuid(player.PatronId.Value);
+                    if (patron == null)
+                    {
+                        Console.WriteLine($"{player.Name} has references to deleted patron {player.PatronId.Value:X8}, checking for vassals");
+                        player.PatronId = null;
+
+                        var vassals = players.Where(i => i.PatronId != null && i.PatronId == player.Guid.Full).ToList();
+                        if (vassals.Count > 0)
                         {
-                            onlinePlayer.UpdateProperty(onlinePlayer, PropertyInstanceId.Monarch, allegiance.MonarchId);
-                            onlinePlayer.SaveBiotaToDatabase();
+                            Console.WriteLine($"Vassals found, {player.Name} is the monarch");
+                            player.MonarchId = player.Guid.Full;
                         }
                         else
                         {
-                            var offlinePlayer = PlayerManager.GetOfflinePlayer(player.Guid);
-                            offlinePlayer.MonarchId = allegiance.MonarchId;
-                            offlinePlayer.SaveBiotaToDatabase();
+                            Console.WriteLine($"No vassals found, removing patron reference to deleted character");
+                            player.MonarchId = null;
                         }
+                        player.SaveBiotaToDatabase();
+                        continue;
                     }
+
+                    while (patron.PatronId != null)
+                        patron = PlayerManager.FindByGuid(patron.PatronId.Value);
+
+                    Console.WriteLine($"{player.Name} has references to {monarch.Name} as monarch, but should be {patron.Name} -- fixing missing player");
+
+                    player.MonarchId = patron.Guid.Full;
+                    player.SaveBiotaToDatabase();
                 }
+            }
+        }
+
+        [CommandHandler("show-allegiances", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Shows all of the allegiance chains on the server.", "")]
+        public static void HandleShowAllegiances(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllPlayers();
+
+            // build allegiances
+            foreach (var player in players)
+                AllegianceManager.GetAllegiance(player);
+
+            foreach (var allegiance in AllegianceManager.Allegiances.Values)
+            {
+                allegiance.ShowInfo();
+                Console.WriteLine("---------------");
             }
         }
     }

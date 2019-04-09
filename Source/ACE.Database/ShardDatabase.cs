@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Common.Extensions;
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -269,15 +270,29 @@ namespace ACE.Database
                 {
                     SetBiotaPopulatedCollections(biota);
 
+                    Exception firstException = null;
+                    retry:
+
                     try
                     {
                         cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"SaveBiota retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                         return true;
                     }
                     catch (Exception ex)
                     {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
                         // Character name might be in use or some other fault
-                        log.Error($"SaveBiota failed with exception: {ex}");
+                        log.Error($"SaveBiota failed first attempt with exception: {firstException}");
+                        log.Error($"SaveBiota failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -298,15 +313,29 @@ namespace ACE.Database
 
                 context.Biota.Add(biota);
 
+                Exception firstException = null;
+                retry:
+
                 try
                 {
                     context.SaveChanges();
+
+                    if (firstException != null)
+                        log.Debug($"SaveBiota retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                     return true;
                 }
                 catch (Exception ex)
                 {
+                    if (firstException == null)
+                    {
+                        firstException = ex;
+                        goto retry;
+                    }
+
                     // Character name might be in use or some other fault
-                    log.Error($"SaveBiota failed with exception: {ex}");
+                    log.Error($"SaveBiota failed first attempt with exception: {firstException}");
+                    log.Error($"SaveBiota failed second attempt with exception: {ex}");
                     return false;
                 }
             }
@@ -340,15 +369,29 @@ namespace ACE.Database
                 {
                     cachedContext.Biota.Remove(biota);
 
+                    Exception firstException = null;
+                    retry:
+
                     try
                     {
                         cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"RemoveBiota retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                         return true;
                     }
                     catch (Exception ex)
                     {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
                         // Character name might be in use or some other fault
-                        log.Error($"RemoveBiota failed with exception: {ex}");
+                        log.Error($"RemoveBiota failed first attempt with exception: {firstException}");
+                        log.Error($"RemoveBiota failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -643,15 +686,29 @@ namespace ACE.Database
                 rwLock.EnterReadLock();
                 try
                 {
+                    Exception firstException = null;
+                    retry:
+
                     try
                     {
                         cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"SaveCharacter retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                         return true;
                     }
                     catch (Exception ex)
                     {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
                         // Character name might be in use or some other fault
-                        log.Error($"SaveCharacter failed with exception: {ex}");
+                        log.Error($"SaveCharacter failed first attempt with exception: {firstException}");
+                        log.Error($"SaveCharacter failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -670,15 +727,29 @@ namespace ACE.Database
             {
                 context.Character.Add(character);
 
+                Exception firstException = null;
+                retry:
+
                 try
                 {
                     context.SaveChanges();
+
+                    if (firstException != null)
+                        log.Debug($"SaveCharacter retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                     return true;
                 }
                 catch (Exception ex)
                 {
+                    if (firstException == null)
+                    {
+                        firstException = ex;
+                        goto retry;
+                    }
+
                     // Character name might be in use or some other fault
-                    log.Error($"SaveCharacter failed with exception: {ex}");
+                    log.Error($"SaveCharacter failed first attempt with exception: {firstException}");
+                    log.Error($"SaveCharacter failed second attempt with exception: {ex}");
                     return false;
                 }
             }

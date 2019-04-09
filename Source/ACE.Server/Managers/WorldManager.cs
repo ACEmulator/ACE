@@ -32,7 +32,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
 {
-    public class WorldManager
+    public static class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
@@ -92,6 +92,7 @@ namespace ACE.Server.Managers
         {
             if (listenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
             {
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
                 if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
                 {
                     packetLog.Debug($"{packet}, {endPoint}");
@@ -121,11 +122,6 @@ namespace ACE.Server.Managers
                         session.State = SessionState.AuthConnected;
                         session.Network.sendResync = true;
                         AuthenticationHandler.HandleConnectResponse(session);
-                        return;
-                    }
-                    else
-                    {
-                        return;
                     }
 
                 }
@@ -137,55 +133,67 @@ namespace ACE.Server.Managers
                 {
                     log.ErrorFormat("Packet from {0} rejected. Packet sent to listener 1 and is not a ConnectResponse or CICMDCommand", endPoint);
                 }
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
             }
-            else if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+            else // ConfigManager.Config.Server.Network.Port + 0
             {
-                packetLog.Debug($"{packet}, {endPoint}");
-                if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
+                if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
                 {
-                    log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
-                    SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
-                }
-                else
-                {
-                    log.DebugFormat("Login Request from {0}", endPoint);
-                    var session = FindOrCreateSession(endPoint);
-                    if (session != null)
+                    packetLog.Debug($"{packet}, {endPoint}");
+                    if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                     {
-                        if (session.State == SessionState.AuthConnectResponse)
-                        {
-                            // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
-                            // ignore the request and remove the broken session and the client will start a new session.
-                            RemoveSession(session);
-                            log.Warn($"Bad handshake from {endPoint}, aborting session.");
-                        }
-                        session.ProcessPacket(packet);
-                    }
-                    else
-                    {
-                        log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
+                        log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
                         SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
                     }
-                }
-            }
-            else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
-            {
-                var session = sessionMap[packet.Header.Id];
-                if (session != null)
-                {
-                    if (session.EndPoint.Equals(endPoint))
-                        session.ProcessPacket(packet);
+                    else if (ServerManager.ShutdownInitiated)
+                    {
+                        log.InfoFormat("Login Request from {0} rejected. Server shutting down.", endPoint);
+                        SendLoginRequestReject(endPoint, CharacterError.ServerCrash);
+                    }
                     else
-                        log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                    {
+                        log.DebugFormat("Login Request from {0}", endPoint);
+                        var session = FindOrCreateSession(endPoint);
+                        if (session != null)
+                        {
+                            if (session.State == SessionState.AuthConnectResponse)
+                            {
+                                // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
+                                // ignore the request and remove the broken session and the client will start a new session.
+                                RemoveSession(session);
+                                log.Warn($"Bad handshake from {endPoint}, aborting session.");
+                            }
+
+                            session.ProcessPacket(packet);
+                        }
+                        else
+                        {
+                            log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
+                            SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
+                        }
+                    }
+                }
+                else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
+                {
+                    var session = sessionMap[packet.Header.Id];
+                    if (session != null)
+                    {
+                        if (session.EndPoint.Equals(endPoint))
+                            session.ProcessPacket(packet);
+                        else
+                            log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                    }
+                    else
+                    {
+                        log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
+                    }
                 }
                 else
                 {
-                    log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
+                    log.WarnFormat("unsolicited packet from {0}", endPoint);
                 }
-            }
-            else
-            {
-                log.WarnFormat("unsolicited packet from {0}", endPoint);
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
             }
         }
 
@@ -514,18 +522,32 @@ namespace ACE.Server.Managers
 
                 worldTickTimer.Restart();
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick);
                 PlayerManager.Tick();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick);
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueue_RunActions);
                 InboundClientMessageQueue.RunActions();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueue_RunActions);
 
                 // This will consist of PlayerEnterWorld actions, as well as other game world actions that require thread safety
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
                 actionQueue.RunActions();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DelayManager_RunActions);
                 DelayManager.RunActions();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DelayManager_RunActions);
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld);
                 var gameWorldUpdated = UpdateGameWorld();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld);
 
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork);
                 int sessionCount = DoSessionWork();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork);
+
+                ServerPerformanceMonitor.Tick();
 
                 // We only relax the CPU if our game world is able to update at the target rate.
                 // We do not sleep if our game world just updated. This is to prevent the scenario where our game world can't keep up. We don't want to add further delays.
@@ -540,11 +562,6 @@ namespace ACE.Server.Managers
             WorldActive = false;
         }
 
-        public static readonly RateMonitor UpdateGameWorld5MinRM = new RateMonitor();
-        public static DateTime UpdateGameWorld5MinLastReset = DateTime.UtcNow;
-        public static readonly RateMonitor UpdateGameWorld60MinRM = new RateMonitor();
-        public static DateTime UpdateGameWorld60MinLastReset = DateTime.UtcNow;
-
         /// <summary>
         /// Projected to run at a reasonable rate for gameplay (30-60fps)
         /// </summary>
@@ -555,13 +572,15 @@ namespace ACE.Server.Managers
 
             updateGameWorldRateLimiter.RegisterEvent();
 
-            UpdateGameWorld5MinRM.RegisterEventStart();
-            UpdateGameWorld60MinRM.RegisterEventStart();
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
 
             // update positions through physics engine
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_HandlePhysics);
             var movedObjects = HandlePhysics(Timers.PortalYearTicks);
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_HandlePhysics);
 
             // iterate through objects that have changed landblocks
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_RelocateObjectForPhysics);
             foreach (var movedObject in movedObjects)
             {
                 // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
@@ -570,32 +589,22 @@ namespace ACE.Server.Managers
                 // assume adjacency move here?
                 LandblockManager.RelocateObjectForPhysics(movedObject, true);
             }
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_RelocateObjectForPhysics);
 
             // Tick all of our Landblocks and WorldObjects
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
             var activeLandblocks = LandblockManager.GetActiveLandblocks();
 
             foreach (var landblock in activeLandblocks)
                 landblock.Tick(Time.GetUnixTime());
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
 
             // clean up inactive landblocks
             LandblockManager.UnloadLandblocks();
 
-            UpdateGameWorld5MinRM.RegisterEventEnd();
-            UpdateGameWorld60MinRM.RegisterEventEnd();
-
-            if (UpdateGameWorld5MinRM.TotalSeconds > 300)
-            {
-                UpdateGameWorld5MinRM.ClearEventHistory();
-                UpdateGameWorld5MinLastReset = DateTime.UtcNow;
-            }
-
-            if (UpdateGameWorld60MinRM.TotalSeconds > 3600)
-            {
-                UpdateGameWorld60MinRM.ClearEventHistory();
-                UpdateGameWorld60MinLastReset = DateTime.UtcNow;
-            }
-
             HouseManager.Tick();
+
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
 
             return true;
         }
@@ -700,16 +709,21 @@ namespace ACE.Server.Managers
                 sessionCount = sessions.Count;
 
                 // The session tick inbound processes all inbound GameAction messages
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
                 foreach (var s in sessions)
                     s.TickInbound();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
 
                 // Do not combine the above and below loops. All inbound messages should be processed first and then all outbound messages should be processed second.
 
                 // The session tick outbound processes pending actions and handles outgoing messages
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
                 foreach (var s in sessions)
                     s.TickOutbound();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
                 for (int i = sessions.Count - 1; i >= 0; i--)
                 {
                     var sesh = sessions[i];
@@ -718,11 +732,17 @@ namespace ACE.Server.Managers
                         case SessionState.NetworkTimeout:
                             sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "Network Timeout" : sesh.BootSessionReason);
                             break;
+                        case SessionState.ClientConnectionFailure:
+                            // needs to send the client the "git outa here" message or client will zombie out and appear to the player like it's still in game.
+                            // TO-DO: see if PacketHeaderFlags.NetErrorDisconnect will work for this
+                            sesh.BootSession("Client connection failure", new GameMessageBootAccount(sesh));
+                            break;
                         case SessionState.ClientSentNetErrorDisconnect:
                             sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "client sent network error disconnect" : sesh.BootSessionReason);
                             break;
                     }
                 }
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
             }
             finally
             {

@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 
+using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -9,11 +11,14 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Factories;
 
 namespace ACE.Server.WorldObjects
 {
     public partial class Corpse : Container
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The maximum number of seconds for an empty corpse to stick around
         /// </summary>
@@ -48,6 +53,8 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 10;
             ItemCapacity = 120;
+
+            SuppressGenerateEffect = true;
         }
 
         /// <summary>
@@ -138,6 +145,56 @@ namespace ACE.Server.WorldObjects
 
             if (VictimId != null && !new ObjectGuid(VictimId.Value).IsPlayer())
                 IsLooted = true;
+        }
+
+        public bool CorpseGeneratedRare
+        {
+            get => GetProperty(PropertyBool.CorpseGeneratedRare) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.CorpseGeneratedRare); else SetProperty(PropertyBool.CorpseGeneratedRare, value); }
+        }
+
+        public override void EnterWorld()
+        {
+            base.EnterWorld();
+
+            if (Location != null)
+            {
+                if (CorpseGeneratedRare)
+                {
+                    EnqueueBroadcast(new GameMessageSystemChat($"{killerName} has discovered the {rareGenerated.Name}!", ChatMessageType.System));
+                    ApplySoundEffects(Sound.TriggerActivated, 10);
+                }
+            }
+        }
+
+        private WorldObject rareGenerated;
+        private string killerName;
+
+        /// <summary>
+        /// Called to generate rare and add to corpse inventory
+        /// </summary>
+        public void GenerateRare(WorldObject killer)
+        {
+            //todo: calculate chances for killer's luck (rare timers)
+
+            var wo = LootGenerationFactory.CreateRare();
+            if (wo == null)
+                return;
+
+            var tier = LootGenerationFactory.GetRareTier(wo.WeenieClassId);
+            LootGenerationFactory.RareChances.TryGetValue(tier, out var chance);
+
+            log.Info($"[RARE] {Name} ({Guid}) generated rare {wo.Name} ({wo.Guid}) for {killer.Name} ({killer.Guid})");
+            log.Info($"[RARE] Tier {tier} -- 1 / {chance:N0} chance");
+
+            if (TryAddToInventory(wo))
+            {
+                rareGenerated = wo;
+                killerName = killer.Name.TrimStart('+');
+                CorpseGeneratedRare = true;
+            }
+            else
+                log.Error($"[RARE] failed to add to corpse inventory");
         }
     }
 }
