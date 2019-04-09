@@ -1003,9 +1003,8 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_palette");
 
-                entity.HasIndex(e => new { e.ObjectId, e.SubPaletteId, e.Offset, e.Length })
-                    .HasName("object_Id_subPaletteId_offset_length_uidx")
-                    .IsUnique();
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_palette_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
