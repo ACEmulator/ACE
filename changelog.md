@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-08
+[Ripley]
+* Fix PK status for all objects on radar bug.
+
 ### 2019-04-06
 [Ripley]
 * Fix OnDeath crash.

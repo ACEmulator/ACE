@@ -2243,7 +2243,7 @@ namespace ACE.Server.WorldObjects
             get
             {
                 var pk_server = PropertyManager.GetBool("pk_server").Item;
-                if (pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
+                if (this is Player && pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
                     return PlayerKillerStatus.PK;
                 else
                     return _playerKillerStatus;
