@@ -476,7 +476,7 @@ namespace ACE.Server.Physics.Common
         {
             if (PhysicsObj.DatObject) return;
 
-            var visiblePlayers = GetVisibleObjectsDist(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList();
+            var visiblePlayers = InitialClamp ? GetVisibleObjectsDist(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList() : GetVisibleObjects(PhysicsObj.CurCell);
             AddVoyeurs(visiblePlayers);
         }
 

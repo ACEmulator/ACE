@@ -855,10 +855,10 @@ namespace ACE.Server.WorldObjects
         // ========================================
         // =============== Rares ==================
         // ========================================
-        public double? LastRareUsedTimestamp
+        public double LastRareUsedTimestamp
         {
-            get => GetProperty(PropertyFloat.LastRareUsedTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value.Value); }
+            get => GetProperty(PropertyFloat.LastRareUsedTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value); }
         }
 
         // ========================================
