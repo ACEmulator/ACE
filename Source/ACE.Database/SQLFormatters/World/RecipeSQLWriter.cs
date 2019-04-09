@@ -104,7 +104,7 @@ namespace ACE.Database.SQLFormatters.World
                          $"{input.FailDestroyTargetAmount}, " +
                          $"{GetSQLString(input.FailDestroyTargetMessage)}, " +
                          $"{input.DataId}, " +
-                         $"'{input.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'" +
+                         $"'{input.LastModified:yyyy-MM-dd HH:mm:ss}'" +
                          ");";
 
             output = FixNullFields(output);
