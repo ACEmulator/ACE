@@ -30,8 +30,8 @@ namespace ACE.Server.Network.GameEvent.Events
 
             // --- FellowInfo ---
 
-            var fellowChain = new ActionChain();
-            foreach (Player fellow in fellowship.FellowshipMembers)
+            var fellowshipMembers = fellowship.GetFellowshipMembers();
+            foreach (Player fellow in fellowshipMembers.Values)
             {
                 // Write data associated with each fellowship member
                 WriteFellow(fellow);
