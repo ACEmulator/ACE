@@ -104,7 +104,7 @@ namespace ACE.Adapter.GDLE
                         {
                             links.Add(part);
 
-                            var child = results.Where(x => x.Guid == part.ChildGuid).FirstOrDefault();
+                            var child = results.FirstOrDefault(x => x.Guid == part.ChildGuid);
                             if (child != null)
                                 child.IsLinkChild = true;
                         }
