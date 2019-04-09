@@ -9,9 +9,8 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessageAutonomousPosition(WorldObject worldObject)
             : base(GameMessageOpcode.AutonomousPosition, GameMessageGroup.SecureWeenieQueue)
         {
-            if (worldObject is Player)
+            if (worldObject is Player p)
             {
-                Player p = (Player)worldObject;
                 Writer.WriteGuid(p.Guid);
                 p.Location.Serialize(Writer, true, false);
                 Writer.Write(worldObject.Sequences.GetCurrentSequence(SequenceType.ObjectInstance)); // instance_timestamp - always 1 in my pcaps

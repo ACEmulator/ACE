@@ -304,8 +304,8 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObjectEnd(WorldObject target)
         {
-            if (target is Hotspot)
-                (target as Hotspot).OnCollideObjectEnd(this);
+            if (target is Hotspot hotspot)
+                hotspot.OnCollideObjectEnd(this);
         }
 
         public void HandleActionQueryHealth(uint objectGuid)

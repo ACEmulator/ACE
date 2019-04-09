@@ -100,10 +100,8 @@ namespace ACE.Server.WorldObjects
             uint preCost = 0;
 
             if ((spell.School == MagicSchool.ItemEnchantment) && (spell.MetaSpellType == SpellType.Enchantment) &&
-                (spell.Category >= SpellCategory.ArmorValueRaising) && (spell.Category <= SpellCategory.AcidicResistanceLowering) && target is Player)
+                (spell.Category >= SpellCategory.ArmorValueRaising) && (spell.Category <= SpellCategory.AcidicResistanceLowering) && target is Player targetPlayer)
             {
-                var targetPlayer = target as Player;
-
                 int numTargetItems = 1;
                 if (targetPlayer != null)
                     numTargetItems = targetPlayer.EquippedObjects.Values.Count(i => (i is Clothing || i.IsShield) && i.IsEnchantable);

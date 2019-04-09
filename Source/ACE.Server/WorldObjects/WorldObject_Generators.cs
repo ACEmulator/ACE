@@ -410,11 +410,8 @@ namespace ACE.Server.WorldObjects
                     {
                         foreach (var rNode in generator.Spawned.Values)
                         {
-                            if (rNode.WorldObject is Creature)
-                            {
-                                var wo = rNode.WorldObject as Creature;
+                            if (rNode.WorldObject is Creature wo)
                                 wo.Smite(this);
-                            }
                         }
 
                         generator.Spawned.Clear();
