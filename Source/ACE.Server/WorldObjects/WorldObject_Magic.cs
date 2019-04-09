@@ -722,6 +722,13 @@ namespace ACE.Server.WorldObjects
                                     recall = PositionType.LinkedLifestone;
                                 break;
 
+                            case SpellId.LifestoneSending1:
+
+                                if (player.GetPosition(PositionType.Sanctuary) != null)
+                                    recall = PositionType.Sanctuary;
+
+                                break;
+
                             case SpellId.PortalTieRecall1:   // primary portal tie recall
 
                                 if (player.LinkedPortalOneDID == null)
