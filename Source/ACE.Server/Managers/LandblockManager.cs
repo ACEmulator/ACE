@@ -130,7 +130,7 @@ namespace ACE.Server.Managers
 
                     if (!activeLandblocks.Add(landblock))
                     {
-                        log.Error($"LandblockManager: failed to add {landblock.Id:X8} to active landblocks!");
+                        log.Error($"LandblockManager: failed to add {landblock.Id.Raw:X8} to active landblocks!");
                         return landblock;
                     }
                 }
@@ -336,7 +336,7 @@ namespace ACE.Server.Managers
                     }
 
                     if (unloadFailed)
-                        log.Error($"LandblockManager: failed to unload {landblock.Id:X8}");
+                        log.Error($"LandblockManager: failed to unload {landblock.Id.Raw:X8}");
                 }
             }
         }
