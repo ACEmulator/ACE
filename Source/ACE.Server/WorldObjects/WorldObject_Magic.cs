@@ -883,7 +883,7 @@ namespace ACE.Server.WorldObjects
                             }
 
                             var summonPortal = GetPortal(portalId);
-                            if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && PropertyManager.GetBool("disable_gateway_ties_to_be_summonable", false).Item))
+                            if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && !PropertyManager.GetBool("gateway_ties_summonable").Item))
                             {
                                 // You cannot summon that portal!
                                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
