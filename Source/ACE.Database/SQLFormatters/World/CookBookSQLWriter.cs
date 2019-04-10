@@ -22,8 +22,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<CookBook> input, StreamWriter writer)
         {
-            foreach (var value in input)
-                writer.WriteLine($"DELETE FROM `cook_book` WHERE `recipe_Id` = {value.RecipeId};");
+            writer.WriteLine($"DELETE FROM `cook_book` WHERE `recipe_Id` = {input[0].RecipeId};");
         }
 
         public void CreateSQLINSERTStatement(IList<CookBook> input, StreamWriter writer)
