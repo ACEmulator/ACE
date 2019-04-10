@@ -90,9 +90,11 @@ namespace ACE.Server.WorldObjects
         {
             Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))})");
 
-            var house = GetHouse();
+            var slumlord = FindObject(slumlord_id, SearchLocations.Landblock) as SlumLord;
+            if (slumlord == null)
+                return;
 
-            if (house.SlumLord.IsRentPaid())
+            if (slumlord.IsRentPaid())
             {
                 //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseRentFailed));  // WeenieError.HouseRentFailed = blank message
                 Session.Network.EnqueueSend(new GameMessageSystemChat("The maintenance has already been paid for this period.\nYou may not prepay next period's maintenance.", ChatMessageType.Broadcast));
@@ -108,12 +110,12 @@ namespace ACE.Server.WorldObjects
                     Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))}): couldn't find {item_id:X8}");
                     continue;
                 }
-                DoHandleActionPutItemInContainer(item, this, false, house.SlumLord, house.SlumLord, 0);
+                DoHandleActionPutItemInContainer(item, this, false, slumlord, slumlord, 0);
             }
 
-            house.SlumLord.MergeAllStackables();
+            slumlord.MergeAllStackables();
 
-            house.SlumLord.ActOnUse(this);
+            slumlord.ActOnUse(this);
 
             HandleActionQueryHouse();
         }
@@ -293,6 +295,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool VerifyPurchase(SlumLord slumlord, List<uint> item_ids)
         {
+            // verify house is not already owned
+            if (slumlord.HouseOwner != null)
+                return false;
+
             Console.WriteLine($"{slumlord.Name} ({slumlord.Guid})");
             var buyItems = slumlord.GetBuyItems();
             Console.WriteLine("Required items:");

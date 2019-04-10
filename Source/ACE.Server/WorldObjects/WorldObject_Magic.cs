@@ -412,7 +412,7 @@ namespace ACE.Server.WorldObjects
                         else
                         {
                             msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost)} points of your {srcVital}.";
-                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
                         }
                     }
 
@@ -720,6 +720,13 @@ namespace ACE.Server.WorldObjects
                                 }
                                 else
                                     recall = PositionType.LinkedLifestone;
+                                break;
+
+                            case SpellId.LifestoneSending1:
+
+                                if (player.GetPosition(PositionType.Sanctuary) != null)
+                                    recall = PositionType.Sanctuary;
+
                                 break;
 
                             case SpellId.PortalTieRecall1:   // primary portal tie recall

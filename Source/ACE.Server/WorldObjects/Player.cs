@@ -262,7 +262,7 @@ namespace ACE.Server.WorldObjects
 
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
-                if (difficulty == 0 || player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
+                if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this))
                     chance = 1.0f;
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
