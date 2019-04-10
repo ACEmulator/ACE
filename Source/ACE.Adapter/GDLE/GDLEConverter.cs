@@ -241,8 +241,6 @@ namespace ACE.Adapter.GDLE
 
                 result.Id = input.RecipeId;
 
-                // TODO: We're missing SkillCheckFormulaType and Unknown
-
                 result.Unknown1 = (uint)input.Unknown;
                 result.Skill = input.Skill;
                 result.Difficulty = input.Difficulty;
@@ -384,8 +382,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = (int)mod.Value,
-                                Enum = mod.OperationType, // TODO!!!
-                                Source = mod.Unknown ?? 0 // TODO!!!
+                                Enum = mod.OperationType,
+                                Source = mod.Unknown ?? 0
                             });
                         }
                     }
@@ -398,8 +396,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = (uint)mod.Value,
-                                Enum = mod.OperationType, // TODO!!!
-                                Source = mod.Unknown ?? 0 // TODO!!!
+                                Enum = mod.OperationType,
+                                Source = mod.Unknown ?? 0
                             });
                         }
                     }
@@ -427,8 +425,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = mod.Value,
-                                Enum = mod.OperationType, // TODO!!!
-                                Source = mod.Unknown ?? 0 // TODO!!!
+                                Enum = mod.OperationType,
+                                Source = mod.Unknown ?? 0
                             });
                         }
                     }
@@ -441,8 +439,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = mod.Value,
-                                Enum = mod.OperationType, // TODO!!!
-                                Source = mod.Unknown // TODO!!!
+                                Enum = mod.OperationType,
+                                Source = mod.Unknown
                             });
                         }
                     }
@@ -455,8 +453,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = (mod.Value != 0),
-                                Enum = mod.OperationType, // TODO!!!
-                                Source = mod.Unknown ?? 0 // TODO!!!
+                                Enum = mod.OperationType,
+                                Source = mod.Unknown ?? 0
                             });
                         }
                     }
@@ -464,8 +462,6 @@ namespace ACE.Adapter.GDLE
                     recipeMod.RecipeId = result.Id;
 
                     recipeMod.ExecutesOnSuccess = (i <= 3); // The first 4 are "act on success", the second 4 are "act on failure"
-
-                    // TODO!!! missing ModificationScriptId
 
                     // TODO!!!
                     recipeMod.Health = value.ModifyHealth;
@@ -477,7 +473,7 @@ namespace ACE.Adapter.GDLE
                     recipeMod.DataId = value.ModificationScriptId;
 
                     recipeMod.Unknown9 = value.Unknown9;
-                    recipeMod.InstanceId = value.Unknown10; // TODO!!! is this value.Unknown10 ???
+                    recipeMod.InstanceId = value.Unknown10;
 
                     bool add = (recipeMod.Health > 0 || recipeMod.Stamina > 0 || recipeMod.Mana > 0);
                     add = (add || recipeMod.Unknown7 || recipeMod.DataId > 0 || recipeMod.Unknown9 > 0 || recipeMod.InstanceId > 0);
