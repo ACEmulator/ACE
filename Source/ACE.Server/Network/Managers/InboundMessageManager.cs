@@ -114,8 +114,13 @@ namespace ACE.Server.Network.Managers
         {
             if (actionHandlers.TryGetValue(opcode, out var actionHandlerInfo))
             {
-                session.InboundGameActionQueue.EnqueueAction(new ActionEventDelegate(() =>
+                WorldManager.InboundGameActionQueue.EnqueueAction(new ActionEventDelegate(() =>
                 {
+                    // It's possible that before this work is executed by WorldManager, and after it was enqueued here, the session.Player was set to null
+                    // To avoid null reference exceptions, we make sure that the player is valid before the message handler is invoked.
+                    if (session.Player == null)
+                        return;
+
                     actionHandlerInfo.Handler.Invoke(message, session);
                 }));
             }
