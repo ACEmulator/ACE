@@ -243,10 +243,10 @@ namespace ACE.Adapter.GDLE
 
                 // TODO: We're missing SkillCheckFormulaType and Unknown
 
-                //result.Unknown1 = input.unknown_1;
+                result.Unknown1 = (uint)input.Unknown;
                 result.Skill = input.Skill;
                 result.Difficulty = input.Difficulty;
-                //result.SalvageType = input.SalvageType;
+                result.SalvageType = (uint)input.SkillCheckFormulaType;
 
                 result.SuccessWCID = input.SuccessWcid;
                 result.SuccessAmount = input.SuccessAmount;
@@ -290,7 +290,7 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = requirement.Stat,
                                 Value = (int)requirement.Value,
-                                //Enum = requirement.Enum, // TODO!!!
+                                Enum = requirement.OperationType,
                                 Message = requirement.Message
                             });
                         }
@@ -360,7 +360,7 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = requirement.Stat,
                                 Value = (requirement.Value != 0),
-                                //Enum = requirement.Enum, // TODO!!!
+                                Enum = requirement.OperationType,
                                 Message = requirement.Message
                             });
                         }
@@ -384,8 +384,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = (int)mod.Value,
-                                //Enum = mod.Enum, // TODO!!!
-                                //Unknown1 = mod.Unknown1 // TODO!!!
+                                Enum = mod.OperationType, // TODO!!!
+                                Source = mod.Unknown ?? 0 // TODO!!!
                             });
                         }
                     }
@@ -398,8 +398,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = (uint)mod.Value,
-                                //Enum = mod.Enum, // TODO!!!
-                                //Unknown1 = mod.Unknown1 // TODO!!!
+                                Enum = mod.OperationType, // TODO!!!
+                                Source = mod.Unknown ?? 0 // TODO!!!
                             });
                         }
                     }
@@ -427,8 +427,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = mod.Value,
-                                //Enum = mod.Enum, // TODO!!!
-                                //Unknown1 = mod.Unknown1 // TODO!!!
+                                Enum = mod.OperationType, // TODO!!!
+                                Source = mod.Unknown ?? 0 // TODO!!!
                             });
                         }
                     }
@@ -441,8 +441,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = mod.Value,
-                                //Enum = mod.Enum, // TODO!!!
-                                //Unknown1 = mod.Unknown1 // TODO!!!
+                                Enum = mod.OperationType, // TODO!!!
+                                Source = mod.Unknown // TODO!!!
                             });
                         }
                     }
@@ -455,8 +455,8 @@ namespace ACE.Adapter.GDLE
                             {
                                 Stat = mod.Stat,
                                 Value = (mod.Value != 0),
-                                //Enum = mod.Enum, // TODO!!!
-                                //Unknown1 = mod.Unknown1 // TODO!!!
+                                Enum = mod.OperationType, // TODO!!!
+                                Source = mod.Unknown ?? 0 // TODO!!!
                             });
                         }
                     }
@@ -468,16 +468,16 @@ namespace ACE.Adapter.GDLE
                     // TODO!!! missing ModificationScriptId
 
                     // TODO!!!
-                    //recipeMod.Health = value.ModifyHealth;
-                    //recipeMod.Stamina = value.ModifyStamina;
-                    //recipeMod.Mana = value.ModifyMana;
+                    recipeMod.Health = value.ModifyHealth;
+                    recipeMod.Stamina = value.ModifyStamina;
+                    recipeMod.Mana = value.ModifyMana;
                     // TODO!!! we're missing the following RequiresHealth, RequiresStamina, RequiresMana
 
                     recipeMod.Unknown7 = value.Unknown7;
-                    //recipeMod.DataId = value.DataID;
+                    recipeMod.DataId = value.ModificationScriptId;
 
                     recipeMod.Unknown9 = value.Unknown9;
-                    //recipeMod.InstanceId = value.InstanceID; // TODO!!! is this value.Unknown10 ???
+                    recipeMod.InstanceId = value.Unknown10; // TODO!!! is this value.Unknown10 ???
 
                     bool add = (recipeMod.Health > 0 || recipeMod.Stamina > 0 || recipeMod.Mana > 0);
                     add = (add || recipeMod.Unknown7 || recipeMod.DataId > 0 || recipeMod.Unknown9 > 0 || recipeMod.InstanceId > 0);
@@ -486,6 +486,26 @@ namespace ACE.Adapter.GDLE
                     if (add)
                         result.RecipeMod.Add(recipeMod);
                 }
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        public static bool TryConvert(Models.RecipePrecursor input, out Database.Models.World.CookBook result)
+        {
+            try
+            {
+                result = new CookBook();
+
+                result.RecipeId = input.RecipeId;
+
+                result.SourceWCID = input.Tool;
+                result.TargetWCID = input.Target;
 
                 return true;
             }
