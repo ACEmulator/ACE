@@ -26,7 +26,7 @@ namespace ACE.Server.WorldObjects
 
         public void FellowshipQuit(bool disband)
         {
-            if (Fellowship != null) return;
+            if (Fellowship != null)
                 Fellowship.QuitFellowship(this, disband);
         }
 
