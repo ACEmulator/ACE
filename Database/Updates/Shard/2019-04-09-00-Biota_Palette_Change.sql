@@ -8,5 +8,5 @@ DROP INDEX `object_Id_subPaletteId_offset_length_uidx` ;
 ALTER TABLE `biota_properties_palette` 
 ADD CONSTRAINT `wcid_palette`
   FOREIGN KEY (`object_Id`)
-  REFERENCES `ace_shard`.`biota` (`id`)
+  REFERENCES `biota` (`id`)
   ON DELETE CASCADE;
