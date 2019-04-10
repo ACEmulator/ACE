@@ -291,7 +291,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentCreate >= InitCreate && !IsLinked)
                 {
                     if (CurrentCreate > InitCreate)
-                        Console.WriteLine($"{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
+                        log.Warn($"{WeenieClassId} - 0x{Guid.Full:X8}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
 
                     return true;
                 }
@@ -309,7 +309,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentCreate >= MaxCreate && MaxCreate != 0 && !IsLinked)
                 {
                     if (CurrentCreate > MaxCreate && MaxCreate != 0)
-                        Console.WriteLine($"{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
+                        log.Warn($"{WeenieClassId} - 0x{Guid.Full:X8}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
 
                     return true;
                 }
@@ -343,7 +343,7 @@ namespace ACE.Server.WorldObjects
 
             var now = (int)Time.GetUnixTime();
 
-            GeneratorDisabled = (now < GeneratorStartTime) || (now > GeneratorEndTime);
+            GeneratorDisabled = ((now < GeneratorStartTime) && (GeneratorStartTime > 0)) || ((now > GeneratorEndTime) && (GeneratorEndTime > 0));
 
             HandleStatus(prevDisabled);
         }

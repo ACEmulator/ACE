@@ -207,5 +207,21 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, selectedTarget.Full, healthPercent));
         }
+
+        /// <summary>
+        /// Returns the maximum rank that can be purchased with an xp amount
+        /// </summary>
+        /// <param name="xpAmount">The amount of xp used to make the purchase</param>
+        public static int CalcVitalRank(uint xpAmount)
+        {
+            var rankXpTable = DatManager.PortalDat.XpTable.VitalXpList;
+            for (var i = rankXpTable.Count - 1; i >= 0; i--)
+            {
+                var rankAmount = rankXpTable[i];
+                if (xpAmount >= rankAmount)
+                    return i;
+            }
+            return -1;
+        }
     }
 }
