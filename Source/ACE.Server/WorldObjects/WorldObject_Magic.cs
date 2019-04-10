@@ -412,7 +412,7 @@ namespace ACE.Server.WorldObjects
                         else
                         {
                             msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost)} points of your {srcVital}.";
-                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
                         }
                     }
 
