@@ -14,8 +14,7 @@ namespace ACE.Server.Managers
         {
             // These are all found in WorldManager.UpdateWorld()
             PlayerManager_Tick,
-            InboundClientMessageQueue_RunActions,
-            InboundGameActionQueue_RunActions,
+            InboundClientMessageQueueRun,
             actionQueue_RunActions,
             DelayManager_RunActions,
             UpdateGameWorld,
