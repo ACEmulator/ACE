@@ -101,7 +101,7 @@ namespace ACE.Database.SQLFormatters.World
             {
                 spellLineHdr += ", `wcid`";
 
-                if (WeenieNames != null && input.Wcid.Value > 0)
+                if (WeenieNames != null && input.Wcid.Value > 0 && WeenieNames.ContainsKey(input.Wcid.Value))
                     spellLine += $", {input.Wcid} /* {WeenieNames[input.Wcid.Value]} */";
                 else
                     spellLine += $", {input.Wcid}";

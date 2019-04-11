@@ -148,7 +148,7 @@ namespace ACE.Server.Managers
             }
 
             // cache adjacencies
-            SetAdjacents(landblock, true);
+            SetAdjacents(landblock, true, true);
 
             return landblock;
         }
