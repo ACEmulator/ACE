@@ -229,11 +229,11 @@ namespace ACE.Server.WorldObjects
             switch (officerRank)
             {
                 case AllegianceOfficerLevel.Speaker:
-                    return AllegianceSpeakerTitle ?? "Speaker";
+                    return AllegianceSpeakerTitle != null && !string.IsNullOrEmpty(AllegianceSpeakerTitle) ? AllegianceSpeakerTitle : "Speaker";
                 case AllegianceOfficerLevel.Seneschal:
-                    return AllegianceSeneschalTitle ?? "Seneschal";
+                    return AllegianceSeneschalTitle != null && !string.IsNullOrEmpty(AllegianceSeneschalTitle) ? AllegianceSeneschalTitle : "Seneschal";
                 case AllegianceOfficerLevel.Castellan:
-                    return AllegianceCastellanTitle ?? "Castellan";
+                    return AllegianceCastellanTitle != null && !string.IsNullOrEmpty(AllegianceCastellanTitle) ? AllegianceCastellanTitle : "Castellan";
                 default:
                     return "";
             }
