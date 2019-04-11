@@ -104,7 +104,7 @@ namespace ACE.Adapter.GDLE
                         {
                             links.Add(part);
 
-                            var child = results.Where(x => x.Guid == part.ChildGuid).FirstOrDefault();
+                            var child = results.FirstOrDefault(x => x.Guid == part.ChildGuid);
                             if (child != null)
                                 child.IsLinkChild = true;
                         }
@@ -281,6 +281,49 @@ namespace ACE.Adapter.GDLE
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.Recipe>>(fileText);
 
                 results = new List<Database.Models.World.Recipe>();
+
+                foreach (var value in gdleModel)
+                {
+                    if (GDLEConverter.TryConvert(value, out var result))
+                        results.Add(result);
+                }
+
+                return true;
+
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadRecipePrecursors(string file, out List<Models.RecipePrecursor> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                results = JsonConvert.DeserializeObject<List<Models.RecipePrecursor>>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadRecipePrecursorsConverted(string file, out List<Database.Models.World.CookBook> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                var gdleModel = JsonConvert.DeserializeObject<List<Models.RecipePrecursor>>(fileText);
+
+                results = new List<Database.Models.World.CookBook>();
 
                 foreach (var value in gdleModel)
                 {

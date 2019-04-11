@@ -90,7 +90,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                log.Warn($"{Name}.HandleActionUseItem({itemGuid:X8}): couldn't find object");
+                log.Debug($"{Name}.HandleActionUseItem({itemGuid:X8}): couldn't find object");
                 SendUseDoneEvent();
             }
         }
