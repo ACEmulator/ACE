@@ -184,12 +184,12 @@ namespace ACE.Server.Managers
                     }
                     else
                     {
-                        log.WarnFormat("Unsolicited Packet from {0} with Id {1}", endPoint, packet.Header.Id);
+                        log.DebugFormat("Unsolicited Packet from {0} with Id {1}", endPoint, packet.Header.Id);
                     }
                 }
                 else
                 {
-                    log.WarnFormat("unsolicited packet from {0} with Id {1}", endPoint, packet.Header.Id);
+                    log.DebugFormat("Unsolicited Packet from {0} with Id {1}", endPoint, packet.Header.Id);
                 }
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
             }
