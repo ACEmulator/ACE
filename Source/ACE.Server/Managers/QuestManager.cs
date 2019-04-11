@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
@@ -14,6 +15,8 @@ namespace ACE.Server.Managers
 {
     public class QuestManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Player Player { get; }
         public ICollection<CharacterPropertiesQuestRegistry> Quests { get => Player.Character.CharacterPropertiesQuestRegistry; }
 
@@ -326,6 +329,62 @@ namespace ACE.Server.Managers
                 var remainStr = GetNextSolveTime(questName).GetFriendlyString();
                 var remain = new GameMessageSystemChat($"You may complete this quest again in {remainStr}.", ChatMessageType.Broadcast);
                 Player.Session.Network.EnqueueSend(text, remain, error);
+            }
+        }
+
+        /// <summary>
+        /// Increments the counter for a kill task, and optionally shares with fellowship
+        /// </summary>
+        public void HandleKillTask(string _questName, WorldObject obj, bool shareable = true)
+        {
+            if (!HasQuest(_questName))
+                return;
+
+            Stamp(_questName);
+
+            var questName = GetQuestName(_questName);
+            var quest = DatabaseManager.World.GetCachedQuest(questName);
+
+            if (quest == null)
+            {
+                log.Error($"{Player.Name}.HandleKillTask({_questName}): couldn't find kill task {questName} in database");
+                return;
+            }
+
+            var playerQuest = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+            if (playerQuest == null)
+            {
+                log.Error($"{Player.Name}.HandleKillTask({_questName}): couldn't find kill task {questName} in player quests");
+                return;
+            }
+
+            if (obj == null)
+            {
+                log.Error($"{Player.Name}.HandleKillTask({_questName}): input object is null!");
+                return;
+            }
+
+            var msg = "";
+            
+            if (IsMaxSolves(questName))
+                msg = $"You have killed {quest.MaxSolves} {obj.GetPluralName()}. Your task is complete!";
+            else
+                msg = $"You have killed {playerQuest.NumTimesCompleted} {obj.GetPluralName()}. You must kill {quest.MaxSolves} to complete your task!";
+
+            Player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+            // are we in a fellowship? if so, share with fellowship
+            if (shareable && Player.Fellowship != null)
+            {
+                var shareableMembers = Player.Fellowship.GetShareableMembers();
+
+                foreach (var fellow in shareableMembers.Values)
+                {
+                    // ensure within landblock distance
+                    if (Player.Location.DistanceTo(fellow.Location) <= 192.0f)
+                        fellow.QuestManager.HandleKillTask(_questName, obj, false);
+                }
             }
         }
     }
