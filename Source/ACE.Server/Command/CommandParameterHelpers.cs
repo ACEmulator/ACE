@@ -98,7 +98,7 @@ namespace ACE.Server.Command
         /// <returns>the parameters were successfully resolved or not</returns>
         public static bool ResolveACEParameters(Session session, IEnumerable<string> rawParameters, IEnumerable<ACECommandParameter> parameters)
         {
-            var parameterBlob = rawParameters.Count() > 0 ? rawParameters.Aggregate((a, b) => a + " " + b).Trim(new char[] { ' ', ',' }) : string.Empty;
+            var parameterBlob = rawParameters.Any() ? rawParameters.Aggregate((a, b) => a + " " + b).Trim(new char[] { ' ', ',' }) : string.Empty;
             var acps = parameters.ToList();
             for (int i = acps.Count - 1; i > -1; i--)
             {

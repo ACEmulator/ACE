@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-04-10
+[Ripley]
+* Update Crafting SQL Writer.
+* Add in support to ACE.Adapter for converting GDLe recipes.
+
 ### 2019-04-09
 [Ripley]
 * Fix issue with RealTime generators that have either no StartTime or EndTime set. (eg: Heart of the Innocent Event Gen)

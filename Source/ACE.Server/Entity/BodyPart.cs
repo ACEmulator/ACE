@@ -54,7 +54,7 @@ namespace ACE.Server.Entity
             var parts = GetFlags(bodyParts);
 
             // return a random part within list
-            return parts.ToList()[ThreadSafeRandom.Next(0, parts.Count() - 1)];
+            return parts.ToList()[ThreadSafeRandom.Next(0, parts.Count - 1)];
         }
 
         public static BiotaPropertiesBodyPart GetBodyPart(WorldObject target, AttackHeight height)
