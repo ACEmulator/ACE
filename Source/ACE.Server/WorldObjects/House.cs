@@ -40,8 +40,8 @@ namespace ACE.Server.WorldObjects
         public List<House> LinkedHouses;
 
         public SlumLord SlumLord { get => ChildLinks.FirstOrDefault(l => l as SlumLord != null) as SlumLord; }
-        public List<Hook> Hooks { get => ChildLinks.Where(l => l is Hook).Select(l => l as Hook).ToList(); }
-        public List<Storage> Storage { get => ChildLinks.Where(l => l is Storage).Select(l => l as Storage).ToList(); }
+        public List<Hook> Hooks { get => ChildLinks.OfType<Hook>().ToList(); }
+        public List<Storage> Storage { get => ChildLinks.OfType<Storage>().ToList(); }
         public HashSet<ObjectGuid> StorageAccess => Guests.Where(i => i.Value).Select(i => i.Key).ToHashSet();
         public WorldObject BootSpot => ChildLinks.FirstOrDefault(i => i.WeenieType == WeenieType.BootSpot);
 

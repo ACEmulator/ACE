@@ -249,7 +249,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private int CountPlayerAbove()
         {
-            return FellowshipMembers.Where(f => f.Level >= 50).Count();
+            return FellowshipMembers.Count(f => f.Level >= 50);
         }
 
         /// <summary>

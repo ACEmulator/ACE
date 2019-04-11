@@ -81,7 +81,7 @@ namespace ACE.Server.Factories
             var weenie = DatabaseManager.World.GetScrollWeenie(spellID);
             if (weenie == null)
             {
-                log.WarnFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);
+                log.DebugFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);
                 return null;
             }
 
