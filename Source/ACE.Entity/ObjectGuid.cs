@@ -83,7 +83,7 @@ namespace ACE.Entity
 
         public override bool Equals(object obj)
         {
-            return obj is ObjectGuid && (ObjectGuid)obj == this;
+            return obj is ObjectGuid guid && guid == this;
         }
 
         public override int GetHashCode()
