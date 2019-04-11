@@ -716,7 +716,7 @@ namespace ACE.Server.Managers
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
-                foreach (var session in sessionMap)
+                foreach (var session in sessionMap.Where(k => !Equals(null, k)))
                 {
                     var pendingTerm = session.PendingTermination;
                     if (session.PendingTermination != null && session.PendingTermination.TerminationStatus == SessionTerminationPhase.SessionWorkCompleted)
