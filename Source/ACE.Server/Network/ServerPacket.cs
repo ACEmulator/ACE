@@ -56,11 +56,11 @@ namespace ACE.Server.Network
 
             if (Data != null && Data.Length > 0)
             {
-                var body = Data.ToArray();
-                Buffer.BlockCopy(body, 0, buffer, offset, body.Length);
-                offset += body.Length;
+                var body = Data.GetBuffer();
+                Buffer.BlockCopy(body, 0, buffer, offset, (int)Data.Length);
+                offset += (int)Data.Length;
 
-                payloadChecksum += Hash32.Calculate(body, body.Length);
+                payloadChecksum += Hash32.Calculate(body, (int)Data.Length);
             }
 
             foreach (ServerPacketFragment fragment in Fragments)
