@@ -1182,7 +1182,7 @@ namespace ACE.Server.WorldObjects
         public List<Player> GetFellowshipTargets()
         {
             if (Fellowship != null)
-                return Fellowship.FellowshipMembers;
+                return Fellowship.GetFellowshipMembers().Values.ToList();
             else
                 return new List<Player>() { this };
         }

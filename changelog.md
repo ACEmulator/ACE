@@ -4,6 +4,7 @@
 [Ripley]
 * Update Crafting SQL Writer.
 * Add in support to ACE.Adapter for converting GDLe recipes.
+* * Apply two more patches in Shard updates to fix issues with certain player appearances causing a save to fail for the corpse.
 
 ### 2019-04-09
 [Ripley]

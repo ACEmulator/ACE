@@ -9386,7 +9386,7 @@ namespace ACE.Server.Factories
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
 
             if (wieldDifficulty > 0)
                 wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
