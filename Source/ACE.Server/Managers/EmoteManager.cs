@@ -110,9 +110,10 @@ namespace ACE.Server.Managers
 
                 case EmoteType.AwardLevelProportionalXP:
 
-                    // share with fellowship?
+                    bool shareXP = emote.Display ?? false;
+
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:

@@ -339,7 +339,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Raise the available XP by a percentage of the current level XP or a maximum
         /// </summary>
-        public void GrantLevelProportionalXp(double percent, ulong max)
+        public void GrantLevelProportionalXp(double percent, ulong max, bool shareable = false)
         {
             var maxLevel = GetMaxLevel();
             if (Level >= maxLevel) return;
@@ -347,7 +347,7 @@ namespace ACE.Server.WorldObjects
             var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
             var scaledXP = (long)Math.Min(nextLevelXP * percent, max);
 
-            GrantXP(scaledXP, XpType.Quest);
+            GrantXP(scaledXP, XpType.Quest, shareable);
         }
 
         /// <summary>
