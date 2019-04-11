@@ -304,7 +304,7 @@ namespace ACE.Server.Network
 
             ServerPacket reqPacket = new ServerPacket();
             byte[] reqData = new byte[4 + (needSeq.Count * 4)];
-            MemoryStream msReqData = new MemoryStream(reqData);
+            MemoryStream msReqData = new MemoryStream(reqData, 0, reqData.Length, true, true);
             msReqData.Write(BitConverter.GetBytes((uint)needSeq.Count), 0, 4);
             needSeq.ForEach(k => msReqData.Write(BitConverter.GetBytes(k), 0, 4));
             reqPacket.Data = msReqData;
