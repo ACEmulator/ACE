@@ -614,7 +614,7 @@ namespace ACE.Server.Entity.Chess
             var gamePiece = ChessBoard.CurrentLandblock.GetObject(piece.Guid) as GamePiece;
             if (gamePiece == null)
             {
-                Console.WriteLine($"ChessMatch.MoveWeeniePiece({piece.Guid:X8}): couldn't find game piece");
+                Console.WriteLine($"ChessMatch.MoveWeeniePiece({piece.Guid.Full:X8}): couldn't find game piece");
                 DebugMove();
                 Logic.DebugBoard();
                 return;

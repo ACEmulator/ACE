@@ -79,12 +79,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if all generator profiles are at init objects created
         /// </summary>
-        public bool AllProfilesInitted { get => GeneratorProfiles.Where(i => i.InitObjectsSpawned).Count() == GeneratorProfiles.Count; }
+        public bool AllProfilesInitted { get => GeneratorProfiles.Count(i => i.InitObjectsSpawned) == GeneratorProfiles.Count; }
 
         /// <summary>
         /// Retunrs TRUE if all generator profiles are at max objects created
         /// </summary>
-        public bool AllProfilesMaxed { get => GeneratorProfiles.Where(i => i.MaxObjectsSpawned).Count() == GeneratorProfiles.Count; }
+        public bool AllProfilesMaxed { get => GeneratorProfiles.Count(i => i.MaxObjectsSpawned) == GeneratorProfiles.Count; }
 
         /// <summary>
         /// Adds initial objects to the spawn queue based on RNG rolls
@@ -291,7 +291,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentCreate >= InitCreate && !IsLinked)
                 {
                     if (CurrentCreate > InitCreate)
-                        log.Warn($"{WeenieClassId} - 0x{Guid.Full:X8}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
+                        log.Debug($"{WeenieClassId} - 0x{Guid.Full:X8}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
 
                     return true;
                 }
@@ -309,7 +309,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentCreate >= MaxCreate && MaxCreate != 0 && !IsLinked)
                 {
                     if (CurrentCreate > MaxCreate && MaxCreate != 0)
-                        log.Warn($"{WeenieClassId} - 0x{Guid.Full:X8}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
+                        log.Debug($"{WeenieClassId} - 0x{Guid.Full:X8}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
 
                     return true;
                 }
@@ -353,7 +353,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CheckEventStatus()
         {
-            if (GeneratorEvent == null || GeneratorEvent == "")
+            if (string.IsNullOrEmpty(GeneratorEvent))
                 return;
 
             var prevState = GeneratorDisabled;
@@ -410,11 +410,8 @@ namespace ACE.Server.WorldObjects
                     {
                         foreach (var rNode in generator.Spawned.Values)
                         {
-                            if (rNode.WorldObject is Creature)
-                            {
-                                var wo = rNode.WorldObject as Creature;
+                            if (rNode.WorldObject is Creature wo)
                                 wo.Smite(this);
-                            }
                         }
 
                         generator.Spawned.Clear();
