@@ -137,7 +137,7 @@ namespace ACE.Server.Command
             string parameterBlob = "";
             if (rawIncluded)
             {
-                parameterBlob = aceParsedParameters.First(); 
+                parameterBlob = aceParsedParameters.First();
             }
             else
             {
@@ -206,7 +206,14 @@ namespace ACE.Server.Command
                                     string ew = match.Groups[2].Value;
                                     if (!TryParsePosition(new string[] { ns, ew }, out string errorMessage, out position))
                                     {
-                                        ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
+                                        if (session != null)
+                                        {
+                                            ChatPacket.SendServerMessage(session, errorMessage, ChatMessageType.Broadcast);
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine(errorMessage);
+                                        }
                                         return false;
                                     }
                                     else
@@ -227,7 +234,15 @@ namespace ACE.Server.Command
                                 Player targetPlayer = PlayerManager.GetOnlinePlayer(parameterBlob);
                                 if (targetPlayer == null)
                                 {
-                                    ChatPacket.SendServerMessage(session, $"Unable to find player {parameterBlob}", ChatMessageType.Broadcast);
+                                    string errorMsg = $"Unable to find player {parameterBlob}";
+                                    if (session != null)
+                                    {
+                                        ChatPacket.SendServerMessage(session, errorMsg, ChatMessageType.Broadcast);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine(errorMsg);
+                                    }
                                     return false;
                                 }
                                 else
@@ -249,7 +264,15 @@ namespace ACE.Server.Command
                                         Player targetPlayer2 = PlayerManager.GetOnlinePlayer(iid);
                                         if (targetPlayer2 == null)
                                         {
-                                            ChatPacket.SendServerMessage(session, $"Unable to find player with iid {iid}", ChatMessageType.Broadcast);
+                                            string logMsg = $"Unable to find player with iid {iid}";
+                                            if (session != null)
+                                            {
+                                                ChatPacket.SendServerMessage(session, logMsg, ChatMessageType.Broadcast);
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine(logMsg);
+                                            }
                                             return false;
                                         }
                                         else
@@ -263,7 +286,16 @@ namespace ACE.Server.Command
                                 Player targetPlayer3 = PlayerManager.GetOnlinePlayer(parameterBlob);
                                 if (targetPlayer3 == null)
                                 {
-                                    ChatPacket.SendServerMessage(session, $"Unable to find player {parameterBlob}", ChatMessageType.Broadcast);
+                                    string logMsg = $"Unable to find player {parameterBlob}";
+                                    if (session != null)
+                                    {
+                                        ChatPacket.SendServerMessage(session, logMsg, ChatMessageType.Broadcast);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine(logMsg);
+                                    }
+
                                     return false;
                                 }
                                 else
@@ -356,7 +388,14 @@ namespace ACE.Server.Command
                 {
                     if (!string.IsNullOrWhiteSpace(acp.ErrorMessage))
                     {
-                        ChatPacket.SendServerMessage(session, acp.ErrorMessage, ChatMessageType.Broadcast);
+                        if (session != null)
+                        {
+                            ChatPacket.SendServerMessage(session, acp.ErrorMessage, ChatMessageType.Broadcast);
+                        }
+                        else
+                        {
+                            Console.WriteLine(acp.ErrorMessage);
+                        }
                     }
 
                     return false;

@@ -133,7 +133,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.BoolStats)
                     {
-                        if (result.WeeniePropertiesBool.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                        if (result.WeeniePropertiesBool.FirstOrDefault(x => x.Type == (ushort)value.Key) == null)
                             result.WeeniePropertiesBool.Add(new WeeniePropertiesBool { Type = (ushort)value.Key, Value = (value.Value != 0) });
                     }
                 }
@@ -169,7 +169,7 @@ namespace ACE.Adapter.Lifestoned
                                     valCorrected++;
                             }
 
-                            if (result.WeeniePropertiesDID.Where(x=>x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                            if (result.WeeniePropertiesDID.FirstOrDefault(x => x.Type == (ushort)value.Key) == null)
                                 result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = valCorrected });
                         }
                     }
@@ -339,7 +339,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.FloatStats)
                     {
-                        if (result.WeeniePropertiesFloat.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                        if (result.WeeniePropertiesFloat.FirstOrDefault(x => x.Type == (ushort)value.Key) == null)
                             result.WeeniePropertiesFloat.Add(new WeeniePropertiesFloat { Type = (ushort)value.Key, Value = value.Value });
                     }
                 }
@@ -383,7 +383,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.IidStats)
                     {
-                        if (result.WeeniePropertiesIID.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                        if (result.WeeniePropertiesIID.FirstOrDefault(x => x.Type == (ushort)value.Key) == null)
                             result.WeeniePropertiesIID.Add(new WeeniePropertiesIID { Type = (ushort)value.Key, Value = (uint)value.Value });
                     }
                 }
@@ -392,7 +392,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.IntStats)
                     {
-                        if (result.WeeniePropertiesInt.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                        if (result.WeeniePropertiesInt.FirstOrDefault(x => x.Type == (ushort)value.Key) == null)
                             result.WeeniePropertiesInt.Add(new WeeniePropertiesInt { Type = (ushort)value.Key, Value = value.Value });
                     }
                 }
@@ -401,7 +401,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.Int64Stats)
                     {
-                        if (result.WeeniePropertiesInt64.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                        if (result.WeeniePropertiesInt64.FirstOrDefault(x => x.Type == (ushort)value.Key) == null)
                             result.WeeniePropertiesInt64.Add(new WeeniePropertiesInt64 { Type = (ushort)value.Key, Value = value.Value });
                     }
                 }
@@ -412,7 +412,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.Positions)
                     {
-                        if (result.WeeniePropertiesPosition.Where(x => x.PositionType == (ushort)value.PositionType).FirstOrDefault() == null)
+                        if (result.WeeniePropertiesPosition.FirstOrDefault(x => x.PositionType == (ushort)value.PositionType) == null)
                             result.WeeniePropertiesPosition.Add(new WeeniePropertiesPosition()
                             {
                                 PositionType = (ushort)value.PositionType,
@@ -433,7 +433,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.Skills)
                     {
-                        if (result.WeeniePropertiesSkill.Where(x => x.Type == (ushort)value.SkillId).FirstOrDefault() == null)
+                        if (result.WeeniePropertiesSkill.FirstOrDefault(x => x.Type == (ushort)value.SkillId) == null)
                             result.WeeniePropertiesSkill.Add(new WeeniePropertiesSkill { Type = (ushort)value.SkillId, LevelFromPP = (ushort)value.Skill.LevelFromPp, SAC = (uint?)value.Skill.TrainedLevel ?? 0, PP = value.Skill.XpInvested ?? 0, InitLevel = value.Skill.Ranks ?? 0, ResistanceAtLastCheck = value.Skill.ResistanceOfLastCheck ?? 0, LastUsedTime = value.Skill.LastUsed ?? 0 });
                     }
                 }
@@ -442,7 +442,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.Spells)
                     {
-                        if (result.WeeniePropertiesDID.Where(x => x.Type == (int)PropertyDataId.Spell && x.Value == value.SpellId).FirstOrDefault() == null)
+                        if (result.WeeniePropertiesDID.FirstOrDefault(x => x.Type == (int)PropertyDataId.Spell && x.Value == value.SpellId) == null)
                             result.WeeniePropertiesSpellBook.Add(new WeeniePropertiesSpellBook { Spell = value.SpellId, Probability = (float?)value.Stats.CastingChance ?? 0f });
                     }
                 }
@@ -451,7 +451,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.StringStats)
                     {
-                        if (result.WeeniePropertiesString.Where(x => x.Type == (ushort)value.Key).FirstOrDefault() == null)
+                        if (result.WeeniePropertiesString.FirstOrDefault(x => x.Type == (ushort)value.Key) == null)
                             result.WeeniePropertiesString.Add(new WeeniePropertiesString { Type = (ushort)value.Key, Value = value.Value });
                     }
                 }

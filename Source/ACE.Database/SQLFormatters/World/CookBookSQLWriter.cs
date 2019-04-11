@@ -39,7 +39,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (WeenieNames != null)
                     WeenieNames.TryGetValue(input[i].TargetWCID, out targetLabel);
 
-                return $"{input[i].RecipeId}, {input[i].SourceWCID} /* {sourceLabel} */, {input[i].TargetWCID.ToString().PadLeft(5)} /* {targetLabel} */, '{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}')";
+                return $"{input[i].RecipeId}, {input[i].SourceWCID} /* {sourceLabel} */, {input[i].TargetWCID.ToString().PadLeft(5)} /* {targetLabel} */, '{input[i].LastModified:yyyy-MM-dd HH:mm:ss}')";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);

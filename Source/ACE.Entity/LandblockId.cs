@@ -85,8 +85,8 @@ namespace ACE.Entity
 
         public override bool Equals(object obj)
         {
-            if (obj is LandblockId)
-                return ((LandblockId)obj) == this;
+            if (obj is LandblockId id)
+                return id == this;
 
             return false;
         }
