@@ -1,8 +1,11 @@
+using System;
+
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Enum
 {
+    [Flags]
     public enum ResistMask
     {
         ResistSlash         = 0x1,
