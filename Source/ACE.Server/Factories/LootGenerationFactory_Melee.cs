@@ -24,7 +24,6 @@ namespace ACE.Server.Factories
             int gemType = ThreadSafeRandom.Next(10, 50);
             int materialType = GetMaterialType(2, tier);
             int workmanship = GetWorkmanship(tier);
-            int value = GetValue(tier, workmanship);
             int wieldDiff = GetWield(tier, 3);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
 
@@ -331,7 +330,6 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyInt.Value, value);
             wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
@@ -444,6 +442,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemSpellcraft);
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
 
             return wo;
         }

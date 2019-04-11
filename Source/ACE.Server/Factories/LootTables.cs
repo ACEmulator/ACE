@@ -8,6 +8,136 @@ namespace ACE.Factories
 {
     public static class LootTables
     {
+
+        /// <summary>
+        /// The following data is materialID/material value modifier
+        /// </summary>
+        public static Dictionary<int, double> materialModifier = new Dictionary<int, double>()
+                                            {
+                                                {1, 1}, //ceramic
+                                                {2, 1.5}, //pocelain
+                                                {3, 1}, //cloth
+                                                {4, 1}, //linen
+                                                {5, 1.4}, // satin
+                                                {6, 1.8}, //silk
+                                                {7, 1.8}, //velvet
+                                                {8, 1}, //wool
+                                                {10, 1.2}, //agate
+                                                {11, 1.4}, //amber
+                                                {12, 1.6}, //amethyst
+                                                {13, 1.8}, //aquamarine
+                                                {14, 1.2}, //azurite
+                                                {15, 1.6}, //black garnet
+                                                {16, 2}, //black opal
+                                                {17, 1.4}, //bloodstone
+                                                {18, 1.4}, //carnelian
+                                                {19, 1.4}, //citrine
+                                                {20, 2.5}, //diamond
+                                                {21, 1.2}, //emerald
+                                                {22, 2}, //fire opal
+                                                {23, 1}, //green garnet
+                                                {24, 1.6}, //green jade
+                                                {25, 1.4}, //hematite
+                                                {26, 2}, //imperial topaz
+                                                {27, 1.6}, //jet
+                                                {28, 1.2}, //lapis lazuli
+                                                {29, 2}, //lavender jade
+                                                {30, 1.2}, //malachite
+                                                {31, 1.4}, //moonstone
+                                                {32, 1.4}, //onyx
+                                                {33, 1.2}, //opal
+                                                {34, 1.8}, //peridot
+                                                {35, 1}, //red garnet
+                                                {36, 2}, //red jade
+                                                {37, 1.4}, //rose quartz
+                                                {38, 2.5}, //ruby
+                                                {39, 2.5}, //sapphire
+                                                {40, 1.2}, //smokey quartz
+                                                {41, 2}, //sunstone
+                                                {42, 1.2}, //tiger eye
+                                                {43, 1.6}, //tourmaline
+                                                {44, 1.2}, //turquoise
+                                                {45, 1.6}, //white jade
+                                                {46, 1.2}, //white quartz
+                                                {47, 2}, //white sapphire
+                                                {48, 1.6}, //yellow garnet
+                                                {49, 2}, //yellow topaz
+                                                {50, 1.5}, //zircon
+                                                {51, 1}, //ivory
+                                                {52, 1}, //leather
+                                                {53, 1.2}, //amerodillo
+                                                {54, 1.2}, //gromnie
+                                                {55, 1.2}, //reedshark hide
+                                                {56, 1}, //metal
+                                                {57, 1.2}, //brass
+                                                {58, 1.2}, //bronze
+                                                {59, 1.1}, //copper
+                                                {60, 1.8}, //gold
+                                                {61, 1.3}, //iron
+                                                {62, 2.0}, //pyreal
+                                                {63, 1.6}, //silver
+                                                {64, 1.4}, //steel
+                                                {65, 1}, //stone
+                                                {70, 1}, //sandstone
+                                                {67, 1.2}, //granite
+                                                {66, 1.4}, //alabaster
+                                                {68, 1.6}, //marble
+                                                {69, 1.8}, //obsidian
+                                                {71, 2}, //serpentine
+                                                {72, 1}, //wood
+                                                {76, 1}, //pine
+                                                {77, 1.2}, //teak
+                                                {75, 1.4}, //oak
+                                                {74, 1.8}, //mahogany
+                                                {73, 2.0} //ebony
+                                            };
+
+        public static Dictionary<int, int> gemValues = new Dictionary<int, int>()
+                                            {
+                                                {10, 100}, //agate
+                                                {11, 500}, //amber
+                                                {12, 1000}, //amethyst
+                                                {13, 2500}, //aquamarine
+                                                {14, 100}, //azurite
+                                                {15, 1000}, //black garnet
+                                                {16, 5000}, //black opal
+                                                {17, 500}, //bloodstone
+                                                {18, 500}, //carnelian
+                                                {19, 500}, //citrine
+                                                {20, 10000}, //diamond
+                                                {21, 10000}, //emerald
+                                                {22, 5000}, //fire opal
+                                                {23, 2500}, //green garnet
+                                                {24, 1000}, //green jade
+                                                {25, 500}, //hematite
+                                                {26, 5000}, //imperial topaz
+                                                {27, 1000}, //jet
+                                                {28, 100}, //lapis lazuli
+                                                {29, 5000}, //lavender jade
+                                                {30, 100}, //malachite
+                                                {31, 500}, //moonstone
+                                                {32, 500}, //onyx
+                                                {33, 2500}, //opal
+                                                {34, 2500}, //peridot
+                                                {35, 1000}, //red garnet
+                                                {36, 5000}, //red jade
+                                                {37, 500}, //rose quartz
+                                                {38, 10000}, //ruby
+                                                {39, 10000}, //sapphire
+                                                {40, 100}, //smokey quartz
+                                                {41, 5000}, //sunstone
+                                                {42, 100}, //tiger eye
+                                                {43, 1000}, //tourmaline
+                                                {44, 100}, //turquoise
+                                                {45, 1000}, //white jade
+                                                {46, 100}, //white quartz
+                                                {47, 5000}, //white sapphire
+                                                {48, 1000}, //yellow garnet
+                                                {49, 2500}, //yellow topaz
+                                                {50, 1000}, //zircon
+                                                {51, 100} //ivory
+                                            };
+
         public static readonly int[][] SummoningEssencesMatrix =
         {
             new int[] { 48942, 48944, 48945, 48946, 48947, 48948, 48956 },
@@ -193,11 +323,11 @@ namespace ACE.Factories
 
         public static readonly int[][] GemsMatrix =
         {
-            new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417 },
-            new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417, 2393, 2395, 2398, 2399, 2400, 2401, 2394, 2396, 2397 },
-            new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417, 2393, 2395, 2398, 2399, 2400, 2401, 2394, 2396, 2397, 2425, 2421, 2422, 2423 },
-            new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417, 2393, 2395, 2398, 2399, 2400, 2401, 2394, 2396, 2397, 2425, 2421, 2422, 2423, 2405, 2408, 2402, 2403, 2407 },
-            new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417, 2393, 2395, 2398, 2399, 2400, 2401, 2394, 2396, 2397, 2425, 2421, 2422, 2423, 2405, 2408, 2402, 2403, 2407, 2409, 2411, 2412, 2410 }
+            new int[] { 10, 11, 14, 17, 18, 19, 25, 28, 29, 30, 31, 33, 34, 36, 37, 40, 42, 44, 46 },
+            new int[] { 10, 11, 14, 17, 18, 19, 25, 28, 29, 30, 31, 33, 34, 36, 37, 40, 42, 44, 46, 12, 15, 24, 27, 35, 43, 45, 48, 50 },
+            new int[] { 10, 11, 14, 17, 18, 19, 25, 28, 29, 30, 31, 33, 34, 36, 37, 40, 42, 44, 46, 12, 15, 24, 27, 35, 43, 45, 48, 50, 13, 23, 32, 49},
+            new int[] { 10, 11, 14, 17, 18, 19, 25, 28, 29, 30, 31, 33, 34, 36, 37, 40, 42, 44, 46, 12, 15, 24, 27, 35, 43, 45, 48, 50, 13, 23, 32, 49, 16, 22, 26, 41, 47 },
+            new int[] { 10, 11, 14, 17, 18, 19, 25, 28, 29, 30, 31, 33, 34, 36, 37, 40, 42, 44, 46, 12, 15, 24, 27, 35, 43, 45, 48, 50, 13, 23, 32, 49, 16, 22, 26, 41, 47, 20, 21, 38, 39 }
         };
 
         public static readonly int[][] GemSpellIndexMatrix =
