@@ -92,9 +92,8 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_anim_part");
 
-                entity.HasIndex(e => new { e.ObjectId, e.Index, e.AnimationId })
-                    .HasName("object_Id_index_uidx")
-                    .IsUnique();
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_animpart_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -1170,9 +1169,8 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_texture_map");
 
-                entity.HasIndex(e => new { e.ObjectId, e.Index, e.OldId, e.NewId })
-                    .HasName("object_Id_index_oldId_uidx")
-                    .IsUnique();
+                entity.HasIndex(e => e.ObjectId)
+                    .HasName("wcid_texturemap_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
