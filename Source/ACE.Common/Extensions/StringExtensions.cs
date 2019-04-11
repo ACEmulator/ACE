@@ -4,7 +4,7 @@ namespace ACE.Common.Extensions
     {
         public static bool StartsWithVowel(this string s)
         {
-            if (s == null || s.Length == 0)
+            if (string.IsNullOrEmpty(s))
                 return false;
 
             char firstLetter = s.ToLower()[0];

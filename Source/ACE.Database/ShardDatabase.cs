@@ -670,8 +670,7 @@ namespace ACE.Database
                 //.Include(r => r.CharacterPropertiesShortcutBar)
                 //.Include(r => r.CharacterPropertiesSpellBar)
                 //.Include(r => r.CharacterPropertiesTitleBook)
-                .Where(r => r.Name == name.ToLower() && !r.IsDeleted)
-                .FirstOrDefault();
+                .FirstOrDefault(r => r.Name == name.ToLower() && !r.IsDeleted);
 
             if (result != null)
                 CharacterContexts.Add(result, context);

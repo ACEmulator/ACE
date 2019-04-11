@@ -387,7 +387,11 @@ namespace ACE.Server.WorldObjects
             }
 
             // Calculate mana usage
-            uint manaUsed = CalculateManaUsage(player, spell, target);
+            uint manaUsed = 0;
+            if (castingPreCheckStatus == CastingPreCheckStatus.Success)
+                manaUsed = CalculateManaUsage(player, spell, target);
+            else if (castingPreCheckStatus == CastingPreCheckStatus.CastFailed)
+                manaUsed = 5;   // todo: verify with retail
 
             var currentMana = player.Mana.Current;
             if (isWeaponSpell)
@@ -400,14 +404,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // begin spellcasting
             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ManaConversion), spell.PowerMod);
 
-            if (!isWeaponSpell)
-                player.UpdateVitalDelta(player.Mana, -(int)manaUsed);
-            else
-                caster.ItemCurMana -= (int)manaUsed;
-
+            // begin spellcasting
             spell.Formula.GetPlayerFormula(player);
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
@@ -452,6 +451,12 @@ namespace ACE.Server.WorldObjects
             bool movedTooFar = false;
             spellChain.AddAction(this, () =>
             {
+                // consume mana
+                if (!isWeaponSpell)
+                    player.UpdateVitalDelta(player.Mana, -(int)manaUsed);
+                else
+                    caster.ItemCurMana -= (int)manaUsed;
+
                 if (!isWeaponSpell)
                     TryBurnComponents(spell);
 
@@ -740,7 +745,11 @@ namespace ACE.Server.WorldObjects
 
             // Calculating mana usage
             // FIXME: refactor duplicated logic between casting targeted and untargeted spells
-            uint manaUsed = CalculateManaUsage(this, spell);
+            uint manaUsed = 0;
+            if (castingPreCheckStatus == CastingPreCheckStatus.Success)
+                manaUsed = CalculateManaUsage(this, spell);
+            else if (castingPreCheckStatus == CastingPreCheckStatus.CastFailed)
+                manaUsed = 5;   // todo: verify from retail pcaps
 
             if (manaUsed > Mana.Current)
             {
@@ -749,10 +758,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // begin spellcasting
-            UpdateVital(Mana, Mana.Current - manaUsed);
             Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.ManaConversion), spell.PowerMod);
 
+            // begin spellcasting
             spell.Formula.GetPlayerFormula(this);
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
@@ -792,6 +800,9 @@ namespace ACE.Server.WorldObjects
 
             spellChain.AddAction(this, () =>
             {
+                // consume mana / components
+                UpdateVital(Mana, Mana.Current - manaUsed);
+
                 TryBurnComponents(spell);
 
                 var endPos = new Position(Location);

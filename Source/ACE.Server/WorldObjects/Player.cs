@@ -262,7 +262,7 @@ namespace ACE.Server.WorldObjects
 
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
-                if (difficulty == 0 || player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
+                if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this))
                     chance = 1.0f;
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -304,8 +304,8 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObjectEnd(WorldObject target)
         {
-            if (target is Hotspot)
-                (target as Hotspot).OnCollideObjectEnd(this);
+            if (target is Hotspot hotspot)
+                hotspot.OnCollideObjectEnd(this);
         }
 
         public void HandleActionQueryHealth(uint objectGuid)
