@@ -76,7 +76,13 @@ namespace ACE.Server.Command
             /// some text enclosed in double quotes, example: "the problem is solved"<para/>
             /// Note:  To accept this kind of parameter IncludeRaw must be true for the command handler attribute decoration and RawIncluded argument must be true for the call to ResolveACEParameters
             /// </summary>
-            DoubleQuoteEnclosedText
+            DoubleQuoteEnclosedText,
+            /// <summary>
+            /// some text preceeded by a comma, example (the part after myguy): /t myguy, the problem is solved, so it's ok<para/>
+            /// Note:  To accept this kind of parameter IncludeRaw must be true for the command handler attribute decoration and RawIncluded argument must be true for the call to ResolveACEParameters<para/>
+            /// limit 1 per command
+            /// </summary>
+            CommaPrefixedText
         }
         /// <summary>
         /// A player supplied parameter
@@ -310,6 +316,23 @@ namespace ACE.Server.Command
                                         acp.Value = txt.Trim('"');
                                         acp.Defaulted = false;
                                         parameterBlob = (match6.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match6.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                    }
+                                    catch (Exception)
+                                    {
+                                        return false;
+                                    }
+                                }
+                                break;
+                            case ACECommandParameterType.CommaPrefixedText:
+                                Match match7 = Regex.Match(parameterBlob.TrimEnd(), @"\,\s*(.*)$", RegexOptions.IgnoreCase);
+                                if (match7.Success)
+                                {
+                                    string txt = match7.Groups[1].Value;
+                                    try
+                                    {
+                                        acp.Value = txt.Trim('"');
+                                        acp.Defaulted = false;
+                                        parameterBlob = (match7.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match7.Groups[1].Index).Trim(new char[] { ' ', ',' });
                                     }
                                     catch (Exception)
                                     {

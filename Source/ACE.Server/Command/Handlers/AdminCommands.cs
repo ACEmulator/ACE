@@ -117,8 +117,8 @@ namespace ACE.Server.Command.Handlers
         ///     TODO: 2. boot by account name
         /// </remarks>
         [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, true, 1,
-            "Boots the logged in player from the server and displays CoC Violation Warning or supplied reason.\n<who> can be either a character iid or character name.\noptional [reason] must be enclosed in double quotes.",
-            "who [ \"reason\" ]\nexamples:\nboot axe man \"check yourself before you wreck yourself\"\nboot 1342177281")]
+            "Boots the logged in player from the server and displays CoC Violation Warning or supplied reason.\n<who> can be either a character iid or character name.",
+            "who [ , reason ]\nexamples:\nboot axe man, griefing and spamming chat\nboot 1342177281")]
         public static void HandleBoot(Session session, params string[] parameters)
         {
             List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
@@ -129,7 +129,7 @@ namespace ACE.Server.Command.Handlers
                 },
                 new CommandParameterHelpers.ACECommandParameter()
                 {
-                    Type = CommandParameterHelpers.ACECommandParameterType.DoubleQuoteEnclosedText,
+                    Type = CommandParameterHelpers.ACECommandParameterType.CommaPrefixedText,
                     Required = false
                 }
             };

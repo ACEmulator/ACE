@@ -7,34 +7,6 @@ namespace ACE.Server.Network
 {
     public static class Extensions
     {
-        public static string GetDescription(this SessionTerminationReason reason)
-        {
-            if ((int)reason > BootReasonDescriptions.Length - 1)
-            {
-                return "<reason>";
-            }
-            return BootReasonDescriptions[(int)reason];
-        }
-
-        private static readonly string[] BootReasonDescriptions =
-        {
-            "",
-            "PacketHeader Disconnect",
-            "AccountSelectCallback threw an exception.",
-            "Network Timeout",
-            "client sent network error disconnect",
-            "Account Booted",
-            "Bad handshake",
-            "Pong sent, closing connection.",
-            "Not Authorized: No password or GlsTicket included in login request",
-            "Not Authorized: Account Not Found",
-            "Account In Use: Found another session already logged in for this account.",
-            "Not Authorized: Password does not match.",
-            "Not Authorized: GlsTicket is not implemented to process login request",
-            "Client connection failure",
-            "MainSocket.SendTo exception occured"
-        };
-
         private static uint CalculatePadMultiple(uint length, uint multiple) { return multiple * ((length + multiple - 1u) / multiple) - length; }
 
         public static void WriteString16L(this BinaryWriter writer, string data)
