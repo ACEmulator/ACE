@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="shareable">If TRUE, this XP can be shared with fellowship members</param>
         public void GrantXP(long amount, XpType xpType, bool shareable = true)
         {
-            if (shareable && Fellowship != null && Fellowship.ShareXP && Fellowship.SharableMembers.Contains(this))
+            if (shareable && Fellowship != null && Fellowship.ShareXP && Fellowship.ShareableMembers.ContainsKey(Guid.Full))
             {
                 // this will divy up the XP, and re-call this function
                 // with shareable = false
@@ -339,7 +339,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Raise the available XP by a percentage of the current level XP or a maximum
         /// </summary>
-        public void GrantLevelProportionalXp(double percent, ulong max)
+        public void GrantLevelProportionalXp(double percent, ulong max, bool shareable = false)
         {
             var maxLevel = GetMaxLevel();
             if (Level >= maxLevel) return;
@@ -347,7 +347,7 @@ namespace ACE.Server.WorldObjects
             var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
             var scaledXP = (long)Math.Min(nextLevelXP * percent, max);
 
-            GrantXP(scaledXP, XpType.Quest);
+            GrantXP(scaledXP, XpType.Quest, shareable);
         }
 
         /// <summary>

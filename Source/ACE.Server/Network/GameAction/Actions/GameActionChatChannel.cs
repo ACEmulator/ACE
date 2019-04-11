@@ -165,7 +165,9 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var fellowmember in session.Player.Fellowship.FellowshipMembers)
+                        var fellowshipMembers = session.Player.Fellowship.GetFellowshipMembers();
+
+                        foreach (var fellowmember in fellowshipMembers.Values)
                             if (fellowmember.Session != session && !fellowmember.Squelches.Contains(session.Player))
                                 fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, groupChatType, session.Player.Name, message));
                             else

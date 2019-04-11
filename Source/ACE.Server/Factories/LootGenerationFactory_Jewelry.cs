@@ -31,7 +31,8 @@ namespace ACE.Server.Factories
 
             workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
+            int value = LootTables.gemValues[(int)gemType] + ThreadSafeRandom.Next(1, LootTables.gemValues[(int)gemType]);
+            wo.SetProperty(PropertyInt.Value, value );
 
             gemLootMatrixIndex = tier - 1;
             if (isMagical)
@@ -109,19 +110,15 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-
-            int workmanship = GetWorkmanship(tier);
-            int value = GetValue(tier, workmanship);
-            wo.SetProperty(PropertyInt.Value, value);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-
             int mT = GetMaterialType(1, tier);
             wo.SetProperty(PropertyInt.MaterialType, mT);
-
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
+            int workmanship = GetWorkmanship(tier);
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
+            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
 

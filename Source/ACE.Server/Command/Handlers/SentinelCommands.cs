@@ -198,8 +198,11 @@ namespace ACE.Server.Command.Handlers
                 session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
                 return;
             }
-            session.Player.CreateSentinelBuffPlayers(aceParams[0].AsPlayer.Fellowship.FellowshipMembers,
-                aceParams[0].AsPlayer.Fellowship.FellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipMembers[0] == session.Player);
+
+            var fellowshipMembers = aceParams[0].AsPlayer.Fellowship.GetFellowshipMembers();
+
+            session.Player.CreateSentinelBuffPlayers(fellowshipMembers.Values,
+                fellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipLeaderGuid == session.Player.Guid.Full);
         }
 
         // buff [name]
