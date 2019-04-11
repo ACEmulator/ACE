@@ -64,7 +64,7 @@ namespace ACE.Server.WorldObjects
             {
                 var item = pants[0];
                 TryRemoveFromInventory(item.Guid);
-                if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0));
+                if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0))
                     equipped.Add(item);
             }
 
@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
             {
                 var item = shirts[0];
                 TryRemoveFromInventory(item.Guid);
-                if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0));
+                if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0))
                     equipped.Add(item);
             }
             return equipped;
