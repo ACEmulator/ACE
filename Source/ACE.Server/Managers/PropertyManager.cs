@@ -441,12 +441,13 @@ namespace ACE.Server.Managers
             DictOf(
                 ("chess_enabled", true),
                 ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
+                ("gateway_ties_summonable", true),        // if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
                 ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
                 ("pk_server", false),
                 ("show_dot_messages", false),        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
-                ("disable_gateway_ties_to_be_summonable", false)        // if enabled, players cannot summon ties from gateways. defaults to enabled, as in retail
+                ("use_wield_requirements", true)    // disable this to bypass wield requirements. mostly for dev debugging
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =

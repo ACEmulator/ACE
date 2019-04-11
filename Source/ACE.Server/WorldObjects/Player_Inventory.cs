@@ -10,6 +10,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -334,7 +335,7 @@ namespace ACE.Server.WorldObjects
                     return true;
                 }
 
-                if (CombatMode == CombatMode.NonCombat || (wieldedLocation != (int)EquipMask.MeleeWeapon && wieldedLocation != (int)EquipMask.MissileWeapon && wieldedLocation != (int)EquipMask.Held && wieldedLocation != (int)EquipMask.Shield))
+                if (CombatMode == CombatMode.NonCombat || (wieldedLocation != (int)EquipMask.MeleeWeapon && wieldedLocation != (int)EquipMask.MissileWeapon && wieldedLocation != (int)EquipMask.Held && wieldedLocation != (int)EquipMask.Shield && !item.IsTwoHanded))
                     return true;
 
                 SetCombatMode(CombatMode.Melee);
@@ -997,6 +998,14 @@ namespace ACE.Server.WorldObjects
             if (item is Clothing)
                 wieldedLocation = item.ValidLocations ?? 0;
 
+            // verify item slot is valid
+            // restricting this to two-handed for now, as without that clamp, it bugs out dual wielding and possibly other things
+            if (item.WeaponSkill == Skill.TwoHandedCombat && (wieldedLocation & item.ValidLocations) == 0)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                return false;
+            }
+
             if (!WieldedLocationIsAvailable(item, wieldedLocation))
             {
                 // filtering to just armor here, or else trinkets and dual wielding breaks
@@ -1059,11 +1068,9 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public static bool UseWieldRequirements = true;
-
         private WeenieError CheckWieldRequirement(WorldObject item)
         {
-            if (!UseWieldRequirements)
+            if (!PropertyManager.GetBool("use_wield_requirements").Item)
                 return WeenieError.None;
 
             var skillOrAttribute = item.WieldSkillType ?? 0;

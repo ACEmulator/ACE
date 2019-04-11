@@ -110,9 +110,10 @@ namespace ACE.Server.Managers
 
                 case EmoteType.AwardLevelProportionalXP:
 
-                    // share with fellowship?
+                    bool shareXP = emote.Display ?? false;
+
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:
@@ -290,7 +291,9 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            foreach (var fellow in fellowship.FellowshipMembers)
+                            var fellowshipMembers = fellowship.GetFellowshipMembers();
+
+                            foreach (var fellow in fellowshipMembers.Values)
                             {
                                 text = Replace(emote.Message, WorldObject, fellow);
                                 fellow.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
@@ -1093,7 +1096,9 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            foreach (var fellow in fellowship.FellowshipMembers)
+                            var fellowshipMembers = fellowship.GetFellowshipMembers();
+
+                            foreach (var fellow in fellowshipMembers.Values)
                             {
                                 message = Replace(emote.Message, WorldObject, fellow);
                                 player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, fellow, ChatMessageType.Tell));

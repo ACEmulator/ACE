@@ -52,7 +52,6 @@ namespace ACE.Server.Factories
                 return null;
 
             int workmanship = GetWorkmanship(tier);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
             wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
@@ -168,6 +167,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
                 wo.RemoveProperty(PropertyFloat.ManaRate);
             }
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
 
             return wo;
         }

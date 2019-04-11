@@ -2170,12 +2170,40 @@ namespace ACE.Server.Factories
             return m2;
         }
 
-        private static int GetValue(int tier, int work)
+        private static int GetValue(int tier, int work, double gemMod, double matMod)
         {
             ///This is just a placeholder. This doesnt return a final value used retail, just a quick value for now.
             ///Will use, tier, material type, amount of gems set into item, type of gems, spells on item
-            int value = ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, work) * ThreadSafeRandom.Next(1, 250) + ThreadSafeRandom.Next(1, 50);
+            //int value = ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, work) * ThreadSafeRandom.Next(1, 250) + ThreadSafeRandom.Next(1, 50);
+            int value = 0;
+            switch (tier)
+            {
+                case 1:
+                    value = (int)(ThreadSafeRandom.Next(50, 1000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 2:
+                    value = (int)(ThreadSafeRandom.Next(200, 1500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 3:
+                    value = (int)(ThreadSafeRandom.Next(200, 2000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 4:
+                    value = (int)(ThreadSafeRandom.Next(400, 2500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 5:
+                    value = (int)(ThreadSafeRandom.Next(400, 3000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 6:
+                    value = (int)(ThreadSafeRandom.Next(400, 3500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 7:
+                    value = (int)(ThreadSafeRandom.Next(600, 4000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 8:
+                    value = (int)(ThreadSafeRandom.Next(600, 4500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
 
+            }
             return value;
         }
 
