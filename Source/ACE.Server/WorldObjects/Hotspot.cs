@@ -8,6 +8,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -33,22 +34,25 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObjectEnd(WorldObject wo)
         {
-            var player = wo as Player;
-            if (player == null) return;
-            if (Players.Any(k => k == player))
-                Players.Remove(player);
+            if (!(wo is Player player))
+                return;
+
+            if (Players.Contains(player.Guid))
+                Players.Remove(player.Guid);
         }
 
-        private List<Player> Players = new List<Player>();
+        private HashSet<ObjectGuid> Players = new HashSet<ObjectGuid>();
 
         private ActionChain ActionLoop = null;
 
         public override void OnCollideObject(WorldObject wo)
         {
-            var player = wo as Player;
-            if (player == null) return;
-            if (!Players.Any(k => k == player))
-                Players.Add(player);
+            if (!(wo is Player player))
+                return;
+
+            if (!Players.Contains(player.Guid))
+                Players.Add(player.Guid);
+
             if (ActionLoop == null)
             {
                 ActionLoop = NextActionLoop;
@@ -84,7 +88,7 @@ namespace ACE.Server.WorldObjects
                 var variance = CycleTime * CycleTimeVariance;
                 var min = CycleTime - variance;
                 var max = CycleTime + variance;
-                return (double)ThreadSafeRandom.Next((float)min, (float)max);
+                return ThreadSafeRandom.Next((float)min, (float)max);
             }
         }
 
@@ -123,10 +127,16 @@ namespace ACE.Server.WorldObjects
 
         private void Activate()
         {
-            Players.ForEach(player =>
+            foreach (var playerGuid in Players.ToList())
             {
+                var player = PlayerManager.GetOnlinePlayer(playerGuid);
+                if (player == null || player.Location.Landblock != Location.Landblock)
+                {
+                    Players.Remove(playerGuid);
+                    continue;
+                }
                 Activate(player);
-            });
+            }
         }
 
         private void Activate(Player plr)
