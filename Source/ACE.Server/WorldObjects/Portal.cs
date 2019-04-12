@@ -33,6 +33,10 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;
 
             UpdatePortalDestination(Destination);
+
+            if (ActivationResponse == ActivationResponse.CastSpell && !SpellDID.HasValue)
+                //ActivationResponse &= ~ActivationResponse.CastSpell;
+                ActivationResponse = ActivationResponse.Use;
         }
 
         public void UpdatePortalDestination(Position destination)
@@ -62,6 +66,14 @@ namespace ACE.Server.WorldObjects
         public virtual void OnCollideObject(Player player)
         {
             OnActivate(player);
+        }
+
+        public override void OnCastSpell(WorldObject activator)
+        {
+            if (SpellDID.HasValue)
+                base.OnCastSpell(activator);
+            else
+                ActOnUse(activator);
         }
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)
