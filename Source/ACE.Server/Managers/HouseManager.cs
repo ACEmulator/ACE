@@ -271,9 +271,11 @@ namespace ACE.Server.Managers
                 return false;
             }
 
-            if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
+            var rank = player.AllegianceNode?.Rank ?? 0;
+
+            if (player.Allegiance == null || rank < allegianceMinLevel)
             {
-                log.Info($"{playerHouse.PlayerName}.HasRequirements() - allegiance rank {player.AllegianceNode.Rank} < {allegianceMinLevel}");
+                log.Info($"{playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
                 return false;
             }
             return true;

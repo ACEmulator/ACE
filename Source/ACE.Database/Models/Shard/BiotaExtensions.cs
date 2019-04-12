@@ -132,6 +132,11 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static string GetProperty(this Biota biota, PropertyString property)
+        {
+            return biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint)property)?.Value;
+        }
+
         public static string GetProperty(this Biota biota, PropertyString property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
