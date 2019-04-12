@@ -21,9 +21,20 @@ using ACE.Server.Factories;
 
 namespace ACE.Server.Managers
 {
-    public class RecipeManager
+    public partial class RecipeManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static Recipe GetRecipe(Player player, WorldObject source, WorldObject target)
+        {
+            // PY16 recipes
+            var cookbook = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
+            if (cookbook != null)
+                return cookbook.Recipe;
+
+            // if none exists, try finding new recipe
+            return GetNewRecipe(player, source, target);
+        }
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
@@ -41,7 +52,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var recipe = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
+            var recipe = GetRecipe(player, source, target);
 
             if (recipe == null)
             {
@@ -52,7 +63,7 @@ namespace ACE.Server.Managers
             }
 
             // verify requirements
-            if (!VerifyRequirements(recipe.Recipe, player, source, target))
+            if (!VerifyRequirements(recipe, player, source, target))
             {
                 player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                 return;
@@ -85,10 +96,10 @@ namespace ACE.Server.Managers
 
             craftChain.AddAction(player, () =>
             {
-                if (recipe.Recipe.Skill > 0 && recipe.Recipe.Difficulty > 0)
+                if (recipe.Skill > 0 && recipe.Difficulty > 0)
                 {
                     // there's a skill associated with this
-                    Skill skillId = (Skill)recipe.Recipe.Skill;
+                    Skill skillId = (Skill)recipe.Skill;
 
                     // this shouldn't happen, but sanity check for unexpected nulls
                     skill = player.GetCreatureSkill(skillId);
@@ -103,7 +114,7 @@ namespace ACE.Server.Managers
 
                     //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
 
-                    percentSuccess = skill.GetPercentSuccess(recipe.Recipe.Difficulty); //FIXME: Pretty certain this is broken
+                    percentSuccess = skill.GetPercentSuccess(recipe.Difficulty); //FIXME: Pretty certain this is broken
                 }
 
                 if (skill != null)
@@ -130,7 +141,7 @@ namespace ACE.Server.Managers
                 if (skill != null)
                     success = ThreadSafeRandom.Next(0.0f, 1.0f) <= percentSuccess;
 
-                CreateDestroyItems(player, recipe.Recipe, source, target, success);
+                CreateDestroyItems(player, recipe, source, target, success);
 
                 // this code was intended for dyes, but UpdateObj seems to remove crafting components
                 // from shortcut bar, if they are hotkeyed
@@ -183,8 +194,8 @@ namespace ACE.Server.Managers
             if (toolWorkmanship >= itemWorkmanship)
                 workmanshipMod = 2.0f;
 
-            var recipe = DatabaseManager.World.GetCachedCookbook(tool.WeenieClassId, target.WeenieClassId);
-            var recipeSkill = (Skill)recipe.Recipe.Skill;
+            var recipe = GetRecipe(player, tool, target);
+            var recipeSkill = (Skill)recipe.Skill;
             var skill = player.GetCreatureSkill(recipeSkill);
 
             // thanks to Endy's Tinkering Calculator for this formula!
@@ -193,7 +204,7 @@ namespace ACE.Server.Managers
             var successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
 
             // imbue: divide success by 3
-            if (recipe.Recipe.SalvageType == 2)
+            if (recipe.SalvageType == 2)
             {
                 successChance /= 3.0f;
 
@@ -242,8 +253,8 @@ namespace ACE.Server.Managers
             if (success)
                 Tinkering_ModifyItem(player, tool, target);
 
-            var recipe = DatabaseManager.World.GetCachedCookbook(tool.WeenieClassId, target.WeenieClassId);
-            CreateDestroyItems(player, recipe.Recipe, tool, target, success);
+            var recipe = GetRecipe(player, tool, target);
+            CreateDestroyItems(player, recipe, tool, target, success);
 
             if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog))
                 player.SendUseDoneEvent();
@@ -251,7 +262,7 @@ namespace ACE.Server.Managers
 
         public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target)
         {
-            var recipe = DatabaseManager.World.GetCachedCookbook(tool.WeenieClassId, target.WeenieClassId);
+            var recipe = GetRecipe(player, tool, target);
 
             var materialType = tool.MaterialType.Value;
 
@@ -655,7 +666,8 @@ namespace ACE.Server.Managers
             foreach (var requirement in recipe.RecipeRequirementsInt)
             {
                 int? value = obj.GetProperty((PropertyInt)requirement.Stat);
-                double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
+                //double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
+                double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : 0;
 
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
