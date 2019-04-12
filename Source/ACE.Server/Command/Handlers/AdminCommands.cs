@@ -109,23 +109,38 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
+        public enum BootCommandType
+        {
+            //Account,
+            Char,
+            Iid
+        }
+
         /// <summary>
-        /// Boots the Player or Account holder from the server and displays the supplied reason or the CoC Violation Warning if no reason supplied
+        /// Boots the session of the logged in character from the server and displays CoC Violation Warning or supplied reason.
         /// </summary>
         /// <remarks>
         ///     TODO: 1. After the group messages are operational, Send out a message on the Audit Group Chat Channel and alert other admins of this command usage.
         ///     TODO: 2. boot by account name
         /// </remarks>
         [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, true, 1,
-            "Boots the logged in player from the server and displays CoC Violation Warning or supplied reason.\n<who> can be either a character iid or character name.",
-            "who [ , reason ]\nexamples:\nboot axe man, griefing and spamming chat\nboot 1342177281")]
+            "Boots the session of the logged in character from the server and displays CoC Violation Warning or supplied reason.\n<who> can be either a character iid or character name.",
+            "who, char|iid [ , reason ]\nexamples:\nboot axe man, char, griefing and spamming chat\nboot 1342177281, iid")]
         public static void HandleBoot(Session session, params string[] parameters)
         {
             List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
             {
                 new CommandParameterHelpers.ACECommandParameter() {
-                    Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerNameOrIid,
-                    Required = true
+                    Type = CommandParameterHelpers.ACECommandParameterType.PlayerName,
+                    Required = true,
+                    ErrorMessage = "Please supply the iid or name of the online character to boot"
+                },
+                new CommandParameterHelpers.ACECommandParameter()
+                {
+                    Type = CommandParameterHelpers.ACECommandParameterType.Enum,
+                    PossibleValues = typeof(BootCommandType),
+                    Required = true,
+                    ErrorMessage = "Please supply the boot type: char|iid"
                 },
                 new CommandParameterHelpers.ACECommandParameter()
                 {
@@ -134,11 +149,41 @@ namespace ACE.Server.Command.Handlers
                 }
             };
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams, true)) return;
-            Session playerSession = aceParams[0].AsPlayer.Session;
 
-            string bootText = $"{((session != null) ? "Player: " + session.Player.Name + " has booted " : "Console booted ")} player: {aceParams[0].AsPlayer.Name} id: { aceParams[0].AsPlayer.Guid.Full}";
+            BootCommandType bct = (BootCommandType)aceParams[1].Value;
+            Player plr = null;
+            Session playerSession = null;
+            switch (bct)
+            {
+                case BootCommandType.Char:
+                    List<CommandParameterHelpers.ACECommandParameter> aceParams2 = new List<CommandParameterHelpers.ACECommandParameter>()
+                    {
+                        new CommandParameterHelpers.ACECommandParameter() {
+                            Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerName,
+                            ErrorMessage = $"Could not find the online character with name {aceParams[0].AsString}",
+                            Required = true,
+                        }
+                    };
+                    if (!CommandParameterHelpers.ResolveACEParameters(session, new string[1] { aceParams[0].AsString }, aceParams2, true)) return;
+                    plr = aceParams2[0].AsPlayer;
+                    break;
+                case BootCommandType.Iid:
+                    List<CommandParameterHelpers.ACECommandParameter> aceParams3 = new List<CommandParameterHelpers.ACECommandParameter>()
+                    {
+                        new CommandParameterHelpers.ACECommandParameter() {
+                            Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerIid,
+                            ErrorMessage = $"Could not find the online character with iid {aceParams[0].AsString}",
+                            Required = true,
+                        }
+                    };
+                    if (!CommandParameterHelpers.ResolveACEParameters(session, new string[1] { aceParams[0].AsString }, aceParams3, true)) return;
+                    plr = aceParams3[0].AsPlayer;
+                    break;
+            }
+            playerSession = plr.Session;
+            string bootText = $"{((session != null) ? "Player: " + session.Player.Name + " has booted " : "Console booted ")} player: {plr.Name} id: { plr.Guid.Full}";
 
-            string specifiedReason = aceParams[1].Value != null ? aceParams[1].AsString : null;
+            string specifiedReason = aceParams[2].Value != null ? aceParams[2].AsString : null;
 
             // Boot the player
             playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);

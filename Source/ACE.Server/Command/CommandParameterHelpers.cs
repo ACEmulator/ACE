@@ -39,12 +39,17 @@ namespace ACE.Server.Command
             /// </summary>
             OnlinePlayerName,
             /// <summary>
-            /// a character name of an online player, example: the fat bastard or an iid, example: 1342177281<para/>
+            /// a character name of an online player, example: the fat bastard or a decimal iid, example: 1342177281<para/>
             /// output is of type ACE.Server.WorldObjects.Player<para/>
             /// only one of OnlinePlayerName or OnlinePlayerNameOrIid or PlayerName parameter can be used for one command<para/>
             /// must be the first parameter
             /// </summary>
             OnlinePlayerNameOrIid,
+            /// <summary>
+            /// a decimal or hexadecimal iid of an online player, examples: 1342177292 or 0x5000000C<para/>
+            /// output is of type ACE.Server.WorldObjects.Player<para/>
+            /// </summary>
+            OnlinePlayerIid,
             /// <summary>
             /// a character name, example: the fat bastard<para/>
             /// output is of type string<para/>
@@ -78,11 +83,23 @@ namespace ACE.Server.Command
             /// </summary>
             DoubleQuoteEnclosedText,
             /// <summary>
-            /// some text preceeded by a comma, example (the part after myguy): /t myguy, the problem is solved, so it's ok<para/>
-            /// Note:  To accept this kind of parameter IncludeRaw must be true for the command handler attribute decoration and RawIncluded argument must be true for the call to ResolveACEParameters<para/>
-            /// limit 1 per command
+            /// some text preceeded by a comma, example (the part after char): /hug my girl, char, the reasons are plenty!<para/>
+            /// Note: To accept this kind of parameter IncludeRaw must be true for the command handler attribute decoration and RawIncluded argument must be true for the call to ResolveACEParameters<para/>
+            /// limit 1 per command, may not include commas
             /// </summary>
-            CommaPrefixedText
+            CommaPrefixedText,
+            /// <summary>
+            /// a word, example: boat<para/>
+            /// output is of type string<para/>
+            /// word may be one or more of case insensitive a-z, 0-9, and underscore<para/>
+            /// </summary>
+            SimpleWord,
+            /// <summary>
+            /// an element of an enum<para/>
+            /// output is of enum type you supply as PossibleValues<para/>
+            /// set the PossibleValues object to the type of enum<para/>
+            /// </summary>
+            Enum,
         }
         /// <summary>
         /// A player supplied parameter
@@ -109,6 +126,7 @@ namespace ACE.Server.Command
             public Player AsPlayer => (Player)Value;
             public ulong AsULong => (ulong)Value;
             public long AsLong => (long)Value;
+            public long AsInt => (int)Value;
             public string AsString => (string)Value;
             public Uri AsUri => (Uri)Value;
             /// <summary>
@@ -123,6 +141,10 @@ namespace ACE.Server.Command
             /// Automatically assigned during GetParameters procedure
             /// </summary>
             public int ParameterNo { get; set; } = -1;
+            /// <summary>
+            /// if the type is enum set this to the enum that the parameter should be part of
+            /// </summary>
+            public Type PossibleValues { get; set; } = null;
         }
         /// <summary>
         /// Resolve the parameters supplied by the player into usable values.
@@ -143,6 +165,8 @@ namespace ACE.Server.Command
             {
                 parameterBlob = aceParsedParameters.Count() > 0 ? aceParsedParameters.Aggregate((a, b) => a + " " + b).Trim(new char[] { ' ', ',' }) : string.Empty;
             }
+            int commaCount = parameterBlob.Count(x => x == ',');
+
             List<ACECommandParameter> acps = parameters.ToList();
             for (int i = acps.Count - 1; i > -1; i--)
             {
@@ -168,7 +192,7 @@ namespace ACE.Server.Command
                                     }
                                     acp.Value = val;
                                     acp.Defaulted = false;
-                                    parameterBlob = (match4.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match4.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                    parameterBlob = (match4.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match4.Groups[1].Index).Trim(new char[] { ' ' });
                                 }
                                 break;
                             case ACECommandParameterType.Long:
@@ -230,7 +254,7 @@ namespace ACE.Server.Command
                                 {
                                     throw new Exception("Player parameter must be the first parameter, since it can contain spaces.");
                                 }
-
+                                parameterBlob = parameterBlob.TrimEnd(new char[] { ' ', ',' });
                                 Player targetPlayer = PlayerManager.GetOnlinePlayer(parameterBlob);
                                 if (targetPlayer == null)
                                 {
@@ -304,12 +328,73 @@ namespace ACE.Server.Command
                                     acp.Defaulted = false;
                                 }
                                 break;
+                            case ACECommandParameterType.OnlinePlayerIid:
+                                Match matcha5 = Regex.Match(parameterBlob, /*((i == 0) ? "" : @"\s+") +*/ @"(\d{10})$|(0x[0-9a-f]{8})$", RegexOptions.IgnoreCase);
+                                if (matcha5.Success)
+                                {
+                                    string strIid = "";
+                                    if (matcha5.Groups[2].Success)
+                                    {
+                                        strIid = matcha5.Groups[2].Value;
+                                    }
+                                    else if (matcha5.Groups[1].Success)
+                                    {
+                                        strIid = matcha5.Groups[1].Value;
+                                    }
+                                    try
+                                    {
+                                        uint iid = 0;
+                                        if (strIid.StartsWith("0x"))
+                                        {
+                                            iid = Convert.ToUInt32(strIid, 16);
+                                        }
+                                        else
+                                        {
+                                            iid = uint.Parse(strIid);
+                                        }
+
+                                        Player targetPlayer2 = PlayerManager.GetOnlinePlayer(iid);
+                                        if (targetPlayer2 == null)
+                                        {
+                                            string logMsg = $"Unable to find player with iid {strIid}";
+                                            if (session != null)
+                                            {
+                                                ChatPacket.SendServerMessage(session, logMsg, ChatMessageType.Broadcast);
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine(logMsg);
+                                            }
+                                            return false;
+                                        }
+                                        else
+                                        {
+                                            acp.Value = targetPlayer2;
+                                            acp.Defaulted = false;
+                                            parameterBlob = (matcha5.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, matcha5.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                        string errorMsg = $"Unable to parse {strIid} into a player iid";
+                                        if (session != null)
+                                        {
+                                            ChatPacket.SendServerMessage(session, errorMsg, ChatMessageType.Broadcast);
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine(errorMsg);
+                                        }
+                                        return false;
+                                    }
+                                }
+                                break;
                             case ACECommandParameterType.PlayerName:
                                 if (i != 0)
                                 {
                                     throw new Exception("Player name parameter must be the first parameter, since it can contain spaces.");
                                 }
-
+                                parameterBlob = parameterBlob.TrimEnd(new char[] { ' ', ',' });
                                 if (string.IsNullOrWhiteSpace(parameterBlob))
                                 {
                                     break;
@@ -356,15 +441,74 @@ namespace ACE.Server.Command
                                 }
                                 break;
                             case ACECommandParameterType.CommaPrefixedText:
-                                Match match7 = Regex.Match(parameterBlob.TrimEnd(), @"\,\s*(.*)$", RegexOptions.IgnoreCase);
+                                if (i == 0)
+                                {
+                                    throw new Exception("this parameter type is not appropriate as the first parameter");
+                                }
+                                if (i == acps.Count - 1 && !acp.Required && commaCount < acps.Count - 1)
+                                {
+                                    break;
+                                }
+                                Match match7 = Regex.Match(parameterBlob.TrimEnd(), @"\,\s*([^,]*)$", RegexOptions.IgnoreCase);
                                 if (match7.Success)
                                 {
                                     string txt = match7.Groups[1].Value;
                                     try
                                     {
-                                        acp.Value = txt.Trim('"');
+                                        acp.Value = txt.TrimStart(new char[] { ' ', ',' });
                                         acp.Defaulted = false;
                                         parameterBlob = (match7.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match7.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                    }
+                                    catch (Exception)
+                                    {
+                                        return false;
+                                    }
+                                }
+                                break;
+                            case ACECommandParameterType.SimpleWord:
+                                Match match8 = Regex.Match(parameterBlob.TrimEnd(), @"([a-zA-Z1-9_]+)\s*$", RegexOptions.IgnoreCase);
+                                if (match8.Success)
+                                {
+                                    string txt = match8.Groups[1].Value;
+                                    try
+                                    {
+                                        acp.Value = txt.TrimStart(' ');
+                                        acp.Defaulted = false;
+                                        parameterBlob = (match8.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match8.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                    }
+                                    catch (Exception)
+                                    {
+                                        return false;
+                                    }
+                                }
+                                break;
+                            case ACECommandParameterType.Enum:
+                                if (acp.PossibleValues == null)
+                                {
+                                    throw new Exception("The enum parameter type must be accompanied by the PossibleValues");
+                                }
+                                if (!acp.PossibleValues.IsEnum)
+                                {
+                                    throw new Exception("PossibleValues must be an enum type");
+                                }
+                                Match match9 = Regex.Match(parameterBlob.TrimEnd(), @"([a-zA-Z1-9_]+)\s*$", RegexOptions.IgnoreCase);
+                                if (match9.Success)
+                                {
+                                    string txt = match9.Groups[1].Value;
+                                    try
+                                    {
+                                        txt = txt.Trim(new char[] { ' ', ',' });
+                                        Array etvs = Enum.GetValues(acp.PossibleValues);
+                                        foreach (object etv in etvs)
+                                        {
+                                            if (etv.ToString().ToLower() == txt.ToLower())
+                                            {
+                                                acp.Value = etv;
+                                                acp.Defaulted = false;
+                                                parameterBlob = (match9.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match9.Groups[1].Index).Trim(new char[] { ' ' });
+                                                break;
+                                            }
+                                        }
                                     }
                                     catch (Exception)
                                     {
