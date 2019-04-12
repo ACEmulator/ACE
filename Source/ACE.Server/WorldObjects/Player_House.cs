@@ -188,7 +188,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (House == null) LoadHouse();
-            if (House == null) return;
+            if (House == null || House.SlumLord == null) return;
 
             var purchaseTime = (uint)(HousePurchaseTimestamp ?? 0);
 
