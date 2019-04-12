@@ -33,10 +33,6 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;
 
             UpdatePortalDestination(Destination);
-
-            if (ActivationResponse == ActivationResponse.CastSpell && !SpellDID.HasValue)
-                //ActivationResponse &= ~ActivationResponse.CastSpell;
-                ActivationResponse = ActivationResponse.Use;
         }
 
         public void UpdatePortalDestination(Position destination)
