@@ -153,6 +153,14 @@ namespace ACE.Server.WorldObjects
 
         public bool TryRemoveFromInventoryWithNetworking(ObjectGuid objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
         {
+            // TODO: better busy state handling
+            if ((removeFromInventoryAction == RemoveFromInventoryAction.DropItem  || removeFromInventoryAction == RemoveFromInventoryAction.GiveItem ||
+                 removeFromInventoryAction == RemoveFromInventoryAction.TradeItem || removeFromInventoryAction == RemoveFromInventoryAction.SellItem) && IsBusy)
+            {
+                item = null;
+                return false;
+            }
+
             if (!TryRemoveFromInventory(objectGuid, out item))
                 return false;
 
