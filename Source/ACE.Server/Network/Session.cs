@@ -9,7 +9,6 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -42,8 +41,6 @@ namespace ACE.Server.Network
         public List<Character> Characters { get; } = new List<Character>();
 
         public Player Player { get; private set; }
-
-        public readonly ActionQueue InboundGameActionQueue = new ActionQueue();
 
 
         private DateTime logOffRequestTime;
@@ -85,15 +82,6 @@ namespace ACE.Server.Network
                 DropSession("PacketHeader Disconnect");
         }
 
-
-        /// <summary>
-        /// This will process all inbound GameActions.
-        /// </summary>
-        public void TickInbound()
-        {
-            if (Player != null)
-                InboundGameActionQueue.RunActions();
-        }
 
         /// <summary>
         /// This will send outgoing packets as well as the final logoff message.

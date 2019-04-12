@@ -14,7 +14,7 @@ namespace ACE.Server.Managers
         {
             // These are all found in WorldManager.UpdateWorld()
             PlayerManager_Tick,
-            InboundClientMessageQueue_RunActions,
+            InboundClientMessageQueueRun,
             actionQueue_RunActions,
             DelayManager_RunActions,
             UpdateGameWorld,
@@ -36,7 +36,6 @@ namespace ACE.Server.Managers
             Landblock_Tick_Database_Save,
 
             // These are all found in WorldManager.DoSessionWork()
-            DoSessionWork_TickInbound,
             DoSessionWork_TickOutbound,
             DoSessionWork_RemoveSessions,
 
@@ -245,7 +244,7 @@ namespace ACE.Server.Managers
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
             sb.Append($"Calls from WorldManager.DoSessionWork(){'\n'}");
-            for (int i = (int)MonitorType.DoSessionWork_TickInbound; i <= (int)MonitorType.DoSessionWork_RemoveSessions; i++)
+            for (int i = (int)MonitorType.DoSessionWork_TickOutbound; i <= (int)MonitorType.DoSessionWork_RemoveSessions; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
             sb.Append($"Calls from WorldManager.ProcessPacket(){'\n'}");
