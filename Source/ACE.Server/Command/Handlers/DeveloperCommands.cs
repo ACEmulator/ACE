@@ -773,7 +773,7 @@ namespace ACE.Server.Command.Handlers
                 List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
                 {
                     new CommandParameterHelpers.ACECommandParameter() {
-                        Type = CommandParameterHelpers.ACECommandParameterType.Player,
+                        Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerNameOrIid,
                         Required = false,
                         DefaultValue = session.Player
                     },

@@ -21,6 +21,9 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using ACE.Database.Models.Auth;
+using ACE.Server.Network.Enum;
+using ACE.Server.Network.Packets;
+using System.Collections.Generic;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -106,113 +109,99 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
+        public enum BootCommandType
+        {
+            //Account,
+            Char,
+            Iid
+        }
+
         /// <summary>
-        /// Boots the Player or Account holder from the server and displays the CoC Violation Warning
+        /// Boots the session of the logged in character from the server and displays CoC Violation Warning or supplied reason.
         /// </summary>
         /// <remarks>
         ///     TODO: 1. After the group messages are operational, Send out a message on the Audit Group Chat Channel and alert other admins of this command usage.
+        ///     TODO: 2. boot by account name
         /// </remarks>
-        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2,
-            "Boots the Player or Account holder from the server and displays the CoC Violation Warning",
-            "{ subscriptionId | char | iid } who")]
+        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, true, 1,
+            "Boots the session of the logged in character from the server and displays CoC Violation Warning or supplied reason.\n<who> can be either a character iid or character name.",
+            "who, char|iid [ , reason ]\nexamples:\nboot axe man, char, griefing and spamming chat\nboot 1342177281, iid")]
         public static void HandleBoot(Session session, params string[] parameters)
         {
-            // usage: @boot { account, char, iid} who
-            // This command boots the specified character out of the game.You can specify who to boot by account, character name, or player instance id.  'who' is the account / character / instance id to actually boot.
-            // @boot - Boots the character out of the game.
-            // The first parameter may be only text
-            // The second paramater and proceeding parameters may also be a number or text, but the logic depends on the text from the first parameter.
-            AccountLookupType selectorType = AccountLookupType.Undef;
-            string bootName = "";
-            uint bootId = 0;
+            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
+            {
+                new CommandParameterHelpers.ACECommandParameter() {
+                    Type = CommandParameterHelpers.ACECommandParameterType.PlayerName,
+                    Required = true,
+                    ErrorMessage = "Please supply the iid or name of the online character to boot"
+                },
+                new CommandParameterHelpers.ACECommandParameter()
+                {
+                    Type = CommandParameterHelpers.ACECommandParameterType.Enum,
+                    PossibleValues = typeof(BootCommandType),
+                    Required = true,
+                    ErrorMessage = "Please supply the boot type: char|iid"
+                },
+                new CommandParameterHelpers.ACECommandParameter()
+                {
+                    Type = CommandParameterHelpers.ACECommandParameterType.CommaPrefixedText,
+                    Required = false
+                }
+            };
+            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams, true)) return;
+
+            BootCommandType bct = (BootCommandType)aceParams[1].Value;
+            Player plr = null;
             Session playerSession = null;
-
-            // Loop through the AccountLookupEnum to attempt at matching the first parameter with a lookup type
-            foreach (string bootType in System.Enum.GetNames(typeof(AccountLookupType)))
+            switch (bct)
             {
-                // Check the FIRST character of the first parameter against the Enum dictionary
-                // If the first character matches (a,c,i) then the selector will be returned.
-                // This allows for users to type @boot char <name>, since char is a keyword in c#
-                // Switch case to Lower when matching
-                if (parameters[0].ToLower()[0] == bootType.ToLower()[0])
-                {
-                    // If found, selectorType will hold the correct AccoutLookupType
-                    // If this returns true, that means we were successful and can stop looping
-                    if (Enum.TryParse(bootType, out selectorType))
-                        break;
-                }
+                case BootCommandType.Char:
+                    List<CommandParameterHelpers.ACECommandParameter> aceParams2 = new List<CommandParameterHelpers.ACECommandParameter>()
+                    {
+                        new CommandParameterHelpers.ACECommandParameter() {
+                            Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerName,
+                            ErrorMessage = $"Could not find the online character with name {aceParams[0].AsString}",
+                            Required = true,
+                        }
+                    };
+                    if (!CommandParameterHelpers.ResolveACEParameters(session, new string[1] { aceParams[0].AsString }, aceParams2, true)) return;
+                    plr = aceParams2[0].AsPlayer;
+                    break;
+                case BootCommandType.Iid:
+                    List<CommandParameterHelpers.ACECommandParameter> aceParams3 = new List<CommandParameterHelpers.ACECommandParameter>()
+                    {
+                        new CommandParameterHelpers.ACECommandParameter() {
+                            Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerIid,
+                            ErrorMessage = $"Could not find the online character with iid {aceParams[0].AsString}",
+                            Required = true,
+                        }
+                    };
+                    if (!CommandParameterHelpers.ResolveACEParameters(session, new string[1] { aceParams[0].AsString }, aceParams3, true)) return;
+                    plr = aceParams3[0].AsPlayer;
+                    break;
+            }
+            playerSession = plr.Session;
+            string bootText = $"{((session != null) ? "Player: " + session.Player.Name + " has booted " : "Console booted ")} player: {plr.Name} id: { plr.Guid.Full}";
+
+            string specifiedReason = aceParams[2].Value != null ? aceParams[2].AsString : null;
+
+            // Boot the player
+            playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);
+
+            // TODO: to be replaced with usage of the proper "Audit Group Chat Channel"
+            var interestedSessions = PlayerManager.GetAllOnline().Where(i => i.Account.AccessLevel > 2).Select(k => k.Session).ToList();
+            for (int i = interestedSessions.Count - 1; i >= 0; i--)
+            {
+                var sessToNotify = interestedSessions[i];
+                if (session != null && session != sessToNotify)
+                    sessToNotify.Network.EnqueueSend(new GameMessageSystemChat(bootText, ChatMessageType.Broadcast));
             }
 
-            // Peform logic
-            if (selectorType != AccountLookupType.Undef)
-            {
-                // Extract the name from the parameters and get the name from the first parameter
-                if (selectorType == AccountLookupType.Subscription || selectorType == AccountLookupType.Character)
-                    bootName = Common.Extensions.CharacterNameExtensions.StringArrayToCharacterName(parameters, 1);
+            // log the boot to file
+            log.Info(bootText);
 
-                switch (selectorType)
-                {
-                    case AccountLookupType.Subscription:
-                        {
-                            // Send the error to a player or the console
-                            CommandHandlerHelper.WriteOutputInfo(session, "Boot by Subscription not implemented.", ChatMessageType.Broadcast);
-                            return;
-                        }
-                    case AccountLookupType.Character:
-                        {
-                            var player = PlayerManager.GetOnlinePlayer(bootName);
-                            if (player != null)
-                            {
-                                playerSession = player.Session;
-                                bootId = player.Guid.Full;
-                            }
-                            break;
-                        }
-                    case AccountLookupType.Iid:
-                        {
-                            // Extract the Id from the parameters
-                            uint.TryParse(parameters[1], out bootId);
-                            var targetPlayer = PlayerManager.GetOnlinePlayer(bootId);
-                            if (targetPlayer != null)
-                            {
-                                playerSession = targetPlayer.Session;
-                                bootName = targetPlayer.Name;
-                            }
-                            break;
-                        }
-                }
-
-                if (playerSession != null)
-                {
-                    string bootText = $"account or player: {bootName} id: {bootId}";
-                    // Boot the player
-                    playerSession.BootSession("Account Booted", new GameMessageBootAccount(playerSession));
-
-                    // Send an update to the admin, but prevent sending too if the admin was the player being booted
-                    if (session != null)
-                    {
-                        // Log the player who initiated the boot
-                        bootText = "Player: " + session.Player.Name + " has booted " + bootText;
-                        if (session != playerSession)
-                            session.Network.EnqueueSend(new GameMessageSystemChat(bootText, ChatMessageType.Broadcast));
-                        // TODO: Send out a message on the Audit Group Chat Channel, to alert other admins of the boot
-                    }
-                    else
-                    {
-                        bootText = "Console booted " + bootText;
-                    }
-
-                    // log the boot to file
-                    log.Info(bootText);
-
-                    // finish execution of command logic
-                    return;
-                }
-            }
-
-            // Did not find a player
-            // Send the error to a player or the console
-            CommandHandlerHelper.WriteOutputInfo(session, "Error locating the player or account to boot.", ChatMessageType.Broadcast);
+            // finish execution of command logic
+            return;
         }
 
         // deaf < on / off >
