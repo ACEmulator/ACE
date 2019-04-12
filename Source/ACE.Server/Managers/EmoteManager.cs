@@ -988,39 +988,13 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.StampQuest:
 
-                    // work needs to be done here
                     if (player != null)
                     {
-                        if ((emote.Message).EndsWith("@#kt", StringComparison.Ordinal))
+                        var questName = emote.Message;
+
+                        if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                         {
-                            var hasQuest = player.QuestManager.HasQuest(emote.Message);
-                            if (hasQuest)
-                            {
-                                player.QuestManager.Stamp(emote.Message);
-
-                                var questName = QuestManager.GetQuestName(emote.Message);
-                                var quest = DatabaseManager.World.GetCachedQuest(questName);
-
-                                if (quest != null)
-                                {
-                                    var playerQuest = player.QuestManager.Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-
-                                    if (playerQuest != null)
-                                    {
-                                        var isMaxSolves = player.QuestManager.IsMaxSolves(questName);
-                                        if (WorldObject != null)
-                                        {
-                                            if (isMaxSolves)
-                                                text = $"You have killed {quest.MaxSolves} {WorldObject.Name}s. Your task is complete!";
-                                            else
-                                                text = $"You have killed {playerQuest.NumTimesCompleted} {WorldObject.Name}s. You must kill {quest.MaxSolves} to complete your task!";
-                                        }
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
-                                    }
-                                }
-                                else
-                                    log.Error($"Couldn't find kill task {questName} in database");
-			    }
+                            player.QuestManager.HandleKillTask(questName, WorldObject);
                         }
                         else
                             player.QuestManager.Stamp(emote.Message);

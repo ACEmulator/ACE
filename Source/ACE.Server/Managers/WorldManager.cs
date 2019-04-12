@@ -62,7 +62,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Handles ClientMessages in InboundMessageManager
         /// </summary>
-        public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
+        public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
 
         private static readonly ActionQueue actionQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
@@ -520,9 +520,9 @@ namespace ACE.Server.Managers
                 PlayerManager.Tick();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick);
 
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueue_RunActions);
-                InboundClientMessageQueue.RunActions();
-                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueue_RunActions);
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueueRun);
+                InboundMessageQueue.RunActions();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueueRun);
 
                 // This will consist of PlayerEnterWorld actions, as well as other game world actions that require thread safety
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
@@ -700,14 +700,6 @@ namespace ACE.Server.Managers
             sessionLock.EnterUpgradeableReadLock();
             try
             {
-                // The session tick inbound processes all inbound GameAction messages
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
-                foreach (var s in sessionMap)
-                    s?.TickInbound();
-                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
-
-                // Do not combine the above and below loops. All inbound messages should be processed first and then all outbound messages should be processed second.
-
                 // The session tick outbound processes pending actions and handles outgoing messages
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
                 foreach (var s in sessionMap)

@@ -688,7 +688,7 @@ namespace ACE.Server.WorldObjects
                             var items = ((Player)target).EquippedObjects.Values;
                             foreach (var item in items)
                             {
-                                if (item.WeenieType == WeenieType.Clothing || item.IsShield)
+                                if ((item.WeenieType == WeenieType.Clothing || item.IsShield) && item.IsEnchantable)
                                 {
                                     enchantmentStatus = ItemMagic(item, spell);
                                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -951,7 +951,7 @@ namespace ACE.Server.WorldObjects
                     {
                         foreach (var item in items)
                         {
-                            if (item.WeenieType == WeenieType.Clothing || item.IsShield)
+                            if ((item.WeenieType == WeenieType.Clothing || item.IsShield) && item.IsEnchantable)
                             {
                                 itemBuff.SetLandblockMessage(item.Guid);
                                 var enchantmentStatus = targetPlayer.ItemMagic(item, itemBuff.Spell, this);
