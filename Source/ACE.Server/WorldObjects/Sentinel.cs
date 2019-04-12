@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
                 case ACE.Entity.Enum.CloakStatus.Off:
                     goto default;
                 case ACE.Entity.Enum.CloakStatus.On:
-                    Translucency = 0.5f;
+                    //Translucency = 0.5f;
                     Cloaked = true;
                     Ethereal = true;
                     NoDraw = true;
@@ -56,6 +56,7 @@ namespace ACE.Server.WorldObjects
                 case ACE.Entity.Enum.CloakStatus.Player:
                     goto default;
                 case ACE.Entity.Enum.CloakStatus.Creature:
+                    Attackable = true;
                     goto default;
                 default:
                     Translucency = null;
