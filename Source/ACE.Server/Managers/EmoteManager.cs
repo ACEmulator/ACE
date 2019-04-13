@@ -110,9 +110,10 @@ namespace ACE.Server.Managers
 
                 case EmoteType.AwardLevelProportionalXP:
 
-                    // share with fellowship?
+                    bool shareXP = emote.Display ?? false;
+
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:
@@ -290,7 +291,9 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            foreach (var fellow in fellowship.FellowshipMembers)
+                            var fellowshipMembers = fellowship.GetFellowshipMembers();
+
+                            foreach (var fellow in fellowshipMembers.Values)
                             {
                                 text = Replace(emote.Message, WorldObject, fellow);
                                 fellow.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
@@ -985,39 +988,13 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.StampQuest:
 
-                    // work needs to be done here
                     if (player != null)
                     {
-                        if ((emote.Message).EndsWith("@#kt", StringComparison.Ordinal))
+                        var questName = emote.Message;
+
+                        if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                         {
-                            var hasQuest = player.QuestManager.HasQuest(emote.Message);
-                            if (hasQuest)
-                            {
-                                player.QuestManager.Stamp(emote.Message);
-
-                                var questName = QuestManager.GetQuestName(emote.Message);
-                                var quest = DatabaseManager.World.GetCachedQuest(questName);
-
-                                if (quest != null)
-                                {
-                                    var playerQuest = player.QuestManager.Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-
-                                    if (playerQuest != null)
-                                    {
-                                        var isMaxSolves = player.QuestManager.IsMaxSolves(questName);
-                                        if (WorldObject != null)
-                                        {
-                                            if (isMaxSolves)
-                                                text = $"You have killed {quest.MaxSolves} {WorldObject.Name}s. Your task is complete!";
-                                            else
-                                                text = $"You have killed {playerQuest.NumTimesCompleted} {WorldObject.Name}s. You must kill {quest.MaxSolves} to complete your task!";
-                                        }
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
-                                    }
-                                }
-                                else
-                                    log.Error($"Couldn't find kill task {questName} in database");
-			    }
+                            player.QuestManager.HandleKillTask(questName, WorldObject);
                         }
                         else
                             player.QuestManager.Stamp(emote.Message);
@@ -1093,7 +1070,9 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            foreach (var fellow in fellowship.FellowshipMembers)
+                            var fellowshipMembers = fellowship.GetFellowshipMembers();
+
+                            foreach (var fellow in fellowshipMembers.Values)
                             {
                                 message = Replace(emote.Message, WorldObject, fellow);
                                 player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, fellow, ChatMessageType.Tell));

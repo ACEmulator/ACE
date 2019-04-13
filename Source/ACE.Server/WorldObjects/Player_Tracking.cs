@@ -4,6 +4,7 @@ using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Common;
 
@@ -53,11 +54,12 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
-            if (worldObject.Visibility && !Adminvision)
-                return;
+            if (!worldObject.Visibility)
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+            else if (worldObject.Visibility && Adminvision)
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             //Console.WriteLine($"Player {Name} - TrackObject({worldObject.Name})");
-            Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             // add creature equipped objects / wielded items
             if (worldObject is Creature creature)
@@ -139,6 +141,72 @@ namespace ACE.Server.WorldObjects
             //Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
 
             Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
+        }
+
+        public void DeCloak()
+        {
+            if (CloakStatus == ACE.Entity.Enum.CloakStatus.Off)
+                return;
+
+            var actionChain = new ActionChain();
+
+            actionChain.AddAction(this, () =>
+            {
+                EnqueueBroadcast(false, new GameMessageDeleteObject(this));
+            });
+            actionChain.AddAction(this, () =>
+            {
+                NoDraw = true;
+                EnqueueBroadcastPhysicsState();
+                Visibility = false;
+            });
+            actionChain.AddDelaySeconds(.5);
+            actionChain.AddAction(this, () =>
+            {
+                EnqueueBroadcast(false, new GameMessageCreateObject(this));
+            });
+            actionChain.AddDelaySeconds(.5);
+            actionChain.AddAction(this, () =>
+            {
+                Cloaked = false;
+                Ethereal = false;
+                NoDraw = false;
+                EnqueueBroadcastPhysicsState();
+            });
+
+            actionChain.EnqueueChain();
+        }
+
+        public void Cloak()
+        {
+            if (CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+                return;
+
+            var actionChain = new ActionChain();
+
+            actionChain.AddAction(this, () =>
+            {
+                Cloaked = true;
+                Ethereal = true;
+                NoDraw = true;
+                EnqueueBroadcastPhysicsState();
+            });
+            actionChain.AddAction(this, () =>
+            {
+                EnqueueBroadcast(false, new GameMessageDeleteObject(this));
+            });
+            actionChain.AddDelaySeconds(.5);
+            actionChain.AddAction(this, () =>
+            {
+                Visibility = true;
+            });
+            actionChain.AddDelaySeconds(.5);
+            actionChain.AddAction(this, () =>
+            {
+                EnqueueBroadcast(false, new GameMessageCreateObject(this));
+            });
+
+            actionChain.EnqueueChain();
         }
     }
 }

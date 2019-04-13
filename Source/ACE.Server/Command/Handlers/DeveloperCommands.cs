@@ -773,7 +773,7 @@ namespace ACE.Server.Command.Handlers
                 List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
                 {
                     new CommandParameterHelpers.ACECommandParameter() {
-                        Type = CommandParameterHelpers.ACECommandParameterType.Player,
+                        Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerNameOrIid,
                         Required = false,
                         DefaultValue = session.Player
                     },
@@ -1410,7 +1410,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("knownplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players known to this player", "/knownplayers")]
         public static void HandleKnownPlayers(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nKnown players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.IsPlayer).Count()}");
+            Console.WriteLine($"\nKnown players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.ObjectTable.Values.Count(o => o.IsPlayer)}");
 
             foreach (var obj in session.Player.PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.IsPlayer))
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
@@ -1422,7 +1422,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("visibleplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players visible to this player", "/visibleplayers")]
         public static void HandleVisiblePlayers(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nVisible players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values.Where(o => o.IsPlayer).Count()}");
+            Console.WriteLine($"\nVisible players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values.Count(o => o.IsPlayer)}");
 
             foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values.Where(o => o.IsPlayer))
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
@@ -1434,7 +1434,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("voyeurs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of voyeurs for this player", "/voyeurs")]
         public static void HandleVoyeurs(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nVoyeurs for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VoyeurTable.Values.Where(o => o.IsPlayer).Count()}");
+            Console.WriteLine($"\nVoyeurs for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VoyeurTable.Values.Count(o => o.IsPlayer)}");
 
             foreach (var obj in session.Player.PhysicsObj.ObjMaint.VoyeurTable.Values.Where(o => o.IsPlayer))
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");

@@ -63,7 +63,7 @@ namespace ACE.Server.Managers
                 ConfigManager.Config.Server.PreloadedLandblocks = new List<PreloadedLandblocks> { new PreloadedLandblocks { Id = "E74EFFFF", Description = "Hebian-To (Global Events)", Permaload = true, IncludeAdjacents = true, Enabled = true } };
             }
 
-            log.InfoFormat("Found {0} landblock entries in PreloadedLandblocks configuration, {1} are set to preload.", ConfigManager.Config.Server.PreloadedLandblocks.Count, ConfigManager.Config.Server.PreloadedLandblocks.Where(x => x.Enabled == true).Count());
+            log.InfoFormat("Found {0} landblock entries in PreloadedLandblocks configuration, {1} are set to preload.", ConfigManager.Config.Server.PreloadedLandblocks.Count, ConfigManager.Config.Server.PreloadedLandblocks.Count(x => x.Enabled == true));
 
             foreach (var preloadLandblock in ConfigManager.Config.Server.PreloadedLandblocks)
             {
@@ -130,7 +130,7 @@ namespace ACE.Server.Managers
 
                     if (!activeLandblocks.Add(landblock))
                     {
-                        log.Error($"LandblockManager: failed to add {landblock.Id:X8} to active landblocks!");
+                        log.Error($"LandblockManager: failed to add {landblock.Id.Raw:X8} to active landblocks!");
                         return landblock;
                     }
                 }
@@ -336,7 +336,7 @@ namespace ACE.Server.Managers
                     }
 
                     if (unloadFailed)
-                        log.Error($"LandblockManager: failed to unload {landblock.Id:X8}");
+                        log.Error($"LandblockManager: failed to unload {landblock.Id.Raw:X8}");
                 }
             }
         }

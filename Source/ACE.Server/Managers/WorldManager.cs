@@ -62,7 +62,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Handles ClientMessages in InboundMessageManager
         /// </summary>
-        public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
+        public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
 
         private static readonly ActionQueue actionQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
@@ -100,14 +100,14 @@ namespace ACE.Server.Managers
                     // This completes the three-way handshake.
                     Session session = null;
 
-                        session =
-                            (from k in Sessions
-                             where
-                                 k.Value.State == SessionState.AuthConnectResponse &&
-                                 k.Value.Network.ConnectionData.ConnectionCookie == connectResponse.Check &&
-                                 k.Value.EndPoint.Address.Equals(endPoint.Address)
-                             select k).FirstOrDefault().Value;
-                  
+                    session =
+                        (from k in Sessions
+                         where
+                             k.Value.State == SessionState.AuthConnectResponse &&
+                             k.Value.Network.ConnectionData.ConnectionCookie == connectResponse.Check &&
+                             k.Value.EndPoint.Address.Equals(endPoint.Address)
+                         select k).FirstOrDefault().Value;
+
                     if (session != null)
                     {
                         session.State = SessionState.AuthConnected;
@@ -177,7 +177,7 @@ namespace ACE.Server.Managers
                     }
                     else
                     {
-                        log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
+                        log.DebugFormat("Unsolicited Packet from {0} with Id {1}", endPoint, packet.Header.Id);
                     }
                 }
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
@@ -451,9 +451,9 @@ namespace ACE.Server.Managers
                 PlayerManager.Tick();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick);
 
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueue_RunActions);
-                InboundClientMessageQueue.RunActions();
-                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueue_RunActions);
+                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueueRun);
+                InboundMessageQueue.RunActions();
+                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.InboundClientMessageQueueRun);
 
                 // This will consist of PlayerEnterWorld actions, as well as other game world actions that require thread safety
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
@@ -626,16 +626,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static int DoSessionWork()
         {
-            int sessionCount = Sessions.Count;
-
-            // The session tick inbound processes all inbound GameAction messages
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
-            foreach (var s in Sessions)
-                s.Value.TickInbound();
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickInbound);
-
-            // Do not combine the above and below loops. All inbound messages should be processed first and then all outbound messages should be processed second.
-
+            int sessionCount = 0;
             // The session tick outbound processes pending actions and handles outgoing messages
             ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
             foreach (var s in Sessions)
@@ -644,26 +635,16 @@ namespace ACE.Server.Managers
 
             // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
             ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
-
             foreach (var session in Sessions)
             {
-                switch (session.Value.State)
+                if (session.Value.PendingTermination != null && session.Value.PendingTermination.TerminationStatus == SessionTerminationPhase.SessionWorkCompleted)
                 {
-                    case SessionState.NetworkTimeout:
-                        session.Value.DropSession(string.IsNullOrEmpty(session.Value.BootSessionReason) ? "Network Timeout" : session.Value.BootSessionReason);
-                        break;
-                    case SessionState.ClientConnectionFailure:
-                        // needs to send the client the "git outa here" message or client will zombie out and appear to the player like it's still in game.
-                        // TO-DO: see if PacketHeaderFlags.NetErrorDisconnect will work for this
-                        session.Value.BootSession("Client connection failure", new GameMessageBootAccount(session.Value));
-                        break;
-                    case SessionState.ClientSentNetErrorDisconnect:
-                        session.Value.DropSession(string.IsNullOrEmpty(session.Value.BootSessionReason) ? "client sent network error disconnect" : session.Value.BootSessionReason);
-                        break;
+                    session.Value.DropSession();
+                    session.Value.PendingTermination.TerminationStatus = SessionTerminationPhase.WorldManagerWorkCompleted;
                 }
+                sessionCount++;
             }
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
-
             return sessionCount;
         }
     }

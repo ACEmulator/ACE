@@ -47,7 +47,8 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, uint> db)
         {
-            PHashTable.WriteHeader(writer, db.Count);
+            //PHashTable.WriteHeader(writer, db.Count);
+            writer.Write(db.Count);
             foreach (var entry in db)
             {
                 writer.Write(entry.Key.Full);

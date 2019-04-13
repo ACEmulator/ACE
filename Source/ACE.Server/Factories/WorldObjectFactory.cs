@@ -128,6 +128,8 @@ namespace ACE.Server.Factories
                     return new Allegiance(weenie, guid);
                 case WeenieType.AugmentationDevice:
                     return new AugmentationDevice(weenie, guid);
+                case WeenieType.AttributeTransferDevice:
+                    return new AttributeTransferDevice(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -239,6 +241,8 @@ namespace ACE.Server.Factories
                     return new Allegiance(biota);
                 case WeenieType.AugmentationDevice:
                     return new AugmentationDevice(biota);
+                case WeenieType.AttributeTransferDevice:
+                    return new AttributeTransferDevice(biota);
                 default:
                     return new GenericObject(biota);
             }
