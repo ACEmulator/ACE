@@ -386,7 +386,7 @@ namespace ACE.Server.Managers
                 player.AdvocateLevel = null;
                 player.ChannelsActive = null;
                 player.ChannelsAllowed = null;
-                player.Invincible = null;
+                player.Invincible = false;
                 player.Cloaked = null;
 
 

@@ -469,13 +469,18 @@ namespace ACE.Server.WorldObjects
                     PlayerManager.SwitchPlayerFromOnlineToOffline(this);
                 });
 
-                // close any open chests
+                // close any open chests / corpses
                 if (LastOpenedContainerId != ObjectGuid.Invalid)
                 {
                     var chest = CurrentLandblock.GetObject(LastOpenedContainerId) as Chest;
 
                     if (chest != null)
                         chest.Close(this);
+
+                    var corpse = CurrentLandblock.GetObject(LastOpenedContainerId) as Corpse;
+
+                    if (corpse != null)
+                        corpse.Close(this);
                 }
 
                 logoutChain.EnqueueChain();
