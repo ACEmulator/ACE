@@ -1301,7 +1301,7 @@ namespace ACE.Server.Managers
                 var damager = kvp.Key;
                 var amount = kvp.Value;
 
-                if (creature.Invincible ?? false)
+                if (creature.Invincible)
                     amount = 0;
 
                 var damageSourcePlayer = damager as Player;

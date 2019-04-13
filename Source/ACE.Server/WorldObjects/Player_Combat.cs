@@ -596,7 +596,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void TakeDamageOverTime(float _amount, DamageType damageType)
         {
-            if (Invincible ?? false || IsDead) return;
+            if (Invincible || IsDead) return;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
@@ -649,7 +649,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
-            if (Invincible ?? false || IsDead) return;
+            if (Invincible || IsDead) return;
 
             // check lifestone protection
             if (UnderLifestoneProtection)

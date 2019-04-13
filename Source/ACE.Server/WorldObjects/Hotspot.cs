@@ -139,34 +139,31 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private void Activate(Player plr)
+        private void Activate(Player player)
         {
             var amount = DamageNext;
+            var iAmount = (int)Math.Round(amount);
+
             switch (DamageType)
             {
-                case DamageType.Mana:
-                    var manaDmg = amount;
-                    var result = plr.Mana.Current - manaDmg;
-                    if (result < 0 && manaDmg > 0)
-                        manaDmg += result;
-                    else if (result > plr.Mana.MaxValue && manaDmg < 0)
-                        manaDmg -= plr.Mana.MaxValue - result;
-                    if (manaDmg != 0)
-                        amount = plr.UpdateVital(plr.Mana, plr.Mana.Current - (uint)Math.Round(manaDmg));
-                    break;
                 default:
-                    if (plr.Invincible ?? false) return;
-                    amount = (float)plr.GetLifeResistance(DamageType) * amount;
-                    plr.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
+                    if (player.Invincible) return;
+                    amount *= (float)player.GetLifeResistance(DamageType);
+                    player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
+                    if (player.IsDead && Players.Contains(player.Guid))
+                        Players.Remove(player.Guid);
+                    break;
+
+                case DamageType.Mana:
+                    player.UpdateVitalDelta(player.Mana, iAmount);
                     break;
             }
 
-            var iAmount = (uint)Math.Round(Math.Abs(amount));
-
-            if (!string.IsNullOrWhiteSpace(ActivationTalk))
-                plr.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", iAmount.ToString()), ChatMessageType.Broadcast));
             if (!Visibility)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.TriggerActivated, 1.0f));
+
+            if (!string.IsNullOrWhiteSpace(ActivationTalk))
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", Math.Abs(iAmount).ToString()), ChatMessageType.Broadcast));
         }
     }
 }
