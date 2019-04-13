@@ -267,7 +267,14 @@ namespace ACE.Server.Managers
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
 
             if (success)
+            {
                 Tinkering_ModifyItem(player, tool, target);
+
+                // send local broadcast
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {tool.Name} (workmanship {(tool.Workmanship ?? 0).Round(2)}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
+            }
+            else
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {tool.Name} (workmanship {(tool.Workmanship ?? 0).Round(2)}) to the {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
 
             var recipe = GetRecipe(player, tool, target);
             CreateDestroyItems(player, recipe, tool, target, success);
