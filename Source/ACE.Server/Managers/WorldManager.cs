@@ -29,6 +29,7 @@ using ACE.Server.Physics.Common;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
+using ACE.Server.Network.Managers;
 
 namespace ACE.Server.Managers
 {
@@ -66,9 +67,11 @@ namespace ACE.Server.Managers
 
         private static readonly ActionQueue actionQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
+        private static readonly OutboundPacketQueue OutboundQueue = null;
 
         static WorldManager()
         {
+            OutboundQueue = SocketManager.OutboundQueue;
             Physics = new PhysicsEngine(new ObjectMaint(), new SmartBox());
             Physics.Server = true;
         }
@@ -704,6 +707,9 @@ namespace ACE.Server.Managers
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
                 foreach (var s in sessionMap)
                     s?.TickOutbound();
+
+                OutboundQueue.SendAll();
+
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.

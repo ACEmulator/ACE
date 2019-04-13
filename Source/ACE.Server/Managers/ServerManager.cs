@@ -5,6 +5,7 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Server.Network.Managers;
 
 namespace ACE.Server.Managers
 {
@@ -133,6 +134,10 @@ namespace ACE.Server.Managers
             // Wait for world to end
             while (WorldManager.WorldActive)
                 Thread.Sleep(10);
+
+            log.Debug("Stopping listeners...");
+
+            SocketManager.Shutdown();
 
             log.Info("Saving OfflinePlayers that have unsaved changes...");
             PlayerManager.SaveOfflinePlayersWithChanges();

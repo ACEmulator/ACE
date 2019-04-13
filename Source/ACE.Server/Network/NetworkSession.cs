@@ -67,6 +67,8 @@ namespace ACE.Server.Network
 
         public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
+        private readonly OutboundPacketQueue OutboundQueue = null;
+
         /// <summary>
         /// Stores the tick value for the when an active session will timeout. If this value is in the past, the session is dead/inactive.
         /// </summary>
@@ -80,6 +82,8 @@ namespace ACE.Server.Network
             this.session = session;
             ClientId = clientId;
             ServerId = serverId;
+            OutboundQueue = SocketManager.OutboundQueue;
+
             // New network auth session timeouts will always be low.
             TimeoutTick = DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
@@ -566,41 +570,16 @@ namespace ACE.Server.Network
 
             try
             {
-                Socket socket = SocketManager.GetMainSocket();
-
                 packet.CreateReadyToSendPacket(buffer, out var size);
 
                 packetLog.Debug(packet.ToString());
 
-                buffer = NetworkSyntheticTesting.SyntheticCorruption_S2C(buffer);
+                byte[] data = new byte[size];
+                Buffer.BlockCopy(buffer, 0, data, 0, size);
 
-                if (packetLog.IsDebugEnabled)
-                {
-                    var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
-                    var sb = new StringBuilder();
-                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                    sb.AppendLine(buffer.BuildPacketString());
-                    packetLog.Debug(sb.ToString());
-                }
+                data = NetworkSyntheticTesting.SyntheticCorruption_S2C(data);
 
-                try
-                {
-                    socket.SendTo(buffer, size, SocketFlags.None, session.EndPoint);
-                }
-                catch (SocketException ex)
-                {
-                    // Unhandled Exception: System.Net.Sockets.SocketException: A message sent on a datagram socket was larger than the internal message buffer or some other network limit, or the buffer used to receive a datagram into was smaller than the datagram itself
-                    // at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, String callerName)
-                    // at System.Net.Sockets.Socket.SendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP)
-
-                    var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
-                    var sb = new StringBuilder();
-                    sb.AppendLine(ex.ToString());
-                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                    log.Error(sb.ToString());
-
-                    session.Terminate(SessionTerminationReason.SendToSocketException, null, null, ex.Message);
-                }
+                OutboundQueue.Enqueue(new OutboundPacketQueue.RawOutboundPacket() { Packet = data, Session = session, Them = session.EndPoint });
             }
             finally
             {

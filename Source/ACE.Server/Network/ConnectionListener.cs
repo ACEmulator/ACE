@@ -1,10 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-
-using ACE.Server.Managers;
-
+using ACE.Server.Network.Managers;
 using log4net;
 
 namespace ACE.Server.Network
@@ -24,11 +21,14 @@ namespace ACE.Server.Network
 
         private readonly IPAddress listeningHost;
 
+        private InboundPacketQueue inboundQueue = null;
+
         public ConnectionListener(IPAddress host, uint port)
         {
             log.DebugFormat("ConnectionListener ctor, host {0} port {1}", host, port);
             listeningHost = host;
             listeningPort = port;
+            inboundQueue = SocketManager.InboundQueue;
         }
 
         public void Start()
@@ -84,21 +84,7 @@ namespace ACE.Server.Network
                 byte[] data = new byte[dataSize];
                 Buffer.BlockCopy(buffer, 0, data, 0, dataSize);
 
-                IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
-
-                // TO-DO: generate ban entries here based on packet rates of endPoint, IP Address, and IP Address Range
-
-                if (packetLog.IsDebugEnabled)
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{listenerEndpoint.Address}:{listenerEndpoint.Port}]");
-                    sb.AppendLine(data.BuildPacketString());
-                    packetLog.Debug(sb.ToString());
-                }
-
-                var packet = new ClientPacket(data);
-                if (packet.IsValid)
-                    WorldManager.ProcessPacket(packet, ipEndpoint, listenerEndpoint);
+                inboundQueue.AddItem(new InboundPacketQueue.RawInboundPacket() { Packet = data, Them = (IPEndPoint)clientEndPoint, Us = listenerEndpoint });
             }
             catch (SocketException socketException)
             {
@@ -117,5 +103,6 @@ namespace ACE.Server.Network
             }
             Listen();
         }
+        
     }
 }
