@@ -1870,10 +1870,13 @@ namespace ACE.Server.Command.Handlers
         }
 
 
-        [CommandHandler("clearphysicscaches", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Forces .NET Garbage Collection")]
+        [CommandHandler("clearphysicscaches", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Clears Physics Object Caches")]
         public static void HandleClearPhysicsCaches(Session session, params string[] parameters)
         {
+            BSPCache.Clear();
             GfxObjCache.Clear();
+            PolygonCache.Clear();
+            VertexCache.Clear();
 
             CommandHandlerHelper.WriteOutputInfo(session, "Physics caches cleared");
         }
