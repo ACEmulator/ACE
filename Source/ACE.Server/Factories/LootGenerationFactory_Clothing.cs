@@ -1319,7 +1319,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 20:
                                 ////Circlet
-                                armorWeenie = 29528;
+                                armorWeenie = 31865;
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
