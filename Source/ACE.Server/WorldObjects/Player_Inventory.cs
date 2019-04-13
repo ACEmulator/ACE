@@ -1770,7 +1770,8 @@ namespace ACE.Server.WorldObjects
             var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && (item.Attuned ?? 0) != (int)AttunedStatus.Sticky;
 
             // this logic is a bit backwards here, and should be re-evaluated
-            // currently, HandleNPCReceiveItem checks if NPC can receive item, and if so, 
+            // currently, HandleNPCReceiveItem checks if NPC can receive item, and if so, starts the emote chain
+            // the item is then removed from the player's inventory, which could possibly fail...
             if (target.HandleNPCReceiveItem(item, this, out var result) || acceptAll)
             {
                 if (acceptAll || result.Category == (uint)EmoteCategory.Give)
