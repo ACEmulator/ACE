@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2019-04-13
+[Ripley]
+* Fix minor issue with scrolls when IDing them.
+* Fix major issue with recipes not scoping the requirements and mods to indexes which indicated where the checks or mods applied to.
+* Update Crafting SQL Writer, Adapter for above fixes.
+- **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.48 or higher**
+
 ### 2019-04-10
 [Ripley]
 * Update Crafting SQL Writer.

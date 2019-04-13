@@ -24,4 +24,36 @@ namespace ACE.Server.Network.Enum
         ClientConnectionFailure,
         SendToSocketException
     }
+<<<<<<< HEAD
+=======
+    public static class SessionTerminationReasonHelper
+    {
+        public static readonly string[] SessionTerminationReasonDescriptions =
+        {
+            "",
+            "PacketHeader Disconnect",
+            "AccountSelectCallback threw an exception.",
+            "Network Timeout",
+            "client sent network error disconnect",
+            "Account Booted",
+            "Bad handshake",
+            "Pong sent, closing connection.",
+            "Not Authorized: No password or GlsTicket included in login request",
+            "Not Authorized: Account Not Found",
+            "Account In Use: Found another session already logged in for this account.",
+            "Not Authorized: Password does not match.",
+            "Not Authorized: GlsTicket is not implemented to process login request",
+            "Client connection failure",
+            "MainSocket.SendTo exception occured"
+        };
+        public static string GetDescription(this SessionTerminationReason reason)
+        {
+            if ((int)reason > SessionTerminationReasonDescriptions.Length - 1)
+            {
+                return "<reason>";
+            }
+            return SessionTerminationReasonDescriptions[(int)reason];
+        }
+    }
+>>>>>>> 51a87815cb7c284b053898b5268bc51e30004693
 }

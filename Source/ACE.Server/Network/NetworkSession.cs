@@ -8,11 +8,12 @@ using System.Net.Sockets;
 using System.Text;
 
 using ACE.Server.Managers;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
-
+using ACE.Server.Network.Packets;
 using log4net;
 
 namespace ACE.Server.Network
@@ -90,7 +91,7 @@ namespace ACE.Server.Network
 
             ConnectionData.CryptoClient.OnCryptoSystemCatastrophicFailure += (sender, e) =>
             {
-                session.State = Enum.SessionState.ClientConnectionFailure;
+                session.Terminate(SessionTerminationReason.ClientConnectionFailure);
             };
         }
 
@@ -216,9 +217,15 @@ namespace ACE.Server.Network
 
             #region order-insensitive "half-processing"
 
+            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
+            {
+                session.Terminate(SessionTerminationReason.PacketHeaderDisconnect);
+                return;
+            }
+
             if (packet.Header.HasFlag(PacketHeaderFlags.NetErrorDisconnect))
             {
-                session.State = Enum.SessionState.ClientSentNetErrorDisconnect;
+                session.Terminate(SessionTerminationReason.ClientSentNetworkErrorDisconnect);
                 return;
             }
 
@@ -592,7 +599,7 @@ namespace ACE.Server.Network
                     sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
                     log.Error(sb.ToString());
 
-                    session.State = Enum.SessionState.NetworkTimeout; // This will force WorldManager to drop the session
+                    session.Terminate(SessionTerminationReason.SendToSocketException, null, null, ex.Message);
                 }
             }
             finally
