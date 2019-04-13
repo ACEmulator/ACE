@@ -1870,7 +1870,7 @@ namespace ACE.Server.Command.Handlers
         }
 
 
-        [CommandHandler("clearphysicscaches", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Clears Physics Object Caches")]
+        [CommandHandler("clearphysicscaches", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Clears Physics Object Caches")]
         public static void HandleClearPhysicsCaches(Session session, params string[] parameters)
         {
             BSPCache.Clear();
@@ -1881,7 +1881,7 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, "Physics caches cleared");
         }
 
-        [CommandHandler("forcegc", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Forces .NET Garbage Collection")]
+        [CommandHandler("forcegc", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Forces .NET Garbage Collection")]
         public static void HandleForceGC(Session session, params string[] parameters)
         {
             GC.Collect();
