@@ -272,8 +272,10 @@ namespace ACE.Adapter.GDLE
 
                 result.DataId = input.DataId;
 
+                sbyte index = -1;
                 foreach (var value in input.Requirements)
                 {
+                    index++;
                     if (value == null)
                         continue;
 
@@ -286,6 +288,7 @@ namespace ACE.Adapter.GDLE
                         {
                             result.RecipeRequirementsInt.Add(new RecipeRequirementsInt
                             {
+                                Index = index,
                                 Stat = requirement.Stat,
                                 Value = (int)requirement.Value,
                                 Enum = requirement.OperationType,
@@ -356,6 +359,7 @@ namespace ACE.Adapter.GDLE
                         {
                             result.RecipeRequirementsBool.Add(new RecipeRequirementsBool
                             {
+                                Index = index,
                                 Stat = requirement.Stat,
                                 Value = (requirement.Value != 0),
                                 Enum = requirement.OperationType,
@@ -380,6 +384,7 @@ namespace ACE.Adapter.GDLE
                         {
                             recipeMod.RecipeModsInt.Add(new RecipeModsInt
                             {
+                                Index = (sbyte)i,
                                 Stat = mod.Stat,
                                 Value = (int)mod.Value,
                                 Enum = mod.OperationType,
@@ -394,6 +399,7 @@ namespace ACE.Adapter.GDLE
                         {
                             recipeMod.RecipeModsDID.Add(new RecipeModsDID
                             {
+                                Index = (sbyte)i,
                                 Stat = mod.Stat,
                                 Value = (uint)mod.Value,
                                 Enum = mod.OperationType,
@@ -423,6 +429,7 @@ namespace ACE.Adapter.GDLE
                         {
                             recipeMod.RecipeModsFloat.Add(new RecipeModsFloat
                             {
+                                Index = (sbyte)i,
                                 Stat = mod.Stat,
                                 Value = mod.Value,
                                 Enum = mod.OperationType,
@@ -437,6 +444,7 @@ namespace ACE.Adapter.GDLE
                         {
                             recipeMod.RecipeModsString.Add(new RecipeModsString
                             {
+                                Index = (sbyte)i,
                                 Stat = mod.Stat,
                                 Value = mod.Value,
                                 Enum = mod.OperationType,
@@ -451,6 +459,7 @@ namespace ACE.Adapter.GDLE
                         {
                             recipeMod.RecipeModsBool.Add(new RecipeModsBool
                             {
+                                Index = (sbyte)i,
                                 Stat = mod.Stat,
                                 Value = (mod.Value != 0),
                                 Enum = mod.OperationType,
