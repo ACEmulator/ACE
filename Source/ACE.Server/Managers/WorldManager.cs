@@ -708,24 +708,13 @@ namespace ACE.Server.Managers
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
-                foreach (var sesh in sessionMap)
+                foreach (var session in sessionMap.Where(k => !Equals(null, k)))
                 {
-                    if (sesh == null)
-                        continue;
-
-                    switch (sesh.State)
+                    var pendingTerm = session.PendingTermination;
+                    if (session.PendingTermination != null && session.PendingTermination.TerminationStatus == SessionTerminationPhase.SessionWorkCompleted)
                     {
-                        case SessionState.NetworkTimeout:
-                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "Network Timeout" : sesh.BootSessionReason);
-                            break;
-                        case SessionState.ClientConnectionFailure:
-                            // needs to send the client the "git outa here" message or client will zombie out and appear to the player like it's still in game.
-                            // TO-DO: see if PacketHeaderFlags.NetErrorDisconnect will work for this
-                            sesh.BootSession("Client connection failure", new GameMessageBootAccount(sesh));
-                            break;
-                        case SessionState.ClientSentNetErrorDisconnect:
-                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "client sent network error disconnect" : sesh.BootSessionReason);
-                            break;
+                        session.DropSession();
+                        session.PendingTermination.TerminationStatus = SessionTerminationPhase.WorldManagerWorkCompleted;
                     }
 
                     sessionCount++;
