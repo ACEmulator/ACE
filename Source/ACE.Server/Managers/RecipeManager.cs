@@ -198,14 +198,6 @@ namespace ACE.Server.Managers
             var recipeSkill = (Skill)recipe.Skill;
             var skill = player.GetCreatureSkill(recipeSkill);
 
-            // do the workmanship check here for now...
-            if (target.Workmanship == null)
-            {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The target item cannot be tinkered!", ChatMessageType.Broadcast));
-                player.SendUseDoneEvent();
-                return;
-            }
-
             // tinkering skill must be trained
             if (skill.AdvancementClass < SkillAdvancementClass.Trained)
             {
@@ -649,6 +641,13 @@ namespace ACE.Server.Managers
             4.5f    // 10
         };
 
+        public enum RequirementType
+        {
+            Target = 0,
+            Source = 1,
+            Player = 2
+        };
+
         // todo: verify
         public enum CompareType
         {
@@ -665,69 +664,104 @@ namespace ACE.Server.Managers
 
         public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject source, WorldObject target)
         {
-            // as opposed to having a recipe requirements field for the object being compared...
-            if (!VerifyRequirements(recipe, player, player)) return false;
+            if (!VerifyRequirements(recipe, player, target, RequirementType.Target)) return false;
 
-            if (!VerifyRequirements(recipe, player, source)) return false;
+            if (!VerifyRequirements(recipe, player, source, RequirementType.Source)) return false;
 
-            if (!VerifyRequirements(recipe, player, target)) return false;
+            if (!VerifyRequirements(recipe, player, player, RequirementType.Player)) return false;
 
             return true;
         }
 
-        public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject obj)
+        public static bool Debug = false;
+
+        public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject obj, RequirementType reqType)
         {
-            foreach (var requirement in recipe.RecipeRequirementsBool)
+            var boolReqs = recipe.RecipeRequirementsBool.Where(i => i.Index == (int)reqType).ToList();
+            var intReqs = recipe.RecipeRequirementsInt.Where(i => i.Index == (int)reqType).ToList();
+            var floatReqs = recipe.RecipeRequirementsFloat.Where(i => i.Index == (int)reqType).ToList();
+            var strReqs = recipe.RecipeRequirementsString.Where(i => i.Index == (int)reqType).ToList();
+            var iidReqs = recipe.RecipeRequirementsIID.Where(i => i.Index == (int)reqType).ToList();
+            var didReqs = recipe.RecipeRequirementsDID.Where(i => i.Index == (int)reqType).ToList();
+
+            var totalReqs = boolReqs.Count + intReqs.Count + floatReqs.Count + strReqs.Count + iidReqs.Count + didReqs.Count;
+
+            if (Debug && totalReqs > 0)
+                Console.WriteLine($"{reqType} Requirements: {totalReqs}");
+
+            foreach (var requirement in boolReqs)
             {
                 bool? value = obj.GetProperty((PropertyBool)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
+                if (Debug)
+                    Console.WriteLine($"PropertyBool.{(PropertyBool)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsInt)
+            foreach (var requirement in intReqs)
             {
                 int? value = obj.GetProperty((PropertyInt)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
+                if (Debug)
+                    Console.WriteLine($"PropertyInt.{(PropertyInt)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsFloat)
+            foreach (var requirement in floatReqs)
             {
                 double? value = obj.GetProperty((PropertyFloat)requirement.Stat);
 
+                if (Debug)
+                    Console.WriteLine($"PropertyFloat.{(PropertyFloat)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, value, requirement.Value, requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsString)
+            foreach (var requirement in strReqs)
             {
                 string value = obj.GetProperty((PropertyString)requirement.Stat);
 
+                if (Debug)
+                    Console.WriteLine($"PropertyString.{(PropertyString)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, value, requirement.Value, requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsIID)
+            foreach (var requirement in iidReqs)
             {
                 uint? value = obj.GetProperty((PropertyInstanceId)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
+                if (Debug)
+                    Console.WriteLine($"PropertyInstanceId.{(PropertyInstanceId)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsDID)
+            foreach (var requirement in didReqs)
             {
                 uint? value = obj.GetProperty((PropertyDataId)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
+                if (Debug)
+                    Console.WriteLine($"PropertyDataId.{(PropertyDataId)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
             }
+
+            if (Debug && totalReqs > 0)
+                Console.WriteLine($"-----");
+
             return true;
         }
 
@@ -738,27 +772,27 @@ namespace ACE.Server.Managers
             switch (compareType)
             {
                 case CompareType.GreaterThan:
-                    if (prop != null && prop.Value > val)
+                    if ((prop ?? 0) > val)
                         success = false;
                     break;
 
                 case CompareType.LessThanEqual:
-                    if (prop != null && prop.Value <= val)
+                    if ((prop ?? 0) <= val)
                         success = false;
                     break;
 
                 case CompareType.LessThan:
-                    if (prop != null && prop.Value < val)
+                    if ((prop ?? 0) < val)
                         success = false;
                     break;
 
                 case CompareType.GreaterThanEqual:
-                    if (prop != null && prop.Value >= val)
+                    if ((prop ?? 0) >= val)
                         success = false;
                     break;
 
                 case CompareType.NotEqual:
-                    if (prop != null && prop.Value != val)
+                    if ((prop ?? 0) != val)
                         success = false;
                     break;
 
@@ -768,7 +802,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case CompareType.Equal:
-                    if (prop != null && prop.Value == val)
+                    if ((prop ?? 0) == val)
                         success = false;
                     break;
 
@@ -796,7 +830,7 @@ namespace ACE.Server.Managers
             switch (compareType)
             {
                 case CompareType.NotEqual:
-                    if (prop != null && !prop.Equals(val))
+                    if (!(prop ?? "").Equals(val))
                         success = false;
                     break;
 
@@ -806,7 +840,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case CompareType.Equal:
-                    if (prop != null && prop.Equals(val))
+                    if ((prop ?? "").Equals(val))
                         success = false;
                     break;
 
