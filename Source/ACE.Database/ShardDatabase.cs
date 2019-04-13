@@ -278,7 +278,7 @@ namespace ACE.Database
                         cachedContext.SaveChanges();
 
                         if (firstException != null)
-                            log.Debug($"SaveBiota retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                            log.Debug($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                         return true;
                     }
@@ -291,8 +291,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"SaveBiota failed first attempt with exception: {firstException}");
-                        log.Error($"SaveBiota failed second attempt with exception: {ex}");
+                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -321,7 +321,7 @@ namespace ACE.Database
                     context.SaveChanges();
 
                     if (firstException != null)
-                        log.Debug($"SaveBiota retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                        log.Debug($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                     return true;
                 }
@@ -334,8 +334,8 @@ namespace ACE.Database
                     }
 
                     // Character name might be in use or some other fault
-                    log.Error($"SaveBiota failed first attempt with exception: {firstException}");
-                    log.Error($"SaveBiota failed second attempt with exception: {ex}");
+                    log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                    log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                     return false;
                 }
             }
@@ -377,7 +377,7 @@ namespace ACE.Database
                         cachedContext.SaveChanges();
 
                         if (firstException != null)
-                            log.Debug($"RemoveBiota retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                            log.Debug($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                         return true;
                     }
@@ -390,8 +390,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"RemoveBiota failed first attempt with exception: {firstException}");
-                        log.Error($"RemoveBiota failed second attempt with exception: {ex}");
+                        log.Error($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -693,7 +693,7 @@ namespace ACE.Database
                         cachedContext.SaveChanges();
 
                         if (firstException != null)
-                            log.Debug($"SaveCharacter retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                            log.Debug($"SaveCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                         return true;
                     }
@@ -706,8 +706,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"SaveCharacter failed first attempt with exception: {firstException}");
-                        log.Error($"SaveCharacter failed second attempt with exception: {ex}");
+                        log.Error($"SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException}");
+                        log.Error($"SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -734,7 +734,7 @@ namespace ACE.Database
                     context.SaveChanges();
 
                     if (firstException != null)
-                        log.Debug($"SaveCharacter retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                        log.Debug($"SaveCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                     return true;
                 }
@@ -747,8 +747,8 @@ namespace ACE.Database
                     }
 
                     // Character name might be in use or some other fault
-                    log.Error($"SaveCharacter failed first attempt with exception: {firstException}");
-                    log.Error($"SaveCharacter failed second attempt with exception: {ex}");
+                    log.Error($"SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException}");
+                    log.Error($"SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex}");
                     return false;
                 }
             }
