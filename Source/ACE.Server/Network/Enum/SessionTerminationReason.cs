@@ -24,8 +24,6 @@ namespace ACE.Server.Network.Enum
         ClientConnectionFailure,
         SendToSocketException
     }
-<<<<<<< HEAD
-=======
     public static class SessionTerminationReasonHelper
     {
         public static readonly string[] SessionTerminationReasonDescriptions =
@@ -55,5 +53,4 @@ namespace ACE.Server.Network.Enum
             return SessionTerminationReasonDescriptions[(int)reason];
         }
     }
->>>>>>> 51a87815cb7c284b053898b5268bc51e30004693
 }
