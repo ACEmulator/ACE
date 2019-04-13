@@ -64,6 +64,14 @@ namespace ACE.Server.WorldObjects
             OnActivate(player);
         }
 
+        public override void OnCastSpell(WorldObject activator)
+        {
+            if (SpellDID.HasValue)
+                base.OnCastSpell(activator);
+            else
+                ActOnUse(activator);
+        }
+
         public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
             if (!(activator is Player player))

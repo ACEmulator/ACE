@@ -13,6 +13,8 @@ namespace ACE.Server.Physics.Entity
         public static int Requests;
         public static int Hits;
 
+        public static int Count => GfxObjs.Count;
+
         public static GfxObj Get(uint gfxObjID)
         {
             Requests++;

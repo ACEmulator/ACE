@@ -151,7 +151,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(uint recipeId, IList<RecipeRequirementsInt> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_requirements_int` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
+            writer.WriteLine("INSERT INTO `recipe_requirements_int` (`recipe_Id`, `index`, `stat`, `value`, `enum`, `message`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {
@@ -161,7 +161,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (propertyValueDescription != null)
                     comment += " - " + propertyValueDescription;
 
-                return $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {comment} */";
+                return $"{recipeId}, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {comment} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -169,45 +169,45 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(uint recipeId, IList<RecipeRequirementsDID> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_requirements_d_i_d` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
+            writer.WriteLine("INSERT INTO `recipe_requirements_d_i_d` (`recipe_Id`, `index`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyDataId), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyDataId), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
 
         public void CreateSQLINSERTStatement(uint recipeId, IList<RecipeRequirementsIID> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_requirements_i_i_d` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
+            writer.WriteLine("INSERT INTO `recipe_requirements_i_i_d` (`recipe_Id`, `index`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyInstanceId), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyInstanceId), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
 
         public void CreateSQLINSERTStatement(uint recipeId, IList<RecipeRequirementsFloat> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_requirements_float` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
+            writer.WriteLine("INSERT INTO `recipe_requirements_float` (`recipe_Id`, `index`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
 
         public void CreateSQLINSERTStatement(uint recipeId, IList<RecipeRequirementsString> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_requirements_string` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
+            writer.WriteLine("INSERT INTO `recipe_requirements_string` (`recipe_Id`, `index`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {GetSQLString(input[i].Value)}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyString), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {GetSQLString(input[i].Value)}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyString), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
 
         public void CreateSQLINSERTStatement(uint recipeId, IList<RecipeRequirementsBool> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_requirements_bool` (`recipe_Id`, `stat`, `value`, `enum`, `message`)");
+            writer.WriteLine("INSERT INTO `recipe_requirements_bool` (`recipe_Id`, `index`, `stat`, `value`, `enum`, `message`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyBool), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"{recipeId}, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {GetSQLString(input[i].Message)}) /* {Enum.GetName(typeof(PropertyBool), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -271,7 +271,7 @@ namespace ACE.Database.SQLFormatters.World
 
         private void CreateSQLINSERTStatement(IList<RecipeModsInt> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_mods_int` (`recipe_Mod_Id`, `stat`, `value`, `enum`, `source`)");
+            writer.WriteLine("INSERT INTO `recipe_mods_int` (`recipe_Mod_Id`, `index`, `stat`, `value`, `enum`, `source`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {
@@ -281,7 +281,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (propertyValueDescription != null)
                     comment += " - " + propertyValueDescription;
 
-                return $"@parent_id, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {comment} */";
+                return $"@parent_id, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {comment} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -289,45 +289,45 @@ namespace ACE.Database.SQLFormatters.World
 
         private void CreateSQLINSERTStatement(IList<RecipeModsDID> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_mods_d_i_d` (`recipe_Mod_Id`, `stat`, `value`, `enum`, `source`)");
+            writer.WriteLine("INSERT INTO `recipe_mods_d_i_d` (`recipe_Mod_Id`, `index`, `stat`, `value`, `enum`, `source`)");
 
-            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyDataId), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyDataId), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
 
         private void CreateSQLINSERTStatement(IList<RecipeModsIID> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_mods_i_i_d` (`recipe_Mod_Id`, `stat`, `value`, `enum`, `source`)");
+            writer.WriteLine("INSERT INTO `recipe_mods_i_i_d` (`recipe_Mod_Id`, `index`, `stat`, `value`, `enum`, `source`)");
 
-            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyInstanceId), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyInstanceId), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
 
         private void CreateSQLINSERTStatement(IList<RecipeModsFloat> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_mods_float` (`recipe_Mod_Id`, `stat`, `value`, `enum`, `source`)");
+            writer.WriteLine("INSERT INTO `recipe_mods_float` (`recipe_Mod_Id`, `index`, `stat`, `value`, `enum`, `source`)");
 
-            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
 
         private void CreateSQLINSERTStatement(IList<RecipeModsString> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_mods_string` (`recipe_Mod_Id`, `stat`, `value`, `enum`, `source`)");
+            writer.WriteLine("INSERT INTO `recipe_mods_string` (`recipe_Mod_Id`, `index`, `stat`, `value`, `enum`, `source`)");
 
-            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Stat.ToString().PadLeft(3)}, {GetSQLString(input[i].Value)}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyString), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {GetSQLString(input[i].Value)}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyString), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
 
         private void CreateSQLINSERTStatement(IList<RecipeModsBool> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `recipe_mods_bool` (`recipe_Mod_Id`, `stat`, `value`, `enum`, `source`)");
+            writer.WriteLine("INSERT INTO `recipe_mods_bool` (`recipe_Mod_Id`, `index`, `stat`, `value`, `enum`, `source`)");
 
-            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyBool), input[i].Stat)} */");
+            var lineGenerator = new Func<int, string>(i => $"@parent_id, {input[i].Index}, {input[i].Stat.ToString().PadLeft(3)}, {input[i].Value}, {input[i].Enum}, {input[i].Source}) /* {Enum.GetName(typeof(PropertyBool), input[i].Stat)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }

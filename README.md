@@ -38,7 +38,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 * Create a final database named `ace_world`.
 * Load WorldBase.sql to initialize the ace_world database. 
 * Download from [ACE-World-16PY-Patches](https://github.com/ACEmulator/ACE-World-16PY-Patches) the [latest release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest) of world data, extract and load into your ace_world database.
-  - [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.21+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
+  - [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.48+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
 * SKIP THIS STEP IF USING DOWNLOADED WORLD DATA FROM PREVIOUS STEP.
   - If using custom database, you may need to update the schema for the emulator to operate correctly. If you're using the official release data, this step is not recommended.
   - Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.

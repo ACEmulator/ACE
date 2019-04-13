@@ -31,7 +31,9 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Book;
 
             SetProperty(PropertyInt.AppraisalPages, Biota.BiotaPropertiesBookPageData.Count);
-            SetProperty(PropertyInt.AppraisalMaxPages, Biota.BiotaPropertiesBook.MaxNumPages);
+
+            if (Biota.BiotaPropertiesBook != null)
+                SetProperty(PropertyInt.AppraisalMaxPages, Biota.BiotaPropertiesBook.MaxNumPages);
         }
 
         public void SetProperties(string name, string shortDesc, string inscription, string scribeName, string scribeAccount)
