@@ -127,7 +127,7 @@ namespace ACE.Server.Managers
 
                     //Console.WriteLine("Required skill: " + skill.Skill);
 
-                    if (skill.AdvancementClass <= SkillAdvancementClass.Untrained)
+                    if (skill.AdvancementClass < SkillAdvancementClass.Trained)
                     {
                         var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
                         player.Session.Network.EnqueueSend(message);
@@ -197,6 +197,22 @@ namespace ACE.Server.Managers
             var recipe = GetRecipe(player, tool, target);
             var recipeSkill = (Skill)recipe.Skill;
             var skill = player.GetCreatureSkill(recipeSkill);
+
+            // do the workmanship check here for now...
+            if (target.Workmanship == null)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The target item cannot be tinkered!", ChatMessageType.Broadcast));
+                player.SendUseDoneEvent();
+                return;
+            }
+
+            // tinkering skill must be trained
+            if (skill.AdvancementClass < SkillAdvancementClass.Trained)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are not trained in {skill.Skill.ToSentence()}.", ChatMessageType.Broadcast));
+                player.SendUseDoneEvent();
+                return;
+            }
 
             // thanks to Endy's Tinkering Calculator for this formula!
             var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
@@ -666,8 +682,7 @@ namespace ACE.Server.Managers
             foreach (var requirement in recipe.RecipeRequirementsInt)
             {
                 int? value = obj.GetProperty((PropertyInt)requirement.Stat);
-                //double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
-                double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : 0;
+                double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
