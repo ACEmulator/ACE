@@ -33,6 +33,10 @@ namespace ACE.Server.WorldObjects
         {
             if (SpellDID != null)
                 Spell = new Server.Entity.Spell(SpellDID.Value, false);
+
+            if (Spell != null)
+                LongDesc = $"Inscribed spell: {Spell.Name}\n{Spell.Description}";
+            Use = "Use this item to attempt to learn its spell.";
         }
 
         /// <summary>
