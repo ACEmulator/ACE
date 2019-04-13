@@ -12,11 +12,11 @@ namespace ACE.Server.Physics.Collision
     {
         public uint ID;
         public CVertexArray VertexArray;
-        public Dictionary<ushort, Polygon> Polygons;
-        public Dictionary<ushort, Polygon> PhysicsPolygons;
+        //public Dictionary<ushort, Polygon> Polygons;
+        //public Dictionary<ushort, Polygon> PhysicsPolygons;
         public Sphere PhysicsSphere;
         public BSP.BSPTree PhysicsBSP;
-        public Vector3 SortCenter;
+        //public Vector3 SortCenter;
         public Sphere DrawingSphere;
         public BSP.BSPTree DrawingBSP;
         public BBox GfxBoundBox;
@@ -33,21 +33,21 @@ namespace ACE.Server.Physics.Collision
             ID = gfxObj.Id;
             VertexArray = gfxObj.VertexArray;
 
-            Polygons = new Dictionary<ushort, Polygon>();
-            foreach (var kvp in gfxObj.Polygons)
-                Polygons.Add(kvp.Key, PolygonCache.Get(kvp.Value, gfxObj.VertexArray));
+            //Polygons = new Dictionary<ushort, Polygon>();
+            //foreach (var kvp in gfxObj.Polygons)
+            //    Polygons.Add(kvp.Key, PolygonCache.Get(kvp.Value, gfxObj.VertexArray));
 
             if (gfxObj.PhysicsPolygons.Count > 0)
             {
-                PhysicsPolygons = new Dictionary<ushort, Polygon>();
-                foreach (var kvp in gfxObj.PhysicsPolygons)
-                    PhysicsPolygons.Add(kvp.Key, PolygonCache.Get(kvp.Value, gfxObj.VertexArray));
+                //PhysicsPolygons = new Dictionary<ushort, Polygon>();
+                //foreach (var kvp in gfxObj.PhysicsPolygons)
+                //    PhysicsPolygons.Add(kvp.Key, PolygonCache.Get(kvp.Value, gfxObj.VertexArray));
 
                 PhysicsBSP = BSPCache.Get(gfxObj.PhysicsBSP, gfxObj.PhysicsPolygons, gfxObj.VertexArray);
                 PhysicsSphere = PhysicsBSP.GetSphere();
             }
 
-            SortCenter = gfxObj.SortCenter;
+            //SortCenter = gfxObj.SortCenter;
             DrawingBSP = BSPCache.Get(gfxObj.DrawingBSP, gfxObj.Polygons, gfxObj.VertexArray);
             DrawingSphere = DrawingBSP.GetSphere();
 
