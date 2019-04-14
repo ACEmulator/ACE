@@ -279,6 +279,69 @@ namespace ACE.Server.WorldObjects
             return TryAddToInventory(worldObject, out _, placementPosition, limitToMainPackOnly);
         }
 
+        public bool CanAddToInventory(WorldObject worldObject, out Container container, int placementPosition = 0, bool limitToMainPackOnly = false)
+        {
+            if (this is Player player)
+            {
+                if (!player.HasEnoughBurdenToAddToInventory(worldObject))
+                {
+                    container = null;
+                    return false;
+                }
+            }
+
+            IList<WorldObject> containerItems;
+
+            if (worldObject.UseBackpackSlot)
+            {
+                containerItems = Inventory.Values.Where(i => i.UseBackpackSlot).ToList();
+
+                if ((ContainerCapacity ?? 0) <= containerItems.Count)
+                {
+                    container = null;
+                    return false;
+                }
+            }
+            else
+            {
+                containerItems = Inventory.Values.Where(i => !i.UseBackpackSlot).ToList();
+
+                if ((ItemCapacity ?? 0) <= containerItems.Count)
+                {
+                    // Can we add this to any side pack?
+                    if (!limitToMainPackOnly)
+                    {
+                        var containers = Inventory.Values.OfType<Container>().ToList();
+                        containers.Sort((a, b) => (a.Placement ?? 0).CompareTo(b.Placement ?? 0));
+
+                        foreach (var sidePack in containers)
+                        {
+                            if (sidePack.CanAddToInventory(worldObject, out container, placementPosition, true))
+                            {
+                                EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
+                                Value += (worldObject.Value ?? 0);
+
+                                return true;
+                            }
+                        }
+                    }
+
+                    container = null;
+                    return false;
+                }
+            }
+
+            if (Inventory.ContainsKey(worldObject.Guid))
+            {
+                container = null;
+                return false;
+            }
+
+            container = this;
+
+            return true;
+        }
+
         /// <summary>
         /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.<para />
         /// It will also increase the EncumbranceVal and Value.
