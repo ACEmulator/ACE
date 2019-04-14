@@ -896,8 +896,8 @@ namespace ACE.Server.WorldObjects
                     if (vitalName == "Health")
                     {
                         DamageHistory.OnHeal((uint)vitalChange);
-                        if (Fellowship != null)
-                            Fellowship.OnVitalUpdate(this);
+                        //if (Fellowship != null)
+                            //Fellowship.OnVitalUpdate(this);
                     }
 
                     buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);

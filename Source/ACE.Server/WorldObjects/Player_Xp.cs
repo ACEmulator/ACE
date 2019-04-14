@@ -261,7 +261,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (Fellowship != null)
-                    Fellowship.OnFellowLevelUp();
+                    Fellowship.OnFellowLevelUp(this);
 
                 Session.Network.EnqueueSend(levelUp);
 

@@ -446,13 +446,25 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Called when someone in the fellowship levels up
         /// </summary>
-        public void OnFellowLevelUp()
+        public void OnFellowLevelUp(Player player)
         {
             CalculateXPSharing();
+
+            var fellowshipMembers = GetFellowshipMembers();
+
+            foreach (var fellow in fellowshipMembers.Values)
+            {
+                if (fellow == player)
+                    continue;
+
+                fellow.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is now level {player.Level}!", ChatMessageType.Broadcast));
+            }
         }
 
         public void OnVitalUpdate(Player player)
         {
+            // cap max update interval?
+
             var fellowshipMembers = GetFellowshipMembers();
 
             foreach (var fellow in fellowshipMembers.Values)

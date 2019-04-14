@@ -532,8 +532,8 @@ namespace ACE.Server.WorldObjects
                 amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
                 target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
 
-                if (targetPlayer != null && targetPlayer.Fellowship != null)
-                    targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
+                //if (targetPlayer != null && targetPlayer.Fellowship != null)
+                    //targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
             }
 
             amount = (uint)Math.Round(damage.Value);    // full amount for debugging

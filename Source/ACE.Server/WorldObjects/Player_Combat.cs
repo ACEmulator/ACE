@@ -614,8 +614,8 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
-            if (Fellowship != null)
-                Fellowship.OnVitalUpdate(this);
+            //if (Fellowship != null)
+                //Fellowship.OnVitalUpdate(this);
 
             // send damage text message
             if (PropertyManager.GetBool("show_dot_messages").Item)
@@ -668,8 +668,8 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
-            if (Fellowship != null)
-                Fellowship.OnVitalUpdate(this);
+            //if (Fellowship != null)
+                //Fellowship.OnVitalUpdate(this);
 
             if (Health.Current <= 0)
             {
