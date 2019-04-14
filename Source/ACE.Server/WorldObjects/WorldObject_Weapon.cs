@@ -713,7 +713,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound)
             {
                 if (wielder is Player player)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    player.Session.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
                 return;
             }

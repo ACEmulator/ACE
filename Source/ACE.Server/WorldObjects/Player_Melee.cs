@@ -207,12 +207,12 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
-                Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                Session.EnqueueSend(new GameEventAttackDone(Session));
 
                 if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
                 {
-                    Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
-                    Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                    Session.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+                    Session.EnqueueSend(new GameEventAttackDone(Session));
 
                     // powerbar refill timing
                     var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster

@@ -115,7 +115,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.TargetNotAcquired));
+                Session.EnqueueSend(new GameEventUseDone(Session, WeenieError.TargetNotAcquired));
                 return;
             }
 
@@ -196,9 +196,9 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound)
             {
                 if (spell._spellBase == null)
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                    Session.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
                 else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
                 return false;
             }
@@ -255,9 +255,9 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound)
             {
                 if (spell._spellBase == null)
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellID {spellID} Invalid."));
+                    Session.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellID {spellID} Invalid."));
                 else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
                 return new EnchantmentStatus(false);
             }
@@ -265,7 +265,7 @@ namespace ACE.Server.WorldObjects
             var enchantmentStatus = base.CreateItemSpell(item, spellID);
 
             if (enchantmentStatus.Message != null)
-                Session.Network.EnqueueSend(enchantmentStatus.Message);
+                Session.EnqueueSend(enchantmentStatus.Message);
 
             return enchantmentStatus;
         }
@@ -291,7 +291,7 @@ namespace ACE.Server.WorldObjects
 
             if (player.IsBusy == true)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
+                player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
                 return;
             }
             player.IsBusy = true;
@@ -302,13 +302,13 @@ namespace ACE.Server.WorldObjects
             {
                 if (spell._spellBase == null)
                 {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
-                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.None));
+                    Session.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                    Session.EnqueueSend(new GameEventUseDone(Session, WeenieError.None));
                 }
                 else
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    Session.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
                 }
 
                 player.IsBusy = false;
@@ -317,8 +317,8 @@ namespace ACE.Server.WorldObjects
 
             if (IsInvalidTarget(spell, target))
             {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"{spell.Name} cannot be cast on {target.Name}."));
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
+                player.Session.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"{spell.Name} cannot be cast on {target.Name}."));
+                player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
                 player.IsBusy = false;
                 return;
             }
@@ -345,7 +345,7 @@ namespace ACE.Server.WorldObjects
 
                     if (distanceTo > spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod)
                     {
-                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None),
+                        player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None),
                             new GameMessageSystemChat($"Target is out of range!", ChatMessageType.Magic));
                         player.IsBusy = false;
                         return;
@@ -380,7 +380,7 @@ namespace ACE.Server.WorldObjects
                     var curType = spell.School == MagicSchool.WarMagic ? "War" : "Void";
                     var prevType = LastSuccessCast_School == MagicSchool.VoidMagic ? "Nether" : "Elemental";
 
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The {prevType} energies permeating your blood cause this {curType} magic to fail.", ChatMessageType.Magic));
+                    Session.EnqueueSend(new GameMessageSystemChat($"The {prevType} energies permeating your blood cause this {curType} magic to fail.", ChatMessageType.Magic));
 
                     castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
                 }
@@ -399,7 +399,7 @@ namespace ACE.Server.WorldObjects
 
             if (manaUsed > currentMana)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDontHaveEnoughManaToCast));
+                player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDontHaveEnoughManaToCast));
                 IsBusy = false; // delay?
                 return;
             }
@@ -526,16 +526,16 @@ namespace ACE.Server.WorldObjects
 
                 if (pk_error != null && spell.NumProjectiles == 0)
                 {
-                    player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, pk_error[0], target.Name));
+                    player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, pk_error[0], target.Name));
 
                     if (target is Player targetPlayer)
-                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pk_error[1], Name));
+                        targetPlayer.Session.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pk_error[1], Name));
                 }
 
                 if (movedTooFar)
                 {
-                    //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
+                    //player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
+                    Session.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
                 }
 
                 player.SendUseDoneEvent(useDone);
@@ -587,7 +587,7 @@ namespace ACE.Server.WorldObjects
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     enchantmentStatus = CreatureMagic(target, spell);
                     if (enchantmentStatus.Message != null)
-                        player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                        player.Session.EnqueueSend(enchantmentStatus.Message);
 
                     if (spell.IsHarmful)
                     {
@@ -647,7 +647,7 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         if (enchantmentStatus.Message != null)
-                            player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                            player.Session.EnqueueSend(enchantmentStatus.Message);
                     }
                     break;
 
@@ -667,7 +667,7 @@ namespace ACE.Server.WorldObjects
                                 EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                         }
                         if (enchantmentStatus.Message != null)
-                            player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                            player.Session.EnqueueSend(enchantmentStatus.Message);
                     }
                     else
                     {
@@ -680,7 +680,7 @@ namespace ACE.Server.WorldObjects
                             else
                                 EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                             if (enchantmentStatus.Message != null)
-                                player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                                player.Session.EnqueueSend(enchantmentStatus.Message);
                         }
                         else
                         {
@@ -693,7 +693,7 @@ namespace ACE.Server.WorldObjects
                                     enchantmentStatus = ItemMagic(item, spell);
                                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                                     if (enchantmentStatus.Message != null)
-                                        player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                                        player.Session.EnqueueSend(enchantmentStatus.Message);
                                 }
                             }
                         }
@@ -712,7 +712,7 @@ namespace ACE.Server.WorldObjects
 
             if (IsBusy || Teleporting)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.YoureTooBusy));
+                Session.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.YoureTooBusy));
                 return;
             }
             IsBusy = true;
@@ -723,13 +723,13 @@ namespace ACE.Server.WorldObjects
             {
                 if (spell._spellBase == null)
                 {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
-                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.None));
+                    Session.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                    Session.EnqueueSend(new GameEventUseDone(Session, WeenieError.None));
                 }
                 else
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    Session.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
                 }
 
                 IsBusy = false;
@@ -753,7 +753,7 @@ namespace ACE.Server.WorldObjects
 
             if (manaUsed > Mana.Current)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.YouDontHaveEnoughManaToCast));
+                Session.EnqueueSend(new GameEventUseDone(Session, WeenieError.YouDontHaveEnoughManaToCast));
                 IsBusy = false;  // delay?
                 return;
             }
@@ -828,7 +828,7 @@ namespace ACE.Server.WorldObjects
                                 WarMagic(spell);
                                 break;
                             default:
-                                Session.Network.EnqueueSend(new GameMessageSystemChat("Untargeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
+                                Session.EnqueueSend(new GameMessageSystemChat("Untargeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
                                 break;
                         }
 
@@ -848,11 +848,11 @@ namespace ACE.Server.WorldObjects
 
                 if (movedTooFar)
                 {
-                    //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
+                    //Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    Session.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
                 }
 
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, useDone));
+                Session.EnqueueSend(new GameEventUseDone(Session, useDone));
             });
 
             spellChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing
@@ -915,7 +915,7 @@ namespace ACE.Server.WorldObjects
                     // bake player into the messages
                     buffMessages.Where(k => !k.Bane).ToList().ForEach(k => k.SetTargetPlayer(targetPlayer));
                     // update client-side enchantments
-                    targetPlayer.Session.Network.EnqueueSend(buffMessages.Where(k => !k.Bane).Select(k => k.SessionMessage).ToArray());
+                    targetPlayer.Session.EnqueueSend(buffMessages.Where(k => !k.Bane).Select(k => k.SessionMessage).ToArray());
                     // run client-side effect scripts, omitting duplicates
                     targetPlayer.EnqueueBroadcast(buffMessages.Where(k => !k.Bane).ToList().GroupBy(m => m.Spell.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
                     // update server-side enchantments
@@ -1096,7 +1096,7 @@ namespace ACE.Server.WorldObjects
 
             // send message to player
             var msg = Spell.GetConsumeString(burned);
-            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
+            Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
         }
 
         public static Dictionary<MagicSchool, uint> FociWCIDs = new Dictionary<MagicSchool, uint>()
@@ -1222,7 +1222,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var playerVital = Vitals[maxVital];
 
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, playerVital.ToEnum(), playerVital.Current));
+                    Session.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, playerVital.ToEnum(), playerVital.Current));
                 }
             });
             actionChain.EnqueueChain();

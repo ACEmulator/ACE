@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
                 if (player.SpellIsKnown(Spell.Id))
                 {
                     // verify unknown spell
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You already know that spell!", ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat("You already know that spell!", ChatMessageType.Broadcast));
                     return;
                 }
 
@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
                     else
                         msg = $"You are not skilled enough in {playerSkill.Skill.ToSentence()} to learn this spell.";
 
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                     return;
                 }
 
@@ -103,7 +103,7 @@ namespace ACE.Server.WorldObjects
 
                 player.TryConsumeFromInventoryWithNetworking(this);
 
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Broadcast));
             });
 
             player.LastUseTime += animTime;     // return stance

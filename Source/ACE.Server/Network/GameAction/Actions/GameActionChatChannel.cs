@@ -24,7 +24,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (session.AccessLevel < AccessLevel.Advocate)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
@@ -32,11 +32,11 @@ namespace ACE.Server.Network.GameAction.Actions
                             if (recipient.Session != session)
                             {
                                 if (recipient.Session.AccessLevel >= AccessLevel.Advocate && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
+                                    recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
+                                recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -45,7 +45,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (!session.Player.IsAdmin)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
@@ -53,11 +53,11 @@ namespace ACE.Server.Network.GameAction.Actions
                             if (recipient.Session != session)
                             {
                                 if (recipient.Session.AccessLevel == AccessLevel.Admin && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
+                                    recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
+                                recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -66,7 +66,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (session.AccessLevel < AccessLevel.Sentinel)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
@@ -74,11 +74,11 @@ namespace ACE.Server.Network.GameAction.Actions
                             if (recipient.Session != session)
                             {
                                 if (recipient.Session.AccessLevel >= AccessLevel.Sentinel && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
+                                    recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
+                                recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -89,7 +89,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (session.AccessLevel < AccessLevel.Advocate)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
@@ -97,11 +97,11 @@ namespace ACE.Server.Network.GameAction.Actions
                             if (recipient.Session != session)
                             {
                                 if (recipient.Session.AccessLevel >= AccessLevel.Advocate && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
+                                    recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
+                                recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -110,7 +110,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (session.AccessLevel < AccessLevel.Sentinel)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
@@ -118,11 +118,11 @@ namespace ACE.Server.Network.GameAction.Actions
                             if (recipient.Session != session)
                             {
                                 if (recipient.Session.AccessLevel >= AccessLevel.Sentinel && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
+                                    recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
+                                recipient.Session.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -144,7 +144,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in PlayerManager.GetAllOnline())
                             if (recipient.Session != session && !recipient.Squelches.Contains(session.Player))
-                                recipient.Session.Network.EnqueueSend(gameMessageSystemChat);
+                                recipient.Session.EnqueueSend(gameMessageSystemChat);
 
                         // again not sure what way to go with this.. the code below was added after I realized I should be handling things differently
                         // and by handling differently I mean letting the client do all of the work it was already designed to do.
@@ -161,7 +161,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (session.Player.Fellowship == null)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouDoNotBelongToAFellowship);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
@@ -169,9 +169,9 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         foreach (var fellowmember in fellowshipMembers.Values)
                             if (fellowmember.Session != session && !fellowmember.Squelches.Contains(session.Player))
-                                fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, groupChatType, session.Player.Name, message));
+                                fellowmember.Session.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, groupChatType, session.Player.Name, message));
                             else
-                                session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
+                                session.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
                 case Channel.Vassals:
@@ -179,14 +179,14 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (!session.Player.HasAllegiance)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
                         if (session.Player.AllegianceNode.TotalVassals == 0)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
@@ -195,9 +195,9 @@ namespace ACE.Server.Network.GameAction.Actions
                             var vassalPlayer = PlayerManager.GetOnlinePlayer(vassalGuid);
 
                             if (vassalPlayer != null && !vassalPlayer.Squelches.Contains(session.Player))
-                                vassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(vassalPlayer.Session, groupChatType, session.Player.Name, message));
+                                vassalPlayer.Session.EnqueueSend(new GameEventChannelBroadcast(vassalPlayer.Session, groupChatType, session.Player.Name, message));
                         }
-                        session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
+                        session.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
                 case Channel.Patron:
@@ -205,23 +205,23 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (!session.Player.HasAllegiance)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
                         if (!session.Player.PatronId.HasValue)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
                         var patronPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Patron.PlayerGuid);
 
                         if (patronPlayer != null && !patronPlayer.Squelches.Contains(session.Player))
-                            patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, groupChatType, session.Player.Name, message));
+                            patronPlayer.Session.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, groupChatType, session.Player.Name, message));
 
-                        session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
+                        session.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
                 case Channel.Monarch:
@@ -229,23 +229,23 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (!session.Player.HasAllegiance)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
                         if (!session.Player.MonarchId.HasValue)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
                         var monarchPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Monarch.PlayerGuid);
 
                         if (monarchPlayer != null && !monarchPlayer.Squelches.Contains(session.Player))
-                            monarchPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Monarch, session.Player.Name, message));
+                            monarchPlayer.Session.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Monarch, session.Player.Name, message));
 
-                        session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
+                        session.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
                 case Channel.CoVassals:
@@ -253,34 +253,34 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (!session.Player.HasAllegiance)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
                         if (!session.Player.PatronId.HasValue)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
-                            session.Network.EnqueueSend(statusMessage);
+                            session.EnqueueSend(statusMessage);
                             break;
                         }
 
                         var patronPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Patron.PlayerGuid);
 
                         if (patronPlayer != null && !patronPlayer.Squelches.Contains(session.Player))
-                            patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, Channel.Patron, session.Player.Name, message));
+                            patronPlayer.Session.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, Channel.Patron, session.Player.Name, message));
 
                         foreach (var covassalGuid in session.Player.AllegianceNode.Patron.Vassals.Keys)
                         {
                             if (covassalGuid == session.Player.Guid.Full)
                             {
-                                session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
+                                session.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                             }
                             else
                             {
                                 var covassalPlayer = PlayerManager.GetOnlinePlayer(covassalGuid);
 
                                 if (covassalPlayer != null && !covassalPlayer.Squelches.Contains(session.Player))
-                                    covassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(covassalPlayer.Session, groupChatType, session.Player.Name, message));
+                                    covassalPlayer.Session.EnqueueSend(new GameEventChannelBroadcast(covassalPlayer.Session, groupChatType, session.Player.Name, message));
                             }
                         }
                     }
@@ -292,13 +292,13 @@ namespace ACE.Server.Network.GameAction.Actions
                         var player = session.Player;
                         if (player.Allegiance == null)
                         {
-                            session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance));
+                            session.EnqueueSend(new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance));
                             break;
                         }
 
                         if (player.AllegiancePermissionLevel < AllegiancePermissionLevel.Speaker)
                         {
-                            session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                            session.EnqueueSend(new GameEventWeenieError(session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                             break;
                         }
 
@@ -310,7 +310,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             if (online == null || online.Squelches.Contains(session.Player))
                                 continue;
 
-                            online.Session.Network.EnqueueSend(new GameEventChannelBroadcast(online.Session, groupChatType, session.Player.Name, message));
+                            online.Session.EnqueueSend(new GameEventChannelBroadcast(online.Session, groupChatType, session.Player.Name, message));
                         }
                     }
                     break;

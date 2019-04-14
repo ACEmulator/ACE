@@ -88,8 +88,8 @@ namespace ACE.Server.WorldObjects
             // 0 or 1 for winning team. -1 is used for stalemate, -2 (and gameId of 0) is used to exit game mode in client
             // var msgGameOver = new GameEventGameOver(player.Session, 0, -2);
 
-            // player.Session.Network.EnqueueSend(msgJoinResponse, msgGameOver);
-            player.Session.Network.EnqueueSend(msgJoinResponse);
+            // player.Session.EnqueueSend(msgJoinResponse, msgGameOver);
+            player.Session.EnqueueSend(msgJoinResponse);
 
             // 0xA9B2002E [135.97 133.313 94.4447] 1 0 0 0 (holtburg game location)
 
@@ -267,7 +267,7 @@ namespace ACE.Server.WorldObjects
                 mosswartPawn8.Kill();
 
                 var msgGameOver = new GameEventGameOver(player.Session, Guid, 0);
-                player.Session.Network.EnqueueSend(msgGameOver);
+                player.Session.EnqueueSend(msgGameOver);
             });
             gdlChain.AddDelaySeconds(2);
             gdlChain.AddAction(this, () =>
@@ -275,7 +275,7 @@ namespace ACE.Server.WorldObjects
                 byte[] msg = Convert.FromBase64String("Z2FtZXNkZWFkbG9s");
                 var popupGDL = new GameEventPopupString(player.Session, System.Text.Encoding.UTF8.GetString(msg, 0, msg.Length));
                 var msgGameOver2 = new GameEventGameOver(player.Session, new ObjectGuid(0), -2);
-                player.Session.Network.EnqueueSend(popupGDL, msgGameOver2);
+                player.Session.EnqueueSend(popupGDL, msgGameOver2);
                 player.ChessGamesLost++;
                 player.ChessTotalGames++;
                 active = false;

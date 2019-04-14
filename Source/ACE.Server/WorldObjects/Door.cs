@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
                 if (player != null)
                 {
                     var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
-                    player.Session.Network.EnqueueSend(doorIsLocked);
+                    player.Session.EnqueueSend(doorIsLocked);
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                 }
             }

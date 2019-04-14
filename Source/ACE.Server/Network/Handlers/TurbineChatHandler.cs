@@ -74,7 +74,7 @@ namespace ACE.Server.Network.Handlers
                         // does this player have allegiance chat filtered?
                         if (!online.GetCharacterOption(CharacterOption.ListenToAllegianceChat)) continue;
 
-                        online.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                        online.Session.EnqueueSend(gameMessageTurbineChat);
                     }
                 }
                 else
@@ -92,7 +92,7 @@ namespace ACE.Server.Network.Handlers
                         if (recipient.Squelches.Contains(session.Player))
                             continue;
 
-                        recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                        recipient.Session.EnqueueSend(gameMessageTurbineChat);
                     }
                 }
             }

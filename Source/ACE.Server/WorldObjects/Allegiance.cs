@@ -300,7 +300,7 @@ namespace ACE.Server.WorldObjects
                     player.MonarchId = member.Value.Allegiance.MonarchId;
 
                     if (onlinePlayer != null)
-                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, player.MonarchId.Value));
+                        onlinePlayer.Session.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, player.MonarchId.Value));
 
                     updated = true;
                 }
@@ -311,7 +311,7 @@ namespace ACE.Server.WorldObjects
                     player.AllegianceRank = (int)member.Value.Rank;
 
                     if (onlinePlayer != null)
-                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, player.AllegianceRank.Value));
+                        onlinePlayer.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, player.AllegianceRank.Value));
 
                     updated = true;
                 }
@@ -320,7 +320,7 @@ namespace ACE.Server.WorldObjects
                     player.SaveBiotaToDatabase();
 
                 if (onlinePlayer != null)
-                    onlinePlayer.Session.Network.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, this, member.Value), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
+                    onlinePlayer.Session.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, this, member.Value), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
             }
         }
 

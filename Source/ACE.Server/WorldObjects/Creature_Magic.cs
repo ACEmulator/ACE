@@ -184,7 +184,7 @@ namespace ACE.Server.WorldObjects
             if (spell._spellBase == null)
             {
                 if (this is Player player)
-                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"SpellId {spellId} Invalid."));
+                    player.Session.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"SpellId {spellId} Invalid."));
 
                 return;
             }

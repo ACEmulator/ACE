@@ -260,10 +260,10 @@ namespace ACE.Server.WorldObjects
             if (pkError != null)
             {
                 if (player != null)
-                    player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, pkError[0], target.Name));
+                    player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, pkError[0], target.Name));
 
                 if (targetPlayer != null)
-                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], ProjectileSource.Name));
+                    targetPlayer.Session.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], ProjectileSource.Name));
 
                 return;
             }
@@ -280,7 +280,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var dot = ProjectileSource.CreateEnchantment(target, ProjectileSource, Spell);
                     if (dot.Message != null && player != null)
-                        player.Session.Network.EnqueueSend(dot.Message);
+                        player.Session.EnqueueSend(dot.Message);
 
                     // corruption / corrosion playscript?
                     //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.HealthDownVoid));
@@ -555,11 +555,11 @@ namespace ACE.Server.WorldObjects
                         var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.", ChatMessageType.Magic);
                         var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
 
-                        player.Session.Network.EnqueueSend(attackerMsg, updateHealth);
+                        player.Session.EnqueueSend(attackerMsg, updateHealth);
                     }
 
                     if (targetPlayer != null)
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.", ChatMessageType.Magic));
+                        targetPlayer.Session.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.", ChatMessageType.Magic));
                 }
                 else
                 {

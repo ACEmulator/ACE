@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
             {
                 var targetPlayer = target as Player;
                 if (targetPlayer != null)
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    targetPlayer.Session.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
                 return;
             }
@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
             // send message to player, if applicable
             var player = this as Player;
             if (player != null && status.Message != null && showMsg)
-                player.Session.Network.EnqueueSend(status.Message);
+                player.Session.EnqueueSend(status.Message);
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
@@ -297,13 +297,13 @@ namespace ACE.Server.WorldObjects
             {
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists your spell", ChatMessageType.Magic));
-                    player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
+                    player.Session.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists your spell", ChatMessageType.Magic));
+                    player.Session.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
                 }
                 if (targetPlayer != null)
                 {
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {Name}", ChatMessageType.Magic));
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSound(targetPlayer.Guid, Sound.ResistSpell, 1.0f));
+                    targetPlayer.Session.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {Name}", ChatMessageType.Magic));
+                    targetPlayer.Session.EnqueueSend(new GameMessageSound(targetPlayer.Guid, Sound.ResistSpell, 1.0f));
 
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
@@ -417,7 +417,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     if (player != null && srcVital != null && srcVital.Equals("health"))
-                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
+                        player.Session.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
                     break;
 
@@ -535,7 +535,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     if (player != null && srcVital != null && srcVital.Equals("health"))
-                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
+                        player.Session.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
                     break;
 
@@ -621,7 +621,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (targetMsg != null)
-                (target as Player).Session.Network.EnqueueSend(targetMsg);
+                (target as Player).Session.EnqueueSend(targetMsg);
 
             enchantmentStatus.Success = true;
 
@@ -702,7 +702,7 @@ namespace ACE.Server.WorldObjects
                                 if (player.LastPortalDID == null)
                                 {
                                     // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
                                 {
@@ -716,7 +716,7 @@ namespace ACE.Server.WorldObjects
                                 if (player.GetPosition(PositionType.LinkedLifestone) == null)
                                 {
                                     // You must link to a lifestone to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
+                                    player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
                                 }
                                 else
                                     recall = PositionType.LinkedLifestone;
@@ -734,7 +734,7 @@ namespace ACE.Server.WorldObjects
                                 if (player.LinkedPortalOneDID == null)
                                 {
                                     // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
                                 {
@@ -748,7 +748,7 @@ namespace ACE.Server.WorldObjects
                                 if (player.LinkedPortalTwoDID == null)
                                 {
                                     // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
                                 {
@@ -779,7 +779,7 @@ namespace ACE.Server.WorldObjects
                                 if (!result.Success)
                                 {
                                     if (result.Message != null)
-                                        player.Session.Network.EnqueueSend(result.Message);
+                                        player.Session.EnqueueSend(result.Message);
 
                                     break;
                                 }
@@ -815,11 +815,11 @@ namespace ACE.Server.WorldObjects
 
                                     if (target.WeenieType == WeenieType.LifeStone)
                                     {
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the life stone.", ChatMessageType.Magic));
+                                        player.Session.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the life stone.", ChatMessageType.Magic));
                                         player.LinkedLifestone = target.Location;
                                     }
                                     else
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
+                                        player.Session.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
 
                                     break;
 
@@ -848,13 +848,13 @@ namespace ACE.Server.WorldObjects
                                                 player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
                                             }
 
-                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
+                                            player.Session.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
                                         }
                                         else
-                                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
+                                            player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
                                     }
                                     else
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
+                                        player.Session.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
                                     break;
                             }
                         }
@@ -885,7 +885,7 @@ namespace ACE.Server.WorldObjects
                             if (portalId == 0)
                             {
                                 // You must link to a portal to summon it!
-                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
+                                player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
                                 break;
                             }
 
@@ -893,7 +893,7 @@ namespace ACE.Server.WorldObjects
                             if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && !PropertyManager.GetBool("gateway_ties_summonable").Item))
                             {
                                 // You cannot summon that portal!
-                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
+                                player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
                                 break;
                             }
 
@@ -913,7 +913,7 @@ namespace ACE.Server.WorldObjects
                         }
 
                         if (!SummonPortal(portalId, summonLoc, spell.PortalLifetime) && player != null)
-                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
+                            player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
 
                         break;
 
@@ -998,7 +998,7 @@ namespace ACE.Server.WorldObjects
                 var player = this as Player;
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
+                    player.Session.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
                         new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
                 }
             }
@@ -1038,7 +1038,7 @@ namespace ACE.Server.WorldObjects
                 var player = this as Player;
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
+                    player.Session.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
                         new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
                 }
             }
@@ -1082,7 +1082,7 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, spell.Formula.Scale));
             var enchantmentStatus = CreatureMagic(target, spell);
             if (enchantmentStatus.Message != null)
-                player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                player.Session.EnqueueSend(enchantmentStatus.Message);
 
             var difficulty = spell.Power;
             var difficultyMod = Math.Max(difficulty, 25);   // fix difficulty for level 1 spells?
@@ -1131,7 +1131,7 @@ namespace ACE.Server.WorldObjects
                 var player = this as Player;
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
+                    player.Session.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
                         new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
                 }
             }
@@ -1188,12 +1188,12 @@ namespace ACE.Server.WorldObjects
 
             if (target is Player)
             {
-                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
+                playerTarget.Session.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
                 playerTarget.HandleMaxVitalUpdate(spell);
 
                 if (playerTarget != this)
-                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+                    playerTarget.Session.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
             }
 
             if (message != null)

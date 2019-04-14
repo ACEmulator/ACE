@@ -55,9 +55,9 @@ namespace ACE.Server.WorldObjects
 
             // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
             if (!worldObject.Visibility)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+                Session.EnqueueSend(new GameMessageCreateObject(worldObject));
             else if (worldObject.Visibility && Adminvision)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+                Session.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             //Console.WriteLine($"Player {Name} - TrackObject({worldObject.Name})");
 
@@ -96,9 +96,9 @@ namespace ACE.Server.WorldObjects
             ObjMaint.RemoveObject(worldObject.PhysicsObj);
 
             if (fromPickup)
-                Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
+                Session.EnqueueSend(new GameMessagePickupEvent(worldObject));
             else
-                Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
+                Session.EnqueueSend(new GameMessageDeleteObject(worldObject));
 
             if (worldObject is Creature creature)
             {
@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
             if (wielder == this)
                 return;
 
-            Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
+            Session.EnqueueSend(new GameMessageCreateObject(wieldedItem));
         }
 
         public void RemoveTrackedEquippedObject(Creature formerWielder, WorldObject worldObject)
@@ -138,9 +138,9 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // todo: Until we can fix the tracking system better, sending the PickupEvent like retail causes weapon dissapearing bugs on relog
-            //Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
+            //Session.EnqueueSend(new GameMessagePickupEvent(worldObject));
 
-            Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
+            Session.EnqueueSend(new GameMessageDeleteObject(worldObject));
         }
 
         public void DeCloak()

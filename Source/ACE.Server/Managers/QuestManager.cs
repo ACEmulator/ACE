@@ -300,13 +300,13 @@ namespace ACE.Server.Managers
         {
             if (wo is Portal)
             {
-                Player.Session.Network.EnqueueSend(new GameEventWeenieError(Player.Session, WeenieError.YouMustCompleteQuestToUsePortal));
+                Player.Session.EnqueueSend(new GameEventWeenieError(Player.Session, WeenieError.YouMustCompleteQuestToUsePortal));
             }
             else
             {
                 var error = new GameEventInventoryServerSaveFailed(Player.Session, wo.Guid.Full, WeenieError.ItemRequiresQuestToBePickedUp);
                 var text = new GameMessageSystemChat("This item requires you to complete a specific quest before you can pick it up!", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, error);
+                Player.Session.EnqueueSend(text, error);
             }
         }
 
@@ -319,7 +319,7 @@ namespace ACE.Server.Managers
             {
                 var error = new GameEventInventoryServerSaveFailed(Player.Session, 0, WeenieError.YouHaveSolvedThisQuestTooManyTimes);
                 var text = new GameMessageSystemChat("You have solved this quest too many times!", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, error);
+                Player.Session.EnqueueSend(text, error);
             }
             else
             {
@@ -328,7 +328,7 @@ namespace ACE.Server.Managers
 
                 var remainStr = GetNextSolveTime(questName).GetFriendlyString();
                 var remain = new GameMessageSystemChat($"You may complete this quest again in {remainStr}.", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, remain, error);
+                Player.Session.EnqueueSend(text, remain, error);
             }
         }
 
@@ -372,7 +372,7 @@ namespace ACE.Server.Managers
             else
                 msg = $"You have killed {playerQuest.NumTimesCompleted} {obj.GetPluralName()}. You must kill {quest.MaxSolves} to complete your task!";
 
-            Player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            Player.Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
             // are we in a fellowship? if so, share with fellowship
             if (shareable && Player.Fellowship != null)

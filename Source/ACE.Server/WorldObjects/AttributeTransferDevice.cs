@@ -58,13 +58,13 @@ namespace ACE.Server.WorldObjects
 
             if (fromAttr.StartingValue <= 10)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your innate {TransferFromAttribute} must be above 10 to use the {Name}.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"Your innate {TransferFromAttribute} must be above 10 to use the {Name}.", ChatMessageType.Broadcast));
                 return;
             }
 
             if (toAttr.StartingValue >= 100)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your innate {TransferToAttribute} must be below 100 to use the {Name}.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"Your innate {TransferToAttribute} must be below 100 to use the {Name}.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects
 
             var sound = new GameMessageSound(player.Guid, Sound.RaiseTrait);
 
-            player.Session.Network.EnqueueSend(updateFrom, updateTo, msgFrom, msgTo, sound);
+            player.Session.EnqueueSend(updateFrom, updateTo, msgFrom, msgTo, sound);
 
             player.SaveBiotaToDatabase();
 

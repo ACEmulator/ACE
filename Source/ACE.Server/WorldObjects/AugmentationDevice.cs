@@ -63,7 +63,7 @@ namespace ACE.Server.WorldObjects
             var confirm = new Confirmation(ConfirmationType.Augmentation, msg, this, player, player);
             ConfirmationManager.AddConfirmation(confirm);
 
-            player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Augmentation, confirm.ConfirmationID, msg));
+            player.Session.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Augmentation, confirm.ConfirmationID, msg));
         }
 
         public void DoAugmentation(Player player)
@@ -87,7 +87,7 @@ namespace ACE.Server.WorldObjects
                 var attr = AugTypeHelper.GetAttribute(type);
                 var playerAttr = player.Attributes[attr];
                 playerAttr.StartingValue += 5;
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, attr, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                player.Session.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, attr, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
             }
             else if (AugTypeHelper.IsResist(type))
                 player.AugmentationResistanceFamily++;
@@ -102,20 +102,20 @@ namespace ACE.Server.WorldObjects
                 // if trained skill is maxed, there will be a ~103m xp overage...
                 var specRank = Player.CalcSkillRank(SkillAdvancementClass.Specialized, playerSkill.ExperienceSpent);
                 playerSkill.Ranks = (ushort)specRank;
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, playerSkill));
+                player.Session.EnqueueSend(new GameMessagePrivateUpdateSkill(player, playerSkill));
             }
 
             else if (type == AugmentationType.PackSlot)
             {
                 // still seems to require the client to relog
                 player.ContainerCapacity++;
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.ContainersCapacity, (int)player.ContainerCapacity));
+                player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.ContainersCapacity, (int)player.ContainerCapacity));
             }
 
             else if (type == AugmentationType.BurdenLimit)
             {
                 var capacity = player.GetEncumbranceCapacity();
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.EncumbranceCapacity, capacity));
+                player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.EncumbranceCapacity, capacity));
             }
 
             // consume xp
@@ -129,7 +129,7 @@ namespace ACE.Server.WorldObjects
             var updateXP = new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.AvailableExperience, player.AvailableExperience ?? 0);
             var msg = new GameMessageSystemChat($"Congratulations! You have succeeded in acquiring the {Name} augmentation.", ChatMessageType.Broadcast);
 
-            player.Session.Network.EnqueueSend(updateProp, updateXP, msg);
+            player.Session.EnqueueSend(updateProp, updateXP, msg);
 
             // also broadcast to nearby players
             player.EnqueueBroadcast(new GameMessageScript(player.Guid, AugTypeHelper.GetEffect(type)));
@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
 
             if (availableXP < augCost)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You do not have enough experience to use this augmentation gem.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat("You do not have enough experience to use this augmentation gem.", ChatMessageType.Broadcast));
                 return false;
             }
 
@@ -156,7 +156,7 @@ namespace ACE.Server.WorldObjects
                 if (player.AugmentationInnateFamily >= MaxAugs[type])
                 {
                     // more descriptive message?
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("This augmentation is already active.", ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat("This augmentation is already active.", ChatMessageType.Broadcast));
                     return false;
                 }
 
@@ -165,7 +165,7 @@ namespace ACE.Server.WorldObjects
                 // check InitLevel
                 if (playerAttribute.StartingValue >= 100)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You are already at the maximum innate level.", ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat("You are already at the maximum innate level.", ChatMessageType.Broadcast));
                     return false;
                 }
             }
@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
 
                 if (playerSkill.AdvancementClass != SkillAdvancementClass.Trained)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You are not trained in this skill!", ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat("You are not trained in this skill!", ChatMessageType.Broadcast));
                     return false;
                 }
             }
@@ -185,7 +185,7 @@ namespace ACE.Server.WorldObjects
                 if (player.AugmentationResistanceFamily >= MaxAugs[type])
                 {
                     // more descriptive message?
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("This augmentation is already active.", ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat("This augmentation is already active.", ChatMessageType.Broadcast));
                     return false;
                 }
             }
@@ -196,7 +196,7 @@ namespace ACE.Server.WorldObjects
             if (augProp >= MaxAugs[type])
             {
                 // more descriptive message when MaxAugs > 1?
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("This augmentation is already active.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat("This augmentation is already active.", ChatMessageType.Broadcast));
                 return false;
             }
 

@@ -157,7 +157,7 @@ namespace ACE.Server.WorldObjects
 
             // send network messages
             foreach (var kvp in salvageResults.GetMessages())
-                Session.Network.EnqueueSend(new GameEventSalvageOperationsResult(Session, kvp.Key, kvp.Value));
+                Session.EnqueueSend(new GameEventSalvageOperationsResult(Session, kvp.Key, kvp.Value));
         }
 
         public void AddSalvage(List<WorldObject> salvageBags, WorldObject item, SalvageResults salvageResults)

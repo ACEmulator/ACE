@@ -12,8 +12,8 @@ namespace ACE.Server.Network.GameAction.Actions
             bool shareXp = message.Payload.ReadUInt32() > 0;
 
             session.Player.FellowshipCreate(fellowshipName, shareXp);
-            session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(session));
-            session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(session));
+            session.EnqueueSend(new GameEventFellowshipFullUpdate(session));
+            session.EnqueueSend(new GameEventFellowshipFellowUpdateDone(session));
         }
     }
 }

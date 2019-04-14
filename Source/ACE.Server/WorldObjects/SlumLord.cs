@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (player.Allegiance == null || player.Allegiance.MonarchId != player.Guid.Full)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You must be a monarch to purchase this dwelling.", ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat("You must be a monarch to purchase this dwelling.", ChatMessageType.Broadcast));
                     return new ActivationResult(false);
                 }
             }
@@ -129,7 +129,7 @@ namespace ACE.Server.WorldObjects
             houseProfile.SetRentItems(GetRentItems());
             houseProfile.SetPaidItems(this);
 
-            player.Session.Network.EnqueueSend(new GameEventHouseProfile(player.Session, Guid, houseProfile));
+            player.Session.EnqueueSend(new GameEventHouseProfile(player.Session, Guid, houseProfile));
         }
 
         /// <summary>

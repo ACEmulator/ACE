@@ -158,14 +158,14 @@ namespace ACE.Server.Network.Handlers
 
         private static void SendCharacterCreateResponse(Session session, CharacterGenerationVerificationResponse response, ObjectGuid guid = default(ObjectGuid), string charName = "")
         {
-            session.Network.EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
+            session.EnqueueSend(new GameMessageCharacterCreateResponse(response, guid, charName));
         }
 
 
         [GameMessage(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
         public static void CharacterEnterWorldRequest(ClientMessage message, Session session)
         {
-            session.Network.EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
+            session.EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
         }
 
         [GameMessage(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
@@ -236,7 +236,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            session.Network.EnqueueSend(new GameMessageCharacterDelete());
+            session.EnqueueSend(new GameMessageCharacterDelete());
 
             var charRestoreTime = PropertyManager.GetLong("char_delete_time", 3600).Item;
             character.DeleteTime = (ulong)(Time.GetUnixTime() + charRestoreTime);
@@ -246,7 +246,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (result)
                 {
-                    session.Network.EnqueueSend(new GameMessageCharacterList(session.Characters, session));
+                    session.EnqueueSend(new GameMessageCharacterList(session.Characters, session));
                     PlayerManager.HandlePlayerDelete(character.Id);
                 }
                 else
@@ -284,7 +284,7 @@ namespace ACE.Server.Network.Handlers
                             name = "+" + name;
 
                         if (result)
-                            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, name, 0u));
+                            session.EnqueueSend(new GameMessageCharacterRestore(guid, name, 0u));
                         else
                             SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
                     });

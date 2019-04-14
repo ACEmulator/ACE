@@ -44,16 +44,16 @@ namespace ACE.Server.WorldObjects
                 if (attribute == PropertyAttribute.Endurance)
                 {
                     var healthUpdate = new GameMessagePrivateUpdateVital(this, PropertyAttribute2nd.MaxHealth, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
-                    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
+                    Session.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
                 }
                 else if (attribute == PropertyAttribute.Self)
                 {
                     var manaUpdate = new GameMessagePrivateUpdateVital(this, PropertyAttribute2nd.MaxMana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
-                    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
+                    Session.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
                 }
                 else
                 {
-                    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message);
+                    Session.EnqueueSend(abilityUpdate, soundEvent, message);
                 }
             }
             else

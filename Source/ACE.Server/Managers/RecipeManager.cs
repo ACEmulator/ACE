@@ -36,7 +36,7 @@ namespace ACE.Server.Managers
             if (source == target)
             {
                 var message = new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft);
-                player.Session.Network.EnqueueSend(message);
+                player.Session.EnqueueSend(message);
                 player.SendUseDoneEvent();
                 return;
             }
@@ -46,7 +46,7 @@ namespace ACE.Server.Managers
             if (recipe == null)
             {
                 var message = new GameMessageSystemChat($"The {source.Name} cannot be used on the {target.Name}.", ChatMessageType.Craft);
-                player.Session.Network.EnqueueSend(message);
+                player.Session.EnqueueSend(message);
                 player.SendUseDoneEvent();
                 return;
             }
@@ -119,7 +119,7 @@ namespace ACE.Server.Managers
                     if (skill.AdvancementClass <= SkillAdvancementClass.Untrained)
                     {
                         var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
-                        player.Session.Network.EnqueueSend(message);
+                        player.Session.EnqueueSend(message);
                         player.SendUseDoneEvent(WeenieError.YouAreNotTrainedInThatTradeSkill);
                         player.IsBusy = false;
                         return;
@@ -144,7 +144,7 @@ namespace ACE.Server.Managers
                     if (target.CurrentWieldedLocation != null)
                         player.EnqueueBroadcast(updateObj, updateDesc);
                     else
-                        player.Session.Network.EnqueueSend(updateObj);
+                        player.Session.EnqueueSend(updateObj);
                 }
 
                 player.SendUseDoneEvent();
@@ -220,8 +220,8 @@ namespace ACE.Server.Managers
                 var confirm = new Confirmation(ConfirmationType.CraftInteraction, floorMsg, tool, target, player);
                 ConfirmationManager.AddConfirmation(confirm);
 
-                player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.CraftInteraction, confirm.ConfirmationID, floorMsg));
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
+                player.Session.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.CraftInteraction, confirm.ConfirmationID, floorMsg));
+                player.Session.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
 
                 player.SendUseDoneEvent();
                 return;
@@ -477,7 +477,7 @@ namespace ACE.Server.Managers
             if (target.UiEffects == null)
             {
                 target.UiEffects = UiEffects.Magical;
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(target, PropertyInt.UiEffects, (int)target.UiEffects));
+                player.Session.EnqueueSend(new GameMessagePublicUpdatePropertyInt(target, PropertyInt.UiEffects, (int)target.UiEffects));
             }
         }
 
@@ -511,7 +511,7 @@ namespace ACE.Server.Managers
             if (IconUnderlay.TryGetValue(effect, out var icon))
             {
                 target.SetProperty(PropertyDataId.IconUnderlay, icon);
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(target, PropertyDataId.IconUnderlay, icon));
+                player.Session.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(target, PropertyDataId.IconUnderlay, icon));
             }
 
             return true;
@@ -750,7 +750,7 @@ namespace ACE.Server.Managers
             }
 
             if (!success)
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(failMsg, ChatMessageType.Craft));
+                player.Session.EnqueueSend(new GameMessageSystemChat(failMsg, ChatMessageType.Craft));
 
             return success;
         }
@@ -787,7 +787,7 @@ namespace ACE.Server.Managers
                     break;
             }
             if (!success)
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(failMsg, ChatMessageType.Craft));
+                player.Session.EnqueueSend(new GameMessageSystemChat(failMsg, ChatMessageType.Craft));
 
             return success;
         }
@@ -828,7 +828,7 @@ namespace ACE.Server.Managers
 
             var message = success ? recipe.SuccessMessage : recipe.FailMessage;
 
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
+            player.Session.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
         }
 
         public static WorldObject CreateItem(Player player, uint wcid, uint amount)
@@ -867,7 +867,7 @@ namespace ACE.Server.Managers
             if (!string.IsNullOrEmpty(msg))
             {
                 var destroyMessage = new GameMessageSystemChat(msg, ChatMessageType.Craft);
-                player.Session.Network.EnqueueSend(destroyMessage);
+                player.Session.EnqueueSend(destroyMessage);
             }
         }
 

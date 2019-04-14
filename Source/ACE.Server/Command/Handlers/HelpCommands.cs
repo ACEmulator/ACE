@@ -23,7 +23,7 @@ namespace ACE.Server.Command.Handlers
                             + "@acehelp commands - Lists all commands.\n"
                             + "You can also use @acecommands to get a complete list of the supported ACEmulator commands available to you.\n"
                             + "To get more information about a specific command, use @acehelp command\n";
-                    session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                 }
 
                 return;
@@ -47,7 +47,7 @@ namespace ACE.Server.Command.Handlers
                     var msg = $"@{command.Attribute.Command} - {command.Attribute.Description}\n"
                             + $"Usage: @{command.Attribute.Command} {command.Attribute.Usage}\n";
 
-                    session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                     return;
                 }
@@ -65,7 +65,7 @@ namespace ACE.Server.Command.Handlers
                 var msg = "Use @acecommands to get a complete list of commands available for you to use.\n"
                         + "To get more information about a specific command, use @acehelp command\n";
 
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown command: {parameters[0]}", ChatMessageType.Help),
+                session.EnqueueSend(new GameMessageSystemChat($"Unknown command: {parameters[0]}", ChatMessageType.Help),
                                             new Network.GameEvent.Events.GameEventWeenieError(session, WeenieError.ThatIsNotAValidCommand),
                                             new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
             }
@@ -110,7 +110,7 @@ namespace ACE.Server.Command.Handlers
             var msg = string.Join("\n", commandList.ToArray());
 
             if (session != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat(msgHeader + msg, ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat(msgHeader + msg, ChatMessageType.Broadcast));
             else
                 Console.WriteLine(msg);
         }

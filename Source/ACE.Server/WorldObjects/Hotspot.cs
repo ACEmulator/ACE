@@ -164,7 +164,7 @@ namespace ACE.Server.WorldObjects
             var iAmount = (uint)Math.Round(Math.Abs(amount));
 
             if (!string.IsNullOrWhiteSpace(ActivationTalk))
-                plr.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", iAmount.ToString()), ChatMessageType.Broadcast));
+                plr.Session.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", iAmount.ToString()), ChatMessageType.Broadcast));
             if (!Visibility)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.TriggerActivated, 1.0f));
         }

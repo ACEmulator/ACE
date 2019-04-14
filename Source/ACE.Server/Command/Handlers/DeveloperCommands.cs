@@ -91,7 +91,7 @@ namespace ACE.Server.Command.Handlers
                 var posReadable = PostionAsLandblocksGoogleSpreadsheetFormat(pos);
                 AdminCommands.HandleTeleportLOC(session, posReadable.Split(' '));
                 var positionMessage = new GameMessageSystemChat($"Nudge player to {posReadable}", ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(positionMessage);
+                session.EnqueueSend(positionMessage);
             }
         }
 
@@ -298,7 +298,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(sysChatMessage);
+                session.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {
@@ -335,7 +335,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 var sysChatMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(sysChatMessage);
+                session.EnqueueSend(sysChatMessage);
             }
             catch (Exception)
             {
@@ -377,10 +377,10 @@ namespace ACE.Server.Command.Handlers
             var forwardCommand = (MotionCommand)Convert.ToInt16(parameters[0]);
 
             var movement = new Motion(session.Player, forwardCommand);
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, movement));
+            session.EnqueueSend(new GameMessageUpdateMotion(session.Player, movement));
 
             movement = new Motion(session.Player, MotionCommand.Ready);
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, movement));
+            session.EnqueueSend(new GameMessageUpdateMotion(session.Player, movement));
         }
 
         /// <summary>
@@ -410,7 +410,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("barbershop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void BarberShop(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameEventStartBarber(session));
+            session.EnqueueSend(new GameEventStartBarber(session));
         }
 
 
@@ -493,7 +493,7 @@ namespace ACE.Server.Command.Handlers
             var target = CommandHandlerHelper.GetLastAppraisedObject(session);
 
             if (target != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat($"\n{target.DebugOutputString(target)}", ChatMessageType.System));
+                session.EnqueueSend(new GameMessageSystemChat($"\n{target.DebugOutputString(target)}", ChatMessageType.System));
         }
 
 
@@ -627,7 +627,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             session.Player.CoinValue = coins;
-            session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.CoinValue, coins));
+            session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.CoinValue, coins));
         }
 
 
@@ -670,9 +670,9 @@ namespace ACE.Server.Command.Handlers
                 if (Enum.TryParse(parsePositionString, out PositionType positionType))
                 {
                     if (session.Player.TeleToPosition(positionType))
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location}", ChatMessageType.Broadcast));
+                        session.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location}", ChatMessageType.Broadcast));
                     else
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Error finding saved character position: {positionType}", ChatMessageType.Broadcast));
+                        session.EnqueueSend(new GameMessageSystemChat($"Error finding saved character position: {positionType}", ChatMessageType.Broadcast));
                 }
             }
         }
@@ -691,7 +691,7 @@ namespace ACE.Server.Command.Handlers
 
             message += "Total positions: " + posDict.Count + "\n";
             var positionMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-            session.Network.EnqueueSend(positionMessage);
+            session.EnqueueSend(positionMessage);
         }
 
         /// <summary>
@@ -719,13 +719,13 @@ namespace ACE.Server.Command.Handlers
 
                         // Report changes to client
                         var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
-                        session.Network.EnqueueSend(positionMessage);
+                        session.EnqueueSend(positionMessage);
                         return;
                     }
                 }
             }
 
-            session.Network.EnqueueSend(new GameMessageSystemChat("Could not determine the correct position type.\nPlease supply a single integer value from within the range of 1 through 27.", ChatMessageType.Broadcast));
+            session.EnqueueSend(new GameMessageSystemChat("Could not determine the correct position type.\nPlease supply a single integer value from within the range of 1 through 27.", ChatMessageType.Broadcast));
         }
 
         [CommandHandler("gps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Display location.")]
@@ -791,7 +791,7 @@ namespace ACE.Server.Command.Handlers
                         var amount = aceParams[1].AsLong;
                         aceParams[0].AsPlayer.GrantXP(amount, XpType.Admin, false); 
 
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted.", ChatMessageType.Advancement));
+                        session.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted.", ChatMessageType.Advancement));
 
                         return;
                     }
@@ -870,7 +870,7 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Health.Current = health;
                     var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Health, session.Player.Health.Current);
                     var message = new GameMessageSystemChat($"Attempting to set health to {health}...", ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(updatePlayersHealth, message);
+                    session.EnqueueSend(updatePlayersHealth, message);
                     return;
                 }
             }
@@ -1169,7 +1169,7 @@ namespace ACE.Server.Command.Handlers
                 session.Player.TrackedContracts.Add(contractId, contractTracker);
 
             GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(session, contractTracker);
-            session.Network.EnqueueSend(contractMsg);
+            session.EnqueueSend(contractMsg);
             ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
         }
 
@@ -1320,7 +1320,7 @@ namespace ACE.Server.Command.Handlers
 
             amount = Math.Min(amount, (obj.ItemMaxMana ?? 0) - (obj.ItemCurMana ?? 0));
             obj.ItemCurMana += amount;
-            session.Network.EnqueueSend(new GameMessageSystemChat($"You give {amount} points of mana to the {obj.Name}.", ChatMessageType.Magic));
+            session.EnqueueSend(new GameMessageSystemChat($"You give {amount} points of mana to the {obj.Name}.", ChatMessageType.Magic));
         }
 
         /// <summary>
@@ -1481,9 +1481,9 @@ namespace ACE.Server.Command.Handlers
             session.Player.SafeSpellComponents = safeComps;
 
             if (safeComps)
-                session.Network.EnqueueSend(new GameMessageSystemChat("Your spell components are now safe, and will not be consumed when casting spells.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat("Your spell components are now safe, and will not be consumed when casting spells.", ChatMessageType.Broadcast));
             else
-                session.Network.EnqueueSend(new GameMessageSystemChat("Your spell components will now be consumed when casting spells.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat("Your spell components will now be consumed when casting spells.", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -1492,7 +1492,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("myloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the current player location, from the server perspective", "/myloc")]
         public static void HandleMyLoc(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {session.Player.PhysicsObj.Position}", ChatMessageType.Broadcast));
+            session.EnqueueSend(new GameMessageSystemChat($"Location: {session.Player.PhysicsObj.Position}", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -1512,7 +1512,7 @@ namespace ACE.Server.Command.Handlers
             var props = prop.Split('.');
             if (props.Length != 2)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown {prop}", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Unknown {prop}", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1536,14 +1536,14 @@ namespace ACE.Server.Command.Handlers
                 pType = typeof(PropertyDataId);
             else
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown property type: {propType}", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Unknown property type: {propType}", ChatMessageType.Broadcast));
                 return;
 
             }
 
             if (!Enum.TryParse(pType, propName, out var result))
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1563,7 +1563,7 @@ namespace ACE.Server.Command.Handlers
             else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
                 value = Convert.ToString(obj.GetProperty((PropertyDataId)result));
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
+            session.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -1584,7 +1584,7 @@ namespace ACE.Server.Command.Handlers
             var props = prop.Split('.');
             if (props.Length != 2)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown {prop}", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Unknown {prop}", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1608,13 +1608,13 @@ namespace ACE.Server.Command.Handlers
                 pType = typeof(PropertyDataId);
             else
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown property type: {propType}", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Unknown property type: {propType}", ChatMessageType.Broadcast));
                 return;
             }
 
             if (!Enum.TryParse(pType, propName, out var result))
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1681,7 +1681,7 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
             }
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
+            session.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -1741,11 +1741,11 @@ namespace ACE.Server.Command.Handlers
                     session.Player.DebugDamage = Player.DebugDamageType.Defender;
                 else
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: unknown {param}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"DebugDamage: unknown {param}", ChatMessageType.Broadcast));
                     return;
                 }
             }
-            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: {session.Player.DebugDamage}", ChatMessageType.Broadcast));
+            session.EnqueueSend(new GameMessageSystemChat($"DebugDamage: {session.Player.DebugDamage}", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -1829,7 +1829,7 @@ namespace ACE.Server.Command.Handlers
 
                 if (dest == null)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon {landblock:X4}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon {landblock:X4}", ChatMessageType.Broadcast));
                     return;
                 }
 
@@ -1860,7 +1860,7 @@ namespace ACE.Server.Command.Handlers
 
                 if (dest == null)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon name {searchName}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon name {searchName}", ChatMessageType.Broadcast));
                     return;
                 }
 

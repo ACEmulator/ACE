@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // TODO: get retail message
                     var remainTime = (int)Math.Ceiling(RareTimer - timeElapsed);
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You may use another timed rare in {remainTime}s", ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat($"You may use another timed rare in {remainTime}s", ChatMessageType.Broadcast));
                     return;
                 }
 
@@ -127,7 +127,7 @@ namespace ACE.Server.WorldObjects
                         player.LastUseTracker[CooldownId.Value] = DateTime.Now;
                 }
 
-                player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(player.Session, contractTracker));
+                player.Session.EnqueueSend(new GameEventSendClientContractTracker(player.Session, contractTracker));
                 ChatPacket.SendServerMessage(player.Session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
 
                 // TODO: Add sending the 02C2 message UpdateEnchantment.   They added a second use to this existing system
@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
                 var spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
                 // cooldown not being used in network packet?
                 var gem = new Enchantment(player, spellBase, layer, /*CooldownId.Value,*/ EnchantmentMask.Cooldown);
-                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
+                player.Session.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.

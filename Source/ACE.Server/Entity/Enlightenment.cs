@@ -57,13 +57,13 @@ namespace ACE.Server.Entity
         {
             if (player.Level < 275)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be level 275 for enlightenment.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"You must be level 275 for enlightenment.", ChatMessageType.Broadcast));
                 return false;
             }
 
             if (!VerifyLumAugs(player))
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have all luminance auras for enlightenment.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"You must have all luminance auras for enlightenment.", ChatMessageType.Broadcast));
                 return false;
             }
 
@@ -71,13 +71,13 @@ namespace ACE.Server.Entity
 
             if (player.GetFreeInventorySlots() < 25)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have at least 25 free inventory slots for enlightenment.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"You must have at least 25 free inventory slots for enlightenment.", ChatMessageType.Broadcast));
                 return false;
             }
 
             if (player.Enlightenment >= 5)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have already reached the maximum enlightenment level!", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"You have already reached the maximum enlightenment level!", ChatMessageType.Broadcast));
                 return false;
             }
             return true;
@@ -124,7 +124,7 @@ namespace ACE.Server.Entity
                 skill.ExperienceSpent = 0;
                 skill.Ranks = 0;
 
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, skill));
+                player.Session.EnqueueSend(new GameMessagePrivateUpdateSkill(player, skill));
             }
 
             // remove skill credits except for those from:

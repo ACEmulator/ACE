@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
                         else
                         {
                             if (!targetPlayer.UnderLifestoneProtection)
-                                targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {sourceCreature.Name}!", ChatMessageType.CombatEnemy));
+                                targetPlayer.Session.EnqueueSend(new GameMessageSystemChat($"You evaded {sourceCreature.Name}!", ChatMessageType.CombatEnemy));
 
                             Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MissileDefense), sourceCreature.GetCreatureSkill(sourceCreature.GetCurrentAttackSkill()).Current);
                         }
@@ -118,7 +118,7 @@ namespace ACE.Server.WorldObjects
 
             var player = ProjectileSource as Player;
             if (player != null)
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
         }
     }
 }

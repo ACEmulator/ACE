@@ -16,7 +16,7 @@ namespace ACE.Server.Command.Handlers
             "")]
         public static void HandlePop(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetAllOnline().Count.ToString()}\n", ChatMessageType.Broadcast));
+            session.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetAllOnline().Count.ToString()}\n", ChatMessageType.Broadcast));
         }
     }
 }

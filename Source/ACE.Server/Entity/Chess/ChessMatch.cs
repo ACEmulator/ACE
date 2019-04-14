@@ -181,7 +181,7 @@ namespace ACE.Server.Entity.Chess
                 var ai_enabled = PropertyManager.GetDouble("chess_ai_start_time").Item;
                 if (ai_enabled > 0)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"If another player doesn't join within {ai_enabled} seconds, the game will automatically start with AI", ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat($"If another player doesn't join within {ai_enabled} seconds, the game will automatically start with AI", ChatMessageType.Broadcast));
                     StartAiTime = DateTime.UtcNow.AddSeconds(ai_enabled);
                 }
             }
@@ -212,7 +212,7 @@ namespace ACE.Server.Entity.Chess
                 AddSide(player, color);
             }
 
-            player.Session.Network.EnqueueSend(new GameEventJoinGameResponse(player.Session, ChessBoard.Guid, color));
+            player.Session.EnqueueSend(new GameEventJoinGameResponse(player.Session, ChessBoard.Guid, color));
         }
 
         public void MoveEnqueue(Player player, ChessPieceCoord from, ChessPieceCoord to)
@@ -350,7 +350,7 @@ namespace ACE.Server.Entity.Chess
                     player.SetProperty(PropertyInt.ChessTotalGames, totalGames);
 
                     if (isOnline)
-                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessTotalGames, totalGames));
+                        onlinePlayer.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessTotalGames, totalGames));
                 }
 
                 if (winner >= 0)
@@ -362,7 +362,7 @@ namespace ACE.Server.Entity.Chess
                         player.SetProperty(PropertyInt.ChessGamesWon, won);
 
                         if (isOnline)
-                            onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessGamesWon, won));
+                            onlinePlayer.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessGamesWon, won));
                     }
                     else
                     {
@@ -370,7 +370,7 @@ namespace ACE.Server.Entity.Chess
                         player.SetProperty(PropertyInt.ChessGamesLost, lost);
 
                         if (isOnline)
-                            onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessGamesLost, lost));
+                            onlinePlayer.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessGamesLost, lost));
                     }
                 }
 
@@ -683,29 +683,29 @@ namespace ACE.Server.Entity.Chess
 
         public void SendStartGame(Player player, ChessColor color)
         {
-            player.Session.Network.EnqueueSend(new GameEventStartGame(player.Session, ChessBoard.Guid, color));
+            player.Session.EnqueueSend(new GameEventStartGame(player.Session, ChessBoard.Guid, color));
         }
 
         public void SendMoveResponse(Player player, ChessMoveResult result)
         {
-            player.Session.Network.EnqueueSend(new GameEventMoveResponse(player.Session, ChessBoard.Guid, result));
+            player.Session.EnqueueSend(new GameEventMoveResponse(player.Session, ChessBoard.Guid, result));
         }
 
         public void SendOpponentTurn(Player player, ObjectGuid opponentGuid, BasePiece piece, GameMoveData data)
         {
-            player.Session.Network.EnqueueSend(new GameEventOpponentTurn(player.Session, ChessBoard.Guid, new ChessMoveData(opponentGuid, piece.Guid, data)));
+            player.Session.EnqueueSend(new GameEventOpponentTurn(player.Session, ChessBoard.Guid, new ChessMoveData(opponentGuid, piece.Guid, data)));
         }
 
         public void SendOpponentStalemate(Player player, ChessColor color, bool stalemate)
         {
-            player.Session.Network.EnqueueSend(new GameEventOpponentStalemate(player.Session, ChessBoard.Guid, color, stalemate));
+            player.Session.EnqueueSend(new GameEventOpponentStalemate(player.Session, ChessBoard.Guid, color, stalemate));
         }
 
         public void SendGameOver(Player player, int winner)
         {
             //Console.WriteLine($"Sending game over({winner}) to {player.Name}");
 
-            player.Session.Network.EnqueueSend(new GameEventGameOver(player.Session, ChessBoard.Guid, winner));
+            player.Session.EnqueueSend(new GameEventGameOver(player.Session, ChessBoard.Guid, winner));
         }
 
         /// <summary>
@@ -739,13 +739,13 @@ namespace ACE.Server.Entity.Chess
             if (playerIsOnline)
             {
                 var onlinePlayer = PlayerManager.GetOnlinePlayer(playerGuid);
-                onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessRank, rank + delta));
+                onlinePlayer.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessRank, rank + delta));
             }
 
             if (opponent != null && opponentIsOnline)
             {
                 var onlineOp = PlayerManager.GetOnlinePlayer(opponentGuid);
-                onlineOp.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlineOp, PropertyInt.ChessRank, opRank - delta));
+                onlineOp.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlineOp, PropertyInt.ChessRank, opRank - delta));
             }
         }
 

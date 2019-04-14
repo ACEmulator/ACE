@@ -213,7 +213,7 @@ namespace ACE.Server.WorldObjects
 
         public void CompleteConfirmation(ConfirmationType confirmationType, uint contextId)
         {
-            Session.Network.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
+            Session.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
         }
 
 
@@ -267,10 +267,10 @@ namespace ACE.Server.WorldObjects
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
             }
-            Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
+            Session.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
             if (!success && player != null)
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
 
             // pooky logic - handle monsters attacking on appraisal
             if (creature != null && creature.MonsterState == State.Idle)
@@ -369,7 +369,7 @@ namespace ACE.Server.WorldObjects
             var page = book.AddPage(Guid.Full, Name, Session.Account, false, "");
 
             if (page != null)
-                Session.Network.EnqueueSend(new GameEventBookAddPageResponse(Session, bookGuid, page.PageId, true));
+                Session.EnqueueSend(new GameEventBookAddPageResponse(Session, bookGuid, page.PageId, true));
         }
 
         public void HandleActionBookModifyPage(uint bookGuid, uint pageId, string pageText)
@@ -389,7 +389,7 @@ namespace ACE.Server.WorldObjects
 
             var success = book.DeletePage(pageId);
 
-            Session.Network.EnqueueSend(new GameEventBookDeletePageResponse(Session, bookGuid, pageId, success));
+            Session.EnqueueSend(new GameEventBookDeletePageResponse(Session, bookGuid, pageId, success));
         }
 
 
@@ -419,7 +419,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void PlaySound(Sound sound, ObjectGuid sourceId, float volume = 1.0f)
         {
-            Session.Network.EnqueueSend(new GameMessageSound(sourceId, sound, volume));
+            Session.EnqueueSend(new GameMessageSound(sourceId, sound, volume));
         }
 
  
@@ -441,7 +441,7 @@ namespace ACE.Server.WorldObjects
                 var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "Trade");
                 var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "LFG");
                 var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "Roleplay");
-                Session.Network.EnqueueSend(general, trade, lfg, roleplay);
+                Session.EnqueueSend(general, trade, lfg, roleplay);
             }
 
             if (CurrentActiveCombatPet != null)
@@ -506,16 +506,16 @@ namespace ACE.Server.WorldObjects
             // The private message below worked as expected, but it only broadcast to the player. This would be a problem with for others in range seeing something try to
             // pass through a barrier but not being allowed.
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
-            // Session.Network.EnqueueSend(updateBool);
+            // Session.EnqueueSend(updateBool);
 
             EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {IgnoreHouseBarriers}", ChatMessageType.Broadcast));
+            Session.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {IgnoreHouseBarriers}", ChatMessageType.Broadcast));
         }
 
         public void SendAutonomousPosition()
         {
-            // Session.Network.EnqueueSend(new GameMessageAutonomousPosition(this));
+            // Session.EnqueueSend(new GameMessageAutonomousPosition(this));
         }
 
 
@@ -557,12 +557,12 @@ namespace ACE.Server.WorldObjects
                     if (option_bound == 1 && MotionTableId != EmpyreanMaleMotionDID)
                     {
                         MotionTableId = EmpyreanMaleMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                     else if (option_bound == 0 && MotionTableId != EmpyreanMaleFloatMotionDID)
                     {
                         MotionTableId = EmpyreanMaleFloatMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                 }
                 else // Female
@@ -570,12 +570,12 @@ namespace ACE.Server.WorldObjects
                     if (option_bound == 1 && MotionTableId != EmpyreanFemaleMotionDID)
                     {
                         MotionTableId = EmpyreanFemaleMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                     else if (option_bound == 0 && MotionTableId != EmpyreanFemaleFloatMotionDID)
                     {
                         MotionTableId = EmpyreanFemaleFloatMotionDID;
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
+                        Session.EnqueueSend(new GameMessagePrivateUpdateDataID(this, PropertyDataId.MotionTable, (uint)MotionTableId));
                     }
                 }
             }
@@ -597,7 +597,7 @@ namespace ACE.Server.WorldObjects
                 log.Debug($"HandleActionForceObjDescSend() - couldn't find object {itemGuid:X8}");
                 return;
             }
-            Session.Network.EnqueueSend(new GameMessageObjDescEvent(wo));
+            Session.EnqueueSend(new GameMessageObjDescEvent(wo));
         }
 
 
@@ -636,7 +636,7 @@ namespace ACE.Server.WorldObjects
                     log.Error($"Unable to delete contractId {contractId:X} ");
             });
 
-            Session.Network.EnqueueSend(contractMsg);*/
+            Session.EnqueueSend(contractMsg);*/
         }
 
 
@@ -717,7 +717,7 @@ namespace ACE.Server.WorldObjects
         //        }
 
         //        var objDescEvent = new GameMessageObjDescEvent(this);
-        //        session.Network.EnqueueSend(objDescEvent);
+        //        session.EnqueueSend(objDescEvent);
         //        ChatPacket.SendServerMessage(session, "Equipping model " + modelId.ToString("X") +
         //                                              ", Applying palette index " + palOption + " of " + palCount +
         //                                              " with a shade value of " + shade + ".", ChatMessageType.Broadcast);
@@ -816,7 +816,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentLandblock != null)
                     EnqueueBroadcastMotion(motion);
             }
-            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
+            Session.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
         }
 
         /// <summary>
@@ -906,7 +906,7 @@ namespace ACE.Server.WorldObjects
                 var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
                 EnqueueBroadcast(soundEvent);
 
-                Session.Network.EnqueueSend(buffMessage);
+                Session.EnqueueSend(buffMessage);
 
                 // return to original stance
                 var returnStance = new Motion(CurrentMotionState.Stance);
@@ -951,17 +951,17 @@ namespace ACE.Server.WorldObjects
             }
 
             string state = Adminvision ? "enabled" : "disabled";
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"Admin Vision is {state}.", ChatMessageType.Broadcast));
+            Session.EnqueueSend(new GameMessageSystemChat($"Admin Vision is {state}.", ChatMessageType.Broadcast));
 
             if (oldState != Adminvision && !Adminvision)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat("Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
             }
         }
 
         public void SendMessage(string msg)
         {
-            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
         }
 
         public void HandleActionEnterPkLite()
@@ -969,7 +969,7 @@ namespace ACE.Server.WorldObjects
             // ensure permanent npk
             if (PlayerKillerStatus != PlayerKillerStatus.NPK || MinimumTimeSincePk != null)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyNonPKsMayEnterPKLite));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyNonPKsMayEnterPKLite));
                 return;
             }
 
@@ -988,7 +988,7 @@ namespace ACE.Server.WorldObjects
             {
                 UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite);
 
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
             });
 
             actionChain.EnqueueChain();
@@ -1006,7 +1006,7 @@ namespace ACE.Server.WorldObjects
 
                 if (player == null)
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Couldn't find player to squelch.", ChatMessageType.Broadcast));
+                    Session.EnqueueSend(new GameMessageSystemChat("Couldn't find player to squelch.", ChatMessageType.Broadcast));
                     return;
                 }
             }
@@ -1016,14 +1016,14 @@ namespace ACE.Server.WorldObjects
 
                 if (player == null)
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
                     return;
                 }
             }
 
             if (player.Guid == Guid)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1031,26 +1031,26 @@ namespace ACE.Server.WorldObjects
             {
                 if (Squelches.Characters.ContainsKey(player.Guid))
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already squelched.", ChatMessageType.Broadcast));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already squelched.", ChatMessageType.Broadcast));
                     return;
                 }
 
                 Squelches.Characters.Add(player.Guid, new SquelchInfo(messageType, player.Name, false));
 
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been squelched.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been squelched.", ChatMessageType.Broadcast));
             }
             else
             {
                 if (!Squelches.Characters.Remove(player.Guid))
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not squelched.", ChatMessageType.Broadcast));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not squelched.", ChatMessageType.Broadcast));
                     return;
                 }
 
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been unsquelched.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been unsquelched.", ChatMessageType.Broadcast));
             }
 
-            Session.Network.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
+            Session.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
         }
 
         public void HandleActionModifyAccountSquelch(bool squelch, string playerName)
@@ -1061,13 +1061,13 @@ namespace ACE.Server.WorldObjects
 
             if (player == null)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
                 return;
             }
 
             if (player.Guid == Guid)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1075,26 +1075,26 @@ namespace ACE.Server.WorldObjects
             {
                 if (Squelches.Accounts.ContainsKey(player.Session.Account))
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is already squelched.", ChatMessageType.Broadcast));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is already squelched.", ChatMessageType.Broadcast));
                     return;
                 }
 
                 Squelches.Accounts.Add(player.Session.Account, player.Guid.Full);
 
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been squelched.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been squelched.", ChatMessageType.Broadcast));
             }
             else
             {
                 if (!Squelches.Accounts.Remove(player.Session.Account))
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is not squelched.", ChatMessageType.Broadcast));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is not squelched.", ChatMessageType.Broadcast));
                     return;
                 }
 
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been unsquelched.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been unsquelched.", ChatMessageType.Broadcast));
             }
 
-            Session.Network.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
+            Session.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
         }
 
         public void HandleActionModifyGlobalSquelch(bool squelch, ChatMessageType messageType)

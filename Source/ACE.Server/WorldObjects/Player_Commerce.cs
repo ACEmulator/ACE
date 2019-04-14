@@ -26,7 +26,7 @@ namespace ACE.Server.WorldObjects
             CoinValue = coins;
 
             if (sendUpdateMessageIfChanged)
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
+                Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
         }
 
         private List<WorldObject> CreatePayoutCoinStacks(int amount)
@@ -198,7 +198,7 @@ namespace ACE.Server.WorldObjects
                     TryConsumeFromInventoryWithNetworking(altCurrency, (int)altcost);
                 }
 
-                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
+                Session.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
 
                 if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                     RushNextPlayerSave(5);
@@ -241,8 +241,8 @@ namespace ACE.Server.WorldObjects
                 if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || (acceptedItemTypes & item.ItemType) == 0)
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold")); // TODO: find retail messages
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    Session.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold")); // TODO: find retail messages
+                    Session.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
 
                     continue;
                 }
@@ -263,8 +263,8 @@ namespace ACE.Server.WorldObjects
             // Make sure we have enough pack space for the payout
             if (GetFreeInventorySlots() + sellList.Count - payoutCoinStacks.Count < 0)
             {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Not enough inventory space!")); // TODO: find retail messages
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
+                Session.EnqueueSend(new GameEventCommunicationTransientString(Session, "Not enough inventory space!")); // TODO: find retail messages
+                Session.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
 
                 foreach (var item in payoutCoinStacks)
                     item.Destroy();
@@ -277,7 +277,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in sellList)
             {
                 if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.SellItem))
-                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, vendor));
+                    Session.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, vendor));
                 else
                     log.WarnFormat("Item 0x{0:X8}:{1} for player {2} not found in HandleActionSellItem.", item.Guid.Full, item.Name, Name); // This shouldn't happen
             }
@@ -297,7 +297,7 @@ namespace ACE.Server.WorldObjects
 
             UpdateCoinValue(false);
 
-            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
+            Session.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
 
             SendUseDoneEvent();
         }

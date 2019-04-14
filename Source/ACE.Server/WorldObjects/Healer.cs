@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
 
             if (targetPlayer.Health.Current == targetPlayer.Health.MaxValue)
             {
-                healer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(healer.Session, WeenieErrorWithString._IsAtFullHealth, target.Name));
+                healer.Session.EnqueueSend(new GameEventWeenieErrorWithString(healer.Session, WeenieErrorWithString._IsAtFullHealth, target.Name));
                 healer.SendUseDoneEvent();
                 return;
             }
@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
                 if (dist < Player.Windup_MaxMove || PlayerKillerStatus == PlayerKillerStatus.NPK)
                     DoHealing(healer, target);
                 else
-                    healer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
+                    healer.Session.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
 
                 healer.IsBusy = false;
 
@@ -122,9 +122,9 @@ namespace ACE.Server.WorldObjects
             if (!skillCheck)
             {
                 var failMsg = new GameMessageSystemChat($"You fail to heal {targetName}. {remainingMsg}", ChatMessageType.Broadcast);
-                healer.Session.Network.EnqueueSend(failMsg, stackSize);
+                healer.Session.EnqueueSend(failMsg, stackSize);
                 if (healer != target)
-                    target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} fails to heal you.", ChatMessageType.Broadcast));
+                    target.Session.EnqueueSend(new GameMessageSystemChat($"{healer.Name} fails to heal you.", ChatMessageType.Broadcast));
                 if (UsesLeft <= 0)
                     healer.TryConsumeFromInventoryWithNetworking(this, 1);
                 return;
@@ -152,11 +152,11 @@ namespace ACE.Server.WorldObjects
             else
                 message = new GameMessageSystemChat($"You {crit}heal {targetName} for {healAmount} points. {remainingMsg}", ChatMessageType.Broadcast);
 
-            healer.Session.Network.EnqueueSend(message, stackSize);
-            target.Session.Network.EnqueueSend(updateHealth);
+            healer.Session.EnqueueSend(message, stackSize);
+            target.Session.EnqueueSend(updateHealth);
 
             if (healer != target)
-                target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} heals you for {healAmount} points.", ChatMessageType.Broadcast));
+                target.Session.EnqueueSend(new GameMessageSystemChat($"{healer.Name} heals you for {healAmount} points.", ChatMessageType.Broadcast));
 
             if (UsesLeft <= 0)
                 healer.TryConsumeFromInventoryWithNetworking(this, 1);

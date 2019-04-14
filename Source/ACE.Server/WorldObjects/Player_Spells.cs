@@ -37,19 +37,19 @@ namespace ACE.Server.WorldObjects
             if (!spells.Spells.ContainsKey(spellId))
             {
                 GameMessageSystemChat errorMessage = new GameMessageSystemChat("SpellID not found in Spell Table", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(errorMessage);
+                Session.EnqueueSend(errorMessage);
                 return;
             }
 
             if (!AddKnownSpell(spellId))
             {
                 GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(errorMessage);
+                Session.EnqueueSend(errorMessage);
                 return;
             }
 
             GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, (ushort)spellId);
-            Session.Network.EnqueueSend(updateSpellEvent);
+            Session.EnqueueSend(updateSpellEvent);
 
             //Check to see if we echo output to the client
             if (uiOutput == true)
@@ -59,7 +59,7 @@ namespace ACE.Server.WorldObjects
 
                 string message = $"You learn the {spells.Spells[spellId].Name} spell.\n";
                 GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(learnMessage);
+                Session.EnqueueSend(learnMessage);
             }
         }
 
@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
             ChangesDetected = true;
 
             GameEventMagicRemoveSpell removeSpellEvent = new GameEventMagicRemoveSpell(Session, (ushort)spellId);
-            Session.Network.EnqueueSend(removeSpellEvent);
+            Session.EnqueueSend(removeSpellEvent);
         }
 
         public void EquipItemFromSet(WorldObject item)

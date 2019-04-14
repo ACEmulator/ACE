@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
 
                 // create the final game message and send to the client
                 var message = new GameMessageSystemChat(trainSkillMessageText, ChatMessageType.Advancement);
-                Session.Network.EnqueueSend(trainSkillUpdate, currentCredits, message);
+                Session.EnqueueSend(trainSkillUpdate, currentCredits, message);
             }
         }
 
@@ -229,19 +229,19 @@ namespace ACE.Server.WorldObjects
                 {
                     messageText = $"Your base {skill.ToSentence()} is now {creatureSkill.Base}!";
                 }
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
-                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
-                Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
+                Session.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
+                Session.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
+                Session.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
             }
             else if (prevXP != creatureSkill.ExperienceSpent)
             {
                 // skill usage
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
+                Session.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
             }
             else if (!usage)
             {
                 messageText = $"Your attempt to raise {skill} has failed!";
-                Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
+                Session.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
             }
         }
 
@@ -445,13 +445,13 @@ namespace ACE.Server.WorldObjects
             TotalSkillCredits += amount;
             AvailableSkillCredits += amount;
 
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0));
+            Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0));
 
             if (showText)
             {
                 var message = string.Format("You have earned {0} skill credit{1}!", amount, amount == 1 ? "" : "s");
-                Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement));
-                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
+                Session.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement));
+                Session.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
             }
         }
 
@@ -475,7 +475,7 @@ namespace ACE.Server.WorldObjects
                         actionChain.AddDelaySeconds(3.0f);
                         actionChain.AddAction(this, () =>
                         {
-                            Session.Network.EnqueueSend(new GameMessageSystemChat("To install Dirty Fighting, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
+                            Session.EnqueueSend(new GameMessageSystemChat("To install Dirty Fighting, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
                         });
                         actionChain.EnqueueChain();
                     }
@@ -496,7 +496,7 @@ namespace ACE.Server.WorldObjects
                         actionChain.AddDelaySeconds(3.0f);
                         actionChain.AddAction(this, () =>
                         {
-                            Session.Network.EnqueueSend(new GameMessageSystemChat("To install Void Magic, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
+                            Session.EnqueueSend(new GameMessageSystemChat("To install Void Magic, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
                         });
                         actionChain.EnqueueChain();
                     }
@@ -516,7 +516,7 @@ namespace ACE.Server.WorldObjects
                     actionChain.AddDelaySeconds(3.0f);
                     actionChain.AddAction(this, () =>
                     {
-                        Session.Network.EnqueueSend(new GameMessageSystemChat("To install Summoning, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
+                        Session.EnqueueSend(new GameMessageSystemChat("To install Summoning, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
                     });
                     actionChain.EnqueueChain();
                 }

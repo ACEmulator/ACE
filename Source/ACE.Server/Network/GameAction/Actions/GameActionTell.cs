@@ -23,22 +23,22 @@ namespace ACE.Server.Network.GameAction.Actions
             if (targetPlayer == null)
             {
                 var statusMessage = new GameEventWeenieError(session, WeenieError.CharacterNotAvailable);
-                session.Network.EnqueueSend(statusMessage);
+                session.EnqueueSend(statusMessage);
                 return;
             }
 
             if (session.Player != targetPlayer)
-                session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {targetPlayer.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
+                session.EnqueueSend(new GameMessageSystemChat($"You tell {targetPlayer.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
 
             if (targetPlayer.Squelches.Contains(session.Player))
             {
-                session.Network.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.MessageBlocked_,$"{target} has you squelched."));
+                session.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.MessageBlocked_,$"{target} has you squelched."));
                 //log.Warn($"Tell from {session.Player.Name} (0x{session.Player.Guid.ToString()}) to {targetPlayer.Name} (0x{targetPlayer.Guid.ToString()}) blocked due to squelch");
                 return;
             }
 
             var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
-            targetPlayer.Session.Network.EnqueueSend(tell);
+            targetPlayer.Session.EnqueueSend(tell);
         }
     }
 }

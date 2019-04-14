@@ -137,7 +137,7 @@ namespace ACE.Server.Managers
 
             log.Debug("Stopping listeners...");
 
-            SocketManager.Shutdown();
+            NetworkManager.Shutdown();
 
             log.Info("Saving OfflinePlayers that have unsaved changes...");
             PlayerManager.SaveOfflinePlayersWithChanges();

@@ -72,9 +72,9 @@ namespace ACE.Server.Network.Handlers
 
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
-            packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
+            packetLog.DebugFormat("ConnectRequest TS: {0}", session.ConnectionData.ServerTime);
 
-            if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
+            if (session.ConnectionData.ServerSeed == null || session.ConnectionData.ClientSeed == null)
             {
                 // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
                 session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(CharacterError.Undefined));
@@ -82,15 +82,15 @@ namespace ACE.Server.Network.Handlers
             }
 
             var connectRequest = new PacketOutboundConnectRequest(
-                session.Network.ConnectionData.ServerTime,
-                session.Network.ConnectionData.ConnectionCookie,
-                session.Network.ClientId,
-                session.Network.ConnectionData.ServerSeed,
-                session.Network.ConnectionData.ClientSeed);
+                session.ConnectionData.ServerTime,
+                session.ConnectionData.ConnectionCookie,
+                session.ClientId,
+                session.ConnectionData.ServerSeed,
+                session.ConnectionData.ClientSeed);
 
-            session.Network.ConnectionData.DiscardSeeds();
+            session.ConnectionData.DiscardSeeds();
 
-            session.Network.EnqueueSend(connectRequest);
+            session.EnqueueSend(connectRequest);
 
             if (loginRequest.NetAuthType < NetAuthType.AccountPassword)
             {
@@ -116,7 +116,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (WorldManager.Find(account.AccountName) != null)
+            if (NetworkManager.Find(account.AccountName) != null)
             {
                 session.SendCharacterError(CharacterError.AccountInUse);
                 session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.AccountInUse));
@@ -174,8 +174,8 @@ namespace ACE.Server.Network.Handlers
             GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetAllOnline().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
             GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
-            session.Network.EnqueueSend(characterListMessage, serverNameMessage);
-            session.Network.EnqueueSend(dddInterrogation);
+            session.EnqueueSend(characterListMessage, serverNameMessage);
+            session.EnqueueSend(dddInterrogation);
         }
     }
 }

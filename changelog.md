@@ -3606,7 +3606,7 @@ TODO:
 * Added Landblock Streaming Objects.
 
 [Ripley]
-* Kill `Session.Network.EnqueueSend(new GameMessageUpdateObject(worldObject));` until we get proper movement implemented.
+* Kill `Session.EnqueueSend(new GameMessageUpdateObject(worldObject));` until we get proper movement implemented.
 
 [fantoms]
 * Removed `@reset-pos` after it was incorrectly re-added in another members commit.

@@ -36,22 +36,6 @@ namespace ACE.Server.Managers
     public static class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
-
-        // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
-        public const ushort ServerId = 0xB;
-
-        /// <summary>
-        /// Seconds until a session will timeout. 
-        /// Raising this value allows connections to remain active for a longer period of time. 
-        /// </summary>
-        /// <remarks>
-        /// If you're experiencing network dropouts or frequent disconnects, try increasing this value.
-        /// </remarks>
-        public static uint DefaultSessionTimeout = ConfigManager.Config.Server.Network.DefaultSessionTimeout;
-
-        public static ConcurrentDictionary<ushort, Session> Sessions { get; private set; } = new ConcurrentDictionary<ushort, Session>();
-        private static ushort NextSessionId => (ushort)Enumerable.Range(1, ushort.MaxValue).Except(Sessions.Keys.Select(k => (int)k)).First();
 
         public static bool Concurrency = false;
 
@@ -71,7 +55,7 @@ namespace ACE.Server.Managers
 
         static WorldManager()
         {
-            OutboundQueue = SocketManager.OutboundQueue;
+            OutboundQueue = NetworkManager.OutboundQueue;
             Physics = new PhysicsEngine(new ObjectMaint(), new SmartBox());
             Physics.Server = true;
         }
@@ -87,161 +71,6 @@ namespace ACE.Server.Managers
             thread.Start();
             log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
-        }
-
-        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint, IPEndPoint listenerEndpoint)
-        {
-            if (listenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
-            {
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
-                if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
-                {
-                    packetLog.Debug($"{packet}, {endPoint}");
-                    PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
-
-                    // This should be set on the second packet to the server from the client.
-                    // This completes the three-way handshake.
-                    Session session = null;
-
-                    session =
-                        (from k in Sessions
-                         where
-                             k.Value.State == SessionState.AuthConnectResponse &&
-                             k.Value.Network.ConnectionData.ConnectionCookie == connectResponse.Check &&
-                             k.Value.EndPoint.Address.Equals(endPoint.Address)
-                         select k).FirstOrDefault().Value;
-
-                    if (session != null)
-                    {
-                        session.State = SessionState.AuthConnected;
-                        session.Network.sendResync = true;
-                        AuthenticationHandler.HandleConnectResponse(session);
-                    }
-
-                }
-                else if (packet.Header.Id == 0 && packet.Header.HasFlag(PacketHeaderFlags.CICMDCommand))
-                {
-                    // TODO: Not sure what to do with these packets yet
-                }
-                else
-                {
-                    log.ErrorFormat("Packet from {0} rejected. Packet sent to listener 1 and is not a ConnectResponse or CICMDCommand", endPoint);
-                }
-                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
-            }
-            else // ConfigManager.Config.Server.Network.Port + 0
-            {
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
-                if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
-                {
-                    packetLog.Debug($"{packet}, {endPoint}");
-                    if (!Sessions.Any(k => k.Value.EndPoint.Equals(endPoint)) && Sessions.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
-                    {
-                        log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
-                        SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
-                    }
-                    else if (ServerManager.ShutdownInitiated)
-                    {
-                        log.InfoFormat("Login Request from {0} rejected. Server shutting down.", endPoint);
-                        SendLoginRequestReject(endPoint, CharacterError.ServerCrash);
-                    }
-                    else
-                    {
-                        log.DebugFormat("Login Request from {0}", endPoint);
-                        var session = FindOrCreateSession(endPoint);
-                        if (session != null)
-                        {
-                            if (session.State == SessionState.AuthConnectResponse)
-                            {
-                                // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
-                                // ignore the request and remove the broken session and the client will start a new session.
-                                RemoveSession(session);
-                                log.Warn($"Bad handshake from {endPoint}, aborting session.");
-                            }
-
-                            session.ProcessPacket(packet);
-                        }
-                        else
-                        {
-                            log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
-                            SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
-                        }
-                    }
-                }
-                else
-                {
-                    var session = Sessions.FirstOrDefault(k => k.Value.Network.ClientId == packet.Header.Id).Value;
-                    if (session != null)
-                    {
-                        if (session.EndPoint.Equals(endPoint))
-                            session.ProcessPacket(packet);
-                        else
-                            log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
-                    }
-                    else
-                    {
-                        log.DebugFormat("Unsolicited Packet from {0} with Id {1}", endPoint, packet.Header.Id);
-                    }
-                }
-                ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
-            }
-        }
-
-        private static void SendLoginRequestReject(IPEndPoint endPoint, CharacterError error)
-        {
-            var tempSession = new Session(endPoint, NextSessionId, ServerId);
-
-            // First we must send the connect request response
-            var connectRequest = new PacketOutboundConnectRequest(
-                tempSession.Network.ConnectionData.ServerTime,
-                tempSession.Network.ConnectionData.ConnectionCookie,
-                tempSession.Network.ClientId,
-                tempSession.Network.ConnectionData.ServerSeed,
-                tempSession.Network.ConnectionData.ClientSeed);
-            tempSession.Network.ConnectionData.DiscardSeeds();
-            tempSession.Network.EnqueueSend(connectRequest);
-
-            // Then we send the error
-            tempSession.SendCharacterError(error);
-
-            tempSession.Network.Update();
-        }
-
-        public static Session FindOrCreateSession(IPEndPoint endPoint)
-        {
-            Session session;
-            session = Sessions.SingleOrDefault(s => endPoint.Equals(s.Value.EndPoint)).Value;
-            if (session == null)
-            {
-                ushort cid = NextSessionId;
-                log.DebugFormat("Creating new session for {0} with id {1}", endPoint, cid);
-                session = Sessions.AddOrUpdate(cid, new Session(endPoint, cid, ServerId), (a, b) => b);
-            }
-            return session;
-        }
-
-        /// <summary>
-        /// Removes a session, network client and network endpoint from the various tracker objects.
-        /// </summary>
-        public static void RemoveSession(Session session)
-        {
-            log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
-            Sessions.Remove(session.Network.ClientId, out Session xSession);
-        }
-
-        public static int GetSessionCount()
-        {
-            return Sessions.Count;
-        }
-
-        public static Session Find(uint accountId)
-        {
-            return Sessions.FirstOrDefault(k => k.Value.AccountId == accountId).Value;
-        }
-
-        public static Session Find(string account)
-        {
-            return Sessions.FirstOrDefault(k => k.Value.Account == account).Value;
         }
 
         public static void PlayerEnterWorld(Session session, Character character)
@@ -373,19 +202,19 @@ namespace ACE.Server.Managers
 
             if (character.TotalLogins <= 1)
             {
-                session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd, popup_welcome)));
+                session.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd, popup_welcome)));
             }
             else if (!string.IsNullOrEmpty(popup_motd))
             {
-                session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd)));
+                session.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd)));
             }
 
             var info = "Welcome to Asheron's Call\n  powered by ACEmulator\n\nFor more information on commands supported by this server, type @acehelp\n";
-            session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            session.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
 
             var server_motd = PropertyManager.GetString("server_motd").Item;
             if (!string.IsNullOrEmpty(server_motd))
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
         }
 
         private static string AppendLines(params string[] lines)
@@ -472,7 +301,7 @@ namespace ACE.Server.Managers
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld);
 
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork);
-                int sessionCount = DoSessionWork();
+                int sessionCount = NetworkManager.DoSessionWork();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork);
 
                 ServerPerformanceMonitor.Tick();
@@ -622,33 +451,6 @@ namespace ACE.Server.Managers
             return newPosition;
         }
 
-        /// <summary>
-        /// Processes all inbound GameAction messages.<para />
-        /// Dispatches all outgoing messages.<para />
-        /// Removes dead sessions.
-        /// </summary>
-        public static int DoSessionWork()
-        {
-            int sessionCount = 0;
-            // The session tick outbound processes pending actions and handles outgoing messages
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
-            foreach (var s in Sessions)
-                s.Value.TickOutbound();
-            OutboundQueue.SendAll();
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
-            // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
-            foreach (var session in Sessions.Values)
-            {
-                if (session.PendingTermination != null && session.PendingTermination.TerminationStatus == SessionTerminationPhase.SessionWorkCompleted)
-                {
-                    session.DropSession();
-                    session.PendingTermination.TerminationStatus = SessionTerminationPhase.WorldManagerWorkCompleted;
-                }
-                sessionCount++;
-            }
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
-            return sessionCount;
-        }
+
     }
 }

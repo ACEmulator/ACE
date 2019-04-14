@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
             if (spell != null && spellBase != null)
             {
                 var enchantment = new Enchantment(this, player.Guid, spellBase, spellBase.Duration, 1, (uint)EnchantmentMask.Cooldown, spell.StatModType);
-                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, enchantment));
+                player.Session.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, enchantment));
             }
             else
             {

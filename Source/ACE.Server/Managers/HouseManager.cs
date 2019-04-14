@@ -227,7 +227,7 @@ namespace ACE.Server.Managers
             onlinePlayer.House = null;
 
             // send text message
-            onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
+            onlinePlayer.Session.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
             onlinePlayer.RemoveDeed();
 
             await Task.Delay(3000);     // wait for slumlord inventory biotas above to save

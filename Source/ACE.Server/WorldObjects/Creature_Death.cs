@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
                 var killerMsg = string.Format(deathMessage.Killer, Name);
 
                 // todo: verify message type
-                playerKiller.Session.Network.EnqueueSend(new GameMessageSystemChat(killerMsg, ChatMessageType.Broadcast));
+                playerKiller.Session.EnqueueSend(new GameMessageSystemChat(killerMsg, ChatMessageType.Broadcast));
             }
             return deathMessage;
         }
@@ -235,11 +235,11 @@ namespace ACE.Server.WorldObjects
                 if ((player.Location.Cell & 0xFFFF) < 0x100)
                 {
                     player.SetPosition(PositionType.LastOutsideDeath, new Position(corpse.Location));
-                    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
+                    player.Session.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
 
                     if (dropped.Count > 0)
                     {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
                         saveCorpse = true;
                     }
                 }

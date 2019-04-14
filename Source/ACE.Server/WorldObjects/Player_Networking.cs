@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
             var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Trade");
             var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "LFG");
             var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Roleplay");
-            Session.Network.EnqueueSend(general, trade, lfg, roleplay);
+            Session.EnqueueSend(general, trade, lfg, roleplay);
 
             // check if vassals earned XP while offline
             HandleAllegianceOnLogin();
@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
                 {
                     UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
 
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
+                    Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
                 });
                 actionChain.EnqueueChain();
             }
@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
         {
             var allegianceChannel = Allegiance != null ? Allegiance.Biota.Id : 0u;
 
-            Session.Network.EnqueueSend(new GameEventSetTurbineChatChannels(Session, allegianceChannel));
+            Session.EnqueueSend(new GameEventSetTurbineChatChannels(Session, allegianceChannel));
         }
 
         private void SendSelf()
@@ -87,11 +87,11 @@ namespace ACE.Server.WorldObjects
             var title = new GameEventCharacterTitle(Session);
             var friends = new GameEventFriendsListUpdate(Session);
 
-            Session.Network.EnqueueSend(player, title, friends);
+            Session.EnqueueSend(player, title, friends);
 
             // Player objects don't get a placement
             Placement = null;
-            Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
+            Session.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
 
             SendInventoryAndWieldedItems();
 
@@ -107,22 +107,22 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var item in Inventory.Values)
             {
-                Session.Network.EnqueueSend(new GameMessageCreateObject(item));
+                Session.EnqueueSend(new GameMessageCreateObject(item));
 
                 // Was the item I just send a container? If so, we need to send the items in the container as well. Og II
                 if (item is Container container)
                 {
-                    Session.Network.EnqueueSend(new GameEventViewContents(Session, container));
+                    Session.EnqueueSend(new GameEventViewContents(Session, container));
 
                     foreach (var itemsInContainer in container.Inventory.Values)
-                        Session.Network.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
+                        Session.EnqueueSend(new GameMessageCreateObject(itemsInContainer));
                 }
             }
 
             foreach (var item in EquippedObjects.Values)
             {
                 item.Wielder = this;
-                Session.Network.EnqueueSend(new GameMessageCreateObject(item));                
+                Session.EnqueueSend(new GameMessageCreateObject(item));                
             }
         }
 
@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SendContractTrackerTable()
         {
-            Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session, TrackedContracts.Select(x => x.Value).ToList()));
+            Session.EnqueueSend(new GameEventSendClientContractTrackerTable(Session, TrackedContracts.Select(x => x.Value).ToList()));
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
             foreach (var friend in inverseFriends)
             {
                 var playerFriend = new CharacterPropertiesFriendList { CharacterId = friend.Guid.Full, FriendId = Guid.Full };
-                friend.Session.Network.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, !GetAppearOffline()));
+                friend.Session.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, !GetAppearOffline()));
             }
         }
 
@@ -158,7 +158,7 @@ namespace ACE.Server.WorldObjects
             foreach (var friend in inverseFriends)
             {
                 var playerFriend = new CharacterPropertiesFriendList { CharacterId = friend.Guid.Full, FriendId = Guid.Full };
-                friend.Session.Network.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, onlineStatus));
+                friend.Session.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, onlineStatus));
             }
         }
 

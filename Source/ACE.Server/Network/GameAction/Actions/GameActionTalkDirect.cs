@@ -22,23 +22,23 @@ namespace ACE.Server.Network.GameAction.Actions
             if (creature == null)
             {
                 var statusMessage = new GameEventWeenieError(session, WeenieError.CharacterNotAvailable);
-                session.Network.EnqueueSend(statusMessage);
+                session.EnqueueSend(statusMessage);
                 return;
             }
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {creature.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
+            session.EnqueueSend(new GameMessageSystemChat($"You tell {creature.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
 
             if (creature is Player targetPlayer)
             {
                 if (targetPlayer.Squelches.Contains(session.Player))
                 {
-                    session.Network.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.MessageBlocked_, $"{targetPlayer.Name} has you squelched."));
+                    session.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.MessageBlocked_, $"{targetPlayer.Name} has you squelched."));
                     //log.Warn($"Tell from {session.Player.Name} (0x{session.Player.Guid.ToString()}) to {targetPlayer.Name} (0x{targetPlayer.Guid.ToString()}) blocked due to squelch");
                     return;
                 }
 
                 var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
-                targetPlayer.Session.Network.EnqueueSend(tell);
+                targetPlayer.Session.EnqueueSend(tell);
             }
             else
                 creature.EmoteManager.OnTalkDirect(session.Player, message);

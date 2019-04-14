@@ -51,7 +51,7 @@ namespace ACE.Server.WorldObjects
         {
             if (House == null)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
                 return;
             }
 
@@ -60,7 +60,7 @@ namespace ACE.Server.WorldObjects
                 // this should be handled by a different thing, probably a function that forces player into peacemode
                 var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
                 SetCombatMode(CombatMode.NonCombat);
-                Session.Network.EnqueueSend(updateCombatMode);
+                Session.EnqueueSend(updateCombatMode);
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall));
@@ -79,7 +79,7 @@ namespace ACE.Server.WorldObjects
                 var endPos = new Position(Location);
                 if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
                     return;
                 }
 
@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
                     // this should be handled by a different thing, probably a function that forces player into peacemode
                     var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
                     SetCombatMode(CombatMode.NonCombat);
-                    Session.Network.EnqueueSend(updateCombatMode);
+                    Session.EnqueueSend(updateCombatMode);
                 }
 
                 EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall));
@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
                     var endPos = new Position(Location);
                     if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                     {
-                        Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                        Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
                         return;
                     }
 
@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall));
-            Session.Network.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
+            Session.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
             EnqueueBroadcastMotion(motionMarketplaceRecall);
 
             var startPos = new Position(Location);
@@ -161,7 +161,7 @@ namespace ACE.Server.WorldObjects
                 var endPos = new Position(Location);
                 if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
                     return;
                 }
 
@@ -181,13 +181,13 @@ namespace ACE.Server.WorldObjects
             // check if player is in an allegiance
             if (Allegiance == null)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
                 return;
             }
 
             if (Allegiance.Sanctuary == null)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourAllegianceDoesNotHaveHometown));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourAllegianceDoesNotHaveHometown));
                 return;
             }
 
@@ -196,7 +196,7 @@ namespace ACE.Server.WorldObjects
                 // this should be handled by a different thing, probably a function that forces player into peacemode
                 var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
                 SetCombatMode(CombatMode.NonCombat);
-                Session.Network.EnqueueSend(updateCombatMode);
+                Session.EnqueueSend(updateCombatMode);
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the Allegiance hometown.", ChatMessageType.Recall));
@@ -215,7 +215,7 @@ namespace ACE.Server.WorldObjects
                 var endPos = new Position(Location);
                 if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
                     return;
                 }
 
@@ -235,7 +235,7 @@ namespace ACE.Server.WorldObjects
             // check if player is in an allegiance
             if (Allegiance == null)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
                 return;
             }
 
@@ -243,20 +243,20 @@ namespace ACE.Server.WorldObjects
 
             if (allegianceHouse == null)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchDoesNotOwnAMansionOrVilla));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchDoesNotOwnAMansionOrVilla));
                 return;
             }
 
             if (allegianceHouse.HouseType < ACE.Entity.Enum.HouseType.Villa)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchsHouseIsNotAMansionOrVilla));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchsHouseIsNotAMansionOrVilla));
                 return;
             }
 
             // ensure allegiance housing has allegiance permissions enabled
             if (allegianceHouse.MonarchId == null)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchHasClosedTheMansion));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchHasClosedTheMansion));
                 return;
             }
 
@@ -265,7 +265,7 @@ namespace ACE.Server.WorldObjects
                 // this should be handled by a different thing, probably a function that forces player into peacemode
                 var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
                 SetCombatMode(CombatMode.NonCombat);
-                Session.Network.EnqueueSend(updateCombatMode);
+                Session.EnqueueSend(updateCombatMode);
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the Allegiance housing.", ChatMessageType.Recall));
@@ -284,7 +284,7 @@ namespace ACE.Server.WorldObjects
                 var endPos = new Position(Location);
                 if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
                     return;
                 }
 
@@ -300,7 +300,7 @@ namespace ACE.Server.WorldObjects
 
             Teleporting = true;
 
-            Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
+            Session.EnqueueSend(new GameMessagePlayerTeleport(this));
 
             // load quickly, but player can load into landblock before server is finished loading
 

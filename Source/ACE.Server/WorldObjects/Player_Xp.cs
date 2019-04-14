@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects
 
                 var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.TotalExperience, TotalExperience ?? 0);
                 var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
-                Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
+                Session.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
 
                 CheckForLevelup();
             }
@@ -131,11 +131,11 @@ namespace ACE.Server.WorldObjects
             }
             VitaeCpPool = (int)curPool;
 
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value));
+            Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value));
 
             if (vitaePenalty != startPenalty)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Your experience has reduced your Vitae penalty!", ChatMessageType.Magic));
+                Session.EnqueueSend(new GameMessageSystemChat("Your experience has reduced your Vitae penalty!", ChatMessageType.Magic));
                 EnchantmentManager.SendUpdateVitae();
             }
 
@@ -263,14 +263,14 @@ namespace ACE.Server.WorldObjects
                 if (Fellowship != null)
                     Fellowship.OnFellowLevelUp();
 
-                Session.Network.EnqueueSend(levelUp);
+                Session.EnqueueSend(levelUp);
 
                 SetMaxVitals();
 
                 // play level up effect
                 PlayParticleEffect(ACE.Entity.Enum.PlayScript.LevelUp, Guid);
 
-                Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement), currentCredits);
+                Session.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement), currentCredits);
             }
         }
 
@@ -286,7 +286,7 @@ namespace ACE.Server.WorldObjects
                 if (sendNetworkPropertyUpdate)
                 {
                     var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
-                    Session.Network.EnqueueSend(xpUpdate);
+                    Session.EnqueueSend(xpUpdate);
                 }
 
                 return true;
@@ -323,7 +323,7 @@ namespace ACE.Server.WorldObjects
             AvailableExperience += amount;
 
             var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
-            Session.Network.EnqueueSend(xpUpdate);
+            Session.EnqueueSend(xpUpdate);
         }
 
         /// <summary>
@@ -365,7 +365,7 @@ namespace ACE.Server.WorldObjects
 
             var luminance = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableLuminance, AvailableLuminance ?? 0);
             var message = new GameMessageSystemChat($"{amount:N0} luminance granted.", ChatMessageType.Advancement);
-            Session.Network.EnqueueSend(luminance, message);
+            Session.EnqueueSend(luminance, message);
         }
 
         /// <summary>
@@ -381,7 +381,7 @@ namespace ACE.Server.WorldObjects
                 var addItemXP = item.AddItemXP(amount);
 
                 if (addItemXP > 0)
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(item, PropertyInt64.ItemTotalXp, item.ItemTotalXp.Value));
+                    Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(item, PropertyInt64.ItemTotalXp, item.ItemTotalXp.Value));
 
                 // handle item leveling up
                 var newItemLevel = item.ItemLevel.Value;
@@ -391,7 +391,7 @@ namespace ACE.Server.WorldObjects
                     actionChain.AddAction(this, () =>
                     {
                         var msg = newItemLevel != item.ItemMaxLevel ? $"Your {item.Name} is now level {newItemLevel}!" : $"Your {item.Name} has reached the maximum level of {newItemLevel}!";
-                        Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                        Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                         EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
 

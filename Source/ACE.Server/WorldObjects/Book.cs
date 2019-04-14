@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
                 inscription = "";
 
             var bookDataResponse = new GameEventBookDataResponse(player.Session, Guid.Full, maxChars, maxPages, pageData, inscription, authorID, authorName, ignoreAuthor);
-            player.Session.Network.EnqueueSend(bookDataResponse);
+            player.Session.EnqueueSend(bookDataResponse);
         }
 
         public BiotaPropertiesBookPageData AddPage(uint authorId, string authorName, string authorAccount, bool ignoreAuthor, string pageText)

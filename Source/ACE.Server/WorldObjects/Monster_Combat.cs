@@ -290,10 +290,10 @@ namespace ACE.Server.WorldObjects
                 else
                     text = new GameMessageSystemChat($"You bleed {Name} for {iAmount} points of periodic damage!", ChatMessageType.CombatSelf);
 
-                source.Session.Network.EnqueueSend(text);
+                source.Session.EnqueueSend(text);
             }
 
-            source.Session.Network.EnqueueSend(new GameEventUpdateHealth(source.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
+            source.Session.EnqueueSend(new GameEventUpdateHealth(source.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
         }
 
         /// <summary>

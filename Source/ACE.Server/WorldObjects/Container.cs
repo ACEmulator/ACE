@@ -514,13 +514,13 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
+            player.Session.EnqueueSend(new GameEventViewContents(player.Session, this));
 
             // send sub-containers
             foreach (var container in Inventory.Values.Where(i => i is Container))
-                player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, (Container)container));
+                player.Session.EnqueueSend(new GameEventViewContents(player.Session, (Container)container));
 
-            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
+            player.Session.EnqueueSend(itemsToSend.ToArray());
         }
 
         public virtual void Close(Player player)
@@ -552,7 +552,7 @@ namespace ACE.Server.WorldObjects
 
             if (player != null)
             {
-                player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
+                player.Session.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
 
                 if (player.LastOpenedContainerId == Guid)
                     player.LastOpenedContainerId = ObjectGuid.Invalid;
@@ -564,7 +564,7 @@ namespace ACE.Server.WorldObjects
                 foreach (var item in Inventory.Values)
                     itemsToSend.Add(new GameMessageDeleteObject(item));
 
-                player.Session.Network.EnqueueSend(itemsToSend.ToArray());*/
+                player.Session.EnqueueSend(itemsToSend.ToArray());*/
             }
         }
 

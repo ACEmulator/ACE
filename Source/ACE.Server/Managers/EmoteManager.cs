@@ -99,7 +99,7 @@ namespace ACE.Server.Managers
 
                     var players = PlayerManager.GetAllOnline();
                     foreach (var onlinePlayer in players)
-                        onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.AdminTell));
+                        onlinePlayer.Session.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.AdminTell));
                     break;
 
                 case EmoteType.AwardLevelProportionalSkillXP:
@@ -127,7 +127,7 @@ namespace ACE.Server.Managers
                     if (player != null)
                     {
                         player.EarnXP((long)emote.Amount64, XpType.Quest, false);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                     }
                     break;
 
@@ -154,7 +154,7 @@ namespace ACE.Server.Managers
                     if (player != null)
                     {
                         player.EarnXP((long)emote.Amount64, XpType.Quest, true);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                     }
                     break;
 
@@ -216,7 +216,7 @@ namespace ACE.Server.Managers
                         targetObject.SetProperty(intProperty, current);
 
                         if (player != null)
-                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, intProperty, current));
+                            player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, intProperty, current));
                     }
                     break;
 
@@ -266,7 +266,7 @@ namespace ACE.Server.Managers
                         else
                             text = Replace(emote.Message, WorldObject, targetObject);
 
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));     // CreatureMessage / HearDirectSpeech?
+                        player.Session.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));     // CreatureMessage / HearDirectSpeech?
                     }
                     break;
 
@@ -287,7 +287,7 @@ namespace ACE.Server.Managers
                         if (fellowship == null)
                         {
                             text = Replace(emote.Message, WorldObject, player);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                            player.Session.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
                         }
                         else
                         {
@@ -296,7 +296,7 @@ namespace ACE.Server.Managers
                             foreach (var fellow in fellowshipMembers.Values)
                             {
                                 text = Replace(emote.Message, WorldObject, fellow);
-                                fellow.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                                fellow.Session.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
                             }
                         }
                     }
@@ -335,7 +335,7 @@ namespace ACE.Server.Managers
                         {
                             var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
                             var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
-                            player.Session.Network.EnqueueSend(msg, sound);
+                            player.Session.EnqueueSend(msg, sound);
 
                             if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                 player.RushNextPlayerSave(5);
@@ -362,7 +362,7 @@ namespace ACE.Server.Managers
                         targetObject.SetProperty(intProperty, current);
 
                         if (player != null)
-                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, intProperty, current));
+                            player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, intProperty, current));
                     }
                     break;
 
@@ -619,7 +619,7 @@ namespace ACE.Server.Managers
                         var confirm = new Confirmation(ConfirmationType.Yes_No, emote.TestString, WorldObject, null, player, emote.Message);
                         ConfirmationManager.AddConfirmation(confirm);
 
-                        player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Yes_No, confirm.ConfirmationID, emote.TestString));
+                        player.Session.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Yes_No, confirm.ConfirmationID, emote.TestString));
                     }
                     break;
 
@@ -844,12 +844,12 @@ namespace ACE.Server.Managers
                     if (player != null)
                     {
                         if ((emote.Stat == null) || ((ConfirmationType)emote.Stat == ConfirmationType.Undefined))
-                            player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, emote.Message));
+                            player.Session.EnqueueSend(new GameEventPopupString(player.Session, emote.Message));
                         else
                         {
                             Confirmation confirm = new Confirmation((ConfirmationType)emote.Stat, emote.Message, WorldObject, targetObject);
                             ConfirmationManager.AddConfirmation(confirm);
-                            player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, (ConfirmationType)emote.Stat, confirm.ConfirmationID, confirm.Message));
+                            player.Session.EnqueueSend(new GameEventConfirmationRequest(player.Session, (ConfirmationType)emote.Stat, confirm.ConfirmationID, confirm.Message));
                         }
                     }
                     break;
@@ -1025,7 +1025,7 @@ namespace ACE.Server.Managers
                             if (itemTaken != null)
                             {
                                 var msg = $"You hand over {emote.StackSize ?? 1} of your {itemTaken.GetPluralName()}.";
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                                player.Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                             }
                         }
 
@@ -1054,7 +1054,7 @@ namespace ACE.Server.Managers
                     if (player != null)
                     {
                         message = Replace(emote.Message, WorldObject, player);
-                        player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, player, ChatMessageType.Tell));
+                        player.Session.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, player, ChatMessageType.Tell));
                     }
                     break;
 
@@ -1066,7 +1066,7 @@ namespace ACE.Server.Managers
                         if (fellowship == null)
                         {
                             message = Replace(emote.Message, WorldObject, player);
-                            player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, player, ChatMessageType.Tell));
+                            player.Session.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, player, ChatMessageType.Tell));
                         }
                         else
                         {
@@ -1075,7 +1075,7 @@ namespace ACE.Server.Managers
                             foreach (var fellow in fellowshipMembers.Values)
                             {
                                 message = Replace(emote.Message, WorldObject, fellow);
-                                player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, fellow, ChatMessageType.Tell));
+                                player.Session.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, fellow, ChatMessageType.Tell));
                             }
                         }
                     }
@@ -1086,7 +1086,7 @@ namespace ACE.Server.Managers
                     if (player != null)
                     {
                         message = Replace(emote.Message, WorldObject, player);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                     }
                     break;
 
@@ -1152,7 +1152,7 @@ namespace ACE.Server.Managers
                     var onlinePlayers = PlayerManager.GetAllOnline();
 
                     foreach (var session in onlinePlayers)
-                        session.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
+                        session.Session.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
 
                     break;
 

@@ -118,8 +118,8 @@ namespace ACE.Server.WorldObjects
                 var pkError = CheckPKStatusVsTarget(this, targetPlayer, null);
                 if (pkError != null)
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, pkError[0], target.Name));
-                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], Name));
+                    Session.EnqueueSend(new GameEventWeenieErrorWithString(Session, pkError[0], target.Name));
+                    targetPlayer.Session.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], Name));
                     return null;
                 }
             }
@@ -138,9 +138,9 @@ namespace ACE.Server.WorldObjects
             else
             {
                 if (targetPlayer != null && targetPlayer.UnderLifestoneProtection)
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The Lifestone's magic protects {target.Name} from the attack!", ChatMessageType.Magic));
+                    Session.EnqueueSend(new GameMessageSystemChat($"The Lifestone's magic protects {target.Name} from the attack!", ChatMessageType.Magic));
                 else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
+                    Session.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
             }
 
             if (damageEvent.HasDamage && target.IsAlive)
@@ -154,19 +154,19 @@ namespace ACE.Server.WorldObjects
                 // notify attacker
                 var intDamage = (uint)Math.Round(damageEvent.Damage);
 
-                Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, attackConditions));
+                Session.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, attackConditions));
 
                 // splatter effects
                 if (targetPlayer == null)
                 {
-                    Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
+                    Session.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
                     if (damageEvent.Damage >= target.Health.MaxValue * 0.25f)
                     {
                         var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + ThreadSafeRandom.Next(1, 3), true);
-                        Session.Network.EnqueueSend(new GameMessageSound(target.Guid, painSound, 1.0f));
+                        Session.EnqueueSend(new GameMessageSound(target.Guid, painSound, 1.0f));
                     }
                     var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
-                    Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
+                    Session.EnqueueSend(new GameMessageScript(target.Guid, splatter));
                 }
 
                 // handle Dirty Fighting
@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (damageEvent.Damage > 0.0f)
-                Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+                Session.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
 
             if (targetPlayer == null)
                 OnAttackMonster(target);
@@ -281,7 +281,7 @@ namespace ACE.Server.WorldObjects
             else
                 UpdateVitalDelta(Stamina, -1);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {attacker.Name}!", ChatMessageType.CombatEnemy));
+            Session.EnqueueSend(new GameMessageSystemChat($"You evaded {attacker.Name}!", ChatMessageType.CombatEnemy));
 
             var creature = attacker as Creature;
             if (creature == null) return;
@@ -622,7 +622,7 @@ namespace ACE.Server.WorldObjects
             {
                 var nether = damageType == DamageType.Nether ? "nether " : "";
                 var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
-                Session.Network.EnqueueSend(text);
+                Session.EnqueueSend(text);
             }
 
             // splatter effects
@@ -686,7 +686,7 @@ namespace ACE.Server.WorldObjects
             if (creature != null)
             {
                 var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
-                Session.Network.EnqueueSend(text);
+                Session.EnqueueSend(text);
 
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
@@ -867,7 +867,7 @@ namespace ACE.Server.WorldObjects
                             if (equippedAmmo == null)
                             {
                                 var animTime = SetCombatMode(newCombatMode);
-                                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+                                Session.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
 
                                 var actionChain = new ActionChain();
                                 actionChain.AddDelaySeconds(animTime);

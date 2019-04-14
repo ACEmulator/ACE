@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
                 Age = initialAge + (int)(DateTime.UtcNow - initialAgeTime).TotalSeconds;
 
                 // In retail, this is sent every 7 seconds. If you adjust ageUpdateInterval from 7, you'll need to re-add logic to send this every 7s (if you want to match retail)
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age ?? 1));
+                Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age ?? 1));
             }
         }
 
@@ -121,7 +121,7 @@ namespace ACE.Server.WorldObjects
                     item.IsAffecting = false;
                     var msg = new GameMessageSystemChat($"Your {item.Name} is out of Mana.", ChatMessageType.Magic);
                     var sound = new GameMessageSound(Guid, Sound.ItemManaDepleted);
-                    Session.Network.EnqueueSend(msg, sound);
+                    Session.EnqueueSend(msg, sound);
                     if (item.WielderId != null)
                     {
                         if (item.Biota.BiotaPropertiesSpellBook != null)
@@ -149,7 +149,7 @@ namespace ACE.Server.WorldObjects
                     if (secondsUntilEmpty <= 120 && (!item.ItemManaDepletionMessageTimestamp.HasValue || (DateTime.Now - item.ItemManaDepletionMessageTimestamp.Value).TotalSeconds > 120))
                     {
                         item.ItemManaDepletionMessageTimestamp = DateTime.Now;
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is low on Mana.", ChatMessageType.Magic));
+                        Session.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is low on Mana.", ChatMessageType.Magic));
                     }
                 }
             }

@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             if (session.Player.Fellowship != null)
             {
-                session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(session));
+                session.EnqueueSend(new GameEventFellowshipFullUpdate(session));
             }
         }
     }

@@ -38,18 +38,18 @@ namespace ACE.Server.WorldObjects
             if (unlocker.Structure < 1)
                 player.TryConsumeFromInventoryWithNetworking(unlocker, 1);
 
-            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-            player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(unlocker, PropertyInt.Structure, (int)unlocker.Structure));
+            player.Session.EnqueueSend(new GameEventUseDone(player.Session));
+            player.Session.EnqueueSend(new GameMessagePublicUpdatePropertyInt(unlocker, PropertyInt.Structure, (int)unlocker.Structure));
 
             var unlockerType = unlocker is Lockpick ? "lockpick" : "key";
             if (unlocker.Structure < 1)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {unlockerType} is used up.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"Your {unlockerType} is used up.", ChatMessageType.Broadcast));
             }
             else
             {
                 var usePlural = unlocker.Structure == 1 ? "use" : "uses";
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {unlockerType} has {unlocker.Structure} {usePlural} left.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"Your {unlockerType} has {unlocker.Structure} {usePlural} left.", ChatMessageType.Broadcast));
             }
         }
         public static void UseUnlocker(Player player, WorldObject unlocker, WorldObject target)
@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
                     player.Skills[Skill.Lockpick].AdvancementClass != SkillAdvancementClass.Trained &&
                     player.Skills[Skill.Lockpick].AdvancementClass != SkillAdvancementClass.Specialized)
                 {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouArentTrainedInLockpicking));
+                    player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouArentTrainedInLockpicking));
                     return;
                 }
                 if (target is Lock @lock)
@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
                         {
                             if (woDoor.LockCode == "") // the door isn't to be opened with keys
                             {
-                                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
+                                player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
                                 return;
                             }
                         }
@@ -92,38 +92,38 @@ namespace ACE.Server.WorldObjects
                             {
                                 player.HandleActionApplySoundEffect(Sound.Lockpicking);// Sound.Lockpicking doesn't work via EnqueueBroadcastSound for some reason.
 
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Broadcast));
+                                player.Session.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Broadcast));
 
                                 var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick);
                                 Proficiency.OnSuccessUse(player, lockpickSkill, (uint)difficulty);
                             }
                             else
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} has been unlocked.", ChatMessageType.Broadcast));
+                                player.Session.EnqueueSend(new GameMessageSystemChat($"{target.Name} has been unlocked.", ChatMessageType.Broadcast));
 
                             ConsumeUnlocker(player, unlocker);
                             break;
 
                         case UnlockResults.Open:
-                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockWhatIsOpen));
+                            player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockWhatIsOpen));
                             break;
                         case UnlockResults.AlreadyUnlocked:
-                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.LockAlreadyUnlocked));
+                            player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.LockAlreadyUnlocked));
                             break;
                         case UnlockResults.PickLockFailed:
                             target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.PicklockFail, 1.0f));
                             ConsumeUnlocker(player, unlocker);
                             break;
                         case UnlockResults.CannotBePicked:
-                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
+                            player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
                             break;
                         case UnlockResults.IncorrectKey:
-                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.KeyDoesntFitThisLock));
+                            player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.KeyDoesntFitThisLock));
                             break;
                     }
                 }
                 else
                 {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
+                    player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
                 }
             });
 

@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
             if (!result.Success)
             {
                 if (result.Message != null && player != null)
-                    player.Session.Network.EnqueueSend(result.Message);
+                    player.Session.EnqueueSend(result.Message);
 
                 return;
             }
@@ -137,7 +137,7 @@ namespace ACE.Server.WorldObjects
             log.Error(msg);
 
             if (activator is Player _player)
-                _player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                _player.Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
         }
 
         public virtual void OnAnimate(WorldObject activator)
@@ -150,7 +150,7 @@ namespace ACE.Server.WorldObjects
         {
             // todo: verify the format of this message
             if (activator is Player player)
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
         }
 
         public virtual void OnEmote(WorldObject activator)
@@ -211,7 +211,7 @@ namespace ACE.Server.WorldObjects
                 if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
                 {
                     //return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, playerSkill.Skill.ToSentence()));
-                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You must have {playerSkill.Skill.ToSentence()} trained to use that item's magic"));
+                    player.Session.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You must have {playerSkill.Skill.ToSentence()} trained to use that item's magic"));
                     return new ActivationResult(false);
                 }
 
@@ -257,9 +257,9 @@ namespace ACE.Server.WorldObjects
 
                 /*var cooldown = player.GetCooldown(this);
                 var timer = cooldown.GetFriendlyString();
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} can be activated again in {timer}", ChatMessageType.Broadcast));*/
+                player.Session.EnqueueSend(new GameMessageSystemChat($"{Name} can be activated again in {timer}", ChatMessageType.Broadcast));*/
 
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
+                player.Session.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
                 return new ActivationResult(false);
             }
 

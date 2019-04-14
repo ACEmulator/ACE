@@ -609,7 +609,7 @@ namespace ACE.Server.WorldObjects
                 healthPercentage = (float)creature.Health.Current / (float)creature.Health.MaxValue;
 
             var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
-            examiner.Network.EnqueueSend(updateHealth);
+            examiner.EnqueueSend(updateHealth);
         }
 
         public void QueryItemMana(Session examiner)
@@ -627,7 +627,7 @@ namespace ACE.Server.WorldObjects
                 manaPercentage = 0;
 
             var updateMana = new GameEventQueryItemManaResponse(examiner, Guid.Full, manaPercentage, success);
-            examiner.Network.EnqueueSend(updateMana);
+            examiner.EnqueueSend(updateMana);
         }
 
 

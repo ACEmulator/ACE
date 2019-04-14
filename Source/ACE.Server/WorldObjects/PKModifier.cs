@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
 
                 actionChain.AddAction(player, () =>
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
                     player.PkLevelModifier = PkLevelModifier;
 
                     if (player.PkLevelModifier == 1)
@@ -106,7 +106,7 @@ namespace ACE.Server.WorldObjects
                 if (UseTargetFailureAnimation != MotionCommand.Invalid)
                     EnqueueBroadcastMotion(new Motion(this, UseTargetFailureAnimation));
 
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
             }
         }
 

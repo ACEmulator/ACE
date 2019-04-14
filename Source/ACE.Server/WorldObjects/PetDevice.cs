@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
 
             if (Structure == 0)
             {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You must refill the essence to use it again."));
+                player.Session.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You must refill the essence to use it again."));
                 return;
             }
 
@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
                 // decrease remaining uses
                 Structure--;
 
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
+                player.Session.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
             }
             else
             {
@@ -524,7 +524,7 @@ namespace ACE.Server.WorldObjects
 
                 player.TryConsumeFromInventoryWithNetworking(spirit, 1);
 
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You add the spirit to the essence.", ChatMessageType.Broadcast));
+                player.Session.EnqueueSend(new GameMessageSystemChat("You add the spirit to the essence.", ChatMessageType.Broadcast));
 
                 player.SendUseDoneEvent();
             });

@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
                 playerMsg = deathMessage.Victim;
 
             var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
-            Session.Network.EnqueueSend(msgYourDeath);
+            Session.EnqueueSend(msgYourDeath);
 
             // broadcast to nearby players
             var nearbyMsg = "";
@@ -94,14 +94,14 @@ namespace ACE.Server.WorldObjects
             var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
 
-            Session.Network.EnqueueSend(msgDeathLevel, msgVitaeCpPool);
+            Session.EnqueueSend(msgDeathLevel, msgVitaeCpPool);
 
             var vitae = EnchantmentManager.UpdateVitae();
 
             var spellID = (uint)SpellId.Vitae;
             var spell = new Spell(spellID);
             var vitaeEnchantment = new Enchantment(this, Guid.Full, spellID, 0, (EnchantmentMask)spell.StatModType, vitae);
-            Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
+            Session.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
         }
 
 
@@ -134,7 +134,7 @@ namespace ACE.Server.WorldObjects
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths);
 
             // send network messages for player death
-            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths);
+            Session.EnqueueSend(msgHealthUpdate, msgNumDeaths);
 
             // update vitae
             // players who died in a PKLite fight do not accrue vitae
@@ -148,7 +148,7 @@ namespace ACE.Server.WorldObjects
             {
                 var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
                 EnchantmentManager.RemoveAllEnchantments();
-                Session.Network.EnqueueSend(msgPurgeEnchantments);
+                Session.EnqueueSend(msgPurgeEnchantments);
             }
 
             // wait for the death animation to finish
@@ -197,7 +197,7 @@ namespace ACE.Server.WorldObjects
                 UpdateVital(Stamina, newStamina);
                 UpdateVital(Mana, newMana);
 
-                Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
+                Session.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
 
                 // reset damage history for this player
                 DamageHistory.Reset();
@@ -406,7 +406,7 @@ namespace ACE.Server.WorldObjects
                     if (stack != null)
                     {
                         AdjustStack(stack, -1, foundInContainer, rootContainer);
-                        Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+                        Session.EnqueueSend(new GameMessageSetStackSize(stack));
 
                         var dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
 
@@ -459,7 +459,7 @@ namespace ACE.Server.WorldObjects
 
             // send network messages
             var dropList = DropMessage(dropItems, numCoinsDropped);
-            Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
+            Session.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
 
             return dropItems;
         }
@@ -588,37 +588,37 @@ namespace ACE.Server.WorldObjects
 
             if (player == null)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} is not online.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{playerName} is not online.", ChatMessageType.Broadcast));
                 return;
             }
 
             // check for self-permit
             if (Name.Equals(player.Name))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You already have permission to loot your corpse.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"You already have permission to loot your corpse.", ChatMessageType.Broadcast));
                 return;
             }
 
             // verify other player has /consent on
             if (!player.GetCharacterOption(CharacterOption.AcceptCorpseLootingPermissions))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not accepting corpse looting permissions from other players.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not accepting corpse looting permissions from other players.", ChatMessageType.Broadcast));
                 return;
             }
 
             // do they already have permission?
             if (player.HasLootPermission(Guid))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} already has permission to loot your corpse.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} already has permission to loot your corpse.", ChatMessageType.Broadcast));
                 return;
             }
 
             player.LootPermission.Add(Guid, DateTime.UtcNow + PermitTime);
 
             // send messages to both players
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has given you permission to loot one of his or her corpses. This permission will last one hour.", ChatMessageType.Broadcast));
+            player.Session.EnqueueSend(new GameMessageSystemChat($"{Name} has given you permission to loot one of his or her corpses. This permission will last one hour.", ChatMessageType.Broadcast));
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have given permission to {player.Name} to loot one of your corpses. This permission will last one hour.", ChatMessageType.Broadcast));
+            Session.EnqueueSend(new GameMessageSystemChat($"You have given permission to {player.Name} to loot one of your corpses. This permission will last one hour.", ChatMessageType.Broadcast));
         }
 
         public void HandleActionRemovePlayerPermission(string playerName)
@@ -629,14 +629,14 @@ namespace ACE.Server.WorldObjects
             // check for self-revoke
             if (Name.Equals(player.Name))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You always have permission to loot your corpse.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"You always have permission to loot your corpse.", ChatMessageType.Broadcast));
                 return;
             }
 
             // do they already have permission?
             if (player == null || !player.HasLootPermission(Guid))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} doesn't have permission to loot your corpse.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} doesn't have permission to loot your corpse.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -644,9 +644,9 @@ namespace ACE.Server.WorldObjects
             player.LootPermission.Remove(Guid);
 
             // send messages to both players
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has revoked permission to loot one of his or her corpses.", ChatMessageType.Broadcast));
+            player.Session.EnqueueSend(new GameMessageSystemChat($"{Name} has revoked permission to loot one of his or her corpses.", ChatMessageType.Broadcast));
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s permission to loot your corpse has been revoked.", ChatMessageType.Broadcast));
+            Session.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s permission to loot your corpse has been revoked.", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -670,7 +670,7 @@ namespace ACE.Server.WorldObjects
 
             if (LootPermission.Count == 0)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You do not have permission to loot anyone's corpse.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"You do not have permission to loot anyone's corpse.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -688,7 +688,7 @@ namespace ACE.Server.WorldObjects
                 }
                 playerNames.Add(player.Name);
             }
-            Session.Network.EnqueueSend(new GameMessageSystemChat("You have permissions to loot a corpse from these players:\n" + string.Join("\n", playerNames), ChatMessageType.Broadcast));
+            Session.EnqueueSend(new GameMessageSystemChat("You have permissions to loot a corpse from these players:\n" + string.Join("\n", playerNames), ChatMessageType.Broadcast));
         }
 
         public void HandleActionClearPlayerConsentList()
@@ -697,13 +697,13 @@ namespace ACE.Server.WorldObjects
 
             if (LootPermission.Count == 0)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You do not have permission to loot anyone's corpse.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"You do not have permission to loot anyone's corpse.", ChatMessageType.Broadcast));
                 return;
             }
 
             LootPermission.Clear();
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have cleared your consent list. Players will have to permit you again to allow you access to their corpse.", ChatMessageType.Broadcast));
+            Session.EnqueueSend(new GameMessageSystemChat($"You have cleared your consent list. Players will have to permit you again to allow you access to their corpse.", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -716,28 +716,28 @@ namespace ACE.Server.WorldObjects
 
             if (player == null)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} is not online.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"{playerName} is not online.", ChatMessageType.Broadcast));
                 return;
             }
 
             // check for self-revoke
             if (Name.Equals(player.Name))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You always have permission to loot your corpse.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"You always have permission to loot your corpse.", ChatMessageType.Broadcast));
                 return;
             }
 
             // do we have permissions?
             if (!HasLootPermission(player.Guid))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You don't have permission to loot {player.Name}'s corpse.", ChatMessageType.Broadcast));
+                Session.EnqueueSend(new GameMessageSystemChat($"You don't have permission to loot {player.Name}'s corpse.", ChatMessageType.Broadcast));
                 return;
             }
 
             // remove looting permissions
             LootPermission.Remove(player.Guid);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have removed your permissions to loot {player.Name}'s corpse.", ChatMessageType.Broadcast));
+            Session.EnqueueSend(new GameMessageSystemChat($"You have removed your permissions to loot {player.Name}'s corpse.", ChatMessageType.Broadcast));
         }
 
         public bool UnderLifestoneProtection
@@ -760,7 +760,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleLifestoneProtection()
         {
-            Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.LifestoneMagicProtectsYou));
+            Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.LifestoneMagicProtectsYou));
             EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.ShieldUpBlue));
         }
 
@@ -779,7 +779,7 @@ namespace ACE.Server.WorldObjects
             UnderLifestoneProtection = false;
             LifestoneProtectionTimestamp = null;
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat("You're no longer protected by the Lifestone's magic!", ChatMessageType.Magic));
+            Session.EnqueueSend(new GameMessageSystemChat("You're no longer protected by the Lifestone's magic!", ChatMessageType.Magic));
         }
 
         public void LifestoneProtectionDispel()
@@ -787,7 +787,7 @@ namespace ACE.Server.WorldObjects
             UnderLifestoneProtection = false;
             LifestoneProtectionTimestamp = null;
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat("Your actions have dispelled the Lifestone's magic!", ChatMessageType.Magic));
+            Session.EnqueueSend(new GameMessageSystemChat("Your actions have dispelled the Lifestone's magic!", ChatMessageType.Magic));
         }
 
         public double? MinimumTimeSincePk
@@ -810,7 +810,7 @@ namespace ACE.Server.WorldObjects
             if ((prevStatus & PlayerKillerStatus.PK) != 0)
             {
                 EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreTemporarilyNoLongerPK));
+                Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreTemporarilyNoLongerPK));
             }
         }
 
@@ -831,7 +831,7 @@ namespace ACE.Server.WorldObjects
             MinimumTimeSincePk = null;
 
             EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
-            Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouArePKAgain));
+            Session.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouArePKAgain));
         }
 
         public List<WorldObject> GetSlipperyItems()

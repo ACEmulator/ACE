@@ -195,7 +195,7 @@ namespace ACE.Server.Command.Handlers
             {
                 var sessToNotify = interestedSessions[i];
                 if (session != null && session != sessToNotify)
-                    sessToNotify.Network.EnqueueSend(new GameMessageSystemChat(bootText, ChatMessageType.Broadcast));
+                    sessToNotify.EnqueueSend(new GameMessageSystemChat(bootText, ChatMessageType.Broadcast));
             }
 
             // log the boot to file
@@ -481,13 +481,13 @@ namespace ACE.Server.Command.Handlers
                 {
                     session.Player.TeleToPosition(positionType);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
-                    session.Network.EnqueueSend(positionMessage);
+                    session.EnqueueSend(positionMessage);
                     return;
                 }
             }
             // Invalid character was receieved in the input (it was not 0-9)
             var homeErrorMessage = new GameMessageSystemChat("Could not find a valid recall position.", ChatMessageType.Broadcast);
-            session.Network.EnqueueSend(homeErrorMessage);
+            session.EnqueueSend(homeErrorMessage);
         }
 
         // mrt
@@ -517,7 +517,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @myiid - Displays your Instance ID(IID).
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"GUID: {session.Player.Guid.Full}  - Low: {session.Player.Guid.Low} - High: {session.Player.Guid.High} - (0x{session.Player.Guid.Full:X})", ChatMessageType.Broadcast));
+            session.EnqueueSend(new GameMessageSystemChat($"GUID: {session.Player.Guid.Full}  - Low: {session.Player.Guid.Low} - High: {session.Player.Guid.High} - (0x{session.Player.Guid.Full:X})", ChatMessageType.Broadcast));
         }
 
         // myserver
@@ -717,12 +717,12 @@ namespace ACE.Server.Command.Handlers
                 session.Player.SetPosition(positionType, new Position(playerPosition));
                 // Report changes to client
                 var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(positionMessage);
+                session.EnqueueSend(positionMessage);
                 return;
             }
             // Error parsing the text input, from parameter[0]
             var positionErrorMessage = new GameMessageSystemChat("Could not determine the correct PositionType. Please use an integer value from 1 to 9; or omit the parmeter entirely.", ChatMessageType.Broadcast);
-            session.Network.EnqueueSend(positionErrorMessage);
+            session.EnqueueSend(positionErrorMessage);
         }
 
         // serverlist
@@ -841,7 +841,7 @@ namespace ACE.Server.Command.Handlers
             if (player != null)
                 session.Player.Teleport(player.Location);
             else
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -854,13 +854,13 @@ namespace ACE.Server.Command.Handlers
             var player = PlayerManager.GetOnlinePlayer(playerName);
             if (player == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
                 return;
             }
             var currentPos = new Position(player.Location);
             player.Teleport(session.Player.Location);
             player.SetPosition(PositionType.TeleportedCharacter, currentPos);
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you.", ChatMessageType.Magic));
+            player.Session.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you.", ChatMessageType.Magic));
         }
 
         /// <summary>
@@ -873,19 +873,19 @@ namespace ACE.Server.Command.Handlers
             var player = PlayerManager.GetOnlinePlayer(playerName);
             if (player == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
                 return;
             }
 
             if (player.TeleportedCharacter == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} does not have a return position saved.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Player {playerName} does not have a return position saved.", ChatMessageType.Broadcast));
                 return;
             }
 
             player.Teleport(new Position(player.TeleportedCharacter));
             player.SetPosition(PositionType.TeleportedCharacter, null);
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has returned you to your previous location.", ChatMessageType.Magic));
+            player.Session.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has returned you to your previous location.", ChatMessageType.Magic));
         }
 
         // teleallto [char]
@@ -931,7 +931,7 @@ namespace ACE.Server.Command.Handlers
                     .OrderBy(k => k)
                     .DefaultIfEmpty()
                     .Aggregate((a, b) => a + ", " + b);
-                session.Network.EnqueueSend(new GameMessageSystemChat($"All POIs: {list}", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"All POIs: {list}", ChatMessageType.Broadcast));
             }
             else
             {
@@ -1110,7 +1110,7 @@ namespace ACE.Server.Command.Handlers
             {
                 if (weenieClassId < 1 && weenieClassId > WEENIE_MAX)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
                     return;
                 }
             }
@@ -1120,19 +1120,19 @@ namespace ACE.Server.Command.Handlers
             if (parameters.Length > 1)
                 if (!int.TryParse(parameters[1], out palette))
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
             if (parameters.Length > 2)
                 if (!float.TryParse(parameters[2], out shade))
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
             if (parameters.Length > 3)
                 if (!int.TryParse(parameters[3], out stackSize))
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
 
@@ -1146,7 +1146,7 @@ namespace ACE.Server.Command.Handlers
 
             if (loot == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1184,20 +1184,20 @@ namespace ACE.Server.Command.Handlers
                 var isValidStackSize = ushort.TryParse(parameters[1], out stackSize);
                 if (!isValidStackSize || stackSize == 0)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between 1 - {ushort.MaxValue}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between 1 - {ushort.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
             }
 
             if (parameters.Length > 2 && !int.TryParse(parameters[2], out int palette))
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
                 return;
             }
 
             if (parameters.Length > 3 && !float.TryParse(parameters[3], out float shade))
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
                 return;
             }
             
@@ -1210,7 +1210,7 @@ namespace ACE.Server.Command.Handlers
 
             if (loot == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1390,15 +1390,15 @@ namespace ACE.Server.Command.Handlers
             {
                 case "start":
                     if (EventManager.StartEvent(eventName))
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} started successfully.", ChatMessageType.Broadcast));
+                        session.EnqueueSend(new GameMessageSystemChat($"Event {eventName} started successfully.", ChatMessageType.Broadcast));
                     else
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to start event named {eventName} .", ChatMessageType.Broadcast));
+                        session.EnqueueSend(new GameMessageSystemChat($"Unable to start event named {eventName} .", ChatMessageType.Broadcast));
                     break;
                 case "stop":
                     if (EventManager.StopEvent(eventName))
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} stopped successfully.", ChatMessageType.Broadcast));
+                        session.EnqueueSend(new GameMessageSystemChat($"Event {eventName} stopped successfully.", ChatMessageType.Broadcast));
                     else
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to stop event named {eventName} .", ChatMessageType.Broadcast));
+                        session.EnqueueSend(new GameMessageSystemChat($"Unable to stop event named {eventName} .", ChatMessageType.Broadcast));
                     break;
                 case "disable":
                     break;
@@ -1409,11 +1409,11 @@ namespace ACE.Server.Command.Handlers
                 case "status":
                     if (eventName != "all" && eventName != "")
                     {
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} - GameEventState.{EventManager.GetEventStatus(eventName)}", ChatMessageType.Broadcast));
+                        session.EnqueueSend(new GameMessageSystemChat($"Event {eventName} - GameEventState.{EventManager.GetEventStatus(eventName)}", ChatMessageType.Broadcast));
                     }
                     break;
                 default:
-                    session.Network.EnqueueSend(new GameMessageSystemChat("That is not a valid event command", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("That is not a valid event command", ChatMessageType.Broadcast));
                     break;
             }
         }
@@ -1490,7 +1490,7 @@ namespace ACE.Server.Command.Handlers
             string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full):X})\n";
             message += $"The next Player GUID to be allocated is expected to be: {nextPlayerGuid.Full} (0x{(nextPlayerGuid.Full):X})";
             var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
-            session.Network.EnqueueSend(sysChatMsg);
+            session.EnqueueSend(sysChatMsg);
         }
 
         // gamecastlocalemote <message>
@@ -1533,7 +1533,7 @@ namespace ACE.Server.Command.Handlers
             {
                 if (weenieClassId < 1 && weenieClassId > WEENIE_MAX)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
                     return;
                 }
             }
@@ -1546,7 +1546,7 @@ namespace ACE.Server.Command.Handlers
 
             if (weenie == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenieClassDescription} not found in database, unable to morph.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Weenie {weenieClassDescription} not found in database, unable to morph.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1554,11 +1554,11 @@ namespace ACE.Server.Command.Handlers
                 && weenie.Type != (int)WeenieType.Admin && weenie.Type != (int)WeenieType.Sentinel && weenie.Type != (int)WeenieType.Vendor
                 && weenie.Type != (int)WeenieType.Pet && weenie.Type != (int)WeenieType.CombatPet)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription}) is of WeenieType.{Enum.GetName(typeof(WeenieType), weenie.Type)} ({weenie.Type}), unable to morph because that is not allowed.", ChatMessageType.Broadcast));
+                session.EnqueueSend(new GameMessageSystemChat($"Weenie {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription}) is of WeenieType.{Enum.GetName(typeof(WeenieType), weenie.Type)} ({weenie.Type}), unable to morph because that is not allowed.", ChatMessageType.Broadcast));
                 return;
             }
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));            
+            session.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));            
 
             var guid = GuidManager.NewPlayerGuid();
 
@@ -2023,7 +2023,7 @@ namespace ACE.Server.Command.Handlers
             // todo, add actual system memory used/avail
             sb.Append($"{(proc.PrivateMemorySize64 >> 20):N0} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
 
-            sb.Append($"{WorldManager.GetSessionCount():N0} connections, {PlayerManager.GetAllOnline().Count:N0} players online{'\n'}");
+            sb.Append($"{NetworkManager.GetSessionCount():N0} connections, {PlayerManager.GetAllOnline().Count:N0} players online{'\n'}");
             sb.Append($"Total Accounts Created: {DatabaseManager.Authentication.GetAccountCount():N0}, Total Characters Created: {(PlayerManager.GetAllOffline().Count + PlayerManager.GetAllOnline().Count):N0}{'\n'}");
 
             // 330 active objects, 1931 total objects(16777216 buckets.)

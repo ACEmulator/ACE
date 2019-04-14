@@ -392,7 +392,7 @@ namespace ACE.Server.WorldObjects
                     case PropertyType.PropertyInt:
                         int? value = GetProperty((PropertyInt)property.PropertyId);
                         if (value != null)
-                            targetSession.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(targetSession.Player, (PropertyInt)property.PropertyId, value.Value));
+                            targetSession.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(targetSession.Player, (PropertyInt)property.PropertyId, value.Value));
                         break;
                     default:
                         log.Debug($"Unsupported property in SendPartialUpdates: id {property.PropertyId}, type {property.PropertyType}.");
@@ -1222,7 +1222,7 @@ namespace ACE.Server.WorldObjects
             if (this is Player)
             {
                 self = this as Player;
-                self.Session.Network.EnqueueSend(msg);
+                self.Session.EnqueueSend(msg);
             }
 
             var isDungeon = CurrentLandblock._landblock != null && CurrentLandblock._landblock.IsDungeon;
@@ -1244,7 +1244,7 @@ namespace ACE.Server.WorldObjects
                 //var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
                 var distSquared = Location.SquaredDistanceTo(player.Location);
                 if (distSquared <= rangeSquared)
-                    player.Session.Network.EnqueueSend(msg);
+                    player.Session.EnqueueSend(msg);
             }
         }
 
@@ -1263,7 +1263,7 @@ namespace ACE.Server.WorldObjects
             if (sendSelf)
             {
                 if (this is Player self)
-                    self.Session.Network.EnqueueSend(msgs);
+                    self.Session.EnqueueSend(msgs);
             }
 
             var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
@@ -1272,7 +1272,7 @@ namespace ACE.Server.WorldObjects
                 if (Visibility && !player.Adminvision)
                     continue;
 
-                player.Session.Network.EnqueueSend(msgs);
+                player.Session.EnqueueSend(msgs);
             }
             return nearbyPlayers;
         }
@@ -1284,7 +1284,7 @@ namespace ACE.Server.WorldObjects
             if (sendSelf)
             {
                 if (this is Player self)
-                    self.Session.Network.EnqueueSend(msgs);
+                    self.Session.EnqueueSend(msgs);
             }
 
             var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
@@ -1293,7 +1293,7 @@ namespace ACE.Server.WorldObjects
                 if (Visibility && !player.Adminvision)
                     continue;
 
-                player.Session.Network.EnqueueSend(msgs);
+                player.Session.EnqueueSend(msgs);
             }
             return nearbyPlayers;
         }

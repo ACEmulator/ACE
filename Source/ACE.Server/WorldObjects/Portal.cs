@@ -82,14 +82,14 @@ namespace ACE.Server.WorldObjects
 
             if (Destination == null)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Portal destination for portal ID {WeenieClassId} not yet implemented!", ChatMessageType.System));
+                player.Session.EnqueueSend(new GameMessageSystemChat($"Portal destination for portal ID {WeenieClassId} not yet implemented!", ChatMessageType.System));
                 return new ActivationResult(false);
             }
 
             if (!player.IgnorePortalRestrictions)
             {
 #if DEBUG
-                // player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Checking requirements for {Name}", ChatMessageType.System));
+                // player.Session.EnqueueSend(new GameMessageSystemChat($"Checking requirements for {Name}", ChatMessageType.System));
 #endif
 
                 if (player.Level < MinLevel)
@@ -138,7 +138,7 @@ namespace ACE.Server.WorldObjects
             if (player == null) return;
 
 #if DEBUG
-            // player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
+            // player.Session.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
 #endif
             var portalDest = new Position(Destination);
             player.AdjustDungeon(portalDest);

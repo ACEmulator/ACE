@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
         {
             var vendorList = AllItemsForSale.Values.ToList();
 
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorList));
+            player.Session.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorList));
 
             var rotateTime = Rotate(player); // vendor rotates to player
 

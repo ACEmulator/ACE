@@ -294,7 +294,7 @@ namespace ACE.Server.Managers
             WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
             WorldObject.ChangesDetected = true;
 
-            Player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, new Enchantment(Player, newEntry)));
+            Player.Session.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, new Enchantment(Player, newEntry)));
 
             return true;
         }
@@ -316,10 +316,10 @@ namespace ACE.Server.Managers
             if (Player != null)
             {
                 var layer = (entry.SpellId == (uint)SpellId.Vitae) ? (ushort)0 : entry.LayerId; // this line is to force vitae to be layer 0 to match retail pcaps. We save it as layer 1 to make EF Core happy.
-                Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, layer));
+                Player.Session.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, layer));
 
                 if (sound && entry.SpellCategory != SpellCategory_Cooldown)
-                    Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
+                    Player.Session.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
 
                 if (entry.SpellCategory != SpellCategory_Cooldown)
                 {
@@ -339,10 +339,10 @@ namespace ACE.Server.Managers
                     {
                         var spell = new Spell(spellID);
 
-                        owner.Session.Network.EnqueueSend(new GameMessageSystemChat($"The spell {spell.Name} on {WorldObject.Name} has expired.", ChatMessageType.Magic));
+                        owner.Session.EnqueueSend(new GameMessageSystemChat($"The spell {spell.Name} on {WorldObject.Name} has expired.", ChatMessageType.Magic));
 
                         if (sound)
-                            owner.Session.Network.EnqueueSend(new GameMessageSound(owner.Guid, Sound.SpellExpire, 1.0f));
+                            owner.Session.EnqueueSend(new GameMessageSound(owner.Guid, Sound.SpellExpire, 1.0f));
                     }
                 }
             }
@@ -473,7 +473,7 @@ namespace ACE.Server.Managers
 
             if (Player != null)
             {
-                Player.Session.Network.EnqueueSend(new GameEventMagicDispelEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
+                Player.Session.EnqueueSend(new GameEventMagicDispelEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
 
                 var spell = new Spell(spellID);
                 Player.HandleMaxVitalUpdate(spell);
@@ -500,7 +500,7 @@ namespace ACE.Server.Managers
                 }
             }
             if (Player != null)
-                Player.Session.Network.EnqueueSend(new GameEventMagicDispelMultipleEnchantments(Player.Session, entries));
+                Player.Session.EnqueueSend(new GameEventMagicDispelMultipleEnchantments(Player.Session, entries));
         }
 
         /// <summary>
@@ -1328,7 +1328,7 @@ namespace ACE.Server.Managers
         {
             if (Player == null) return;
             var vitae = new Enchantment(Player, GetVitae());
-            Player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, vitae));
+            Player.Session.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, vitae));
         }
     }
 }

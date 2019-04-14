@@ -46,16 +46,16 @@ namespace ACE.Server.WorldObjects
                 //if (attribute == PropertyAttribute2nd.Endurance)
                 //{
                 //    var healthUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Health, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
-                //    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
+                //    Session.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
                 //}
                 //else if (attribute == PropertyAttribute2nd.Self)
                 //{
                 //    var manaUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Mana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
-                //    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
+                //    Session.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
                 //}
                 //else
                 //{
-                Session.Network.EnqueueSend(abilityUpdate, soundEvent, message);
+                Session.EnqueueSend(abilityUpdate, soundEvent, message);
                 //}
             }
             else
@@ -163,7 +163,7 @@ namespace ACE.Server.WorldObjects
             var stamina = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, Stamina.Current);
             var mana = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, Mana.Current);
 
-            Session.Network.EnqueueSend(health, stamina, mana);
+            Session.EnqueueSend(health, stamina, mana);
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
             var change = base.UpdateVital(vital, newVal);
 
             if (change != 0)
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+                Session.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
 
             // check for exhaustion
             if (vital.Vital == PropertyAttribute2nd.Stamina || vital.Vital == PropertyAttribute2nd.MaxStamina)
@@ -205,7 +205,7 @@ namespace ACE.Server.WorldObjects
 
             var healthPercent = (float)target.Health.Current / target.Health.MaxValue;
 
-            Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, selectedTarget.Full, healthPercent));
+            Session.EnqueueSend(new GameEventUpdateHealth(Session, selectedTarget.Full, healthPercent));
         }
 
         /// <summary>

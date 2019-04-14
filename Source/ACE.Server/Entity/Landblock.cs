@@ -828,7 +828,7 @@ namespace ACE.Server.Entity
 
             // broadcast messages to player in this landblock
             foreach (var player in players)
-                player.Session.Network.EnqueueSend(msgs);
+                player.Session.EnqueueSend(msgs);
 
             // if applicable, iterate into adjacent landblocks
             if (adjacents)

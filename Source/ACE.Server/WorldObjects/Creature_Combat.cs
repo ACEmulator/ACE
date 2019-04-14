@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 player.stance = MotionStance.NonCombat;
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
+                player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
             }
 
             //Console.WriteLine("HandleSwitchToPeaceMode() - animLength: " + animLength);
@@ -139,7 +139,7 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 player.HandleActionTradeSwitchToCombatMode(player.Session);
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Melee));
+                player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Melee));
             }
 
             //Console.WriteLine("HandleSwitchToMeleeCombatMode() - animLength: " + animLength);
@@ -164,7 +164,7 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 player.HandleActionTradeSwitchToCombatMode(player.Session);
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Magic));
+                player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Magic));
             }
 
             //Console.WriteLine("HandleSwitchToMagicCombatMode() - animLength: " + animLength);
@@ -209,7 +209,7 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 player.HandleActionTradeSwitchToCombatMode(player.Session);
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Missile));
+                player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Missile));
             }
             //Console.WriteLine("HandleSwitchToMissileCombatMode() - animLength: " + animLength);
             return swapTime + stanceTime + reloadTime;
@@ -862,9 +862,9 @@ namespace ACE.Server.WorldObjects
             var playerSource = this as Player;
             var playerTarget = target as Player;
             if (playerSource != null)
-                playerSource.Session.Network.EnqueueSend(msg);
+                playerSource.Session.EnqueueSend(msg);
             if (playerTarget != null)
-                playerTarget.Session.Network.EnqueueSend(msg);
+                playerTarget.Session.EnqueueSend(msg);
         }
 
         /// <summary>

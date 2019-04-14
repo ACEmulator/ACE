@@ -15,7 +15,7 @@ namespace ACE.Server.WorldObjects
 
             var luminance = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableLuminance, AvailableLuminance ?? 0);
             var message = new GameMessageSystemChat($"{amount} luminance spent.", ChatMessageType.Advancement);
-            Session.Network.EnqueueSend(luminance, message);
+            Session.EnqueueSend(luminance, message);
         }
     }
 }

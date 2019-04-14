@@ -186,7 +186,7 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyInt.ValidLocations, (int)ColorToMask[color]);
 
             // level?
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat("A sigil rises to the surface as you bathe the aetheria in mana.", ChatMessageType.Broadcast));
+            player.Session.EnqueueSend(new GameMessageSystemChat("A sigil rises to the surface as you bathe the aetheria in mana.", ChatMessageType.Broadcast));
 
             player.SendUseDoneEvent();
         }

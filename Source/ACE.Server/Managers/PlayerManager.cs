@@ -491,7 +491,7 @@ namespace ACE.Server.Managers
         public static void BroadcastToAll(GameMessage msg)
         {
             foreach (var player in GetAllOnline())
-                player.Session.Network.EnqueueSend(msg);
+                player.Session.EnqueueSend(msg);
         }
     }
 }

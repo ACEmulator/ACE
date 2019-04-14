@@ -353,7 +353,7 @@ namespace ACE.Server.Managers
                 player.MonarchId = null;
 
                 if (onlinePlayer != null)
-                    onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, 0));
+                    onlinePlayer.Session.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, 0));
 
                 updated = true;
             }
@@ -363,7 +363,7 @@ namespace ACE.Server.Managers
                 player.AllegianceRank = null;
 
                 if (onlinePlayer != null)
-                    onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, 0));
+                    onlinePlayer.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, 0));
 
                 updated = true;
             }
@@ -372,7 +372,7 @@ namespace ACE.Server.Managers
                 player.SaveBiotaToDatabase();
 
             if (onlinePlayer != null)
-                onlinePlayer.Session.Network.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, onlinePlayer.Allegiance, onlinePlayer.AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
+                onlinePlayer.Session.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, onlinePlayer.Allegiance, onlinePlayer.AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
         }
 
         public static Allegiance FindAllegiance(uint allegianceID)

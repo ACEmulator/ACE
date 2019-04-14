@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
             //Check to make sure we got a valid skill back
             if (currentSkill == null)
             {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToAlterSkill));
+                player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToAlterSkill));
                 return;
             }
 
@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
                     //Check to make sure player won't exceed limit of 70 specialized credits after operation
                     if (skill.UpgradeCostFromTrainedToSpecialized + GetTotalSpecializedCredits(player) > 70)
                     {
-                        player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.TooManyCreditsInSpecializedSkills, currentSkill.Skill.ToSentence()));
+                        player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.TooManyCreditsInSpecializedSkills, currentSkill.Skill.ToSentence()));
                         break;
                     }
 
@@ -79,9 +79,9 @@ namespace ACE.Server.WorldObjects
                             if (player.SpecializeSkill(currentSkill.Skill, skill.UpgradeCostFromTrainedToSpecialized, false))
                             {
                                 //Specialization was successful, notify the client
-                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
-                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
-                                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededSpecializing_Skill, currentSkill.Skill.ToSentence()));
+                                player.Session.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
+                                player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
+                                player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededSpecializing_Skill, currentSkill.Skill.ToSentence()));
 
                                 //Destroy the gem we used successfully
                                 player.TryConsumeFromInventoryWithNetworking(this, 1);
@@ -91,13 +91,13 @@ namespace ACE.Server.WorldObjects
                         }
                         else
                         {
-                            player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.NotEnoughSkillCreditsToSpecialize, currentSkill.Skill.ToSentence()));
+                            player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.NotEnoughSkillCreditsToSpecialize, currentSkill.Skill.ToSentence()));
                             break;
                         }
                     }
 
                     //Tried to use a specialization gem on a skill that is either already specialized, or untrained
-                    player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, currentSkill.Skill.ToSentence()));
+                    player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, currentSkill.Skill.ToSentence()));
                     break;
 
                 case SkillAlterationType.Lower:
@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects
 
                     if (specAug)
                     {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot lower your {currentSkill.Skill.ToSentence()} augmented skill.", ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat($"You cannot lower your {currentSkill.Skill.ToSentence()} augmented skill.", ChatMessageType.Broadcast));
                         break;
                     }
 
@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects
                     if (CheckWieldedItems(player))
                     {
                         //Items are wielded which might be affected by a lowering operation
-                        player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.CannotLowerSkillWhileWieldingItem, currentSkill.Skill.ToSentence()));
+                        player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.CannotLowerSkillWhileWieldingItem, currentSkill.Skill.ToSentence()));
                         break;
                     }
 
@@ -150,9 +150,9 @@ namespace ACE.Server.WorldObjects
                         if (player.UnspecializeSkill(currentSkill.Skill, skill.UpgradeCostFromTrainedToSpecialized))
                         {
                             //Unspecialization was successful, notify the client
-                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
-                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
-                            player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededUnspecializing_Skill, currentSkill.Skill.ToSentence()));
+                            player.Session.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
+                            player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
+                            player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededUnspecializing_Skill, currentSkill.Skill.ToSentence()));
 
                             //Destroy the gem we used successfully
                             player.TryConsumeFromInventoryWithNetworking(this, 1);
@@ -167,16 +167,16 @@ namespace ACE.Server.WorldObjects
                         if (player.UntrainSkill(currentSkill.Skill, skill.TrainedCost))
                         {
                             //Untraining was successful, notify the client
-                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
+                            player.Session.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
 
                             if (untrainable)
                             {
-                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
-                                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededUntraining_Skill, currentSkill.Skill.ToSentence()));
+                                player.Session.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
+                                player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededUntraining_Skill, currentSkill.Skill.ToSentence()));
                             }
                             else
                             {
-                                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.CannotUntrain_SkillButRecoveredXP, currentSkill.Skill.ToSentence()));
+                                player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.CannotUntrain_SkillButRecoveredXP, currentSkill.Skill.ToSentence()));
                             }
 
                             //Destroy the gem we used successfully
@@ -186,7 +186,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                     else
-                        player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillIsAlreadyUntrained, currentSkill.Skill.ToSentence()));
+                        player.Session.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillIsAlreadyUntrained, currentSkill.Skill.ToSentence()));
 
                     break;
             }

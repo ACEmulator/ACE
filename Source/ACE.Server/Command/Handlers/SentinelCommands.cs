@@ -81,7 +81,7 @@ namespace ACE.Server.Command.Handlers
                         CommandHandlerHelper.WriteOutputInfo(session, $"You do not have permission to do that state", ChatMessageType.Broadcast);
                     break;
                 default:
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Please specify if you want cloaking on or off.", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("Please specify if you want cloaking on or off.", ChatMessageType.Broadcast));
                     break;
             }
         }
@@ -105,12 +105,12 @@ namespace ACE.Server.Command.Handlers
             {
                 case "off":
                     session.Player.Invincible = false;
-                    session.Network.EnqueueSend(new GameMessageSystemChat("You are once again mortal.", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("You are once again mortal.", ChatMessageType.Broadcast));
                     break;
                 case "on":
                 default:
                     session.Player.Invincible = true;
-                    session.Network.EnqueueSend(new GameMessageSystemChat("You are now immortal.", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("You are now immortal.", ChatMessageType.Broadcast));
                     break;
             }
         }
@@ -129,11 +129,11 @@ namespace ACE.Server.Command.Handlers
             {
                 case true:
                     session.Player.IgnorePortalRestrictions = false;
-                    session.Network.EnqueueSend(new GameMessageSystemChat("You are once again bound by portal restrictions.", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("You are once again bound by portal restrictions.", ChatMessageType.Broadcast));
                     break;
                 case false:
                     session.Player.IgnorePortalRestrictions = true;
-                    session.Network.EnqueueSend(new GameMessageSystemChat("You are no longer bound by portal restrictions.", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("You are no longer bound by portal restrictions.", ChatMessageType.Broadcast));
                     break;
             }
         }
@@ -219,18 +219,18 @@ namespace ACE.Server.Command.Handlers
                     else
                         goto case "on";
                 case "check":
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Run speed boost is currently {(session.Player.EnchantmentManager.HasSpell(spellID) ? "ACTIVE" : "INACTIVE")}", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat($"Run speed boost is currently {(session.Player.EnchantmentManager.HasSpell(spellID) ? "ACTIVE" : "INACTIVE")}", ChatMessageType.Broadcast));
                     break;
                 case "off":
                     var runBoost = session.Player.EnchantmentManager.GetEnchantment(spellID);
                     if (runBoost != null)
                         session.Player.EnchantmentManager.Remove(runBoost);
                     else
-                        session.Network.EnqueueSend(new GameMessageSystemChat("Run speed boost is currently INACTIVE", ChatMessageType.Broadcast));
+                        session.EnqueueSend(new GameMessageSystemChat("Run speed boost is currently INACTIVE", ChatMessageType.Broadcast));
                     break;
                 case "on":
                     session.Player.CreateSingleSpell(spellID);
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast));
+                    session.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast));
                     break;
             }
         }

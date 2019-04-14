@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
 using log4net;
 
@@ -28,7 +29,7 @@ namespace ACE.Server.Network
             log.DebugFormat("ConnectionListener ctor, host {0} port {1}", host, port);
             listeningHost = host;
             listeningPort = port;
-            inboundQueue = SocketManager.InboundQueue;
+            inboundQueue = NetworkManager.InboundQueue;
         }
 
         public void Start()

@@ -37,7 +37,7 @@ namespace ACE.Server.WorldObjects
             if (Guid.Full == Fellowship.FellowshipLeaderGuid)
                 Fellowship.RemoveFellowshipMember(player);
             else
-                Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
+                Session.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
         }
 
         public void FellowshipRecruit(Player newPlayer)
@@ -46,14 +46,14 @@ namespace ACE.Server.WorldObjects
 
             if (newPlayer.GetCharacterOption(CharacterOption.IgnoreFellowshipRequests))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{newPlayer.Name} is not accepting fellowing requests.", ChatMessageType.Fellowship));
+                Session.EnqueueSend(new GameMessageSystemChat($"{newPlayer.Name} is not accepting fellowing requests.", ChatMessageType.Fellowship));
             }
             else if (Fellowship != null)
             {
                 if (Guid.Full == Fellowship.FellowshipLeaderGuid || Fellowship.Open)
                     Fellowship.AddFellowshipMember(this, newPlayer);
                 else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
+                    Session.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
             }
         }
 

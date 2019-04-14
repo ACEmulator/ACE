@@ -68,7 +68,7 @@ namespace ACE.Server.WorldObjects
                 if (invTarget == null)
                 {
                     // Haven't looked to see if an error was sent for this case; however, this one fits
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDoNotOwnThatItem));
+                    player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDoNotOwnThatItem));
                     return;
                 }
 
@@ -89,7 +89,7 @@ namespace ACE.Server.WorldObjects
                         if (!player.TryConsumeFromInventoryWithNetworking(target))
                         {
                             log.Error($"Failed to remove {target.Name} from player inventory.");
-                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.ActionCancelled));
+                            player.Session.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.ActionCancelled));
                         }
 
                         //The Mana Stone drains 5,253 points of mana from the Wand.
@@ -99,7 +99,7 @@ namespace ACE.Server.WorldObjects
                         //The Pantaloons is destroyed.
 
                         ItemCurMana = (int)Math.Round(Efficiency.Value * target.ItemCurMana.Value);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Mana Stone drains {ItemCurMana.Value:N0} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat($"The Mana Stone drains {ItemCurMana.Value:N0} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
                         SetUiEffect(player, ACE.Entity.Enum.UiEffects.Magical);
                     }
                 }
@@ -147,7 +147,7 @@ namespace ACE.Server.WorldObjects
 
                     if (itemsGivenMana.Count < 1)
                     {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have no items equipped that need mana.", ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat("You have no items equipped that need mana.", ChatMessageType.Broadcast));
                         useResult = WeenieError.ActionCancelled;
                     }
                     else
@@ -161,7 +161,7 @@ namespace ACE.Server.WorldObjects
                         var additionalManaNeeded = origItemsNeedingMana.Sum(k => k.ItemMaxMana.Value - k.ItemCurMana.Value);
                         var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded:N0} more mana to fully charge your items." : "\nYour items are fully charged.";
                         var msg = $"The Mana Stone gives {itemsGivenMana.Values.Sum():N0} points of mana to the following items: {itemsGivenMana.Select(c => c.Key.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                         if (!DoDestroyDiceRoll(player))
                         {
@@ -174,7 +174,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (target.ItemCurMana.Value >= target.ItemMaxMana.Value)
                     {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {target.Name} is already full of mana.", ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat($"The {target.Name} is already full of mana.", ChatMessageType.Broadcast));
                     }
                     else
                     {
@@ -186,7 +186,7 @@ namespace ACE.Server.WorldObjects
                         var manaToPour = Math.Min(targetManaNeeded, ItemCurMana.Value);
                         target.ItemCurMana += manaToPour;
                         var msg = $"The Mana Stone gives {manaToPour:N0} points of mana to the {target.Name}.";
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                        player.Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                         if (!DoDestroyDiceRoll(player))
                         {
@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, useResult));
+            player.Session.EnqueueSend(new GameEventUseDone(player.Session, useResult));
         }
 
         private bool DoDestroyDiceRoll(Player player)
@@ -216,7 +216,7 @@ namespace ACE.Server.WorldObjects
             {
                 player.TryConsumeFromInventoryWithNetworking(this);
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} is destroyed.", ChatMessageType.Broadcast));
+                    player.Session.EnqueueSend(new GameMessageSystemChat($"The {Name} is destroyed.", ChatMessageType.Broadcast));
                     return true;
                 }
             }

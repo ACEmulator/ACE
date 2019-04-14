@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
                     if (!result.Success)
                     {
                         if (result.Message != null)
-                            Session.Network.EnqueueSend(result.Message);
+                            Session.EnqueueSend(result.Message);
 
                         SendUseDoneEvent();
                     }
@@ -120,7 +120,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="errorType">An optional error message</param>
         public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)
         {
-            Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType));
+            Session.EnqueueSend(new GameEventUseDone(Session, errorType));
         }
 
 
@@ -142,7 +142,7 @@ namespace ACE.Server.WorldObjects
         public void StartBarber()
         {
             BarberActive = true;
-            Session.Network.EnqueueSend(new GameEventStartBarber(Session));
+            Session.EnqueueSend(new GameEventStartBarber(Session));
         }
     }
 }

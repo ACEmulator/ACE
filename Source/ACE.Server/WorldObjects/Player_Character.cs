@@ -159,7 +159,7 @@ namespace ACE.Server.WorldObjects
             CharacterChangesDetected = true;
 
             // send network message
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
+            Session.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
         }
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace ACE.Server.WorldObjects
             CharacterChangesDetected = true;
 
             // send network message
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
+            Session.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
         }
 
         /// <summary>
@@ -329,10 +329,10 @@ namespace ACE.Server.WorldObjects
 
             if (sendMsg && FirstEnterWorldDone)
             {
-                Session.Network.EnqueueSend(new GameEventUpdateTitle(Session, titleId, setAsDisplayTitle));
+                Session.EnqueueSend(new GameEventUpdateTitle(Session, titleId, setAsDisplayTitle));
 
                 if (notifyNewTitle)
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You have been granted a new title."));
+                    Session.EnqueueSend(new GameEventCommunicationTransientString(Session, "You have been granted a new title."));
             }
         }
 

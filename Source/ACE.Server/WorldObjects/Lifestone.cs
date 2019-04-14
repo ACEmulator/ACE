@@ -63,10 +63,10 @@ namespace ACE.Server.WorldObjects
                 if (player.IsWithinUseRadiusOf(this))
                 {
                     player.Sanctuary = new Position(player.Location);
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
+                    player.Session.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
                 }
                 else
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
+                    player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
             });
 
             actionChain.EnqueueChain();

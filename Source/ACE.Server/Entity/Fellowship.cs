@@ -64,13 +64,13 @@ namespace ACE.Server.Entity
 
             if (FellowshipMembers.Count == MaxFellows)
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", ChatMessageType.Fellowship));
+                inviter.Session.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", ChatMessageType.Fellowship));
                 return;
             }
 
             if (newMember.Fellowship != null || FellowshipMembers.ContainsKey(newMember.Guid.Full))
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already in a fellowship", ChatMessageType.Fellowship));
+                inviter.Session.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already in a fellowship", ChatMessageType.Fellowship));
             }
             else
             {
@@ -83,7 +83,7 @@ namespace ACE.Server.Entity
                     var confirm = new Confirmation(ConfirmationType.Fellowship, $"{inviter.Name} invites to you join a fellowship.", inviter, newMember);
                     ConfirmationManager.AddConfirmation(confirm);
 
-                    newMember.Session.Network.EnqueueSend(new GameEventConfirmationRequest(newMember.Session, ConfirmationType.Fellowship,
+                    newMember.Session.EnqueueSend(new GameEventConfirmationRequest(newMember.Session, ConfirmationType.Fellowship,
                         confirm.ConfirmationID, confirm.Message));
                 }
             }
@@ -101,13 +101,13 @@ namespace ACE.Server.Entity
             if (!response)
             {
                 // player clicked 'no' on the fellowship popup
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} declines your invite", ChatMessageType.Fellowship));
+                inviter.Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} declines your invite", ChatMessageType.Fellowship));
                 return;
             }
 
             if (FellowshipMembers.Count == 9)
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", ChatMessageType.Fellowship));
+                inviter.Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", ChatMessageType.Fellowship));
                 return;
             }
 
@@ -119,7 +119,7 @@ namespace ACE.Server.Entity
             var fellowshipMembers = GetFellowshipMembers();
 
             foreach (var member in fellowshipMembers.Values.Where(i => i.Guid != player.Guid))
-                member.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(member.Session, player, ShareXP));
+                member.Session.EnqueueSend(new GameEventFellowshipUpdateFellow(member.Session, player, ShareXP));
 
             SendMessageAndUpdate($"{player.Name} joined the fellowship");
         }
@@ -132,8 +132,8 @@ namespace ACE.Server.Entity
 
             foreach (var member in fellowshipMembers.Values)
             {
-                member.Session.Network.EnqueueSend(new GameEventFellowshipDismiss(member.Session, player));
-                member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} dismissed from fellowship", ChatMessageType.Fellowship));
+                member.Session.EnqueueSend(new GameEventFellowshipDismiss(member.Session, player));
+                member.Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} dismissed from fellowship", ChatMessageType.Fellowship));
             }
 
             FellowshipMembers.Remove(player.Guid.Full);
@@ -149,7 +149,7 @@ namespace ACE.Server.Entity
             var fellowshipMembers = GetFellowshipMembers();
 
             foreach (var member in fellowshipMembers.Values)
-                member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
+                member.Session.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
         }
 
         private void SendMessageAndUpdate(string message)
@@ -158,9 +158,9 @@ namespace ACE.Server.Entity
 
             foreach (var member in fellowshipMembers.Values)
             {
-                member.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Fellowship));
+                member.Session.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Fellowship));
 
-                member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
+                member.Session.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
             }
         }
 
@@ -176,15 +176,15 @@ namespace ACE.Server.Entity
 
                     foreach (var member in fellowshipMembers.Values)
                     {
-                        member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
+                        member.Session.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
 
                         if (member.Guid.Full == FellowshipLeaderGuid)
                         {
-                            member.Session.Network.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", ChatMessageType.Fellowship));
+                            member.Session.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", ChatMessageType.Fellowship));
                         }
                         else
                         {
-                            member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", ChatMessageType.Fellowship));
+                            member.Session.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", ChatMessageType.Fellowship));
                             member.Fellowship = null;
                         }
                     }
@@ -193,7 +193,7 @@ namespace ACE.Server.Entity
                 {
                     FellowshipMembers.Remove(player.Guid.Full);
                     player.Fellowship = null;
-                    player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
+                    player.Session.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
                     AssignNewLeader(null);
                     CalculateXPSharing();
                     SendMessageAndUpdate($"{player.Name} left the fellowship");
@@ -202,7 +202,7 @@ namespace ACE.Server.Entity
             else if (!disband)
             {
                 FellowshipMembers.Remove(player.Guid.Full);
-                player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
+                player.Session.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
                 player.Fellowship = null;
                 CalculateXPSharing();
                 SendMessageAndUpdate($"{player.Name} left the fellowship");
@@ -453,7 +453,7 @@ namespace ACE.Server.Entity
             var fellowshipMembers = GetFellowshipMembers();
 
             foreach (var fellow in fellowshipMembers.Values)
-                fellow.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(fellow.Session, player, ShareXP, FellowUpdateType.Vitals));
+                fellow.Session.EnqueueSend(new GameEventFellowshipUpdateFellow(fellow.Session, player, ShareXP, FellowUpdateType.Vitals));
         }
 
         public void OnDeath(Player player)
@@ -461,7 +461,7 @@ namespace ACE.Server.Entity
             var fellowshipMembers = GetFellowshipMembers();
 
             foreach (var fellow in fellowshipMembers.Values)
-                fellow.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your fellow {player.Name} has died!", ChatMessageType.Broadcast));
+                fellow.Session.EnqueueSend(new GameMessageSystemChat($"Your fellow {player.Name} has died!", ChatMessageType.Broadcast));
         }
 
 

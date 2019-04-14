@@ -878,7 +878,7 @@ namespace ACE.Server.WorldObjects
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0));
+            Session.EnqueueSend(new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0));
         }
 
         public void UpdateProperty(WorldObject obj, PropertyBool prop, bool? value)
@@ -888,7 +888,7 @@ namespace ACE.Server.WorldObjects
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false));
+            Session.EnqueueSend(new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false));
         }
 
         public void UpdateProperty(WorldObject obj, PropertyFloat prop, double? value)
@@ -898,7 +898,7 @@ namespace ACE.Server.WorldObjects
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0));
+            Session.EnqueueSend(new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0));
         }
 
         public void UpdateProperty(WorldObject obj, PropertyDataId prop, uint? value)
@@ -908,7 +908,7 @@ namespace ACE.Server.WorldObjects
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0));
+            Session.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0));
         }
 
         public void UpdateProperty(WorldObject obj, PropertyInstanceId prop, uint? value)
@@ -918,7 +918,7 @@ namespace ACE.Server.WorldObjects
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0)));
+            Session.EnqueueSend(new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0)));
         }
 
         public void UpdateProperty(WorldObject obj, PropertyString prop, string value)
@@ -930,7 +930,7 @@ namespace ACE.Server.WorldObjects
 
             // the client seems to cache these values somewhere,
             // and the object will not update until relogging or CO
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyString(obj, prop, value));
+            Session.EnqueueSend(new GameMessagePublicUpdatePropertyString(obj, prop, value));
         }
 
         public void UpdateProperty(WorldObject obj, PropertyInt64 prop, long? value)
@@ -940,7 +940,7 @@ namespace ACE.Server.WorldObjects
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0));
+            Session.EnqueueSend(new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0));
         }
     }
 }

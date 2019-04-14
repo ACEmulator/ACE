@@ -50,13 +50,13 @@ namespace ACE.Server.WorldObjects
             // check if player is in an allegiance
             if (player.Allegiance == null)
             {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouAreNotInAllegiance));
+                player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouAreNotInAllegiance));
                 return;
             }
 
             if (player.AllegiancePermissionLevel < AllegiancePermissionLevel.Seneschal)
             {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
             }
 
@@ -81,10 +81,10 @@ namespace ACE.Server.WorldObjects
                     player.Allegiance.Sanctuary = new Position(player.Location);
                     player.Allegiance.SaveBiotaToDatabase();
 
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
+                    player.Session.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
                 }
                 else
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
+                    player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
             });
 
             actionChain.EnqueueChain();

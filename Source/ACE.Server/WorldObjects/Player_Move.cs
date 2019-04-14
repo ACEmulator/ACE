@@ -196,7 +196,7 @@ namespace ACE.Server.WorldObjects
                     Attack(MeleeTarget);
                     break;
                 default:
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, status));
+                    Session.EnqueueSend(new GameEventWeenieError(Session, status));
                     HandleActionCancelAttack();
                     break;
             }
@@ -266,7 +266,7 @@ namespace ACE.Server.WorldObjects
 
             var msg = Strings.GetFallMessage(damageTaken, Health.MaxValue);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
+            Session.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
 
             if (Health.Current <= 0)
             {
