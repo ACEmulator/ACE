@@ -71,8 +71,8 @@ namespace ACE.Server.Network.Structure
             if (allegiance != null && node != null)
             {
                 // only send these to monarch?
-                foreach (var officer in allegiance.Officers)
-                    officers.Add(officer.Key, (AllegianceOfficerLevel)officer.Value.Player.AllegianceOfficerRank);
+                //foreach (var officer in allegiance.Officers)
+                    //officers.Add(officer.Key, (AllegianceOfficerLevel)officer.Value.Player.AllegianceOfficerRank);
 
                 if (allegiance.HasCustomTitles)
                 {
