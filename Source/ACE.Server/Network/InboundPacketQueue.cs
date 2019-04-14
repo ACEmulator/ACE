@@ -1,6 +1,8 @@
+using ACE.Common.Cryptography;
 using ACE.Server.Managers;
 using log4net;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -50,8 +52,30 @@ namespace ACE.Server.Network
                         packetLog.Debug(sb.ToString());
                     }
                     ClientPacket packet = new ClientPacket(rip.Packet);
-                    if (packet.IsValid)
+                    if (packet.SuccessfullyParsed)
                     {
+                        CryptoSystem crypto = null;
+                        if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
+                        {
+                            Session session = WorldManager.Sessions.Values.FirstOrDefault(k => k.EndPoint.Equals(rip.Them));
+                            if (session != null)
+                            {
+                                crypto = session.Network.ConnectionData.CryptoClient;
+                            }
+                        }
+                        else if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
+                        {
+                            // discard retransmission request with cleartext CRC
+                            // client sends one encrypted version and one non encrypted version of each retransmission request
+                            // honoring both causes client to drop because it's only expecting one of the two retransmission requests to be honored
+                            // and it's more secure to only accept the trusted version
+                            continue;
+                        }
+                        if (!packet.ValidateCRC(crypto, true))
+                        {
+                            // discard corrupt or forged packet
+                            continue;
+                        }
                         WorldManager.ProcessPacket(packet, rip.Them, rip.Us);
                     }
                 }

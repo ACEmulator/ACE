@@ -50,7 +50,7 @@ namespace ACE.Server.Managers
         /// </remarks>
         public static uint DefaultSessionTimeout = ConfigManager.Config.Server.Network.DefaultSessionTimeout;
 
-        private static readonly ConcurrentDictionary<ushort, Session> Sessions = new ConcurrentDictionary<ushort, Session>();
+        public static ConcurrentDictionary<ushort, Session> Sessions { get; private set; } = new ConcurrentDictionary<ushort, Session>();
         private static ushort NextSessionId => (ushort)Enumerable.Range(1, ushort.MaxValue).Except(Sessions.Keys.Select(k => (int)k)).First();
 
         public static bool Concurrency = false;

@@ -23,7 +23,7 @@ namespace ACE.Server.Network
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
 
-        private const int minimumTimeBetweenBundles = 5; // 5ms
+        private const int minimumTimeBetweenBundles = 5; // 5ms 
         private const int timeBetweenTimeSync = 20000; // 20s
         private const int timeBetweenAck = 2000; // 2s
 
@@ -220,11 +220,6 @@ namespace ACE.Server.Network
         {
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
             NetworkStatistics.C2S_Packets_Aggregate_Increment();
-
-            if (!packet.VerifyCRC(ConnectionData.CryptoClient, true))
-            {
-                return;
-            }
 
             #region order-insensitive "half-processing"
 

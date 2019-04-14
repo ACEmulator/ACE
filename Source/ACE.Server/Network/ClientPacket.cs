@@ -13,15 +13,15 @@ namespace ACE.Server.Network
 
         public BinaryReader Payload { get; private set; }
         public PacketHeaderOptional HeaderOptional { get; private set; }
-        public bool IsValid { get; private set; } = false;
-        public bool CRCVerified { get; private set; } = false;
+        public bool SuccessfullyParsed { get; private set; } = false;
+        public bool? ValidCRC { get; private set; } = null;
 
         public ClientPacket(byte[] data)
         {
             data = NetworkSyntheticTesting.SyntheticCorruption_C2S(data);
 
             ParsePacketData(data);
-            if (IsValid)
+            if (SuccessfullyParsed)
             {
                 ReadFragments();
             }
@@ -38,7 +38,7 @@ namespace ACE.Server.Network
                         Header = new PacketHeader(reader);
                         if (Header.Size > data.Length - reader.BaseStream.Position)
                         {
-                            IsValid = false;
+                            SuccessfullyParsed = false;
                             return;
                         }
                         Data = new MemoryStream(reader.ReadBytes(Header.Size), 0, Header.Size, false, true);
@@ -46,16 +46,16 @@ namespace ACE.Server.Network
                         HeaderOptional = new PacketHeaderOptional(Payload, Header);
                         if (!HeaderOptional.IsValid)
                         {
-                            IsValid = false;
+                            SuccessfullyParsed = false;
                             return;
                         }
                     }
                 }
-                IsValid = true;
+                SuccessfullyParsed = true;
             }
             catch (Exception ex)
             {
-                IsValid = false;
+                SuccessfullyParsed = false;
                 packetLog.Error("Invalid packet data", ex);
             }
         }
@@ -73,7 +73,7 @@ namespace ACE.Server.Network
                     catch (Exception)
                     {
                         // corrupt packet
-                        IsValid = false;
+                        SuccessfullyParsed = false;
                         break;
                     }
                 }
@@ -141,7 +141,7 @@ namespace ACE.Server.Network
 
         private bool VerifyEncryptedCRC(CryptoSystem fq, out string keyOffsetForLogging, bool rangeAdvance)
         {
-            var verifiedKey = new Tuple<int, uint>(0, 0);
+            Tuple<int, uint> verifiedKey = new Tuple<int, uint>(0, 0);
             Func<Tuple<int, uint>, bool> cbSearch = new Func<Tuple<int, uint>, bool>((pair) =>
             {
                 if (VerifyChecksum(pair.Item2))
@@ -171,40 +171,36 @@ namespace ACE.Server.Network
             packetLog.Debug($"{fq} {this}{key}");
             return result;
         }
-        public bool VerifyCRC(CryptoSystem fq, bool rangeAdvance)
+        public bool ValidateCRC(CryptoSystem fq, bool rangeAdvance)
         {
+            if (ValidCRC != null)
+            {
+                return ValidCRC.Value;
+            }
+
             if (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
                 if (VerifyEncryptedCRCAndLogResult(fq, rangeAdvance))
                 {
-                    CRCVerified = true;
+                    ValidCRC = true;
                     return true;
                 }
             }
             else
             {
-                if (Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
+                if (VerifyChecksum(0))
                 {
-                    // discard retransmission request with cleartext CRC
-                    // client sends one encrypted version and one non encrypted version of each retransmission request
-                    // honoring these causes client to drop because it's only expecting one of the two retransmission requests to be honored
-                    // and it's more secure to only accept the trusted version
-                    return false;
+                    packetLog.Debug($"{this}");
+                    ValidCRC = true;
+                    return true;
                 }
                 else
                 {
-                    if (VerifyChecksum(0))
-                    {
-                        packetLog.Debug($"{this}");
-                        return true;
-                    }
-                    else
-                    {
-                        packetLog.Debug($"{this}, Checksum Failed");
-                    }
+                    packetLog.Debug($"{this}, Checksum Failed");
                 }
             }
             NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
+            ValidCRC = false;
             return false;
         }
 
