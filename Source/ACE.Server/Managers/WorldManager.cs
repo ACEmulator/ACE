@@ -388,6 +388,8 @@ namespace ACE.Server.Managers
                 player.ChannelsAllowed = null;
                 player.Invincible = false;
                 player.Cloaked = null;
+                player.IgnoreHouseBarriers = false;
+                player.IgnorePortalRestrictions = false;
 
 
                 player.ChangesDetected = true;
