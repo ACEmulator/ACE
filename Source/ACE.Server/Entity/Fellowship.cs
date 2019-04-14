@@ -226,15 +226,18 @@ namespace ACE.Server.Entity
                     FellowshipLeaderGuid = p.Guid.Full;
                     SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
                 }
-                else if (FellowshipMembers.Count > 0)
+                else
                 {
                     var fellowshipMembers = GetFellowshipMembers();
 
-                    int newLeaderIndex = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
-                    var fellowGuids = fellowshipMembers.Keys.ToList();
-                    FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
-                    newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
-                    SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
+                    if (fellowshipMembers.Count > 0)
+                    {
+                        int newLeaderIndex = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
+                        var fellowGuids = fellowshipMembers.Keys.ToList();
+                        FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
+                        newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
+                        SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
+                    }
                 }
             }
         }

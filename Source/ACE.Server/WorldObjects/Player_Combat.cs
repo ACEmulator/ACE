@@ -678,7 +678,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
+            if (!BodyParts.Indices.TryGetValue(bodyPart, out var iDamageLocation))
+            {
+                log.Error($"{Name}.TakeDamage({source.Name}, {damageType}, {amount}, {bodyPart}, {crit}): avoided crash for bad damage location");
+                return;
+            }
+            var damageLocation = (DamageLocation)iDamageLocation;
 
             // send network messages
             var creature = source as Creature;

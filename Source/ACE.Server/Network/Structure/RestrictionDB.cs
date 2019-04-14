@@ -31,7 +31,10 @@ namespace ACE.Server.Network.Structure
 
             Table = new Dictionary<ObjectGuid, uint>();
             foreach (var guest in house.Guests)
-                Table.Add(guest.Key, Convert.ToUInt32(guest.Value));
+            {
+                if (guest.Key != MonarchID)
+                    Table.Add(guest.Key, Convert.ToUInt32(guest.Value));
+            }
         }
     }
 
@@ -47,8 +50,7 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, uint> db)
         {
-            //PHashTable.WriteHeader(writer, db.Count);
-            writer.Write(db.Count);
+            PHashTable.WriteHeader(writer, db.Count);
             foreach (var entry in db)
             {
                 writer.Write(entry.Key.Full);
