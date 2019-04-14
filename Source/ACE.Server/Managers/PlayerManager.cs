@@ -13,10 +13,14 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
+using log4net;
+
 namespace ACE.Server.Managers
 {
     public static class PlayerManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private static readonly ReaderWriterLockSlim playersLock = new ReaderWriterLockSlim();
         private static readonly Dictionary<uint, Player> onlinePlayers = new Dictionary<uint, Player>();
         private static readonly Dictionary<uint, OfflinePlayer> offlinePlayers = new Dictionary<uint, OfflinePlayer>();
@@ -500,6 +504,8 @@ namespace ACE.Server.Managers
         {
             foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(Channel.Audit)))
                 player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, Channel.Audit, issuer.Name, message));
+
+            log.Info($"[AUDIT] {message}");
         }
 
         public static bool GagPlayer(Player issuer, string playerName)
