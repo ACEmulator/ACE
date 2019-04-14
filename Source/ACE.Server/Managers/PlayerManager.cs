@@ -7,7 +7,9 @@ using System.Threading;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
@@ -492,6 +494,48 @@ namespace ACE.Server.Managers
         {
             foreach (var player in GetAllOnline())
                 player.Session.Network.EnqueueSend(msg);
+        }
+
+        public static void BroadcastToAuditChannel(Player issuer, string message)
+        {
+            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(Channel.Audit)))
+                player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, Channel.Audit, issuer.Name, message));
+        }
+
+        public static bool GagPlayer(Player issuer, string playerName)
+        {
+            var player = FindByName(playerName);
+
+            if (player == null)
+                return false;
+
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGagged, true);
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagTimestamp, Common.Time.GetUnixTime());
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration, 300);
+
+            player.SaveBiotaToDatabase();
+
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has gagged {player.Name} for five minutes.");
+
+            return true;
+        }
+
+        public static bool UnGagPlayer(Player issuer, string playerName)
+        {
+            var player = FindByName(playerName);
+
+            if (player == null)
+                return false;
+
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGagged);
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagTimestamp);
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration);
+
+            player.SaveBiotaToDatabase();
+
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has ungagged {player.Name}.");
+
+            return true;
         }
     }
 }

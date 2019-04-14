@@ -39,6 +39,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        private bool gagNoticeSent = false;
+
         /// <summary>
         /// Called every ~5 seconds for Players
         /// </summary>
@@ -53,6 +55,27 @@ namespace ACE.Server.WorldObjects
             LifestoneProtectionTick();
 
             PK_DeathTick();
+
+            if (IsGagged)
+            {
+                if (!gagNoticeSent)
+                {
+                    SendGagNotice();
+                    gagNoticeSent = true;
+                }
+
+                // check for gag expiration, if expired, remove gag.
+                var gagEnds = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc).AddSeconds(GagTimestamp).AddSeconds(GagDuration);
+
+                if (DateTime.UtcNow >= gagEnds)
+                {
+                    IsGagged = false;
+                    GagTimestamp = 0;
+                    GagDuration = 0;
+                    SaveBiotaToDatabase();
+                    SendUngagNotice();
+                }
+            }
 
             // Check if we're due for our periodic SavePlayer
             if (LastRequestedDatabaseSave == DateTime.MinValue)

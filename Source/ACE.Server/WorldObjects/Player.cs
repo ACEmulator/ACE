@@ -731,17 +731,44 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, true);
+            if (!IsGagged)
+                EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, true);
+            else
+                SendGagError();
+        }
+
+        public void SendGagError()
+        {
+            var msg = "You are unable to talk locally, globally, or send tells because you have been gagged.";
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg,ChatMessageType.WorldBroadcast));
+        }
+
+        public void SendGagNotice()
+        {
+            var msg = "Your chat privileges have been suspended.";
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+        }
+
+        public void SendUngagNotice()
+        {
+            var msg = "Your chat privileges have been restored.";
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
         }
 
         public void HandleActionEmote(string message)
         {
-            EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
+            if (!IsGagged)
+                EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
+            else
+                SendGagError();
         }
 
         public void HandleActionSoulEmote(string message)
         {
-            EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+            if (!IsGagged)
+                EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+            else
+                SendGagError();
         }
 
         public void HandleActionJump(JumpPack jump)

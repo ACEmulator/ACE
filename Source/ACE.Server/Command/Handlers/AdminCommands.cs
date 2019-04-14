@@ -376,7 +376,9 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gag < char name >
-        [CommandHandler("gag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("gag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Prevents a character from talking.",
+            "< char name >\nThe character will not be able to @tell or use chat normally.")]
         public static void HandleGag(Session session, params string[] parameters)
         {
             // usage: @gag < char name >
@@ -384,17 +386,49 @@ namespace ACE.Server.Command.Handlers
             // @gag - Prevents a character from talking.
             // @ungag -Allows a gagged character to talk again.
 
-            // TODO: output
+            if (parameters.Length > 0)
+            {
+                var playerName = string.Join(" ", parameters);
+
+                var msg = "";
+                if (PlayerManager.GagPlayer(session.Player, playerName))
+                {
+                    msg = $"{playerName} has been gagged for five minutes.";
+                }
+                else
+                {
+                    msg = $"Unable to gag a character named {playerName}, check the name and re-try the command.";
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
         }
 
         // ungag < char name >
-        [CommandHandler("ungag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("ungag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Allows a gagged character to talk again.",
+            "< char name >\nThe character will again be able to @tell and use chat normally.")]
         public static void HandleUnGag(Session session, params string[] parameters)
         {
             // usage: @ungag < char name >
             // @ungag -Allows a gagged character to talk again.
 
-            // TODO: output
+            if (parameters.Length > 0)
+            {
+                var playerName = string.Join(" ", parameters);
+
+                var msg = "";
+                if (PlayerManager.UnGagPlayer(session.Player, playerName))
+                {
+                    msg = $"{playerName} has been ungagged.";
+                }
+                else
+                {
+                    msg = $"Unable to ungag a character named {playerName}, check the name and re-try the command.";
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
         }
 
         /// <summary>
