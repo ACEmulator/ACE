@@ -1,9 +1,8 @@
+using ACE.Server.Managers;
+using log4net;
 using System;
 using System.Net;
 using System.Net.Sockets;
-using ACE.Server.Managers;
-using ACE.Server.Network.Managers;
-using log4net;
 
 namespace ACE.Server.Network
 {
@@ -11,17 +10,11 @@ namespace ACE.Server.Network
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
-
         public Socket Socket { get; private set; }
-
         private IPEndPoint listenerEndpoint;
-
         private readonly uint listeningPort;
-
         private readonly byte[] buffer = new byte[ClientPacket.MaxPacketSize];
-
         private readonly IPAddress listeningHost;
-
         private InboundPacketQueue inboundQueue = null;
 
         public ConnectionListener(IPAddress host, uint port)
@@ -31,7 +24,6 @@ namespace ACE.Server.Network
             listeningPort = port;
             inboundQueue = NetworkManager.InboundQueue;
         }
-
         public void Start()
         {
             log.DebugFormat("Starting ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
@@ -48,14 +40,14 @@ namespace ACE.Server.Network
                 log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
             }
         }
-
         public void Shutdown()
         {
             log.DebugFormat("Shutting down ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
             if (Socket != null && Socket.IsBound)
+            {
                 Socket.Close();
+            }
         }
-
         private void Listen()
         {
             try
@@ -73,7 +65,6 @@ namespace ACE.Server.Network
                 log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
             }
         }
-
         private void OnDataReceieve(IAsyncResult result)
         {
             EndPoint clientEndPoint = null;
@@ -81,10 +72,8 @@ namespace ACE.Server.Network
             {
                 clientEndPoint = new IPEndPoint(listeningHost, 0);
                 int dataSize = Socket.EndReceiveFrom(result, ref clientEndPoint);
-
                 byte[] data = new byte[dataSize];
                 Buffer.BlockCopy(buffer, 0, data, 0, dataSize);
-
                 inboundQueue.AddItem(new InboundPacketQueue.RawInboundPacket() { Packet = data, Them = (IPEndPoint)clientEndPoint, Us = listenerEndpoint });
             }
             catch (SocketException socketException)
@@ -104,6 +93,5 @@ namespace ACE.Server.Network
             }
             Listen();
         }
-        
     }
 }
