@@ -1,3 +1,12 @@
+using System;
+using System.Buffers;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -9,14 +18,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
 using ACE.Server.WorldObjects;
-using System;
-using System.Buffers;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading;
 
 namespace ACE.Server.Network
 {
