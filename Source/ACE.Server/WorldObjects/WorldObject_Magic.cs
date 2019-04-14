@@ -814,6 +814,8 @@ namespace ACE.Server.WorldObjects
                             var fellows = targetPlayer.Fellowship.GetFellowshipMembers().Values;
                             foreach (var fellow in fellows)
                             {
+                                if (fellow.Guid != targetPlayer.Guid)
+                                    portalSendingChain.AddAction(fellow, () => fellow.EnqueueBroadcast(new GameMessageScript(fellow.Guid, spell.TargetEffect, spell.Formula.Scale)));
                                 portalSendingChain.AddAction(fellow, () => fellow.DoPreTeleportHide());
                                 portalSendingChain.AddAction(fellow, () => fellow.Teleport(spell.Position));
                             }
