@@ -13,7 +13,7 @@ namespace ACE.Server.Network.Managers
 {
     public static class InboundMessageManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private class MessageHandlerInfo
         {

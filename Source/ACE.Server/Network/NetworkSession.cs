@@ -201,7 +201,14 @@ namespace ACE.Server.Network
                 }
             }
 
-            FlushPackets();
+            try
+            {
+                FlushPackets();
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Failure during FlushPackets", ex);
+            }
         }
 
         // This is called from ConnectionListener.OnDataReceieve()->Session.ProcessPacket()->This
@@ -529,6 +536,19 @@ namespace ACE.Server.Network
                 packetLog.DebugFormat("[{0}] Flushing packets, count {1}", session.LoggingIdentifier, packetQueue.Count);
 
                 ServerPacket packet = packetQueue.Dequeue();
+
+                //This line was causing a System.NullReferenceException
+                //if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
+                //so inspect and log if we can find what is null
+                var null1 = Equals(null, packet);
+                var null2 = Equals(null, packet?.Header);
+                var null3 = Equals(null, ConnectionData);
+                var null4 = Equals(null, ConnectionData?.PacketSequence);
+
+                if (null1 || null2 || null3 || null4)
+                {
+                    log.Error($"FlushPackets null encountered, 1: {null1} 2: {null2} 3: {null3} 4: {null4}");
+                }
 
                 if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
                     ConnectionData.PacketSequence = new Sequence.UIntSequence(1);
