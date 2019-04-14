@@ -294,10 +294,10 @@ namespace ACE.Server.Managers
 
                 // item tinkering
                 case MaterialType.Pine:
-                    target.Value *= (int)Math.Round((target.Value ?? 1) * 0.75f);
+                    target.Value = (int)Math.Round((target.Value ?? 1) * 0.75f);
                     break;
                 case MaterialType.Gold:
-                    target.Value *= (int)Math.Round((target.Value ?? 1) * 1.25f);
+                    target.Value = (int)Math.Round((target.Value ?? 1) * 1.25f);
                     break;
                 case MaterialType.Linen:
                     target.EncumbranceVal = (int)Math.Round((target.EncumbranceVal ?? 1) * 0.75f);
