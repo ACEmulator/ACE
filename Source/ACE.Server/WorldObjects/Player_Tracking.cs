@@ -4,6 +4,7 @@ using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Common;
@@ -55,9 +56,9 @@ namespace ACE.Server.WorldObjects
 
             // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
             if (!worldObject.Visibility)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject, Adminvision, Adminvision ? true : false));
             else if (worldObject.Visibility && Adminvision)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject, true, Adminvision ? true : false));
 
             //Console.WriteLine($"Player {Name} - TrackObject({worldObject.Name})");
 
@@ -137,6 +138,9 @@ namespace ACE.Server.WorldObjects
             if (formerWielder == this)
                 return;
 
+            if (!IsInChildLocation(worldObject))
+                return;
+
             // todo: Until we can fix the tracking system better, sending the PickupEvent like retail causes weapon dissapearing bugs on relog
             //Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
 
@@ -203,7 +207,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(.5);
             actionChain.AddAction(this, () =>
             {
-                EnqueueBroadcast(false, new GameMessageCreateObject(this));
+                EnqueueBroadcast(false, new GameMessageCreateObject(this, true, true));
             });
 
             actionChain.EnqueueChain();

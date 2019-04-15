@@ -41,6 +41,11 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;
+        }
+
+        public override void InitPhysicsObj()
+        {
+            base.InitPhysicsObj();
 
             switch (CloakStatus)
             {

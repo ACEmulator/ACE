@@ -974,6 +974,10 @@ namespace ACE.Server.WorldObjects
                 var adminObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject.Visibility);
                 PhysicsObj.enqueue_objs(adminObjs);
 
+                var nodrawObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject.NoDraw ?? false);
+                foreach (var wo in nodrawObjs)
+                    Session.Network.EnqueueSend(new GameMessageUpdateObject(wo.WeenieObj.WorldObject, Adminvision, Adminvision ? true : false));
+
                 // sending DO network messages for /adminvision off here doesn't work in client unfortunately?
             }
 
