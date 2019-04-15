@@ -190,13 +190,7 @@ namespace ACE.Server.Command.Handlers
             playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);
 
             // TODO: to be replaced with usage of the proper "Audit Group Chat Channel"
-            var interestedSessions = PlayerManager.GetAllOnline().Where(i => i.Account.AccessLevel > 2).Select(k => k.Session).ToList();
-            for (int i = interestedSessions.Count - 1; i >= 0; i--)
-            {
-                var sessToNotify = interestedSessions[i];
-                if (session != null && session != sessToNotify)
-                    sessToNotify.Network.EnqueueSend(new GameMessageSystemChat(bootText, ChatMessageType.Broadcast));
-            }
+            PlayerManager.BroadcastToAuditChannel(session.Player, bootText);
 
             // log the boot to file
             log.Info(bootText);
@@ -252,6 +246,8 @@ namespace ACE.Server.Command.Handlers
 
                 if (wo != null)
                     wo.Destroy();
+
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} has deleted {wo.Name} (0x{wo.Guid:X8})");
             }
         }
 
@@ -611,6 +607,8 @@ namespace ACE.Server.Command.Handlers
                 }
                 session.Player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(session.Player, PropertyInt.PlayerKillerStatus, (int)session.Player.PlayerKillerStatus));
                 CommandHandlerHelper.WriteOutputInfo(session, $"Your current PK state is now set to: {session.Player.PlayerKillerStatus.ToString()}", ChatMessageType.Broadcast);
+
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} changed their PK state to {session.Player.PlayerKillerStatus.ToString()}.");
             }
         }
 
@@ -806,6 +804,8 @@ namespace ACE.Server.Command.Handlers
                         if (wo is Creature creature && creature.IsAttackable())
                             creature.Smite(session.Player);
                     }
+
+                    PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player} used smite all.");
                 }
                 else
                 {
@@ -834,6 +834,8 @@ namespace ACE.Server.Command.Handlers
                     if (player != null)
                     {
                         player.Smite(session.Player);
+
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} used smited {player.Name}");
                         return;
                     }
 
@@ -895,6 +897,8 @@ namespace ACE.Server.Command.Handlers
             player.Teleport(session.Player.Location);
             player.SetPosition(PositionType.TeleportedCharacter, currentPos);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you.", ChatMessageType.Magic));
+
+            PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} has teleported {player.Name} to them.");
         }
 
         /// <summary>
@@ -920,6 +924,8 @@ namespace ACE.Server.Command.Handlers
             player.Teleport(new Position(player.TeleportedCharacter));
             player.SetPosition(PositionType.TeleportedCharacter, null);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has returned you to your previous location.", ChatMessageType.Magic));
+
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has returned {player.Name} to their previous location.");
         }
 
         // teleallto [char]
@@ -943,6 +949,8 @@ namespace ACE.Server.Command.Handlers
 
                 player.Teleport(new Position(destinationPlayer.Location));
             }
+
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has teleported all online players to their location.");
         }
 
         // telepoi location
@@ -1203,6 +1211,8 @@ namespace ACE.Server.Command.Handlers
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();
+
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {loot.Name} (0x{loot.Guid:X8}) at {loot.Location.ToLOCString()}.");
         }
 
         // ci wclassid (number)
@@ -1260,6 +1270,8 @@ namespace ACE.Server.Command.Handlers
             // todo set the palette, shade here
 
             session.Player.TryCreateInInventoryWithNetworking(loot);
+
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {loot.Name} (0x{loot.Guid:X8}) in their inventory.");
         }
 
         [CommandHandler("crack", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Cracks the most recently appraised locked target.", "[. open it too]")]

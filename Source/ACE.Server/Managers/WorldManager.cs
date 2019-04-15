@@ -390,6 +390,7 @@ namespace ACE.Server.Managers
                 player.Cloaked = null;
                 player.IgnoreHouseBarriers = false;
                 player.IgnorePortalRestrictions = false;
+                player.SafeSpellComponents = false;
 
 
                 player.ChangesDetected = true;
