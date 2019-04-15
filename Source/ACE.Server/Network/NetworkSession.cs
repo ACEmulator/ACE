@@ -59,11 +59,12 @@ namespace ACE.Server.Network
         private readonly ConcurrentDictionary<uint /*seq*/, ServerPacket> cachedPackets = new ConcurrentDictionary<uint /*seq*/, ServerPacket>();
 
         /// <summary>
-        /// This is referenced by one thread:<para />
-        /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick) <para />
-        /// Technically, it is referenced ONCE by EnqueueSend when the client first connects to the server, but there's no collision risk at that point.
+        /// This is referenced by multiple thread:<para />
+        /// [ConnectionListener Thread] WorldManager.ProcessPacket()->Session.ProcessPacket()->NetworkSession.ProcessPacket()->DoRequestForRetransmission()<para />
+        /// [World Manager Thread] WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick)<para />
+        ///It is also referenced ONCE by EnqueueSend when the client first connects to the server, but there's no collision risk at that point.
         /// </summary>
-        private readonly Queue<ServerPacket> packetQueue = new Queue<ServerPacket>();
+        private readonly ConcurrentQueue<ServerPacket> packetQueue = new ConcurrentQueue<ServerPacket>();
 
         public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
@@ -520,11 +521,9 @@ namespace ACE.Server.Network
 
         private void FlushPackets()
         {
-            while (packetQueue.Count > 0)
+            while (packetQueue.TryDequeue(out var packet))
             {
                 packetLog.DebugFormat("[{0}] Flushing packets, count {1}", session.LoggingIdentifier, packetQueue.Count);
-
-                ServerPacket packet = packetQueue.Dequeue();
 
                 if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
                     ConnectionData.PacketSequence = new Sequence.UIntSequence(1);
