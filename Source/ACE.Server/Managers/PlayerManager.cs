@@ -502,13 +502,16 @@ namespace ACE.Server.Managers
 
         public static void BroadcastToAuditChannel(Player issuer, string message)
         {
-            BroadcastToChannel(Channel.Audit, issuer, message, true);
+            BroadcastToChannel(Channel.Audit, issuer, message, true, true);
 
             log.Info($"[AUDIT] {message}");
         }
 
-        public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false)
+        public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false, bool ignoreActive = false)
         {
+            if (!sender.ChannelsActive.HasValue || !sender.ChannelsActive.Value.HasFlag(channel))
+                return;
+
             foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
                 if (!player.Squelches.Contains(sender) || ignoreSquelch)
                     player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, sender.Guid == player.Guid ? "" : sender.Name, message));

@@ -378,6 +378,7 @@ namespace ACE.Server.Factories
             {
                 player.Character.IsPlussed = true;
                 player.CloakStatus = CloakStatus.Off;
+                player.ChannelsAllowed = player.ChannelsActive;
             }
 
             CharacterCreateSetDefaultCharacterOptions(player);
