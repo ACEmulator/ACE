@@ -271,7 +271,7 @@ namespace ACE.Server.Managers
                 return false;
             }
 
-            var rank = player.AllegianceNode?.Rank ?? 0;
+            var rank = player.AllegianceNode != null ? player.AllegianceNode.Rank : 0;
 
             if (player.Allegiance == null || rank < allegianceMinLevel)
             {
