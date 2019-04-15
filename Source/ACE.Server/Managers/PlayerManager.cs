@@ -502,8 +502,7 @@ namespace ACE.Server.Managers
 
         public static void BroadcastToAuditChannel(Player issuer, string message)
         {
-            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(Channel.Audit)))
-                player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, Channel.Audit, issuer.Name, message));
+            BroadcastToChannel(Channel.Audit, issuer, message, true);
 
             log.Info($"[AUDIT] {message}");
         }
