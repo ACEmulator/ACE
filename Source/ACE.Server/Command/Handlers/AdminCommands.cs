@@ -189,7 +189,6 @@ namespace ACE.Server.Command.Handlers
             // Boot the player
             playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);
 
-            // TODO: to be replaced with usage of the proper "Audit Group Chat Channel"
             PlayerManager.BroadcastToAuditChannel(session.Player, bootText);
 
             // log the boot to file
