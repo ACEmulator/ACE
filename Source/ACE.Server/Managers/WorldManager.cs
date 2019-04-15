@@ -422,13 +422,13 @@ namespace ACE.Server.Managers
                 }
             }
 
-            // If the client is missing a location, we start them off in the starter dungeon
+            // If the client is missing a location, we start them off in the starter town they chose
             if (session.Player.Location == null)
             {
                 if (session.Player.Instantiation != null)
                     session.Player.Location = new Position(session.Player.Instantiation);
                 else
-                    session.Player.Location = new Position(2349072813, 12.3199f, -28.482f, 0.0049999995f, 0.0f, 0.0f, -0.9408059f, -0.3389459f);
+                    session.Player.Location = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f); // ultimate fallback;
             }
 
             session.Player.PlayerEnterWorld();
