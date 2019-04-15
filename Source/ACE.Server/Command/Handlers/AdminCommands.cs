@@ -834,7 +834,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         player.Smite(session.Player);
 
-                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} used smited {player.Name}");
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} used smite on {player.Name}");
                         return;
                     }
 
@@ -854,6 +854,8 @@ namespace ACE.Server.Command.Handlers
 
                     if (wo != null)
                         wo.Smite(session.Player);
+
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} used smite on {wo.Name} (0x{wo.Guid:X8})");
                 }
                 else
                 {
