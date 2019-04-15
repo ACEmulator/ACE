@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!spell.IsSelfTargeted && target == null)
+            if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
                 return;
 
             // spells only castable on creatures?
