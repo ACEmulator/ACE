@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 using ACE.DatLoader;
 using ACE.Entity;
@@ -164,6 +165,9 @@ namespace ACE.Server.WorldObjects
             var mana = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, Mana.Current);
 
             Session.Network.EnqueueSend(health, stamina, mana);
+
+            if (Fellowship != null)
+                FellowVitalUpdate = true;
         }
 
         /// <summary>
@@ -175,7 +179,12 @@ namespace ACE.Server.WorldObjects
             var change = base.UpdateVital(vital, newVal);
 
             if (change != 0)
+            {
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+
+                if (Fellowship != null)
+                    FellowVitalUpdate = true;
+            }
 
             // check for exhaustion
             if (vital.Vital == PropertyAttribute2nd.Stamina || vital.Vital == PropertyAttribute2nd.MaxStamina)
@@ -222,6 +231,20 @@ namespace ACE.Server.WorldObjects
                     return i;
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Called every ~5 secs to regenerate player vitals
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override bool VitalHeartBeat()
+        {
+            var vitalUpdate = base.VitalHeartBeat();
+
+            if (vitalUpdate && Fellowship != null)
+                FellowVitalUpdate = true;
+
+            return vitalUpdate;
         }
     }
 }

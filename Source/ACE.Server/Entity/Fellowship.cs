@@ -226,15 +226,18 @@ namespace ACE.Server.Entity
                     FellowshipLeaderGuid = p.Guid.Full;
                     SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
                 }
-                else if (FellowshipMembers.Count > 0)
+                else
                 {
                     var fellowshipMembers = GetFellowshipMembers();
 
-                    int newLeaderIndex = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
-                    var fellowGuids = fellowshipMembers.Keys.ToList();
-                    FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
-                    newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
-                    SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
+                    if (fellowshipMembers.Count > 0)
+                    {
+                        int newLeaderIndex = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
+                        var fellowGuids = fellowshipMembers.Keys.ToList();
+                        FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
+                        newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
+                        SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
+                    }
                 }
             }
         }
@@ -443,13 +446,25 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Called when someone in the fellowship levels up
         /// </summary>
-        public void OnFellowLevelUp()
+        public void OnFellowLevelUp(Player player)
         {
             CalculateXPSharing();
+
+            var fellowshipMembers = GetFellowshipMembers();
+
+            foreach (var fellow in fellowshipMembers.Values)
+            {
+                if (fellow == player)
+                    continue;
+
+                fellow.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is now level {player.Level}!", ChatMessageType.Broadcast));
+            }
         }
 
         public void OnVitalUpdate(Player player)
         {
+            // cap max update interval?
+
             var fellowshipMembers = GetFellowshipMembers();
 
             foreach (var fellow in fellowshipMembers.Values)

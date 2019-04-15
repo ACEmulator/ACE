@@ -21,6 +21,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using ACE.Database.Models.Auth;
+using ACE.Server.Physics.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.Packets;
 using System.Collections.Generic;
@@ -188,14 +189,7 @@ namespace ACE.Server.Command.Handlers
             // Boot the player
             playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);
 
-            // TODO: to be replaced with usage of the proper "Audit Group Chat Channel"
-            var interestedSessions = PlayerManager.GetAllOnline().Where(i => i.Account.AccessLevel > 2).Select(k => k.Session).ToList();
-            for (int i = interestedSessions.Count - 1; i >= 0; i--)
-            {
-                var sessToNotify = interestedSessions[i];
-                if (session != null && session != sessToNotify)
-                    sessToNotify.Network.EnqueueSend(new GameMessageSystemChat(bootText, ChatMessageType.Broadcast));
-            }
+            PlayerManager.BroadcastToAuditChannel(session.Player, bootText);
 
             // log the boot to file
             log.Info(bootText);
@@ -251,6 +245,8 @@ namespace ACE.Server.Command.Handlers
 
                 if (wo != null)
                     wo.Destroy();
+
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted {wo.Name} (0x{wo.Guid:X8})");
             }
         }
 
@@ -375,7 +371,9 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gag < char name >
-        [CommandHandler("gag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("gag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Prevents a character from talking.",
+            "< char name >\nThe character will not be able to @tell or use chat normally.")]
         public static void HandleGag(Session session, params string[] parameters)
         {
             // usage: @gag < char name >
@@ -383,17 +381,49 @@ namespace ACE.Server.Command.Handlers
             // @gag - Prevents a character from talking.
             // @ungag -Allows a gagged character to talk again.
 
-            // TODO: output
+            if (parameters.Length > 0)
+            {
+                var playerName = string.Join(" ", parameters);
+
+                var msg = "";
+                if (PlayerManager.GagPlayer(session.Player, playerName))
+                {
+                    msg = $"{playerName} has been gagged for five minutes.";
+                }
+                else
+                {
+                    msg = $"Unable to gag a character named {playerName}, check the name and re-try the command.";
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
         }
 
         // ungag < char name >
-        [CommandHandler("ungag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("ungag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Allows a gagged character to talk again.",
+            "< char name >\nThe character will again be able to @tell and use chat normally.")]
         public static void HandleUnGag(Session session, params string[] parameters)
         {
             // usage: @ungag < char name >
             // @ungag -Allows a gagged character to talk again.
 
-            // TODO: output
+            if (parameters.Length > 0)
+            {
+                var playerName = string.Join(" ", parameters);
+
+                var msg = "";
+                if (PlayerManager.UnGagPlayer(session.Player, playerName))
+                {
+                    msg = $"{playerName} has been ungagged.";
+                }
+                else
+                {
+                    msg = $"Unable to ungag a character named {playerName}, check the name and re-try the command.";
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
         }
 
         /// <summary>
@@ -576,6 +606,8 @@ namespace ACE.Server.Command.Handlers
                 }
                 session.Player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(session.Player, PropertyInt.PlayerKillerStatus, (int)session.Player.PlayerKillerStatus));
                 CommandHandlerHelper.WriteOutputInfo(session, $"Your current PK state is now set to: {session.Player.PlayerKillerStatus.ToString()}", ChatMessageType.Broadcast);
+
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} changed their PK state to {session.Player.PlayerKillerStatus.ToString()}.");
             }
         }
 
@@ -771,6 +803,8 @@ namespace ACE.Server.Command.Handlers
                         if (wo is Creature creature && creature.IsAttackable())
                             creature.Smite(session.Player);
                     }
+
+                    PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} used smite all.");
                 }
                 else
                 {
@@ -799,6 +833,8 @@ namespace ACE.Server.Command.Handlers
                     if (player != null)
                     {
                         player.Smite(session.Player);
+
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {player.Name}");
                         return;
                     }
 
@@ -818,6 +854,8 @@ namespace ACE.Server.Command.Handlers
 
                     if (wo != null)
                         wo.Smite(session.Player);
+
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
                 }
                 else
                 {
@@ -860,6 +898,8 @@ namespace ACE.Server.Command.Handlers
             player.Teleport(session.Player.Location);
             player.SetPosition(PositionType.TeleportedCharacter, currentPos);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you.", ChatMessageType.Magic));
+
+            PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} has teleported {player.Name} to them.");
         }
 
         /// <summary>
@@ -885,6 +925,8 @@ namespace ACE.Server.Command.Handlers
             player.Teleport(new Position(player.TeleportedCharacter));
             player.SetPosition(PositionType.TeleportedCharacter, null);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has returned you to your previous location.", ChatMessageType.Magic));
+
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has returned {player.Name} to their previous location.");
         }
 
         // teleallto [char]
@@ -908,6 +950,8 @@ namespace ACE.Server.Command.Handlers
 
                 player.Teleport(new Position(destinationPlayer.Location));
             }
+
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has teleported all online players to their location.");
         }
 
         // telepoi location
@@ -1168,6 +1212,8 @@ namespace ACE.Server.Command.Handlers
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();
+
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {loot.Name} (0x{loot.Guid:X8}) at {loot.Location.ToLOCString()}.");
         }
 
         // ci wclassid (number)
@@ -1225,6 +1271,8 @@ namespace ACE.Server.Command.Handlers
             // todo set the palette, shade here
 
             session.Player.TryCreateInInventoryWithNetworking(loot);
+
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {loot.Name} (0x{loot.Guid:X8}) in their inventory.");
         }
 
         [CommandHandler("crack", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Cracks the most recently appraised locked target.", "[. open it too]")]
@@ -2057,6 +2105,8 @@ namespace ACE.Server.Command.Handlers
                 sb.Append($"Server Performance Monitor - UpdateGameWorld ~5m {ServerPerformanceMonitor.GetMonitor5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3}, ~1h {ServerPerformanceMonitor.GetMonitor1h(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3} s{'\n'}");
             else
                 sb.Append($"Server Performance Monitor - Not running. To start use /serverperformance start{'\n'}");
+
+            sb.Append($"Physics Cache Counts - BSPCache: {BSPCache.Count:N0}, GfxObjCache: {GfxObjCache.Count:N0}, PolygonCache: {PolygonCache.Count:N0}, VertexCache: {VertexCache.Count:N0}{'\n'}");
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");

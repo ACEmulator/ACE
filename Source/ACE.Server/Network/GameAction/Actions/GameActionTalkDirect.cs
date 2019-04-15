@@ -30,6 +30,12 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (creature is Player targetPlayer)
             {
+                if (session.Player.IsGagged)
+                {
+                    session.Player.SendGagError();
+                    return;
+                }
+
                 if (targetPlayer.Squelches.Contains(session.Player))
                 {
                     session.Network.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.MessageBlocked_, $"{targetPlayer.Name} has you squelched."));

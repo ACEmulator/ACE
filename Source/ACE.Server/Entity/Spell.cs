@@ -222,7 +222,8 @@ namespace ACE.Server.Entity
                 return MetaSpellType == SpellType.PortalLink
                     || MetaSpellType == SpellType.PortalRecall
                     || MetaSpellType == SpellType.PortalSending
-                    || MetaSpellType == SpellType.PortalSummon;
+                    || MetaSpellType == SpellType.PortalSummon
+                    || MetaSpellType == SpellType.FellowPortalSending;
             }
         }
 

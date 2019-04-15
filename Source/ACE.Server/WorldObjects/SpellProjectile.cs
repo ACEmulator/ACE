@@ -484,88 +484,86 @@ namespace ACE.Server.WorldObjects
             var target = _target as Creature;
             var targetPlayer = _target as Player;
 
-            if (targetPlayer != null && ((targetPlayer.Invincible ?? false) || targetPlayer.IsDead))
+            if (targetPlayer != null && (targetPlayer.Invincible || targetPlayer.IsDead))
                 return;
 
+            uint amount;
+            var percent = 0.0f;
+            var heritageMod = 1.0f;
+            var sneakAttackMod = 1.0f;
+
+            // handle life projectiles for stamina / mana
+            if (Spell.School == MagicSchool.LifeMagic && (Spell.Name.Contains("Blight") || Spell.Name.Contains("Tenacity")))
             {
-                uint amount;
-                var percent = 0.0f;
-                var heritageMod = 1.0f;
-                var sneakAttackMod = 1.0f;
-
-                // handle life projectiles for stamina / mana
-                if (Spell.School == MagicSchool.LifeMagic && (Spell.Name.Contains("Blight") || Spell.Name.Contains("Tenacity")))
+                if (Spell.Name.Contains("Blight"))
                 {
-                    if (Spell.Name.Contains("Blight"))
-                    {
-                        percent = (float)damage / targetPlayer.Mana.MaxValue;
-                        amount = (uint)-target.UpdateVitalDelta(target.Mana, (int)-Math.Round(damage.Value));
-                    }
-                    else
-                    {
-                        percent = (float)damage / targetPlayer.Stamina.MaxValue;
-                        amount = (uint)-target.UpdateVitalDelta(target.Stamina, (int)-Math.Round(damage.Value));
-                    }
+                    percent = (float)damage / targetPlayer.Mana.MaxValue;
+                    amount = (uint)-target.UpdateVitalDelta(target.Mana, (int)-Math.Round(damage.Value));
                 }
                 else
                 {
-                    // for possibly applying sneak attack to magic projectiles,
-                    // only do this for health-damaging projectiles?
-                    if (player != null)
-                    {
-                        // TODO: use target direction vs. projectile position, instead of player position
-                        // could sneak attack be applied to void DoTs?
-                        sneakAttackMod = player.GetSneakAttackMod(target);
-                        //Console.WriteLine("Magic sneak attack:  + sneakAttackMod);
-                        heritageMod = player.GetHeritageBonus(WeaponType.Magic) ? 1.05f : 1.0f;
-                    }
-
-                    // DR / DRR applies for magic too?
-                    var creatureSource = ProjectileSource as Creature;
-                    var damageRating = creatureSource != null ? creatureSource.GetDamageRating() : 0;
-                    var damageRatingMod = Creature.AdditiveCombine(Creature.GetPositiveRatingMod(damageRating), heritageMod, sneakAttackMod);
-                    var damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating());
-                    damage *= damageRatingMod * damageResistRatingMod;
-
-                    //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));
-
-                    percent = (float)damage / target.Health.MaxValue;
-                    amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
-                    target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
-
-                    if (targetPlayer != null && targetPlayer.Fellowship != null)
-                        targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
+                    percent = (float)damage / targetPlayer.Stamina.MaxValue;
+                    amount = (uint)-target.UpdateVitalDelta(target.Stamina, (int)-Math.Round(damage.Value));
                 }
-
-                amount = (uint)Math.Round(damage.Value);    // full amount for debugging
-
-                if (critical)
-                    target.EmoteManager.OnReceiveCritical(player);
-
-                if (target.IsAlive)
+            }
+            else
+            {
+                // for possibly applying sneak attack to magic projectiles,
+                // only do this for health-damaging projectiles?
+                if (player != null)
                 {
-                    string verb = null, plural = null;
-                    Strings.GetAttackVerb(Spell.DamageType, percent, ref verb, ref plural);
-                    var type = Spell.DamageType.GetName().ToLower();
-
-                    var critMsg = critical ? "Critical hit! " : "";
-                    var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
-                    if (player != null)
-                    {
-                        var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.", ChatMessageType.Magic);
-                        var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
-
-                        player.Session.Network.EnqueueSend(attackerMsg, updateHealth);
-                    }
-
-                    if (targetPlayer != null)
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.", ChatMessageType.Magic));
+                    // TODO: use target direction vs. projectile position, instead of player position
+                    // could sneak attack be applied to void DoTs?
+                    sneakAttackMod = player.GetSneakAttackMod(target);
+                    //Console.WriteLine("Magic sneak attack:  + sneakAttackMod);
+                    heritageMod = player.GetHeritageBonus(WeaponType.Magic) ? 1.05f : 1.0f;
                 }
-                else
+
+                // DR / DRR applies for magic too?
+                var creatureSource = ProjectileSource as Creature;
+                var damageRating = creatureSource != null ? creatureSource.GetDamageRating() : 0;
+                var damageRatingMod = Creature.AdditiveCombine(Creature.GetPositiveRatingMod(damageRating), heritageMod, sneakAttackMod);
+                var damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating());
+                damage *= damageRatingMod * damageResistRatingMod;
+
+                //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));
+
+                percent = (float)damage / target.Health.MaxValue;
+                amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
+                target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
+
+                //if (targetPlayer != null && targetPlayer.Fellowship != null)
+                    //targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
+            }
+
+            amount = (uint)Math.Round(damage.Value);    // full amount for debugging
+
+            if (critical)
+                target.EmoteManager.OnReceiveCritical(player);
+
+            if (target.IsAlive)
+            {
+                string verb = null, plural = null;
+                Strings.GetAttackVerb(Spell.DamageType, percent, ref verb, ref plural);
+                var type = Spell.DamageType.GetName().ToLower();
+
+                var critMsg = critical ? "Critical hit! " : "";
+                var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
+                if (player != null)
                 {
-                    target.OnDeath(ProjectileSource, Spell.DamageType, critical);
-                    target.Die();
+                    var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.", ChatMessageType.Magic);
+                    var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
+
+                    player.Session.Network.EnqueueSend(attackerMsg, updateHealth);
                 }
+
+                if (targetPlayer != null)
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.", ChatMessageType.Magic));
+            }
+            else
+            {
+                target.OnDeath(ProjectileSource, Spell.DamageType, critical);
+                target.Die();
             }
         }
 

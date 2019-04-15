@@ -101,6 +101,7 @@ namespace ACE.Server.Managers
                 };
                 if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({quest}): added quest");
                 Quests.Add(info);
+                Player.CharacterChangesDetected = true;
             }
             else
             {
@@ -108,6 +109,7 @@ namespace ACE.Server.Managers
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted++;
                 if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
+                Player.CharacterChangesDetected = true;
             }
         }
 
@@ -130,8 +132,9 @@ namespace ACE.Server.Managers
                     LastTimeCompleted = (uint)Time.GetUnixTime(),
                     NumTimesCompleted = questCompletions   // initialize the quest to the given completions
                 };
-                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
+                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questFormat}): initialized quest to {info.NumTimesCompleted}");
                 Quests.Add(info);
+                Player.CharacterChangesDetected = true;
             }
             else
             {
@@ -139,6 +142,7 @@ namespace ACE.Server.Managers
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted = questCompletions;
                 if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
+                Player.CharacterChangesDetected = true;
             }
         }
 
@@ -227,7 +231,10 @@ namespace ACE.Server.Managers
 
             var quests = Quests.Where(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase)).ToList();
             foreach (var quest in quests)
+            {
                 Quests.Remove(quest);
+                Player.CharacterChangesDetected = true;
+            }
         }
 
         /// <summary>
@@ -382,7 +389,7 @@ namespace ACE.Server.Managers
                 foreach (var fellow in shareableMembers.Values)
                 {
                     // ensure within landblock distance
-                    if (Player.Location.DistanceTo(fellow.Location) <= 192.0f)
+                    if (fellow != Player && Player.Location.DistanceTo(fellow.Location) <= 192.0f)
                         fellow.QuestManager.HandleKillTask(_questName, obj, false);
                 }
             }

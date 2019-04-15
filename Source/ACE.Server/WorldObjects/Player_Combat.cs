@@ -596,7 +596,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void TakeDamageOverTime(float _amount, DamageType damageType)
         {
-            if (Invincible ?? false || IsDead) return;
+            if (Invincible || IsDead) return;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
@@ -614,16 +614,17 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
-            if (Fellowship != null)
-                Fellowship.OnVitalUpdate(this);
+            //if (Fellowship != null)
+                //Fellowship.OnVitalUpdate(this);
 
             // send damage text message
-            if (PropertyManager.GetBool("show_dot_messages").Item)
-            {
+            //if (PropertyManager.GetBool("show_dot_messages").Item)
+            //{
                 var nether = damageType == DamageType.Nether ? "nether " : "";
-                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
+                var chatMessageType = damageType == DamageType.Nether ? ChatMessageType.Magic : ChatMessageType.Combat;
+                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", chatMessageType);
                 Session.Network.EnqueueSend(text);
-            }
+            //}
 
             // splatter effects
             //var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
@@ -634,7 +635,9 @@ namespace ACE.Server.WorldObjects
             {
                 // since damage over time is possibly combined from multiple sources,
                 // sending a message to the last damager here could be tricky..
-                OnDeath(null, damageType, false);
+
+                // TODO: get last damager from dot stack instead? 
+                OnDeath(DamageHistory.LastDamager, damageType, false);
                 Die();
 
                 return;
@@ -649,7 +652,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
-            if (Invincible ?? false || IsDead) return;
+            if (Invincible || IsDead) return;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
@@ -668,8 +671,8 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
-            if (Fellowship != null)
-                Fellowship.OnVitalUpdate(this);
+            //if (Fellowship != null)
+                //Fellowship.OnVitalUpdate(this);
 
             if (Health.Current <= 0)
             {
@@ -678,7 +681,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
+            if (!BodyParts.Indices.TryGetValue(bodyPart, out var iDamageLocation))
+            {
+                log.Error($"{Name}.TakeDamage({source.Name}, {damageType}, {amount}, {bodyPart}, {crit}): avoided crash for bad damage location");
+                return;
+            }
+            var damageLocation = (DamageLocation)iDamageLocation;
 
             // send network messages
             var creature = source as Creature;

@@ -261,6 +261,14 @@ namespace ACE.Server.WorldObjects
 
             corpse.EnterWorld();
 
+            if (this is Player p)
+            {
+                if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
+                    log.Info($"{Name}'s corpse failed to spawn! Tried at {p.Location.ToLOCString()}");
+                else
+                    log.Info($"{Name}'s corpse is located at {corpse.PhysicsObj.Position}");
+            }
+
             if (saveCorpse)
                 corpse.SaveBiotaToDatabase();
         }

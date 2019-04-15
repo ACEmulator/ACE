@@ -54,6 +54,8 @@ namespace ACE.Server.WorldObjects
 
             var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
 
+            log.Info(nearbyMsg);
+
             var excludePlayers = new List<Player>();
             if (lastDamager is Player lastDamagerPlayer)
                 excludePlayers.Add(lastDamagerPlayer);
@@ -461,7 +463,24 @@ namespace ACE.Server.WorldObjects
             var dropList = DropMessage(dropItems, numCoinsDropped);
             Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
 
+            DeathItemLog(dropItems);
+
             return dropItems;
+        }
+
+        public void DeathItemLog(List<WorldObject> dropItems)
+        {
+            if (dropItems.Count == 0)
+                return;
+
+            var msg = $"{Name} dropped items on corpse: ";
+
+            foreach (var dropItem in dropItems)
+                msg += $"{dropItem.Name} ({dropItem.Guid.Full:X8}), ";
+
+            msg = msg.Substring(0, msg.Length - 2);
+
+            log.Info(msg);
         }
 
         /// <summary>
