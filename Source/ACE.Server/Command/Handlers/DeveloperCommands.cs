@@ -20,6 +20,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics.Entity;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
@@ -1869,6 +1870,26 @@ namespace ACE.Server.Command.Handlers
 
                 session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
             }
+        }
+
+
+        [CommandHandler("clearphysicscaches", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Clears Physics Object Caches")]
+        public static void HandleClearPhysicsCaches(Session session, params string[] parameters)
+        {
+            BSPCache.Clear();
+            GfxObjCache.Clear();
+            PolygonCache.Clear();
+            VertexCache.Clear();
+
+            CommandHandlerHelper.WriteOutputInfo(session, "Physics caches cleared");
+        }
+
+        [CommandHandler("forcegc", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Forces .NET Garbage Collection")]
+        public static void HandleForceGC(Session session, params string[] parameters)
+        {
+            GC.Collect();
+
+            CommandHandlerHelper.WriteOutputInfo(session, ".NET Garbage Collection forced");
         }
     }
 }
