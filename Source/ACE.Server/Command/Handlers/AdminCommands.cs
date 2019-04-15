@@ -246,7 +246,7 @@ namespace ACE.Server.Command.Handlers
                 if (wo != null)
                     wo.Destroy();
 
-                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} has deleted {wo.Name} (0x{wo.Guid:X8})");
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted {wo.Name} (0x{wo.Guid:X8})");
             }
         }
 
@@ -607,7 +607,7 @@ namespace ACE.Server.Command.Handlers
                 session.Player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(session.Player, PropertyInt.PlayerKillerStatus, (int)session.Player.PlayerKillerStatus));
                 CommandHandlerHelper.WriteOutputInfo(session, $"Your current PK state is now set to: {session.Player.PlayerKillerStatus.ToString()}", ChatMessageType.Broadcast);
 
-                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} changed their PK state to {session.Player.PlayerKillerStatus.ToString()}.");
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} changed their PK state to {session.Player.PlayerKillerStatus.ToString()}.");
             }
         }
 
@@ -804,7 +804,7 @@ namespace ACE.Server.Command.Handlers
                             creature.Smite(session.Player);
                     }
 
-                    PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player} used smite all.");
+                    PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} used smite all.");
                 }
                 else
                 {
@@ -834,7 +834,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         player.Smite(session.Player);
 
-                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} used smite on {player.Name}");
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {player.Name}");
                         return;
                     }
 
@@ -855,7 +855,7 @@ namespace ACE.Server.Command.Handlers
                     if (wo != null)
                         wo.Smite(session.Player);
 
-                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player} used smite on {wo.Name} (0x{wo.Guid:X8})");
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
                 }
                 else
                 {

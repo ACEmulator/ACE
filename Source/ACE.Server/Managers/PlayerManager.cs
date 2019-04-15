@@ -509,7 +509,7 @@ namespace ACE.Server.Managers
 
         public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false, bool ignoreActive = false)
         {
-            if (ignoreActive || !sender.ChannelsActive.HasValue || !sender.ChannelsActive.Value.HasFlag(channel))
+            if (!ignoreActive || !sender.ChannelsActive.HasValue || !sender.ChannelsActive.Value.HasFlag(channel))
                 return;
 
             foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
