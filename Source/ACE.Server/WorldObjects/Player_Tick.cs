@@ -37,7 +37,7 @@ namespace ACE.Server.WorldObjects
                 // In retail, this is sent every 7 seconds. If you adjust ageUpdateInterval from 7, you'll need to re-add logic to send this every 7s (if you want to match retail)
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age ?? 1));
             }
-        }        
+        }
 
         /// <summary>
         /// Called every ~5 seconds for Players
