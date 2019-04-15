@@ -62,8 +62,8 @@ namespace ACE.Server.Network
         public IPEndPoint EndPoint { get; }
         public SessionTerminationDetails PendingTermination { get; set; } = null;
         private UIntSequence PacketSequence { get; set; }
-        private CryptoSystem CryptoClient = null;
-        private ISAAC IssacServer = null;
+        private readonly CryptoSystem CryptoClient = null;
+        private readonly ISAAC IssacServer = null;
 
         public Player Player { get; private set; }
         public List<Character> Characters { get; private set; } = new List<Character>();
@@ -72,9 +72,9 @@ namespace ACE.Server.Network
 
         private readonly object[] currentBundleLocks = new object[(int)GameMessageGroup.QueueMax];
         private readonly NetworkBundle[] currentBundles = new NetworkBundle[(int)GameMessageGroup.QueueMax];
-        private ConcurrentDictionary<uint, ClientPacket> outOfOrderPackets = new ConcurrentDictionary<uint, ClientPacket>();
-        private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
-        private ConcurrentDictionary<uint, ClientMessage> outOfOrderFragments = new ConcurrentDictionary<uint, ClientMessage>();
+        private readonly ConcurrentDictionary<uint, ClientPacket> outOfOrderPackets = new ConcurrentDictionary<uint, ClientPacket>();
+        private readonly ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
+        private readonly ConcurrentDictionary<uint, ClientMessage> outOfOrderFragments = new ConcurrentDictionary<uint, ClientMessage>();
         private readonly ConcurrentDictionary<uint, ServerPacket> cachedPackets = new ConcurrentDictionary<uint, ServerPacket>();
         private readonly ConcurrentQueue<ServerPacket> packetQueue = new ConcurrentQueue<ServerPacket>();
         private readonly OutboundPacketQueue OutboundQueue = null;
