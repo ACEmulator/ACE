@@ -508,6 +508,13 @@ namespace ACE.Server.Managers
             log.Info($"[AUDIT] {message}");
         }
 
+        public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false)
+        {
+            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                if (!player.Squelches.Contains(sender) || ignoreSquelch)
+                    player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, sender.Name, message));
+        }
+
         public static bool GagPlayer(Player issuer, string playerName)
         {
             var player = FindByName(playerName);
