@@ -274,8 +274,8 @@ namespace ACE.Server.Network
                 NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
             }
             TimeoutTick = (State == SessionState.AuthLoginRequest) ?
-                DateTime.UtcNow.AddSeconds(DefaultSessionTimeout).Ticks :
-                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
+                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks :
+                DateTime.UtcNow.AddSeconds(DefaultSessionTimeout).Ticks;
             if (packet.Header.Sequence <= lastReceivedPacketSequence && packet.Header.Sequence != 0 &&
                 !(packet.Header.Flags == PacketHeaderFlags.AckSequence && packet.Header.Sequence == lastReceivedPacketSequence))
             {
