@@ -42,6 +42,16 @@ namespace ACE.Server.WorldObjects
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;
 
+            if (!ChannelsAllowed.HasValue)
+                ChannelsAllowed = Channel.Audit | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.Sentinel | Channel.AllBroadcast;
+            else
+                ChannelsAllowed |= Channel.Audit | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.Sentinel | Channel.AllBroadcast;
+        }
+
+        public override void InitPhysicsObj()
+        {
+            base.InitPhysicsObj();
+
             switch (CloakStatus)
             {
                 case ACE.Entity.Enum.CloakStatus.Off:

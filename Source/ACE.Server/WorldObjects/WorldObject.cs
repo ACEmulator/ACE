@@ -636,7 +636,23 @@ namespace ACE.Server.WorldObjects
         public void EnqueueBroadcastPhysicsState()
         {
             if (PhysicsObj != null)
-                EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+            {
+                if (!Visibility)
+                    EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+                else
+                {
+                    if (this is Player player && player.CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+                    {
+                        var ps = PhysicsObj.State;
+                        ps &= ~PhysicsState.Cloaked;
+                        ps &= ~PhysicsState.NoDraw;
+                        player.Session.Network.EnqueueSend(new GameMessageSetState(this, PhysicsObj.State));
+                        EnqueueBroadcast(false, new GameMessageSetState(this, ps));
+                    }
+                    else
+                        EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+                }
+            }
         }
 
         public void EnqueueBroadcastUpdateObject()
