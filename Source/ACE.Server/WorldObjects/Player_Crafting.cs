@@ -266,10 +266,11 @@ namespace ACE.Server.WorldObjects
             // should this be getting the highest tinkering skill,
             // or the tinkering skill for the material?
             var salvageSkill = GetCreatureSkill(Skill.Salvaging).Current;
-            var highestTinkeringSkill = GetMaxSkill(TinkeringSkills).Current;
+            var highestTinkeringSkill = GetMaxSkill(TinkeringSkills);
+            var highestTrainedTinkeringSkill = highestTinkeringSkill.AdvancementClass >= SkillAdvancementClass.Trained ? highestTinkeringSkill.Current : 0;
 
             var salvageMultiplier = Math.Max(0.6f, salvageSkill / 225.0f);
-            var tinkeringMultiplier = Math.Max(0.6f, highestTinkeringSkill / 225.0f);
+            var tinkeringMultiplier = Math.Max(0.6f, highestTrainedTinkeringSkill / 225.0f);
 
             // take augs into account for salvaging only
             var augMod = 1.0f;
