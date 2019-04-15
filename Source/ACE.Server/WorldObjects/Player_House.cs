@@ -952,7 +952,7 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
-                {                    
+                {
                     Teleport(rootHouse.BootSpot.Location);
                     break;
                 }
