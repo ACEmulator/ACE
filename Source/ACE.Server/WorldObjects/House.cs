@@ -512,7 +512,7 @@ namespace ACE.Server.WorldObjects
         public bool OnProperty(Player player)
         {
             if (HouseType == ACE.Entity.Enum.HouseType.Apartment)
-                return false;
+                return player.Location.Cell == Location.Cell;
 
             if (player.Location.GetOutdoorCell() == Location.GetOutdoorCell())
                 return true;
