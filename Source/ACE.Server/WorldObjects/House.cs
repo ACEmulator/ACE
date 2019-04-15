@@ -413,6 +413,9 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
+                if (HouseType == ACE.Entity.Enum.HouseType.Apartment || HouseType == ACE.Entity.Enum.HouseType.Cottage)
+                    return this;
+
                 var landblock = (ushort)((RootGuid.Full >> 12) & 0xFFFF);
 
                 var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
@@ -439,6 +442,12 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
+                if (HouseType == ACE.Entity.Enum.HouseType.Apartment || HouseType == ACE.Entity.Enum.HouseType.Cottage)
+                {
+                    _rootGuid = Guid;
+                    return Guid;
+                }
+
                 if (_rootGuid != null)
                     return _rootGuid.Value;
 
@@ -502,6 +511,9 @@ namespace ACE.Server.WorldObjects
 
         public bool OnProperty(Player player)
         {
+            if (HouseType == ACE.Entity.Enum.HouseType.Apartment)
+                return false;
+
             if (player.Location.GetOutdoorCell() == Location.GetOutdoorCell())
                 return true;
 
