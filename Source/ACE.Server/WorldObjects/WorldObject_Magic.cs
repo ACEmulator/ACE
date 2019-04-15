@@ -372,8 +372,8 @@ namespace ACE.Server.WorldObjects
                             else
                                 spellTarget.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
 
-                            if (targetPlayer != null && targetPlayer.Fellowship != null)
-                                targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
+                            //if (targetPlayer != null && targetPlayer.Fellowship != null)
+                                //targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
 
                             break;
                     }
@@ -465,9 +465,9 @@ namespace ACE.Server.WorldObjects
 
                             source.DamageHistory.Add(this, DamageType.Health, srcVitalChange);
 
-                            var sourcePlayer = source as Player;
-                            if (sourcePlayer != null && sourcePlayer.Fellowship != null)
-                                sourcePlayer.Fellowship.OnVitalUpdate(sourcePlayer);
+                            //var sourcePlayer = source as Player;
+                            //if (sourcePlayer != null && sourcePlayer.Fellowship != null)
+                                //sourcePlayer.Fellowship.OnVitalUpdate(sourcePlayer);
 
                             break;
                     }
@@ -490,9 +490,9 @@ namespace ACE.Server.WorldObjects
 
                             destination.DamageHistory.OnHeal(destVitalChange);
 
-                            var destPlayer = destination as Player;
-                            if (destPlayer != null && destPlayer.Fellowship != null)
-                                destPlayer.Fellowship.OnVitalUpdate(destPlayer);
+                            //var destPlayer = destination as Player;
+                            //if (destPlayer != null && destPlayer.Fellowship != null)
+                                //destPlayer.Fellowship.OnVitalUpdate(destPlayer);
 
                             break;
                     }
@@ -563,8 +563,8 @@ namespace ACE.Server.WorldObjects
                         caster.DamageHistory.Add(this, DamageType.Health, damage);
                         damageType = DamageType.Health;
 
-                        if (player != null && player.Fellowship != null)
-                            player.Fellowship.OnVitalUpdate(player);
+                        //if (player != null && player.Fellowship != null)
+                            //player.Fellowship.OnVitalUpdate(player);
                     }
 
                     var lifeProjectile = CreateSpellProjectile(spell, target, damage);
