@@ -56,9 +56,9 @@ namespace ACE.Server.WorldObjects
 
             // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
             if (!worldObject.Visibility)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject, false, false));
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject, Adminvision, Adminvision));
             else if (worldObject.Visibility && Adminvision)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject, true, true));
+                Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject, Adminvision, Adminvision));
 
             //Console.WriteLine($"Player {Name} - TrackObject({worldObject.Name})");
 
