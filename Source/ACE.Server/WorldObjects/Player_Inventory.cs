@@ -458,8 +458,8 @@ namespace ACE.Server.WorldObjects
                     {
                         result = currentTradePartner.GetInventoryItem(objectGuid);
 
-                        //if (result != null)
-                        //    return result;
+                        if (result != null)
+                            return result;
                     }
                 }
             }
