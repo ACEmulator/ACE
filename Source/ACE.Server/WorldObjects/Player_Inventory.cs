@@ -358,6 +358,7 @@ namespace ACE.Server.WorldObjects
             LastUsedContainer   = 0x08,
             WieldedByOther      = 0x10,
             TradedByOther       = 0x20,
+            ObjectsKnownByMe    = 0x40,
             LocationsICanMove   = MyInventory | MyEquippedItems | Landblock | LastUsedContainer,
             Everywhere          = 0xFF
         }
@@ -462,6 +463,14 @@ namespace ACE.Server.WorldObjects
                             return result;
                     }
                 }
+            }
+
+            if (searchLocations.HasFlag(SearchLocations.ObjectsKnownByMe))
+            {
+                result = GetKnownObjects().Where(o => o.Guid == objectGuid).First();
+
+                if (result != null)
+                    return result;
             }
 
             return null;

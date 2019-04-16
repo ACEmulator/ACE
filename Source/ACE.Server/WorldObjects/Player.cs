@@ -235,8 +235,8 @@ namespace ACE.Server.WorldObjects
             var wo = FindObject(objectGuid, SearchLocations.Everywhere, out _, out _, out _);
             if (wo == null)
             {
-                log.Warn($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
-                //SendUseDoneEvent(); // do not send this, it creates an unresolvable hourglass. player can clear hourglass by iding another object, suggesting something else was expected for this error
+                log.Debug($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
+                Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, objectGuid));
                 return;
             }
 
