@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-04-16
+[Ripley]
+* Fix bug with IDing items in Trade Window.
+* Fix bug with trade causing receiver to turn to initiator when trade starts.
+
 ### 2019-04-13
 [Ripley]
 * Fix minor issue with scrolls when IDing them.

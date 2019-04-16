@@ -236,7 +236,7 @@ namespace ACE.Server.WorldObjects
             if (wo == null)
             {
                 log.Warn($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
-                SendUseDoneEvent();
+                //SendUseDoneEvent(); // do not send this, it creates an unresolvable hourglass. player can clear hourglass by iding another object, suggesting something else was expected for this error
                 return;
             }
 
@@ -431,6 +431,14 @@ namespace ACE.Server.WorldObjects
         {
             if (Fellowship != null)
                 FellowshipQuit(false);
+
+            if (IsTrading && TradePartner != null)
+            {
+                var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
+
+                if (tradePartner != null)
+                    tradePartner.HandleActionCloseTradeNegotiations(tradePartner.Session);                
+            }
 
             if (!clientSessionTerminatedAbruptly)
             {
