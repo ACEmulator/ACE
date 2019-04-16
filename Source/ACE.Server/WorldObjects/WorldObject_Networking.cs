@@ -37,7 +37,7 @@ namespace ACE.Server.WorldObjects
 
         public virtual void SerializeGameDataOnly(BinaryWriter writer, bool adminvision = false)
         {
-            SerializeCreateObject(writer, true, adminvision);
+            SerializeCreateObject(writer, true, adminvision, false);
         }
 
         /// <summary>
