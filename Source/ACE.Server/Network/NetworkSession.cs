@@ -244,9 +244,9 @@ namespace ACE.Server.Network
             // Sessions that have gone past the AuthLoginRequest step will stay active for a longer period of time (exposed via configuration) 
             // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
             // Example: Applications that check uptime will stay in the AuthLoginRequest state.
-            session.Network.TimeoutTick = (session.State == Enum.SessionState.AuthLoginRequest) ?
-                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks :
-                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
+            session.Network.TimeoutTick = (session.State == SessionState.AuthLoginRequest) ?
+                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks : // Default is 15s
+                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks; // Default is 60s
 
             #endregion
 
