@@ -1,10 +1,10 @@
-﻿using System.IO;
+using System.IO;
 
 namespace ACE.Common.Extensions
 {
     public static class BinaryReaderExtensions
     {
-        private static uint CalculatePadMultiple(uint length, uint multiple)
+        public static uint CalculatePadMultiple(uint length, uint multiple)
         {
             return multiple * ((length + multiple - 1u) / multiple) - length;
         }

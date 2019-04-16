@@ -58,7 +58,7 @@ namespace ACE.Server.Network
             catch (SocketException socketException)
             {
                 log.DebugFormat("Network Socket has thrown: {0} {1}", socketException.ErrorCode, socketException.Message);
-                Listen();
+                Listen();//stack overflow, this whole thing needs to be scrapped
             }
             catch (Exception exception)
             {

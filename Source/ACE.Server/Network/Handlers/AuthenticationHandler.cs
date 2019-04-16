@@ -105,13 +105,16 @@ namespace ACE.Server.Network.Handlers
             {
                 if (!account.PasswordMatches(loginRequest.Password))
                 {
-                    log.Info($"client {loginRequest.Account} connected with non matching password does so booting");
+                    log.Info($"client {loginRequest.Account} connected with non matching password so booting");
                     session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.AccountInUse));
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account
                     return;
                 }
-                log.Info($"client {loginRequest.Account} connected with verified password");
+                // TODO: check for account bans
+                session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
+                session.State = SessionState.AuthConnectResponse;
+                log.Info($"session {session} connected with verified password");
             }
             else if (loginRequest.NetAuthType == NetAuthType.GlsTicket)
             {
@@ -120,9 +123,6 @@ namespace ACE.Server.Network.Handlers
                 session.Terminate(SessionTerminationReason.NotAuthorizedGlsTicketNotImplementedToProcLoginReq, new GameMessageCharacterError(CharacterError.AccountInUse));
                 return;
             }
-            // TODO: check for account bans
-            session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
-            session.State = SessionState.AuthConnectResponse;
         }
         public static void HandleConnectResponse(Session session)
         {

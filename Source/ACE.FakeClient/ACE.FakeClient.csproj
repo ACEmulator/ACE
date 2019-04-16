@@ -2,11 +2,23 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
+    <ItemGroup>
+        <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
+    </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\ACE.Server\ACE.Server.csproj" />
+    <Reference Include="ACE.Common">
+      <HintPath>..\ACE.Server\bin\x64\Debug\netcoreapp2.1\ACE.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ACE.Entity">
+      <HintPath>..\ACE.Server\bin\x64\Debug\netcoreapp2.1\ACE.Entity.dll</HintPath>
+    </Reference>
+    <Reference Include="ACE.Server">
+      <HintPath>..\ACE.Server\bin\x64\Debug\netcoreapp2.1\ACE.Server.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

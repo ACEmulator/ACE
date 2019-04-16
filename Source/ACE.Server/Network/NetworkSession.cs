@@ -12,6 +12,7 @@ using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
 using ACE.Server.Network.Sequence;
 using ACE.Server.WorldObjects;
+using log4net;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
@@ -60,9 +61,9 @@ namespace ACE.Server.Network
         public AccessLevel AccessLevel { get; private set; }
 
         public IPEndPoint EndPoint { get; }
-        public SessionTerminationDetails PendingTermination { get; set; } = null;
+        public SessionTerminationDetails PendingTermination { get; private set; } = null;
         private UIntSequence PacketSequence { get; set; }
-        private readonly CryptoSystem CryptoClient = null;
+        public readonly CryptoSystem CryptoClient = null;
         private readonly ISAAC IssacServer = null;
 
         public Player Player { get; private set; }
@@ -78,6 +79,7 @@ namespace ACE.Server.Network
         private readonly ConcurrentDictionary<uint, ServerPacket> cachedPackets = new ConcurrentDictionary<uint, ServerPacket>();
         private readonly ConcurrentQueue<ServerPacket> packetQueue = new ConcurrentQueue<ServerPacket>();
         private readonly OutboundPacketQueue OutboundQueue = null;
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #endregion
 
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
@@ -298,6 +300,11 @@ namespace ACE.Server.Network
             CheckOutOfOrderPackets();
             CheckOutOfOrderFragments();
         }
+        public override string ToString()
+        {
+            string plr = (Player != null) ? $", Player: {Player.Name}" : "";
+            return $"{ClientId}\\{EndPoint} Account: {Account}{plr}";
+        }
         public void DropSession()
         {
             if (PendingTermination == null || PendingTermination.TerminationStatus != SessionTerminationPhase.SessionWorkCompleted)
@@ -308,10 +315,11 @@ namespace ACE.Server.Network
             {
                 SessionTerminationReason reason = PendingTermination.Reason;
                 string reas = (reason != SessionTerminationReason.None) ? $", Reason: {reason.GetDescription()}" : "";
-                if (PendingTermination.ExtraReason != null)
+                if (!string.IsNullOrWhiteSpace(PendingTermination.ExtraReason))
                 {
                     reas = reas + ", " + PendingTermination.ExtraReason;
                 }
+                log.Info($"session {ToString()} dropped{reas}");
             }
             if (Player != null)
             {
