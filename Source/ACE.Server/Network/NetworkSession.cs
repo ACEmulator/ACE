@@ -59,11 +59,13 @@ namespace ACE.Server.Network
         private readonly ConcurrentDictionary<uint /*seq*/, ServerPacket> cachedPackets = new ConcurrentDictionary<uint /*seq*/, ServerPacket>();
 
         /// <summary>
-        /// This is referenced by one thread:<para />
-        /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick) <para />
-        /// Technically, it is referenced ONCE by EnqueueSend when the client first connects to the server, but there's no collision risk at that point.
+        /// This is referenced by multiple thread:<para />
+        /// [ConnectionListener Thread + 0] WorldManager.ProcessPacket()->SendLoginRequestReject()<para />
+        /// [ConnectionListener Thread + 0] WorldManager.ProcessPacket()->Session.ProcessPacket()->NetworkSession.ProcessPacket()->DoRequestForRetransmission()<para />
+        /// [ConnectionListener Thread + 1] WorldManager.ProcessPacket()->Session.ProcessPacket()->NetworkSession.ProcessPacket()-> ... AuthenticationHandler<para />
+        /// [World Manager Thread] WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick)<para />
         /// </summary>
-        private readonly Queue<ServerPacket> packetQueue = new Queue<ServerPacket>();
+        private readonly ConcurrentQueue<ServerPacket> packetQueue = new ConcurrentQueue<ServerPacket>();
 
         public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
@@ -244,9 +246,9 @@ namespace ACE.Server.Network
             // Sessions that have gone past the AuthLoginRequest step will stay active for a longer period of time (exposed via configuration) 
             // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
             // Example: Applications that check uptime will stay in the AuthLoginRequest state.
-            session.Network.TimeoutTick = (session.State == Enum.SessionState.AuthLoginRequest) ?
-                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks :
-                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
+            session.Network.TimeoutTick = (session.State == SessionState.AuthLoginRequest) ?
+                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks : // Default is 15s
+                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks; // Default is 60s
 
             #endregion
 
@@ -520,11 +522,9 @@ namespace ACE.Server.Network
 
         private void FlushPackets()
         {
-            while (packetQueue.Count > 0)
+            while (packetQueue.TryDequeue(out var packet))
             {
                 packetLog.DebugFormat("[{0}] Flushing packets, count {1}", session.LoggingIdentifier, packetQueue.Count);
-
-                ServerPacket packet = packetQueue.Dequeue();
 
                 if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
                     ConnectionData.PacketSequence = new Sequence.UIntSequence(1);

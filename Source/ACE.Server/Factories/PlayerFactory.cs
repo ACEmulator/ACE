@@ -347,7 +347,7 @@ namespace ACE.Server.Factories
             var spellFreeRide = new Spell();
             switch (starterArea.Name)
             {
-                case "OlthoiArea": //todo: check this when olthoi play is allowed in ace
+                case "OlthoiLair": //todo: check this when olthoi play is allowed in ace
                     spellFreeRide = null; // no training area for olthoi, so they start and fall back to same place.
                     instantiation = new Position(player.Location);
                     break;
