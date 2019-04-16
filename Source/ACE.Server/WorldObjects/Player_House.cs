@@ -188,7 +188,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (House == null) LoadHouse();
-            if (House == null) return;
+            if (House == null || House.SlumLord == null) return;
 
             var purchaseTime = (uint)(HousePurchaseTimestamp ?? 0);
 
@@ -946,6 +946,9 @@ namespace ACE.Server.WorldObjects
                 var rootHouse = house.RootHouse;
 
                 if (!rootHouse.OnProperty(this))
+                    continue;
+
+                if (IgnoreHouseBarriers ?? false)
                     continue;
 
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
