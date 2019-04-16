@@ -4,6 +4,7 @@
 [Ripley]
 * Fix bug with IDing items in Trade Window.
 * Fix bug with trade causing receiver to turn to initiator when trade starts.
+* Added rot after 5 minutes to player sold items on vendors.
 
 ### 2019-04-13
 [Ripley]
