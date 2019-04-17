@@ -1712,7 +1712,7 @@ namespace ACE.Server.WorldObjects
             // and it tries to add to target player's inventory (which does the slot/burden checks, and can also independently fail)
             // these slot/burden checks should be done beforehand, before it tries to remove the item from source player
 
-            if (!target.CanAddToInventory(item, out var targetContainer))
+            if (!target.CanAddToInventory(item))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.None));
                 return;
@@ -1721,7 +1721,7 @@ namespace ACE.Server.WorldObjects
             if (!RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out WorldObject itemToGive))
                 return;
 
-            if (!target.TryCreateInInventoryWithNetworking(itemToGive, out targetContainer))
+            if (!target.TryCreateInInventoryWithNetworking(itemToGive, out var targetContainer))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryCreateInInventoryWithNetworking failed!")); // Custom error message
 
