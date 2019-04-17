@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-04-17
+[Ripley]
+* Changed shortcut code to fix some collision issues.
+* Apply patch in Shard updates to fix issue with shortcuts causing a save to fail for the character.
+
 ### 2019-04-16
 [Ripley]
 * Fix bug with IDing items in Trade Window.
