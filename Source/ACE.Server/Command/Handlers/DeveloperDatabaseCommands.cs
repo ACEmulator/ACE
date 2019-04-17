@@ -37,7 +37,7 @@ namespace ACE.Server.Command.Handlers
             processor.RunAsync(session, biotasPerTest);
         }
 
-        [CommandHandler("fix-shortcut-bars", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Fixes the players with duplicate items on their shortcut bars.", "")]
+        [CommandHandler("fix-shortcut-bars", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Outputs to console SQL scripting to fix the players with duplicate items on their shortcut bars.", "")]
         public static void HandleFixShortcutBars(Session session, params string[] parameters)
         {
             using (var ctx = new ShardDbContext())
