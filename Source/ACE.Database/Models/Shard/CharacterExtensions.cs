@@ -206,21 +206,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        //public static CharacterPropertiesShortcutBar AddShortcut(this Character character, uint index, uint objectId, ReaderWriterLockSlim rwLock)
-        //{
-        //    rwLock.EnterWriteLock();
-        //    try
-        //    {
-        //        var entity = new CharacterPropertiesShortcutBar { CharacterId = character.Id, ShortcutBarIndex = index, ShortcutObjectId = objectId, Character = character };
-        //        character.CharacterPropertiesShortcutBar.Add(entity);
-        //        return entity;
-        //    }
-        //    finally
-        //    {
-        //        rwLock.ExitWriteLock();
-        //    }
-        //}
-
         public static bool TryAddOrUpdateShortcut(this Character character, uint index, uint objectId, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
