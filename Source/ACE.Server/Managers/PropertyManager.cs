@@ -464,7 +464,8 @@ namespace ACE.Server.Managers
                 ("luminance_modifier", 1.0),
                 ("vitae_penalty", 0.05),
                 ("vitae_penalty_max", 0.40),
-                ("xp_modifier", 1.0)
+                ("xp_modifier", 1.0),
+                ("vendor_unique_rot_time", 300)
                 );
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =

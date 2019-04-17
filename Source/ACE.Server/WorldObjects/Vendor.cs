@@ -13,6 +13,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -122,7 +123,7 @@ namespace ACE.Server.WorldObjects
 
                 var rottime = Common.Time.GetDateTimeFromTimestamp(soldTime.Value);
 
-                rottime = rottime.AddSeconds(300);
+                rottime = rottime.AddSeconds(PropertyManager.GetDouble("vendor_unique_rot_time", 300).Item);
 
                 if (DateTime.UtcNow < rottime)
                     results.Add(wo);
