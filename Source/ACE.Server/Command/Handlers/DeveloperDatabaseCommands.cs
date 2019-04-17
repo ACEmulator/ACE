@@ -61,8 +61,8 @@ namespace ACE.Server.Command.Handlers
 
                 uint characterId = 0;
                 string playerName = null;
-                Dictionary<uint, uint> IdxToObj = new Dictionary<uint, uint>();
-                Dictionary<uint, uint> ObjToIdx = new Dictionary<uint, uint>();
+                var idxToObj = new Dictionary<uint, uint>();
+                var objToIdx = new Dictionary<uint, uint>();
                 var buggedChar = false;
 
                 foreach (var result in results)
@@ -71,7 +71,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         if (buggedChar)
                         {
-                            OutputShortcutSQL(playerName, characterId, IdxToObj);
+                            OutputShortcutSQL(playerName, characterId, idxToObj);
                             buggedChar = false;
                         }
 
@@ -79,28 +79,27 @@ namespace ACE.Server.Command.Handlers
                         characterId = result.CharacterId;
                         var player = PlayerManager.FindByGuid(characterId);
                         playerName = player != null ? player.Name : $"{characterId:X8}";
-                        IdxToObj = new Dictionary<uint, uint>();
-                        ObjToIdx = new Dictionary<uint, uint>();
+                        idxToObj = new Dictionary<uint, uint>();
+                        objToIdx = new Dictionary<uint, uint>();
                     }
 
-                    if (IdxToObj.TryGetValue(result.ShortcutBarIndex, out var obj))
+                    var dupeIdx = idxToObj.ContainsKey(result.ShortcutBarIndex);
+                    var dupeObj = objToIdx.ContainsKey(result.ShortcutObjectId);
+
+                    if (dupeIdx || dupeObj)
                     {
-                        //Console.WriteLine($"Player: {playerName}, Idx: {result.ShortcutBarIndex}, Obj: {result.ShortcutObjectId:X8} ({result.Id}) - idx");
+                        //Console.WriteLine($"Player: {playerName}, Idx: {result.ShortcutBarIndex}, Obj: {result.ShortcutObjectId:X8} ({result.Id})");
                         buggedChar = true;
                     }
 
-                    if (ObjToIdx.TryGetValue(result.ShortcutObjectId, out var idx))
-                    {
-                        //Console.WriteLine($"Player: {playerName}, Idx: {result.ShortcutBarIndex}, Obj: {result.ShortcutObjectId:X8} ({result.Id}) - obj");
-                        buggedChar = true;
-                    }
+                    objToIdx[result.ShortcutObjectId] = result.ShortcutBarIndex;
 
-                    IdxToObj[result.ShortcutBarIndex] = result.ShortcutObjectId;
-                    ObjToIdx[result.ShortcutObjectId] = result.ShortcutBarIndex;
+                    if (!dupeObj)
+                        idxToObj[result.ShortcutBarIndex] = result.ShortcutObjectId;
                 }
 
                 if (buggedChar)
-                    OutputShortcutSQL(playerName, characterId, IdxToObj);
+                    OutputShortcutSQL(playerName, characterId, idxToObj);
             }
         }
 
