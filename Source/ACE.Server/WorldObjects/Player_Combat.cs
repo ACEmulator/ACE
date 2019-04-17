@@ -614,16 +614,17 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
-            if (Fellowship != null)
-                Fellowship.OnVitalUpdate(this);
+            //if (Fellowship != null)
+                //Fellowship.OnVitalUpdate(this);
 
             // send damage text message
-            if (PropertyManager.GetBool("show_dot_messages").Item)
-            {
+            //if (PropertyManager.GetBool("show_dot_messages").Item)
+            //{
                 var nether = damageType == DamageType.Nether ? "nether " : "";
-                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
+                var chatMessageType = damageType == DamageType.Nether ? ChatMessageType.Magic : ChatMessageType.Combat;
+                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", chatMessageType);
                 Session.Network.EnqueueSend(text);
-            }
+            //}
 
             // splatter effects
             //var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
@@ -634,7 +635,9 @@ namespace ACE.Server.WorldObjects
             {
                 // since damage over time is possibly combined from multiple sources,
                 // sending a message to the last damager here could be tricky..
-                OnDeath(null, damageType, false);
+
+                // TODO: get last damager from dot stack instead? 
+                OnDeath(DamageHistory.LastDamager, damageType, false);
                 Die();
 
                 return;
@@ -668,8 +671,8 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
-            if (Fellowship != null)
-                Fellowship.OnVitalUpdate(this);
+            //if (Fellowship != null)
+                //Fellowship.OnVitalUpdate(this);
 
             if (Health.Current <= 0)
             {

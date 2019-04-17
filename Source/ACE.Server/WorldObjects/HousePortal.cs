@@ -62,6 +62,9 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            if (player.IgnorePortalRestrictions)
+                return new ActivationResult(true);
+
             if (!House.RootHouse.HasPermission(player))
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
 

@@ -15,6 +15,11 @@ namespace ACE.Server.Physics.Entity
 
         public static int Count => GfxObjs.Count;
 
+        public static void Clear()
+        {
+            GfxObjs.Clear();
+        }
+
         public static GfxObj Get(uint gfxObjID)
         {
             Requests++;

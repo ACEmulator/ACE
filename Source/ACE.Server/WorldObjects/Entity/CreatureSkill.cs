@@ -173,19 +173,6 @@ namespace ACE.Server.WorldObjects.Entity
             return total;
         }
 
-        public double GetPercentSuccess(uint difficulty)
-        {
-            return GetPercentSuccess(Current, difficulty);
-        }
-
-        public static double GetPercentSuccess(uint skillLevel, uint difficulty)
-        {
-            float delta = skillLevel - difficulty;
-            var scalar = 1d + Math.Pow(Math.E, 0.03 * delta);
-            var percentSuccess = 1d - (1d / scalar);
-            return percentSuccess;
-        }
-
         /// <summary>
         /// A bonus from character creation: +5 for trained, +10 for specialized
         /// </summary>

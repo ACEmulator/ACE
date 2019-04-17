@@ -114,7 +114,7 @@ namespace ACE.Server.Managers
 
                     //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
 
-                    percentSuccess = skill.GetPercentSuccess(recipe.Difficulty); //FIXME: Pretty certain this is broken
+                    percentSuccess = SkillCheck.GetSkillChance(skill.Current, recipe.Difficulty);
                 }
 
                 if (skill != null)

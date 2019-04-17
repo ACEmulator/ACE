@@ -948,6 +948,9 @@ namespace ACE.Server.WorldObjects
                 if (!rootHouse.OnProperty(this))
                     continue;
 
+                if (IgnoreHouseBarriers ?? false)
+                    continue;
+
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
                     Teleport(rootHouse.BootSpot.Location);
