@@ -13,6 +13,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -95,6 +96,8 @@ namespace ACE.Server.WorldObjects
         {
             var vendorList = AllItemsForSale.Values.ToList();
 
+            vendorList = RotUniques(vendorList);
+
             player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorList));
 
             var rotateTime = Rotate(player); // vendor rotates to player
@@ -103,6 +106,35 @@ namespace ACE.Server.WorldObjects
                 DoVendorEmote(action, player);
 
             player.LastOpenedContainerId = Guid;
+        }
+
+        private List<WorldObject> RotUniques(List<WorldObject> worldObjects)
+        {
+            var results = new List<WorldObject>();
+
+            foreach(var wo in worldObjects)
+            {
+                var soldTime = wo.GetProperty(PropertyFloat.SoldTimestamp);
+                if (!soldTime.HasValue)
+                {
+                    results.Add(wo);
+                    continue;
+                }
+
+                var rottime = Common.Time.GetDateTimeFromTimestamp(soldTime.Value);
+
+                rottime = rottime.AddSeconds(PropertyManager.GetDouble("vendor_unique_rot_time", 300).Item);
+
+                if (DateTime.UtcNow < rottime)
+                    results.Add(wo);
+                else
+                {
+                    UniqueItemsForSale.Remove(wo.Guid);
+                    log.Info($"Vendor {Name} has discontinued sale of {wo.Name} and removed it from its UniqueItemsForSale list.");
+                }
+            }
+
+            return results;
         }
 
         /// <summary>
@@ -313,6 +345,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (UniqueItemsForSale.TryGetValue(new ObjectGuid(item.ObjectGuid), out var wo))
                     {
+                        wo.RemoveProperty(PropertyFloat.SoldTimestamp);
                         uqlist.Add(wo);
                         UniqueItemsForSale.Remove(new ObjectGuid(item.ObjectGuid));
                     }
@@ -414,6 +447,8 @@ namespace ACE.Server.WorldObjects
                 if (resellItem)
                 {
                     item.ContainerId = Guid.Full;
+
+                    item.SetProperty(PropertyFloat.SoldTimestamp, Common.Time.GetUnixTime());
 
                     UniqueItemsForSale.Add(item.Guid, item);
 

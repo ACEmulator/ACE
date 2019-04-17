@@ -69,6 +69,12 @@ namespace ACE.Server.Network.Structure
             generateAppraisalInfo(wo, examiner, success);
         }
 
+        public AppraiseInfo()
+        {
+            Flags = IdentifyResponseFlags.None;
+            Success = false;
+        }
+
         private void generateAppraisalInfo(WorldObject wo, Player examiner, bool success = true)
         {
             //Console.WriteLine("Appraise: " + wo.Guid);
