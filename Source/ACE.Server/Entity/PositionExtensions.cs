@@ -1,9 +1,11 @@
-using ACE.Entity;
 using System;
 using System.Numerics;
+
+using ACE.Entity;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Util;
+
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity
