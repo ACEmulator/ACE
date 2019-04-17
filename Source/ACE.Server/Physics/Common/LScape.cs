@@ -2,6 +2,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Entity;
+using ACE.Server.Managers;
 
 namespace ACE.Server.Physics.Common
 {
@@ -80,6 +82,17 @@ namespace ACE.Server.Physics.Common
                     landblock.PostInit();
                 else
                     Landblocks.TryGetValue(landblockID, out landblock);
+
+                // ensure landblock manager loaded
+                // if not, start it
+                var lbid = new LandblockId(landblockID);
+                if (!LandblockManager.IsLoaded(lbid))
+                {
+                    // should this be async?
+
+                    //Console.WriteLine($"{landblockID:X8} requested from LScape, but not loaded from LandblockManager, adding");
+                    LandblockManager.GetLandblock(lbid, false, false);
+                }
 
                 return landblock;
             }
