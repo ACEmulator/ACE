@@ -249,7 +249,7 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index+1);
+                entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index + 1);
                 if (entity != null)
                 {
                     rwLock.EnterWriteLock();
