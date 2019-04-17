@@ -40,6 +40,13 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("fix-shortcut-bars", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Outputs to console SQL scripting to fix the players with duplicate items on their shortcut bars.", "")]
         public static void HandleFixShortcutBars(Session session, params string[] parameters)
         {
+            Console.WriteLine();
+
+            Console.WriteLine("This command will output SQL scripting to fix duplicate shortcuts found in player shortcut bars. You will need to copy the following output and execute on your SQL db.");
+            Console.WriteLine("If the command outputs nothing or errors, you are ready to proceed with updating your shard db with 2019-04-17-00-Character_Shortcut_Changes.sql script");
+
+            Console.WriteLine();
+
             using (var ctx = new ShardDbContext())
             {
                 //var query = from shortcuts in ctx.CharacterPropertiesShortcutBar
