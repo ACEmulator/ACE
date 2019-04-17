@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Server.Managers;
+using log4net;
 
 namespace ACE.Server.Physics.Common
 {
     public static class LScape
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static int MidRadius = 5;
         public static int MidWidth = 11;
 
@@ -84,13 +87,11 @@ namespace ACE.Server.Physics.Common
                     Landblocks.TryGetValue(landblockID, out landblock);
 
                 // ensure landblock manager loaded
-                // if not, start it
                 var lbid = new LandblockId(landblockID);
                 if (!LandblockManager.IsLoaded(lbid))
                 {
-                    // should this be async?
-
-                    //Console.WriteLine($"{landblockID:X8} requested from LScape, but not loaded from LandblockManager, adding");
+                    // this shouldn't happen - please report this log message if seen
+                    log.Error($"{landblockID:X8} requested from LScape, but not loaded from LandblockManager, adding");
                     LandblockManager.GetLandblock(lbid, false, false);
                 }
 

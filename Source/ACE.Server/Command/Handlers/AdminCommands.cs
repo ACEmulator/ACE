@@ -2077,6 +2077,8 @@ namespace ACE.Server.Command.Handlers
 
             // todo, expand this
             var activeLandblocks = LandblockManager.GetActiveLandblocks();
+            var physicsLandblocks = Physics.Common.LScape.Landblocks.Count;
+
             int players = 0, creatures = 0, missiles = 0, other = 0, total = 0;
             foreach (var landblock in activeLandblocks)
             {
@@ -2094,7 +2096,7 @@ namespace ACE.Server.Command.Handlers
                     total++;
                 }
             }
-            sb.Append($"{activeLandblocks.Count:N0} active landblocks - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+            sb.Append($"{activeLandblocks.Count:N0} active landblocks, {physicsLandblocks:N0} physics landblocks - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
             if (ServerPerformanceMonitor.IsRunning)

@@ -219,8 +219,10 @@ namespace ACE.Server.Entity
 
                 if (wo == null) continue;
 
-                var xPos = Math.Clamp(encounter.CellX * 24.0f, 0.5f, 191.5f);
-                var yPos = Math.Clamp(encounter.CellY * 24.0f, 0.5f, 191.5f);
+                var radius = wo.PhysicsObj.GetRadius();
+
+                var xPos = Math.Clamp(encounter.CellX * 24.0f, radius, 192.0f - radius);
+                var yPos = Math.Clamp(encounter.CellY * 24.0f, radius, 192.0f - radius);
 
                 var pos = new Physics.Common.Position();
                 pos.ObjCellID = (uint)(Id.Landblock << 16) | 1;
