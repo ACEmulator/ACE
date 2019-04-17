@@ -357,6 +357,8 @@ namespace ACE.Server.WorldObjects
             Landblock           = 0x04,
             LastUsedContainer   = 0x08,
             WieldedByOther      = 0x10,
+            TradedByOther       = 0x20,
+            ObjectsKnownByMe    = 0x40,
             LocationsICanMove   = MyInventory | MyEquippedItems | Landblock | LastUsedContainer,
             Everywhere          = 0xFF
         }
@@ -444,6 +446,28 @@ namespace ACE.Server.WorldObjects
             if (searchLocations.HasFlag(SearchLocations.WieldedByOther))
             {
                 result = CurrentLandblock?.GetWieldedObject(objectGuid);
+
+                if (result != null)
+                    return result;
+            }
+
+            if (searchLocations.HasFlag(SearchLocations.TradedByOther))
+            {
+                if (IsTrading && TradePartner != null)
+                {
+                    if (CurrentLandblock?.GetObject(TradePartner) is Player currentTradePartner)
+                    {
+                        result = currentTradePartner.GetInventoryItem(objectGuid);
+
+                        if (result != null)
+                            return result;
+                    }
+                }
+            }
+
+            if (searchLocations.HasFlag(SearchLocations.ObjectsKnownByMe))
+            {
+                result = GetKnownObjects().Where(o => o.Guid == objectGuid).FirstOrDefault();
 
                 if (result != null)
                     return result;

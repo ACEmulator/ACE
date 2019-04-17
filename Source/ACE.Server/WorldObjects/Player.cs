@@ -235,8 +235,8 @@ namespace ACE.Server.WorldObjects
             var wo = FindObject(objectGuid, SearchLocations.Everywhere, out _, out _, out _);
             if (wo == null)
             {
-                log.Warn($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
-                SendUseDoneEvent();
+                log.Debug($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
+                Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, objectGuid));
                 return;
             }
 
@@ -431,6 +431,14 @@ namespace ACE.Server.WorldObjects
         {
             if (Fellowship != null)
                 FellowshipQuit(false);
+
+            if (IsTrading && TradePartner != null)
+            {
+                var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
+
+                if (tradePartner != null)
+                    tradePartner.HandleActionCloseTradeNegotiations(tradePartner.Session);                
+            }
 
             if (!clientSessionTerminatedAbruptly)
             {

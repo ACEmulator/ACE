@@ -77,10 +77,15 @@ namespace ACE.Entity.Enum.Properties
         PCAPRecordedCurrentMotionState  = 8006,
 
         /* custom */
+        [ServerOnly]
         AllegianceMotd                  = 9001,
+        [ServerOnly]
         AllegianceMotdSetBy             = 9002,
+        [ServerOnly]
         AllegianceSpeakerTitle          = 9003,
+        [ServerOnly]
         AllegianceSeneschalTitle        = 9004,
+        [ServerOnly]
         AllegianceCastellanTitle        = 9005,
     }
 

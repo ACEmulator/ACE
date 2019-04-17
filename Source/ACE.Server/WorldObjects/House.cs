@@ -279,7 +279,7 @@ namespace ACE.Server.WorldObjects
                 var player = PlayerManager.FindByGuid(housePermission.PlayerGuid);
                 if (player == null)
                 {
-                    Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {housePermission.PlayerGuid}");
+                    Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {housePermission.PlayerGuid:X8}");
                     continue;
                 }
                 Guests.Add(player.Guid, housePermission.Storage);

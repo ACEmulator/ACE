@@ -69,11 +69,11 @@ namespace ACE.Server.Entity
             // http://asheron.wikia.com/wiki/Rank
 
             // A player's allegiance rank is a function of the number of Vassals and how they are
-            // oraganized. First, take the two highest ranked vassals. Now the Patron's rank will either be
+            // organized. First, take the two highest ranked vassals. Now the Patron's rank will either be
             // one higher than the lower of the two, or equal to the highest rank vassal, whichever is greater.
 
             // sort vassals by rank
-            var sortedVassals = Vassals.Values.OrderBy(v => v.Rank).ToList();
+            var sortedVassals = Vassals.Values.OrderByDescending(v => v.Rank).ToList();
 
             // get 2 highest rank vassals
             var r1 = sortedVassals.Count > 0 ? sortedVassals[0].Rank : 0;
