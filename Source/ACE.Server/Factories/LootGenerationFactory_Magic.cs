@@ -103,6 +103,8 @@ namespace ACE.Server.Factories
             double elementalDamageMod = 0;
             int wield = 0; //done
             Skill wieldSkillType = Skill.None;
+            WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
+            int wieldLevelRequirement = 0;
             int chance = 0;
             int subType = 0;
 
@@ -192,40 +194,40 @@ namespace ACE.Server.Factories
                 // Determine plain caster type: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
                 subType = ThreadSafeRandom.Next(0, 3);
                 casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
+
+                if (tier > 6)
+                {
+                    wieldRequirement = WieldRequirement.Level;
+                    wieldSkillType = Skill.Axe;  // Set by examples from PCAP data
+
+                    switch (tier)
+                    {
+                        case 7:
+                            wield = 150; // In this instance, used for indicating player level, rather than skill level
+                            break;
+                        default:
+                            wield = 180; // In this instance, used for indicating player level, rather than skill level
+                            break;
+                    }
+                }
             }
             else
             {
-                // Fifty/Fifty chance of caster weapon rolling either an elemental or non-elemental caster
-                chance = ThreadSafeRandom.Next(1, 100);
-                if (chance > 50)
-                {
-                    // Determine the Elemental Damage Mod amount
-                    elementalDamageMod = GetMaxDamageMod(tier, 18);
+                // Determine the Elemental Damage Mod amount
+                elementalDamageMod = GetMaxDamageMod(tier, 18);
 
-                    // Determine caster type: 1 - Sceptre, 2 - Baton, 3 - Staff
-                    int casterType = ThreadSafeRandom.Next(1, 3);
+                // Determine caster type: 1 - Sceptre, 2 - Baton, 3 - Staff
+                int casterType = ThreadSafeRandom.Next(1, 3);
 
-                    // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
-                    int element = ThreadSafeRandom.Next(0, 7);
-                    casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
+                // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
+                int element = ThreadSafeRandom.Next(0, 7);
+                casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
 
-                    // If element is Nether, Void Magic is required, else War Magic is required for all other elements
-                    if (element == 7)
-                        wieldSkillType = Skill.VoidMagic;
-                    else
-                        wieldSkillType = Skill.WarMagic;
-                }
+                // If element is Nether, Void Magic is required, else War Magic is required for all other elements
+                if (element == 7)
+                    wieldSkillType = Skill.VoidMagic;
                 else
-                {
-                    // Determine plain caster type for non-elemental caster: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
-                    subType = ThreadSafeRandom.Next(0, 3);
-                    casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance <= 50)
-                        wieldSkillType = Skill.WarMagic;
-                    else
-                        wieldSkillType = Skill.VoidMagic;
-                }
+                    wieldSkillType = Skill.WarMagic;
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
@@ -261,11 +263,17 @@ namespace ACE.Server.Factories
             if (elementalDamageMod > 1.0f)
                 wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
 
-            if (wield > 0)
+            if (wield > 0 || wieldRequirement == WieldRequirement.Level)
             {
-                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
-                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirement);
                 wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
+            else
+            {
+                wo.RemoveProperty(PropertyInt.WieldRequirements);
+                wo.RemoveProperty(PropertyInt.WieldSkillType);
+                wo.RemoveProperty(PropertyInt.WieldDifficulty);
             }
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
