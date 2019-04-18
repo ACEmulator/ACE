@@ -219,7 +219,7 @@ namespace ACE.Server.Entity
 
                 if (wo == null) continue;
 
-                var radius = wo.PhysicsObj.GetRadius();
+                var radius = wo.CSetup.Radius * (wo.ObjScale ?? 1.0f);
 
                 var xPos = Math.Clamp(encounter.CellX * 24.0f, radius, 192.0f - radius);
                 var yPos = Math.Clamp(encounter.CellY * 24.0f, radius, 192.0f - radius);

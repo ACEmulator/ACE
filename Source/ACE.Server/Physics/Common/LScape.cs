@@ -82,18 +82,20 @@ namespace ACE.Server.Physics.Common
                 // if not, load into cache
                 landblock = new Landblock(DBObj.GetCellLandblock(landblockID));
                 if (Landblocks.TryAdd(landblockID, landblock))
+                {
                     landblock.PostInit();
+
+                    // ensure landblock manager loaded
+                    var lbid = new LandblockId(landblockID);
+                    if (!LandblockManager.IsLoaded(lbid))
+                    {
+                        // this shouldn't happen - please report this log message if seen
+                        log.Error($"{landblockID:X8} requested from LScape, but not loaded from LandblockManager, adding");
+                        LandblockManager.GetLandblock(lbid, false, false);
+                    }
+                }
                 else
                     Landblocks.TryGetValue(landblockID, out landblock);
-
-                // ensure landblock manager loaded
-                var lbid = new LandblockId(landblockID);
-                if (!LandblockManager.IsLoaded(lbid))
-                {
-                    // this shouldn't happen - please report this log message if seen
-                    log.Error($"{landblockID:X8} requested from LScape, but not loaded from LandblockManager, adding");
-                    LandblockManager.GetLandblock(lbid, false, false);
-                }
 
                 return landblock;
             }
