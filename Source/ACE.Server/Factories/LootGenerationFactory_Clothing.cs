@@ -25,7 +25,6 @@ namespace ACE.Server.Factories
             int spellArray = 0;
             int cantripArray = 0;
             int equipSetId = 0;
-            int wieldDifficulty = 0;
 
             int materialType = 0;
             int armorType = 0;
@@ -7799,7 +7798,6 @@ namespace ACE.Server.Factories
                             materialType = GetMaterialType(7, 1);
                         }
                     }
-                    wieldDifficulty = 150;
                     break;
                 default:
                     lowSpellTier = 6;
@@ -9346,7 +9344,6 @@ namespace ACE.Server.Factories
                                 break;
                         }
                     }
-                    wieldDifficulty = 180;
                     break;
             }
 
@@ -9388,10 +9385,25 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
 
-            if (wieldDifficulty > 0)
-                wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
-            else
-                wo.RemoveProperty(PropertyInt.WieldDifficulty);
+            if (tier > 6)
+            {
+                int wield;
+
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
+
+                switch (tier)
+                {
+                    case 7:
+                        wield = 150; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                    default:
+                        wield = 180; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                }
+
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
 
             /////Setting random color
             wo.SetProperty(PropertyInt.PaletteTemplate, ThreadSafeRandom.Next(1, 2047));

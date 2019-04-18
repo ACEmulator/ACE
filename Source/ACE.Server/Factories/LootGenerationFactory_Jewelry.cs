@@ -122,6 +122,26 @@ namespace ACE.Server.Factories
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
 
+            if (tier > 6)
+            {
+                int wield;
+
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
+
+                switch (tier)
+                {
+                    case 7:
+                        wield = 150; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                    default:
+                        wield = 180; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                }
+
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
+
             if (isMagical)
             {
                 wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
