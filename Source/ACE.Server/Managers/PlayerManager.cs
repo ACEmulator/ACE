@@ -7,14 +7,20 @@ using System.Threading;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
+
+using log4net;
 
 namespace ACE.Server.Managers
 {
     public static class PlayerManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private static readonly ReaderWriterLockSlim playersLock = new ReaderWriterLockSlim();
         private static readonly Dictionary<uint, Player> onlinePlayers = new Dictionary<uint, Player>();
         private static readonly Dictionary<uint, OfflinePlayer> offlinePlayers = new Dictionary<uint, OfflinePlayer>();
@@ -492,6 +498,59 @@ namespace ACE.Server.Managers
         {
             foreach (var player in GetAllOnline())
                 player.Session.EnqueueSend(msg);
+        }
+
+        public static void BroadcastToAuditChannel(Player issuer, string message)
+        {
+            BroadcastToChannel(Channel.Audit, issuer, message, true, true);
+
+            log.Info($"[AUDIT] {message}");
+        }
+
+        public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false, bool ignoreActive = false)
+        {
+            if (!ignoreActive || !sender.ChannelsActive.HasValue || !sender.ChannelsActive.Value.HasFlag(channel))
+                return;
+
+            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                if (!player.Squelches.Contains(sender) || ignoreSquelch)
+                    player.Session.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, sender.Guid == player.Guid ? "" : sender.Name, message));
+        }
+
+        public static bool GagPlayer(Player issuer, string playerName)
+        {
+            var player = FindByName(playerName);
+
+            if (player == null)
+                return false;
+
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGagged, true);
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagTimestamp, Common.Time.GetUnixTime());
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration, 300);
+
+            player.SaveBiotaToDatabase();
+
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has gagged {player.Name} for five minutes.");
+
+            return true;
+        }
+
+        public static bool UnGagPlayer(Player issuer, string playerName)
+        {
+            var player = FindByName(playerName);
+
+            if (player == null)
+                return false;
+
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGagged);
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagTimestamp);
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration);
+
+            player.SaveBiotaToDatabase();
+
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has ungagged {player.Name}.");
+
+            return true;
         }
     }
 }

@@ -343,13 +343,42 @@ namespace ACE.Server.Factories
                 starterArea.Locations[0].Frame.Origin.X, starterArea.Locations[0].Frame.Origin.Y, starterArea.Locations[0].Frame.Origin.Z,
                 starterArea.Locations[0].Frame.Orientation.X, starterArea.Locations[0].Frame.Orientation.Y, starterArea.Locations[0].Frame.Orientation.Z, starterArea.Locations[0].Frame.Orientation.W);
 
-            player.Instantiation = new Position(player.Location);
+            var instantiation = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f); // ultimate fallback.
+            var spellFreeRide = new Spell();
+            switch (starterArea.Name)
+            {
+                case "OlthoiLair": //todo: check this when olthoi play is allowed in ace
+                    spellFreeRide = null; // no training area for olthoi, so they start and fall back to same place.
+                    instantiation = new Position(player.Location);
+                    break;
+                case "Shoushi":
+                    spellFreeRide = DatabaseManager.World.GetCachedSpell(3813); // Free Ride to Shoushi
+                    break;
+                case "Yaraq":
+                    spellFreeRide = DatabaseManager.World.GetCachedSpell(3814); // Free Ride to Yaraq
+                    break;
+                case "Sanamar":
+                    spellFreeRide = DatabaseManager.World.GetCachedSpell(3535); // Free Ride to Sanamar
+                    break;
+                case "Holtburg":
+                default:
+                    spellFreeRide = DatabaseManager.World.GetCachedSpell(3815); // Free Ride to Holtburg
+                    break;
+            }
+            if (spellFreeRide != null && spellFreeRide.Name != "")
+                instantiation = new Position(spellFreeRide.PositionObjCellId.Value, spellFreeRide.PositionOriginX.Value, spellFreeRide.PositionOriginY.Value, spellFreeRide.PositionOriginZ.Value, spellFreeRide.PositionAnglesX.Value, spellFreeRide.PositionAnglesY.Value, spellFreeRide.PositionAnglesZ.Value, spellFreeRide.PositionAnglesW.Value);
+
+            player.Instantiation = new Position(instantiation);
+
             player.Sanctuary = new Position(player.Location);
+
+            player.SetProperty(PropertyBool.RecallsDisabled, true);
 
             if (player is Sentinel || player is Admin)
             {
                 player.Character.IsPlussed = true;
                 player.CloakStatus = CloakStatus.Off;
+                player.ChannelsAllowed = player.ChannelsActive;
             }
 
             CharacterCreateSetDefaultCharacterOptions(player);

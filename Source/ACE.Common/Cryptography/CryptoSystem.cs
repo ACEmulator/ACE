@@ -114,7 +114,8 @@ namespace ACE.Common.Cryptography
 
         /// <summary>
         /// remove all disabled keys, keys having an offset prior to the current search-range<para />
-        /// all keys left behind by the moving search-range will never be used for anything
+        /// all keys left behind by the moving search-range will never be used for anything<para />
+        /// If a shared (between client and server) key exceeds the lower bound of the cache during maximum effort level the session is destroyed (catastrophic failure).
         /// </summary>
         /// <returns>the number of removed keys</returns>
         private int RemoveDisabledKeys()
@@ -152,33 +153,12 @@ namespace ACE.Common.Cryptography
         }
 
         /// <summary>
-        /// move the search-range forward by 1
-        /// </summary>
-        public void RangeAdvance()
-        {
-            RangeAdvance(offset + 1);
-        }
-
-        /// <summary>
-        /// set the center of the search-range to the specified offset
-        /// </summary>
-        /// <param name="offset"></param>
-        public void RangeAdvance(int offset)
-        {
-            this.offset = offset;
-            RemoveDisabledKeys();
-        }
-
-        /// <summary>
         /// enumerate through the current range of keys until the callback verifies a key or there are no more keys
         /// if the callback fails then either the key used to encrypt the CRC is not inside the range or the data was corrupted in transit
         /// </summary>
         /// <param name="callback">the verification callback</param>
-        /// <param name="rangeAdvance">whether or not to set the current center-of-range offset to the verified offset and remove keys that are surpassed by the new range,
-        /// Do NOT range advance for { [this]->reordering->processing } stage because it could allow walking the current range out of sync with the ordered packet stream.
-        /// If the range is advanced beyond the (shared between client and server) stream position the session is destroyed.</param>
         /// <returns>whether the key offset was found or not, as reported by the callback testing each</returns>
-        public bool Search(Func<Tuple<int, uint>, bool> callback, bool rangeAdvance)
+        public bool Search(Func<Tuple<int, uint>, bool> callback)
         {
             Tuple<int, int> range = SearchRange;
             for (int i = range.Item1; i < range.Item2 + 1; i++)
@@ -191,10 +171,8 @@ namespace ACE.Common.Cryptography
                 if (callback(result.Key))
                 {
                     RemoveVerifiedKey(i);
-                    if (rangeAdvance)
-                    {
-                        RangeAdvance(i);
-                    }
+                    offset = i;
+                    RemoveDisabledKeys();
                     AdjustEffortLevel(true);
                     return true;
                 }
@@ -202,8 +180,6 @@ namespace ACE.Common.Cryptography
             AdjustEffortLevel(false);
             return false;
         }
-
-
 
         /// <summary>
         /// upgrade the effort level if possible

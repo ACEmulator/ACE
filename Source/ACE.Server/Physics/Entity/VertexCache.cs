@@ -16,6 +16,11 @@ namespace ACE.Server.Physics.Entity
 
         public static int Count => Vertices.Count;
 
+        public static void Clear()
+        {
+            Vertices.Clear();
+        }
+
         public static Vertex Get(Vertex v)
         {
             if (!Enabled) return v;

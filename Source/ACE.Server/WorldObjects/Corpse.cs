@@ -127,6 +127,10 @@ namespace ACE.Server.WorldObjects
             if (player.HasLootPermission(new ObjectGuid(VictimId.Value)))
                 return true;
 
+            // all players can loot monster corpses after 1/2 decay time
+            if (TimeToRot != null && TimeToRot < HalfLife && !new ObjectGuid(VictimId.Value).IsPlayer())
+                return true;
+
             // players in the same fellowship as the killer w/ loot sharing enabled
             if (player.Fellowship != null && player.Fellowship.ShareLoot)
             {
@@ -138,6 +142,12 @@ namespace ACE.Server.WorldObjects
         }
 
         public bool IsLooted;
+
+        /// <summary>
+        /// The number of seconds before all players can loot a monster corpse
+        /// </summary>
+        public static int HalfLife = 180;
+
 
         public override void Close(Player player)
         {

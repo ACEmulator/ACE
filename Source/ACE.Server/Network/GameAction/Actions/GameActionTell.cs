@@ -17,6 +17,12 @@ namespace ACE.Server.Network.GameAction.Actions
             var message = clientMessage.Payload.ReadString16L(); // The client seems to do the trimming for us
             var target = clientMessage.Payload.ReadString16L(); // Needs to be trimmed because it may contain white spaces after the name and before the ,
 
+            if (session.Player.IsGagged)
+            {
+                session.Player.SendGagError();
+                return;
+            }
+
             target = target.Trim();
             var targetPlayer = PlayerManager.GetOnlinePlayer(target);
 

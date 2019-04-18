@@ -942,5 +942,44 @@ namespace ACE.Server.WorldObjects
 
             Session.EnqueueSend(new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0));
         }
+
+        // ========================================
+        // =============== Gags ===================
+        // ========================================
+        public double AllegianceGagDuration
+        {
+            get => GetProperty(PropertyFloat.AllegianceGagDuration) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.AllegianceGagDuration); else SetProperty(PropertyFloat.AllegianceGagDuration, value); }
+        }
+
+        public double AllegianceGagTimestamp
+        {
+            get => GetProperty(PropertyFloat.AllegianceGagTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.AllegianceGagTimestamp); else SetProperty(PropertyFloat.AllegianceGagTimestamp, value); }
+        }
+
+        public double GagDuration
+        {
+            get => GetProperty(PropertyFloat.GagDuration) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.GagDuration); else SetProperty(PropertyFloat.GagDuration, value); }
+        }
+
+        public double GagTimestamp
+        {
+            get => GetProperty(PropertyFloat.GagTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.GagTimestamp); else SetProperty(PropertyFloat.GagTimestamp, value); }
+        }
+
+        public bool IsAllegianceGagged
+        {
+            get => GetProperty(PropertyBool.IsAllegianceGagged) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsAllegianceGagged); else SetProperty(PropertyBool.IsAllegianceGagged, value); }
+        }
+
+        public bool IsGagged
+        {
+            get => GetProperty(PropertyBool.IsGagged) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsGagged); else SetProperty(PropertyBool.IsGagged, value); }
+        }
     }
 }

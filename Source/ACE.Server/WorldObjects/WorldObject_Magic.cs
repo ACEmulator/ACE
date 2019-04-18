@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!spell.IsSelfTargeted && target == null)
+            if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
                 return;
 
             // spells only castable on creatures?
@@ -372,8 +372,8 @@ namespace ACE.Server.WorldObjects
                             else
                                 spellTarget.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
 
-                            if (targetPlayer != null && targetPlayer.Fellowship != null)
-                                targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
+                            //if (targetPlayer != null && targetPlayer.Fellowship != null)
+                                //targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
 
                             break;
                     }
@@ -465,9 +465,9 @@ namespace ACE.Server.WorldObjects
 
                             source.DamageHistory.Add(this, DamageType.Health, srcVitalChange);
 
-                            var sourcePlayer = source as Player;
-                            if (sourcePlayer != null && sourcePlayer.Fellowship != null)
-                                sourcePlayer.Fellowship.OnVitalUpdate(sourcePlayer);
+                            //var sourcePlayer = source as Player;
+                            //if (sourcePlayer != null && sourcePlayer.Fellowship != null)
+                                //sourcePlayer.Fellowship.OnVitalUpdate(sourcePlayer);
 
                             break;
                     }
@@ -490,9 +490,9 @@ namespace ACE.Server.WorldObjects
 
                             destination.DamageHistory.OnHeal(destVitalChange);
 
-                            var destPlayer = destination as Player;
-                            if (destPlayer != null && destPlayer.Fellowship != null)
-                                destPlayer.Fellowship.OnVitalUpdate(destPlayer);
+                            //var destPlayer = destination as Player;
+                            //if (destPlayer != null && destPlayer.Fellowship != null)
+                                //destPlayer.Fellowship.OnVitalUpdate(destPlayer);
 
                             break;
                     }
@@ -563,8 +563,8 @@ namespace ACE.Server.WorldObjects
                         caster.DamageHistory.Add(this, DamageType.Health, damage);
                         damageType = DamageType.Health;
 
-                        if (player != null && player.Fellowship != null)
-                            player.Fellowship.OnVitalUpdate(player);
+                        //if (player != null && player.Fellowship != null)
+                            //player.Fellowship.OnVitalUpdate(player);
                     }
 
                     var lifeProjectile = CreateSpellProjectile(spell, target, damage);
@@ -805,6 +805,24 @@ namespace ACE.Server.WorldObjects
                         }
                         break;
 
+                    case SpellType.FellowPortalSending:
+
+                        if (targetPlayer != null && targetPlayer.Fellowship != null)
+                        {
+                            ActionChain portalSendingChain = new ActionChain();
+                            //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
+                            var fellows = targetPlayer.Fellowship.GetFellowshipMembers().Values;
+                            foreach (var fellow in fellows)
+                            {
+                                if (fellow.Guid != targetPlayer.Guid)
+                                    portalSendingChain.AddAction(fellow, () => fellow.EnqueueBroadcast(new GameMessageScript(fellow.Guid, spell.TargetEffect, spell.Formula.Scale)));
+                                portalSendingChain.AddAction(fellow, () => fellow.DoPreTeleportHide());
+                                portalSendingChain.AddAction(fellow, () => fellow.Teleport(spell.Position));
+                            }
+                            portalSendingChain.EnqueueChain();
+                        }
+                        break;
+
                     case SpellType.PortalLink:
 
                         if (player != null)
@@ -902,7 +920,7 @@ namespace ACE.Server.WorldObjects
                         else if (itemCaster != null)
                         {
                             if (itemCaster.PortalSummonLoc != null)
-                                summonLoc = PortalSummonLoc;
+                                summonLoc = new Position(PortalSummonLoc);
                             else
                             {
                                 if (itemCaster.Location != null)
@@ -912,14 +930,12 @@ namespace ACE.Server.WorldObjects
                             }
                         }
 
+                        if (summonLoc != null)
+                            summonLoc.LandblockId = new LandblockId(summonLoc.GetCell());
+
                         if (!SummonPortal(portalId, summonLoc, spell.PortalLifetime) && player != null)
                             player.Session.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
 
-                        break;
-
-                    case SpellType.FellowPortalSending:
-                        if (targetPlayer != null)
-                            enchantmentStatus.Message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
                         break;
                 }
             }

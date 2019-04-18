@@ -51,6 +51,10 @@ namespace ACE.Server.Network
                             {
                                 crypto = session.CryptoClient;
                             }
+                            else
+                            {
+                                //wut
+                            }
                         }
                         else if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
                         {
@@ -60,7 +64,7 @@ namespace ACE.Server.Network
                             // and it's more secure to only accept the trusted version
                             continue;
                         }
-                        if (!packet.ValidateCRC(crypto, true))
+                        if (!packet.ValidateCRC(crypto))
                         {
                             // discard corrupt or forged packet
                             continue;

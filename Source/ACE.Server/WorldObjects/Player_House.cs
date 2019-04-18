@@ -188,7 +188,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (House == null) LoadHouse();
-            if (House == null) return;
+            if (House == null || House.SlumLord == null) return;
 
             var purchaseTime = (uint)(HousePurchaseTimestamp ?? 0);
 
@@ -199,6 +199,8 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(5.0f);
             actionChain.AddAction(this, () =>
             {
+                if (House == null || House.SlumLord == null) return;
+
                 if (!House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
                 {
                     Session.EnqueueSend(new GameMessageSystemChat("Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
@@ -946,6 +948,9 @@ namespace ACE.Server.WorldObjects
                 var rootHouse = house.RootHouse;
 
                 if (!rootHouse.OnProperty(this))
+                    continue;
+
+                if (IgnoreHouseBarriers ?? false)
                     continue;
 
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))

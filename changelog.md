@@ -1,5 +1,16 @@
 # ACEmulator Change Log
 
+### 2019-04-18
+[Ripley]
+* Fix bug with picking up items from your own corpse, hooks or storage that had quest stamps.
+* Fix bug with naked corpses not appearing correctly.
+
+### 2019-04-16
+[Ripley]
+* Fix bug with IDing items in Trade Window.
+* Fix bug with trade causing receiver to turn to initiator when trade starts.
+* Added rot after 5 minutes to player sold items on vendors.
+
 ### 2019-04-13
 [Ripley]
 * Fix minor issue with scrolls when IDing them.

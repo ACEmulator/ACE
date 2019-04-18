@@ -60,24 +60,30 @@ namespace ACE.Server.Network
         public SessionState State { get; set; }
         public AccessLevel AccessLevel { get; private set; }
 
+        /// <summary>
+        /// This is referenced by multiple thread:<para />
+        /// [ConnectionListener Thread + 0] WorldManager.ProcessPacket()->SendLoginRequestReject()<para />
+        /// [ConnectionListener Thread + 0] WorldManager.ProcessPacket()->Session.ProcessPacket()->NetworkSession.ProcessPacket()->DoRequestForRetransmission()<para />
+        /// [ConnectionListener Thread + 1] WorldManager.ProcessPacket()->Session.ProcessPacket()->NetworkSession.ProcessPacket()-> ... AuthenticationHandler<para />
+        /// [World Manager Thread] WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick)<para />
+        /// </summary>
+        private readonly ConcurrentQueue<ServerPacket> packetQueue = new ConcurrentQueue<ServerPacket>();
         public IPEndPoint EndPoint { get; }
         public SessionTerminationDetails PendingTermination { get; private set; } = null;
         private UIntSequence PacketSequence { get; set; }
         public readonly CryptoSystem CryptoClient = null;
         private readonly ISAAC IssacServer = null;
-
         public Player Player { get; private set; }
-        public List<Character> Characters { get; private set; } = new List<Character>();
+
         public byte[] ClientSeed { get; private set; }
         public byte[] ServerSeed { get; private set; }
-
+        public List<Character> Characters { get; private set; } = new List<Character>();
         private readonly object[] currentBundleLocks = new object[(int)GameMessageGroup.QueueMax];
         private readonly NetworkBundle[] currentBundles = new NetworkBundle[(int)GameMessageGroup.QueueMax];
         private readonly ConcurrentDictionary<uint, ClientPacket> outOfOrderPackets = new ConcurrentDictionary<uint, ClientPacket>();
         private readonly ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
         private readonly ConcurrentDictionary<uint, ClientMessage> outOfOrderFragments = new ConcurrentDictionary<uint, ClientMessage>();
         private readonly ConcurrentDictionary<uint, ServerPacket> cachedPackets = new ConcurrentDictionary<uint, ServerPacket>();
-        private readonly ConcurrentQueue<ServerPacket> packetQueue = new ConcurrentQueue<ServerPacket>();
         private readonly OutboundPacketQueue OutboundQueue = null;
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #endregion
@@ -275,9 +281,16 @@ namespace ACE.Server.Network
                 }
                 NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
             }
+
+            // depending on the current session state:
+            // Set the next timeout tick value, to compare against in the WorldManager
+            // Sessions that have gone past the AuthLoginRequest step will stay active for a longer period of time (exposed via configuration) 
+            // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
+            // Example: Applications that check uptime will stay in the AuthLoginRequest state.
             TimeoutTick = (State == SessionState.AuthLoginRequest) ?
-                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks :
-                DateTime.UtcNow.AddSeconds(DefaultSessionTimeout).Ticks;
+                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks : // Default is 15s
+                DateTime.UtcNow.AddSeconds(DefaultSessionTimeout).Ticks; // Default is 60s
+
             if (packet.Header.Sequence <= lastReceivedPacketSequence && packet.Header.Sequence != 0 &&
                 !(packet.Header.Flags == PacketHeaderFlags.AckSequence && packet.Header.Sequence == lastReceivedPacketSequence))
             {
@@ -303,7 +316,8 @@ namespace ACE.Server.Network
         public override string ToString()
         {
             string plr = (Player != null) ? $", Player: {Player.Name}" : "";
-            return $"{ClientId}\\{EndPoint} Account: {Account}{plr}";
+            string act = (Account != null) ? $", Account: {Account}" : "";
+            return $"{ClientId}\\{EndPoint}{act}{plr}";
         }
         public void DropSession()
         {
@@ -533,12 +547,11 @@ namespace ACE.Server.Network
         }
         private void FlushPackets()
         {
-            ServerPacket packet = null;
-            while (packetQueue.TryDequeue(out packet))
+            while (packetQueue.TryDequeue(out ServerPacket packet))
             {
                 if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && PacketSequence.CurrentValue == 0)
                 {
-                    PacketSequence = new Sequence.UIntSequence(1);
+                    PacketSequence = new UIntSequence(1);
                 }
                 if (packet.Header.Flags == PacketHeaderFlags.AckSequence || packet.Header.Flags.HasFlag(PacketHeaderFlags.RequestRetransmit))
                 {

@@ -21,9 +21,20 @@ using ACE.Server.Factories;
 
 namespace ACE.Server.Managers
 {
-    public class RecipeManager
+    public partial class RecipeManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static Recipe GetRecipe(Player player, WorldObject source, WorldObject target)
+        {
+            // PY16 recipes
+            var cookbook = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
+            if (cookbook != null)
+                return cookbook.Recipe;
+
+            // if none exists, try finding new recipe
+            return GetNewRecipe(player, source, target);
+        }
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
@@ -41,7 +52,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var recipe = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
+            var recipe = GetRecipe(player, source, target);
 
             if (recipe == null)
             {
@@ -52,7 +63,7 @@ namespace ACE.Server.Managers
             }
 
             // verify requirements
-            if (!VerifyRequirements(recipe.Recipe, player, source, target))
+            if (!VerifyRequirements(recipe, player, source, target))
             {
                 player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                 return;
@@ -85,10 +96,10 @@ namespace ACE.Server.Managers
 
             craftChain.AddAction(player, () =>
             {
-                if (recipe.Recipe.Skill > 0 && recipe.Recipe.Difficulty > 0)
+                if (recipe.Skill > 0 && recipe.Difficulty > 0)
                 {
                     // there's a skill associated with this
-                    Skill skillId = (Skill)recipe.Recipe.Skill;
+                    Skill skillId = (Skill)recipe.Skill;
 
                     // this shouldn't happen, but sanity check for unexpected nulls
                     skill = player.GetCreatureSkill(skillId);
@@ -103,7 +114,7 @@ namespace ACE.Server.Managers
 
                     //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
 
-                    percentSuccess = skill.GetPercentSuccess(recipe.Recipe.Difficulty); //FIXME: Pretty certain this is broken
+                    percentSuccess = SkillCheck.GetSkillChance(skill.Current, recipe.Difficulty);
                 }
 
                 if (skill != null)
@@ -116,7 +127,7 @@ namespace ACE.Server.Managers
 
                     //Console.WriteLine("Required skill: " + skill.Skill);
 
-                    if (skill.AdvancementClass <= SkillAdvancementClass.Untrained)
+                    if (skill.AdvancementClass < SkillAdvancementClass.Trained)
                     {
                         var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
                         player.Session.EnqueueSend(message);
@@ -130,7 +141,7 @@ namespace ACE.Server.Managers
                 if (skill != null)
                     success = ThreadSafeRandom.Next(0.0f, 1.0f) <= percentSuccess;
 
-                CreateDestroyItems(player, recipe.Recipe, source, target, success);
+                CreateDestroyItems(player, recipe, source, target, success);
 
                 // this code was intended for dyes, but UpdateObj seems to remove crafting components
                 // from shortcut bar, if they are hotkeyed
@@ -183,9 +194,17 @@ namespace ACE.Server.Managers
             if (toolWorkmanship >= itemWorkmanship)
                 workmanshipMod = 2.0f;
 
-            var recipe = DatabaseManager.World.GetCachedCookbook(tool.WeenieClassId, target.WeenieClassId);
-            var recipeSkill = (Skill)recipe.Recipe.Skill;
+            var recipe = GetRecipe(player, tool, target);
+            var recipeSkill = (Skill)recipe.Skill;
             var skill = player.GetCreatureSkill(recipeSkill);
+
+            // tinkering skill must be trained
+            if (skill.AdvancementClass < SkillAdvancementClass.Trained)
+            {
+                player.Session.EnqueueSend(new GameMessageSystemChat($"You are not trained in {skill.Skill.ToSentence()}.", ChatMessageType.Broadcast));
+                player.SendUseDoneEvent();
+                return;
+            }
 
             // thanks to Endy's Tinkering Calculator for this formula!
             var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
@@ -193,7 +212,7 @@ namespace ACE.Server.Managers
             var successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
 
             // imbue: divide success by 3
-            if (recipe.Recipe.SalvageType == 2)
+            if (recipe.SalvageType == 2)
             {
                 successChance /= 3.0f;
 
@@ -240,10 +259,17 @@ namespace ACE.Server.Managers
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
 
             if (success)
+            {
                 Tinkering_ModifyItem(player, tool, target);
 
-            var recipe = DatabaseManager.World.GetCachedCookbook(tool.WeenieClassId, target.WeenieClassId);
-            CreateDestroyItems(player, recipe.Recipe, tool, target, success);
+                // send local broadcast
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {tool.Name} (workmanship {(tool.Workmanship ?? 0).Round(2)}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
+            }
+            else
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {tool.Name} (workmanship {(tool.Workmanship ?? 0).Round(2)}) to the {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
+
+            var recipe = GetRecipe(player, tool, target);
+            CreateDestroyItems(player, recipe, tool, target, success);
 
             if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog))
                 player.SendUseDoneEvent();
@@ -251,7 +277,7 @@ namespace ACE.Server.Managers
 
         public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target)
         {
-            var recipe = DatabaseManager.World.GetCachedCookbook(tool.WeenieClassId, target.WeenieClassId);
+            var recipe = GetRecipe(player, tool, target);
 
             var materialType = tool.MaterialType.Value;
 
@@ -294,10 +320,10 @@ namespace ACE.Server.Managers
 
                 // item tinkering
                 case MaterialType.Pine:
-                    target.Value *= (int)Math.Round((target.Value ?? 1) * 0.75f);
+                    target.Value = (int)Math.Round((target.Value ?? 1) * 0.75f);
                     break;
                 case MaterialType.Gold:
-                    target.Value *= (int)Math.Round((target.Value ?? 1) * 1.25f);
+                    target.Value = (int)Math.Round((target.Value ?? 1) * 1.25f);
                     break;
                 case MaterialType.Linen:
                     target.EncumbranceVal = (int)Math.Round((target.EncumbranceVal ?? 1) * 0.75f);
@@ -615,6 +641,13 @@ namespace ACE.Server.Managers
             4.5f    // 10
         };
 
+        public enum RequirementType
+        {
+            Target = 0,
+            Source = 1,
+            Player = 2
+        };
+
         // todo: verify
         public enum CompareType
         {
@@ -631,69 +664,104 @@ namespace ACE.Server.Managers
 
         public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject source, WorldObject target)
         {
-            // as opposed to having a recipe requirements field for the object being compared...
-            if (!VerifyRequirements(recipe, player, player)) return false;
+            if (!VerifyRequirements(recipe, player, target, RequirementType.Target)) return false;
 
-            if (!VerifyRequirements(recipe, player, source)) return false;
+            if (!VerifyRequirements(recipe, player, source, RequirementType.Source)) return false;
 
-            if (!VerifyRequirements(recipe, player, target)) return false;
+            if (!VerifyRequirements(recipe, player, player, RequirementType.Player)) return false;
 
             return true;
         }
 
-        public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject obj)
+        public static bool Debug = false;
+
+        public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject obj, RequirementType reqType)
         {
-            foreach (var requirement in recipe.RecipeRequirementsBool)
+            var boolReqs = recipe.RecipeRequirementsBool.Where(i => i.Index == (int)reqType).ToList();
+            var intReqs = recipe.RecipeRequirementsInt.Where(i => i.Index == (int)reqType).ToList();
+            var floatReqs = recipe.RecipeRequirementsFloat.Where(i => i.Index == (int)reqType).ToList();
+            var strReqs = recipe.RecipeRequirementsString.Where(i => i.Index == (int)reqType).ToList();
+            var iidReqs = recipe.RecipeRequirementsIID.Where(i => i.Index == (int)reqType).ToList();
+            var didReqs = recipe.RecipeRequirementsDID.Where(i => i.Index == (int)reqType).ToList();
+
+            var totalReqs = boolReqs.Count + intReqs.Count + floatReqs.Count + strReqs.Count + iidReqs.Count + didReqs.Count;
+
+            if (Debug && totalReqs > 0)
+                Console.WriteLine($"{reqType} Requirements: {totalReqs}");
+
+            foreach (var requirement in boolReqs)
             {
                 bool? value = obj.GetProperty((PropertyBool)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
+                if (Debug)
+                    Console.WriteLine($"PropertyBool.{(PropertyBool)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsInt)
+            foreach (var requirement in intReqs)
             {
                 int? value = obj.GetProperty((PropertyInt)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
+                if (Debug)
+                    Console.WriteLine($"PropertyInt.{(PropertyInt)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsFloat)
+            foreach (var requirement in floatReqs)
             {
                 double? value = obj.GetProperty((PropertyFloat)requirement.Stat);
 
+                if (Debug)
+                    Console.WriteLine($"PropertyFloat.{(PropertyFloat)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, value, requirement.Value, requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsString)
+            foreach (var requirement in strReqs)
             {
                 string value = obj.GetProperty((PropertyString)requirement.Stat);
 
+                if (Debug)
+                    Console.WriteLine($"PropertyString.{(PropertyString)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, value, requirement.Value, requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsIID)
+            foreach (var requirement in iidReqs)
             {
                 uint? value = obj.GetProperty((PropertyInstanceId)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
+                if (Debug)
+                    Console.WriteLine($"PropertyInstanceId.{(PropertyInstanceId)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
             }
 
-            foreach (var requirement in recipe.RecipeRequirementsDID)
+            foreach (var requirement in didReqs)
             {
                 uint? value = obj.GetProperty((PropertyDataId)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
+                if (Debug)
+                    Console.WriteLine($"PropertyDataId.{(PropertyDataId)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
+
                 if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
                     return false;
             }
+
+            if (Debug && totalReqs > 0)
+                Console.WriteLine($"-----");
+
             return true;
         }
 
@@ -704,27 +772,27 @@ namespace ACE.Server.Managers
             switch (compareType)
             {
                 case CompareType.GreaterThan:
-                    if (prop != null && prop.Value > val)
+                    if ((prop ?? 0) > val)
                         success = false;
                     break;
 
                 case CompareType.LessThanEqual:
-                    if (prop != null && prop.Value <= val)
+                    if ((prop ?? 0) <= val)
                         success = false;
                     break;
 
                 case CompareType.LessThan:
-                    if (prop != null && prop.Value < val)
+                    if ((prop ?? 0) < val)
                         success = false;
                     break;
 
                 case CompareType.GreaterThanEqual:
-                    if (prop != null && prop.Value >= val)
+                    if ((prop ?? 0) >= val)
                         success = false;
                     break;
 
                 case CompareType.NotEqual:
-                    if (prop != null && prop.Value != val)
+                    if ((prop ?? 0) != val)
                         success = false;
                     break;
 
@@ -734,7 +802,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case CompareType.Equal:
-                    if (prop != null && prop.Value == val)
+                    if ((prop ?? 0) == val)
                         success = false;
                     break;
 
@@ -762,7 +830,7 @@ namespace ACE.Server.Managers
             switch (compareType)
             {
                 case CompareType.NotEqual:
-                    if (prop != null && !prop.Equals(val))
+                    if (!(prop ?? "").Equals(val))
                         success = false;
                     break;
 
@@ -772,7 +840,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case CompareType.Equal:
-                    if (prop != null && prop.Equals(val))
+                    if ((prop ?? "").Equals(val))
                         success = false;
                     break;
 

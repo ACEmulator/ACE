@@ -24,5 +24,10 @@ namespace ACE.Common
 
             return span.TotalSeconds;
         }
+
+        public static DateTime GetDateTimeFromTimestamp(double timestamp)
+        {
+            return unixEpoch.AddSeconds(timestamp);
+        }
     }
 }

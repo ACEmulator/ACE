@@ -143,8 +143,11 @@ namespace ACE.Server.Managers
                 player.AdvocateLevel = null;
                 player.ChannelsActive = null;
                 player.ChannelsAllowed = null;
-                player.Invincible = null;
+                player.Invincible = false;
                 player.Cloaked = null;
+                player.IgnoreHouseBarriers = false;
+                player.IgnorePortalRestrictions = false;
+                player.SafeSpellComponents = false;
 
 
                 player.ChangesDetected = true;
@@ -156,9 +159,9 @@ namespace ACE.Server.Managers
                 WorldObject weenie;
 
                 if (addAdminProperties)
-                    weenie = Factories.WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie("admin"), new ACE.Entity.ObjectGuid(ACE.Entity.ObjectGuid.Invalid.Full)) as Admin;
+                    weenie = Factories.WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie("admin"), new ACE.Entity.ObjectGuid(ACE.Entity.ObjectGuid.Invalid.Full));
                 else
-                    weenie = Factories.WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie("sentinel"), new ACE.Entity.ObjectGuid(ACE.Entity.ObjectGuid.Invalid.Full)) as Sentinel;
+                    weenie = Factories.WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie("sentinel"), new ACE.Entity.ObjectGuid(ACE.Entity.ObjectGuid.Invalid.Full));
 
                 if (weenie != null)
                 {
@@ -177,13 +180,13 @@ namespace ACE.Server.Managers
                 }
             }
 
-            // If the client is missing a location, we start them off in the starter dungeon
+            // If the client is missing a location, we start them off in the starter town they chose
             if (session.Player.Location == null)
             {
                 if (session.Player.Instantiation != null)
                     session.Player.Location = new Position(session.Player.Instantiation);
                 else
-                    session.Player.Location = new Position(2349072813, 12.3199f, -28.482f, 0.0049999995f, 0.0f, 0.0f, -0.9408059f, -0.3389459f);
+                    session.Player.Location = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f); // ultimate fallback;
             }
 
             session.Player.PlayerEnterWorld();
@@ -344,9 +347,9 @@ namespace ACE.Server.Managers
 
             // Tick all of our Landblocks and WorldObjects
             ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
-            var activeLandblocks = LandblockManager.GetActiveLandblocks();
+            var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
 
-            foreach (var landblock in activeLandblocks)
+            foreach (var landblock in loadedLandblocks)
                 landblock.Tick(Time.GetUnixTime());
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
 

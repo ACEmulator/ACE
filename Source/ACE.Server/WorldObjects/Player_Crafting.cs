@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common.Extensions;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -196,7 +195,7 @@ namespace ACE.Server.WorldObjects
                 // a bit different here, since ACE handles overages
                 if (message != null)
                 {
-                    message.Workmanship += item.GetProperty(PropertyInt.ItemWorkmanship) ?? 0.0f;
+                    message.Workmanship += item.ItemWorkmanship ?? 0.0f;
                     message.NumItemsInMaterial++;
                 }
             }
@@ -215,9 +214,10 @@ namespace ACE.Server.WorldObjects
 
             // add workmanship
             var item_numItems = item.StackSize ?? 1;
-            var workmanship_bag = salvageBag.GetProperty(PropertyInt.ItemWorkmanship) ?? 0;
-            var workmanship_item = item.GetProperty(PropertyInt.ItemWorkmanship) ?? 0;
-            salvageBag.SetProperty(PropertyInt.ItemWorkmanship, workmanship_bag + workmanship_item * item_numItems);
+            var workmanship_bag = salvageBag.ItemWorkmanship ?? 0;
+            var workmanship_item = item.ItemWorkmanship ?? 0;
+
+            salvageBag.ItemWorkmanship = workmanship_bag + workmanship_item * item_numItems;
 
             // increment # of items that went into this salvage bag
             if (item.WeenieType == WeenieType.CraftTool)
@@ -230,20 +230,34 @@ namespace ACE.Server.WorldObjects
                     var scalar = (float)space / tryAmount;
                     var newItems = (int)Math.Ceiling(item_numItems * scalar);
                     scalar = (float)newItems / item_numItems;
+                    var prevNumItems = item_numItems;
                     item_numItems = newItems;
 
-                    salvageBag.SetProperty(PropertyInt.ItemWorkmanship, salvageBag.GetProperty(PropertyInt.ItemWorkmanship).Value - (int)Math.Round(workmanship_item * (1.0 - scalar)));
+                    salvageBag.ItemWorkmanship -= (int)Math.Round(workmanship_item * (1.0 - scalar));
 
                     // and for the next bag...
-                    item.SetProperty(PropertyInt.ItemWorkmanship, item.GetProperty(PropertyInt.ItemWorkmanship).Value - (int)Math.Round(workmanship_item * scalar));
+                    if (prevNumItems == newItems)
+                        newItems--;
+
+                    var itemWorkmanship = item.Workmanship;
                     item.NumItemsInMaterial -= newItems;
+                    //item.ItemWorkmanship -= (int)Math.Round(workmanship_item * scalar);
+                    item.ItemWorkmanship = (int)Math.Round(item.NumItemsInMaterial.Value * (float)itemWorkmanship);
                 }
             }
             salvageBag.NumItemsInMaterial = (salvageBag.NumItemsInMaterial ?? 0) + item_numItems;
 
             salvageBag.Name = $"Salvage ({salvageBag.Structure})";
 
-            return amount;
+            if (item.WeenieType == WeenieType.CraftTool)
+            {
+                if (!PropertyManager.GetBool("salvage_handle_overages").Item)
+                    return tryAmount;
+                else
+                    return amount;
+            }
+            else
+                return amount;
         }
 
         public int GetStructure(WorldObject salvageItem, SalvageResults salvageResults, ref SalvageMessage message)
@@ -266,10 +280,11 @@ namespace ACE.Server.WorldObjects
             // should this be getting the highest tinkering skill,
             // or the tinkering skill for the material?
             var salvageSkill = GetCreatureSkill(Skill.Salvaging).Current;
-            var highestTinkeringSkill = GetMaxSkill(TinkeringSkills).Current;
+            var highestTinkeringSkill = GetMaxSkill(TinkeringSkills);
+            var highestTrainedTinkeringSkill = highestTinkeringSkill.AdvancementClass >= SkillAdvancementClass.Trained ? highestTinkeringSkill.Current : 0;
 
             var salvageMultiplier = Math.Max(0.6f, salvageSkill / 225.0f);
-            var tinkeringMultiplier = Math.Max(0.6f, highestTinkeringSkill / 225.0f);
+            var tinkeringMultiplier = Math.Max(0.6f, highestTrainedTinkeringSkill / 225.0f);
 
             // take augs into account for salvaging only
             var augMod = 1.0f;
