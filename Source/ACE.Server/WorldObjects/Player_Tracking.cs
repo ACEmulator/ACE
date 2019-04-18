@@ -138,8 +138,10 @@ namespace ACE.Server.WorldObjects
             if (formerWielder == this)
                 return;
 
-            if (!IsInChildLocation(worldObject))
-                return;
+            // intended for cloaked objects, as DO's should not be sent for them
+            // but this breaks regular players, as the state of worldObject has already changed, and is never in a ChildLocation
+            //if (!IsInChildLocation(worldObject))
+                //return;
 
             // todo: Until we can fix the tracking system better, sending the PickupEvent like retail causes weapon dissapearing bugs on relog
             //Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
