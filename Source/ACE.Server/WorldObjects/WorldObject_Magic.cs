@@ -930,6 +930,9 @@ namespace ACE.Server.WorldObjects
                             }
                         }
 
+                        if (summonLoc != null)
+                            summonLoc.LandblockId = new LandblockId(summonLoc.GetCell());
+
                         if (!SummonPortal(portalId, summonLoc, spell.PortalLifetime) && player != null)
                             player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
 
