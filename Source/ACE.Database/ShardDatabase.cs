@@ -398,6 +398,8 @@ namespace ACE.Database
                 finally
                 {
                     rwLock.ExitReadLock();
+
+                    cachedContext.Dispose();
                 }
             }
 
