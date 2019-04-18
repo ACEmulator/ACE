@@ -116,7 +116,7 @@ namespace ACE.Server.Entity
 
         public Landblock(LandblockId id)
         {
-            //Console.WriteLine($"Loading landblock {(id.Raw | 0xFFFF):X8}");
+            //log.Debug($"Landblock({(id.Raw | 0xFFFF):X8})");
 
             Id = id;
 
@@ -761,7 +761,7 @@ namespace ACE.Server.Entity
         {
             var landblockID = Id.Raw | 0xFFFF;
 
-            log.Debug($"Landblock.Unload({landblockID:X})");
+            //log.Debug($"Landblock.Unload({landblockID:X8})");
 
             ProcessPendingWorldObjectAdditionsAndRemovals();
 
