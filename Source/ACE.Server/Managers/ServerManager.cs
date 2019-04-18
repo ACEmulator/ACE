@@ -120,7 +120,7 @@ namespace ACE.Server.Managers
 
             log.Info("Waiting for all active landblocks to unload...");
 
-            while (LandblockManager.GetActiveLandblocks().Count > 0)
+            while (LandblockManager.GetLoadedLandblocks().Count > 0)
                 Thread.Sleep(10);
 
             log.Debug("Stopping world...");
