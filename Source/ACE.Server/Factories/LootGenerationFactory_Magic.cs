@@ -195,6 +195,7 @@ namespace ACE.Server.Factories
             }
             else
             {
+                // Fifty/Fifty chance of caster weapon rolling either an elemental or non-elemental caster
                 chance = ThreadSafeRandom.Next(1, 100);
                 if (chance > 50)
                 {
@@ -208,6 +209,7 @@ namespace ACE.Server.Factories
                     int element = ThreadSafeRandom.Next(0, 7);
                     casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
 
+                    // If element is Nether, Void Magic is required, else War Magic is required for all other elements
                     if (element == 7)
                         wieldSkillType = Skill.VoidMagic;
                     else
@@ -215,11 +217,14 @@ namespace ACE.Server.Factories
                 }
                 else
                 {
-                    // Determine plain caster type: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
+                    // Determine plain caster type for non-elemental caster: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
                     subType = ThreadSafeRandom.Next(0, 3);
                     casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
-                    // TODO: Should wieldSkillType also have a chance for Creature, Item, or Life for non-elemental casters
-                    wieldSkillType = Skill.WarMagic;
+                    chance = ThreadSafeRandom.Next(1, 100);
+                    if (chance <= 50)
+                        wieldSkillType = Skill.WarMagic;
+                    else
+                        wieldSkillType = Skill.VoidMagic;
                 }
             }
 
