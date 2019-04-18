@@ -89,8 +89,8 @@ namespace ACE.Server.Physics.Common
                     var lbid = new LandblockId(landblockID);
                     if (!LandblockManager.IsLoaded(lbid))
                     {
-                        // this shouldn't happen - please report this log message if seen
-                        log.Error($"{landblockID:X8} requested from LScape, but not loaded from LandblockManager, adding");
+                        // this can happen from encounter spawns sliding down walkable slopes...
+                        //log.Debug($"{landblockID:X8} requested from LScape, but not loaded from LandblockManager, adding");
                         LandblockManager.GetLandblock(lbid, false, false);
                     }
                 }
