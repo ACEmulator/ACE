@@ -1307,9 +1307,8 @@ namespace ACE.Server.Physics
                 // customized
                 if ((newPos.ObjCellID & 0xFFFF) < 0x100)
                 {
-                    var radius = GetRadius();
-                    newPos.Frame.Origin.X = Math.Clamp(newPos.Frame.Origin.X, radius, 192.0f - radius);
-                    newPos.Frame.Origin.Y = Math.Clamp(newPos.Frame.Origin.Y, radius, 192.0f - radius);
+                    newPos.Frame.Origin.X = Math.Clamp(newPos.Frame.Origin.X, 0.5f, 191.5f);
+                    newPos.Frame.Origin.Y = Math.Clamp(newPos.Frame.Origin.Y, 0.5f, 191.5f);
                 }
 
                 // get cell for this position
