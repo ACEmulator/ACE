@@ -104,7 +104,6 @@ namespace ACE.Server.Factories
             int wield = 0; //done
             Skill wieldSkillType = Skill.None;
             WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
-            int wieldLevelRequirement = 0;
             int chance = 0;
             int subType = 0;
 
