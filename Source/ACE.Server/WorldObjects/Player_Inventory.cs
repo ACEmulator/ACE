@@ -1750,43 +1750,45 @@ namespace ACE.Server.WorldObjects
             if (!RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out WorldObject itemToGive))
                 return;
 
-            if (!target.TryCreateInInventoryWithNetworking(itemToGive, out var targetContainer))
-            {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryCreateInInventoryWithNetworking failed!")); // Custom error message
-
-                // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
-                log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from GiveObjecttoPlayer failure.", item.Guid.Full, item.Name, Name);
-
-                return;
-            }
-
-            if (item == itemToGive)
-                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-
-            var stackSize = itemToGive.StackSize ?? 1;
-
-            var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
-            var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.Name;
-
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
-            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
-
-            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemName}.", ChatMessageType.Broadcast));
-            target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+            var actionChain = new ActionChain();
+            if (itemWasEquipped)
+                actionChain.AddDelaySeconds(0.5f);
 
             // This is a hack because our Player_Tracking->RemoveTrackedEquippedObject() is doing GameMessageDeleteObject, not GameMessagePickupEvent
             // Without this, when you give an equipped item to a player, the player won't see it appear in their inventory
             // A bug still exists in the following scenario:
             // Player A equips weapon, gives weapon (while equipped) to player B.
             // Player B then gives weapon back to A. Player B is now bugged. The fix is to fix RemoveTrackedEquippedObject
-            if (itemWasEquipped)
+
+            actionChain.AddAction(this, () =>
             {
-                new ActionChain(target, () =>
+                if (!target.TryCreateInInventoryWithNetworking(itemToGive, out var targetContainer))
                 {
-                    target.Session.Network.EnqueueSend(new GameMessageCreateObject(item));
-                    target.Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, targetContainer));
-                }).EnqueueChain();
-            }
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryCreateInInventoryWithNetworking failed!")); // Custom error message
+
+                    // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
+                    log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from GiveObjecttoPlayer failure.", item.Guid.Full, item.Name, Name);
+
+                    return;
+                }
+
+                if (item == itemToGive)
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+
+                var stackSize = itemToGive.StackSize ?? 1;
+
+                var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
+                var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.Name;
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
+
+                target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemName}.", ChatMessageType.Broadcast));
+                target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+            });
+
+            actionChain.EnqueueChain();
         }
 
         private void GiveObjecttoNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
