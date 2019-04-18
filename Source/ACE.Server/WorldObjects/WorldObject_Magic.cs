@@ -920,7 +920,7 @@ namespace ACE.Server.WorldObjects
                         else if (itemCaster != null)
                         {
                             if (itemCaster.PortalSummonLoc != null)
-                                summonLoc = PortalSummonLoc;
+                                summonLoc = new Position(PortalSummonLoc);
                             else
                             {
                                 if (itemCaster.Location != null)
@@ -929,6 +929,9 @@ namespace ACE.Server.WorldObjects
                                     summonLoc = target.Location.InFrontOf(3.0f);
                             }
                         }
+
+                        if (summonLoc != null)
+                            summonLoc.LandblockId = new LandblockId(summonLoc.GetCell());
 
                         if (!SummonPortal(portalId, summonLoc, spell.PortalLifetime) && player != null)
                             player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
