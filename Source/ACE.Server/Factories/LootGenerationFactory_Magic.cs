@@ -195,39 +195,31 @@ namespace ACE.Server.Factories
             }
             else
             {
-                // Determine the Elemental Damage Mod amount
-                elementalDamageMod = GetMaxDamageMod(tier, 18);
-
-                // Determine caster type: 1 - Sceptre, 2 - Baton, 3 - Staff
-                int casterType = ThreadSafeRandom.Next(1, 3);
-
-                // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
-                int element = ThreadSafeRandom.Next(0, 7);
-                casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
-
-                if (element == 7)
+                chance = ThreadSafeRandom.Next(1, 100);
+                if (chance > 50)
                 {
-                    wieldSkillType = Skill.VoidMagic;
+                    // Determine the Elemental Damage Mod amount
+                    elementalDamageMod = GetMaxDamageMod(tier, 18);
+
+                    // Determine caster type: 1 - Sceptre, 2 - Baton, 3 - Staff
+                    int casterType = ThreadSafeRandom.Next(1, 3);
+
+                    // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
+                    int element = ThreadSafeRandom.Next(0, 7);
+                    casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
+
+                    if (element == 7)
+                        wieldSkillType = Skill.VoidMagic;
+                    else
+                        wieldSkillType = Skill.WarMagic;
                 }
                 else
                 {
-                    // Determine skill of wield requirement
-                    chance = ThreadSafeRandom.Next(0, 3);
-                    switch (chance)
-                    {
-                        case 0:
-                            wieldSkillType = Skill.WarMagic;
-                            break;
-                        case 2:
-                            wieldSkillType = Skill.CreatureEnchantment;
-                            break;
-                        case 3:
-                            wieldSkillType = Skill.ItemEnchantment;
-                            break;
-                        default:
-                            wieldSkillType = Skill.LifeMagic;
-                            break;
-                    }
+                    // Determine plain caster type: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
+                    subType = ThreadSafeRandom.Next(0, 3);
+                    casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
+                    // TODO: Should wieldSkillType also have a chance for Creature, Item, or Life for non-elemental casters
+                    wieldSkillType = Skill.WarMagic;
                 }
             }
 
