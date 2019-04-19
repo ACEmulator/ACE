@@ -509,7 +509,8 @@ namespace ACE.Server.Managers
             else
                 BroadcastToChannelFromConsole(Channel.Audit, message);
 
-            log.Info($"[AUDIT] {(issuer != null ? $"{issuer.Name} says on the Audit channel: " : "")}{message}");
+            if (PropertyManager.GetBool("log_audit", true).Item)
+                log.Info($"[AUDIT] {(issuer != null ? $"{issuer.Name} says on the Audit channel: " : "")}{message}");
         }
 
         public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false, bool ignoreActive = false)
