@@ -41,6 +41,8 @@ namespace ACE.Database.Models.World
         public virtual DbSet<TreasureDeath> TreasureDeath { get; set; }
         public virtual DbSet<TreasureWielded> TreasureWielded { get; set; }
         public virtual DbSet<TreasureMaterialColor> TreasureMaterialColor { get; set; }
+        public virtual DbSet<TreasureMaterialBase> TreasureMaterialBase { get; set; }
+        public virtual DbSet<TreasureMaterialGroups> TreasureMaterialGroups { get; set; }
         public virtual DbSet<Weenie> Weenie { get; set; }
         public virtual DbSet<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
         public virtual DbSet<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
@@ -1188,6 +1190,28 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.TsysMutationColor).HasColumnName("tsys_Mutation_Color");
                 entity.Property(e => e.PaletteTemplate).HasColumnName("palette_Template");
                 entity.Property(e => e.Probability).HasColumnName("probability");
+            });
+
+            modelBuilder.Entity<TreasureMaterialBase>(entity =>
+            {
+                entity.ToTable("treasure_material_base");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.MaterialCode).HasColumnName("material_Code");
+                entity.Property(e => e.Tier).HasColumnName("tier");
+                entity.Property(e => e.Probability).HasColumnName("probability");
+                entity.Property(e => e.MaterialID).HasColumnName("material_Id");
+            });
+
+            modelBuilder.Entity<TreasureMaterialGroups>(entity =>
+            {
+                entity.ToTable("treasure_material_groups");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.MaterialGroup).HasColumnName("material_Group");
+                entity.Property(e => e.Tier).HasColumnName("tier");
+                entity.Property(e => e.Probability).HasColumnName("probability");
+                entity.Property(e => e.MaterialID).HasColumnName("material_Id");
             });
 
             modelBuilder.Entity<Weenie>(entity =>
