@@ -3,6 +3,7 @@ using log4net;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace ACE.Server.Network
 {
@@ -16,6 +17,7 @@ namespace ACE.Server.Network
         private readonly byte[] buffer = new byte[ClientPacket.MaxPacketSize];
         private readonly IPAddress listeningHost;
         private InboundPacketQueue inboundQueue = null;
+        private ManualResetEvent ReceiveComplete = new ManualResetEvent(false);
 
         public ConnectionListener(IPAddress host, uint port)
         {
@@ -23,16 +25,23 @@ namespace ACE.Server.Network
             listeningHost = host;
             listeningPort = port;
             inboundQueue = NetworkManager.InboundQueue;
-        }
-        public void Start()
-        {
-            log.DebugFormat("Starting ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
             try
             {
+                log.DebugFormat("Binding ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
                 listenerEndpoint = new IPEndPoint(listeningHost, (int)listeningPort);
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 Socket.Bind(listenerEndpoint);
+            }
+            catch (Exception exception)
+            {
+                log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
+            }
+        }
+        public void Start()
+        {
+            try
+            {
                 Listen();
             }
             catch (Exception exception)
@@ -48,21 +57,37 @@ namespace ACE.Server.Network
                 Socket.Close();
             }
         }
+
         private void Listen()
         {
-            try
+            while (true)
             {
-                EndPoint clientEndPoint = new IPEndPoint(listeningHost, 0);
-                Socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref clientEndPoint, OnDataReceieve, Socket);
-            }
-            catch (SocketException socketException)
-            {
-                log.DebugFormat("Network Socket has thrown: {0} {1}", socketException.ErrorCode, socketException.Message);
-                Listen();//stack overflow, this whole thing needs to be scrapped
-            }
-            catch (Exception exception)
-            {
-                log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
+                try
+                {
+                    ReceiveComplete.Reset();
+                    EndPoint clientEndPoint = new IPEndPoint(listeningHost, 0);
+                    Socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref clientEndPoint, OnDataReceieve, Socket);
+                    ReceiveComplete.WaitOne();
+                }
+                catch (SocketException error)
+                {
+                    if ((error.SocketErrorCode == SocketError.ConnectionAborted) ||
+                        (error.SocketErrorCode == SocketError.ConnectionRefused) ||
+                        (error.SocketErrorCode == SocketError.ConnectionReset) ||
+                        (error.SocketErrorCode == SocketError.OperationAborted))
+                    {
+                        continue;
+                    }
+
+                    log.FatalFormat("Network Socket has thrown: {0} {1}", error.ErrorCode, error.Message);
+                    break;
+                }
+
+                catch (Exception exception)
+                {
+                    log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
+                    break;
+                }
             }
         }
         private void OnDataReceieve(IAsyncResult result)
@@ -88,10 +113,9 @@ namespace ACE.Server.Network
                 else
                 {
                     log.FatalFormat("Network Socket on IP {2} has thrown {0}: {1}", socketException.ErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown");
-                    return;
                 }
             }
-            Listen();
+            ReceiveComplete.Set();
         }
     }
 }

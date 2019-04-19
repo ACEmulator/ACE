@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 
 namespace ACE.Server.Managers
 {
@@ -34,8 +35,10 @@ namespace ACE.Server.Managers
             InboundQueue = new InboundPacketQueue();
             listeners[0] = new ConnectionListener(host, ConfigManager.Config.Server.Network.Port);
             listeners[1] = new ConnectionListener(host, ConfigManager.Config.Server.Network.Port + 1);
-            listeners[0].Start();
-            listeners[1].Start();
+
+            new Thread(new ThreadStart(() => { listeners[0].Start(); })) { Name = $"{listeners[0].Socket.LocalEndPoint} Listener" }.Start();
+            new Thread(new ThreadStart(() => { listeners[1].Start(); })) { Name = $"{listeners[1].Socket.LocalEndPoint} Listener" }.Start();
+
             OutboundQueue = new OutboundPacketQueue(listeners[0].Socket);
         }
         public static void Shutdown()
