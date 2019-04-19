@@ -53,11 +53,11 @@ namespace ACE.Server.Command.Handlers
                     ServerManager.SetShutdownInterval(Convert.ToUInt32(newShutdownInterval));
 
                     // message the admin
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Shutdown Interval (seconds to shutdown server) has been set to {ServerManager.ShutdownInterval}.", ChatMessageType.Broadcast);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Shutdown Interval (seconds to shutdown server) has been set to {ServerManager.ShutdownInterval}.", ChatMessageType.WorldBroadcast);
                     return;
                 }
             }
-            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.WorldBroadcast);
         }
 
         /// <summary>
@@ -115,10 +115,10 @@ namespace ACE.Server.Command.Handlers
             foreach (var player in PlayerManager.GetAllOnline())
             {
                 // send server shutdown message and time remaining till shutdown
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(shutdownText + "\n" + timeRemaining, ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(shutdownText + "\n" + timeRemaining, ChatMessageType.WorldBroadcast));
 
                 if (adminShutdownText.Length > 0)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.Broadcast));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.WorldBroadcast));
             }
             ServerManager.BeginShutdown();
         }
