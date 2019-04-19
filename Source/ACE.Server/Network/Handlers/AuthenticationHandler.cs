@@ -124,7 +124,6 @@ namespace ACE.Server.Network.Handlers
 
             if (WorldManager.Find(account.AccountName) != null)
             {
-                //session.SendCharacterError(CharacterError.AccountInUse);
                 session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.AccountInUse));
                 return;
             }
@@ -158,7 +157,6 @@ namespace ACE.Server.Network.Handlers
                 else
                     log.Debug($"client {loginRequest.Account} connected with GlsTicket which is not implemented yet so booting");
 
-                //session.SendCharacterError(CharacterError.AccountInUse);
                 session.Terminate(SessionTerminationReason.NotAuthorizedGlsTicketNotImplementedToProcLoginReq, new GameMessageCharacterError(CharacterError.AccountInvalid));
 
                 return;
@@ -183,15 +181,6 @@ namespace ACE.Server.Network.Handlers
             }
             else
             {
-                //session.SendCharacterError(CharacterError.LogonServerFull);
-                //GameMessageCharacterList characterListMessage = new GameMessageCharacterList(session.Characters, session);
-                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(new List<Character>(), session);
-                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetAllOnline().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
-                GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
-
-                //session.Network.EnqueueSend(characterListMessage, serverNameMessage);
-                //session.Network.EnqueueSend(serverNameMessage);
-                //session.Network.EnqueueSend(dddInterrogation);
                 session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageCharacterError(CharacterError.LogonServerFull));
             }
         }
