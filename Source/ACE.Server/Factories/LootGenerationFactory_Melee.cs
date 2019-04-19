@@ -10,6 +10,8 @@ namespace ACE.Server.Factories
     {
         private static WorldObject CreateWeapon(int tier, bool isMagical)
         {
+            Skill wieldSkillType = Skill.None;
+
             int weaponWeenie = 0;
             int damage = 0;
             double damageVariance = 0;
@@ -33,6 +35,7 @@ namespace ACE.Server.Factories
             {
                 case 0:
                     // Heavy Weapons
+                    wieldSkillType = Skill.HeavyWeapons;
                     int heavyWeaponsType = ThreadSafeRandom.Next(0, 22);
                     weaponWeenie = LootTables.HeavyWeaponsMatrix[heavyWeaponsType][eleType];
 
@@ -115,6 +118,7 @@ namespace ACE.Server.Factories
                     break;
                 case 1:
                     // Light Weapons;
+                    wieldSkillType = Skill.LightWeapons;
                     int lightWeaponsType = ThreadSafeRandom.Next(0, 19);
                     weaponWeenie = LootTables.LightWeaponsMatrix[lightWeaponsType][eleType];
 
@@ -196,6 +200,7 @@ namespace ACE.Server.Factories
                     break;
                 case 2:
                     // Finesse Weapons;
+                    wieldSkillType = Skill.FinesseWeapons;
                     int finesseWeaponsType = ThreadSafeRandom.Next(0, 22);
                     weaponWeenie = LootTables.FinesseWeaponsMatrix[finesseWeaponsType][eleType];
 
@@ -278,6 +283,7 @@ namespace ACE.Server.Factories
                     break;
                 case 3:
                     // Two handed
+                    wieldSkillType = Skill.TwoHandedCombat;
                     int twoHandedWeaponsType = ThreadSafeRandom.Next(0, 11);
                     weaponWeenie = LootTables.TwoHandedWeaponsMatrix[twoHandedWeaponsType][eleType];
 
@@ -343,6 +349,7 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.WieldDifficulty, wieldDiff);
             wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirments);
+            wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
 
             if (wieldDiff == 0)
             {

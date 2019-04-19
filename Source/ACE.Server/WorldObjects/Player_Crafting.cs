@@ -322,7 +322,10 @@ namespace ACE.Server.WorldObjects
             // not found - create a new salvage bag
             var wcid = (uint)MaterialSalvage[(int)materialType];
             var salvageBag = WorldObjectFactory.CreateNewWorldObject(wcid);
-            salvageBag.Structure = 0;   // bugged: green garnet 21050
+
+            salvageBag.Structure = null;   // TODO: fix bugged TOD data for mahogany 20988 / green garnet 21050
+            salvageBag.ItemWorkmanship = null;
+            salvageBag.NumItemsInMaterial = null;
 
             salvageBags.Add(salvageBag);
 
