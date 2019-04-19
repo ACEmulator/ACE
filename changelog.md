@@ -1,8 +1,11 @@
 # ACEmulator Change Log
 
-### 2019-04-17
+### 2019-04-20
 [Ripley]
 * Changed shortcut code to fix some collision issues.
+
+**Stage 2 Shortcut Bar Fix**
+* Prior to update to latest master, re-run `fix-shortcut-bars` and confirm 0 bugged players.
 * Apply patch in Shard updates to fix issue with shortcuts causing a save to fail for the character.
 
 ### 2019-04-16
