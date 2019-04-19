@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
@@ -26,7 +27,7 @@ namespace ACE.Server.Entity
         /// A lookup table of WorldObjects that have damaged this WorldObject,
         /// and the total amount of damage they have inflicted
         /// </summary>
-        public readonly Dictionary<WorldObject, float> TotalDamage = new Dictionary<WorldObject, float>();
+        public readonly Dictionary<ObjectGuid, float> TotalDamage = new Dictionary<ObjectGuid, float>();
 
         /// <summary>
         /// Returns the list of players or creatures who inflicted damage
@@ -93,7 +94,7 @@ namespace ACE.Server.Entity
 
             if (amount == 0) return;
 
-            var entry = new DamageHistoryEntry(Creature, damager, damageType, -(int)amount);
+            var entry = new DamageHistoryEntry(Creature, damager.Guid, damageType, -(int)amount);
             Log.Add(entry);
 
             AddInternal(damager, amount);
@@ -106,10 +107,10 @@ namespace ACE.Server.Entity
         /// </summary>
         private void AddInternal(WorldObject damager, uint amount)
         {
-            if (TotalDamage.ContainsKey(damager))
-                TotalDamage[damager] += amount;
+            if (TotalDamage.ContainsKey(damager.Guid))
+                TotalDamage[damager.Guid] += amount;
             else
-                TotalDamage.Add(damager, amount);
+                TotalDamage.Add(damager.Guid, amount);
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
@@ -7,7 +8,7 @@ namespace ACE.Server.Entity
 {
     public class DamageHistoryEntry
     {
-        public WeakReference<WorldObject> DamageSource;
+        public ObjectGuid DamageSource;
 
         public DamageType DamageType;
         public int Amount;
@@ -22,10 +23,9 @@ namespace ACE.Server.Entity
         /// </summary>
         /// <param name="damageSource">The attacker or source of the damage</param>
         /// <param name="amount">A negative amount for damage taken, positive for healing</param>
-        public DamageHistoryEntry(Creature creature, WorldObject damageSource, DamageType damageType, int amount)
+        public DamageHistoryEntry(Creature creature, ObjectGuid damageSource, DamageType damageType, int amount)
         {
-            if (damageSource != null)
-                DamageSource = new WeakReference<WorldObject>(damageSource);
+            DamageSource = damageSource;
 
             DamageType = damageType;
             Amount = amount;
