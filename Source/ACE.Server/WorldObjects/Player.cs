@@ -262,7 +262,8 @@ namespace ACE.Server.WorldObjects
 
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
-                if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this))
+                if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this
+                    || ((this is Admin || this is Sentinel) && CloakStatus.HasValue && CloakStatus.Value == ACE.Entity.Enum.CloakStatus.On)))
                     chance = 1.0f;
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -864,6 +865,10 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
         public void ApplyConsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
+            if (IsBusy) return;
+
+            IsBusy = true;
+
             MotionCommand motionCommand;
 
             if (sound == Sound.Eat1)
@@ -946,6 +951,8 @@ namespace ACE.Server.WorldObjects
                 // return to original stance
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
+
+                IsBusy = false;
             });
 
            actionChain.EnqueueChain();

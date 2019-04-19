@@ -448,7 +448,8 @@ namespace ACE.Server.Managers
                 ("pk_server", false),
                 ("salvage_handle_overages", false),   // in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost
                 ("show_dot_messages", false),        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
-                ("use_wield_requirements", true)    // disable this to bypass wield requirements. mostly for dev debugging
+                ("use_wield_requirements", true),    // disable this to bypass wield requirements. mostly for dev debugging
+                ("world_closed", false)             // enable this to startup world as a closed to players world.
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =

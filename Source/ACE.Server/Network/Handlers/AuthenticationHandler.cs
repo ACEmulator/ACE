@@ -45,7 +45,10 @@ namespace ACE.Server.Network.Handlers
                     if (ConfigManager.Config.Server.Accounts.AllowAutoAccountCreation)
                     {
                         // no account, dynamically create one
-                        log.Info($"Auto creating account for: {loginRequest.Account}");
+                        if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
+                            log.Info($"Auto creating account for: {loginRequest.Account}");
+                        else
+                            log.Debug($"Auto creating account for: {loginRequest.Account}");
 
                         var accessLevel = (AccessLevel)ConfigManager.Config.Server.Accounts.DefaultAccessLevel;
 
@@ -103,8 +106,11 @@ namespace ACE.Server.Network.Handlers
                     return;
                 }
 
-                log.Info($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
-               
+                if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
+                    log.Info($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
+                else
+                    log.Debug($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
+
                 session.Terminate(SessionTerminationReason.NotAuthorizedNoPasswordOrGlsTicketIncludedInLoginReq, new GameMessageCharacterError(CharacterError.AccountInUse));
 
                 return;
@@ -118,7 +124,6 @@ namespace ACE.Server.Network.Handlers
 
             if (WorldManager.Find(account.AccountName) != null)
             {
-                session.SendCharacterError(CharacterError.AccountInUse);
                 session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.AccountInUse));
                 return;
             }
@@ -127,9 +132,12 @@ namespace ACE.Server.Network.Handlers
             {
                 if (!account.PasswordMatches(loginRequest.Password))
                 {
-                    log.Info($"client {loginRequest.Account} connected with non matching password does so booting");
+                    if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
+                        log.Info($"client {loginRequest.Account} connected with non matching password does so booting");
+                    else
+                        log.Debug($"client {loginRequest.Account} connected with non matching password does so booting");
 
-                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.AccountInUse));
+                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account
@@ -137,14 +145,19 @@ namespace ACE.Server.Network.Handlers
                     return;
                 }
 
-                log.Info($"client {loginRequest.Account} connected with verified password");
+                if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
+                    log.Info($"client {loginRequest.Account} connected with verified password");
+                else
+                    log.Debug($"client {loginRequest.Account} connected with verified password");
             }
             else if (loginRequest.NetAuthType == NetAuthType.GlsTicket)
             {
-                log.Info($"client {loginRequest.Account} connected with GlsTicket which is not implemented yet so booting");
+                if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
+                    log.Info($"client {loginRequest.Account} connected with GlsTicket which is not implemented yet so booting");
+                else
+                    log.Debug($"client {loginRequest.Account} connected with GlsTicket which is not implemented yet so booting");
 
-                session.SendCharacterError(CharacterError.AccountInUse);
-                session.Terminate(SessionTerminationReason.NotAuthorizedGlsTicketNotImplementedToProcLoginReq, new GameMessageCharacterError(CharacterError.AccountInUse));
+                session.Terminate(SessionTerminationReason.NotAuthorizedGlsTicketNotImplementedToProcLoginReq, new GameMessageCharacterError(CharacterError.AccountInvalid));
 
                 return;
             }
@@ -157,12 +170,19 @@ namespace ACE.Server.Network.Handlers
 
         public static void HandleConnectResponse(Session session)
         {
-            DatabaseManager.Shard.GetCharacters(session.AccountId, false, result =>
+            if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open || session.AccessLevel > AccessLevel.Player)
             {
+                DatabaseManager.Shard.GetCharacters(session.AccountId, false, result =>
+                {
                 // If you want to create default characters for accounts that have none, here is where you would do it.
 
                 SendConnectResponse(session, result);
-            });
+                });
+            }
+            else
+            {
+                session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageCharacterError(CharacterError.LogonServerFull));
+            }
         }
 
         private static void SendConnectResponse(Session session, List<Character> characters)

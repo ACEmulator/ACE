@@ -95,7 +95,8 @@ namespace ACE.Server.Network
                 {
                     State = SessionState.TerminationStarted;
                     Network.Update(); // boot messages may need sending
-                    PendingTermination.TerminationStatus = SessionTerminationPhase.SessionWorkCompleted;
+                    if (DateTime.UtcNow.Ticks > PendingTermination.TerminationEndTicks)
+                        PendingTermination.TerminationStatus = SessionTerminationPhase.SessionWorkCompleted;
                 }
                 return;
             }
@@ -238,11 +239,14 @@ namespace ACE.Server.Network
             {
                 var reason = PendingTermination.Reason;
                 string reas = (reason != SessionTerminationReason.None) ? $", Reason: {reason.GetDescription()}" : "";
-                if (PendingTermination.ExtraReason != null)
+                if (!string.IsNullOrWhiteSpace(PendingTermination.ExtraReason))
                 {
                     reas = reas + ", " + PendingTermination.ExtraReason;
                 }
-                log.Info($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+                if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
+                    log.Info($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+                else
+                    log.Debug($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
             }
 
             if (Player != null)

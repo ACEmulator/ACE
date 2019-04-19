@@ -1,9 +1,11 @@
-using ACE.Entity;
 using System;
 using System.Numerics;
+
+using ACE.Entity;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Util;
+
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity
@@ -12,7 +14,8 @@ namespace ACE.Server.Entity
     {
         public static Vector3 ToGlobal(this Position p)
         {
-            var landblock = LScape.get_landblock(p.LandblockId.Raw);
+            // TODO: Is this necessary? It seemed to be loading rogue physics landblocks. Commented out 2019-04 Mag-nus
+            //var landblock = LScape.get_landblock(p.LandblockId.Raw);
 
             // TODO: investigate dungeons that are below actual traversable overworld terrain
             // ex., 010AFFFF
@@ -29,7 +32,8 @@ namespace ACE.Server.Entity
 
         public static Position FromGlobal(this Position p, Vector3 pos)
         {
-            var landblock = LScape.get_landblock(p.LandblockId.Raw);
+            // TODO: Is this necessary? It seemed to be loading rogue physics landblocks. Commented out 2019-04 Mag-nus
+            //var landblock = LScape.get_landblock(p.LandblockId.Raw);
 
             // TODO: investigate dungeons that are below actual traversable overworld terrain
             // ex., 010AFFFF
