@@ -20,7 +20,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // quest info
-        [CommandHandler("quests", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows the quest log")]
+        [CommandHandler("myquests", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows the player's quest log")]
         public static void HandleQuests(Session session, params string[] parameters)
         {
             var text = "";
