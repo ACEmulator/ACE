@@ -132,7 +132,7 @@ namespace ACE.Server
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
 
-            if (!PropertyManager.GetBool("world_starts_up_as_closed", false).Item)
+            if (!PropertyManager.GetBool("world_closed", false).Item)
             {
                 WorldManager.Open(null);
             }

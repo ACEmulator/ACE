@@ -1,5 +1,16 @@
 # ACEmulator Change Log
 
+### 2019-04-19
+[Ripley]
+**Stage 1 Shortcut Bar Fix**
+  - Update to latest master
+  - Start ACE and close world using `world close boot`
+    - optionally, you can use `modifybool world_closed true` and restart world as well to ensure no players are connected and online for this process.    
+  - Run `fix-shortcut-bars` command
+    - if there are bugged players, issue `fix-shortcut-bars execute` command
+  - Once that is finished, world is ready for stage two update. You will probably want to run the above command again just prior to next update to confirm no bugged players exist.
+    - if you set world to closed on startup, you can use `modifybool world_closed false` return world to default startup.
+
 ### 2019-04-18
 [Ripley]
 * Fix bug with picking up items from your own corpse, hooks or storage that had quest stamps.
