@@ -29,6 +29,52 @@ namespace ACE.Server.Entity
         public readonly Dictionary<WorldObject, float> TotalDamage = new Dictionary<WorldObject, float>();
 
         /// <summary>
+        /// Returns the list of players or creatures who inflicted damage
+        /// </summary>
+        public List<WorldObject> Damagers
+        {
+            get
+            {
+                throw new NotImplementedException();
+                //return Log.Select(l => l.DamageSource).Distinct().ToList();
+            } 
+        }
+
+        /// <summary>
+        /// Returns the WorldObject that last damaged this WorldObject
+        /// </summary>
+        public WorldObject LastDamager
+        {
+            get
+            {
+                var lastDamager = Log.LastOrDefault(l => l.Amount < 0);
+                WorldObject lastDamagerObj = null;
+                if (lastDamager != null && lastDamager.DamageSource != null)
+                    lastDamager.DamageSource.TryGetTarget(out lastDamagerObj);
+                //var lastDamagerName = lastDamagerObj != null ? lastDamagerObj.Name : null;
+                //Console.WriteLine($"DamageHistory.LastDamager: {lastDamagerName}");
+                return lastDamagerObj;
+            }
+        }
+
+        /// <summary>
+        /// Returns the WorldObject that did the most damage to this WorldObject
+        /// Used to determine corpse looting rights
+        /// </summary>
+        public WorldObject TopDamager
+        {
+            get
+            {
+                var sorted = TotalDamage.OrderByDescending(wo => wo.Value);
+                var topDamager = sorted.FirstOrDefault().Key;
+                //var topDamagerName = topDamager != null ? topDamager.Name : null;
+                //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
+                return topDamager;
+            }
+        }
+
+
+        /// <summary>
         /// Constructs a new DamageHistory for a Player / Creature
         /// </summary>
         public DamageHistory(Creature creature)
@@ -100,42 +146,6 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Returns the list of players or creatures who inflicted damage
-        /// </summary>
-        public List<WorldObject> Damagers { get => Log.Select(l => l.DamageSource).Distinct().ToList(); }
-
-        /// <summary>
-        /// Returns the WorldObject that last damaged this WorldObject
-        /// </summary>
-        public WorldObject LastDamager
-        {
-            get
-            {
-                var lastDamager = Log.LastOrDefault(l => l.Amount < 0);
-                var lastDamagerObj = lastDamager != null ? lastDamager.DamageSource : null;
-                //var lastDamagerName = lastDamagerObj != null ? lastDamagerObj.Name : null;
-                //Console.WriteLine($"DamageHistory.LastDamager: {lastDamagerName}");
-                return lastDamagerObj;
-            }
-        }
-
-        /// <summary>
-        /// Returns the WorldObject that did the most damage to this WorldObject
-        /// Used to determine corpse looting rights
-        /// </summary>
-        public WorldObject TopDamager
-        {
-            get
-            {
-                var sorted = TotalDamage.OrderByDescending(wo => wo.Value);
-                var topDamager = sorted.FirstOrDefault().Key;
-                //var topDamagerName = topDamager != null ? topDamager.Name : null;
-                //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
-                return topDamager;
-            }
-        }
-
-        /// <summary>
         /// Resets the damage log (eg. on player death)
         /// </summary>
         public void Reset()
@@ -143,6 +153,7 @@ namespace ACE.Server.Entity
             Log.Clear();
             TotalDamage.Clear();
         }
+
 
         /// <summary>
         /// The last time the log was pruned
@@ -197,7 +208,10 @@ namespace ACE.Server.Entity
             foreach (var entry in Log)
             {
                 if (entry.Amount < 0)
-                    AddInternal(entry.DamageSource, (uint)-entry.Amount);
+                {
+                    if (entry.DamageSource.TryGetTarget(out var damageSource))
+                        AddInternal(damageSource, (uint)-entry.Amount);
+                }
                 else
                     OnHealInternal((uint)entry.Amount, entry.CurrentHealth, entry.MaxHealth);
             }
