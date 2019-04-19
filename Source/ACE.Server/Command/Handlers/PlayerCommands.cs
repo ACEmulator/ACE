@@ -18,5 +18,27 @@ namespace ACE.Server.Command.Handlers
         {
             session.Network.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetAllOnline().Count.ToString()}\n", ChatMessageType.Broadcast));
         }
+
+        // quest info
+        [CommandHandler("quests", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows the quest log")]
+        public static void HandleQuests(Session session, params string[] parameters)
+        {
+            var text = "";
+
+            foreach (var playerQuest in session.Player.QuestManager.Quests)
+            {
+                var questName = QuestManager.GetQuestName(playerQuest.QuestName);
+                var quest = DatabaseManager.World.GetCachedQuest(questName);
+                if (quest == null)
+                {
+                    Console.WriteLine($"Couldn't find quest {playerQuest.QuestName}");
+                    continue;
+                }
+                text += $"{playerQuest.QuestName} - {playerQuest.NumTimesCompleted} solves ({playerQuest.LastTimeCompleted})";
+                text += $"\"{quest.Message}\" {quest.MaxSolves} {quest.MinDelta}\n";
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+        }
     }
 }
