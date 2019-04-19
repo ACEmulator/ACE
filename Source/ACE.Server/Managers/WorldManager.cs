@@ -87,7 +87,7 @@ namespace ACE.Server.Managers
             log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
 
-            log.Info($"World started and is currently {WorldStatus.ToString()}{(PropertyManager.GetBool("world_starts_up_as_closed", false).Item ? "" : " and will open automatically when server startup is complete.")}");
+            log.Info($"World started and is currently {WorldStatus.ToString()}{(PropertyManager.GetBool("world_closed", false).Item ? "" : " and will open automatically when server startup is complete.")}");
             if (WorldStatus == WorldStatusState.Closed)
                 log.Info($"To open world to players, use command: world open");
         }
