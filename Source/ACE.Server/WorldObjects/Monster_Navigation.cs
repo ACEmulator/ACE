@@ -265,6 +265,9 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 //Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");
                 Console.WriteLine($"{Name} ({Guid}) - UpdatePosition: {Location.ToLOCString()}");
+
+            if (MonsterState == State.Return && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
+                Sleep();
         }
 
         /// <summary>
