@@ -11,7 +11,7 @@
   - Run `fix-shortcut-bars` command
     - if there are bugged players, issue `fix-shortcut-bars execute` command
   - Once that is finished, world is ready for stage two update. You will probably want to run the above command again just prior to next update to confirm no bugged players exist.
-    - if you set world to closed on startup, you can use `modifybool world_closed false` return world to default startup.    
+    - if you set world to closed on startup, you can use `modifybool world_closed false` return world to default startup.
 
 ### 2019-04-18
 [Ripley]
