@@ -1187,7 +1187,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.MaterialId).HasColumnName("material_Id");
-                entity.Property(e => e.TsysMutationColor).HasColumnName("tsys_Mutation_Color");
+                entity.Property(e => e.ColorCode).HasColumnName("color_Code");
                 entity.Property(e => e.PaletteTemplate).HasColumnName("palette_Template");
                 entity.Property(e => e.Probability).HasColumnName("probability");
             });

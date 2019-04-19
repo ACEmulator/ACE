@@ -2398,7 +2398,7 @@ namespace ACE.Server.Factories
             return maxmana;
         }
 
-        private static int GetMaterialType(uint materialCode, int tier)
+        private static int GetMaterialType(int materialCode, int tier)
         {
             int defaultMaterialType = 0;
 
@@ -2732,12 +2732,10 @@ namespace ACE.Server.Factories
         /// <summary>
         /// This will assign a completely random, valid color to the item in question. It will also randomize the shade and set the appropriate icon.
         ///
-        /// This is probably a temporary function to give some color to loot until further work/investigation can be put in to work out how colors should be assigned.
+        /// This was a temporary function to give some color to loot until further work was put in for "proper" color handling. Leave it here as an option for future potential use (perhaps config option?)
         /// </summary>
-        private static WorldObject RandomizeColor_OLD(WorldObject wo)
+        private static WorldObject RandomizeColorTotallyRandom(WorldObject wo)
         {
-            // TODO - Are there restrictions on colors? e.g. are the Dye colors available in loot? Does the material affect the colors available?
-
             // Make sure the item has a ClothingBase...otherwise we can't properly randomize the colors.
             if (wo.ClothingBase != null)
             {
@@ -2765,6 +2763,11 @@ namespace ACE.Server.Factories
             return wo;
         }
 
+        /// <summary>
+        /// Assign a random color (Int.PaletteTemplate and Float.Shade) to a World Object based on the material assigned to it.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <returns>WorldObject with a random applicable PaletteTemplate and Shade applied, if available</returns>
         private static WorldObject RandomizeColor(WorldObject wo)
         {
             if(wo.MaterialType != null && wo.GetProperty(PropertyInt.TsysMutationData) != null && wo.ClothingBase != null)
@@ -2783,7 +2786,7 @@ namespace ACE.Server.Factories
                 if (colorCode == 0 && (uint)wo.MaterialType > 0)
                 {
                     colors = new List<TreasureMaterialColor>();
-                    for (uint i = 1; i < 19; i++)
+                    for (int i = 1; i < 19; i++)
                     {
                         TreasureMaterialColor tmc = new TreasureMaterialColor
                         {
@@ -2795,7 +2798,7 @@ namespace ACE.Server.Factories
                 }
                 else
                 {
-                    colors = DatabaseManager.World.GetCachedTreasureMaterialColors((uint)wo.MaterialType, colorCode);
+                    colors = DatabaseManager.World.GetCachedTreasureMaterialColors((int)wo.MaterialType, colorCode);
                 }
 
                 // Load the clothingBase associated with the WorldObject
@@ -2805,7 +2808,7 @@ namespace ACE.Server.Factories
                 // Compare the colors list and the clothingBase PaletteTemplates and remove any invalid items
                 var colorsValid = new List<TreasureMaterialColor>();
                 foreach (var e in colors)
-                    if (clothingBase.ClothingSubPalEffects.ContainsKey(e.PaletteTemplate))
+                    if (clothingBase.ClothingSubPalEffects.ContainsKey((uint)e.PaletteTemplate))
                         colorsValid.Add(e);
                 colors = colorsValid;
 
@@ -2815,7 +2818,7 @@ namespace ACE.Server.Factories
 
                 var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
 
-                uint paletteTemplate = 0;
+                int paletteTemplate = 0;
                 float probability = 0.0f;
                 // Loop through the colors until we've reach our target value
                 foreach (var color in colors)
@@ -2829,7 +2832,7 @@ namespace ACE.Server.Factories
                 }
                 if (paletteTemplate > 0)
                 {
-                    var cloSubPal = clothingBase.ClothingSubPalEffects[paletteTemplate];
+                    var cloSubPal = clothingBase.ClothingSubPalEffects[(uint)paletteTemplate];
                     // Make sure this entry has a valid icon, otherwise there's likely something wrong with the ClothingBase value for this WorldObject (e.g. not supposed to be a loot item)
                     if (cloSubPal.Icon > 0)
                     {
@@ -2840,8 +2843,13 @@ namespace ACE.Server.Factories
                         // Throw some shade, at random
                         wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-                        log.Info($"Color success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}. PaletteTemplate {paletteTemplate} applied.");
+                        // Some debu ginfo...
+                        // log.Info($"Color success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}. PaletteTemplate {paletteTemplate} applied.");
                     }
+                }
+                else
+                {
+                    log.Info($"Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
                 }
             }
 

@@ -876,7 +876,7 @@ namespace ACE.Database
             }
         }
 
-        private readonly ConcurrentDictionary<uint, List<TreasureMaterialColor>> cachedTreasureMaterialColor = new ConcurrentDictionary<uint, List<TreasureMaterialColor>>();
+        private readonly ConcurrentDictionary<int, List<TreasureMaterialColor>> cachedTreasureMaterialColor = new ConcurrentDictionary<int, List<TreasureMaterialColor>>();
 
         /// <summary>
         /// Returns the number of TreasureMaterialColor currently cached.
@@ -886,7 +886,7 @@ namespace ACE.Database
             return cachedTreasureMaterialColor.Count(r => r.Value != null);
         }
 
-        public List<TreasureMaterialColor> GetCachedTreasureMaterialColors(uint materialId, uint tsysColorCode)
+        public List<TreasureMaterialColor> GetCachedTreasureMaterialColors(int materialId, int tsysColorCode)
         {
 
             if (cachedTreasureMaterialColor.Count == 0)
@@ -894,7 +894,7 @@ namespace ACE.Database
 
             if (cachedTreasureMaterialColor.TryGetValue(materialId, out var value))
             {
-                var results = value.Where(r => r.TsysMutationColor == tsysColorCode).ToList();
+                var results = value.Where(r => r.ColorCode == tsysColorCode).ToList();
                 return results;
             }
 
@@ -919,9 +919,9 @@ namespace ACE.Database
 
         // The Key is the Material Code (derived from PropertyInt.TsysMaterialData)
         // The Value is a list of all 
-        private readonly ConcurrentDictionary<uint, List<TreasureMaterialBase>> cachedTreasureMaterialBase = new ConcurrentDictionary<uint, List<TreasureMaterialBase>>();
+        private readonly ConcurrentDictionary<int, List<TreasureMaterialBase>> cachedTreasureMaterialBase = new ConcurrentDictionary<int, List<TreasureMaterialBase>>();
 
-        public List<TreasureMaterialBase> GetCachedTreasureMaterialBase(uint materialCode, int tier)
+        public List<TreasureMaterialBase> GetCachedTreasureMaterialBase(int materialCode, int tier)
         {
             if (cachedTreasureMaterialBase.Count == 0)
                 CacheAllTreasuresMaterialBaseInParallel();
@@ -955,7 +955,7 @@ namespace ACE.Database
 
         // The Key is the Material Group (technically a MaterialId, but more generic...e.g. "Material.Metal", "Material.Cloth", etc.)
         // The Value is a list of all 
-        private readonly ConcurrentDictionary<uint, List<TreasureMaterialGroups>> cachedTreasureMaterialGroups = new ConcurrentDictionary<uint, List<TreasureMaterialGroups>>();
+        private readonly ConcurrentDictionary<int, List<TreasureMaterialGroups>> cachedTreasureMaterialGroups = new ConcurrentDictionary<int, List<TreasureMaterialGroups>>();
 
         /// <summary>
         /// Returns the number of TreasureMaterialBase currently cached.
@@ -965,7 +965,7 @@ namespace ACE.Database
             return cachedTreasureMaterialGroups.Count(r => r.Value != null);
         }
 
-        public List<TreasureMaterialGroups> GetCachedTreasureMaterialGroup(uint materialGroup, int tier)
+        public List<TreasureMaterialGroups> GetCachedTreasureMaterialGroup(int materialGroup, int tier)
         {
             if (cachedTreasureMaterialGroups.Count == 0)
                 CacheAllTreasuresMaterialGroupsInParallel();

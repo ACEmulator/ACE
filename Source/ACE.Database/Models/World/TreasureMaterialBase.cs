@@ -7,9 +7,9 @@ namespace ACE.Database.Models.World
     public partial class TreasureMaterialBase
     {
         public uint Id { get; set; }
-        public uint MaterialCode { get; set; }
-        public uint Tier { get; set; }
+        public int MaterialCode { get; set; }
+        public int Tier { get; set; }
         public float Probability { get; set; }
-        public uint MaterialID { get; set; }
+        public int MaterialID { get; set; }
     }
 }

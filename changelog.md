@@ -1,8 +1,9 @@
 # ACEmulator Change Log
 
-### 2019-04-03
+### 2019-04-19
 [OptimShi]
-* Added color randomization to loot generated items.
+* Added Treasure Material tables and Treasure Color tables to apply appropriate colors and materials to items in the LootGenerationFactory
+* Added "lootgen" Developer Command to aid in testing the loot generator. Currently only applies materials and colors to items; no other properties factored in at this time.
 
 ### 2019-04-02
 [Ripley]

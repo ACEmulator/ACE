@@ -100,21 +100,14 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllDeathTreasures();
                 log.Info("Precaching Wielded Treasures...");
                 DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
-                log.Info("Precaching Wielded Treasures Materials...");
+                log.Info("Precaching Treasure Materials...");
                 DatabaseManager.World.CacheAllTreasuresMaterialBaseInParallel();
-                // DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
-                log.Info("Precaching Wielded Treasures Color Materials...");
+                DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
+                log.Info("Precaching Treasure Colors...");
                 DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
             }
             else
                 log.Info("Precaching World Database Disabled...");
-
-            log.Info("Precaching Wielded Treasures Materials...");
-            DatabaseManager.World.CacheAllTreasuresMaterialBaseInParallel();
-            // DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
-            log.Info("Precaching Wielded Treasures Color Materials...");
-            DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
-
 
             log.Info("Initializing PlayerManager...");
             PlayerManager.Initialize();
