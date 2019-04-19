@@ -59,6 +59,8 @@ namespace ACE.Server.Managers
         public static bool WorldActive { get; private set; }
         private static volatile bool pendingWorldStop;
 
+        public static WorldStatusState WorldStatus { get; private set; } = WorldStatusState.Closed;
+
         /// <summary>
         /// Handles ClientMessages in InboundMessageManager
         /// </summary>
@@ -84,6 +86,10 @@ namespace ACE.Server.Managers
             thread.Start();
             log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
+
+            log.Info($"World started and is currently {WorldStatus.ToString()}{(PropertyManager.GetBool("world_starts_up_as_closed", false).Item ? "" : " and will open automatically when server startup is complete.")}");
+            if (WorldStatus == WorldStatusState.Closed)
+                log.Info($"To open world to players, use command: world open");
         }
 
         public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint, IPEndPoint listenerEndpoint)
@@ -193,6 +199,25 @@ namespace ACE.Server.Managers
                 }
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
             }
+        }
+
+        internal static void Open(Player player)
+        {
+            WorldStatus = WorldStatusState.Open;
+            PlayerManager.BroadcastToAuditChannel(player, "World is now open");
+        }
+
+        internal static void Close(Player player, bool bootPlayers = false)
+        {
+            WorldStatus = WorldStatusState.Closed;
+            var msg = "World is now closed";
+            if (bootPlayers)
+                msg += ", and booting all online players.";
+            
+            PlayerManager.BroadcastToAuditChannel(player, msg);
+
+            if (bootPlayers)
+                PlayerManager.BootAllPlayers();
         }
 
         private static void SendLoginRequestReject(IPEndPoint endPoint, CharacterError error)
@@ -729,6 +754,12 @@ namespace ACE.Server.Managers
                 sessionLock.ExitUpgradeableReadLock();
             }
             return sessionCount;
+        }
+
+        public enum WorldStatusState
+        {
+            Closed,
+            Open
         }
     }
 }

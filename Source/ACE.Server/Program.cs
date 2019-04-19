@@ -131,6 +131,11 @@ namespace ACE.Server
             // This should be last
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
+
+            if (!PropertyManager.GetBool("world_starts_up_as_closed", false).Item)
+            {
+                WorldManager.Open(null);
+            }
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
