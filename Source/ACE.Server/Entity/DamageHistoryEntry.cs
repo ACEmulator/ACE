@@ -32,4 +32,30 @@ namespace ACE.Server.Entity
             Time = DateTime.UtcNow;
         }
     }
+
+
+
+
+        public class DamageHistoryEntryNew
+        {
+            public DamageType DamageType;
+            public int Amount;
+            public uint CurrentHealth;
+            public uint MaxHealth;
+            public DateTime Time;
+
+            /// <summary>
+            /// Constructs a new entry for the DamageHistory
+            /// </summary>
+            /// <param name="creature">The player or creature taking damage</param>
+            /// <param name="amount">A negative amount for damage taken, positive for healing</param>
+            public DamageHistoryEntryNew(Creature creature, DamageType damageType, int amount)
+            {
+                DamageType = damageType;
+                Amount = amount;
+                CurrentHealth = creature.Health.Current;
+                MaxHealth = creature.Health.MaxValue;
+                Time = DateTime.UtcNow;
+            }
+        }
 }

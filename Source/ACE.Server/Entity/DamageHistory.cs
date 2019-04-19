@@ -15,18 +15,18 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The player or creature this Damage History is tracking
         /// </summary>
-        public Creature Creature;
+        public readonly Creature Creature;
 
         /// <summary>
         /// A list of damage sources, amounts, and timestamps
         /// </summary>
-        public List<DamageHistoryEntry> Log;
+        public readonly List<DamageHistoryEntry> Log = new List<DamageHistoryEntry>();
 
         /// <summary>
         /// A lookup table of WorldObjects that have damaged this WorldObject,
         /// and the total amount of damage they have inflicted
         /// </summary>
-        public Dictionary<WorldObject, float> TotalDamage;
+        public readonly Dictionary<WorldObject, float> TotalDamage = new Dictionary<WorldObject, float>();
 
         /// <summary>
         /// Constructs a new DamageHistory for a Player / Creature
@@ -34,16 +34,6 @@ namespace ACE.Server.Entity
         public DamageHistory(Creature creature)
         {
             Creature = creature;
-            Init();
-        }
-
-        /// <summary>
-        /// Clears the state of the Log and TotalDamage lists
-        /// </summary>
-        public void Init()
-        {
-            Log = new List<DamageHistoryEntry>();
-            TotalDamage = new Dictionary<WorldObject, float>();
         }
 
         /// <summary>
@@ -150,7 +140,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public void Reset()
         {
-            Init();
+            Log.Clear();
+            TotalDamage.Clear();
         }
 
         /// <summary>
@@ -161,11 +152,6 @@ namespace ACE.Server.Entity
         private static readonly TimeSpan minimumPruneInverval = TimeSpan.FromSeconds(30);
 
         private static readonly TimeSpan maximumTimeToRetain = TimeSpan.FromMinutes(3);
-
-        /// <summary>
-        /// The number of minutes to keep a history for
-        /// </summary>
-        public static int HistoryMinutes = 3;
 
         /// <summary>
         /// Tries pruning the log according to the minimum pruning time
@@ -206,7 +192,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public void BuildTotalDamage()
         {
-            TotalDamage = new Dictionary<WorldObject, float>();
+            TotalDamage.Clear();
 
             foreach (var entry in Log)
             {
