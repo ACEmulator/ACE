@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null || !target.IsAlive)
             {
-                Sleep();
+                FindNextTarget();
                 return 0.0f;
             }
 
