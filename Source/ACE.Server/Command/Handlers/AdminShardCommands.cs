@@ -123,14 +123,16 @@ namespace ACE.Server.Command.Handlers
             ServerManager.BeginShutdown();
         }
 
-        [CommandHandler("world", AccessLevel.Admin, CommandHandlerFlag.None, 0)]
+        [CommandHandler("world", AccessLevel.Admin, CommandHandlerFlag.None, 0,
+            "Open or Close world to player access.",
+            "[open | close] <boot>\nIf closing world, using @world close boot will force players to logoff immediately")]
         public static void HandleHelp(Session session, params string[] parameters)
         {
             var open = false;
             var close = false;
             var bootPlayers = false;
 
-            var message = $"World is currently {WorldManager.WorldStatus.ToString()}\nPlease specify state to change\n@world [open | close] <boot>";
+            var message = $"World is currently {WorldManager.WorldStatus.ToString()}\nPlease specify state to change\n@world [open | close] <boot>\nIf closing world, using @world close boot will force players to logoff immediately";
             if (parameters.Length >= 1)
             {
                 switch (parameters[0].ToLower())
