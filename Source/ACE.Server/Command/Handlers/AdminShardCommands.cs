@@ -53,11 +53,11 @@ namespace ACE.Server.Command.Handlers
                     ServerManager.SetShutdownInterval(Convert.ToUInt32(newShutdownInterval));
 
                     // message the admin
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Shutdown Interval (seconds to shutdown server) has been set to {ServerManager.ShutdownInterval}.", ChatMessageType.WorldBroadcast);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Shutdown Interval (seconds to shutdown server) has been set to {ServerManager.ShutdownInterval}.", ChatMessageType.Broadcast);
                     return;
                 }
             }
-            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.WorldBroadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.Broadcast);
         }
 
         /// <summary>
