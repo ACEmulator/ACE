@@ -446,6 +446,7 @@ namespace ACE.Server.Managers
                 ("house_rent_enabled", true),
                 ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
                 ("pk_server", false),
+                ("quest_info_enabled", false),      // toggles the /myquests player command
                 ("salvage_handle_overages", false),   // in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost
                 ("show_dot_messages", false),        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
                 ("use_wield_requirements", true)    // disable this to bypass wield requirements. mostly for dev debugging

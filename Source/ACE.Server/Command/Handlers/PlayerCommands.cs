@@ -23,6 +23,8 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("myquests", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows the player's quest log")]
         public static void HandleQuests(Session session, params string[] parameters)
         {
+            if (!PropertyManager.GetBool("quest_info_enabled)").Item) return;
+
             var text = "";
 
             foreach (var playerQuest in session.Player.QuestManager.Quests)
