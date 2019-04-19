@@ -9,8 +9,10 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
 using log4net;
@@ -502,9 +504,12 @@ namespace ACE.Server.Managers
 
         public static void BroadcastToAuditChannel(Player issuer, string message)
         {
-            BroadcastToChannel(Channel.Audit, issuer, message, true, true);
+            if (issuer != null)
+                BroadcastToChannel(Channel.Audit, issuer, message, true, true);
+            else
+                BroadcastToChannelFromConsole(Channel.Audit, message);
 
-            log.Info($"[AUDIT] {message}");
+            log.Info($"[AUDIT] {(issuer != null ? $"{issuer.Name} says on the Audit channel: " : "")}{message}");
         }
 
         public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false, bool ignoreActive = false)
@@ -515,6 +520,12 @@ namespace ACE.Server.Managers
             foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
                 if (!player.Squelches.Contains(sender) || ignoreSquelch)
                     player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, sender.Guid == player.Guid ? "" : sender.Name, message));
+        }
+
+        public static void BroadcastToChannelFromConsole(Channel channel, string message)
+        {
+            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "CONSOLE", message));
         }
 
         public static bool GagPlayer(Player issuer, string playerName)
@@ -551,6 +562,12 @@ namespace ACE.Server.Managers
             BroadcastToAuditChannel(issuer, $"{issuer.Name} has ungagged {player.Name}.");
 
             return true;
+        }
+
+        public static void BootAllPlayers()
+        {
+            foreach (var player in GetAllOnline().Where(p => p.Session.AccessLevel < AccessLevel.Advocate))
+                player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, "The world is now closed"), null, "The world is now closed");
         }
     }
 }
