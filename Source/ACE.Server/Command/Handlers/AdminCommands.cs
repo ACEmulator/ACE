@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
@@ -8,6 +9,7 @@ using System.Threading;
 using log4net;
 
 using ACE.Database;
+using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -20,11 +22,12 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using ACE.Database.Models.Auth;
 using ACE.Server.Physics.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.Packets;
-using System.Collections.Generic;
+using ACE.Server.Physics.Common;
+
+using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -2076,12 +2079,14 @@ namespace ACE.Server.Command.Handlers
             // 330 active objects, 1931 total objects(16777216 buckets.)
 
             // todo, expand this
-            var activeLandblocks = LandblockManager.GetActiveLandblocks();
-            var physicsLandblocks = Physics.Common.LScape.Landblocks.Count;
-
+            var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
+            int dormantLandblocks = 0;
             int players = 0, creatures = 0, missiles = 0, other = 0, total = 0;
-            foreach (var landblock in activeLandblocks)
+            foreach (var landblock in loadedLandblocks)
             {
+                if (landblock.IsDormant)
+                    dormantLandblocks++;
+
                 foreach (var worldObject in landblock.GetAllWorldObjectsForDiagnostics())
                 {
                     if (worldObject is Player)
@@ -2096,7 +2101,7 @@ namespace ACE.Server.Command.Handlers
                     total++;
                 }
             }
-            sb.Append($"{activeLandblocks.Count:N0} active landblocks, {physicsLandblocks:N0} physics landblocks - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+            sb.Append($"Landblocks: {(loadedLandblocks.Count - dormantLandblocks):N0} active, {dormantLandblocks:N0} dormant - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
             if (ServerPerformanceMonitor.IsRunning)
@@ -2105,6 +2110,8 @@ namespace ACE.Server.Command.Handlers
                 sb.Append($"Server Performance Monitor - Not running. To start use /serverperformance start{'\n'}");
 
             sb.Append($"Physics Cache Counts - BSPCache: {BSPCache.Count:N0}, GfxObjCache: {GfxObjCache.Count:N0}, PolygonCache: {PolygonCache.Count:N0}, VertexCache: {VertexCache.Count:N0}{'\n'}");
+
+            sb.Append($"Physics Landblocks Count - {LScape.LandblocksCount:N0}{'\n'}");
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");

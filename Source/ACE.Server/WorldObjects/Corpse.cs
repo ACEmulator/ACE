@@ -115,8 +115,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool HasPermission(Player player)
         {
+            if (player == null) return false;
+
             // players can loot their own corpses
-            if (player.Guid.Full == VictimId)
+            if (VictimId != null && player.Guid.Full == VictimId)
                 return true;
 
             // players can loot monsters they killed

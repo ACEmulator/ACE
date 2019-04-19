@@ -42,6 +42,8 @@ namespace ACE.Server.Physics.Common
             return true;
         }
 
+        public static int LandblocksCount => Landblocks.Count;
+
         /// <summary>
         /// Loads the backing store landblock structure<para />
         /// This function is thread safe

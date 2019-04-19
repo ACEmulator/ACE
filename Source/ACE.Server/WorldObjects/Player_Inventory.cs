@@ -685,17 +685,33 @@ namespace ACE.Server.WorldObjects
                         }
 
                         var questSolve = false;
+                        var isFromMyCorpse = false;
+                        var isFromMyHook = false;
+                        var isFromMyStorage = false;
 
                         if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
                         {
-                            if (!QuestManager.CanSolve(item.Quest))
+                            if ( itemRootOwner != null && (itemRootOwner.WeenieType == WeenieType.Corpse || itemRootOwner.WeenieType == WeenieType.Hook || itemRootOwner.WeenieType == WeenieType.Storage))
+                            {
+                                if (itemRootOwner is Corpse && itemRootOwner.VictimId.HasValue && itemRootOwner.VictimId.Value == Guid.Full)
+                                    isFromMyCorpse = true;
+                                if (itemRootOwner is Hook && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
+                                    isFromMyHook = true;
+                                if (itemRootOwner is Storage && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
+                                    isFromMyStorage = true;
+                            }
+
+                            if (!QuestManager.CanSolve(item.Quest) && !isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
                             {
                                 QuestManager.HandleSolveError(item.Quest);
                                 EnqueueBroadcastMotion(returnStance);
                                 return;
                             }
-
-                            questSolve = true;
+                            else
+                            {
+                                if (!isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
+                                    questSolve = true;
+                            }
                         }
 
                         if (DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement))
@@ -1728,6 +1744,17 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                return;
+            }
+
+            // TODO: this seems a bit backwards here...
+            // the item is removed from the source player's inventory,
+            // and it tries to add to target player's inventory (which does the slot/burden checks, and can also independently fail)
+            // these slot/burden checks should be done beforehand, before it tries to remove the item from source player
+
+            if (!target.CanAddToInventory(item))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.None));
                 return;
             }
 
