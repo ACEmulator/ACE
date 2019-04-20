@@ -223,8 +223,8 @@ namespace ACE.Server.Entity
             var keys = TotalDamage.Keys.ToList();
             foreach (var key in keys)
             {
-                if (guids.Contains(key))
-                    TotalDamage[key].Value = 0;
+                if (TotalDamage.TryGetValue(key, out var value))
+                    value.Value = 0;
                 else
                     TotalDamage.Remove(key);
             }
