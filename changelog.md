@@ -2,6 +2,9 @@
 
 ### 2019-04-19
 [Ripley]
+* Fix issue with non-player objects activating other non-player objects.
+* Move some messages to WorldBroadcast filter.
+
 **Stage 1 Shortcut Bar Fix**
   - Update to latest master
   - Start ACE and close world using `world close boot`
