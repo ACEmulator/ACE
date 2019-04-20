@@ -1,6 +1,12 @@
 # ACEmulator Change Log
 
 ### 2019-04-19
+[Theran]
+* Add shirts and pants to loot drop
+* Change weapon damage to be based upon wield difficulty, instead of tier number
+* Lower Essence drop rate to ~17%
+* Convert a number of magic numbers to descriptive, enum based values
+
 [Ripley]
 * Fix issue with non-player objects activating other non-player objects.
 * Move some messages to WorldBroadcast filter.
@@ -15,6 +21,10 @@
     - if you set world to closed on startup, you can use `modifybool world_closed false` return world to default startup.
 
 ### 2019-04-18
+[Theran]
+* Add missing WieldSkillType to loot melee weapons
+* Update caster wield requirements
+
 [Ripley]
 * Fix bug with picking up items from your own corpse, hooks or storage that had quest stamps.
 * Fix bug with naked corpses not appearing correctly.
