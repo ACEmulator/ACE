@@ -18,6 +18,7 @@ namespace ACE.Server.WorldObjects
         /// Return to home if target distance exceeds this range
         /// </summary>
         public static readonly float MaxChaseRange = 192.0f;
+        public static readonly float MaxChaseRangeSq = MaxChaseRange * MaxChaseRange;
 
         /// <summary>
         /// Determines if a monster is within melee range of target

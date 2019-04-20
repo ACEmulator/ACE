@@ -236,7 +236,8 @@ namespace ACE.Server.WorldObjects
                 if (!attackable) continue;
 
                 // ensure within 'detection radius' ?
-                if (Location.SquaredDistanceTo(creature.Location) >= RadiusAwarenessSquared)
+                var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : RadiusAwarenessSquared;
+                if (Location.SquaredDistanceTo(creature.Location) >= chaseDistSq)
                     continue;
 
                 players.Add(creature);
