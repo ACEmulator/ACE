@@ -268,6 +268,9 @@ namespace ACE.Server.WorldObjects
 
             if (MonsterState == State.Return && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
                 Sleep();
+
+            if (MonsterState == State.Awake && IsMoving && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
+                IsMoving = false;
         }
 
         /// <summary>
