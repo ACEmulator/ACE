@@ -6,7 +6,7 @@
 
 **Stage 2 Shortcut Bar Fix**
 * Prior to update to latest master, re-run `fix-shortcut-bars` and confirm 0 bugged players. If bugged players exist, follow Stage 1 guide to fix them then continue with update.
-* Apply patch in Shard updates to fix issue with shortcuts causing a save to fail for the character.
+* Apply patch `2019-04-17-00-Character_Shortcut_Changes.sql` in Shard updates to fix issue with shortcuts causing a save to fail for the character.
 
 ### 2019-04-19
 [Ripley, gmriggs]
