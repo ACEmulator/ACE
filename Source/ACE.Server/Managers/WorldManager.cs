@@ -150,9 +150,9 @@ namespace ACE.Server.Managers
                         log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
                         SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
                     }
-                    else if (ServerManager.ShutdownInitiated)
+                    else if (ServerManager.ShutdownInitiated && (ServerManager.ShutdownTime - DateTime.UtcNow).TotalMinutes < 2)
                     {
-                        log.InfoFormat("Login Request from {0} rejected. Server shutting down.", endPoint);
+                        log.InfoFormat("Login Request from {0} rejected. Server shutting down in less than 2 minutes.", endPoint);
                         SendLoginRequestReject(endPoint, CharacterError.ServerCrash);
                     }
                     else
