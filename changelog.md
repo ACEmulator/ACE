@@ -3,7 +3,7 @@
 ### 2019-04-20
 [OptimShi]
 * Added Treasure Material tables and Treasure Color tables to apply appropriate colors and materials to items in the LootGenerationFactory
-**Note that this update requires _Database/Updates/World/2019-04-20-00-Treasure-Materials.sql_ to be applied.**
+**Note that this update requires _Database/Updates/World/2019-04-20-00-Treasure-Materials.sql_ to be applied, or ACE World Database v0.9.55 or higher**
 * Added "lootgen" Developer Command to aid in testing the loot generator. Currently only applies materials and colors to items; no other properties factored in at this time.
 
 [Ripley]
