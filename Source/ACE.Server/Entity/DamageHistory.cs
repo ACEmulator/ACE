@@ -43,9 +43,11 @@ namespace ACE.Server.Entity
             {
                 var lastDamager = Log.LastOrDefault(l => l.Amount < 0);
                 WorldObject lastDamagerObj = null;
-                throw new NotImplementedException();
-                //if (lastDamager != null && lastDamager.DamageSource != null)
-                    //lastDamager.DamageSource.TryGetTarget(out lastDamagerObj);
+                if (lastDamager != null)
+                {
+                    if (TotalDamage.TryGetValue(lastDamager.DamageSource, out var value))
+                        lastDamagerObj = value.TryGetWorldObject();
+                }
                 //var lastDamagerName = lastDamagerObj != null ? lastDamagerObj.Name : null;
                 //Console.WriteLine($"DamageHistory.LastDamager: {lastDamagerName}");
                 return lastDamagerObj;
@@ -61,11 +63,10 @@ namespace ACE.Server.Entity
             get
             {
                 var sorted = TotalDamage.OrderByDescending(wo => wo.Value);
-                var topDamager = sorted.FirstOrDefault().Key;
+                var topDamager = sorted.FirstOrDefault().Value;
                 //var topDamagerName = topDamager != null ? topDamager.Name : null;
                 //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
-                throw new NotImplementedException();
-                //return topDamager;
+                return topDamager.TryGetWorldObject();
             }
         }
 
@@ -110,6 +111,14 @@ namespace ACE.Server.Entity
 
                 TotalDamage.Add(damager.Guid, woi);
             }
+        }
+
+        /// <summary>
+        /// Internally increments the total damage table
+        /// </summary>
+        private void AddInternal(ObjectGuid damager, uint amount)
+        {
+            TotalDamage[damager].Value += amount;
         }
 
         /// <summary>
@@ -203,16 +212,32 @@ namespace ACE.Server.Entity
         /// </summary>
         public void BuildTotalDamage()
         {
-            TotalDamage.Clear();
+            // This is a little bit hacky.
+            // We don't want to clear our TotalDamage entries because we might lose references to WorldObjects
+            // Instead, we remove entries that are no longer needed, and set all the values to 0.
 
-            throw new NotImplementedException();
-            /*foreach (var entry in Log)
+            var guids = new HashSet<ObjectGuid>();
+            foreach (var entry in Log)
+                guids.Add(entry.DamageSource);
+
+            var keys = TotalDamage.Keys.ToList();
+            foreach (var key in keys)
+            {
+                if (guids.Contains(key))
+                    TotalDamage[key].Value = 0;
+                else
+                    TotalDamage.Remove(key);
+            }
+
+            // TotalDamage is now reset
+
+            foreach (var entry in Log)
             {
                 if (entry.Amount < 0)
                     AddInternal(entry.DamageSource, (uint)-entry.Amount);
                 else
                     OnHealInternal((uint)entry.Amount, entry.CurrentHealth, entry.MaxHealth);
-            }*/
+            }
         }
     }
 }

@@ -6,9 +6,6 @@ using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
-    // TODO: Depending on how often these objects are used, it may make sense to give every WorldObject it's own WorldObjectInfo and just reference that
-    // instead of having to create a new one each time we need one for a given WO
-
     /// <summary>
     /// This is a light weight object that holds a weak reference to a WorldObject.<para />
     /// In addition, it also caches values from that WorldObject incase the reference is released.
