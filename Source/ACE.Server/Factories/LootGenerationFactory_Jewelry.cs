@@ -89,6 +89,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyDataId.Spell);
             }
 
+            wo = RandomizeColor(wo);
             return wo;
         }
 
@@ -110,8 +111,7 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-            int mT = GetMaterialType(1, tier);
-            wo.SetProperty(PropertyInt.MaterialType, mT);
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
