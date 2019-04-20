@@ -92,8 +92,6 @@ namespace ACE.Server.WorldObjects
 
             // set pink bubble state
             IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
-
-            PhysicsObj.SetPlayer();
         }
 
         private void SetEphemeralValues()
