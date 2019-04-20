@@ -125,6 +125,12 @@ namespace ACE.Server.WorldObjects
             get { return (DamageType)_DamageType; }
         }
 
+        public bool IsHot
+        {
+            get => GetProperty(PropertyBool.IsHot) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsHot); else SetProperty(PropertyBool.IsHot, value); }
+        }
+
         private void Activate()
         {
             foreach (var playerGuid in Players.ToList())
@@ -141,6 +147,8 @@ namespace ACE.Server.WorldObjects
 
         private void Activate(Player player)
         {
+            if (!IsHot) return;
+
             var amount = DamageNext;
             var iAmount = (int)Math.Round(amount);
 
