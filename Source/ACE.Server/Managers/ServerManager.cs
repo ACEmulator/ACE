@@ -195,7 +195,7 @@ namespace ACE.Server.Managers
             {
                 foreach (var player in PlayerManager.GetAllOnline())
                     if (sdt.TotalSeconds > 10)
-                        player.Session.WorldBroadcast($"Broadcast from System> ATTENTION - This Asheron's Call Server is shutting down in {time}.{(sdt.TotalMinutes <= 3 ?  "Please log out." : "")}");
+                        player.Session.WorldBroadcast($"Broadcast from System> ATTENTION - This Asheron's Call Server is shutting down in {time}.{(sdt.TotalMinutes <= 3 ?  " Please log out." : "")}");
                     else
                         player.Session.WorldBroadcast($"Broadcast from System> ATTENTION - This Asheron's Call Server is shutting down NOW!!!!");
 
