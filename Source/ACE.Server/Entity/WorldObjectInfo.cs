@@ -6,9 +6,31 @@ using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
+    // TODO: Depending on how often these objects are used, it may make sense to give every WorldObject it's own WorldObjectInfo and just reference that
+    // instead of having to create a new one each time we need one for a given WO
+
     /// <summary>
     /// This is a light weight object that holds a weak reference to a WorldObject.<para />
-    /// In addition, it also caches values from that WorldObject incase the reference is disposed.
+    /// In addition, it also caches values from that WorldObject incase the reference is released.
+    /// This way, we can still access values that we may have needed from the WorldObject after it is gone.
+    /// </summary>
+    public class WorldObjectInfo<T> : WorldObjectInfo
+    {
+        public T Value;
+
+        public WorldObjectInfo(WorldObject worldObject, T value) : base(worldObject)
+        {
+            Value = value;
+        }
+
+        public WorldObjectInfo(WorldObject worldObject) : base(worldObject)
+        {
+        }
+    }
+
+    /// <summary>
+    /// This is a light weight object that holds a weak reference to a WorldObject.<para />
+    /// In addition, it also caches values from that WorldObject incase the reference is released.
     /// This way, we can still access values that we may have needed from the WorldObject after it is gone.
     /// </summary>
     public class WorldObjectInfo
@@ -20,7 +42,6 @@ namespace ACE.Server.Entity
         public readonly string Name;
 
         public readonly uint WeenieClassId;
-        public readonly string WeenieClassName;
         public readonly WeenieType WeenieType;
 
         public WorldObjectInfo(WorldObject worldObject)
@@ -32,8 +53,19 @@ namespace ACE.Server.Entity
             Name = worldObject.Name;
 
             WeenieClassId = worldObject.WeenieClassId;
-            WeenieClassName = worldObject.WeenieClassName;
             WeenieType = worldObject.WeenieType;
+        }
+
+
+        /// <summary>
+        /// If you use this function, you should cache and re-use the result in a local code space.
+        /// You should not hold on to the result, nor should you use this function too aggressively.
+        /// </summary>
+        public WorldObject TryGetWorldObject()
+        {
+            WorldObjectRef.TryGetTarget(out var worldObject);
+
+            return worldObject;
         }
     }
 }

@@ -27,19 +27,12 @@ namespace ACE.Server.Entity
         /// A lookup table of WorldObjects that have damaged this WorldObject,
         /// and the total amount of damage they have inflicted
         /// </summary>
-        public readonly Dictionary<ObjectGuid, float> TotalDamage = new Dictionary<ObjectGuid, float>();
+        public readonly Dictionary<ObjectGuid, WorldObjectInfo<float>> TotalDamage = new Dictionary<ObjectGuid, WorldObjectInfo<float>>();
 
         /// <summary>
         /// Returns the list of players or creatures who inflicted damage
         /// </summary>
-        public List<WorldObject> Damagers
-        {
-            get
-            {
-                throw new NotImplementedException();
-                //return Log.Select(l => l.DamageSource).Distinct().ToList();
-            } 
-        }
+        public List<WorldObjectInfo<float>> Damagers => TotalDamage.Values.ToList();
 
         /// <summary>
         /// Returns the WorldObject that last damaged this WorldObject
@@ -50,8 +43,9 @@ namespace ACE.Server.Entity
             {
                 var lastDamager = Log.LastOrDefault(l => l.Amount < 0);
                 WorldObject lastDamagerObj = null;
-                if (lastDamager != null && lastDamager.DamageSource != null)
-                    lastDamager.DamageSource.TryGetTarget(out lastDamagerObj);
+                throw new NotImplementedException();
+                //if (lastDamager != null && lastDamager.DamageSource != null)
+                    //lastDamager.DamageSource.TryGetTarget(out lastDamagerObj);
                 //var lastDamagerName = lastDamagerObj != null ? lastDamagerObj.Name : null;
                 //Console.WriteLine($"DamageHistory.LastDamager: {lastDamagerName}");
                 return lastDamagerObj;
@@ -70,7 +64,8 @@ namespace ACE.Server.Entity
                 var topDamager = sorted.FirstOrDefault().Key;
                 //var topDamagerName = topDamager != null ? topDamager.Name : null;
                 //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
-                return topDamager;
+                throw new NotImplementedException();
+                //return topDamager;
             }
         }
 
@@ -107,10 +102,14 @@ namespace ACE.Server.Entity
         /// </summary>
         private void AddInternal(WorldObject damager, uint amount)
         {
-            if (TotalDamage.ContainsKey(damager.Guid))
-                TotalDamage[damager.Guid] += amount;
+            if (TotalDamage.TryGetValue(damager.Guid, out var value))
+                value.Value += amount;
             else
-                TotalDamage.Add(damager.Guid, amount);
+            {
+                var woi = new WorldObjectInfo<float>(damager, amount);
+
+                TotalDamage.Add(damager.Guid, woi);
+            }
         }
 
         /// <summary>
@@ -121,7 +120,7 @@ namespace ACE.Server.Entity
         {
             //Console.WriteLine($"DamageHistory.OnHeal({Creature.Name}, {healAmount})");
 
-            Log.Add(new DamageHistoryEntry(Creature, null, DamageType.Undef, (int)healAmount));
+            Log.Add(new DamageHistoryEntry(Creature, ObjectGuid.Invalid, DamageType.Undef, (int)healAmount));
 
             // calculate previous missingHealth
             OnHealInternal(healAmount, Creature.Health.Current, Creature.Health.MaxValue);
@@ -143,7 +142,7 @@ namespace ACE.Server.Entity
             var damagers = TotalDamage.Keys.ToList();
 
             foreach (var damager in damagers)
-                TotalDamage[damager] *= scalar;
+                TotalDamage[damager].Value *= scalar;
         }
 
         /// <summary>
@@ -206,16 +205,14 @@ namespace ACE.Server.Entity
         {
             TotalDamage.Clear();
 
-            foreach (var entry in Log)
+            throw new NotImplementedException();
+            /*foreach (var entry in Log)
             {
                 if (entry.Amount < 0)
-                {
-                    if (entry.DamageSource.TryGetTarget(out var damageSource))
-                        AddInternal(damageSource, (uint)-entry.Amount);
-                }
+                    AddInternal(entry.DamageSource, (uint)-entry.Amount);
                 else
                     OnHealInternal((uint)entry.Amount, entry.CurrentHealth, entry.MaxHealth);
-            }
+            }*/
         }
     }
 }
