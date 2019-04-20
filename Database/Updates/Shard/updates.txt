@@ -1,0 +1,12 @@
+08/26/2018
+---------
+ - Added `is_Plussed` to `character` table
+ - Removed `AccountId` from `CharacterPropertiesFriendList` table
+
+08/19/2018
+---------
+ - Added `alwaysshowwelcome` key to `config_properties_boolean` table
+
+08/10/2018
+---------
+- Added `populated_collection_flags` to `biota` table.

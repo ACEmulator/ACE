@@ -1,4 +1,3 @@
-﻿
 namespace ACE.Entity.Enum
 {
     /// <summary>
@@ -12,7 +11,7 @@ namespace ACE.Entity.Enum
     /// Used with F7E0: Server Message
     ///     0x00, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0D, 0x10, 0x11, 0x17, 0x18
     /// </summary>
-    public enum ChatMessageType
+    public enum ChatMessageType: uint
     {
         /// <summary>
         /// allegiance MOTD
@@ -41,11 +40,11 @@ namespace ACE.Entity.Enum
         Broadcast           = 0x00,
 
         /// <summary>
-        /// Green Text - No idea what this does, It's not labeled but is handled in the client????
+        /// The client sends this for message HandleActionModifyCharacterSquelch
         /// 
-        /// LogTextTypeEnumMapper: ????
+        /// LogTextTypeEnumMapper: AllChannels
         /// </summary>
-        x01                 = 0x01,
+        AllChannels         = 0x01,
 
         /// <summary>
         /// LogTextTypeEnumMapper: Speech
@@ -247,7 +246,6 @@ namespace ACE.Entity.Enum
         /// </summary>
         Craft               = 0x18,
 
-
         /// <summary>
         /// Green Text
         /// LogTextTypeEnumMapper: Salvaging
@@ -258,7 +256,7 @@ namespace ACE.Entity.Enum
         /// Does Nothing - Unknown purpose/filter?
         /// Client doesn't display it. Commenting out because why offer it as an option?
         /// </summary>
-        //x1A                 = 0x1A,
+        // x1A                 = 0x1A,
 
         /// <summary>
         /// Light cyan(sky blue) - Unknown purpose/filter?

@@ -1,24 +1,25 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace ACE.Entity.Enum
 {
     /// <summary>
-    /// This is a combination of the CharacterOption1 and CharacterOption2 enums. For the client, these are split into two groups because they can't be contained in a single uint field.<para /> 
-    /// Only some of these have values, which is intentional.<para />  
-    /// Used with F7B1 0005: GameAction -> Set Single Character Option - Only those that have values will trigger that GameAction.    
+    /// This is a combination of the CharacterOption1 and CharacterOption2 enums. For the client, these are split into two groups because they can't be contained in a single uint field.<para />
+    /// Only some of these have values, which is intentional.<para />
+    /// Used with F7B1 0005: GameAction -> Set Single Character Option - Only those that have values will trigger that GameAction.<para />
+    /// In the client, this is named PlayerOption.
     /// </summary>
     public enum CharacterOption
     {
         [CharacterOptions1(CharacterOptions1.AutoRepeatAttacks)]
-        AutoRepeatAttacks                       =  0,
+        AutoRepeatAttacks                       = 0,
 
         [CharacterOptions1(CharacterOptions1.IgnoreAllegianceRequests)]
-        IgnoreAllegianceRequests                =  1,
+        IgnoreAllegianceRequests                = 1,
 
         [CharacterOptions1(CharacterOptions1.IgnoreFellowshipRequests)]
-        IgnoreFellowshipRequests                =  2,
+        IgnoreFellowshipRequests                = 2,
 
         [CharacterOptions1(CharacterOptions1.ShareFellowshipExpAndLuminance)]
         ShareFellowshipExpAndLuminance          = 15,
@@ -36,7 +37,7 @@ namespace ACE.Entity.Enum
         UseChargeAttack                         = 25,
 
         [CharacterOptions1(CharacterOptions1.ListenToAllegianceChat)]
-        ListenToAllegianceChat                  = 27,
+        ListenToAllegianceChat                  = 27,        
 
         [CharacterOptions2(CharacterOptions2.ListenToGeneralChat)]
         ListenToGeneralChat                     = 35,
@@ -67,6 +68,9 @@ namespace ACE.Entity.Enum
 
         [CharacterOptions2(CharacterOptions2.ShowYourCloak)]
         ShowYourCloak                           = 50,
+
+        [CharacterOptions2(CharacterOptions2.LockUI)]
+        LockUI = 51,
 
         [CharacterOptions2(CharacterOptions2.ListenToPKDeathMessages)]
         ListenToPKDeathMessages                 = 52,
@@ -103,7 +107,7 @@ namespace ACE.Entity.Enum
 
         [CharacterOptions1(CharacterOptions1.IgnoreAllTradeRequests)]
         IgnoreAllTradeRequests,
-        
+
         [CharacterOptions1(CharacterOptions1.SideBySideVitals)]
         SideBySideVitals,
 
@@ -121,9 +125,9 @@ namespace ACE.Entity.Enum
 
         [CharacterOptions1(CharacterOptions1.ShowAllegianceLogons)]
         ShowAllegianceLogons,
-        
-        [CharacterOptions1(CharacterOptions1.UseCraftingChangeOfSuccessDialog)]
-        UseCraftingChangeOfSuccessDialog,
+
+        [CharacterOptions1(CharacterOptions1.UseCraftingChanceOfSuccessDialog)]
+        UseCraftingChanceOfSuccessDialog,
 
         [CharacterOptions2(CharacterOptions2.AlwaysDaylightOutdoors)]
         AlwaysDaylightOutdoors,
@@ -148,50 +152,47 @@ namespace ACE.Entity.Enum
 
         [CharacterOptions2(CharacterOptions2.SalvageMultipleMaterialsAtOnce)]
         SalvageMultipleMaterialsAtOnce,
-        
+
         [CharacterOptions2(CharacterOptions2.AllowOthersToSeeYourNumberOfTitles)]
         AllowOthersToSeeYourNumberOfTitles,
 
         [CharacterOptions2(CharacterOptions2.UseMainPackAsDefaultForPickingUpItems)]
         UseMainPackAsDefaultForPickingUpItems,
-        
+
         [CharacterOptions2(CharacterOptions2.FilterLanguage)]
         FilterLanguage,
 
         [CharacterOptions2(CharacterOptions2.ConfirmUseOfRareGems)]
         ConfirmUseOfRareGems,
-        
+
         [CharacterOptions2(CharacterOptions2.DisableDistanceFog)]
         DisableDistanceFog,
 
         [CharacterOptions2(CharacterOptions2.UseMouseTurning)]
-        UseMouseTurning,
-
-        [CharacterOptions2(CharacterOptions2.LockUI)]
-        LockUI
+        UseMouseTurning
     }
 
     public static class CharacterOptionExtensions
     {
         public static CharacterOptions1Attribute GetCharacterOptions1Attribute(this CharacterOption val)
         {
-            return Enum.EnumHelper.GetAttributeOfType<CharacterOptions1Attribute>(val);
+            return val.GetAttributeOfType<CharacterOptions1Attribute>();
         }
 
         public static CharacterOptions2Attribute GetCharacterOptions2Attribute(this CharacterOption val)
         {
-            return Enum.EnumHelper.GetAttributeOfType<CharacterOptions2Attribute>(val);
+            return val.GetAttributeOfType<CharacterOptions2Attribute>();
         }
 
         public static uint GetCharacterOptions1Flag(this ReadOnlyDictionary<CharacterOption, bool> options)
         {
-            return GetCharacterOptions1Flag(options.ToDictionary(k => k.Key, v => v.Value));            
+            return GetCharacterOptions1Flag(options.ToDictionary(k => k.Key, v => v.Value));
         }
 
         public static uint GetCharacterOptions1Flag(this Dictionary<CharacterOption, bool> options)
-        {   
+        {
             uint flags = 0;
-            foreach(var option in options.Where(o => o.Key.GetCharacterOptions1Attribute() != null))
+            foreach (var option in options.Where(o => o.Key.GetCharacterOptions1Attribute() != null))
             {
                 if (option.Value)
                     flags |= (uint)option.Key.GetCharacterOptions1Attribute().Option;
@@ -202,7 +203,7 @@ namespace ACE.Entity.Enum
 
         public static uint GetCharacterOptions2Flag(this ReadOnlyDictionary<CharacterOption, bool> options)
         {
-            return GetCharacterOptions2Flag(options.ToDictionary(k => k.Key, v => v.Value));            
+            return GetCharacterOptions2Flag(options.ToDictionary(k => k.Key, v => v.Value));
         }
 
         public static uint GetCharacterOptions2Flag(this Dictionary<CharacterOption, bool> options)

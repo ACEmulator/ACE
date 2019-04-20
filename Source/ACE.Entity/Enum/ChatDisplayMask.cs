@@ -1,5 +1,4 @@
-﻿
-namespace ACE.Entity.Enum
+﻿namespace ACE.Entity.Enum
 {
     /// <summary>
     /// The ChatDisplayMask identifies that types of chat that are displayed in each chat window.<para />

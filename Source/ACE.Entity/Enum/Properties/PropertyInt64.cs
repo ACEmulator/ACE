@@ -1,29 +1,42 @@
-﻿
+using System.ComponentModel;
+
 namespace ACE.Entity.Enum.Properties
 {
+    // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
+    // http://ac.yotesfan.com/ace_object/not_used_enums.php
+    // source: @OptimShi
+    // description attributes are used by the weenie editor for a cleaner display name
     public enum PropertyInt64 : ushort
     {
-        Undef,
-        [PersistedProperty(true, typeof(Character), (ulong)0)]
-        TotalExperience,
-        [PersistedProperty(true, typeof(Character), (ulong)0)]
-        AvailableExperience,
-        AugmentationCost,
-        ItemTotalXp,
-        ItemBaseXp,
-        [PersistedProperty(true, typeof(Character), (ulong)0)]
-        AvailableLuminance,
-        [PersistedProperty(true, typeof(Character), null)]
-        MaximumLuminance,
-        InteractionReqs,
-        Count
+        Undef               = 0,
+        [SendOnLogin]
+        TotalExperience     = 1,
+        [SendOnLogin]
+        AvailableExperience = 2,
+        AugmentationCost    = 3,
+        ItemTotalXp         = 4,
+        ItemBaseXp          = 5,
+        [SendOnLogin]
+        AvailableLuminance  = 6,
+        [SendOnLogin]
+        MaximumLuminance    = 7,
+        InteractionReqs     = 8,
+
+        /* custom */
+        [ServerOnly]
+        AllegianceXPCached    = 9000,
+        [ServerOnly]
+        AllegianceXPGenerated = 9001,
+        [ServerOnly]
+        AllegianceXPReceived  = 9002,
     }
 
     public static class PropertyInt64Extensions
     {
-        public static PersistedPropertyAttribute GetPersistedPropertyAttribute(this PropertyInt64 val)
+        public static string GetDescription(this PropertyInt64 prop)
         {
-            return Enum.EnumHelper.GetAttributeOfType<PersistedPropertyAttribute>(val);
+            var description = prop.GetAttributeOfType<DescriptionAttribute>();
+            return description?.Description ?? prop.ToString();
         }
     }
 }

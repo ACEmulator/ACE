@@ -1,71 +1,160 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Threading;
+using Microsoft.EntityFrameworkCore;
 
-using ACE.Entity;
+using log4net;
+
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+
+using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
-
-using MySql.Data.MySqlClient;
+using System.Collections.Generic;
+using System;
 
 namespace ACE.Database
 {
-    public class AuthenticationDatabase : Database, IAuthenticationDatabase
+    public class AuthenticationDatabase
     {
-        private enum AuthenticationPreparedStatement
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public bool Exists(bool retryUntilFound)
         {
-            AccountInsert,
-            AccountMaxIndex,
-            AccountSelect,
-            AccountUpdateAccessLevel
+            var config = Common.ConfigManager.Config.MySql.Authentication;
+
+            for (; ; )
+            {
+                using (var context = new AuthDbContext())
+                {
+                    if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
+                    {
+                        log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
+                        return true;
+                    }
+                }
+
+                log.Error($"Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
+
+                if (retryUntilFound)
+                    Thread.Sleep(5000);
+                else
+                    return false;
+            }
         }
 
-        protected override Type preparedStatementType => typeof(AuthenticationPreparedStatement);
 
-        protected override void InitialisePreparedStatements()
+        public int GetAccountCount()
         {
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountInsert, "INSERT INTO `account` (`id`, `account`, `accesslevel`, `password`, `salt`) VALUES (?, ?, ?, ?, ?);", MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.UInt32, MySqlDbType.VarString, MySqlDbType.VarString);
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex, "SELECT MAX(`id`) FROM `account`;");
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountSelect, "SELECT `id`, `account`, `accesslevel`, `password`, `salt` FROM `account` WHERE `account` = ?;", MySqlDbType.VarString);
-            AddPreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, "UPDATE `account` SET `accesslevel` = ? WHERE `id` = ?;", MySqlDbType.UInt32, MySqlDbType.UInt32);
+            using (var context = new AuthDbContext())
+                return context.Account.Count();
         }
 
-        public uint GetMaxId()
+        /// <exception cref="MySqlException">Account with name already exists.</exception>
+        public Account CreateAccount(string name, string password, AccessLevel accessLevel)
         {
-            var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountMaxIndex);
-            Debug.Assert(result != null);
-            return result.Read<uint>(0, "MAX(`id`)") + 1;
-        }
+            var account = new Account();
 
-        public void CreateAccount(Account account)
-        {
-            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountInsert, account.AccountId, account.Name, account.AccessLevel, account.Digest, account.Salt);
-        }
+            account.AccountName = name;
+            account.SetPassword(password);
+            account.SetSaltForBCrypt();
+            account.AccessLevel = (uint)accessLevel;
 
-        public void UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
-        {
-            ExecutePreparedStatement(AuthenticationPreparedStatement.AccountUpdateAccessLevel, accessLevel, accountId);
-        }
+            using (var context = new AuthDbContext())
+            {
+                context.Account.Add(account);
 
-        public async Task<Account> GetAccountByName(string accountName)
-        {
-            var result = await SelectPreparedStatementAsync(AuthenticationPreparedStatement.AccountSelect, accountName);
+                context.SaveChanges();
+            }
 
-            uint id = result.Read<uint>(0, "id");
-            string name = result.Read<string>(0, "account");
-            uint accessLevel = result.Read<uint>(0, "accesslevel");
-            string password = result.Read<string>(0, "password");
-            string salt = result.Read<string>(0, "salt");
-
-            Account account = new Account(id, name, (AccessLevel)accessLevel, salt, password);
             return account;
         }
 
-        public void GetAccountIdByName(string accountName, out uint id)
+        /// <summary>
+        /// Will return null if the accountId was not found.
+        /// </summary>
+        public Account GetAccountById(uint accountId)
         {
-            var result = SelectPreparedStatement(AuthenticationPreparedStatement.AccountSelect, accountName);
-            Debug.Assert(result != null);
+            using (var context = new AuthDbContext())
+            {
+                return context.Account
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.AccountId == accountId);
+            }
+        }
 
-            id = result.Read<uint>(0, "id");
+        /// <summary>
+        /// Will return null if the accountName was not found.
+        /// </summary>
+        public Account GetAccountByName(string accountName)
+        {
+            using (var context = new AuthDbContext())
+            {
+                return context.Account
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.AccountName == accountName);
+            }
+        }
+
+        /// <summary>
+        /// id will be 0 if the accountName was not found.
+        /// </summary>
+        public uint GetAccountIdByName(string accountName)
+        {
+            using (var context = new AuthDbContext())
+            {
+                var result = context.Account
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.AccountName == accountName);
+
+                return (result != null) ? result.AccountId : 0;
+            }
+        }
+
+        public void UpdateAccount(Account account)
+        {
+            using (var context = new AuthDbContext())
+            {
+                context.Entry(account).State = EntityState.Modified;
+
+                context.SaveChanges();
+            }
+        }
+
+        public bool UpdateAccountAccessLevel(uint accountId, AccessLevel accessLevel)
+        {
+            using (var context = new AuthDbContext())
+            {
+                var account = context.Account
+                    .First(r => r.AccountId == accountId);
+
+                if (account == null)
+                    return false;
+
+                account.AccessLevel = (uint)accessLevel;
+
+                context.SaveChanges();
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Will return null if the accountId was not found.
+        /// </summary>
+        public List<string> GetListofAccountsByAccessLevel(AccessLevel accessLevel)
+        {
+            using (var context = new AuthDbContext())
+            {
+                var results = context.Account
+                    .AsNoTracking()
+                    .Where(r => r.AccessLevel == Convert.ToUInt32(accessLevel)).ToList();
+
+                var result = new List<string>();
+                foreach (var account in results)
+                    result.Add(account.AccountName);
+
+                return result;
+            }
         }
     }
 }

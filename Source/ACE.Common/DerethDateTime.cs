@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ACE.Common
 {
@@ -36,18 +36,21 @@ namespace ACE.Common
         /// <para>A <see cref="DerethDateTime"/> instance set to the Derethian Date, Portal Year and Time when the worlds first opened.</para>
         /// </summary>
         private static DerethDateTime retailDayOne_Derethian            = new DerethDateTime(10, Months.Leafcull, 1, Hours.Darktide);
+
         /// <summary>
         /// <para>A <see cref="DerethDateTime"/> instance set to the Lore Corrected Derethian Date, Portal Year and Time when the worlds first opened.</para>
         /// </summary>
-        private static DerethDateTime retailDayOne_Derethian_Lore       = new DerethDateTime().ConvertRealWorldToLoreDateTime(new DateTime(1999, 11, 2, 00, 00, 00));
+        private static DerethDateTime retailDayOne_Derethian_Lore       = ConvertRealWorldToLoreDateTime(new DateTime(1999, 11, 2, 00, 00, 00));
+
         /// <summary>
         /// <para>A <see cref="DerethDateTime"/> instance set to the Derethian Date, Portal Year and Time when the worlds closed.</para>
         /// </summary>
         private static DerethDateTime retailDayLast_Derethian           = new DerethDateTime(206, Months.Solclaim, 24, Hours.Gloaming);
+
         /// <summary>
         /// <para>A <see cref="DerethDateTime"/> instance set to the Lore Corrected Derethian Date, Portal Year and Time when the worlds closed.</para>
         /// </summary>
-        private static DerethDateTime retailDayLast_Derethian_Lore      = new DerethDateTime().ConvertRealWorldToLoreDateTime(new DateTime(2017, 1, 31, 12, 00, 00));
+        private static DerethDateTime retailDayLast_Derethian_Lore      = ConvertRealWorldToLoreDateTime(new DateTime(2017, 1, 31, 12, 00, 00));
 
         /// <summary>
         /// <para>Date: Morningthaw 1, 10 P.Y. | Time: Morntide-and-Half (0)</para>
@@ -67,8 +70,8 @@ namespace ACE.Common
         {
             Snowreap    = -2,
             Coldeve     = -1,
-            Wintersebb  =  0,
-            Morningthaw =  1,
+            Wintersebb  = 0,
+            Morningthaw = 1,
             Solclaim,
             Seedsow,
             Leafdawning,
@@ -170,7 +173,7 @@ namespace ACE.Common
                     hour    = (int)Hours.Morntide_and_Half;
                 }
             }
-        } //= MinValue;
+        }
 
         /// <summary>
         /// Gets the day of the month represented by this instance.
@@ -195,7 +198,7 @@ namespace ACE.Common
                     day = 1;
                 }
             }
-        } //= 1;
+        }
 
         /// <summary>
         /// Gets the month component of the date represented by this instance.
@@ -222,12 +225,12 @@ namespace ACE.Common
                     month = (int)Months.Snowreap;
                 }
             }
-        } //= (int)Months.Morningthaw;
+        }
 
         /// <summary>
         /// Gets the month name component of the date represented by this instance.
         /// </summary>
-        public Months MonthName { get { return (Months)Month; } } //= (int)Months.Morningthaw;
+        public Months MonthName { get { return (Months)Month; } }
 
         /// <summary>
         /// Gets the year component of the date represented by this instance.
@@ -250,16 +253,17 @@ namespace ACE.Common
                     year = 401;
                 }
             }
-        } //= 10;
+        }
 
         /// <summary>
         /// Gets the year component of the date represented by this instance.
         /// </summary>
-        public int PY { get { return year; } } //= 10;
+        public int PY { get { return year; } }
+
         /// <summary>
         /// Gets the year component of the date represented by this instance.
         /// </summary>
-        public int PortalYear { get { return year; } } //= 10;
+        public int PortalYear { get { return year; } }
 
         /// <summary>
         /// Gets the hour component of the time represented by this instance.
@@ -284,22 +288,22 @@ namespace ACE.Common
                     hour = (int)Hours.Darktide;
                 }
             }
-        } //= (int)Hours.Morntide_and_Half;
+        }
 
         /// <summary>
         /// Gets the hour name component of the time represented by this instance.
         /// </summary>
-        public Hours HourName { get { return (Hours)Hour; } } //= (int)Hours.Morntide_and_Half;
+        public Hours HourName { get { return (Hours)Hour; } }
 
         /// <summary>
         /// Gets the hour component of the time represented by this instance.
         /// </summary>
-        public int Time { get { return hour; } } //= (int)Hours.Morntide_and_Half;
+        public int Time { get { return hour; } }
 
         /// <summary>
         /// Gets the hour name component of the time represented by this instance.
         /// </summary>
-        public Hours TimeName { get { return (Hours)Hour; } } //= (int)Hours.Morntide_and_Half;
+        public Hours TimeName { get { return (Hours)Hour; } }
 
         /// <summary>
         /// Gets the time of day for this instance.
@@ -310,8 +314,7 @@ namespace ACE.Common
             {
                 if (Hour >= (int)Hours.Dawnsong && Hour <= (int)Hours.Warmtide_and_Half)
                     return Daytime.Day;
-                else
-                    return Daytime.Night;
+                return Daytime.Night;
             }
         }
 
@@ -324,8 +327,7 @@ namespace ACE.Common
             {
                 if (TimeOfDay == Daytime.Day)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -338,8 +340,7 @@ namespace ACE.Common
             {
                 if (TimeOfDay == Daytime.Night)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -374,12 +375,11 @@ namespace ACE.Common
             {
                 if (Month >= (int)Months.Snowreap && Month <= (int)Months.Wintersebb)
                     return Seasons.Winter;
-                else if (Month >= (int)Months.Morningthaw && Month <= (int)Months.Seedsow)
+                if (Month >= (int)Months.Morningthaw && Month <= (int)Months.Seedsow)
                     return Seasons.Spring;
-                else if (Month >= (int)Months.Leafdawning && Month <= (int)Months.Thistledown)
+                if (Month >= (int)Months.Leafdawning && Month <= (int)Months.Thistledown)
                     return Seasons.Summer;
-                else
-                    return Seasons.Autumn;
+                return Seasons.Autumn;
             }
         }
 
@@ -390,8 +390,7 @@ namespace ACE.Common
         {
             if (Season == seasonToCheckFor)
                 return true;
-            else
-                return false;
+            return false;
         }
 
         /// <summary>
@@ -403,8 +402,7 @@ namespace ACE.Common
             {
                 if (Season == Seasons.Winter)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -417,8 +415,7 @@ namespace ACE.Common
             {
                 if (Season == Seasons.Spring)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -431,8 +428,7 @@ namespace ACE.Common
             {
                 if (Season == Seasons.Summer)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -445,8 +441,7 @@ namespace ACE.Common
             {
                 if (Season == Seasons.Autumn)
                     return true;
-                else
-                    return false;
+                return false;
             }
         }
 
@@ -511,10 +506,9 @@ namespace ACE.Common
         /// <param name="hour">The hour or time (of day) (1 through 16).<para>Each day begins at Darktide and ends at Gloaming-and-Half.</para></param>
         public DerethDateTime(int year = 10, int month = (int)Months.Morningthaw, int day = 1, int hour = (int)Hours.Darktide)
         {
-
             if (year < 10 | year > 401)
                 throw new ArgumentOutOfRangeException("year", "year is less than 10 or greater than 401");
-            if (month < (int)Months.Snowreap | month > (int)Months.Frostfell )
+            if (month < (int)Months.Snowreap | month > (int)Months.Frostfell)
                 throw new ArgumentOutOfRangeException("month", "month is less than " + Months.Snowreap + " or greater than " + Months.Frostfell);
             if (day < 1 | day > 30)
                 throw new ArgumentOutOfRangeException("day", "day is less than 1 or greater than 30");
@@ -586,7 +580,6 @@ namespace ACE.Common
         /// <param name="time">The hour or time (of day) (<see cref="Hours"/>).<para>Each day begins at Darktide and ends at Gloaming-and-Half.</para></param>
         public DerethDateTime(int year = 10, Months month = Months.Morningthaw, int day = 1, Hours time = Hours.Darktide)
         {
-
             if (year < 10 | year > 401)
                 throw new ArgumentOutOfRangeException("year", "year is less than 10 or greater than 401");
             if ((int)month < (int)Months.Snowreap | (int)month > (int)Months.Frostfell)
@@ -600,7 +593,7 @@ namespace ACE.Common
             Month = (int)month;
             Day = day;
 
-            Hour = (int)hour;
+            Hour = hour;
 
             if (month == Months.Wintersebb && year > 10)
                 Ticks = GetTicksFromDateTime(true);
@@ -638,7 +631,7 @@ namespace ACE.Common
         /// <param name="numOfYearsToAdd">A number of years. The numOfYearsToAdd parameter can be negative or positive.</param>
         public DerethDateTime AddYears(int numOfYearsToAdd)
         {
-            if ( (Year + numOfYearsToAdd) < 10 | (Year + numOfYearsToAdd) > 401)
+            if ((Year + numOfYearsToAdd) < 10 | (Year + numOfYearsToAdd) > 401)
                 throw new ArgumentOutOfRangeException("numOfYearsToAdd", "numOfYearsToAdd results in a portal year less than 10 or greater than 401");
             return new DerethDateTime(year: Year + numOfYearsToAdd, month: Month, day: Day, hour: Hour);
         }
@@ -701,7 +694,7 @@ namespace ACE.Common
             if (newYear < 10 | newYear > 401)
                 throw new ArgumentOutOfRangeException("numOfMonthsToAdd", "numOfMonthsToAdd results in a portal year less than 10 or greater than 401");
 
-            return new DerethDateTime(year: newYear, month:newMonth, day: Day, hour: Hour);
+            return new DerethDateTime(year: newYear, month: newMonth, day: Day, hour: Hour);
         }
 
         /// <summary>
@@ -889,7 +882,7 @@ namespace ACE.Common
         /// </summary>
         public override string ToString()
         {
-            return "Date: " + Enum.GetName(typeof(Months), Month) + " " + Day + ", " + Year + " P.Y.  Time: " + Enum.GetName(typeof(Hours), Hour).Replace("_","-");
+            return "Date: " + Enum.GetName(typeof(Months), Month) + " " + Day + ", " + Year + " P.Y.  Time: " + Enum.GetName(typeof(Hours), Hour).Replace("_", "-");
         }
 
         /// <summary>
@@ -968,7 +961,7 @@ namespace ACE.Common
         /// Returns a new <see cref="DerethDateTime"/> that coverts the value of argument to Derethian Date and Time.
         /// </summary>
         /// <param name="dateToBeConverted">A <see cref="DateTime"/> object.</param>
-        private DerethDateTime ConvertFrom_RealWorld_to_Derethian_PY(DateTime dateToBeConverted)
+        private static DerethDateTime ConvertFrom_RealWorld_to_Derethian_PY(DateTime dateToBeConverted)
         {
             int convertedYear = 10;
             int convertedMonth = dateToBeConverted.Month - 3;
@@ -978,71 +971,77 @@ namespace ACE.Common
             int yearsToAdd = dateToBeConverted.Year - retailDayOne_RealWorld.Year;
 
             convertedYear += yearsToAdd;
-          
+
             if (convertedDay > 30)
                 convertedDay = 30;
 
             if (dateToBeConverted.Hour >= 00 && dateToBeConverted.Hour <= 02)
+            {
                 if (dateToBeConverted.Hour == 00 || (dateToBeConverted.Hour == 01 && dateToBeConverted.Minute <= 29))
                     convertedHour = (int)Hours.Darktide;
                 else
                     convertedHour = (int)Hours.Darktide_and_Half;
-
+            }
             else if (dateToBeConverted.Hour >= 03 && dateToBeConverted.Hour <= 05)
+            {
                 if (dateToBeConverted.Hour == 03 || (dateToBeConverted.Hour == 04 && dateToBeConverted.Minute <= 29))
                     convertedHour = (int)Hours.Foredawn;
                 else
                     convertedHour = (int)Hours.Foredawn_and_Half;
-
+            }
             else if (dateToBeConverted.Hour >= 06 && dateToBeConverted.Hour <= 08)
+            {
                 if (dateToBeConverted.Hour == 06 || (dateToBeConverted.Hour == 07 && dateToBeConverted.Minute <= 29))
                     convertedHour = (int)Hours.Dawnsong;
                 else
                     convertedHour = (int)Hours.Dawnsong_and_Half;
-
+            }
             else if (dateToBeConverted.Hour >= 09 && dateToBeConverted.Hour <= 11)
+            {
                 if (dateToBeConverted.Hour == 09 || (dateToBeConverted.Hour == 10 && dateToBeConverted.Minute <= 29))
                     convertedHour = (int)Hours.Morntide;
                 else
                     convertedHour = (int)Hours.Morntide_and_Half;
-
+            }
             else if (dateToBeConverted.Hour >= 12 && dateToBeConverted.Hour <= (02 + 12))
+            {
                 if (dateToBeConverted.Hour == 12 || (dateToBeConverted.Hour == (01 + 12) && dateToBeConverted.Minute <= 29))
                     convertedHour = (int)Hours.Midsong;
                 else
                     convertedHour = (int)Hours.Midsong_and_Half;
-
+            }
             else if (dateToBeConverted.Hour >= (03 + 12) && dateToBeConverted.Hour <= (05 + 12))
+            {
                 if (dateToBeConverted.Hour == (03 + 12) || (dateToBeConverted.Hour == (04 + 12) && dateToBeConverted.Minute <= 29))
                     convertedHour = (int)Hours.Warmtide;
                 else
                     convertedHour = (int)Hours.Warmtide_and_Half;
-
+            }
             else if (dateToBeConverted.Hour >= (06 + 12) && dateToBeConverted.Hour <= (08 + 12))
+            {
                 if (dateToBeConverted.Hour == (06 + 12) || (dateToBeConverted.Hour == (07 + 12) && dateToBeConverted.Minute <= 29))
                     convertedHour = (int)Hours.Evensong;
                 else
                     convertedHour = (int)Hours.Evensong_and_Half;
-
+            }
             else if (dateToBeConverted.Hour >= (09 + 12) && dateToBeConverted.Hour <= (11 + 12))
+            {
                 if (dateToBeConverted.Hour == (09 + 12) || (dateToBeConverted.Hour == (10 + 12) && dateToBeConverted.Minute <= 29))
                     convertedHour = (int)Hours.Gloaming;
                 else
                     convertedHour = (int)Hours.Gloaming_and_Half;
-
+            }
             else
                 convertedHour = (int)Hours.Darktide;
 
-
             return new DerethDateTime(year: convertedYear, month: convertedMonth, day: convertedDay, hour: convertedHour);
-
         }
 
         /// <summary>
         /// Converts the value of the current <see cref="DerethDateTime"/> object to Derethian PY Time
         /// </summary>
         /// <param name="dateTime">A <see cref="DateTime"/> object.</param>
-        public DerethDateTime ConvertRealWorldToLoreDateTime(DateTime dateTime)
+        public static DerethDateTime ConvertRealWorldToLoreDateTime(DateTime dateTime)
         {
             return ConvertFrom_RealWorld_to_Derethian_PY(dateTime);
         }
@@ -1050,7 +1049,6 @@ namespace ACE.Common
         /// <summary>
         /// Converts the <see cref="DateTime.UtcNow"/> object to a new <see cref="DerethDateTime"/> object set to Lore Time.
         /// </summary>
-        public DerethDateTime UTCNowToLoreTime { get { return ConvertRealWorldToLoreDateTime(DateTime.UtcNow); } }
-
+        public static DerethDateTime UtcNowToLoreTime => ConvertRealWorldToLoreDateTime(DateTime.UtcNow);
     }
 }

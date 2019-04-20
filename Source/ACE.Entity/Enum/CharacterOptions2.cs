@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
 namespace ACE.Entity.Enum
 {
@@ -11,6 +7,7 @@ namespace ACE.Entity.Enum
     /// Used with F7B0 0013: GameEvent -> PlayerDescription - To send some of the options (the others are sent in the CharacterOptions1 flag)
     /// Used with F7B1 01A1: GameAction -> Set Character Options - Sent as a flag with the "true" values ORed
     /// </summary>
+    [Flags]
     public enum CharacterOptions2 : uint
     {
         AlwaysDaylightOutdoors                  = 0x00000001,

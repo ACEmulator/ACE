@@ -1,35 +1,47 @@
-﻿
-using ACE.Common;
+
+using log4net;
 
 namespace ACE.Database
 {
-    public class DatabaseManager
+    public static class DatabaseManager
     {
-        public static IAuthenticationDatabase Authentication { get; set; }
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static ICharacterDatabase Character { get; set; }
+        public static AuthenticationDatabase Authentication { get; } = new AuthenticationDatabase();
 
-        public static IWorldDatabase World { get; set; }
+        public static WorldDatabase World { get; } = new WorldDatabase();
 
-        public static IChartDatabase Charts { get; set; }
+        private static SerializedShardDatabase serializedShardDb;
 
-        public static void Initialise()
+        public static SerializedShardDatabase Shard { get; private set; }
+
+        public static ShardConfigDatabase ShardConfig { get; } = new ShardConfigDatabase();
+
+        public static void Initialize(bool autoRetry = true)
         {
-            var config = ConfigManager.Config.MySql;
+            Authentication.Exists(true);
 
-            var authDb = new AuthenticationDatabase();
-            authDb.Initialise(config.Authentication.Host, config.Authentication.Port, config.Authentication.Username, config.Authentication.Password, config.Authentication.Database);
-            Authentication = authDb;
+            World.Exists(true);
 
-            var charDb = new CharacterDatabase();
-            charDb.Initialise(config.Character.Host, config.Character.Port, config.Character.Username, config.Character.Password, config.Character.Database);
-            Character = charDb;
+            var playerWeenieLoadTest = World.GetCachedWeenie("human");
+            if (playerWeenieLoadTest == null)
+                log.Fatal("Database does not contain the weenie for human (1). Characters cannot be created or logged into until the missing weenie is restored.");
 
-            var worldDb = new WorldDatabase();
-            worldDb.Initialise(config.World.Host, config.World.Port, config.World.Username, config.World.Password, config.World.Database);
-            World = worldDb;
+            var shardDb = new ShardDatabase();
+            serializedShardDb = new SerializedShardDatabase(shardDb);
+            Shard = serializedShardDb;
 
-            Charts = new ChartDatabase();
+            shardDb.Exists(true);
+        }
+
+        public static void Start()
+        {
+            serializedShardDb.Start();
+        }
+
+        public static void Stop()
+        {
+            serializedShardDb.Stop();
         }
     }
 }

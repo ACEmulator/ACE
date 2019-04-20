@@ -1,0 +1,302 @@
+using System;
+using System.Collections.Generic;
+using ACE.DatLoader;
+using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
+using ACE.Database;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.WorldObjects;
+using log4net;
+
+namespace ACE.Server.Entity
+{
+    /// <summary>
+    /// The Spell class for game code
+    /// A wrapper around SpellBase and Database.Spell
+    /// </summary>
+    public partial class Spell: IEquatable<Spell>
+    {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// The spell information from the client DAT
+        /// </summary>
+        public SpellBase _spellBase;
+
+        /// <summary>
+        /// The spell information from the server DB
+        /// </summary>
+        public Database.Models.World.Spell _spell;
+
+        /// <summary>
+        /// Returns TRUE if spell is missing from either the client DAT or the server spell db
+        /// </summary>
+        public bool NotFound { get => _spellBase == null || _spell == null; }
+
+        /// <summary>
+        /// The components required to cast the spell
+        /// </summary>
+        public SpellFormula Formula;
+
+        /// <summary>
+        /// Constructs a Spell from a spell ID
+        /// </summary>
+        /// <param name="loadDB">If FALSE, only loads the DAT info (faster)</param>
+        public Spell(uint spellID, bool loadDB = true)
+        {
+            Init(spellID, loadDB);
+        }
+
+        /// <summary>
+        /// Constructs a Spell from a spell ID
+        /// </summary>
+        public Spell(int spellID, bool loadDB = true)
+        {
+            Init((uint)spellID, loadDB);
+        }
+
+        /// <summary>
+        /// Constructs a Spell from a Spell enum
+        /// </summary>
+        public Spell(SpellId spell, bool loadDB = true)
+        {
+            Init((uint)spell, loadDB);
+        }
+
+        /// <summary>
+        /// Default initializer
+        /// </summary>
+        public void Init(uint spellID, bool loadDB = true)
+        {
+            DatManager.PortalDat.SpellTable.Spells.TryGetValue(spellID, out _spellBase);
+
+            if (loadDB)
+                _spell = DatabaseManager.World.GetCachedSpell(spellID);
+
+            if (_spellBase != null)
+                Formula = new SpellFormula(this, _formula);
+
+            if (loadDB && (_spell == null || _spellBase == null))
+                log.Error($"Spell.Init(spellID = {spellID}, loadDB = {loadDB}) failed! {(_spell == null ? "_spell was null" : "")} {(_spellBase == null ? "_spellBase was null" : "")}");
+        }
+
+        /// <summary>
+        /// Uses the server spell level formula,
+        /// which checks the power level of the spell,
+        /// and compares to the minimum power for each spell level.
+        /// </summary>
+        public uint Level
+        {
+            // this uses the server / power-based formula
+            // for the client / scarab-based formula, use Formula.Level
+            get
+            {
+                for (uint spellLevel = SpellFormula.MaxSpellLevel; spellLevel > 0; spellLevel--)
+                {
+                    var minPower = SpellFormula.MinPower[spellLevel];
+                    if (Power >= minPower)
+                        return spellLevel;
+                }
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Returns TRUE if the spell levels are the same between the client and server formulas
+        /// </summary>
+        public bool LevelMatch { get => Formula.Level == Level; }
+
+        /// <summary>
+        /// Returns TRUE if this is a beneficial spell
+        /// </summary>
+        public bool IsBeneficial => Flags.HasFlag(SpellFlags.Beneficial);
+
+        /// <summary>
+        /// Returns TRUE if this is a hamrful spell
+        /// </summary>
+        public bool IsHarmful { get => !IsBeneficial; }
+
+        public bool IsProjectile => NumProjectiles > 0;
+
+        public bool IsSelfTargeted => Flags.HasFlag(SpellFlags.SelfTargeted);
+
+        public List<uint> TryBurnComponents(Player player)
+        {
+            var consumed = new List<uint>();
+
+            // the base rate for each component is defined per-spell
+            var baseRate = ComponentLoss;
+
+            // get magic skill mod
+            var magicSkill = GetMagicSkill();
+            var playerSkill = player.GetCreatureSkill(magicSkill);
+            var skillMod = Math.Min(1.0f, (float)Power / playerSkill.Current);
+            //Console.WriteLine($"TryBurnComponents.SkillMod: {skillMod}");
+
+            //DebugComponents();
+
+            foreach (var component in Formula.CurrentFormula)
+            {
+                if (!SpellFormula.SpellComponentsTable.SpellComponents.TryGetValue(component, out var spellComponent))
+                {
+                    Console.WriteLine($"Spell.TryBurnComponents(): Couldn't find SpellComponent {component}");
+                    continue;
+                }
+
+                // component burn rate = spell base rate * component destruction modifier * skillMod?
+                var burnRate = baseRate * spellComponent.CDM * skillMod;
+
+                // TODO: curve?
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                if (rng < burnRate)
+                    consumed.Add(component);
+            }
+            return consumed;
+        }
+
+        public void DebugComponents()
+        {
+            var baseComponents = Formula.Components;
+            var currComponents = Formula.CurrentFormula;
+
+            Console.WriteLine($"{Name}:");
+            Console.WriteLine($"Base formula: {string.Join(", ", GetComponentNames(baseComponents))}");
+            Console.WriteLine($"Current formula: {string.Join(", ", GetComponentNames(currComponents))}");
+        }
+
+        public static string GetConsumeString(List<uint> components)
+        {
+            var compNames = GetComponentNames(components);
+            return $"The spell consumed the following components: {string.Join(", ", compNames)}";
+        }
+
+        public static List<string> GetComponentNames(List<uint> components)
+        {
+            var compNames = new List<string>();
+
+            foreach (var component in components)
+            {
+                if (!SpellFormula.SpellComponentsTable.SpellComponents.TryGetValue(component, out var spellComponent))
+                {
+                    Console.WriteLine($"Spell.GetComponentNames(): Couldn't find SpellComponent {component}");
+                    continue;
+                }
+
+                compNames.Add(spellComponent.Name);
+            }
+            return compNames;
+        }
+
+        public static uint SpellComponentDIDs = 0x27000002;
+
+        public static uint GetComponentWCID(uint compID)
+        {
+            var dualDIDs = DatManager.PortalDat.ReadFromDat<DualDidMapper>(SpellComponentDIDs);
+
+            if (!dualDIDs.ClientEnumToID.TryGetValue(compID, out var wcid))
+            {
+                Console.WriteLine($"GetComponentWCID({compID}): couldn't find component ID");
+                return 0;
+            }
+            return wcid;
+        }
+
+        public Skill GetMagicSkill()
+        {
+            switch (School)
+            {
+                case MagicSchool.CreatureEnchantment: return Skill.CreatureEnchantment;
+                case MagicSchool.ItemEnchantment:     return Skill.ItemEnchantment;
+                case MagicSchool.LifeMagic:           return Skill.LifeMagic;
+                case MagicSchool.WarMagic:            return Skill.WarMagic;
+                case MagicSchool.VoidMagic:           return Skill.VoidMagic;
+            }
+            return Skill.None;
+        }
+
+        public bool IsPortalSpell
+        {
+            get
+            {
+                return MetaSpellType == SpellType.PortalLink
+                    || MetaSpellType == SpellType.PortalRecall
+                    || MetaSpellType == SpellType.PortalSending
+                    || MetaSpellType == SpellType.PortalSummon
+                    || MetaSpellType == SpellType.FellowPortalSending;
+            }
+        }
+
+        /// <summary>
+        /// Handles forward compatibility for old item spells which should be auras
+        /// </summary>
+        public bool HasItemCategory
+        {
+            get
+            {
+                return Category == SpellCategory.AttackModRaising
+                    || Category == SpellCategory.DamageRaising
+                    || Category == SpellCategory.DefenseModRaising
+                    || Category == SpellCategory.WeaponTimeRaising
+                    || Category == SpellCategory.AppraisalResistanceLowering
+                    || Category == SpellCategory.SpellDamageRaising;
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of MaxVitals affected by this spell
+        /// </summary>
+        public List<PropertyAttribute2nd> UpdatesMaxVitals
+        {
+            get
+            {
+                var maxVitals = new List<PropertyAttribute2nd>();
+
+                if (_spell == null)
+                    return maxVitals;
+
+                if (StatModType.HasFlag(EnchantmentTypeFlags.SecondAtt) && StatModKey != 0)
+                    maxVitals.Add((PropertyAttribute2nd)StatModKey);
+
+                else if (StatModType.HasFlag(EnchantmentTypeFlags.Attribute))
+                {
+                    switch ((PropertyAttribute)StatModKey)
+                    {
+                        case PropertyAttribute.Endurance:
+                            maxVitals.Add(PropertyAttribute2nd.MaxHealth);
+                            maxVitals.Add(PropertyAttribute2nd.MaxStamina);
+                            break;
+
+                        case PropertyAttribute.Self:
+                            maxVitals.Add(PropertyAttribute2nd.MaxMana);
+                            break;
+                    }
+                }
+
+                //if (_spell.Id == 666) // Vitae
+                //{
+                //    maxVitals.Add(PropertyAttribute2nd.MaxHealth);
+                //    maxVitals.Add(PropertyAttribute2nd.MaxStamina);
+                //    maxVitals.Add(PropertyAttribute2nd.MaxMana);
+                //}
+
+                return maxVitals;
+            }
+        }
+
+        public bool Equals(Spell spell)
+        {
+            return spell != null && Id == spell.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+}
