@@ -169,8 +169,7 @@ namespace ACE.Server.Factories
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(wcid);
             var tsysMutationData = wo.GetProperty(PropertyInt.TsysMutationData);
             if (tsysMutationData != null) { 
-                byte materialCode = (byte)( (tsysMutationData >> 0) & 0xFF );
-                int newMaterialType = GetMaterialType(materialCode, tier);
+                int newMaterialType = GetMaterialType(wo, tier);
                 if (newMaterialType > 0)
                 {
                     wo.MaterialType = (MaterialType)newMaterialType;
@@ -2431,13 +2430,26 @@ namespace ACE.Server.Factories
             return maxmana;
         }
 
-        private static int GetMaterialType(int materialCode, int tier)
+        /// <summary>
+        /// Returns an appropriate material type fo the World Object based on its loot tier.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <param name="tier"></param>
+        /// <returns></returns>
+        private static int GetMaterialType(WorldObject wo, int tier)
         {
             int defaultMaterialType = 0;
 
+            var tsysMutationData = wo.GetProperty(PropertyInt.TsysMutationData);
+            if(tsysMutationData == null)
+            {
+                log.Info($"Missing PropertyInt.TsysMutationData on loot item {wo.WeenieClassId} - {wo.Name}");
+                return defaultMaterialType;
+            }
+
+            int materialCode = ((int)tsysMutationData >> 0) & 0xFF;
+
             // Enforce some bounds
-            if (materialCode < 0) materialCode = 0;
-            if (materialCode > 16) materialCode = 16;
             if (tier < 1) tier = 1;
             // Data only goes to Tier 6 at the moment... Just in case the loot gem goes above this first, we'll cap it here for now.
             if (tier > 6)

@@ -236,7 +236,7 @@ namespace ACE.Server.Factories
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(3, tier));
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));

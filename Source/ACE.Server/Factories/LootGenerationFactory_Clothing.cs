@@ -156,8 +156,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
@@ -250,8 +248,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     // Chainmail
                     if (armorType == 2)
@@ -339,8 +335,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Random Armor Items
                     if (armorType == 3)
@@ -354,7 +348,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 1:
                                 ////beret
@@ -362,7 +355,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 2:
                                 ////Cloth Cap
@@ -370,7 +362,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 3:
                                 ////Cloth gloves
@@ -378,7 +369,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 3;
                                 spellArray = 5;
                                 cantripArray = 5;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 4:
                                 ////Cowl
@@ -386,7 +376,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 5:
                                 ////crown
@@ -394,7 +383,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 1;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 6:
                                 ////Fez
@@ -402,7 +390,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 7:
                                 ////hood
@@ -410,7 +397,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 8:
                                 ////Kasa
@@ -418,7 +404,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 9:
                                 ////Metal cap
@@ -426,7 +411,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 10:
                                 ////Qafiya
@@ -434,7 +418,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 11:
                                 ////turban
@@ -442,7 +425,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 12:
                                 ////loafers
@@ -450,7 +432,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 13:
                                 ////sandals
@@ -458,7 +439,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 14:
                                 ////shoes
@@ -466,7 +446,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 15:
                                 ////slippers
@@ -474,7 +453,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 16:
                                 ////steel toed boots
@@ -482,7 +460,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(6, 1);
                                 break;
                             case 17:
                                 ////buckler
@@ -490,7 +467,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 18:
                                 ////kite shield
@@ -498,7 +474,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 19:
                                 ////large Kite Shield
@@ -506,7 +481,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             default:
                                 ////Round Shield
@@ -514,7 +488,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                         }
                     }
@@ -642,8 +615,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
@@ -743,8 +714,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
@@ -831,8 +800,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
@@ -907,8 +874,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 4;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
@@ -1001,8 +966,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
@@ -1059,8 +1022,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
@@ -1147,8 +1108,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Random Armor Items
                     if (armorType == 7)
@@ -1162,7 +1121,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 1:
                                 ////beret
@@ -1170,7 +1128,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 2:
                                 ////Cloth Cap
@@ -1178,7 +1135,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 3:
                                 ////Cloth gloves
@@ -1186,7 +1142,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 3;
                                 spellArray = 5;
                                 cantripArray = 5;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 4:
                                 ////Cowl
@@ -1194,7 +1149,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 5:
                                 ////crown
@@ -1202,7 +1156,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 1;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 6:
                                 ////Fez
@@ -1210,7 +1163,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 7:
                                 ////hood
@@ -1218,7 +1170,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 8:
                                 ////Kasa
@@ -1226,7 +1177,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 9:
                                 ////Metal cap
@@ -1234,7 +1184,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 10:
                                 ////Qafiya
@@ -1242,7 +1191,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 11:
                                 ////turban
@@ -1250,7 +1198,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 12:
                                 ////loafers
@@ -1258,7 +1205,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 13:
                                 ////sandals
@@ -1266,7 +1212,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 14:
                                 ////shoes
@@ -1274,7 +1219,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 15:
                                 ////slippers
@@ -1282,7 +1226,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 16:
                                 ////steel toed boots
@@ -1290,7 +1233,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(6, 1);
                                 break;
                             case 17:
                                 ////buckler
@@ -1298,7 +1240,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 18:
                                 ////kite shield
@@ -1306,7 +1247,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 19:
                                 ////large Kite Shield
@@ -1314,7 +1254,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 20:
                                 ////Circlet
@@ -1322,7 +1261,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 21:
                                 ////Armet
@@ -1330,7 +1268,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 22:
                                 ////Baigha
@@ -1338,7 +1275,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 23:
                                 ////Heaume
@@ -1346,7 +1282,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 24:
                                 ////Helmet
@@ -1354,7 +1289,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 25:
                                 ////Kabuton
@@ -1362,7 +1296,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 26:
                                 ////sollerets
@@ -1370,7 +1303,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 27:
                                 ////viamontian laced boots
@@ -1378,7 +1310,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 28:
                                 ////RTower Shield
@@ -1386,7 +1317,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             default:
                                 ////Round Shield
@@ -1394,7 +1324,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                         }
                     }
@@ -1522,8 +1451,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
@@ -1622,8 +1549,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
@@ -1710,8 +1635,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
@@ -1786,8 +1709,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 4;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
@@ -1880,8 +1801,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
@@ -1938,8 +1857,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
@@ -2026,8 +1943,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
@@ -2060,8 +1975,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
                     if (armorType == 8)
@@ -2081,7 +1994,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(6, 1);
                     }
                     ////Koujia
                     if (armorType == 9)
@@ -2108,7 +2020,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Tenassa
                     if (armorType == 10)
@@ -2135,7 +2046,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     if (armorType == 11)
                     {
@@ -2147,7 +2057,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 1)
                         {
@@ -2156,7 +2065,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 2)
                         {
@@ -2165,7 +2073,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 3)
                         {
@@ -2174,7 +2081,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 3;
                             spellArray = 5;
                             cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 4)
                         {
@@ -2183,7 +2089,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 5)
                         {
@@ -2192,7 +2097,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 1;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 6)
                         {
@@ -2201,7 +2105,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 7)
                         {
@@ -2210,7 +2113,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 8)
                         {
@@ -2219,7 +2121,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 9)
                         {
@@ -2228,7 +2129,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 10)
                         {
@@ -2237,7 +2137,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 11)
                         {
@@ -2246,7 +2145,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 12)
                         {
@@ -2255,7 +2153,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 13)
                         {
@@ -2264,7 +2161,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 14)
                         {
@@ -2273,7 +2169,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 15)
                         {
@@ -2282,7 +2177,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 16)
                         {
@@ -2291,7 +2185,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
                         }
                         else if (armorPiece == 17)
                         {
@@ -2300,7 +2193,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 18)
                         {
@@ -2309,7 +2201,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 19)
                         {
@@ -2318,7 +2209,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 20)
                         {
@@ -2327,7 +2217,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 21)
                         {
@@ -2336,7 +2225,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 22)
                         {
@@ -2345,7 +2233,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 23)
                         {
@@ -2354,7 +2241,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 24)
                         {
@@ -2363,7 +2249,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 25)
                         //{
@@ -2380,7 +2265,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 26)
                         {
@@ -2389,7 +2273,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 27)
                         {
@@ -2398,7 +2281,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 28)
                         {
@@ -2407,7 +2289,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 29)
                         //{
@@ -2416,7 +2297,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 30)
                         //{
@@ -2426,7 +2306,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 31)
                         //{
@@ -2435,7 +2314,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 32)
                         //{
@@ -2445,7 +2323,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 33)
                         //{
@@ -2455,7 +2332,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         else
                         {
@@ -2464,7 +2340,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                     }
                     break;
@@ -2591,8 +2466,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
@@ -2692,8 +2565,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
@@ -2780,8 +2651,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
@@ -2856,8 +2725,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 4;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
@@ -2950,8 +2817,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
@@ -3008,8 +2873,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
@@ -3096,8 +2959,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
@@ -3130,8 +2991,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
                     if (armorType == 8)
@@ -3151,7 +3010,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(6, 1);
                     }
                     ////Koujia
                     if (armorType == 9)
@@ -3178,7 +3036,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Tenassa
                     if (armorType == 10)
@@ -3205,7 +3062,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     if (armorType == 11)
                     {
@@ -3217,7 +3073,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 1)
                         {
@@ -3226,7 +3081,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 2)
                         {
@@ -3235,7 +3089,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 3)
                         {
@@ -3244,7 +3097,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 3;
                             spellArray = 5;
                             cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 4)
                         {
@@ -3253,7 +3105,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 5)
                         {
@@ -3262,7 +3113,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 1;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 6)
                         {
@@ -3271,7 +3121,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 7)
                         {
@@ -3280,7 +3129,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 8)
                         {
@@ -3289,7 +3137,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 9)
                         {
@@ -3298,7 +3145,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 10)
                         {
@@ -3307,7 +3153,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 11)
                         {
@@ -3316,7 +3161,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 12)
                         {
@@ -3325,7 +3169,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 13)
                         {
@@ -3334,7 +3177,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 14)
                         {
@@ -3343,7 +3185,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 15)
                         {
@@ -3352,7 +3193,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 16)
                         {
@@ -3361,7 +3201,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
                         }
                         else if (armorPiece == 17)
                         {
@@ -3370,7 +3209,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 18)
                         {
@@ -3379,7 +3217,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 19)
                         {
@@ -3388,7 +3225,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 20)
                         {
@@ -3397,7 +3233,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 21)
                         {
@@ -3406,7 +3241,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 22)
                         {
@@ -3415,7 +3249,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 23)
                         {
@@ -3424,7 +3257,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 24)
                         {
@@ -3433,7 +3265,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 25)
                         //{
@@ -3450,7 +3281,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 26)
                         {
@@ -3459,7 +3289,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 27)
                         {
@@ -3468,7 +3297,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 28)
                         {
@@ -3477,7 +3305,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 29)
                         //{
@@ -3486,7 +3313,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 30)
                         //{
@@ -3496,7 +3322,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 31)
                         //{
@@ -3505,7 +3330,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 32)
                         //{
@@ -3515,7 +3339,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 33)
                         //{
@@ -3525,7 +3348,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         else
                         {
@@ -3534,7 +3356,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                     }
                     break;
@@ -3661,8 +3482,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
@@ -3761,8 +3580,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
@@ -3849,8 +3666,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
@@ -3925,8 +3740,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 4;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
@@ -4019,8 +3832,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
@@ -4077,8 +3888,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
@@ -4165,8 +3974,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
@@ -4199,8 +4006,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
                     if (armorType == 8)
@@ -4220,7 +4025,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(6, 1);
                     }
                     ////Koujia
                     if (armorType == 9)
@@ -4247,7 +4051,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Tenassa
                     if (armorType == 10)
@@ -4274,7 +4077,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Lorica
                     if (armorType == 11)
@@ -4319,8 +4121,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Nariyid
                     if (armorType == 12)
@@ -4371,8 +4171,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Chiran
                     if (armorType == 13)
@@ -4411,8 +4209,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Alduressa
                     if (armorType == 14)
@@ -4451,8 +4247,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     if (armorType == 15)
                     {
@@ -4464,7 +4258,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 1)
                         {
@@ -4473,7 +4266,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 2)
                         {
@@ -4482,7 +4274,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 3)
                         {
@@ -4491,7 +4282,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 3;
                             spellArray = 5;
                             cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 4)
                         {
@@ -4500,7 +4290,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 5)
                         {
@@ -4509,7 +4298,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 1;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 6)
                         {
@@ -4518,7 +4306,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 7)
                         {
@@ -4527,7 +4314,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 8)
                         {
@@ -4536,7 +4322,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 9)
                         {
@@ -4545,7 +4330,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 10)
                         {
@@ -4554,7 +4338,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 11)
                         {
@@ -4563,7 +4346,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 12)
                         {
@@ -4572,7 +4354,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 13)
                         {
@@ -4581,7 +4362,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 14)
                         {
@@ -4590,7 +4370,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 15)
                         {
@@ -4599,7 +4378,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 16)
                         {
@@ -4608,7 +4386,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
                         }
                         else if (armorPiece == 17)
                         {
@@ -4617,7 +4394,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 18)
                         {
@@ -4626,7 +4402,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 19)
                         {
@@ -4635,7 +4410,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 20)
                         {
@@ -4644,7 +4418,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 21)
                         {
@@ -4653,7 +4426,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 22)
                         {
@@ -4662,7 +4434,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 23)
                         {
@@ -4671,7 +4442,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 24)
                         {
@@ -4680,7 +4450,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 25)
                         //{
@@ -4697,7 +4466,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 26)
                         {
@@ -4706,7 +4474,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 27)
                         {
@@ -4715,7 +4482,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 28)
                         {
@@ -4724,7 +4490,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 29)
                         //{
@@ -4733,7 +4498,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 30)
                         //{
@@ -4743,7 +4507,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 31)
                         //{
@@ -4752,7 +4515,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 32)
                         //{
@@ -4762,7 +4524,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 33)
                         //{
@@ -4772,7 +4533,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 34)
                         //{
@@ -4781,7 +4541,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 35)
                         //{
@@ -4790,7 +4549,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         else
                         {
@@ -4799,7 +4557,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                     }
                     break;
@@ -4929,8 +4686,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
@@ -5041,7 +4796,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
@@ -5138,7 +4892,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
@@ -5221,7 +4974,6 @@ namespace ACE.Server.Factories
                             spellArray = 4;
                             cantripArray = 4;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
@@ -5325,7 +5077,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
@@ -5387,7 +5138,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
@@ -5484,7 +5234,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
@@ -5517,8 +5266,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
                     if (armorType == 8)
@@ -5538,7 +5285,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(6, 1);
                     }
                     ////Koujia
                     if (armorType == 9)
@@ -5565,7 +5311,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Tenassa
                     if (armorType == 10)
@@ -5592,7 +5337,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Lorica
                     if (armorType == 11)
@@ -5637,8 +5381,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Nariyid
                     if (armorType == 12)
@@ -5689,8 +5431,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Chiran
                     if (armorType == 13)
@@ -5729,8 +5469,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Alduressa
                     if (armorType == 14)
@@ -5769,8 +5507,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     //////Knorr Academy Armor
                     //if (armorType == 15)
@@ -5832,7 +5568,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 4;
                     //        cantripArray = 4;
                     //    }
-                    //    materialType = GetMaterialType(7, 1);
                     //}
                     //////Sedgemail Leather Armor
                     //if (armorType == 16)
@@ -5880,7 +5615,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 2;
                     //        cantripArray = 2;
                     //    }
-                    //    materialType = GetMaterialType(5, 1);
                     //}
                     //////Haebrean
                     //if (armorType == 17)
@@ -5949,7 +5683,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 4;
                     //        cantripArray = 4;
                     //    }
-                    //    materialType = GetMaterialType(7, 1);
                     //}
                     if (armorType == 15)
                     {
@@ -5961,7 +5694,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 1)
                         {
@@ -5970,7 +5702,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 2)
                         {
@@ -5979,7 +5710,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 3)
                         {
@@ -5988,7 +5718,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 3;
                             spellArray = 5;
                             cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 4)
                         {
@@ -5997,7 +5726,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 5)
                         {
@@ -6006,7 +5734,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 1;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 6)
                         {
@@ -6015,7 +5742,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 7)
                         {
@@ -6024,7 +5750,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 8)
                         {
@@ -6033,7 +5758,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 9)
                         {
@@ -6042,7 +5766,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 10)
                         {
@@ -6051,7 +5774,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 11)
                         {
@@ -6060,7 +5782,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 12)
                         {
@@ -6069,7 +5790,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 13)
                         {
@@ -6078,7 +5798,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 14)
                         {
@@ -6087,7 +5806,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 15)
                         {
@@ -6096,7 +5814,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 16)
                         {
@@ -6105,7 +5822,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
                         }
                         else if (armorPiece == 17)
                         {
@@ -6114,7 +5830,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 18)
                         {
@@ -6123,7 +5838,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 19)
                         {
@@ -6132,7 +5846,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 20)
                         {
@@ -6141,7 +5854,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 21)
                         {
@@ -6150,7 +5862,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 22)
                         {
@@ -6159,7 +5870,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 23)
                         {
@@ -6168,7 +5878,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 24)
                         {
@@ -6177,7 +5886,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 25)
                         //{
@@ -6194,7 +5902,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 26)
                         {
@@ -6203,7 +5910,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 27)
                         {
@@ -6212,7 +5918,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 28)
                         {
@@ -6221,7 +5926,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 29)
                         //{
@@ -6230,7 +5934,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 30)
                         //{
@@ -6240,7 +5943,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 31)
                         //{
@@ -6249,7 +5951,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 32)
                         //{
@@ -6259,7 +5960,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 33)
                         //{
@@ -6269,7 +5969,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 30)
                         //{
@@ -6278,7 +5977,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 31)
                         //{
@@ -6287,7 +5985,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 32)
                         //{
@@ -6296,7 +5993,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 37)
                         //{
@@ -6305,7 +6001,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 38)
                         //{
@@ -6314,7 +6009,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 1;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         else
                         {
@@ -6323,7 +6017,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                     }
                     break;
@@ -6450,8 +6143,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
@@ -6550,8 +6241,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
@@ -6638,8 +6327,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
@@ -6714,8 +6401,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 4;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
@@ -6808,8 +6493,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
@@ -6866,8 +6549,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
@@ -6954,8 +6635,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
@@ -6988,8 +6667,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
                     if (armorType == 8)
@@ -7009,7 +6686,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(6, 1);
                     }
                     ////Koujia
                     if (armorType == 9)
@@ -7036,7 +6712,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Tenassa
                     if (armorType == 10)
@@ -7063,7 +6738,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Lorica
                     if (armorType == 11)
@@ -7108,8 +6782,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Nariyid
                     if (armorType == 12)
@@ -7160,8 +6832,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Chiran
                     if (armorType == 13)
@@ -7200,8 +6870,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Alduressa
                     if (armorType == 14)
@@ -7242,7 +6910,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Knorr Academy Armor
                     //if (armorType == 15)
@@ -7304,7 +6971,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 4;
                     //        cantripArray = 4;
                     //    }
-                    //    materialType = GetMaterialType(7, 1);
                     //}
                     //////Sedgemail Leather Armor
                     //if (armorType == 16)
@@ -7352,7 +7018,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 2;
                     //        cantripArray = 2;
                     //    }
-                    //    materialType = GetMaterialType(5, 1);
                     //}
                     //////Haebrean
                     //if (armorType == 17)
@@ -7421,7 +7086,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 4;
                     //        cantripArray = 4;
                     //    }
-                    //    materialType = GetMaterialType(7, 1);
                     //}
                     if (armorType == 15)
                     {
@@ -7433,7 +7097,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 1)
                         {
@@ -7442,7 +7105,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 2)
                         {
@@ -7451,7 +7113,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 3)
                         {
@@ -7460,7 +7121,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 3;
                             spellArray = 5;
                             cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 4)
                         {
@@ -7469,7 +7129,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 5)
                         {
@@ -7478,7 +7137,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 1;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 6)
                         {
@@ -7487,7 +7145,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 7)
                         {
@@ -7496,7 +7153,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 8)
                         {
@@ -7505,7 +7161,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 9)
                         {
@@ -7514,7 +7169,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 10)
                         {
@@ -7523,7 +7177,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 11)
                         {
@@ -7532,7 +7185,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 12)
                         {
@@ -7541,7 +7193,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 13)
                         {
@@ -7550,7 +7201,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 14)
                         {
@@ -7559,7 +7209,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 15)
                         {
@@ -7568,7 +7217,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
                         }
                         else if (armorPiece == 16)
                         {
@@ -7577,7 +7225,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
                         }
                         else if (armorPiece == 17)
                         {
@@ -7586,7 +7233,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 18)
                         {
@@ -7595,7 +7241,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 19)
                         {
@@ -7604,7 +7249,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 20)
                         {
@@ -7613,7 +7257,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 21)
                         {
@@ -7622,7 +7265,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 22)
                         {
@@ -7631,7 +7273,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 23)
                         {
@@ -7640,7 +7281,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 24)
                         {
@@ -7649,7 +7289,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 25)
                         //{
@@ -7666,7 +7305,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 2;
                             spellArray = 1;
                             cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 26)
                         {
@@ -7675,7 +7313,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 27)
                         {
@@ -7684,7 +7321,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 4;
                             spellArray = 9;
                             cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
                         }
                         else if (armorPiece == 28)
                         {
@@ -7693,7 +7329,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                         //else if (armorPiece == 29)
                         //{
@@ -7702,7 +7337,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 30)
                         //{
@@ -7712,7 +7346,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 31)
                         //{
@@ -7721,7 +7354,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 32)
                         //{
@@ -7731,7 +7363,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 33)
                         //{
@@ -7741,7 +7372,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 5;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 30)
                         //{
@@ -7750,7 +7380,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 31)
                         //{
@@ -7759,7 +7388,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 32)
                         //{
@@ -7768,7 +7396,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
                         //}
                         //else if (armorPiece == 37)
                         //{
@@ -7777,7 +7404,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 2;
                         //    spellArray = 1;
                         //    cantripArray = 1;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         //else if (armorPiece == 38)
                         //{
@@ -7786,7 +7412,6 @@ namespace ACE.Server.Factories
                         //    armorPieceType = 1;
                         //    spellArray = 2;
                         //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
                         //}
                         else
                         {
@@ -7795,7 +7420,6 @@ namespace ACE.Server.Factories
                             armorPieceType = 5;
                             spellArray = 10;
                             cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
                         }
                     }
                     break;
@@ -7925,8 +7549,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
@@ -8025,8 +7647,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
@@ -8113,8 +7733,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
@@ -8189,8 +7807,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 4;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
@@ -8283,8 +7899,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
@@ -8341,8 +7955,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
@@ -8429,8 +8041,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 7;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
@@ -8463,8 +8073,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
                     if (armorType == 8)
@@ -8484,7 +8092,6 @@ namespace ACE.Server.Factories
                             spellArray = 7;
                             cantripArray = 7;
                         }
-                        materialType = GetMaterialType(6, 1);
                     }
                     ////Koujia
                     if (armorType == 9)
@@ -8511,7 +8118,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Tenassa
                     if (armorType == 10)
@@ -8538,7 +8144,6 @@ namespace ACE.Server.Factories
                             spellArray = 3;
                             cantripArray = 3;
                         }
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Lorica
                     if (armorType == 11)
@@ -8583,8 +8188,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Nariyid
                     if (armorType == 12)
@@ -8635,8 +8238,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Chiran
                     if (armorType == 13)
@@ -8675,8 +8276,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 9;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     ////Alduressa
                     if (armorType == 14)
@@ -8715,8 +8314,6 @@ namespace ACE.Server.Factories
                                 cantripArray = 3;
                                 break;
                         }
-
-                        materialType = GetMaterialType(7, 1);
                     }
                     //////Knorr Academy Armor
                     //if (armorType == 15)
@@ -8778,7 +8375,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 4;
                     //        cantripArray = 4;
                     //    }
-                    //    materialType = GetMaterialType(7, 1);
                     //}
                     //////Sedgemail Leather Armor
                     //if (armorType == 16)
@@ -8826,7 +8422,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 2;
                     //        cantripArray = 2;
                     //    }
-                    //    materialType = GetMaterialType(5, 1);
                     //}
                     //////Haebrean
                     //if (armorType == 17)
@@ -8895,7 +8490,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 4;
                     //        cantripArray = 4;
                     //    }
-                    //    materialType = GetMaterialType(7, 1);
                     //}
                     //////Olthoi Alduressa
                     //if (armorType == 18)
@@ -8941,7 +8535,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 1;
                     //        cantripArray = 1;
                     //    }
-                    //    materialType = GetMaterialType(7, 1);
                     //}
                     //////Olthoi Amuli
                     //if (armorType == 19)
@@ -8987,7 +8580,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 1;
                     //        cantripArray = 1;
                     //    }
-                    //    materialType = GetMaterialType(6, 1);
                     //}
                     //////Olthoi Celdon
                     //if (armorType == 20)
@@ -9049,7 +8641,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 1;
                     //        cantripArray = 1;
                     //    }
-                    //    materialType = GetMaterialType(7, 1);
                     //}
                     //////Olthoi Celdon
                     //if (armorType == 21)
@@ -9095,7 +8686,6 @@ namespace ACE.Server.Factories
                     //        spellArray = 1;
                     //        cantripArray = 1;
                     //    }
-                    //    materialType = GetMaterialType(7, 1);
                     //}
                     if (armorType == 15)
                     {
@@ -9108,7 +8698,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 1:
                                 ////beret
@@ -9116,7 +8705,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 2:
                                 ////Cloth Cap
@@ -9124,7 +8712,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 3:
                                 ////Cloth gloves
@@ -9132,7 +8719,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 3;
                                 spellArray = 5;
                                 cantripArray = 5;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 4:
                                 ////Cowl
@@ -9140,7 +8726,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 5:
                                 ////crown
@@ -9148,7 +8733,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 1;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 6:
                                 ////Fez
@@ -9156,7 +8740,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 7:
                                 ////hood
@@ -9164,7 +8747,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 8:
                                 ////Kasa
@@ -9172,7 +8754,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 9:
                                 ////Metal cap
@@ -9180,7 +8761,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 10:
                                 ////Qafiya
@@ -9188,7 +8768,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 11:
                                 ////turban
@@ -9196,7 +8775,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 12:
                                 ////loafers
@@ -9204,7 +8782,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 13:
                                 ////sandals
@@ -9212,7 +8789,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 14:
                                 ////shoes
@@ -9220,7 +8796,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 15:
                                 ////slippers
@@ -9228,7 +8803,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(8, 1);
                                 break;
                             case 16:
                                 ////steel toed boots
@@ -9236,7 +8810,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(6, 1);
                                 break;
                             case 17:
                                 ////buckler
@@ -9244,7 +8817,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 18:
                                 ////kite shield
@@ -9252,7 +8824,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 19:
                                 ////large Kite Shield
@@ -9260,7 +8831,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 20:
                                 ////Circlet
@@ -9268,7 +8838,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 21:
                                 ////Armet
@@ -9276,7 +8845,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 22:
                                 ////Baigha
@@ -9284,7 +8852,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 23:
                                 ////Heaume
@@ -9292,7 +8859,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 24:
                                 ////Helmet
@@ -9300,7 +8866,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 25:
                                 ////Kabuton
@@ -9308,7 +8873,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 2;
                                 spellArray = 1;
                                 cantripArray = 1;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 26:
                                 ////sollerets
@@ -9316,7 +8880,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 27:
                                 ////viamontian laced boots
@@ -9324,7 +8887,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 4;
                                 spellArray = 9;
                                 cantripArray = 9;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             case 28:
                                 ////RTower Shield
@@ -9332,7 +8894,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                             default:
                                 ////Round Shield
@@ -9340,7 +8901,6 @@ namespace ACE.Server.Factories
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
-                                materialType = GetMaterialType(7, 1);
                                 break;
                         }
                     }
@@ -9369,11 +8929,14 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
+
+
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
             wo.SetProperty(PropertyInt.AppraisalItemSkill, 7);
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
 
+            materialType = GetMaterialType(wo, tier);
             wo.SetProperty(PropertyInt.MaterialType, materialType);
 
             int gemCount = ThreadSafeRandom.Next(1, 6);
