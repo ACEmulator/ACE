@@ -24,6 +24,7 @@ namespace ACE.Server.Factories
             double missileD = GetMissileDMod(tier);
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
+            int materialType = GetMaterialType(2, tier);
             int workmanship = GetWorkmanship(tier);
             int wieldDiff = GetWield(tier, 3);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
@@ -335,7 +336,7 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.SetProperty(PropertyInt.Damage, damage);
@@ -450,7 +451,6 @@ namespace ACE.Server.Factories
             }
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
 
-            wo = RandomizeColor(wo);
             return wo;
         }
     }

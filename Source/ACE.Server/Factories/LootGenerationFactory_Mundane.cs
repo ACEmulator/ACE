@@ -41,7 +41,6 @@ namespace ACE.Server.Factories
                 return null;
 
             wo = WorldObjectFactory.CreateNewWorldObject(id);
-            wo = RandomizeColor(wo);
             return wo;
         }
     }
