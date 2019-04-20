@@ -544,7 +544,7 @@ namespace ACE.Server.Factories
                 case 420:
                     index = 7;
                     break;
-                case 450:
+                case 430:
                     index = 8;
                     break;
                 default:
@@ -1554,8 +1554,8 @@ namespace ACE.Server.Factories
             Staff,
             UA,
             Jitte,
-            TwoHanded = 1,
-            Cleaving = 1,
+            TwoHanded = 0,
+            Cleaving = 0,
             Spears,
         }
 
