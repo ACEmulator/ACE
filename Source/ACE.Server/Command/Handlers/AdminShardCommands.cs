@@ -115,10 +115,10 @@ namespace ACE.Server.Command.Handlers
             foreach (var player in PlayerManager.GetAllOnline())
             {
                 // send server shutdown message and time remaining till shutdown
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(shutdownText + "\n" + timeRemaining, ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(shutdownText + "\n" + timeRemaining, ChatMessageType.WorldBroadcast));
 
                 if (adminShutdownText.Length > 0)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.Broadcast));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.WorldBroadcast));
             }
             ServerManager.BeginShutdown();
         }

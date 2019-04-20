@@ -273,7 +273,7 @@ namespace ACE.Server.Network
         /// </summary>
         public void WorldBroadcast(string broadcastMessage)
         {
-            var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.Broadcast);
+            var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.WorldBroadcast);
             Network.EnqueueSend(worldBroadcastMessage);
         }
     }
