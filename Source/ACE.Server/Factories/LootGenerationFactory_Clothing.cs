@@ -345,7 +345,7 @@ namespace ACE.Server.Factories
                     ////Random Armor Items
                     if (armorType == 3)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 25);
+                        int armorPiece = ThreadSafeRandom.Next(0, 30);
                         switch (armorPiece)
                         {
                             case 0:
@@ -543,6 +543,46 @@ namespace ACE.Server.Factories
                             case 24:
                                 ////Viamontian Pants
                                 armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 25:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 26:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 27:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 28:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 29:
+                                ////Breeches
+                                armorWeenie = 2602;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
@@ -1193,7 +1233,7 @@ namespace ACE.Server.Factories
                     ////Random Armor Items
                     if (armorType == 7)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 34);
+                        int armorPiece = ThreadSafeRandom.Next(0, 39);
                         switch (armorPiece)
                         {
                             case 0:
@@ -1463,6 +1503,46 @@ namespace ACE.Server.Factories
                             case 33:
                                 ////Viamontian Pants
                                 armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
@@ -2219,7 +2299,7 @@ namespace ACE.Server.Factories
                     }
                     if (armorType == 11)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 34);
+                        int armorPiece = ThreadSafeRandom.Next(0, 39);
                         switch (armorPiece)
                         {
                             case 0:
@@ -2489,6 +2569,46 @@ namespace ACE.Server.Factories
                             case 33:
                                 ////Viamontian Pants
                                 armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
@@ -3246,7 +3366,7 @@ namespace ACE.Server.Factories
                     }
                     if (armorType == 11)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 34);
+                        int armorPiece = ThreadSafeRandom.Next(0, 39);
                         switch (armorPiece)
                         {
                             case 0:
@@ -3516,6 +3636,46 @@ namespace ACE.Server.Factories
                             case 33:
                                 ////Viamontian Pants
                                 armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
@@ -4450,7 +4610,7 @@ namespace ACE.Server.Factories
                     }
                     if (armorType == 15)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 34);
+                        int armorPiece = ThreadSafeRandom.Next(0, 39);
                         switch (armorPiece)
                         {
                             case 0:
@@ -4720,6 +4880,46 @@ namespace ACE.Server.Factories
                             case 33:
                                 ////Viamontian Pants
                                 armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
@@ -5833,7 +6033,7 @@ namespace ACE.Server.Factories
                     //}
                     if (armorType == 15)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 34);
+                        int armorPiece = ThreadSafeRandom.Next(0, 39);
                         switch (armorPiece)
                         {
                             case 0:
@@ -6103,6 +6303,46 @@ namespace ACE.Server.Factories
                             case 33:
                                 ////Viamontian Pants
                                 armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
@@ -7216,7 +7456,7 @@ namespace ACE.Server.Factories
                     //}
                     if (armorType == 15)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 34);
+                        int armorPiece = ThreadSafeRandom.Next(0, 39);
                         switch (armorPiece)
                         {
                             case 0:
@@ -7486,6 +7726,46 @@ namespace ACE.Server.Factories
                             case 33:
                                 ////Viamontian Pants
                                 armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
@@ -8802,7 +9082,7 @@ namespace ACE.Server.Factories
                     //}
                     if (armorType == 15)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 34);
+                        int armorPiece = ThreadSafeRandom.Next(0, 39);
                         switch (armorPiece)
                         {
                             case 0:
@@ -9072,6 +9352,46 @@ namespace ACE.Server.Factories
                             case 33:
                                 ////Viamontian Pants
                                 armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
