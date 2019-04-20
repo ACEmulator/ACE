@@ -94,8 +94,6 @@ namespace ACE.Server.Entity
             Log.Add(entry);
 
             AddInternal(damager, amount);
-
-            TryPrune();
         }
 
         /// <summary>
