@@ -66,7 +66,7 @@ namespace ACE.Server.Entity
                 var topDamager = sorted.FirstOrDefault().Value;
                 //var topDamagerName = topDamager != null ? topDamager.Name : null;
                 //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
-                return topDamager.TryGetWorldObject();
+                return topDamager?.TryGetWorldObject();
             }
         }
 
