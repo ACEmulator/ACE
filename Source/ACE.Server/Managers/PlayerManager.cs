@@ -518,8 +518,10 @@ namespace ACE.Server.Managers
             if ((sender.ChannelsActive.HasValue && sender.ChannelsActive.Value.HasFlag(channel)) || ignoreActive)
             {
                 foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                {
                     if (!player.Squelches.Contains(sender) || ignoreSquelch)
                         player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, sender.Guid == player.Guid ? "" : sender.Name, message));
+                }
             }
         }
 
