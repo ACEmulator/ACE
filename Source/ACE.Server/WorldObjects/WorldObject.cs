@@ -128,9 +128,10 @@ namespace ACE.Server.WorldObjects
             else
             {
                 PhysicsObj = new PhysicsObj();
-                PhysicsObj.set_object_guid(Guid);
                 PhysicsObj.makeAnimObject(SetupTableId, true);
             }
+
+            PhysicsObj.set_object_guid(Guid);
 
             PhysicsObj.set_weenie_obj(new WeenieObject(this));
 
