@@ -3,6 +3,7 @@
 ### 2019-04-20
 [Ripley]
 * Changed shortcut code to fix some collision issues.
+* Updated shutdown sequence to support notifications to players at intervals and adjusted shutdown lockout to apply when server is less than 3 minutes from shutdown.
 
 **Stage 2 Shortcut Bar Fix**
 * Prior to update to latest master, re-run `fix-shortcut-bars` and confirm 0 bugged players. If bugged players exist, follow Stage 1 guide to fix them then continue with update.
