@@ -223,6 +223,9 @@ namespace ACE.Server.WorldObjects
                 ephemeralPropertyInt64s.TryAdd((PropertyInt64)x, null);
             foreach (var x in EphemeralProperties.PropertiesString.ToList())
                 ephemeralPropertyStrings.TryAdd((PropertyString)x, null);
+
+            foreach (var x in Biota.BiotaPropertiesSpellBook)
+                BiotaPropertySpells[x.Spell] = x;
         }
 
         private void SetEphemeralValues()
@@ -259,6 +262,8 @@ namespace ACE.Server.WorldObjects
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
             //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            if (WeenieType == WeenieType.Corpse)
+                HeartbeatInterval = 5;
         }
 
         /// <summary>
@@ -333,6 +338,35 @@ namespace ACE.Server.WorldObjects
 
             // check if target object was reached
             var isVisible = transition.CollisionInfo.CollideObject.FirstOrDefault(c => c.ID == wo.PhysicsObj.ID) != null;
+            return isVisible;
+        }
+
+        public bool IsDirectVisible(WorldObject wo, Position pos)
+        {
+            if (PhysicsObj == null)
+                return false;
+
+            var startPos = new Physics.Common.Position(PhysicsObj.Position);
+            var targetPos = new Physics.Common.Position(pos);
+
+            // set to eye level
+            startPos.Frame.Origin.Z += PhysicsObj.GetHeight() - SightObj.GetHeight();
+            targetPos.Frame.Origin.Z += SightObj.GetHeight();
+
+            var dir = Vector3.Normalize(targetPos.Frame.Origin - startPos.Frame.Origin);
+            var radsum = PhysicsObj.GetPhysicsRadius() + SightObj.GetPhysicsRadius();
+            startPos.Frame.Origin += dir * radsum;
+
+            SightObj.CurCell = PhysicsObj.CurCell;
+            SightObj.ProjectileTarget = PhysicsObj;
+
+            // perform line of sight test
+            var transition = SightObj.transition(targetPos, startPos, false);
+
+            if (transition == null) return false;
+
+            // check if target object was reached
+            var isVisible = transition.CollisionInfo.CollideObject.FirstOrDefault(c => c.ID == PhysicsObj.ID) != null;
             return isVisible;
         }
 
@@ -602,7 +636,23 @@ namespace ACE.Server.WorldObjects
         public void EnqueueBroadcastPhysicsState()
         {
             if (PhysicsObj != null)
-                EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+            {
+                if (!Visibility)
+                    EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+                else
+                {
+                    if (this is Player player && player.CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+                    {
+                        var ps = PhysicsObj.State;
+                        ps &= ~PhysicsState.Cloaked;
+                        ps &= ~PhysicsState.NoDraw;
+                        player.Session.Network.EnqueueSend(new GameMessageSetState(this, PhysicsObj.State));
+                        EnqueueBroadcast(false, new GameMessageSetState(this, ps));
+                    }
+                    else
+                        EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+                }
+            }
         }
 
         public void EnqueueBroadcastUpdateObject()
@@ -643,36 +693,35 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(msg, maxRange.Value);
         }
 
-        public void ApplyVisualEffects(PlayScript effect)
+        public void ApplyVisualEffects(PlayScript effect, float speed = 1)
         {
             if (CurrentLandblock != null)
-                PlayParticleEffect(effect, Guid);
+                PlayParticleEffect(effect, Guid, speed);
         }
 
         // plays particle effect like spell casting or bleed etc..
-        public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
+        public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId, float speed = 1)
         {
-            EnqueueBroadcast(new GameMessageScript(targetId, effectId));
+            EnqueueBroadcast(new GameMessageScript(targetId, effectId, speed));
         }
 
-        //public List<AceObjectInventory> CreateList => AceObject.CreateList;
-        //public List<AceObjectInventory> CreateList { get; set; } = new List<AceObjectInventory>();
-
-        /*public List<AceObjectInventory> WieldList
+        public void ApplySoundEffects(Sound sound, float volume = 1)
         {
-            get { return CreateList.Where(x => x.DestinationType == (uint)DestinationType.Wield).ToList(); }
+            if (CurrentLandblock != null)
+                PlaySoundEffect(sound, Guid, volume);
         }
 
-        public List<AceObjectInventory> ShopList
+        public void PlaySoundEffect(Sound soundId, ObjectGuid targetId, float volume = 1)
         {
-            get { return CreateList.Where(x => x.DestinationType == (uint)DestinationType.Shop).ToList(); }
-        }*/
+            EnqueueBroadcast(new GameMessageSound(targetId, soundId, volume));
+        }
 
-        public void EnterWorld()
+        public virtual void EnterWorld()
         {
             if (Location != null)
             {
                 LandblockManager.AddObject(this);
+
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
             }
@@ -871,7 +920,7 @@ namespace ACE.Server.WorldObjects
 
             if (this is CombatPet combatPet)
             {
-                if (combatPet.P_PetOwner.CurrentActiveCombatPet == this)
+                if (combatPet.P_PetOwner != null && combatPet.P_PetOwner.CurrentActiveCombatPet == this)
                     combatPet.P_PetOwner.CurrentActiveCombatPet = null;
             }
 

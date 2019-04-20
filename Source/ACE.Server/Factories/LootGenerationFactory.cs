@@ -19,6 +19,11 @@ namespace ACE.Server.Factories
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        static LootGenerationFactory()
+        {
+            InitRares();
+        }
+
         public static List<WorldObject> CreateRandomObjectsOfType(WeenieType type, int count)
         {
             var weenies = DatabaseManager.World.GetRandomWeeniesOfType((int)type, count);
@@ -1543,11 +1548,11 @@ namespace ACE.Server.Factories
                             //Axe
                             if (chance < 10)
                                 variance = .90;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .93;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .95;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .97;
                             else
                                 variance = .99;
@@ -1556,11 +1561,11 @@ namespace ACE.Server.Factories
                             //Dagger
                             if (chance < 10)
                                 variance = .47;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .50;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .53;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .57;
                             else
                                 variance = .62;
@@ -1569,11 +1574,11 @@ namespace ACE.Server.Factories
                             //Dagger MultiStrike
                             if (chance < 10)
                                 variance = .40;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .43;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .48;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .53;
                             else
                                 variance = .58;
@@ -1582,11 +1587,11 @@ namespace ACE.Server.Factories
                             //Mace
                             if (chance < 10)
                                 variance = .30;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .33;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .37;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .42;
                             else
                                 variance = .46;
@@ -1595,11 +1600,11 @@ namespace ACE.Server.Factories
                             //Spear
                             if (chance < 10)
                                 variance = .59;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .63;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .68;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .72;
                             else
                                 variance = .75;
@@ -1608,11 +1613,11 @@ namespace ACE.Server.Factories
                             //Staff
                             if (chance < 10)
                                 variance = .38;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .42;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .45;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .50;
                             else
                                 variance = .52;
@@ -1621,11 +1626,11 @@ namespace ACE.Server.Factories
                             //Sword
                             if (chance < 10)
                                 variance = .47;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .50;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .53;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .57;
                             else
                                 variance = .62;
@@ -1634,11 +1639,11 @@ namespace ACE.Server.Factories
                             //Sword Multistrike
                             if (chance < 10)
                                 variance = .40;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .43;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .48;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .53;
                             else
                                 variance = .60;
@@ -1647,11 +1652,11 @@ namespace ACE.Server.Factories
                             //UA
                             if (chance < 10)
                                 variance = .44;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .48;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .53;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .58;
                             else
                                 variance = .60;
@@ -1666,11 +1671,11 @@ namespace ACE.Server.Factories
                             //Axe
                             if (chance < 10)
                                 variance = .80;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .83;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .85;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .90;
                             else
                                 variance = .95;
@@ -1679,11 +1684,11 @@ namespace ACE.Server.Factories
                             //Dagger
                             if (chance < 10)
                                 variance = .42;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .47;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .52;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .56;
                             else
                                 variance = .60;
@@ -1692,11 +1697,11 @@ namespace ACE.Server.Factories
                             //Dagger MultiStrike
                             if (chance < 10)
                                 variance = .24;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .28;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .35;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .40;
                             else
                                 variance = .45;
@@ -1705,11 +1710,11 @@ namespace ACE.Server.Factories
                             //Mace
                             if (chance < 10)
                                 variance = .23;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .28;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .32;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .37;
                             else
                                 variance = .43;
@@ -1718,11 +1723,11 @@ namespace ACE.Server.Factories
                             //Jitte
                             if (chance < 10)
                                 variance = .325;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .35;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .40;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .45;
                             else
                                 variance = .50;
@@ -1731,11 +1736,11 @@ namespace ACE.Server.Factories
                             //Spear
                             if (chance < 10)
                                 variance = .65;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .68;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .71;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .75;
                             else
                                 variance = .80;
@@ -1744,11 +1749,11 @@ namespace ACE.Server.Factories
                             //Staff
                             if (chance < 10)
                                 variance = .325;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .35;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .40;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .45;
                             else
                                 variance = .50;
@@ -1757,11 +1762,11 @@ namespace ACE.Server.Factories
                             //Sword
                             if (chance < 10)
                                 variance = .42;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .47;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .52;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .56;
                             else
                                 variance = .60;
@@ -1770,11 +1775,11 @@ namespace ACE.Server.Factories
                             //Sword Multistrike
                             if (chance < 10)
                                 variance = .24;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .28;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .35;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .40;
                             else
                                 variance = .45;
@@ -1783,11 +1788,11 @@ namespace ACE.Server.Factories
                             //UA
                             if (chance < 10)
                                 variance = .44;
-                            if (chance < 30)
+                            else if (chance < 30)
                                 variance = .48;
-                            if (chance < 70)
+                            else if (chance < 70)
                                 variance = .53;
-                            if (chance < 90)
+                            else if (chance < 90)
                                 variance = .58;
                             else
                                 variance = .60;
@@ -1798,13 +1803,13 @@ namespace ACE.Server.Factories
                     /// Two Handed only have one set of variances
                     if (chance < 5)
                         variance = .30;
-                    if (chance < 20)
+                    else if (chance < 20)
                         variance = .35;
-                    if (chance < 50)
+                    else if (chance < 50)
                         variance = .40;
-                    if (chance < 80)
+                    else if (chance < 80)
                         variance = .45;
-                    if (chance < 95)
+                    else if (chance < 95)
                         variance = .50;
                     else
                         variance = .55;
@@ -2190,12 +2195,40 @@ namespace ACE.Server.Factories
             return m2;
         }
 
-        private static int GetValue(int tier, int work)
+        private static int GetValue(int tier, int work, double gemMod, double matMod)
         {
             ///This is just a placeholder. This doesnt return a final value used retail, just a quick value for now.
             ///Will use, tier, material type, amount of gems set into item, type of gems, spells on item
-            int value = ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, work) * ThreadSafeRandom.Next(1, 250) + ThreadSafeRandom.Next(1, 50);
+            //int value = ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, work) * ThreadSafeRandom.Next(1, 250) + ThreadSafeRandom.Next(1, 50);
+            int value = 0;
+            switch (tier)
+            {
+                case 1:
+                    value = (int)(ThreadSafeRandom.Next(50, 1000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 2:
+                    value = (int)(ThreadSafeRandom.Next(200, 1500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 3:
+                    value = (int)(ThreadSafeRandom.Next(200, 2000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 4:
+                    value = (int)(ThreadSafeRandom.Next(400, 2500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 5:
+                    value = (int)(ThreadSafeRandom.Next(400, 3000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 6:
+                    value = (int)(ThreadSafeRandom.Next(400, 3500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 7:
+                    value = (int)(ThreadSafeRandom.Next(600, 4000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 8:
+                    value = (int)(ThreadSafeRandom.Next(600, 4500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
 
+            }
             return value;
         }
 

@@ -485,6 +485,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Source)
@@ -518,6 +522,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Source)
@@ -548,6 +556,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
@@ -580,6 +592,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Source)
@@ -610,6 +626,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
@@ -644,6 +664,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Source)
@@ -676,6 +700,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
@@ -710,6 +738,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
@@ -740,6 +772,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
@@ -772,6 +808,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
@@ -802,6 +842,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
@@ -835,6 +879,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")

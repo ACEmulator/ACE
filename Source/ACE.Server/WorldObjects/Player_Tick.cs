@@ -37,6 +37,12 @@ namespace ACE.Server.WorldObjects
                 // In retail, this is sent every 7 seconds. If you adjust ageUpdateInterval from 7, you'll need to re-add logic to send this every 7s (if you want to match retail)
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age ?? 1));
             }
+
+            if (FellowVitalUpdate && Fellowship != null)
+            {
+                Fellowship.OnVitalUpdate(this);
+                FellowVitalUpdate = false;
+            }
         }
 
         /// <summary>
@@ -54,6 +60,8 @@ namespace ACE.Server.WorldObjects
 
             PK_DeathTick();
 
+            GagsTick();
+
             // Check if we're due for our periodic SavePlayer
             if (LastRequestedDatabaseSave == DateTime.MinValue)
                 LastRequestedDatabaseSave = DateTime.UtcNow;
@@ -62,6 +70,33 @@ namespace ACE.Server.WorldObjects
                 SavePlayerToDatabase();
 
             base.Heartbeat(currentUnixTime);
+        }
+
+        private bool gagNoticeSent = false;
+
+        public void GagsTick()
+        {
+            if (IsGagged)
+            {
+                if (!gagNoticeSent)
+                {
+                    SendGagNotice();
+                    gagNoticeSent = true;
+                }
+
+                // check for gag expiration, if expired, remove gag.
+                GagDuration -= CachedHeartbeatInterval;
+
+                if (GagDuration <= 0)
+                {
+                    IsGagged = false;
+                    GagTimestamp = 0;
+                    GagDuration = 0;
+                    SaveBiotaToDatabase();
+                    SendUngagNotice();
+                    gagNoticeSent = false;
+                }
+            }
         }
 
         /// <summary>

@@ -6,10 +6,6 @@ namespace ACE.Server.Network.Enum
         AuthConnectResponse,
         AuthConnected,
         WorldConnected,
-        NetworkTimeout,
-        /// <summary>
-        /// a trusted packet had PacketHeaderFlags.NetErrorDisconnect header flag
-        /// </summary>
-        ClientSentNetErrorDisconnect
+        TerminationStarted,
     }
 }

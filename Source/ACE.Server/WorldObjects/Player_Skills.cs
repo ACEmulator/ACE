@@ -91,8 +91,14 @@ namespace ACE.Server.WorldObjects
                 {
                     if (resetSkill)
                     {
+                        // this path for char creation?
                         cs.Ranks = 0;
                         cs.ExperienceSpent = 0;
+                    }
+                    else
+                    {
+                        // this path for temple spec?
+                        cs.Ranks = (ushort)CalcSkillRank(SkillAdvancementClass.Specialized, cs.ExperienceSpent);
                     }
 
                     cs.InitLevel += 5;
@@ -364,7 +370,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the XP curve table based on trained or specialized skill
         /// </summary>
-        public List<uint> GetXPTable(SkillAdvancementClass status)
+        public static List<uint> GetXPTable(SkillAdvancementClass status)
         {
             var xpTable = DatManager.PortalDat.XpTable;
             if (status == SkillAdvancementClass.Trained)
@@ -405,7 +411,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="sac">Trained or specialized skill</param>
         /// <param name="xpAmount">The amount of xp used to make the purchase</param>
-        public int GetRankForXP(SkillAdvancementClass sac, uint xpAmount)
+        public static int CalcSkillRank(SkillAdvancementClass sac, uint xpAmount)
         {
             var rankXpTable = GetXPTable(sac);
             for (var i = rankXpTable.Count - 1; i >= 0; i--)

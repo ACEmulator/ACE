@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 using ACE.DatLoader;
 using ACE.Entity;
@@ -164,6 +165,9 @@ namespace ACE.Server.WorldObjects
             var mana = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, Mana.Current);
 
             Session.Network.EnqueueSend(health, stamina, mana);
+
+            if (Fellowship != null)
+                FellowVitalUpdate = true;
         }
 
         /// <summary>
@@ -175,12 +179,17 @@ namespace ACE.Server.WorldObjects
             var change = base.UpdateVital(vital, newVal);
 
             if (change != 0)
+            {
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+
+                if (Fellowship != null)
+                    FellowVitalUpdate = true;
+            }
 
             // check for exhaustion
             if (vital.Vital == PropertyAttribute2nd.Stamina || vital.Vital == PropertyAttribute2nd.MaxStamina)
             {
-                if (change != 0 && vital.Current == 0)
+                if (change != 0 && vital.Current <= 0)
                     OnExhausted();
 
             }
@@ -200,12 +209,42 @@ namespace ACE.Server.WorldObjects
             if (target == null)
                 return;
 
-            if (target.Health.Current == 0)
+            if (target.Health.Current <= 0)
                 return;
 
             var healthPercent = (float)target.Health.Current / target.Health.MaxValue;
 
             Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, selectedTarget.Full, healthPercent));
+        }
+
+        /// <summary>
+        /// Returns the maximum rank that can be purchased with an xp amount
+        /// </summary>
+        /// <param name="xpAmount">The amount of xp used to make the purchase</param>
+        public static int CalcVitalRank(uint xpAmount)
+        {
+            var rankXpTable = DatManager.PortalDat.XpTable.VitalXpList;
+            for (var i = rankXpTable.Count - 1; i >= 0; i--)
+            {
+                var rankAmount = rankXpTable[i];
+                if (xpAmount >= rankAmount)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Called every ~5 secs to regenerate player vitals
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override bool VitalHeartBeat()
+        {
+            var vitalUpdate = base.VitalHeartBeat();
+
+            if (vitalUpdate && Fellowship != null)
+                FellowVitalUpdate = true;
+
+            return vitalUpdate;
         }
     }
 }

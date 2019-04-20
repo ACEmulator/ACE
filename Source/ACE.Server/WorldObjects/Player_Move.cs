@@ -247,7 +247,7 @@ namespace ACE.Server.WorldObjects
 
         public void TakeDamage_Falling(float amount)
         {
-            if (Invincible ?? false) return;
+            if (Invincible) return;
 
             // handle lifestone protection?
             if (UnderLifestoneProtection)
@@ -268,7 +268,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
 
-            if (Health.Current == 0)
+            if (Health.Current <= 0)
             {
                 OnDeath(this, DamageType.Bludgeon, false);
                 Die();

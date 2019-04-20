@@ -42,12 +42,22 @@ namespace ACE.Server.WorldObjects
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;
 
+            if (!ChannelsAllowed.HasValue)
+                ChannelsAllowed = Channel.Audit | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.Sentinel | Channel.AllBroadcast;
+            else
+                ChannelsAllowed |= Channel.Audit | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.Sentinel | Channel.AllBroadcast;
+        }
+
+        public override void InitPhysicsObj()
+        {
+            base.InitPhysicsObj();
+
             switch (CloakStatus)
             {
                 case ACE.Entity.Enum.CloakStatus.Off:
                     goto default;
                 case ACE.Entity.Enum.CloakStatus.On:
-                    Translucency = 0.5f;
+                    //Translucency = 0.5f;
                     Cloaked = true;
                     Ethereal = true;
                     NoDraw = true;
@@ -56,6 +66,7 @@ namespace ACE.Server.WorldObjects
                 case ACE.Entity.Enum.CloakStatus.Player:
                     goto default;
                 case ACE.Entity.Enum.CloakStatus.Creature:
+                    Attackable = true;
                     goto default;
                 default:
                     Translucency = null;

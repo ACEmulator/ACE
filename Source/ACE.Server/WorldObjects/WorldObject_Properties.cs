@@ -476,6 +476,13 @@ namespace ACE.Server.WorldObjects
         #endregion
 
 
+        /// <summary>
+        /// This dictionary should ONLY be referenced by calls to BiotaExtensions functions: SpellIsKnown, GetOrAddKnownSpell, TryRemoveKnownSpell<para />
+        /// It should NOT be accessed directly to get spell.
+        /// </summary>
+        public readonly Dictionary<int, BiotaPropertiesSpellBook> BiotaPropertySpells = new Dictionary<int, BiotaPropertiesSpellBook>();
+
+
         private readonly Dictionary<PositionType, Position> ephemeralPositions = new Dictionary<PositionType, Position>();
 
         /// <summary>
@@ -2236,7 +2243,7 @@ namespace ACE.Server.WorldObjects
             get
             {
                 var pk_server = PropertyManager.GetBool("pk_server").Item;
-                if (pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
+                if (this is Player && pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
                     return PlayerKillerStatus.PK;
                 else
                     return _playerKillerStatus;
@@ -2256,10 +2263,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IgnorePortalRestrictions); else SetProperty(PropertyBool.IgnorePortalRestrictions, value); }
         }
 
-        public bool? Invincible
+        public bool Invincible
         {
-            get => GetProperty(PropertyBool.Invincible);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Invincible); else SetProperty(PropertyBool.Invincible, value.Value); }
+            get => GetProperty(PropertyBool.Invincible) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Invincible); else SetProperty(PropertyBool.Invincible, value); }
         }
 
         public int? XpOverride

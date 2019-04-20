@@ -33,6 +33,10 @@ namespace ACE.Server.WorldObjects
         {
             if (SpellDID != null)
                 Spell = new Server.Entity.Spell(SpellDID.Value, false);
+
+            if (Spell != null)
+                LongDesc = $"Inscribed spell: {Spell.Name}\n{Spell.Description}";
+            Use = "Use this item to attempt to learn its spell.";
         }
 
         /// <summary>
@@ -52,9 +56,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsBusy) return;
+            if (player.IsBusy) return;
 
-            IsBusy = true;
+            player.IsBusy = true;
 
             var actionChain = new ActionChain();
 
@@ -106,7 +110,7 @@ namespace ACE.Server.WorldObjects
 
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
-            actionChain.AddAction(this, () => IsBusy = false);
+            actionChain.AddAction(player, () => player.IsBusy = false);
 
             actionChain.EnqueueChain();
         }

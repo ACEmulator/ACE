@@ -164,10 +164,12 @@ namespace ACE.Server.Network.Structure
         /// </summary>
         public byte[] Serialize()
         {
-            var stream = new MemoryStream();
-            var writer = new BinaryWriter(stream);
-            writer.Write(this, false);
-            return stream.ToArray();
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream))
+            {
+                writer.Write(this, false);
+                return stream.ToArray();
+            }
         }
     }
 

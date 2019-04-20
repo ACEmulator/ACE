@@ -644,6 +644,39 @@ namespace ACE.Database
         }
 
         /// <summary>
+        /// Returns a cloned recipe for further modification
+        /// </summary>
+        public Recipe GetRecipe(uint recipeId)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var result = context.Recipe
+                    .AsNoTracking()
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsBool)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsDID)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsFloat)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsIID)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsInt)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsString)
+                    .Include(r => r.RecipeRequirementsBool)
+                    .Include(r => r.RecipeRequirementsDID)
+                    .Include(r => r.RecipeRequirementsFloat)
+                    .Include(r => r.RecipeRequirementsIID)
+                    .Include(r => r.RecipeRequirementsInt)
+                    .Include(r => r.RecipeRequirementsString)
+                    .FirstOrDefault(r => r.Id == recipeId);
+
+                return result;
+            }
+        }
+
+        /// <summary>
         /// This can take 1-2 minutes to complete.
         /// </summary>
         public void CacheAllCookbooksInParallel()

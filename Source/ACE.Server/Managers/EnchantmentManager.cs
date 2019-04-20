@@ -530,7 +530,7 @@ namespace ACE.Server.Managers
             // dispel_school - the magic school to dispel, 0 if all
             // align - type of spells to dispel: positive, negative, or all
             // number - the maximum # of spells to dispel
-            // number_variance - number * number_variance = the minum # of spells to dispel
+            // number_variance - number * number_variance = the minimum # of spells to dispel
             var minPower = spell.MinPower;
             var maxPower = spell.MaxPower;
             var powerVariance = spell.PowerVariance;
@@ -544,7 +544,7 @@ namespace ACE.Server.Managers
             var filtered = enchantments.Where(e => e.PowerLevel <= maxPower);
 
             // no dispel for enchantments from item sources (and vitae)
-            filtered = enchantments.Where(e => e.Duration != -1);
+            filtered = filtered.Where(e => e.Duration != -1);
 
             // for dispelSchool and align,
             // we probably could do some calculations to figure out these values directly from the enchantments
@@ -552,7 +552,12 @@ namespace ACE.Server.Managers
             // since dispels are not a time-critical function, this should still be fine
             var spells = new List<SpellEnchantment>();
             foreach (var filter in filtered)
-                spells.Add(new SpellEnchantment(filter));
+            {
+                var spellEnchantment = new SpellEnchantment(filter);
+
+                if (!spellEnchantment.Spell.NotFound)
+                    spells.Add(spellEnchantment);
+            }
 
             var filterSpells = spells;
             if (dispelSchool != MagicSchool.None)
@@ -1296,7 +1301,7 @@ namespace ACE.Server.Managers
                 var damager = kvp.Key;
                 var amount = kvp.Value;
 
-                if (creature.Invincible ?? false)
+                if (creature.Invincible)
                     amount = 0;
 
                 var damageSourcePlayer = damager as Player;

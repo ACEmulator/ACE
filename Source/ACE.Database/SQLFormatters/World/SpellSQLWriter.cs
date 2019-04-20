@@ -101,7 +101,7 @@ namespace ACE.Database.SQLFormatters.World
             {
                 spellLineHdr += ", `wcid`";
 
-                if (WeenieNames != null && input.Wcid.Value > 0)
+                if (WeenieNames != null && input.Wcid.Value > 0 && WeenieNames.ContainsKey(input.Wcid.Value))
                     spellLine += $", {input.Wcid} /* {WeenieNames[input.Wcid.Value]} */";
                 else
                     spellLine += $", {input.Wcid}";
@@ -430,7 +430,7 @@ namespace ACE.Database.SQLFormatters.World
 
             
             spellLineHdr += ", `last_Modified`";
-            spellLine += $", '{input.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'";
+            spellLine += $", '{input.LastModified:yyyy-MM-dd HH:mm:ss}'";
             
             spellLineHdr += ")";
             spellLine += ");";
@@ -439,7 +439,7 @@ namespace ACE.Database.SQLFormatters.World
 
             if (input.PositionObjCellId.HasValue && input.PositionOriginX.HasValue && input.PositionOriginY.HasValue && input.PositionOriginZ.HasValue && input.PositionAnglesX.HasValue && input.PositionAnglesY.HasValue && input.PositionAnglesZ.HasValue && input.PositionAnglesW.HasValue)
             {
-                spellLine += Environment.NewLine + $"/* @teleloc 0x{input.PositionObjCellId.Value.ToString("X8")} [{input.PositionOriginX.Value.ToString("F6")} {input.PositionOriginY.Value.ToString("F6")} {input.PositionOriginZ.Value.ToString("F6")}] {input.PositionAnglesW.Value.ToString("F6")} {input.PositionAnglesX.Value.ToString("F6")} {input.PositionAnglesY.Value.ToString("F6")} {input.PositionAnglesZ.Value.ToString("F6")} */";
+                spellLine += Environment.NewLine + $"/* @teleloc 0x{input.PositionObjCellId.Value:X8} [{input.PositionOriginX.Value:F6} {input.PositionOriginY.Value:F6} {input.PositionOriginZ.Value:F6}] {input.PositionAnglesW.Value:F6} {input.PositionAnglesX.Value:F6} {input.PositionAnglesY.Value:F6} {input.PositionAnglesZ.Value:F6} */";
             }
 
             writer.WriteLine(spellLineHdr);

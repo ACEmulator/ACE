@@ -32,9 +32,9 @@ namespace ACE.Server.Managers
         private static readonly Landblock[,] landblocks = new Landblock[255, 255];
 
         /// <summary>
-        /// A lookup table of all the currently active landblocks
+        /// A lookup table of all the currently loaded landblocks
         /// </summary>
-        private static readonly HashSet<Landblock> activeLandblocks = new HashSet<Landblock>();
+        private static readonly HashSet<Landblock> loadedLandblocks = new HashSet<Landblock>();
 
         /// <summary>
         /// DestructionQueue is concurrent because it can be added to by multiple threads at once, publicly via AddToDestructionQueue()
@@ -63,7 +63,7 @@ namespace ACE.Server.Managers
                 ConfigManager.Config.Server.PreloadedLandblocks = new List<PreloadedLandblocks> { new PreloadedLandblocks { Id = "E74EFFFF", Description = "Hebian-To (Global Events)", Permaload = true, IncludeAdjacents = true, Enabled = true } };
             }
 
-            log.InfoFormat("Found {0} landblock entries in PreloadedLandblocks configuration, {1} are set to preload.", ConfigManager.Config.Server.PreloadedLandblocks.Count, ConfigManager.Config.Server.PreloadedLandblocks.Where(x => x.Enabled == true).Count());
+            log.InfoFormat("Found {0} landblock entries in PreloadedLandblocks configuration, {1} are set to preload.", ConfigManager.Config.Server.PreloadedLandblocks.Count, ConfigManager.Config.Server.PreloadedLandblocks.Count(x => x.Enabled == true));
 
             foreach (var preloadLandblock in ConfigManager.Config.Server.PreloadedLandblocks)
             {
@@ -128,9 +128,9 @@ namespace ACE.Server.Managers
                     // load up this landblock
                     landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY] = new Landblock(landblockId);
 
-                    if (!activeLandblocks.Add(landblock))
+                    if (!loadedLandblocks.Add(landblock))
                     {
-                        log.Error($"LandblockManager: failed to add {landblock.Id:X8} to active landblocks!");
+                        log.Error($"LandblockManager: failed to add {landblock.Id.Raw:X8} to active landblocks!");
                         return landblock;
                     }
                 }
@@ -148,18 +148,27 @@ namespace ACE.Server.Managers
             }
 
             // cache adjacencies
-            SetAdjacents(landblock, true);
+            SetAdjacents(landblock, true, true);
 
             return landblock;
         }
 
         /// <summary>
-        /// Returns the list of all active landblocks
+        /// Returns the list of all loaded landblocks
+        /// </summary>
+        public static List<Landblock> GetLoadedLandblocks()
+        {
+            lock (landblockMutex)
+                return loadedLandblocks.ToList();
+        }
+
+        /// <summary>
+        /// Returns the list of all active landblocks. This is just all loaded landblocks that are !IsDormant
         /// </summary>
         public static List<Landblock> GetActiveLandblocks()
         {
             lock (landblockMutex)
-                return activeLandblocks.ToList();
+                return loadedLandblocks.Where(r => !r.IsDormant).ToList();
         }
 
         public static List<Landblock> GetAdjacents(LandblockId landblockID)
@@ -326,7 +335,7 @@ namespace ACE.Server.Managers
                     lock (landblockMutex)
                     {
                         // remove from list of managed landblocks
-                        if (activeLandblocks.Remove(landblock))
+                        if (loadedLandblocks.Remove(landblock))
                         {
                             landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
                             NotifyAdjacents(landblock);
@@ -336,7 +345,7 @@ namespace ACE.Server.Managers
                     }
 
                     if (unloadFailed)
-                        log.Error($"LandblockManager: failed to unload {landblock.Id:X8}");
+                        log.Error($"LandblockManager: failed to unload {landblock.Id.Raw:X8}");
                 }
             }
         }
@@ -360,7 +369,7 @@ namespace ACE.Server.Managers
         {
             lock (landblockMutex)
             {
-                foreach (var landblock in activeLandblocks)
+                foreach (var landblock in loadedLandblocks)
                     AddToDestructionQueue(landblock);
             }
         }

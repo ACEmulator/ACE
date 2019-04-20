@@ -93,7 +93,7 @@ namespace ACE.Server.Network.Managers
             {
                 if (messageHandlerInfo.Attribute.State == session.State)
                 {
-                    WorldManager.InboundClientMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
+                    WorldManager.InboundMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
                     {
                         // It's possible that before this work is executed by WorldManager, and after it was enqueued here, the session.Player was set to null
                         // To avoid null reference exceptions, we make sure that the player is valid before the message handler is invoked.
@@ -110,14 +110,21 @@ namespace ACE.Server.Network.Managers
             }
         }
 
+        /// <summary>
+        /// The call path for this function is as follows:
+        /// InboundMessageManager.HandleClientMessage() queues work into WorldManager.InboundMessageQueue that is run in WorldManager.UpdateWorld()
+        /// That work invokes GameActionPacket.HandleGameAction() which calls this.
+        /// </summary>
         public static void HandleGameAction(GameActionType opcode, ClientMessage message, Session session)
         {
             if (actionHandlers.TryGetValue(opcode, out var actionHandlerInfo))
             {
-                session.InboundGameActionQueue.EnqueueAction(new ActionEventDelegate(() =>
-                {
-                    actionHandlerInfo.Handler.Invoke(message, session);
-                }));
+                // It's possible that before this work is executed by WorldManager, and after it was enqueued here, the session.Player was set to null
+                // To avoid null reference exceptions, we make sure that the player is valid before the message handler is invoked.
+                if (session.Player == null)
+                    return;
+
+                actionHandlerInfo.Handler.Invoke(message, session);
             }
             else
             {

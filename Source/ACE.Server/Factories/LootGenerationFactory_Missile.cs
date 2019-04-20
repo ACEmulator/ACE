@@ -52,7 +52,6 @@ namespace ACE.Server.Factories
                 return null;
 
             int workmanship = GetWorkmanship(tier);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
             wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
@@ -116,8 +115,7 @@ namespace ACE.Server.Factories
                     {
                         int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
                         int spellID = spells[shuffledValues[a]][col];
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                 }
 
@@ -135,32 +133,28 @@ namespace ACE.Server.Factories
                     {
                         int spellID = cantrips[shuffledValues[shuffledPlace]][0];
                         shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                     //major cantrips
                     for (int a = 0; a < majorCantrips; a++)
                     {
                         int spellID = cantrips[shuffledValues[shuffledPlace]][1];
                         shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                     // epic cantrips
                     for (int a = 0; a < epicCantrips; a++)
                     {
                         int spellID = cantrips[shuffledValues[shuffledPlace]][2];
                         shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                     //legendary cantrips
                     for (int a = 0; a < legendaryCantrips; a++)
                     {
                         int spellID = cantrips[shuffledValues[shuffledPlace]][3];
                         shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                 }
             }
@@ -173,6 +167,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
                 wo.RemoveProperty(PropertyFloat.ManaRate);
             }
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
 
             wo = RandomizeColor(wo);
             return wo;

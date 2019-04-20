@@ -48,28 +48,32 @@ namespace ACE.Server.WorldObjects
             }
 
             //Check to see if trade partner is in range, if so, rotate and move to
-            CreateMoveToChain(tradePartner, (success) =>
+            if (initiator)
             {
-                if (!success)
+                CreateMoveToChain(tradePartner, (success) =>
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TradeMaxDistanceExceeded));
-                    return;
-                }
+                    if (!success)
+                    {
+                        Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TradeMaxDistanceExceeded));
+                        return;
+                    }
+
+                    ItemsInTradeWindow.Clear();
+
+                    Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, Guid, tradePartner.Guid));
+
+                    tradePartner.HandleActionOpenTradeNegotiations(Guid.Full, false);
+                });
+            }
+            else
+            {
+                IsTrading = true;
+                tradePartner.IsTrading = true;
 
                 ItemsInTradeWindow.Clear();
 
                 Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, Guid, tradePartner.Guid));
-
-                if (initiator)
-                {
-                    tradePartner.HandleActionOpenTradeNegotiations(Guid.Full, false);
-                }
-                else
-                {
-                    IsTrading = true;
-                    tradePartner.IsTrading = true;
-                }
-            });
+            }
         }
 
         public void HandleActionCloseTradeNegotiations(Session session, EndTradeReason endTradeReason = EndTradeReason.Normal)

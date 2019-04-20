@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Common.Extensions;
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -269,15 +270,29 @@ namespace ACE.Database
                 {
                     SetBiotaPopulatedCollections(biota);
 
+                    Exception firstException = null;
+                    retry:
+
                     try
                     {
                         cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                         return true;
                     }
                     catch (Exception ex)
                     {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
                         // Character name might be in use or some other fault
-                        log.Error($"SaveBiota failed with exception: {ex}");
+                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -298,15 +313,29 @@ namespace ACE.Database
 
                 context.Biota.Add(biota);
 
+                Exception firstException = null;
+                retry:
+
                 try
                 {
                     context.SaveChanges();
+
+                    if (firstException != null)
+                        log.Debug($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                     return true;
                 }
                 catch (Exception ex)
                 {
+                    if (firstException == null)
+                    {
+                        firstException = ex;
+                        goto retry;
+                    }
+
                     // Character name might be in use or some other fault
-                    log.Error($"SaveBiota failed with exception: {ex}");
+                    log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                    log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                     return false;
                 }
             }
@@ -340,21 +369,37 @@ namespace ACE.Database
                 {
                     cachedContext.Biota.Remove(biota);
 
+                    Exception firstException = null;
+                    retry:
+
                     try
                     {
                         cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                         return true;
                     }
                     catch (Exception ex)
                     {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
                         // Character name might be in use or some other fault
-                        log.Error($"RemoveBiota failed with exception: {ex}");
+                        log.Error($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
                 finally
                 {
                     rwLock.ExitReadLock();
+
+                    cachedContext.Dispose();
                 }
             }
 
@@ -627,8 +672,7 @@ namespace ACE.Database
                 //.Include(r => r.CharacterPropertiesShortcutBar)
                 //.Include(r => r.CharacterPropertiesSpellBar)
                 //.Include(r => r.CharacterPropertiesTitleBook)
-                .Where(r => r.Name == name.ToLower() && !r.IsDeleted)
-                .FirstOrDefault();
+                .FirstOrDefault(r => r.Name == name.ToLower() && !r.IsDeleted);
 
             if (result != null)
                 CharacterContexts.Add(result, context);
@@ -643,15 +687,29 @@ namespace ACE.Database
                 rwLock.EnterReadLock();
                 try
                 {
+                    Exception firstException = null;
+                    retry:
+
                     try
                     {
                         cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"SaveCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                         return true;
                     }
                     catch (Exception ex)
                     {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
                         // Character name might be in use or some other fault
-                        log.Error($"SaveCharacter failed with exception: {ex}");
+                        log.Error($"SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException}");
+                        log.Error($"SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -670,15 +728,29 @@ namespace ACE.Database
             {
                 context.Character.Add(character);
 
+                Exception firstException = null;
+                retry:
+
                 try
                 {
                     context.SaveChanges();
+
+                    if (firstException != null)
+                        log.Debug($"SaveCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
                     return true;
                 }
                 catch (Exception ex)
                 {
+                    if (firstException == null)
+                    {
+                        firstException = ex;
+                        goto retry;
+                    }
+
                     // Character name might be in use or some other fault
-                    log.Error($"SaveCharacter failed with exception: {ex}");
+                    log.Error($"SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException}");
+                    log.Error($"SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex}");
                     return false;
                 }
             }

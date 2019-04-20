@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using ACE.Entity.Enum;
@@ -86,6 +87,10 @@ namespace ACE.Server.Command
                     {
                         try
                         {
+                            if (commandHandler.Attribute.IncludeRaw)
+                            {
+                                parameters = StuffRawIntoParameters(commandLine, command, parameters);
+                            }
                             // Add command to world manager's main thread...
                             ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
                         }
@@ -100,6 +105,17 @@ namespace ACE.Server.Command
                     log.Error($"Exception while getting command handler for: {commandLine}", ex);
                 }
             }
+        }
+
+        public static string[] StuffRawIntoParameters(string raw, string command, string[] parameters)
+        {
+            List<string> parametersRehash = new List<string>();
+            var regex = new Regex(Regex.Escape(command));
+            var newCmdLine = regex.Replace(raw, "", 1).TrimStart();
+            parametersRehash.Add(newCmdLine);
+            parametersRehash.AddRange(parameters);
+            parameters = parametersRehash.ToArray();
+            return parameters;
         }
 
         public static void ParseCommand(string commandLine, out string command, out string[] parameters)

@@ -82,6 +82,12 @@ namespace ACE.Server
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
+            if (ConfigManager.Config.Server.ServerPerformanceMonitorAutoStart)
+            {
+                log.Info("Server Performance Monitor auto starting...");
+                ServerPerformanceMonitor.Start();
+            }
+
             if (ConfigManager.Config.Server.WorldDatabasePrecaching)
             {
                 log.Info("Precaching Weenies...");
@@ -130,6 +136,11 @@ namespace ACE.Server
             // This should be last
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
+
+            if (!PropertyManager.GetBool("world_closed", false).Item)
+            {
+                WorldManager.Open(null);
+            }
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

@@ -7,6 +7,7 @@ namespace ACE.Database.Models.World
     {
         public uint Id { get; set; }
         public uint RecipeId { get; set; }
+        public sbyte Index { get; set; }
         public int Stat { get; set; }
         public int Value { get; set; }
         public int Enum { get; set; }

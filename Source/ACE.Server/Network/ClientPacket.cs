@@ -14,7 +14,7 @@ namespace ACE.Server.Network
         public BinaryReader Payload { get; private set; }
         public PacketHeaderOptional HeaderOptional { get; private set; }
         public bool IsValid { get; private set; } = false;
-        public bool CRCVerified = false;
+        public bool CRCVerified { get; private set; } = false;
 
         public ClientPacket(byte[] data)
         {
@@ -177,6 +177,7 @@ namespace ACE.Server.Network
             {
                 if (VerifyEncryptedCRCAndLogResult(fq, rangeAdvance))
                 {
+                    CRCVerified = true;
                     return true;
                 }
             }

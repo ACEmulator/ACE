@@ -31,7 +31,8 @@ namespace ACE.Server.Factories
 
             workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
+            int value = LootTables.gemValues[(int)gemType] + ThreadSafeRandom.Next(1, LootTables.gemValues[(int)gemType]);
+            wo.SetProperty(PropertyInt.Value, value );
 
             gemLootMatrixIndex = tier - 1;
             if (isMagical)
@@ -110,21 +111,37 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-
-            int workmanship = GetWorkmanship(tier);
-            int value = GetValue(tier, workmanship);
-            wo.SetProperty(PropertyInt.Value, value);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-
             int mT = GetMaterialType(1, tier);
             wo.SetProperty(PropertyInt.MaterialType, mT);
-
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
+            int workmanship = GetWorkmanship(tier);
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
+            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
+            if (tier > 6)
+            {
+                int wield;
+
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
+
+                switch (tier)
+                {
+                    case 7:
+                        wield = 150; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                    default:
+                        wield = 180; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                }
+
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
 
             if (isMagical)
             {
@@ -165,8 +182,7 @@ namespace ACE.Server.Factories
                     {
                         int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
                         int spellID = JewelrySpells[shuffledValues[a]][col];
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                 }
 
@@ -184,32 +200,28 @@ namespace ACE.Server.Factories
                     {
                         int spellID = JewelryCantrips[shuffledValues[shuffledPlace]][0];
                         shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                     //major cantrips
                     for (int a = 0; a < majorCantrips; a++)
                     {
                         int spellID = JewelryCantrips[shuffledValues[shuffledPlace]][1];
                         shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                     // epic cantrips
                     for (int a = 0; a < epicCantrips; a++)
                     {
                         int spellID = JewelryCantrips[shuffledValues[shuffledPlace]][2];
                         shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                     //legendary cantrips
                     for (int a = 0; a < legendaryCantrips; a++)
                     {
                         int spellID = JewelryCantrips[shuffledValues[shuffledPlace]][3];
                         shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
+                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                     }
                 }
             }

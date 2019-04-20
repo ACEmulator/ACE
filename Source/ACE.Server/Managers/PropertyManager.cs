@@ -441,10 +441,15 @@ namespace ACE.Server.Managers
             DictOf(
                 ("chess_enabled", true),
                 ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
+                ("gateway_ties_summonable", true),        // if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
+                ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
                 ("pk_server", false),
-                ("show_dot_messages", false)        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
+                ("salvage_handle_overages", false),   // in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost
+                ("show_dot_messages", false),        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
+                ("use_wield_requirements", true),    // disable this to bypass wield requirements. mostly for dev debugging
+                ("world_closed", false)             // enable this to startup world as a closed to players world.
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
@@ -460,7 +465,8 @@ namespace ACE.Server.Managers
                 ("luminance_modifier", 1.0),
                 ("vitae_penalty", 0.05),
                 ("vitae_penalty_max", 0.40),
-                ("xp_modifier", 1.0)
+                ("xp_modifier", 1.0),
+                ("vendor_unique_rot_time", 300)
                 );
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =

@@ -30,9 +30,24 @@ namespace ACE.Common
         /// </summary>
         public double AverageEventDuration => TotalSeconds / TotalEvents;
 
+        public void ResetEvent()
+        {
+            stopwatch.Reset();
+        }
+
         public void RegisterEventStart()
         {
             stopwatch.Reset();
+            stopwatch.Start();
+        }
+
+        public void PauseEvent()
+        {
+            stopwatch.Stop();
+        }
+
+        public void ResumeEvent()
+        {
             stopwatch.Start();
         }
 
@@ -43,7 +58,12 @@ namespace ACE.Common
         {
             stopwatch.Stop();
 
-            LastEvent = stopwatch.Elapsed.TotalSeconds;
+            return RegisterEvent(stopwatch.Elapsed.TotalSeconds);
+        }
+
+        public double RegisterEvent(double totalSeconds)
+        {
+            LastEvent = totalSeconds;
 
             TotalEvents++;
             TotalSeconds += LastEvent;

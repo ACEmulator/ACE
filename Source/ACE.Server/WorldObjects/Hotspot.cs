@@ -8,6 +8,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -33,22 +34,25 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObjectEnd(WorldObject wo)
         {
-            var player = wo as Player;
-            if (player == null) return;
-            if (Players.Any(k => k == player))
-                Players.Remove(player);
+            if (!(wo is Player player))
+                return;
+
+            if (Players.Contains(player.Guid))
+                Players.Remove(player.Guid);
         }
 
-        private List<Player> Players = new List<Player>();
+        private HashSet<ObjectGuid> Players = new HashSet<ObjectGuid>();
 
         private ActionChain ActionLoop = null;
 
         public override void OnCollideObject(WorldObject wo)
         {
-            var player = wo as Player;
-            if (player == null) return;
-            if (!Players.Any(k => k == player))
-                Players.Add(player);
+            if (!(wo is Player player))
+                return;
+
+            if (!Players.Contains(player.Guid))
+                Players.Add(player.Guid);
+
             if (ActionLoop == null)
             {
                 ActionLoop = NextActionLoop;
@@ -84,7 +88,7 @@ namespace ACE.Server.WorldObjects
                 var variance = CycleTime * CycleTimeVariance;
                 var min = CycleTime - variance;
                 var max = CycleTime + variance;
-                return (double)ThreadSafeRandom.Next((float)min, (float)max);
+                return ThreadSafeRandom.Next((float)min, (float)max);
             }
         }
 
@@ -123,40 +127,43 @@ namespace ACE.Server.WorldObjects
 
         private void Activate()
         {
-            Players.ForEach(player =>
+            foreach (var playerGuid in Players.ToList())
             {
+                var player = PlayerManager.GetOnlinePlayer(playerGuid);
+                if (player == null || player.Location.Landblock != Location.Landblock)
+                {
+                    Players.Remove(playerGuid);
+                    continue;
+                }
                 Activate(player);
-            });
+            }
         }
 
-        private void Activate(Player plr)
+        private void Activate(Player player)
         {
             var amount = DamageNext;
+            var iAmount = (int)Math.Round(amount);
+
             switch (DamageType)
             {
-                case DamageType.Mana:
-                    var manaDmg = amount;
-                    var result = plr.Mana.Current - manaDmg;
-                    if (result < 0 && manaDmg > 0)
-                        manaDmg += result;
-                    else if (result > plr.Mana.MaxValue && manaDmg < 0)
-                        manaDmg -= plr.Mana.MaxValue - result;
-                    if (manaDmg != 0)
-                        amount = plr.UpdateVital(plr.Mana, plr.Mana.Current - (uint)Math.Round(manaDmg));
-                    break;
                 default:
-                    if (plr.Invincible ?? false) return;
-                    amount = (float)plr.GetLifeResistance(DamageType) * amount;
-                    plr.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
+                    if (player.Invincible) return;
+                    amount *= (float)player.GetLifeResistance(DamageType);
+                    player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
+                    if (player.IsDead && Players.Contains(player.Guid))
+                        Players.Remove(player.Guid);
+                    break;
+
+                case DamageType.Mana:
+                    player.UpdateVitalDelta(player.Mana, iAmount);
                     break;
             }
 
-            var iAmount = (uint)Math.Round(Math.Abs(amount));
-
-            if (!string.IsNullOrWhiteSpace(ActivationTalk))
-                plr.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", iAmount.ToString()), ChatMessageType.Broadcast));
             if (!Visibility)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.TriggerActivated, 1.0f));
+
+            if (!string.IsNullOrWhiteSpace(ActivationTalk))
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", Math.Abs(iAmount).ToString()), ChatMessageType.Broadcast));
         }
     }
 }

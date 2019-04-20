@@ -77,7 +77,7 @@ namespace ACE.Server.Managers
                     {
                         // ActOnUse delay?
                         var activationTarget = WorldObject.CurrentLandblock?.GetObject(WorldObject.ActivationTarget);
-                        activationTarget?.ActOnUse(WorldObject);
+                        activationTarget?.OnActivate(WorldObject);
                     }
                     break;
 
@@ -110,9 +110,10 @@ namespace ACE.Server.Managers
 
                 case EmoteType.AwardLevelProportionalXP:
 
-                    // share with fellowship?
+                    bool shareXP = emote.Display ?? false;
+
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:
@@ -166,7 +167,7 @@ namespace ACE.Server.Managers
                     if (WorldObject != null && targetObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
-                        if (spell != null)
+                        if (!spell.NotFound)
                         {
                             var preCastTime = creature.PreCastMotion(targetObject);
                             delay = preCastTime * 2.0f;
@@ -188,7 +189,7 @@ namespace ACE.Server.Managers
                     if (WorldObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
-                        if (spell != null)
+                        if (!spell.NotFound)
                             WorldObject.TryCastSpell(spell, targetObject, WorldObject);
                     }
                     break;
@@ -290,7 +291,9 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            foreach (var fellow in fellowship.FellowshipMembers)
+                            var fellowshipMembers = fellowship.GetFellowshipMembers();
+
+                            foreach (var fellow in fellowshipMembers.Values)
                             {
                                 text = Replace(emote.Message, WorldObject, fellow);
                                 fellow.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
@@ -333,6 +336,9 @@ namespace ACE.Server.Managers
                             var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
                             var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
                             player.Session.Network.EnqueueSend(msg, sound);
+
+                            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                                player.RushNextPlayerSave(5);
                         }
                     }
                     break;
@@ -702,7 +708,7 @@ namespace ACE.Server.Managers
                                 {
                                     // FIXME: better cycle handling
                                     var cmd = WorldObject.CurrentMotionState.MotionState.ForwardCommand;
-                                    if (cmd != MotionCommand.Sleeping && cmd != MotionCommand.Sitting && !cmd.ToString().EndsWith("State"))
+                                    if (cmd != MotionCommand.Dead && cmd != MotionCommand.Sleeping && cmd != MotionCommand.Sitting && !cmd.ToString().EndsWith("State"))
                                     {
                                         if (debugMotion)
                                             Console.WriteLine($"{WorldObject.Name} running starting motion again {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
@@ -982,31 +988,13 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.StampQuest:
 
-                    // work needs to be done here
                     if (player != null)
                     {
-                        if ((emote.Message).EndsWith("@#kt", StringComparison.Ordinal))
+                        var questName = emote.Message;
+
+                        if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                         {
-                            var hasQuest = player.QuestManager.HasQuest(emote.Message);
-                            if (hasQuest)
-                            {
-                                player.QuestManager.Stamp(emote.Message);
-
-                                var questName = QuestManager.GetQuestName(emote.Message);
-                                var quest = DatabaseManager.World.GetCachedQuest(questName);
-
-                                var playerQuest = player.QuestManager.Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-
-                                if (playerQuest != null)
-                                {
-                                    var isMaxSolves = player.QuestManager.IsMaxSolves(questName);
-                                    if (isMaxSolves)
-                                        text = $"You have killed {quest.MaxSolves} {WorldObject.Name}s. Your task is complete!";
-                                    else
-                                        text = $"You have killed {playerQuest.NumTimesCompleted} {WorldObject.Name}s. You must kill {quest.MaxSolves} to complete your task!";
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
-                                }
-                            }
+                            player.QuestManager.HandleKillTask(questName, WorldObject);
                         }
                         else
                             player.QuestManager.Stamp(emote.Message);
@@ -1014,6 +1002,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.StartBarber:
+                    if (player != null)
+                        player.StartBarber();
                     break;
 
                 case EmoteType.StartEvent:
@@ -1080,7 +1070,9 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            foreach (var fellow in fellowship.FellowshipMembers)
+                            var fellowshipMembers = fellowship.GetFellowshipMembers();
+
+                            foreach (var fellow in fellowshipMembers.Values)
                             {
                                 message = Replace(emote.Message, WorldObject, fellow);
                                 player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, fellow, ChatMessageType.Tell));
@@ -1365,11 +1357,10 @@ namespace ACE.Server.Managers
 
         public void OnDeath(DamageHistory damageHistory)
         {
-            foreach (var damager in damageHistory.Damagers)
-                ExecuteEmoteSet(EmoteCategory.Death, null, damager);
-
             if (damageHistory.Damagers.Count == 0)
                 ExecuteEmoteSet(EmoteCategory.Death, null, null);
+            else 
+                ExecuteEmoteSet(EmoteCategory.Death, null, damageHistory.LastDamager);
         }
 
         /// <summary>

@@ -1,9 +1,78 @@
 # ACEmulator Change Log
 
-### 2019-04-19
+### 2019-04-20
 [OptimShi]
 * Added Treasure Material tables and Treasure Color tables to apply appropriate colors and materials to items in the LootGenerationFactory
+** Note that this update requires Database/Updates/World/2019-04-19-00-Treasure-Material.sql to be applied.
 * Added "lootgen" Developer Command to aid in testing the loot generator. Currently only applies materials and colors to items; no other properties factored in at this time.
+
+### 2019-04-19
+[Ripley]
+* Fix issue with non-player objects activating other non-player objects.
+* Move some messages to WorldBroadcast filter.
+
+**Stage 1 Shortcut Bar Fix**
+  - Update to latest master
+  - Start ACE and close world using `world close boot`
+    - optionally, you can use `modifybool world_closed true` and restart world as well to ensure no players are connected and online for this process.    
+  - Run `fix-shortcut-bars` command
+    - if there are bugged players, issue `fix-shortcut-bars execute` command
+  - Once that is finished, world is ready for stage two update. You will probably want to run the above command again just prior to next update to confirm no bugged players exist.
+    - if you set world to closed on startup, you can use `modifybool world_closed false` return world to default startup.
+
+### 2019-04-18
+[Ripley]
+* Fix bug with picking up items from your own corpse, hooks or storage that had quest stamps.
+* Fix bug with naked corpses not appearing correctly.
+
+### 2019-04-16
+[Ripley]
+* Fix bug with IDing items in Trade Window.
+* Fix bug with trade causing receiver to turn to initiator when trade starts.
+* Added rot after 5 minutes to player sold items on vendors.
+
+### 2019-04-13
+[Ripley]
+* Fix minor issue with scrolls when IDing them.
+* Fix major issue with recipes not scoping the requirements and mods to indexes which indicated where the checks or mods applied to.
+* Update Crafting SQL Writer, Adapter for above fixes.
+- **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.48 or higher**
+
+### 2019-04-10
+[Ripley]
+* Update Crafting SQL Writer.
+* Add in support to ACE.Adapter for converting GDLe recipes.
+* * Apply two more patches in Shard updates to fix issues with certain player appearances causing a save to fail for the corpse.
+
+### 2019-04-09
+[Ripley]
+* Fix issue with RealTime generators that have either no StartTime or EndTime set. (eg: Heart of the Innocent Event Gen)
+* Apply patch in Shard updates to fix issue with certain object appearances causing a save to fail for the corpse.
+
+### 2019-04-08
+[Ripley]
+* Fix PK status for all objects on radar bug.
+
+### 2019-04-06
+[Ripley]
+* Fix OnDeath crash.
+* Adjusted OnDeath to use LastDamager instead of foreach.
+* Fix tells issue.
+
+### 2019-04-05
+[Ripley]
+* Add support for Barber NPCs.
+
+### 2019-04-04
+[Ripley]
+* Fix to prevent multiple death stacking. You can only die one time until you resurrect at lifestone.
+
+### 2019-04-03
+[Ripley]
+* Add disable_gateway_ties_to_be_summonable configurable option.
+
+[Mag-nus]
+* /serverperformance command added. Optional parameters: start, stop, reset
 
 ### 2019-04-02
 [Ripley]

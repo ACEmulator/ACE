@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
             {
                 corpse.SetupTableId = SetupTableId;
                 corpse.MotionTableId = MotionTableId;
-                corpse.SoundTableId = SoundTableId;
+                //corpse.SoundTableId = SoundTableId; // Do not change sound table for corpses
                 corpse.PaletteBaseDID = PaletteBaseDID;
                 corpse.ClothingBase = ClothingBase;
                 corpse.PhysicsTableId = PhysicsTableId;
@@ -190,21 +190,19 @@ namespace ACE.Server.WorldObjects
                 //corpse.Translucency = Translucency;
 
 
-                if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
-                {
-                    var objDesc = CalculateObjDesc();
+                // Pull and save objdesc for correct corpse apperance at time of death
+                var objDesc = CalculateObjDesc();
 
-                    byte i = 0;
-                    foreach (var animPartChange in objDesc.AnimPartChanges)
-                        corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
+                byte i = 0;
+                foreach (var animPartChange in objDesc.AnimPartChanges)
+                    corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
 
-                    foreach (var subPalette in objDesc.SubPalettes)
-                        corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+                foreach (var subPalette in objDesc.SubPalettes)
+                    corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
 
-                    i = 0;
-                    foreach (var textureChange in objDesc.TextureChanges)
-                        corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
-                }
+                i = 0;
+                foreach (var textureChange in objDesc.TextureChanges)
+                    corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
             }
 
             corpse.Location = new Position(Location);
@@ -224,8 +222,9 @@ namespace ACE.Server.WorldObjects
             else
                 corpse.LongDesc = $"Killed by misadventure.";
 
-            var player = this as Player;
-            if (player != null)
+            bool saveCorpse = false;
+
+            if (this is Player player)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 var dropped = player.CalculateDeathItems(corpse);
@@ -237,17 +236,45 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
 
                     if (dropped.Count > 0)
+                    {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
+                        saveCorpse = true;
+                    }
                 }
             }
             else
             {
                 corpse.IsMonster = true;
                 GenerateTreasure(corpse);
+                if (killer is Player && (Level >= 100 || Level >= killer.Level + 5))
+                {
+                    CanGenerateRare = true;
+                }
             }
 
             corpse.RemoveProperty(PropertyInt.Value);
-            LandblockManager.AddObject(corpse);
+
+            if (CanGenerateRare && killer != null)
+                corpse.GenerateRare(killer);
+
+            corpse.EnterWorld();
+
+            if (this is Player p)
+            {
+                if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
+                    log.Info($"{Name}'s corpse failed to spawn! Tried at {p.Location.ToLOCString()}");
+                else
+                    log.Info($"{Name}'s corpse is located at {corpse.PhysicsObj.Position}");
+            }
+
+            if (saveCorpse)
+                corpse.SaveBiotaToDatabase();
+        }
+
+        public bool CanGenerateRare
+        {
+            get => GetProperty(PropertyBool.CanGenerateRare) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.CanGenerateRare); else SetProperty(PropertyBool.CanGenerateRare, value); }
         }
 
         /// <summary>
