@@ -19,6 +19,9 @@ namespace ACE.Server.WorldObjects
         {
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
+            if (!IsAwake && MonsterState == State.Return)
+                MonsterState = MonsterState = State.Idle;
+
             if (!IsAwake || IsDead) return;
 
             IsMonster = true;
@@ -49,7 +52,7 @@ namespace ACE.Server.WorldObjects
             var creatureTarget = AttackTarget as Creature;
             if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !creatureTarget.IsVisible(this))))
             {
-                Sleep();
+                FindNextTarget();
                 return;
             }
 
