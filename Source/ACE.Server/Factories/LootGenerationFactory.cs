@@ -4,11 +4,8 @@ using System;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Factories;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -132,9 +129,9 @@ namespace ACE.Server.Factories
 
             if (lootBias != LootBias.Armor && lootBias != LootBias.Weapons && lootBias != LootBias.MagicEquipment && profile.MagicItemMinAmount > 0)
             {
-                // 33% chance to drop a summoning essence
-                itemChance = ThreadSafeRandom.Next(0, 2);
-                if (itemChance == 2)
+                // 17% chance to drop a summoning essence
+                itemChance = ThreadSafeRandom.Next(1, 6);
+                if (itemChance == 6)
                 {
                     lootWorldObject = CreateSummoningEssence(profile.Tier);
 
@@ -518,6 +515,44 @@ namespace ACE.Server.Factories
             }
 
             return wield;
+        }
+
+        private static int GetWieldToIndex(int wieldDiff)
+        {
+            int index = 0;
+
+            switch(wieldDiff)
+            {
+                case 250:
+                    index = 1;
+                    break;
+                case 300:
+                    index = 2;
+                    break;
+                case 325:
+                    index = 3;
+                    break;
+                case 350:
+                    index = 4;
+                    break;
+                case 370:
+                    index = 5;
+                    break;
+                case 400:
+                    index = 6;
+                    break;
+                case 420:
+                    index = 7;
+                    break;
+                case 450:
+                    index = 8;
+                    break;
+                default:
+                    index = 0;
+                    break;
+            }
+
+            return index;
         }
 
         private static double GetManaRate()
@@ -1507,20 +1542,35 @@ namespace ACE.Server.Factories
             return eleMod;
         }
 
+        private enum LootWeaponType
+        {
+            Axe,
+            Dagger,
+            DaggerMulti,
+            Mace,
+            Spear,
+            Sword,
+            SwordMulti,
+            Staff,
+            UA,
+            Jitte,
+            TwoHanded = 1,
+            Cleaving = 1,
+            Spears,
+        }
+
         //The percentages for variances need to be fixed
-        private static double GetVariance(int category, int type)
+        private static double GetVariance(Skill category, LootWeaponType type)
         {
             double variance = 0;
             int chance = ThreadSafeRandom.Next(0, 100);
 
             switch (category)
             {
-                case 1:
-                    //Heavy Weapons
+                case Skill.HeavyWeapons:
                     switch (type)
                     {
-                        case 1:
-                            //Axe
+                        case LootWeaponType.Axe:
                             if (chance < 10)
                                 variance = .90;
                             else if (chance < 30)
@@ -1532,8 +1582,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .99;
                             break;
-                        case 2:
-                            //Dagger
+                        case LootWeaponType.Dagger:
                             if (chance < 10)
                                 variance = .47;
                             else if (chance < 30)
@@ -1545,8 +1594,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .62;
                             break;
-                        case 3:
-                            //Dagger MultiStrike
+                        case LootWeaponType.DaggerMulti:
                             if (chance < 10)
                                 variance = .40;
                             else if (chance < 30)
@@ -1558,8 +1606,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .58;
                             break;
-                        case 4:
-                            //Mace
+                        case LootWeaponType.Mace:
                             if (chance < 10)
                                 variance = .30;
                             else if (chance < 30)
@@ -1571,8 +1618,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .46;
                             break;
-                        case 5:
-                            //Spear
+                        case LootWeaponType.Spear:
                             if (chance < 10)
                                 variance = .59;
                             else if (chance < 30)
@@ -1584,8 +1630,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .75;
                             break;
-                        case 6:
-                            //Staff
+                        case LootWeaponType.Staff:
                             if (chance < 10)
                                 variance = .38;
                             else if (chance < 30)
@@ -1597,8 +1642,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .52;
                             break;
-                        case 7:
-                            //Sword
+                        case LootWeaponType.Sword:
                             if (chance < 10)
                                 variance = .47;
                             else if (chance < 30)
@@ -1610,8 +1654,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .62;
                             break;
-                        case 8:
-                            //Sword Multistrike
+                        case LootWeaponType.SwordMulti:
                             if (chance < 10)
                                 variance = .40;
                             else if (chance < 30)
@@ -1623,8 +1666,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .60;
                             break;
-                        case 9:
-                            //UA
+                        case LootWeaponType.UA:
                             if (chance < 10)
                                 variance = .44;
                             else if (chance < 30)
@@ -1638,11 +1680,11 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 2:
-                    //Finesse/Light Weapons
+                case Skill.LightWeapons:
+                case Skill.FinesseWeapons:
                     switch (type)
                     {
-                        case 1:
+                        case LootWeaponType.Axe:
                             //Axe
                             if (chance < 10)
                                 variance = .80;
@@ -1655,7 +1697,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .95;
                             break;
-                        case 2:
+                        case LootWeaponType.Dagger:
                             //Dagger
                             if (chance < 10)
                                 variance = .42;
@@ -1668,7 +1710,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .60;
                             break;
-                        case 3:
+                        case LootWeaponType.DaggerMulti:
                             //Dagger MultiStrike
                             if (chance < 10)
                                 variance = .24;
@@ -1681,7 +1723,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .45;
                             break;
-                        case 4:
+                        case LootWeaponType.Mace:
                             //Mace
                             if (chance < 10)
                                 variance = .23;
@@ -1694,7 +1736,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .43;
                             break;
-                        case 5:
+                        case LootWeaponType.Jitte:
                             //Jitte
                             if (chance < 10)
                                 variance = .325;
@@ -1707,7 +1749,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .50;
                             break;
-                        case 6:
+                        case LootWeaponType.Spear:
                             //Spear
                             if (chance < 10)
                                 variance = .65;
@@ -1720,7 +1762,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .80;
                             break;
-                        case 7:
+                        case LootWeaponType.Staff:
                             //Staff
                             if (chance < 10)
                                 variance = .325;
@@ -1733,7 +1775,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .50;
                             break;
-                        case 8:
+                        case LootWeaponType.Sword:
                             //Sword
                             if (chance < 10)
                                 variance = .42;
@@ -1746,7 +1788,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .60;
                             break;
-                        case 9:
+                        case LootWeaponType.SwordMulti:
                             //Sword Multistrike
                             if (chance < 10)
                                 variance = .24;
@@ -1759,7 +1801,7 @@ namespace ACE.Server.Factories
                             else
                                 variance = .45;
                             break;
-                        case 10:
+                        case LootWeaponType.UA:
                             //UA
                             if (chance < 10)
                                 variance = .44;
@@ -1774,7 +1816,7 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 3:
+                case Skill.TwoHandedCombat:
                     /// Two Handed only have one set of variances
                     if (chance < 5)
                         variance = .30;
@@ -1790,13 +1832,13 @@ namespace ACE.Server.Factories
                         variance = .55;
                     break;
                 default:
-                    break;
+                    return 0;
             }
 
             return variance;
         }
 
-        private static int GetMaxDamage(int weaponType, int tier, int wieldDiff, int baseWeapon)
+        private static int GetMaxDamage(Skill weaponType, int wieldDiff, LootWeaponType baseWeapon)
         {
             ///weaponType: 1 Heavy, 2 Finesse/Light, 3 two-handed
             ///baseWeapon: 1 Axe, 2 Dagger, 3 DaggerMulti, 4 Mace, 5 Spear, 6 Sword, 7 SwordMulti, 8 Staff, 9 UA
@@ -1831,75 +1873,28 @@ namespace ACE.Server.Factories
                 { 14, 19, 23, 28, 33, 37, 42, 45, 48 }
             };
 
-            int tieredDamage = 0;
-            int finalDamage = 0;
+            int damageTable = 0;
 
             switch (weaponType)
             {
-                case 1:
-                    tieredDamage = heavyWeaponDamageTable[baseWeapon - 1, tier - 1];
+                case Skill.HeavyWeapons:
+                    damageTable = heavyWeaponDamageTable[(int)baseWeapon, GetWieldToIndex(wieldDiff)];
                     break;
-                case 2:
-                    tieredDamage = lightWeaponDamageTable[baseWeapon - 1, tier - 1];
+                case Skill.FinesseWeapons:
+                case Skill.LightWeapons:
+                    damageTable = lightWeaponDamageTable[(int)baseWeapon, GetWieldToIndex(wieldDiff)];
                     break;
-                case 3:
-                    tieredDamage = twohandedWeaponDamageTable[baseWeapon - 1, tier - 1];
+                case Skill.TwoHandedCombat:
+                    damageTable = twohandedWeaponDamageTable[(int)baseWeapon, GetWieldToIndex(wieldDiff)];
                     break;
+                default:
+                    return 0;
             }
 
-            float chanceOffset = 0f;
-            double chance = ThreadSafeRandom.Next(0.0f, 1.0f);
+            // To add a little but a randomness to Max weapon damage
+            int maxDamageVariance = ThreadSafeRandom.Next(-4,2);
 
-            if (wieldDiff > 0)
-                chanceOffset = 0.02f;
-            else if (wieldDiff > 250)
-                chanceOffset = 0.03f;
-            else if (wieldDiff > 300)
-                chanceOffset = 0.04f;
-            else if (wieldDiff > 325)
-                chanceOffset = 0.05f;
-            else if (wieldDiff > 350)
-                chanceOffset = 0.06f;
-            else if (wieldDiff > 370)
-                chanceOffset = 0.07f;
-            else if (wieldDiff > 400)
-                chanceOffset = 0.08f;
-            else if (wieldDiff > 420)
-                chanceOffset = 0.1f;
-
-            chance = chance + chanceOffset;
-            if (tieredDamage < 10)
-            {
-                if (chance < .026)
-                    finalDamage = tieredDamage - 3;
-                else if (chance < .5)
-                    finalDamage = tieredDamage - 2;
-                else if (chance < .977)
-                    finalDamage = tieredDamage - 1;
-                else
-                    finalDamage = tieredDamage;
-            }
-            else
-            {
-                if (chance < .005)
-                    finalDamage = tieredDamage - 7;
-                else if (chance < .026)
-                    finalDamage = tieredDamage - 6;
-                else if (chance < .162)
-                    finalDamage = tieredDamage - 5;
-                else if (chance < .5)
-                    finalDamage = tieredDamage - 4;
-                else if (chance < .841)
-                    finalDamage = tieredDamage - 3;
-                else if (chance < .977)
-                    finalDamage = tieredDamage - 2;
-                else if (chance < .995)
-                    finalDamage = tieredDamage - 1;
-                else
-                    finalDamage = tieredDamage;
-            }
-
-            return finalDamage;
+            return damageTable + maxDamageVariance;
         }
 
         private static int GetLowSpellTier(int tier)
