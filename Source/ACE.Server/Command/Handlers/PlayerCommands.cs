@@ -19,16 +19,15 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetAllOnline().Count.ToString()}\n", ChatMessageType.Broadcast));
         }
 
-        // quest info
-        [CommandHandler("myquests", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows the player's quest log")]
+        // quest info (uses GDLe formatting to match plugin expectations)
+        [CommandHandler("myquests", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows your quest log")]
         public static void HandleQuests(Session session, params string[] parameters)
         {
-            if (!PropertyManager.GetBool("quest_info_enabled)").Item) return;
-
-            var text = "";
+            if (!PropertyManager.GetBool("quest_info_enabled").Item) return;
 
             foreach (var playerQuest in session.Player.QuestManager.Quests)
             {
+                var text = "";
                 var questName = QuestManager.GetQuestName(playerQuest.QuestName);
                 var quest = DatabaseManager.World.GetCachedQuest(questName);
                 if (quest == null)
@@ -36,11 +35,11 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine($"Couldn't find quest {playerQuest.QuestName}");
                     continue;
                 }
-                text += $"{playerQuest.QuestName} - {playerQuest.NumTimesCompleted} solves ({playerQuest.LastTimeCompleted})";
-                text += $"\"{quest.Message}\" {quest.MaxSolves} {quest.MinDelta}\n";
-            }
+                text += $"{playerQuest.QuestName.ToLower()} - {playerQuest.NumTimesCompleted} solves ({playerQuest.LastTimeCompleted})";
+                text += $"\"{quest.Message}\" {quest.MaxSolves} {quest.MinDelta}";
 
-            session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+            }
         }
     }
 }
