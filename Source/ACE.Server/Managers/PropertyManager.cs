@@ -444,6 +444,7 @@ namespace ACE.Server.Managers
                 ("gateway_ties_summonable", true),        // if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
+                ("log_audit", true),                    // if disabled, audit channel is not logged.
                 ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
                 ("pk_server", false),
                 ("quest_info_enabled", false),      // toggles the /myquests player command

@@ -231,9 +231,8 @@ namespace ACE.Server.WorldObjects
         {
             // When a shortcut is added on top of an existing item, the client automatically sends the RemoveShortcut command for that existing item first, then will add the new item, and re-add the existing item to the appropriate place.
 
-            Character.AddShortcut(shortcut.Index, shortcut.ObjectId, CharacterDatabaseLock);
-
-            CharacterChangesDetected = true;
+            if (Character.TryAddOrUpdateShortcut(shortcut.Index, shortcut.ObjectId, CharacterDatabaseLock))
+                CharacterChangesDetected = true;
         }
 
         /// <summary>
