@@ -10,6 +10,9 @@
 
 ### 2019-04-19
 [Ripley, gmriggs]
+=======
+* Fix issue with non-player objects activating other non-player objects.
+* Move some messages to WorldBroadcast filter.
 
 **Stage 1 Shortcut Bar Fix**
   - Update to latest master
