@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
         public virtual void Sleep()
         {
             if (DebugMove)
-                Console.WriteLine($"{Name}.Sleep()");
+                Console.WriteLine($"{Name} ({Guid}).Sleep()");
 
             AttackTarget = null;
             IsAwake = false;
@@ -121,12 +121,22 @@ namespace ACE.Server.WorldObjects
 
         public virtual bool FindNextTarget()
         {
+            SelectTargetingTactic();
+            SetNextTargetTime();
+
             // rebuild visible objects (handle this better for monsters)
             GetVisibleObjects();
 
             var players = GetAttackablePlayers();
             if (players.Count == 0)
+            {
+                if (MonsterState != State.Return)
+                {
+                    AttackTarget = null;
+                    MoveToHome();
+                }
                 return false;
+            }
 
             // Generally, a creature chooses whom to attack based on:
             //  - who it was last attacking,
@@ -138,9 +148,6 @@ namespace ACE.Server.WorldObjects
 
             // Players within the creature's detection sphere are weighted by how close they are to the creature --
             // the closer you are, the more chance you have to be selected to be attacked.
-
-            SelectTargetingTactic();
-            SetNextTargetTime();
 
             switch (CurrentTargetingTactic)
             {
@@ -229,7 +236,8 @@ namespace ACE.Server.WorldObjects
                 if (!attackable) continue;
 
                 // ensure within 'detection radius' ?
-                if (Location.SquaredDistanceTo(creature.Location) >= RadiusAwarenessSquared)
+                var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : RadiusAwarenessSquared;
+                if (Location.SquaredDistanceTo(creature.Location) >= chaseDistSq)
                     continue;
 
                 players.Add(creature);
