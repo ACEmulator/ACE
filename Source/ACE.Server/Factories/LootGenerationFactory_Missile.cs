@@ -53,7 +53,7 @@ namespace ACE.Server.Factories
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
@@ -169,7 +169,6 @@ namespace ACE.Server.Factories
             }
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
 
-            wo = RandomizeColor(wo);
             return wo;
         }
 
