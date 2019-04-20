@@ -103,15 +103,9 @@ namespace ACE.Server.Physics
 
         public CellArray CellArray;
         public ObjectMaint ObjMaint;
-        public static List<PhysicsObj> Players;
-        public bool IsPlayer;
+        public bool IsPlayer => ID >= 0x50000001 && ID <= 0x5FFFFFFF;
 
         public static readonly int UpdateTimeLength = 9;
-
-        static PhysicsObj()
-        {
-            Players = new List<PhysicsObj>();
-        }
 
         public PhysicsObj()
         {
@@ -479,7 +473,7 @@ namespace ACE.Server.Physics
         {
             if ((Position.ObjCellID & 0xFFFF) < 0x100) return 100.0f;
 
-            return Players.Contains(this) ? 25.0f : 20.0f;
+            return IsPlayer ? 25.0f : 20.0f;
         }
 
         public BBox GetBoundingBox()
@@ -1080,14 +1074,6 @@ namespace ACE.Server.Physics
                     PartArray.SetFrame(Position.Frame);
             }
             return result;
-        }
-
-        public void SetPlayer()
-        {
-            if (Players.Contains(this))
-                Players.Add(this);
-
-            IsPlayer = true;
         }
 
         public SetPositionError SetPosition(SetPosition setPos)
