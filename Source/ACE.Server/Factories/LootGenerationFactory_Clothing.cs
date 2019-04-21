@@ -345,7 +345,7 @@ namespace ACE.Server.Factories
                     ////Random Armor Items
                     if (armorType == 3)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 15);
+                        int armorPiece = ThreadSafeRandom.Next(0, 31);
                         switch (armorPiece)
                         {
                             case 0:
@@ -429,7 +429,7 @@ namespace ACE.Server.Factories
                                 materialType = GetMaterialType(7, 1);
                                 break;
                             case 10:
-                                ////Qafiya
+                                ////Horned Helm
                                 armorWeenie = 76;
                                 armorPieceType = 2;
                                 spellArray = 1;
@@ -503,6 +503,94 @@ namespace ACE.Server.Factories
                             case 19:
                                 ////large Kite Shield
                                 armorWeenie = 92;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 20:
+                                ////shirt
+                                armorWeenie = 2587;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 21:
+                                ////pants
+                                armorWeenie = 2601;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 22:
+                                //// Poet's Shirt
+                                armorWeenie = 28608;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 23:
+                                ////Lace Shirt
+                                armorWeenie = 28607;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 24:
+                                ////Viamontian Pants
+                                armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 25:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 26:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 27:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 28:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 29:
+                                ////Breeches
+                                armorWeenie = 2602;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 30:
+                                ////Qafiya
+                                armorWeenie = 128;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
@@ -1153,7 +1241,7 @@ namespace ACE.Server.Factories
                     ////Random Armor Items
                     if (armorType == 7)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 29);
+                        int armorPiece = ThreadSafeRandom.Next(0, 40);
                         switch (armorPiece)
                         {
                             case 0:
@@ -1237,7 +1325,7 @@ namespace ACE.Server.Factories
                                 materialType = GetMaterialType(7, 1);
                                 break;
                             case 10:
-                                ////Qafiya
+                                ////Horned Helm
                                 armorWeenie = 76;
                                 armorPieceType = 2;
                                 spellArray = 1;
@@ -1383,6 +1471,94 @@ namespace ACE.Server.Factories
                             case 28:
                                 ////RTower Shield
                                 armorWeenie = 95;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 29:
+                                ////shirt
+                                armorWeenie = 2587;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 30:
+                                ////pants
+                                armorWeenie = 2601;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 31:
+                                //// Poet's Shirt
+                                armorWeenie = 28608;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 32:
+                                ////Lace Shirt
+                                armorWeenie = 28607;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 33:
+                                ////Viamontian Pants
+                                armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 39:
+                                ////Qafiya
+                                armorWeenie = 128;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
@@ -2139,332 +2315,337 @@ namespace ACE.Server.Factories
                     }
                     if (armorType == 11)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 29);
-                        if (armorPiece == 0)
+                        int armorPiece = ThreadSafeRandom.Next(0, 40);
+                        switch (armorPiece)
                         {
-                            ////bandana
-                            armorWeenie = 28612;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 1)
-                        {
-                            ////beret
-                            armorWeenie = 28605;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Cloth Cap
-                            armorWeenie = 118;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Cloth gloves
-                            armorWeenie = 121;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Cowl
-                            armorWeenie = 119;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////crown
-                            armorWeenie = 296;
-                            armorPieceType = 1;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Fez
-                            armorWeenie = 5894;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////hood
-                            armorWeenie = 5905;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Kasa
-                            armorWeenie = 5901;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Metal cap
-                            armorWeenie = 46;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Qafiya
-                            armorWeenie = 76;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////turban
-                            armorWeenie = 135;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////loafers
-                            armorWeenie = 28610;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////sandals
-                            armorWeenie = 129;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////shoes
-                            armorWeenie = 132;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 15)
-                        {
-                            ////slippers
-                            armorWeenie = 133;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 16)
-                        {
-                            ////steel toed boots
-                            armorWeenie = 7897;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
-                        }
-                        else if (armorPiece == 17)
-                        {
-                            ////buckler
-                            armorWeenie = 44;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 18)
-                        {
-                            ////kite shield
-                            armorWeenie = 91;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 19)
-                        {
-                            ////large Kite Shield
-                            armorWeenie = 92;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 20)
-                        {
-                            ////Circlet
-                            armorWeenie = 29528;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 21)
-                        {
-                            ////Armet
-                            armorWeenie = 8488;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 22)
-                        {
-                            ////Baigha
-                            armorWeenie = 550;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 23)
-                        {
-                            ////Heaume
-                            armorWeenie = 74;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 24)
-                        {
-                            ////Helmet
-                            armorWeenie = 75;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 25)
-                        //{
-                        //    ////Horned Helm
-                        //    armorWeenie = 92;
-                        //    armorPieceType = 5;
-                        //    spellArray = 10;
-                        //    cantripArray = 10;
-                        //}
-                        else if (armorPiece == 25)
-                        {
-                            ////Kabuton
-                            armorWeenie = 77;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 26)
-                        {
-                            ////sollerets
-                            armorWeenie = 107;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 27)
-                        {
-                            ////viamontian laced boots
-                            armorWeenie = 28611;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 28)
-                        {
-                            ////RTower Shield
-                            armorWeenie = 95;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 29)
-                        //{
-                        //    ////Signet Crown
-                        //    armorWeenie = 31868;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 30)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44801;
-                        //    equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 31)
-                        //{
-                        //    ////Faran Over-Robe
-                        //    armorWeenie = 44799;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 32)
-                        //{
-                        //    ////Dho Vest and  Over-Robe
-                        //    armorWeenie = 44800;
-                        //    equipSetId = 14;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 33)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44802;
-                        //    ////equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        else
-                        {
-                            ////Round Shield
-                            armorWeenie = 93;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
+                            case 0:
+                                ////bandana
+                                armorWeenie = 28612;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 1:
+                                ////beret
+                                armorWeenie = 28605;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 2:
+                                ////Cloth Cap
+                                armorWeenie = 118;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 3:
+                                ////Cloth gloves
+                                armorWeenie = 121;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 4:
+                                ////Cowl
+                                armorWeenie = 119;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 5:
+                                ////crown
+                                armorWeenie = 296;
+                                armorPieceType = 1;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 6:
+                                ////Fez
+                                armorWeenie = 5894;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 7:
+                                ////hood
+                                armorWeenie = 5905;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 8:
+                                ////Kasa
+                                armorWeenie = 5901;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 9:
+                                ////Metal cap
+                                armorWeenie = 46;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 10:
+                                ////Horned Helm
+                                armorWeenie = 76;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 11:
+                                ////turban
+                                armorWeenie = 135;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 12:
+                                ////loafers
+                                armorWeenie = 28610;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 13:
+                                ////sandals
+                                armorWeenie = 129;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 14:
+                                ////shoes
+                                armorWeenie = 132;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 15:
+                                ////slippers
+                                armorWeenie = 133;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 16:
+                                ////steel toed boots
+                                armorWeenie = 7897;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(6, 1);
+                                break;
+                            case 17:
+                                ////buckler
+                                armorWeenie = 44;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 18:
+                                ////kite shield
+                                armorWeenie = 91;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 19:
+                                ////large Kite Shield
+                                armorWeenie = 92;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 20:
+                                ////Circlet
+                                armorWeenie = 29528;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 21:
+                                ////Armet
+                                armorWeenie = 8488;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 22:
+                                ////Baigha
+                                armorWeenie = 550;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 23:
+                                ////Heaume
+                                armorWeenie = 74;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 24:
+                                ////Helmet
+                                armorWeenie = 75;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 25:
+                                ////Kabuton
+                                armorWeenie = 77;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 26:
+                                ////sollerets
+                                armorWeenie = 107;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 27:
+                                ////viamontian laced boots
+                                armorWeenie = 28611;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 28:
+                                ////RTower Shield
+                                armorWeenie = 95;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 29:
+                                ////shirt
+                                armorWeenie = 2587;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 30:
+                                ////pants
+                                armorWeenie = 2601;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 31:
+                                //// Poet's Shirt
+                                armorWeenie = 28608;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 32:
+                                ////Lace Shirt
+                                armorWeenie = 28607;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 33:
+                                ////Viamontian Pants
+                                armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 39:
+                                ////Qafiya
+                                armorWeenie = 128;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            default:
+                                ////Round Shield
+                                armorWeenie = 93;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
                         }
                     }
                     break;
@@ -3209,332 +3390,337 @@ namespace ACE.Server.Factories
                     }
                     if (armorType == 11)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 29);
-                        if (armorPiece == 0)
+                        int armorPiece = ThreadSafeRandom.Next(0, 40);
+                        switch (armorPiece)
                         {
-                            ////bandana
-                            armorWeenie = 28612;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 1)
-                        {
-                            ////beret
-                            armorWeenie = 28605;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Cloth Cap
-                            armorWeenie = 118;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Cloth gloves
-                            armorWeenie = 121;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Cowl
-                            armorWeenie = 119;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////crown
-                            armorWeenie = 296;
-                            armorPieceType = 1;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Fez
-                            armorWeenie = 5894;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////hood
-                            armorWeenie = 5905;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Kasa
-                            armorWeenie = 5901;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Metal cap
-                            armorWeenie = 46;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Qafiya
-                            armorWeenie = 76;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////turban
-                            armorWeenie = 135;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////loafers
-                            armorWeenie = 28610;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////sandals
-                            armorWeenie = 129;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////shoes
-                            armorWeenie = 132;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 15)
-                        {
-                            ////slippers
-                            armorWeenie = 133;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 16)
-                        {
-                            ////steel toed boots
-                            armorWeenie = 7897;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
-                        }
-                        else if (armorPiece == 17)
-                        {
-                            ////buckler
-                            armorWeenie = 44;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 18)
-                        {
-                            ////kite shield
-                            armorWeenie = 91;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 19)
-                        {
-                            ////large Kite Shield
-                            armorWeenie = 92;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 20)
-                        {
-                            ////Circlet
-                            armorWeenie = 29528;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 21)
-                        {
-                            ////Armet
-                            armorWeenie = 8488;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 22)
-                        {
-                            ////Baigha
-                            armorWeenie = 550;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 23)
-                        {
-                            ////Heaume
-                            armorWeenie = 74;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 24)
-                        {
-                            ////Helmet
-                            armorWeenie = 75;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 25)
-                        //{
-                        //    ////Horned Helm
-                        //    armorWeenie = 92;
-                        //    armorPieceType = 5;
-                        //    spellArray = 10;
-                        //    cantripArray = 10;
-                        //}
-                        else if (armorPiece == 25)
-                        {
-                            ////Kabuton
-                            armorWeenie = 77;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 26)
-                        {
-                            ////sollerets
-                            armorWeenie = 107;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 27)
-                        {
-                            ////viamontian laced boots
-                            armorWeenie = 28611;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 28)
-                        {
-                            ////RTower Shield
-                            armorWeenie = 95;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 29)
-                        //{
-                        //    ////Signet Crown
-                        //    armorWeenie = 31868;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 30)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44801;
-                        //    equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 31)
-                        //{
-                        //    ////Faran Over-Robe
-                        //    armorWeenie = 44799;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 32)
-                        //{
-                        //    ////Dho Vest and  Over-Robe
-                        //    armorWeenie = 44800;
-                        //    equipSetId = 14;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 33)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44802;
-                        //    ////equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        else
-                        {
-                            ////Round Shield
-                            armorWeenie = 93;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
+                            case 0:
+                                ////bandana
+                                armorWeenie = 28612;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 1:
+                                ////beret
+                                armorWeenie = 28605;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 2:
+                                ////Cloth Cap
+                                armorWeenie = 118;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 3:
+                                ////Cloth gloves
+                                armorWeenie = 121;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 4:
+                                ////Cowl
+                                armorWeenie = 119;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 5:
+                                ////crown
+                                armorWeenie = 296;
+                                armorPieceType = 1;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 6:
+                                ////Fez
+                                armorWeenie = 5894;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 7:
+                                ////hood
+                                armorWeenie = 5905;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 8:
+                                ////Kasa
+                                armorWeenie = 5901;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 9:
+                                ////Metal cap
+                                armorWeenie = 46;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 10:
+                                ////Horned Helm
+                                armorWeenie = 76;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 11:
+                                ////turban
+                                armorWeenie = 135;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 12:
+                                ////loafers
+                                armorWeenie = 28610;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 13:
+                                ////sandals
+                                armorWeenie = 129;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 14:
+                                ////shoes
+                                armorWeenie = 132;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 15:
+                                ////slippers
+                                armorWeenie = 133;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 16:
+                                ////steel toed boots
+                                armorWeenie = 7897;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(6, 1);
+                                break;
+                            case 17:
+                                ////buckler
+                                armorWeenie = 44;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 18:
+                                ////kite shield
+                                armorWeenie = 91;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 19:
+                                ////large Kite Shield
+                                armorWeenie = 92;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 20:
+                                ////Circlet
+                                armorWeenie = 29528;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 21:
+                                ////Armet
+                                armorWeenie = 8488;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 22:
+                                ////Baigha
+                                armorWeenie = 550;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 23:
+                                ////Heaume
+                                armorWeenie = 74;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 24:
+                                ////Helmet
+                                armorWeenie = 75;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 25:
+                                ////Kabuton
+                                armorWeenie = 77;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 26:
+                                ////sollerets
+                                armorWeenie = 107;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 27:
+                                ////viamontian laced boots
+                                armorWeenie = 28611;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 28:
+                                ////RTower Shield
+                                armorWeenie = 95;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 29:
+                                ////shirt
+                                armorWeenie = 2587;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 30:
+                                ////pants
+                                armorWeenie = 2601;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 31:
+                                //// Poet's Shirt
+                                armorWeenie = 28608;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 32:
+                                ////Lace Shirt
+                                armorWeenie = 28607;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 33:
+                                ////Viamontian Pants
+                                armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 39:
+                                ////Qafiya
+                                armorWeenie = 128;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            default:
+                                ////Round Shield
+                                armorWeenie = 93;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
                         }
                     }
                     break;
@@ -4456,356 +4642,340 @@ namespace ACE.Server.Factories
                     }
                     if (armorType == 15)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 29);
-                        if (armorPiece == 0)
+                        int armorPiece = ThreadSafeRandom.Next(0, 40);
+                        switch (armorPiece)
                         {
-                            ////bandana
-                            armorWeenie = 28612;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 1)
-                        {
-                            ////beret
-                            armorWeenie = 28605;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Cloth Cap
-                            armorWeenie = 118;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Cloth gloves
-                            armorWeenie = 121;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Cowl
-                            armorWeenie = 119;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////crown
-                            armorWeenie = 296;
-                            armorPieceType = 1;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Fez
-                            armorWeenie = 5894;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////hood
-                            armorWeenie = 5905;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Kasa
-                            armorWeenie = 5901;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Metal cap
-                            armorWeenie = 46;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Qafiya
-                            armorWeenie = 76;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////turban
-                            armorWeenie = 135;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////loafers
-                            armorWeenie = 28610;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////sandals
-                            armorWeenie = 129;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////shoes
-                            armorWeenie = 132;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 15)
-                        {
-                            ////slippers
-                            armorWeenie = 133;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 16)
-                        {
-                            ////steel toed boots
-                            armorWeenie = 7897;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
-                        }
-                        else if (armorPiece == 17)
-                        {
-                            ////buckler
-                            armorWeenie = 44;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 18)
-                        {
-                            ////kite shield
-                            armorWeenie = 91;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 19)
-                        {
-                            ////large Kite Shield
-                            armorWeenie = 92;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 20)
-                        {
-                            ////Circlet
-                            armorWeenie = 29528;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 21)
-                        {
-                            ////Armet
-                            armorWeenie = 8488;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 22)
-                        {
-                            ////Baigha
-                            armorWeenie = 550;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 23)
-                        {
-                            ////Heaume
-                            armorWeenie = 74;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 24)
-                        {
-                            ////Helmet
-                            armorWeenie = 75;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 25)
-                        //{
-                        //    ////Horned Helm
-                        //    armorWeenie = 92;
-                        //    armorPieceType = 5;
-                        //    spellArray = 10;
-                        //    cantripArray = 10;
-                        //}
-                        else if (armorPiece == 25)
-                        {
-                            ////Kabuton
-                            armorWeenie = 77;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 26)
-                        {
-                            ////sollerets
-                            armorWeenie = 107;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 27)
-                        {
-                            ////viamontian laced boots
-                            armorWeenie = 28611;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 28)
-                        {
-                            ////RTower Shield
-                            armorWeenie = 95;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 29)
-                        //{
-                        //    ////Signet Crown
-                        //    armorWeenie = 31868;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 30)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44801;
-                        //    equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 31)
-                        //{
-                        //    ////Faran Over-Robe
-                        //    armorWeenie = 44799;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 32)
-                        //{
-                        //    ////Dho Vest and  Over-Robe
-                        //    armorWeenie = 44800;
-                        //    equipSetId = 14;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 33)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44802;
-                        //    ////equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 34)
-                        //{
-                        //    ////Coronet
-                        //    armorWeenie = 31866;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 35)
-                        //{
-                        //    ////Diadem
-                        //    armorWeenie = 31867;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        else
-                        {
-                            ////Round Shield
-                            armorWeenie = 93;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
+                            case 0:
+                                ////bandana
+                                armorWeenie = 28612;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 1:
+                                ////beret
+                                armorWeenie = 28605;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 2:
+                                ////Cloth Cap
+                                armorWeenie = 118;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 3:
+                                ////Cloth gloves
+                                armorWeenie = 121;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 4:
+                                ////Cowl
+                                armorWeenie = 119;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 5:
+                                ////crown
+                                armorWeenie = 296;
+                                armorPieceType = 1;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 6:
+                                ////Fez
+                                armorWeenie = 5894;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 7:
+                                ////hood
+                                armorWeenie = 5905;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 8:
+                                ////Kasa
+                                armorWeenie = 5901;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 9:
+                                ////Metal cap
+                                armorWeenie = 46;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 10:
+                                ////Horned Helm
+                                armorWeenie = 76;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 11:
+                                ////turban
+                                armorWeenie = 135;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 12:
+                                ////loafers
+                                armorWeenie = 28610;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 13:
+                                ////sandals
+                                armorWeenie = 129;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 14:
+                                ////shoes
+                                armorWeenie = 132;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 15:
+                                ////slippers
+                                armorWeenie = 133;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 16:
+                                ////steel toed boots
+                                armorWeenie = 7897;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(6, 1);
+                                break;
+                            case 17:
+                                ////buckler
+                                armorWeenie = 44;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 18:
+                                ////kite shield
+                                armorWeenie = 91;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 19:
+                                ////large Kite Shield
+                                armorWeenie = 92;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 20:
+                                ////Circlet
+                                armorWeenie = 29528;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 21:
+                                ////Armet
+                                armorWeenie = 8488;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 22:
+                                ////Baigha
+                                armorWeenie = 550;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 23:
+                                ////Heaume
+                                armorWeenie = 74;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 24:
+                                ////Helmet
+                                armorWeenie = 75;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 25:
+                                ////Kabuton
+                                armorWeenie = 77;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 26:
+                                ////sollerets
+                                armorWeenie = 107;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 27:
+                                ////viamontian laced boots
+                                armorWeenie = 28611;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 28:
+                                ////RTower Shield
+                                armorWeenie = 95;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 29:
+                                ////shirt
+                                armorWeenie = 2587;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 30:
+                                ////pants
+                                armorWeenie = 2601;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 31:
+                                //// Poet's Shirt
+                                armorWeenie = 28608;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 32:
+                                ////Lace Shirt
+                                armorWeenie = 28607;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 33:
+                                ////Viamontian Pants
+                                armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 39:
+                                ////Qafiya
+                                armorWeenie = 128;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            default:
+                                ////Round Shield
+                                armorWeenie = 93;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
                         }
                     }
                     break;
-                ///////
-                ////
-
                 case 6:
                     lowSpellTier = 6;
                     highSpellTier = 7;
@@ -4936,554 +5106,504 @@ namespace ACE.Server.Factories
                     if (armorType == 1)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 14);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 554;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 554;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 116;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 2:
+                                armorWeenie = 38;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 3:
+                                armorWeenie = 42;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                armorWeenie = 48;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 723;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 6:
+                                armorWeenie = 53;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 59;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 8:
+                                armorWeenie = 63;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 9:
+                                armorWeenie = 68;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 10:
+                                armorWeenie = 68;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 11:
+                                armorWeenie = 89;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 12:
+                                armorWeenie = 99;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 13:
+                                armorWeenie = 105;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 112;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 116;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 38;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 42;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 48;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 723;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 53;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 59;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 63;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 89;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 99;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            armorWeenie = 105;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 112;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 35;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 35;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 413;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 414;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 85;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 55;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 5:
+                                armorWeenie = 415;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 6:
+                                armorWeenie = 2605;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 71;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 8:
+                                armorWeenie = 80;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 416;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 96;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 11:
+                                armorWeenie = 101;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 108;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 413;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 414;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 85;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 55;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 415;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 2605;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 71;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 80;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 416;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 96;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 101;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 108;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 10);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 40;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 40;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 51;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 57;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 61;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 66;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 5:
+                                armorWeenie = 72;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 6:
+                                armorWeenie = 82;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 87;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 8:
+                                armorWeenie = 103;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 9:
+                                armorWeenie = 110;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 114;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 51;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 57;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 61;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 66;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 72;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 82;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 87;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 103;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 110;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 114;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 13);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 552;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 552;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 37;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 41;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 793;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 52;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 58;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 6:
+                                armorWeenie = 62;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 7:
+                                armorWeenie = 67;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 8:
+                                armorWeenie = 73;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                armorWeenie = 83;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 10:
+                                armorWeenie = 88;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 98;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 12:
+                                armorWeenie = 104;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 111;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 37;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 41;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 793;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 52;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 58;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 62;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 67;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 73;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 83;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 88;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 98;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 104;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 111;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 7);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 43;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 43;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 54;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 64;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 3:
+                                armorWeenie = 69;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 4:
+                                armorWeenie = 2437;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 5:
+                                armorWeenie = 90;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                armorWeenie = 102;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 113;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 54;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 64;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 69;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 2437;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 90;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 102;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 113;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 28627;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
+                            case 0:
+                                armorWeenie = 28627;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 1:
+                                armorWeenie = 28628;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 28630;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 28632;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 4:
+                                armorWeenie = 28633;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 5:
+                                armorWeenie = 28634;
+                                armorPieceType = 31;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 6:
+                                armorWeenie = 30948;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 28618;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 8:
+                                armorWeenie = 28621;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 28623;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 30949;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 28625;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            default:
+                                armorWeenie = 28626;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28628;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 28630;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28632;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 28633;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 28634;
-                            armorPieceType = 31;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 30948;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 28618;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 28621;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 28623;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 30949;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 28625;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else
-                        {
-                            armorWeenie = 28626;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
@@ -5953,377 +6073,337 @@ namespace ACE.Server.Factories
                     //}
                     if (armorType == 15)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 29);
-                        if (armorPiece == 0)
+                        int armorPiece = ThreadSafeRandom.Next(0, 40);
+                        switch (armorPiece)
                         {
-                            ////bandana
-                            armorWeenie = 28612;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 1)
-                        {
-                            ////beret
-                            armorWeenie = 28605;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Cloth Cap
-                            armorWeenie = 118;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Cloth gloves
-                            armorWeenie = 121;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Cowl
-                            armorWeenie = 119;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////crown
-                            armorWeenie = 296;
-                            armorPieceType = 1;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Fez
-                            armorWeenie = 5894;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////hood
-                            armorWeenie = 5905;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Kasa
-                            armorWeenie = 5901;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Metal cap
-                            armorWeenie = 46;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Qafiya
-                            armorWeenie = 76;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////turban
-                            armorWeenie = 135;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////loafers
-                            armorWeenie = 28610;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////sandals
-                            armorWeenie = 129;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////shoes
-                            armorWeenie = 132;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 15)
-                        {
-                            ////slippers
-                            armorWeenie = 133;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 16)
-                        {
-                            ////steel toed boots
-                            armorWeenie = 7897;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
-                        }
-                        else if (armorPiece == 17)
-                        {
-                            ////buckler
-                            armorWeenie = 44;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 18)
-                        {
-                            ////kite shield
-                            armorWeenie = 91;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 19)
-                        {
-                            ////large Kite Shield
-                            armorWeenie = 92;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 20)
-                        {
-                            ////Circlet
-                            armorWeenie = 29528;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 21)
-                        {
-                            ////Armet
-                            armorWeenie = 8488;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 22)
-                        {
-                            ////Baigha
-                            armorWeenie = 550;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 23)
-                        {
-                            ////Heaume
-                            armorWeenie = 74;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 24)
-                        {
-                            ////Helmet
-                            armorWeenie = 75;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 25)
-                        //{
-                        //    ////Horned Helm
-                        //    armorWeenie = 92;
-                        //    armorPieceType = 5;
-                        //    spellArray = 10;
-                        //    cantripArray = 10;
-                        //}
-                        else if (armorPiece == 25)
-                        {
-                            ////Kabuton
-                            armorWeenie = 77;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 26)
-                        {
-                            ////sollerets
-                            armorWeenie = 107;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 27)
-                        {
-                            ////viamontian laced boots
-                            armorWeenie = 28611;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 28)
-                        {
-                            ////RTower Shield
-                            armorWeenie = 95;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 29)
-                        //{
-                        //    ////Signet Crown
-                        //    armorWeenie = 31868;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 30)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44801;
-                        //    equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 31)
-                        //{
-                        //    ////Faran Over-Robe
-                        //    armorWeenie = 44799;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 32)
-                        //{
-                        //    ////Dho Vest and  Over-Robe
-                        //    armorWeenie = 44800;
-                        //    equipSetId = 14;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 33)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44802;
-                        //    ////equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 30)
-                        //{
-                        //    ////Coronet
-                        //    armorWeenie = 31866;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 31)
-                        //{
-                        //    ////Diadem
-                        //    armorWeenie = 31867;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 32)
-                        //{
-                        //    ////Teardrop
-                        //    armorWeenie = 31864;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 37)
-                        //{
-                        //    ////Lyceum Hood
-                        //    armorWeenie = 44977;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 38)
-                        //{
-                        //    ////Empyrean Over-Robe
-                        //    armorWeenie = 43274;
-                        //    armorPieceType = 1;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        else
-                        {
-                            ////Round Shield
-                            armorWeenie = 93;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
+                            case 0:
+                                ////bandana
+                                armorWeenie = 28612;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 1:
+                                ////beret
+                                armorWeenie = 28605;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 2:
+                                ////Cloth Cap
+                                armorWeenie = 118;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 3:
+                                ////Cloth gloves
+                                armorWeenie = 121;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 4:
+                                ////Cowl
+                                armorWeenie = 119;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 5:
+                                ////crown
+                                armorWeenie = 296;
+                                armorPieceType = 1;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 6:
+                                ////Fez
+                                armorWeenie = 5894;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 7:
+                                ////hood
+                                armorWeenie = 5905;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 8:
+                                ////Kasa
+                                armorWeenie = 5901;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 9:
+                                ////Metal cap
+                                armorWeenie = 46;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 10:
+                                ////Horned Helm
+                                armorWeenie = 76;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 11:
+                                ////turban
+                                armorWeenie = 135;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 12:
+                                ////loafers
+                                armorWeenie = 28610;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 13:
+                                ////sandals
+                                armorWeenie = 129;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 14:
+                                ////shoes
+                                armorWeenie = 132;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 15:
+                                ////slippers
+                                armorWeenie = 133;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 16:
+                                ////steel toed boots
+                                armorWeenie = 7897;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(6, 1);
+                                break;
+                            case 17:
+                                ////buckler
+                                armorWeenie = 44;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 18:
+                                ////kite shield
+                                armorWeenie = 91;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 19:
+                                ////large Kite Shield
+                                armorWeenie = 92;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 20:
+                                ////Circlet
+                                armorWeenie = 29528;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 21:
+                                ////Armet
+                                armorWeenie = 8488;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 22:
+                                ////Baigha
+                                armorWeenie = 550;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 23:
+                                ////Heaume
+                                armorWeenie = 74;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 24:
+                                ////Helmet
+                                armorWeenie = 75;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 25:
+                                ////Kabuton
+                                armorWeenie = 77;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 26:
+                                ////sollerets
+                                armorWeenie = 107;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 27:
+                                ////viamontian laced boots
+                                armorWeenie = 28611;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 28:
+                                ////RTower Shield
+                                armorWeenie = 95;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 29:
+                                ////shirt
+                                armorWeenie = 2587;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 30:
+                                ////pants
+                                armorWeenie = 2601;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 31:
+                                //// Poet's Shirt
+                                armorWeenie = 28608;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 32:
+                                ////Lace Shirt
+                                armorWeenie = 28607;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 33:
+                                ////Viamontian Pants
+                                armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 39:
+                                ////Qafiya
+                                armorWeenie = 128;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            default:
+                                ////Round Shield
+                                armorWeenie = 93;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
                         }
                     }
                     break;
@@ -7207,41 +7287,40 @@ namespace ACE.Server.Factories
                     if (armorType == 14)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 4);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 30950;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 30950;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 28629;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 30951;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 28617;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            default:
+                                armorWeenie = 28620;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28629;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 30951;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28617;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else
-                        {
-                            armorWeenie = 28620;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Knorr Academy Armor
@@ -7425,377 +7504,337 @@ namespace ACE.Server.Factories
                     //}
                     if (armorType == 15)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 29);
-                        if (armorPiece == 0)
+                        int armorPiece = ThreadSafeRandom.Next(0, 40);
+                        switch (armorPiece)
                         {
-                            ////bandana
-                            armorWeenie = 28612;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 1)
-                        {
-                            ////beret
-                            armorWeenie = 28605;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Cloth Cap
-                            armorWeenie = 118;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Cloth gloves
-                            armorWeenie = 121;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Cowl
-                            armorWeenie = 119;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////crown
-                            armorWeenie = 296;
-                            armorPieceType = 1;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Fez
-                            armorWeenie = 5894;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////hood
-                            armorWeenie = 5905;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Kasa
-                            armorWeenie = 5901;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Metal cap
-                            armorWeenie = 46;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Qafiya
-                            armorWeenie = 76;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////turban
-                            armorWeenie = 135;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////loafers
-                            armorWeenie = 28610;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////sandals
-                            armorWeenie = 129;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////shoes
-                            armorWeenie = 132;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 15)
-                        {
-                            ////slippers
-                            armorWeenie = 133;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 16)
-                        {
-                            ////steel toed boots
-                            armorWeenie = 7897;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
-                        }
-                        else if (armorPiece == 17)
-                        {
-                            ////buckler
-                            armorWeenie = 44;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 18)
-                        {
-                            ////kite shield
-                            armorWeenie = 91;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 19)
-                        {
-                            ////large Kite Shield
-                            armorWeenie = 92;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 20)
-                        {
-                            ////Circlet
-                            armorWeenie = 29528;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 21)
-                        {
-                            ////Armet
-                            armorWeenie = 8488;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 22)
-                        {
-                            ////Baigha
-                            armorWeenie = 550;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 23)
-                        {
-                            ////Heaume
-                            armorWeenie = 74;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 24)
-                        {
-                            ////Helmet
-                            armorWeenie = 75;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 25)
-                        //{
-                        //    ////Horned Helm
-                        //    armorWeenie = 92;
-                        //    armorPieceType = 5;
-                        //    spellArray = 10;
-                        //    cantripArray = 10;
-                        //}
-                        else if (armorPiece == 25)
-                        {
-                            ////Kabuton
-                            armorWeenie = 77;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 26)
-                        {
-                            ////sollerets
-                            armorWeenie = 107;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 27)
-                        {
-                            ////viamontian laced boots
-                            armorWeenie = 28611;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 28)
-                        {
-                            ////RTower Shield
-                            armorWeenie = 95;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 29)
-                        //{
-                        //    ////Signet Crown
-                        //    armorWeenie = 31868;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 30)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44801;
-                        //    equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 31)
-                        //{
-                        //    ////Faran Over-Robe
-                        //    armorWeenie = 44799;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 32)
-                        //{
-                        //    ////Dho Vest and  Over-Robe
-                        //    armorWeenie = 44800;
-                        //    equipSetId = 14;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 33)
-                        //{
-                        //    ////Suikan Over-Robe
-                        //    armorWeenie = 44802;
-                        //    ////equipSetId = 15;
-                        //    armorPieceType = 5;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 30)
-                        //{
-                        //    ////Coronet
-                        //    armorWeenie = 31866;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 31)
-                        //{
-                        //    ////Diadem
-                        //    armorWeenie = 31867;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 32)
-                        //{
-                        //    ////Teardrop
-                        //    armorWeenie = 31864;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(7, 1);
-                        //}
-                        //else if (armorPiece == 37)
-                        //{
-                        //    ////Lyceum Hood
-                        //    armorWeenie = 44977;
-                        //    armorPieceType = 2;
-                        //    spellArray = 1;
-                        //    cantripArray = 1;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        //else if (armorPiece == 38)
-                        //{
-                        //    ////Empyrean Over-Robe
-                        //    armorWeenie = 43274;
-                        //    armorPieceType = 1;
-                        //    spellArray = 2;
-                        //    cantripArray = 2;
-                        //    materialType = GetMaterialType(8, 1);
-                        //}
-                        else
-                        {
-                            ////Round Shield
-                            armorWeenie = 93;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
+                            case 0:
+                                ////bandana
+                                armorWeenie = 28612;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 1:
+                                ////beret
+                                armorWeenie = 28605;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 2:
+                                ////Cloth Cap
+                                armorWeenie = 118;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 3:
+                                ////Cloth gloves
+                                armorWeenie = 121;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 4:
+                                ////Cowl
+                                armorWeenie = 119;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 5:
+                                ////crown
+                                armorWeenie = 296;
+                                armorPieceType = 1;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 6:
+                                ////Fez
+                                armorWeenie = 5894;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 7:
+                                ////hood
+                                armorWeenie = 5905;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 8:
+                                ////Kasa
+                                armorWeenie = 5901;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 9:
+                                ////Metal cap
+                                armorWeenie = 46;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 10:
+                                ////Horned Helm
+                                armorWeenie = 76;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 11:
+                                ////turban
+                                armorWeenie = 135;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 12:
+                                ////loafers
+                                armorWeenie = 28610;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 13:
+                                ////sandals
+                                armorWeenie = 129;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 14:
+                                ////shoes
+                                armorWeenie = 132;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 15:
+                                ////slippers
+                                armorWeenie = 133;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 16:
+                                ////steel toed boots
+                                armorWeenie = 7897;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(6, 1);
+                                break;
+                            case 17:
+                                ////buckler
+                                armorWeenie = 44;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 18:
+                                ////kite shield
+                                armorWeenie = 91;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 19:
+                                ////large Kite Shield
+                                armorWeenie = 92;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 20:
+                                ////Circlet
+                                armorWeenie = 29528;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 21:
+                                ////Armet
+                                armorWeenie = 8488;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 22:
+                                ////Baigha
+                                armorWeenie = 550;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 23:
+                                ////Heaume
+                                armorWeenie = 74;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 24:
+                                ////Helmet
+                                armorWeenie = 75;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 25:
+                                ////Kabuton
+                                armorWeenie = 77;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 26:
+                                ////sollerets
+                                armorWeenie = 107;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 27:
+                                ////viamontian laced boots
+                                armorWeenie = 28611;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 28:
+                                ////RTower Shield
+                                armorWeenie = 95;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 29:
+                                ////shirt
+                                armorWeenie = 2587;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 30:
+                                ////pants
+                                armorWeenie = 2601;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 31:
+                                //// Poet's Shirt
+                                armorWeenie = 28608;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 32:
+                                ////Lace Shirt
+                                armorWeenie = 28607;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 33:
+                                ////Viamontian Pants
+                                armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 39:
+                                ////Qafiya
+                                armorWeenie = 128;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            default:
+                                ////Round Shield
+                                armorWeenie = 93;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
                         }
                     }
                     break;
@@ -9099,7 +9138,7 @@ namespace ACE.Server.Factories
                     //}
                     if (armorType == 15)
                     {
-                        int armorPiece = ThreadSafeRandom.Next(0, 29);
+                        int armorPiece = ThreadSafeRandom.Next(0, 40);
                         switch (armorPiece)
                         {
                             case 0:
@@ -9183,7 +9222,7 @@ namespace ACE.Server.Factories
                                 materialType = GetMaterialType(7, 1);
                                 break;
                             case 10:
-                                ////Qafiya
+                                ////Horned Helm
                                 armorWeenie = 76;
                                 armorPieceType = 2;
                                 spellArray = 1;
@@ -9329,6 +9368,94 @@ namespace ACE.Server.Factories
                             case 28:
                                 ////RTower Shield
                                 armorWeenie = 95;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 29:
+                                ////shirt
+                                armorWeenie = 2587;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 30:
+                                ////pants
+                                armorWeenie = 2601;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 31:
+                                //// Poet's Shirt
+                                armorWeenie = 28608;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 32:
+                                ////Lace Shirt
+                                armorWeenie = 28607;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 33:
+                                ////Viamontian Pants
+                                armorWeenie = 28606;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 34:
+                                ////Smock
+                                armorWeenie = 2589;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 35:
+                                ////Tunic
+                                armorWeenie = 2592;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 36:
+                                ////Trousers
+                                armorWeenie = 2599;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 37:
+                                ////Pantaloons
+                                armorWeenie = 2600;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 38:
+                                ////Breeches
+                                armorWeenie = 2602;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 39:
+                                ////Qafiya
+                                armorWeenie = 128;
                                 armorPieceType = 5;
                                 spellArray = 10;
                                 cantripArray = 10;
