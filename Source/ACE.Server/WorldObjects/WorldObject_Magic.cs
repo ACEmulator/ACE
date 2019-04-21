@@ -724,7 +724,9 @@ namespace ACE.Server.WorldObjects
 
                             case SpellId.LifestoneSending1:
 
-                                if (player.GetPosition(PositionType.Sanctuary) != null)
+                                if (player != null && player.GetPosition(PositionType.Sanctuary) != null)
+                                    recall = PositionType.Sanctuary;
+                                else if (targetPlayer != null && targetPlayer.GetPosition(PositionType.Sanctuary) != null)
                                     recall = PositionType.Sanctuary;
 
                                 break;
@@ -764,9 +766,9 @@ namespace ACE.Server.WorldObjects
                             {
                                 // lifestone recall
                                 ActionChain lifestoneRecall = new ActionChain();
-                                lifestoneRecall.AddAction(targetPlayer, () => player.DoPreTeleportHide());
+                                lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                                 lifestoneRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                                lifestoneRecall.AddAction(targetPlayer, () => player.TeleToPosition(recall));
+                                lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.TeleToPosition(recall));
                                 lifestoneRecall.EnqueueChain();
                             }
                             else
@@ -785,9 +787,9 @@ namespace ACE.Server.WorldObjects
                                 }
 
                                 ActionChain portalRecall = new ActionChain();
-                                portalRecall.AddAction(targetPlayer, () => player.DoPreTeleportHide());
+                                portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                                 portalRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                                portalRecall.AddAction(targetPlayer, () => player.Teleport(portal.Destination));
+                                portalRecall.AddAction(targetPlayer, () => targetPlayer.Teleport(portal.Destination));
                                 portalRecall.EnqueueChain();
                             }
                         }

@@ -177,7 +177,7 @@ namespace ACE.Server.Command.Handlers
             if (open)
                 WorldManager.Open(session == null ? null : session.Player);
             else if (close)
-                WorldManager.Close(session == null ? null : session.Player);
+                WorldManager.Close(session == null ? null : session.Player, bootPlayers);
         }
     }
 }
