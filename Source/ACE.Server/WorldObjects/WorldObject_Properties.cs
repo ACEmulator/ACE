@@ -1254,6 +1254,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaterialType); else SetProperty(PropertyInt.MaterialType, (int)value.Value); }
         }
 
+        public MaterialType? GemType
+        {
+            get => (MaterialType?)GetProperty(PropertyInt.GemType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GemType); else SetProperty(PropertyInt.GemType, (int)value.Value); }
+        }
+
         public int? Attuned
         {
             get => GetProperty(PropertyInt.Attuned);
@@ -1928,6 +1934,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.GeneratorEnteredWorld) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value); }
+        }
+
+        public int? TsysMutationData
+        {
+            get => GetProperty(PropertyInt.TsysMutationData);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.TsysMutationData); else SetProperty(PropertyInt.TsysMutationData, value.Value); }
         }
 
         /// <summary>

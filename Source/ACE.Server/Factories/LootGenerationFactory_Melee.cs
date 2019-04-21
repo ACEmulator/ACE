@@ -24,7 +24,6 @@ namespace ACE.Server.Factories
             double missileD = GetMissileDMod(tier);
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
-            int materialType = GetMaterialType(2, tier);
             int workmanship = GetWorkmanship(tier);
             int wieldDiff = GetWield(tier, 3);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
@@ -335,7 +334,9 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
+            int materialType = GetMaterialType(wo, tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.SetProperty(PropertyInt.Damage, damage);
@@ -450,8 +451,13 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemSpellcraft);
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
 
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
+
+            wo = RandomizeColor(wo);
             return wo;
         }
     }
