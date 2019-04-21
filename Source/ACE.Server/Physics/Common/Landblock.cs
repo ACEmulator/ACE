@@ -265,7 +265,12 @@ namespace ACE.Server.Physics.Common
                         var physicsObj = PhysicsObj.makeObject(obj.ObjId, 0, false);
                         physicsObj.DatObject = true;
                         physicsObj.set_initial_frame(pos.Frame);
-                        if (!physicsObj.obj_within_block()) continue;
+                        if (!physicsObj.obj_within_block())
+                        {
+                            //Console.WriteLine($"Landblock {ID:X8} scenery: failed to spawn {obj.ObjId:X8}");
+                            physicsObj.DestroyObject();
+                            continue;
+                        }
 
                         physicsObj.add_obj_to_cell(cell, pos.Frame);
                         var scale = ObjectDesc.ScaleObj(obj, globalCellX, globalCellY, j);
@@ -488,7 +493,12 @@ namespace ACE.Server.Physics.Common
                     var position = new Position(ID, new AFrame(info.Frame));
                     var outside = LandDefs.AdjustToOutside(position);
                     var cell = get_landcell(position.ObjCellID);
-                    if (cell == null) continue;
+                    if (cell == null)
+                    {
+                        //Console.WriteLine($"Landblock {ID:X8} - failed to spawn static object {info.Id:X8}");
+                        obj.DestroyObject();
+                        continue;
+                    }
                     obj.add_obj_to_cell(cell, position.Frame);
                     add_static_object(obj);
                 }

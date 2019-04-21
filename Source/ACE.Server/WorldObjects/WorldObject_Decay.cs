@@ -56,7 +56,7 @@ namespace ACE.Server.WorldObjects
 
             var corpse = this as Corpse;
 
-            if (corpse != null && corpse.Inventory.Count == 0 && TimeToRot.Value > Corpse.EmptyDecayTime)
+            if (corpse != null && corpse.InventoryLoaded && corpse.Inventory.Count == 0 && TimeToRot.Value > Corpse.EmptyDecayTime)
             {
                 TimeToRot = Corpse.EmptyDecayTime;
                 return;
