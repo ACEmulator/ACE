@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-21
+[Ripley]
+* Updated handling of scribe related functions.
+
 ### 2019-04-20
 [Ripley]
 * Changed shortcut code to fix some collision issues.
