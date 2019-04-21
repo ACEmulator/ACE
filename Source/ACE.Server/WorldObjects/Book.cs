@@ -121,6 +121,8 @@ namespace ACE.Server.WorldObjects
             if (alreadyExists) return null;
 
             SetProperty(PropertyInt.AppraisalPages, pages.Count + 1);
+            ChangesDetected = true;
+
             return page;
         }
 
