@@ -8937,7 +8937,8 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
 
             materialType = GetMaterialType(wo, tier);
-            wo.SetProperty(PropertyInt.MaterialType, materialType);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
 
             int gemCount = ThreadSafeRandom.Next(1, 6);
             int gemType = ThreadSafeRandom.Next(10, 50);
@@ -8946,7 +8947,11 @@ namespace ACE.Server.Factories
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
+
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
 
             if (tier > 6)
             {
@@ -8967,11 +8972,6 @@ namespace ACE.Server.Factories
 
                 wo.SetProperty(PropertyInt.WieldDifficulty, wield);
             }
-
-            /////Setting random color
-            wo.SetProperty(PropertyInt.PaletteTemplate, ThreadSafeRandom.Next(1, 2047));
-            double shade = .1 * ThreadSafeRandom.Next(0, 9);
-            wo.SetProperty(PropertyFloat.Shade, shade);
 
             var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 

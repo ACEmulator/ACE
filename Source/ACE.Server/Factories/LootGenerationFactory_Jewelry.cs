@@ -111,13 +111,19 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
+            int materialType = GetMaterialType(wo, tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             int workmanship = GetWorkmanship(tier);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
+
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);

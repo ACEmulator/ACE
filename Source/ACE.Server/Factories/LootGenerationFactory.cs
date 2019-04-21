@@ -167,8 +167,7 @@ namespace ACE.Server.Factories
         public static WorldObject CreateLootByWCID(uint wcid, int tier)
         {
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(wcid);
-            var tsysMutationData = wo.GetProperty(PropertyInt.TsysMutationData);
-            if (tsysMutationData != null) { 
+            if (wo.TsysMutationData != null) { 
                 int newMaterialType = GetMaterialType(wo, tier);
                 if (newMaterialType > 0)
                 {
@@ -2440,23 +2439,19 @@ namespace ACE.Server.Factories
         {
             int defaultMaterialType = 0;
 
-            var tsysMutationData = wo.GetProperty(PropertyInt.TsysMutationData);
-            if(tsysMutationData == null)
+            if(wo.TsysMutationData == null)
             {
                 log.Info($"Missing PropertyInt.TsysMutationData on loot item {wo.WeenieClassId} - {wo.Name}");
                 return defaultMaterialType;
             }
 
-            int materialCode = ((int)tsysMutationData >> 0) & 0xFF;
+            int materialCode = ((int)wo.TsysMutationData >> 0) & 0xFF;
 
             // Enforce some bounds
             if (tier < 1) tier = 1;
             // Data only goes to Tier 6 at the moment... Just in case the loot gem goes above this first, we'll cap it here for now.
             if (tier > 6)
-            {
-                log.Warn("LootGenerationType.GetMaterialType() is currently limited to Tier 6 and below. Code adjustments required to remove this limiter.");
                 tier = 6;
-            }
 
             var materialBase = DatabaseManager.World.GetCachedTreasureMaterialBase(materialCode, tier);
 
@@ -2815,9 +2810,9 @@ namespace ACE.Server.Factories
         /// <returns>WorldObject with a random applicable PaletteTemplate and Shade applied, if available</returns>
         private static WorldObject RandomizeColor(WorldObject wo)
         {
-            if(wo.MaterialType != null && wo.GetProperty(PropertyInt.TsysMutationData) != null && wo.ClothingBase != null)
+            if(wo.MaterialType > 0 && wo.TsysMutationData != null && wo.ClothingBase != null)
             {
-                byte colorCode = (byte)( ((uint)wo.GetProperty(PropertyInt.TsysMutationData) >> 16) & 0xFF );
+                byte colorCode = (byte)( ((uint)wo.TsysMutationData >> 16) & 0xFF );
 
                 // BYTE spellCode = (tsysMutationData >> 24) & 0xFF;
                 // BYTE colorCode = (tsysMutationData >> 16) & 0xFF;

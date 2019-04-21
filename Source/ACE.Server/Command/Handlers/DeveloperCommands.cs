@@ -1924,8 +1924,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            var tsysMutationData = lootTest.GetProperty(PropertyInt.TsysMutationData);
-            if (tsysMutationData == null)
+            if (lootTest.TsysMutationData == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie has a missing PropertyInt.TsysMutationData needed for this function.", ChatMessageType.Broadcast));
                 return;
