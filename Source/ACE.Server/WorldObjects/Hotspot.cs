@@ -164,13 +164,13 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case DamageType.Mana:
-                    player.UpdateVitalDelta(player.Mana, iAmount * -1);
+                    player.UpdateVitalDelta(player.Mana, -iAmount);
                     break;
                 case DamageType.Stamina:
-                    player.UpdateVitalDelta(player.Stamina, iAmount * -1);
+                    player.UpdateVitalDelta(player.Stamina, -iAmount);
                     break;
                 case DamageType.Health:
-                    player.UpdateVitalDelta(player.Health, iAmount * -1);
+                    player.UpdateVitalDelta(player.Health, -iAmount);
                     break;
             }
 
