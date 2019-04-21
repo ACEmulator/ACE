@@ -385,6 +385,12 @@ namespace ACE.Server.Physics.Common
                     var staticObj = PhysicsObj.makeObject(StaticObjectIDs[i], 0, false);
                     staticObj.DatObject = true;
                     staticObj.add_obj_to_cell(this, StaticObjectFrames[i]);
+                    if (staticObj.CurCell == null)
+                    {
+                        //Console.WriteLine($"EnvCell {ID:X8}: failed to add {staticObj.ID:X8}");
+                        staticObj.DestroyObject();
+                        continue;
+                    }
 
                     StaticObjects.Add(staticObj);
                 }

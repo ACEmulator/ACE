@@ -45,8 +45,8 @@ namespace ACE.Server.Factories
                         case 2:
                             weaponDefense = GetMaxDamageMod(tier, 18);
                             weaponOffense = GetMaxDamageMod(tier, 22);
-                            damage = GetMaxDamage(1, tier, wieldDiff, 1);
-                            damageVariance = GetVariance(1, 1);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Axe);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Axe);
                             break;
                         case 3:
                         case 4:
@@ -54,14 +54,14 @@ namespace ACE.Server.Factories
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
 
-                            damage = GetMaxDamage(1, tier, wieldDiff, 2);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
 
                             if (heavyWeaponsType == 3)
-                                damageVariance = GetVariance(1, 2);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
                             if (heavyWeaponsType == 4 || heavyWeaponsType == 5)
                             {
-                                damage = GetMaxDamage(1, tier, wieldDiff, 3);
-                                damageVariance = GetVariance(1, 3);
+                                damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                             }
                             break;
                         case 6:
@@ -70,23 +70,23 @@ namespace ACE.Server.Factories
                         case 9:
                             weaponDefense = GetMaxDamageMod(tier, 22);
                             weaponOffense = GetMaxDamageMod(tier, 18);
-                            damage = GetMaxDamage(1, tier, wieldDiff, 4);
-                            damageVariance = GetVariance(1, 4);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
                             break;
                         case 10:
                         case 11:
                         case 12:
                             weaponDefense = GetMaxDamageMod(tier, 15);
                             weaponOffense = GetMaxDamageMod(tier, 25);
-                            damage = GetMaxDamage(1, tier, wieldDiff, 5);
-                            damageVariance = GetVariance(1, 5);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spear);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Spear);
                             break;
                         case 13:
                         case 14:
                             weaponDefense = GetMaxDamageMod(tier, 25);
                             weaponOffense = GetMaxDamageMod(tier, 15);
-                            damage = GetMaxDamage(1, tier, wieldDiff, 8);
-                            damageVariance = GetVariance(1, 6);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Staff);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Staff);
                             break;
                         case 15:
                         case 16:
@@ -97,21 +97,21 @@ namespace ACE.Server.Factories
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
 
-                            damage = GetMaxDamage(1, tier, wieldDiff, 6);
-                            damageVariance = GetVariance(1, 7);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
                             if (heavyWeaponsType == 20)
                             {
-                                damage = GetMaxDamage(1, tier, wieldDiff, 7);
-                                damageVariance = GetVariance(1, 8);
+                                damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
                             }
                             break;
                         case 21:
                         default:
-                            damage = GetMaxDamage(1, tier, wieldDiff, 9);
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
-                            damageVariance = GetVariance(1, 9);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.UA);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.UA);
                             break;
                     }
                     break;
@@ -129,8 +129,8 @@ namespace ACE.Server.Factories
                         case 3:
                             weaponDefense = GetMaxDamageMod(tier, 18);
                             weaponOffense = GetMaxDamageMod(tier, 22);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 1);
-                            damageVariance = GetVariance(2, 1);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Axe);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Axe);
                             break;
                         case 4:
                         case 5:
@@ -139,14 +139,14 @@ namespace ACE.Server.Factories
 
                             if (lightWeaponsType == 4)
                             {
-                                damage = GetMaxDamage(2, tier, wieldDiff, 2);
-                                damageVariance = GetVariance(2, 2);
+                                damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
                             }
 
                             if (lightWeaponsType == 5)
                             {
-                                damage = GetMaxDamage(2, tier, wieldDiff, 3);
-                                damageVariance = GetVariance(2, 3);
+                                damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                             }
                             break;
                         case 6:
@@ -154,21 +154,21 @@ namespace ACE.Server.Factories
                         case 8:
                             weaponDefense = GetMaxDamageMod(tier, 22);
                             weaponOffense = GetMaxDamageMod(tier, 18);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 4);
-                            damageVariance = GetVariance(2, 4);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
                             break;
                         case 9:
                         case 10:
                             weaponDefense = GetMaxDamageMod(tier, 15);
                             weaponOffense = GetMaxDamageMod(tier, 25);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 5);
-                            damageVariance = GetVariance(2, 6);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spear);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Spear);
                             break;
                         case 11:
                             weaponDefense = GetMaxDamageMod(tier, 25);
                             weaponOffense = GetMaxDamageMod(tier, 15);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 8);
-                            damageVariance = GetVariance(2, 7);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Staff);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Staff);
                             break;
                         case 12:
                         case 13:
@@ -179,21 +179,21 @@ namespace ACE.Server.Factories
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
 
-                            damage = GetMaxDamage(2, tier, wieldDiff, 6);
-                            damageVariance = GetVariance(2, 8);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
                             if (lightWeaponsType == 14)
                             {
-                                damage = GetMaxDamage(2, tier, wieldDiff, 7);
-                                damageVariance = GetVariance(2, 9);
+                                damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
                             }
                             break;
                         case 18:
                         default:
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 9);
-                            damageVariance = GetVariance(2, 10);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.UA);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.UA);
                             break;
                     }
                     break;
@@ -210,21 +210,21 @@ namespace ACE.Server.Factories
                         case 2:
                             weaponDefense = GetMaxDamageMod(tier, 18);
                             weaponOffense = GetMaxDamageMod(tier, 22);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 1);
-                            damageVariance = GetVariance(2, 1);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Axe);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Axe);
                             break;
                         case 3:
                         case 4:
                         case 5:
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 2);
-                            damageVariance = GetVariance(2, 2);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
 
                             if (finesseWeaponsType == 3 || finesseWeaponsType == 4)
                             {
-                                damageVariance = GetVariance(2, 3);
-                                damage = GetMaxDamage(2, tier, wieldDiff, 3);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
+                                damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
                             }
                             break;
                         case 6:
@@ -234,25 +234,25 @@ namespace ACE.Server.Factories
                         case 10:
                             weaponDefense = GetMaxDamageMod(tier, 22);
                             weaponOffense = GetMaxDamageMod(tier, 18);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 4);
-                            damageVariance = GetVariance(2, 4);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
 
                             if (finesseWeaponsType == 9)
-                                damageVariance = GetVariance(2, 5);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.Jitte);
                             break;
                         case 11:
                         case 12:
                             weaponDefense = GetMaxDamageMod(tier, 15);
                             weaponOffense = GetMaxDamageMod(tier, 25);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 5);
-                            damageVariance = GetVariance(2, 6);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spear);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Spear);
                             break;
                         case 13:
                         case 14:
                             weaponDefense = GetMaxDamageMod(tier, 25);
                             weaponOffense = GetMaxDamageMod(tier, 15);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 8);
-                            damageVariance = GetVariance(2, 7);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Staff);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Staff);
                             break;
                         case 15:
                         case 16:
@@ -262,21 +262,21 @@ namespace ACE.Server.Factories
                         case 20:
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 6);
-                            damageVariance = GetVariance(2, 8);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
                             if (finesseWeaponsType == 15)
                             {
-                                damage = GetMaxDamage(2, tier, wieldDiff, 7);
-                                damageVariance = GetVariance(2, 9);
+                                damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
                             }
                             break;
                         case 21:
                         default:
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 9);
-                            damageVariance = GetVariance(2, 10);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.UA);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.UA);
                             break;
                     }
                     break;
@@ -286,8 +286,8 @@ namespace ACE.Server.Factories
                     int twoHandedWeaponsType = ThreadSafeRandom.Next(0, 11);
                     weaponWeenie = LootTables.TwoHandedWeaponsMatrix[twoHandedWeaponsType][eleType];
 
-                    damage = GetMaxDamage(3, tier, wieldDiff, 1);
-                    damageVariance = GetVariance(3, 1);
+                    damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Cleaving);
+                    damageVariance = GetVariance(wieldSkillType, LootWeaponType.TwoHanded);
 
                     switch (twoHandedWeaponsType)
                     {
@@ -296,7 +296,6 @@ namespace ACE.Server.Factories
                         case 2:
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
-                            damageVariance = GetVariance(2, 1);
                             break;
                         case 3:
                         case 4:
@@ -315,7 +314,7 @@ namespace ACE.Server.Factories
                         default:
                             weaponDefense = GetMaxDamageMod(tier, 15);
                             weaponOffense = GetMaxDamageMod(tier, 25);
-                            damage = GetMaxDamage(3, tier, wieldDiff, 2);
+                            damage = GetMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spears);
                             break;
                     }
                     break;
@@ -348,11 +347,13 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
             wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
 
-            wo.SetProperty(PropertyInt.WieldDifficulty, wieldDiff);
-            wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirments);
-            wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
-
-            if (wieldDiff == 0)
+            if (wieldDiff > 0)
+            {
+                wo.SetProperty(PropertyInt.WieldDifficulty, wieldDiff);
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirments);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
+            }
+            else
             {
                 wo.RemoveProperty(PropertyInt.WieldDifficulty);
                 wo.RemoveProperty(PropertyInt.WieldRequirements);
