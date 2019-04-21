@@ -324,6 +324,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoPreTeleportHide()
         {
+            if (Teleporting) return;
             PlayParticleEffect(ACE.Entity.Enum.PlayScript.Hide, Guid);
         }
 
