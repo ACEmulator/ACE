@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects
             if (page == null || page.PageText.Equals(pageText))
                 return false;
 
-            if (page.IgnoreAuthor || player.Guid.Full == page.AuthorId || player is Sentinel || player is Admin)
+            if (page.IgnoreAuthor || (player.Guid.Full == page.AuthorId && player.Name == page.AuthorName && player.Account.AccountName == page.AuthorAccount) || player is Sentinel || player is Admin)
             {
                 page.AuthorAccount = player.Account.AccountName;
                 page.AuthorId = player.Guid.Full;
