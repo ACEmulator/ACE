@@ -35,8 +35,8 @@ namespace ACE.Server.Command.Handlers
         /// Increase or decrease the server shutdown interval in seconds
         /// </summary>
         [CommandHandler("set-shutdown-interval", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Changes the delay before the server will shutdown.",
-            "< 0-99999 >")]
+            "Changes the delay, in seconds, before the server will shutdown.",
+            "< 0-99999 > in seconds")]
         public static void HandleSetShutdownInterval(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
@@ -57,7 +57,7 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
             }
-            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /set-shutdown-interval <00000>", ChatMessageType.Broadcast);
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace ACE.Server.Command.Handlers
             "Begins the server shutdown process. Optionally displays a shutdown message, if a string is passed.",
             "< Optional Shutdown Message >\n" +
             "\tUse @cancel-shutdown too abort an active shutdown!\n" +
-            "\tSet the shutdown delay with @set-shutdown-interval < 0-99999 >")]
+            "\tSet the shutdown delay in seconds with @set-shutdown-interval < 0-99999 >")]
         public static void ShutdownServer(Session session, params string[] parameters)
         {
             // inform the world that a shutdown is about to take place
@@ -177,7 +177,7 @@ namespace ACE.Server.Command.Handlers
             if (open)
                 WorldManager.Open(session == null ? null : session.Player);
             else if (close)
-                WorldManager.Close(session == null ? null : session.Player);
+                WorldManager.Close(session == null ? null : session.Player, bootPlayers);
         }
     }
 }

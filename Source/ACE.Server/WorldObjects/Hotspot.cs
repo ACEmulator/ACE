@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
 
         public double? CycleTimeVariance
         {
-            get => GetProperty(PropertyFloat.HotspotCycleTimeVariance);
+            get => GetProperty(PropertyFloat.HotspotCycleTimeVariance) ?? 0;
             set { if (value == null) RemoveProperty(PropertyFloat.HotspotCycleTimeVariance); else SetProperty(PropertyFloat.HotspotCycleTimeVariance, (double)value); }
         }
 
@@ -125,6 +125,12 @@ namespace ACE.Server.WorldObjects
             get { return (DamageType)_DamageType; }
         }
 
+        public bool IsHot
+        {
+            get => GetProperty(PropertyBool.IsHot) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsHot); else SetProperty(PropertyBool.IsHot, value); }
+        }
+
         private void Activate()
         {
             foreach (var playerGuid in Players.ToList())
@@ -141,6 +147,8 @@ namespace ACE.Server.WorldObjects
 
         private void Activate(Player player)
         {
+            if (!IsHot) return;
+
             var amount = DamageNext;
             var iAmount = (int)Math.Round(amount);
 
@@ -149,13 +157,20 @@ namespace ACE.Server.WorldObjects
                 default:
                     if (player.Invincible) return;
                     amount *= (float)player.GetLifeResistance(DamageType);
+                    iAmount = (int)Math.Round(amount);
                     player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
                     if (player.IsDead && Players.Contains(player.Guid))
                         Players.Remove(player.Guid);
                     break;
 
                 case DamageType.Mana:
-                    player.UpdateVitalDelta(player.Mana, iAmount);
+                    player.UpdateVitalDelta(player.Mana, -iAmount);
+                    break;
+                case DamageType.Stamina:
+                    player.UpdateVitalDelta(player.Stamina, -iAmount);
+                    break;
+                case DamageType.Health:
+                    player.UpdateVitalDelta(player.Health, -iAmount);
                     break;
             }
 
@@ -164,6 +179,10 @@ namespace ACE.Server.WorldObjects
 
             if (!string.IsNullOrWhiteSpace(ActivationTalk))
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", Math.Abs(iAmount).ToString()), ChatMessageType.Broadcast));
+
+            // perform activation emote
+            if (ActivationResponse.HasFlag(ActivationResponse.Emote))
+                OnEmote(player);
         }
     }
 }

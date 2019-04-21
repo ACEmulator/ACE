@@ -120,6 +120,25 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(false);
             }
 
+            // handle quest requirements
+            if (Quest != null)
+            {
+                if (!player.QuestManager.HasQuest(Quest))
+                    player.QuestManager.Update(Quest);
+                else
+                {
+                    if (player.QuestManager.CanSolve(Quest))
+                    {
+                        player.QuestManager.Update(Quest);
+                    }
+                    else
+                    {
+                        player.QuestManager.HandleSolveError(Quest);
+                        return new ActivationResult(false);
+                    }
+                }
+            }
+
             return new ActivationResult(true);
         }
 

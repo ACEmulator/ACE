@@ -95,6 +95,8 @@ namespace ACE.Server.WorldObjects
             SetProjectilePhysicsState(proj, target);
 
             LandblockManager.AddObject(proj);
+            if (proj.PhysicsObj == null)
+                return null;
 
             var player = this as Player;
             var pkStatus = player?.PlayerKillerStatus ?? PlayerKillerStatus.Creature;

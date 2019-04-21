@@ -1891,5 +1891,47 @@ namespace ACE.Server.Command.Handlers
 
             CommandHandlerHelper.WriteOutputInfo(session, ".NET Garbage Collection forced");
         }
+
+        [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory. Syntax is \"lootgen (wcid) <tier>\"")]
+        public static void HandleLootGen(Session session, params string[] parameters)
+        {
+            string weenieClassDescription = parameters[0];
+            bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
+
+            if (!wcid)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"WCID must be a valid weenie id", ChatMessageType.Broadcast));
+                return;
+            }
+
+            int tier = 1;
+            if (parameters.Length > 1)
+            {
+                var isValidStackSize = int.TryParse(parameters[1], out tier);
+                if (!isValidStackSize || tier < 1 || tier > 8)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Loot Tier must be number between 1 and 8", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            // Just using this check some properties before we throw it at the loot gen so we can give feedback to the user
+            WorldObject lootTest = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+
+            if (lootTest == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassId} is not a valid wcid.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (lootTest.TsysMutationData == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie has a missing PropertyInt.TsysMutationData needed for this function.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            WorldObject loot = LootGenerationFactory.CreateLootByWCID(weenieClassId, tier);
+            session.Player.TryCreateInInventoryWithNetworking(loot);
+        }
     }
 }

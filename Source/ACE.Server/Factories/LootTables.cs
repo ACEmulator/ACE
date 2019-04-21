@@ -1,3 +1,4 @@
+using ACE.Server.WorldObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace ACE.Factories
         /// <summary>
         /// The following data is materialID/material value modifier
         /// </summary>
-        public static Dictionary<int, double> materialModifier = new Dictionary<int, double>()
+        private static Dictionary<int, double> materialModifier = new Dictionary<int, double>()
                                             {
                                                 {1, 1}, //ceramic
                                                 {2, 1.5}, //pocelain
@@ -91,6 +92,26 @@ namespace ACE.Factories
                                                 {74, 1.8}, //mahogany
                                                 {73, 2.0} //ebony
                                             };
+
+        public static double getMaterialValueModifier(WorldObject wo)
+        {
+            if (wo.MaterialType == null) return 1;
+            int materialType = (int)wo.MaterialType;
+            if (materialModifier.ContainsKey(materialType))
+                return materialModifier[materialType];
+            else
+                return 1;
+        }
+
+        public static double getGemMaterialValueModifier(WorldObject wo)
+        {
+            if (wo.MaterialType == null) return 1;
+            int materialType = (int)wo.MaterialType;
+            if (materialModifier.ContainsKey(materialType))
+                return materialModifier[materialType];
+            else
+                return 1;
+        }
 
         public static Dictionary<int, int> gemValues = new Dictionary<int, int>()
                                             {
@@ -367,7 +388,6 @@ namespace ACE.Factories
             // Spell tier equals # value + 1
             new int[] { 0, 2 },
             new int[] { 2, 3 },
-            new int[] { 3, 4 },
             new int[] { 3, 4 },
             new int[] { 4, 5 },
             new int[] { 5, 5 },

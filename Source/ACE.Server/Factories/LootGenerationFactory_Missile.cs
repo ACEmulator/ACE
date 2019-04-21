@@ -53,7 +53,9 @@ namespace ACE.Server.Factories
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
+            int materialType = GetMaterialType(wo, tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
@@ -167,8 +169,13 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
                 wo.RemoveProperty(PropertyFloat.ManaRate);
             }
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
 
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
+
+            wo = RandomizeColor(wo);
             return wo;
         }
 
