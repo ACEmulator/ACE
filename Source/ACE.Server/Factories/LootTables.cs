@@ -368,7 +368,6 @@ namespace ACE.Factories
             new int[] { 0, 2 },
             new int[] { 2, 3 },
             new int[] { 3, 4 },
-            new int[] { 3, 4 },
             new int[] { 4, 5 },
             new int[] { 5, 5 },
             new int[] { 5, 6 },
