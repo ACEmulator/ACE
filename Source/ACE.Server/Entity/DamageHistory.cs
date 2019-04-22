@@ -62,7 +62,7 @@ namespace ACE.Server.Entity
         {
             get
             {
-                var sorted = TotalDamage.OrderByDescending(wo => wo.Value);
+                var sorted = TotalDamage.OrderByDescending(wo => wo.Value.Value);
                 var topDamager = sorted.FirstOrDefault().Value;
                 //var topDamagerName = topDamager != null ? topDamager.Name : null;
                 //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
