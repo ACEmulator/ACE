@@ -78,7 +78,7 @@ namespace ACE.Server.Network.Handlers
             if (session.ServerSeed == null || session.ClientSeed == null)
             {
                 // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
-                session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(CharacterError.Undefined));
+                session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(0));
                 return;
             }
             var connectRequest = new PacketOutboundConnectRequest(
@@ -94,21 +94,16 @@ namespace ACE.Server.Network.Handlers
                 if (loginRequest.Account == "acservertracker:jj9h26hcsggc")
                 {
                     //log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
-                    session.Terminate(SessionTerminationReason.PongSentClosingConnection, new GameMessageCharacterError(CharacterError.Undefined));
+                    session.Terminate(SessionTerminationReason.PongSentClosingConnection, new GameMessageCharacterError(0));
                     return;
                 }
                 log.Info($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
-                session.Terminate(SessionTerminationReason.NotAuthorizedNoPasswordOrGlsTicketIncludedInLoginReq, new GameMessageCharacterError(CharacterError.AccountInUse));
+                session.Terminate(SessionTerminationReason.NotAuthorizedNoPasswordOrGlsTicketIncludedInLoginReq, new GameMessageCharacterError(CharacterError.AccountInvalid));
                 return;
             }
             if (account == null)
             {
                 session.Terminate(SessionTerminationReason.NotAuthorizedAccountNotFound, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
-                return;
-            }
-            if (NetworkManager.Find(account.AccountName) != null)
-            {
-                session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.AccountInUse));
                 return;
             }
             if (loginRequest.NetAuthType == NetAuthType.AccountPassword)
@@ -121,6 +116,17 @@ namespace ACE.Server.Network.Handlers
                     // exponential duration of lockout for targeted account
                     return;
                 }
+
+                var prevSessions = NetworkManager.Sessions.Where(k => k.Value.AccountId == account.AccountId);
+                if (prevSessions.Any())
+                {
+                    foreach (var prevSession in prevSessions.Select(k => k.Value))
+                    {
+                        // TO-DO: figure out how to boot the other sessions
+                        prevSession.Terminate(SessionTerminationReason.AccountLoggedInAgain, new GameMessageCharacterError(CharacterError.ServerCrash1));
+                    }
+                }
+
                 // TODO: check for account bans
                 session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
                 session.State = SessionState.AuthConnectResponse;

@@ -81,7 +81,7 @@ namespace ACE.Server.Managers
                     }
                     else if (ServerManager.ShutdownInitiated)
                     {
-                        SendLoginRequestReject(endPoint, CharacterError.ServerCrash);
+                        SendLoginRequestReject(endPoint, CharacterError.ServerCrash1);
                     }
                     else
                     {

@@ -40,8 +40,8 @@ namespace ACE.Server.Network
         public uint GameEventSequence { get; set; }
         public uint AccountId { get; private set; }
         private uint lastReceivedPacketSequence = 1;
-        private uint lastReceivedFragmentSequence;
-        private uint FragmentSequence { get; set; }
+        private uint lastReceivedFragmentSequence = 0;
+        public uint FragmentSequence { get; set; }
         private readonly uint DefaultSessionTimeout = ConfigManager.Config.Server.Network.DefaultSessionTimeout;
 
         public ulong ConnectionCookie { get; private set; }
@@ -318,7 +318,7 @@ namespace ACE.Server.Network
                 }
                 return;
             }
-            log.Info(packet);
+            //log.Info(packet);
             HandleOrderedPacket(packet);
             CheckOutOfOrderPackets();
             CheckOutOfOrderFragments();
@@ -517,7 +517,7 @@ namespace ACE.Server.Network
         }
         private void HandleFragment(ClientMessage message)
         {
-            log.Info(message);
+            //log.Info(message);
             InboundMessageManager.HandleClientMessage(message, this);
             lastReceivedFragmentSequence++;
         }
@@ -612,7 +612,7 @@ namespace ACE.Server.Network
             byte[] buffer = ArrayPool<byte>.Shared.Rent((int)(PacketHeader.HeaderSize + (packet.Data?.Length ?? 0) + (packet.Fragments.Count * PacketFragment.MaxFragementSize)));
             try
             {
-                log.Info(packet);
+                //log.Info(packet);
                 packet.CreateReadyToSendPacket(buffer, out int size);
                 byte[] data = new byte[size];
                 Buffer.BlockCopy(buffer, 0, data, 0, size);

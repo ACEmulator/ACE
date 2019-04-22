@@ -24,7 +24,8 @@ namespace ACE.Server.Network.Enum
         ClientConnectionFailure,
         SendToSocketException,
         WorldClosed,
-        AbnormalSequenceReceived
+        AbnormalSequenceReceived,
+        AccountLoggedInAgain
     }
     public static class SessionTerminationReasonHelper
     {
@@ -46,7 +47,8 @@ namespace ACE.Server.Network.Enum
             "Client connection failure",
             "MainSocket.SendTo exception occured",
             "World is closed",
-            "Client supplied an abnormal sequence"
+            "Client supplied an abnormal sequence",
+            "The account has started a new session"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {
