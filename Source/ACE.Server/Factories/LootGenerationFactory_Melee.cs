@@ -136,18 +136,8 @@ namespace ACE.Server.Factories
                         case 5:
                             weaponDefense = GetMaxDamageMod(tier, 20);
                             weaponOffense = GetMaxDamageMod(tier, 20);
-
-                            if (lightWeaponsType == 4)
-                            {
-                                damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
-                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
-                            }
-
-                            if (lightWeaponsType == 5)
-                            {
-                                damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
-                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
-                            }
+                            damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                             break;
                         case 6:
                         case 7:
