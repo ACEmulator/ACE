@@ -257,16 +257,17 @@ namespace ACE.Server.Managers
         public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance)
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
+            var materialName = GetMaterialName(tool.MaterialType ?? 0);
 
             if (success)
             {
                 Tinkering_ModifyItem(player, tool, target);
 
                 // send local broadcast
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {tool.Name} (workmanship {(tool.Workmanship ?? 0).Round(2)}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
             }
             else
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {tool.Name} (workmanship {(tool.Workmanship ?? 0).Round(2)}) to the {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
 
             var recipe = GetRecipe(player, tool, target);
             CreateDestroyItems(player, recipe, tool, target, success);
@@ -1153,6 +1154,20 @@ namespace ACE.Server.Managers
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
                     break;
             }
+        }
+
+        public static uint MaterialDualDID = 0x27000000;
+
+        public static string GetMaterialName(MaterialType materialType)
+        {
+            var dualDIDs = DatManager.PortalDat.ReadFromDat<DualDidMapper>(MaterialDualDID);
+
+            if (!dualDIDs.ClientEnumToName.TryGetValue((uint)materialType, out var materialName))
+            {
+                log.Error($"RecipeManager.GetMaterialName({materialType}): couldn't find material name");
+                return materialType.ToString();
+            }
+            return materialName.Replace("_", " ");
         }
     }
 }
