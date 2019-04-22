@@ -1923,29 +1923,50 @@ namespace ACE.Server.WorldObjects
 
             if (item == null)
             {
-                log.Error("Player_Inventory HandleActionSetInscription failed");
-                return;
+                if (this is Sentinel || this is Admin)
+                    item = FindObject(itemGuid, SearchLocations.Everywhere, out _, out _, out _);
+
+                if (item == null)
+                {
+                    log.Error("Player_Inventory HandleActionSetInscription failed");
+                    return;
+                }
             }
 
-            if (item.Inscribable == true && item.ScribeName != "prewritten")
+            if (item.Inscribable == true)
             {
-                if (item.ScribeName != null && item.ScribeName != Name)
-                    ChatPacket.SendServerMessage(Session, "Only the original scribe may alter this without the use of an uninscription stone.", ChatMessageType.Broadcast);
+                var doInscribe = false;
+                if (string.IsNullOrWhiteSpace(item.ScribeAccount) && string.IsNullOrWhiteSpace(item.ScribeName))
+                {
+                    doInscribe = true;
+                }
                 else
                 {
-                    if (inscriptionText != "")
-                    {
-                        item.Inscription = inscriptionText;
-                        item.ScribeName = Name;
-                        item.ScribeAccount = Session.Account;
-                        Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, item.Guid.Full, item.Inscription, item.ScribeName, item.ScribeAccount));
-                    }
-                    else
+                    if (this is Sentinel || this is Admin)
+                        doInscribe = true;
+                    else if (item.ScribeIID.HasValue && item.ScribeIID == Guid.Full && item.ScribeName == Name && item.ScribeAccount == Account.AccountName)
+                        doInscribe = true;
+                    else if (item.ScribeName == Name && item.ScribeAccount == Account.AccountName)
+                        doInscribe = true;
+                }
+
+                if (doInscribe)
+                {
+                    if (string.IsNullOrEmpty(inscriptionText))
                     {
                         item.Inscription = null;
                         item.ScribeName = null;
                         item.ScribeAccount = null;
+                        item.ScribeIID = null;
                     }
+                    else
+                    {
+                        item.Inscription = inscriptionText;
+                        item.ScribeName = Name;
+                        item.ScribeAccount = Account.AccountName;
+                        item.ScribeIID = Guid.Full;
+                    }
+                    Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, item.Guid.Full, item.Inscription, item.ScribeName, item.ScribeAccount));
                 }
             }
             else
