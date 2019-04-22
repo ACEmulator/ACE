@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2019-04-22
+[OptimShi]
+* Added Shade2, Shade3, Shade4 support (nothing in the data currently uses these)
+* Fixed shade/palette calculation and validated against retail pcap logs
+* Removed "(based on STRENGTH 100)" from missile weapons. 
+
 ### 2019-04-21
 [Ripley]
 * Updated handling of scribe related functions.
