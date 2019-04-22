@@ -1,5 +1,34 @@
 # ACEmulator Change Log
 
+### 2019-04-20
+[OptimShi]
+* Added Treasure Material tables and Treasure Color tables to apply appropriate colors and materials to items in the LootGenerationFactory
+**Note that this update requires _Database/Updates/World/2019-04-20-00-Treasure-Materials.sql_ to be applied, or ACE World Database v0.9.55 or higher**
+* Added "lootgen" Developer Command to aid in testing the loot generator. Currently only applies materials and colors to items; no other properties factored in at this time.
+
+[Ripley]
+* Changed shortcut code to fix some collision issues.
+* Updated shutdown sequence to support notifications to players at intervals and adjusted shutdown lockout to apply when server is less than 3 minutes from shutdown.
+* Fix some issues with hotspots.
+
+**Stage 2 Shortcut Bar Fix**
+* Prior to update to latest master, re-run `fix-shortcut-bars` and confirm 0 bugged players. If bugged players exist, `git checkout 90c98c76a631382b761b1db49522c16dcf7602de`, follow Stage 1 guide to fix them then continue with update. `git checkout master`
+* Apply patch `2019-04-17-00-Character_Shortcut_Changes.sql` in Shard updates to fix issue with shortcuts causing a save to fail for the character.
+
+### 2019-04-19
+[Ripley, gmriggs]
+* Fix issue with non-player objects activating other non-player objects.
+* Move some messages to WorldBroadcast filter.
+
+**Stage 1 Shortcut Bar Fix**
+  - Update to latest master
+  - Start ACE and close world using `world close boot`
+    - optionally, you can use `modifybool world_closed true` and restart world as well to ensure no players are connected and online for this process.    
+  - Run `fix-shortcut-bars` command
+    - if there are bugged players, issue `fix-shortcut-bars execute` command
+  - Once that is finished, world is ready for stage two update. You will probably want to run the above command again just prior to next update to confirm no bugged players exist.
+    - if you set world to closed on startup, you can use `modifybool world_closed false` return world to default startup.
+
 ### 2019-04-18
 [Ripley]
 * Fix bug with picking up items from your own corpse, hooks or storage that had quest stamps.

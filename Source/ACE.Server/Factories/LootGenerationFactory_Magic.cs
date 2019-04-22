@@ -103,6 +103,7 @@ namespace ACE.Server.Factories
             double elementalDamageMod = 0;
             int wield = 0; //done
             Skill wieldSkillType = Skill.None;
+            WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int chance = 0;
             int subType = 0;
 
@@ -192,6 +193,22 @@ namespace ACE.Server.Factories
                 // Determine plain caster type: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
                 subType = ThreadSafeRandom.Next(0, 3);
                 casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
+
+                if (tier > 6)
+                {
+                    wieldRequirement = WieldRequirement.Level;
+                    wieldSkillType = Skill.Axe;  // Set by examples from PCAP data
+
+                    switch (tier)
+                    {
+                        case 7:
+                            wield = 150; // In this instance, used for indicating player level, rather than skill level
+                            break;
+                        default:
+                            wield = 180; // In this instance, used for indicating player level, rather than skill level
+                            break;
+                    }
+                }
             }
             else
             {
@@ -205,30 +222,11 @@ namespace ACE.Server.Factories
                 int element = ThreadSafeRandom.Next(0, 7);
                 casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
 
+                // If element is Nether, Void Magic is required, else War Magic is required for all other elements
                 if (element == 7)
-                {
                     wieldSkillType = Skill.VoidMagic;
-                }
                 else
-                {
-                    // Determine skill of wield requirement
-                    chance = ThreadSafeRandom.Next(0, 3);
-                    switch (chance)
-                    {
-                        case 0:
-                            wieldSkillType = Skill.WarMagic;
-                            break;
-                        case 2:
-                            wieldSkillType = Skill.CreatureEnchantment;
-                            break;
-                        case 3:
-                            wieldSkillType = Skill.ItemEnchantment;
-                            break;
-                        default:
-                            wieldSkillType = Skill.LifeMagic;
-                            break;
-                    }
-                }
+                    wieldSkillType = Skill.WarMagic;
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
@@ -238,11 +236,19 @@ namespace ACE.Server.Factories
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(3, tier));
+            int materialType = GetMaterialType(wo, tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
+
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
+
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
 
             if (ThreadSafeRandom.Next(0, 100) > 95)
             {
@@ -264,11 +270,17 @@ namespace ACE.Server.Factories
             if (elementalDamageMod > 1.0f)
                 wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
 
-            if (wield > 0)
+            if (wield > 0 || wieldRequirement == WieldRequirement.Level)
             {
-                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
-                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirement);
                 wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
+            else
+            {
+                wo.RemoveProperty(PropertyInt.WieldRequirements);
+                wo.RemoveProperty(PropertyInt.WieldSkillType);
+                wo.RemoveProperty(PropertyInt.WieldDifficulty);
             }
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
@@ -367,6 +379,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
 
+            wo = RandomizeColor(wo);
             return wo;
         }
     }

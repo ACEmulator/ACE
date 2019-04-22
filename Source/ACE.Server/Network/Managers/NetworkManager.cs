@@ -167,6 +167,7 @@ namespace ACE.Server.Managers
         {
             return Sessions.FirstOrDefault(k => k.Value.Account == account).Value;
         }
+
         private static void SendLoginRequestReject(IPEndPoint endPoint, CharacterError error)
         {
             Session tempSession = new Session(endPoint, NextSessionId, ServerId);

@@ -89,6 +89,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyDataId.Spell);
             }
 
+            wo = RandomizeColor(wo);
             return wo;
         }
 
@@ -110,17 +111,42 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-            int mT = GetMaterialType(1, tier);
-            wo.SetProperty(PropertyInt.MaterialType, mT);
+            int materialType = GetMaterialType(wo, tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             int workmanship = GetWorkmanship(tier);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
+
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
+            if (tier > 6)
+            {
+                int wield;
+
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
+
+                switch (tier)
+                {
+                    case 7:
+                        wield = 150; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                    default:
+                        wield = 180; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                }
+
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
 
             if (isMagical)
             {

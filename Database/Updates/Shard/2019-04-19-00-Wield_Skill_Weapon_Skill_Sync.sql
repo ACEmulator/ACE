@@ -1,0 +1,1 @@
+update biota_properties_int bint inner join biota_properties_int bint2 on bint.object_Id=bint2.object_Id set bint.value=bint2.value where bint.`type`=159 and bint2.`type`=48 and bint.value != bint2.value and bint2.value >= 44 and bint2.value <= 47;

@@ -106,6 +106,11 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllDeathTreasures();
                 log.Info("Precaching Wielded Treasures...");
                 DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
+                log.Info("Precaching Treasure Materials...");
+                DatabaseManager.World.CacheAllTreasuresMaterialBaseInParallel();
+                DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
+                log.Info("Precaching Treasure Colors...");
+                DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
             }
             else
                 log.Info("Precaching World Database Disabled...");
@@ -131,6 +136,11 @@ namespace ACE.Server
             // This should be last
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
+
+            if (!PropertyManager.GetBool("world_closed", false).Item)
+            {
+                WorldManager.Open(null);
+            }
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

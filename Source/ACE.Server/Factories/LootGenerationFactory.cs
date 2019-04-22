@@ -3,13 +3,12 @@ using System;
 
 using log4net;
 
+using ACE.Common.Extensions;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Factories;
 using ACE.Server.WorldObjects;
+using System.Linq;
 
 namespace ACE.Server.Factories
 {
@@ -132,9 +131,9 @@ namespace ACE.Server.Factories
 
             if (lootBias != LootBias.Armor && lootBias != LootBias.Weapons && lootBias != LootBias.MagicEquipment && profile.MagicItemMinAmount > 0)
             {
-                // 33% chance to drop a summoning essence
-                itemChance = ThreadSafeRandom.Next(0, 2);
-                if (itemChance == 2)
+                // 17% chance to drop a summoning essence
+                itemChance = ThreadSafeRandom.Next(1, 6);
+                if (itemChance == 6)
                 {
                     lootWorldObject = CreateSummoningEssence(profile.Tier);
 
@@ -154,6 +153,27 @@ namespace ACE.Server.Factories
             }
 
             return loot;
+        }
+
+        /// <summary>
+        /// This is currently just a function to help test some functionality in the loot gen system.
+        /// </summary>
+        /// <param name="wcid"></param>
+        /// <param name="tier"></param>
+        /// <returns></returns>
+        public static WorldObject CreateLootByWCID(uint wcid, int tier)
+        {
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(wcid);
+            if (wo.TsysMutationData != null) { 
+                int newMaterialType = GetMaterialType(wo, tier);
+                if (newMaterialType > 0)
+                {
+                    wo.MaterialType = (MaterialType)newMaterialType;
+                    wo = RandomizeColor(wo);
+                }
+            }
+
+            return wo;
         }
 
         private static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
@@ -192,6 +212,21 @@ namespace ACE.Server.Factories
                     //jewelry
                     wo = CreateJewelry(tier, isMagical);
                     return wo;
+            }
+        }
+
+        private static WorldObject CreateWeapon(int tier, bool isMagical)
+        {
+            int chance = ThreadSafeRandom.Next(1, 3);
+
+            switch (chance)
+            {
+                case 1:
+                    return CreateMeleeWeapon(tier, isMagical);
+                case 2:
+                    return CreateMissileWeapon(tier, isMagical);
+                default:
+                    return CreateCaster(tier, isMagical);
             }
         }
 
@@ -1413,495 +1448,6 @@ namespace ACE.Server.Factories
             return damageMod2;
         }
 
-        private static int GetElementalBonus(int wield)
-        {
-            int chance = 0;
-            int eleMod = 0;
-            switch (wield)
-            {
-                case 0:
-                    break;
-                case 250:
-                    break;
-                case 270:
-                    break;
-                case 315:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 20)
-                        eleMod = 1;
-                    else if (chance < 40)
-                        eleMod = 2;
-                    else if (chance < 70)
-                        eleMod = 3;
-                    else if (chance < 95)
-                        eleMod = 4;
-                    else
-                        eleMod = 5;
-                    break;
-                case 335:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 20)
-                        eleMod = 5;
-                    else if (chance < 40)
-                        eleMod = 6;
-                    else if (chance < 70)
-                        eleMod = 7;
-                    else if (chance < 95)
-                        eleMod = 8;
-                    else
-                        eleMod = 9;
-                    break;
-                case 360:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 20)
-                        eleMod = 10;
-                    else if (chance < 30)
-                        eleMod = 11;
-                    else if (chance < 45)
-                        eleMod = 12;
-                    else if (chance < 60)
-                        eleMod = 13;
-                    else if (chance < 75)
-                        eleMod = 14;
-                    else if (chance < 95)
-                        eleMod = 15;
-                    else
-                        eleMod = 16;
-                    break;
-                case 375:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 20)
-                        eleMod = 12;
-                    else if (chance < 30)
-                        eleMod = 13;
-                    else if (chance < 45)
-                        eleMod = 14;
-                    else if (chance < 60)
-                        eleMod = 15;
-                    else if (chance < 75)
-                        eleMod = 16;
-                    else if (chance < 95)
-                        eleMod = 17;
-                    else
-                        eleMod = 18;
-                    break;
-                case 385:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 20)
-                        eleMod = 16;
-                    else if (chance < 30)
-                        eleMod = 17;
-                    else if (chance < 45)
-                        eleMod = 18;
-                    else if (chance < 60)
-                        eleMod = 19;
-                    else if (chance < 75)
-                        eleMod = 20;
-                    else if (chance < 95)
-                        eleMod = 21;
-                    else
-                        eleMod = 22;
-                    break;
-            }
-
-            return eleMod;
-        }
-
-        //The percentages for variances need to be fixed
-        private static double GetVariance(int category, int type)
-        {
-            double variance = 0;
-            int chance = ThreadSafeRandom.Next(0, 100);
-
-            switch (category)
-            {
-                case 1:
-                    //Heavy Weapons
-                    switch (type)
-                    {
-                        case 1:
-                            //Axe
-                            if (chance < 10)
-                                variance = .90;
-                            else if (chance < 30)
-                                variance = .93;
-                            else if (chance < 70)
-                                variance = .95;
-                            else if (chance < 90)
-                                variance = .97;
-                            else
-                                variance = .99;
-                            break;
-                        case 2:
-                            //Dagger
-                            if (chance < 10)
-                                variance = .47;
-                            else if (chance < 30)
-                                variance = .50;
-                            else if (chance < 70)
-                                variance = .53;
-                            else if (chance < 90)
-                                variance = .57;
-                            else
-                                variance = .62;
-                            break;
-                        case 3:
-                            //Dagger MultiStrike
-                            if (chance < 10)
-                                variance = .40;
-                            else if (chance < 30)
-                                variance = .43;
-                            else if (chance < 70)
-                                variance = .48;
-                            else if (chance < 90)
-                                variance = .53;
-                            else
-                                variance = .58;
-                            break;
-                        case 4:
-                            //Mace
-                            if (chance < 10)
-                                variance = .30;
-                            else if (chance < 30)
-                                variance = .33;
-                            else if (chance < 70)
-                                variance = .37;
-                            else if (chance < 90)
-                                variance = .42;
-                            else
-                                variance = .46;
-                            break;
-                        case 5:
-                            //Spear
-                            if (chance < 10)
-                                variance = .59;
-                            else if (chance < 30)
-                                variance = .63;
-                            else if (chance < 70)
-                                variance = .68;
-                            else if (chance < 90)
-                                variance = .72;
-                            else
-                                variance = .75;
-                            break;
-                        case 6:
-                            //Staff
-                            if (chance < 10)
-                                variance = .38;
-                            else if (chance < 30)
-                                variance = .42;
-                            else if (chance < 70)
-                                variance = .45;
-                            else if (chance < 90)
-                                variance = .50;
-                            else
-                                variance = .52;
-                            break;
-                        case 7:
-                            //Sword
-                            if (chance < 10)
-                                variance = .47;
-                            else if (chance < 30)
-                                variance = .50;
-                            else if (chance < 70)
-                                variance = .53;
-                            else if (chance < 90)
-                                variance = .57;
-                            else
-                                variance = .62;
-                            break;
-                        case 8:
-                            //Sword Multistrike
-                            if (chance < 10)
-                                variance = .40;
-                            else if (chance < 30)
-                                variance = .43;
-                            else if (chance < 70)
-                                variance = .48;
-                            else if (chance < 90)
-                                variance = .53;
-                            else
-                                variance = .60;
-                            break;
-                        case 9:
-                            //UA
-                            if (chance < 10)
-                                variance = .44;
-                            else if (chance < 30)
-                                variance = .48;
-                            else if (chance < 70)
-                                variance = .53;
-                            else if (chance < 90)
-                                variance = .58;
-                            else
-                                variance = .60;
-                            break;
-                    }
-                    break;
-                case 2:
-                    //Finesse/Light Weapons
-                    switch (type)
-                    {
-                        case 1:
-                            //Axe
-                            if (chance < 10)
-                                variance = .80;
-                            else if (chance < 30)
-                                variance = .83;
-                            else if (chance < 70)
-                                variance = .85;
-                            else if (chance < 90)
-                                variance = .90;
-                            else
-                                variance = .95;
-                            break;
-                        case 2:
-                            //Dagger
-                            if (chance < 10)
-                                variance = .42;
-                            else if (chance < 30)
-                                variance = .47;
-                            else if (chance < 70)
-                                variance = .52;
-                            else if (chance < 90)
-                                variance = .56;
-                            else
-                                variance = .60;
-                            break;
-                        case 3:
-                            //Dagger MultiStrike
-                            if (chance < 10)
-                                variance = .24;
-                            else if (chance < 30)
-                                variance = .28;
-                            else if (chance < 70)
-                                variance = .35;
-                            else if (chance < 90)
-                                variance = .40;
-                            else
-                                variance = .45;
-                            break;
-                        case 4:
-                            //Mace
-                            if (chance < 10)
-                                variance = .23;
-                            else if (chance < 30)
-                                variance = .28;
-                            else if (chance < 70)
-                                variance = .32;
-                            else if (chance < 90)
-                                variance = .37;
-                            else
-                                variance = .43;
-                            break;
-                        case 5:
-                            //Jitte
-                            if (chance < 10)
-                                variance = .325;
-                            else if (chance < 30)
-                                variance = .35;
-                            else if (chance < 70)
-                                variance = .40;
-                            else if (chance < 90)
-                                variance = .45;
-                            else
-                                variance = .50;
-                            break;
-                        case 6:
-                            //Spear
-                            if (chance < 10)
-                                variance = .65;
-                            else if (chance < 30)
-                                variance = .68;
-                            else if (chance < 70)
-                                variance = .71;
-                            else if (chance < 90)
-                                variance = .75;
-                            else
-                                variance = .80;
-                            break;
-                        case 7:
-                            //Staff
-                            if (chance < 10)
-                                variance = .325;
-                            else if (chance < 30)
-                                variance = .35;
-                            else if (chance < 70)
-                                variance = .40;
-                            else if (chance < 90)
-                                variance = .45;
-                            else
-                                variance = .50;
-                            break;
-                        case 8:
-                            //Sword
-                            if (chance < 10)
-                                variance = .42;
-                            else if (chance < 30)
-                                variance = .47;
-                            else if (chance < 70)
-                                variance = .52;
-                            else if (chance < 90)
-                                variance = .56;
-                            else
-                                variance = .60;
-                            break;
-                        case 9:
-                            //Sword Multistrike
-                            if (chance < 10)
-                                variance = .24;
-                            else if (chance < 30)
-                                variance = .28;
-                            else if (chance < 70)
-                                variance = .35;
-                            else if (chance < 90)
-                                variance = .40;
-                            else
-                                variance = .45;
-                            break;
-                        case 10:
-                            //UA
-                            if (chance < 10)
-                                variance = .44;
-                            else if (chance < 30)
-                                variance = .48;
-                            else if (chance < 70)
-                                variance = .53;
-                            else if (chance < 90)
-                                variance = .58;
-                            else
-                                variance = .60;
-                            break;
-                    }
-                    break;
-                case 3:
-                    /// Two Handed only have one set of variances
-                    if (chance < 5)
-                        variance = .30;
-                    else if (chance < 20)
-                        variance = .35;
-                    else if (chance < 50)
-                        variance = .40;
-                    else if (chance < 80)
-                        variance = .45;
-                    else if (chance < 95)
-                        variance = .50;
-                    else
-                        variance = .55;
-                    break;
-                default:
-                    break;
-            }
-
-            return variance;
-        }
-
-        private static int GetMaxDamage(int weaponType, int tier, int wieldDiff, int baseWeapon)
-        {
-            ///weaponType: 1 Heavy, 2 Finesse/Light, 3 two-handed
-            ///baseWeapon: 1 Axe, 2 Dagger, 3 DaggerMulti, 4 Mace, 5 Spear, 6 Sword, 7 SwordMulti, 8 Staff, 9 UA
-
-            int[,] lightWeaponDamageTable =
-            {
-                { 22, 28, 33, 39, 44, 50, 55, 57, 61},
-                { 18, 24, 29, 35, 40, 46, 51, 54, 58},
-                {  7, 10, 13, 16, 18, 21, 24, 27, 28},
-                { 19, 24, 29, 35, 40, 45, 50, 52, 57},
-                { 21, 26, 32, 37, 42, 48, 53, 56, 60},
-                { 20, 25, 31, 36, 41, 47, 52, 55, 58},
-                {  7, 10, 13, 16, 18, 21, 24, 25, 28},
-                { 19, 24, 30, 35, 40, 46, 51, 54, 57},
-                { 17, 22, 26, 31, 35, 40, 44, 46, 48}
-            };
-            int[,] heavyWeaponDamageTable =
-            {
-                { 26, 33, 40, 47, 54, 61, 68, 71, 74 },
-                { 24, 31, 38, 45, 51, 58, 65, 68, 71 },
-                { 13, 16, 20, 23, 26, 30, 33, 36, 38 },
-                { 22, 29, 36, 43, 49, 56, 63, 66, 69 },
-                { 25, 32, 39, 46, 52, 59, 66, 69, 72 },
-                { 24, 31, 38, 45, 51, 58, 65, 68, 71 },
-                { 12, 16, 19, 23, 26, 30, 33, 36, 38 },
-                { 23, 30, 36, 43, 50, 56, 63, 66, 70 },
-                { 20, 26, 31, 37, 43, 48, 54, 56, 59 }
-            };
-            int[,] twohandedWeaponDamageTable =
-            {
-                { 13, 17, 22, 26, 30, 35, 39, 42, 45 },
-                { 14, 19, 23, 28, 33, 37, 42, 45, 48 }
-            };
-
-            int tieredDamage = 0;
-            int finalDamage = 0;
-
-            switch (weaponType)
-            {
-                case 1:
-                    tieredDamage = heavyWeaponDamageTable[baseWeapon - 1, tier - 1];
-                    break;
-                case 2:
-                    tieredDamage = lightWeaponDamageTable[baseWeapon - 1, tier - 1];
-                    break;
-                case 3:
-                    tieredDamage = twohandedWeaponDamageTable[baseWeapon - 1, tier - 1];
-                    break;
-            }
-
-            float chanceOffset = 0f;
-            double chance = ThreadSafeRandom.Next(0.0f, 1.0f);
-
-            if (wieldDiff > 0)
-                chanceOffset = 0.02f;
-            else if (wieldDiff > 250)
-                chanceOffset = 0.03f;
-            else if (wieldDiff > 300)
-                chanceOffset = 0.04f;
-            else if (wieldDiff > 325)
-                chanceOffset = 0.05f;
-            else if (wieldDiff > 350)
-                chanceOffset = 0.06f;
-            else if (wieldDiff > 370)
-                chanceOffset = 0.07f;
-            else if (wieldDiff > 400)
-                chanceOffset = 0.08f;
-            else if (wieldDiff > 420)
-                chanceOffset = 0.1f;
-
-            chance = chance + chanceOffset;
-            if (tieredDamage < 10)
-            {
-                if (chance < .026)
-                    finalDamage = tieredDamage - 3;
-                else if (chance < .5)
-                    finalDamage = tieredDamage - 2;
-                else if (chance < .977)
-                    finalDamage = tieredDamage - 1;
-                else
-                    finalDamage = tieredDamage;
-            }
-            else
-            {
-                if (chance < .005)
-                    finalDamage = tieredDamage - 7;
-                else if (chance < .026)
-                    finalDamage = tieredDamage - 6;
-                else if (chance < .162)
-                    finalDamage = tieredDamage - 5;
-                else if (chance < .5)
-                    finalDamage = tieredDamage - 4;
-                else if (chance < .841)
-                    finalDamage = tieredDamage - 3;
-                else if (chance < .977)
-                    finalDamage = tieredDamage - 2;
-                else if (chance < .995)
-                    finalDamage = tieredDamage - 1;
-                else
-                    finalDamage = tieredDamage;
-            }
-
-            return finalDamage;
-        }
-
         private static int GetLowSpellTier(int tier)
         {
             int lowSpellTier = 0;
@@ -2406,171 +1952,66 @@ namespace ACE.Server.Factories
             return maxmana;
         }
 
-        private static int GetMaterialType(int type, int tier)
+        /// <summary>
+        /// Returns an appropriate material type fo the World Object based on its loot tier.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <param name="tier"></param>
+        /// <returns></returns>
+        private static int GetMaterialType(WorldObject wo, int tier)
         {
-            uint materialType = 0;
+            int defaultMaterialType = 0;
 
-            ///Type = 1 for gems, 2 for weapons/bows, 3 for armor, 4 jewelry
-            uint[] gems5 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                            0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                            0x0000000F, 0x0000001B, 0x00000023, 0x00000031, 0x0000000D, 0x00000017, 0x00000021, 0x0000001A, 0x0000002F, 0x00000010, 0x00000016, 0x00000029,
-                            0x00000014, 0x00000026, 0x00000027, 0x00000015 };
-
-            uint[] gems4 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                            0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                            0x0000000F, 0x0000001B, 0x00000023, 0x00000031, 0x0000000D, 0x00000017, 0x00000021, 0x0000001A, 0x0000002F, 0x00000010, 0x00000016, 0x00000029};
-
-            uint[] gems3 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                            0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                            0x0000000F, 0x0000001B, 0x00000023, 0x00000031, 0x0000000D, 0x00000017, 0x00000021};
-
-            uint[] gems2 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                            0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                            0x0000000F, 0x0000001B, 0x00000023};
-
-            uint[] gems1 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                            0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028};
-
-            uint[] materialTypes5 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                     0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                                     0x0000000F, 0x0000001B, 0x00000023, 0x00000031, 0x0000000D, 0x00000017, 0x00000021, 0x0000001A, 0x0000002F, 0x00000010, 0x00000016, 0x00000029,
-                                     0x00000014, 0x00000026, 0x00000027, 0x00000015, 0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003E, 0x0000003C, 0x0000003F};
-
-            uint[] materialTypes4 = { 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                      0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                                      0x0000000F, 0x0000001B, 0x00000023, 0x00000031, 0x0000000D, 0x00000017, 0x00000021, 0x0000001A, 0x0000002F, 0x00000010, 0x00000016, 0x00000029,
-                                      0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003E, 0x0000003C, 0x0000003F};
-
-            uint[] materialTypes3 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                     0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                                     0x0000000F, 0x0000001B, 0x00000023, 0x00000031, 0x0000000D, 0x00000017, 0x00000021, 0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040,
-                                     0x0000003C, 0x0000003F};
-
-            uint[] materialTypes2 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                     0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                                     0x0000000F, 0x0000001B, 0x00000023, 0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003C, 0x0000003F};
-
-            uint[] materialTypes1 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                     0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003C,
-                                     0x0000003F };
-
-            uint[] bowTypes5 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                     0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                                     0x0000000F, 0x0000001B, 0x00000023, 0x00000031, 0x0000000D, 0x00000017, 0x00000021, 0x0000001A, 0x0000002F, 0x00000010, 0x00000016, 0x00000029,
-                                     0x00000014, 0x00000026, 0x00000027, 0x00000015, 0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003E, 0x0000003C, 0x0000003F,
-                                     0x0000004A, 0x00000049, 0x0000004B, 0x0000004C, 0x0000004D};
-
-            uint[] bowTypes4 = { 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                      0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                                      0x0000000F, 0x0000001B, 0x00000023, 0x00000031, 0x0000000D, 0x00000017, 0x00000021, 0x0000001A, 0x0000002F, 0x00000010, 0x00000016, 0x00000029,
-                                      0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003E, 0x0000003C, 0x0000003F, 0x0000004A, 0x00000049, 0x0000004B, 0x0000004C, 0x0000004D};
-
-            uint[] bowTypes3 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                     0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                                     0x0000000F, 0x0000001B, 0x00000023, 0x00000031, 0x0000000D, 0x00000017, 0x00000021, 0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040,
-                                     0x0000003C, 0x0000003F, 0x0000004A, 0x00000049, 0x0000004B, 0x0000004C, 0x0000004D};
-
-            uint[] bowTypes2 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                     0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
-                                     0x0000000F, 0x0000001B, 0x00000023, 0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003C, 0x0000003F, 0x0000004A, 0x00000049, 0x0000004B, 0x0000004C, 0x0000004D};
-
-            uint[] bowTypes1 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
-                                     0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x00000033, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003C,
-                                     0x0000003F, 0x0000004A, 0x00000049, 0x0000004B, 0x0000004C, 0x0000004D, };
-            uint[] metalWeaponsAll = { 0x0000003B, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003C, 0x0000003F, 0x0000003E };
-
-            uint[] leatherArmor = { 52, 53, 54, 55 };
-
-            uint[] clothArmor = { 4, 5, 6, 7, 8 };
-
-            uint[] metalArmor = { 0x0000003B, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003C, 0x0000003F, 0x0000003E };
-
-            uint[] metalAndLeatherArmor = { 52, 53, 54, 55, 0x0000003B, 0x00000039, 0x0000003A, 0x0000003D, 0x00000040, 0x0000003C, 0x0000003F, 0x0000003E };
-
-            ///Type = 1 for gems, 2 for weapons/bows, 3 for armor, 4 MetalWeapons, 5 jewelry, 
-            switch (type)
+            if(wo.TsysMutationData == null)
             {
-                case 1:
-                    switch (tier)
-                    {
-                        case 1:
-                            materialType = gems1[ThreadSafeRandom.Next(0, gems1.Length - 1)];
-                            break;
-                        case 2:
-                            materialType = gems2[ThreadSafeRandom.Next(0, gems2.Length - 1)];
-                            break;
-                        case 3:
-                            materialType = gems3[ThreadSafeRandom.Next(0, gems3.Length - 1)];
-                            break;
-                        case 4:
-                            materialType = gems4[ThreadSafeRandom.Next(0, gems4.Length - 1)];
-                            break;
-                        default:
-                            materialType = gems5[ThreadSafeRandom.Next(0, gems5.Length - 1)];
-                            break;
-                    }
-                    break;
-                case 2:
-                    switch (tier)
-                    {
-                        case 1:
-                            materialType = bowTypes1[ThreadSafeRandom.Next(0, bowTypes1.Length - 1)];
-                            break;
-                        case 2:
-                            materialType = bowTypes2[ThreadSafeRandom.Next(0, bowTypes2.Length - 1)];
-                            break;
-                        case 3:
-                            materialType = bowTypes3[ThreadSafeRandom.Next(0, bowTypes3.Length - 1)];
-                            break;
-                        case 4:
-                            materialType = bowTypes4[ThreadSafeRandom.Next(0, bowTypes4.Length - 1)];
-                            break;
-                        default:
-                            materialType = bowTypes5[ThreadSafeRandom.Next(0, bowTypes5.Length - 1)];
-                            break;
-                    }
-                    break;
-                case 3:
-                    switch (tier)
-                    {
-                        case 1:
-                            materialType = materialTypes1[ThreadSafeRandom.Next(0, materialTypes1.Length - 1)];
-                            break;
-                        case 2:
-                            materialType = materialTypes2[ThreadSafeRandom.Next(0, materialTypes2.Length - 1)];
-                            break;
-                        case 3:
-                            materialType = materialTypes3[ThreadSafeRandom.Next(0, materialTypes3.Length - 1)];
-                            break;
-                        case 4:
-                            materialType = materialTypes4[ThreadSafeRandom.Next(0, materialTypes4.Length - 1)];
-                            break;
-                        default:
-                            materialType = materialTypes5[ThreadSafeRandom.Next(0, materialTypes5.Length - 1)];
-                            break;
-                    }
-                    break;
-                case 4:
-                    materialType = metalWeaponsAll[ThreadSafeRandom.Next(0, metalWeaponsAll.Length - 1)];
-                    break;
-                case 5:
-                    materialType = leatherArmor[ThreadSafeRandom.Next(0, leatherArmor.Length - 1)];
-                    break;
-                case 6:
-                    materialType = metalAndLeatherArmor[ThreadSafeRandom.Next(0, metalAndLeatherArmor.Length - 1)];
-                    break;
-                case 7:
-                    materialType = metalArmor[ThreadSafeRandom.Next(0, metalArmor.Length - 1)];
-                    break;
-                case 8:
-                    materialType = clothArmor[ThreadSafeRandom.Next(0, clothArmor.Length - 1)];
-                    break;
-                default:
-                    break;
-
+                log.Info($"Missing PropertyInt.TsysMutationData on loot item {wo.WeenieClassId} - {wo.Name}");
+                return defaultMaterialType;
             }
 
-            return (int)materialType;
+            int materialCode = ((int)wo.TsysMutationData >> 0) & 0xFF;
+
+            // Enforce some bounds
+            if (tier < 1) tier = 1;
+            // Data only goes to Tier 6 at the moment... Just in case the loot gem goes above this first, we'll cap it here for now.
+            if (tier > 6)
+                tier = 6;
+
+            var materialBase = DatabaseManager.World.GetCachedTreasureMaterialBase(materialCode, tier);
+
+            float totalProbability = GetTotalProbability(materialBase);
+            // If there's zero chance, no point in continuing...
+            if (totalProbability == 0) return defaultMaterialType;
+
+            var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
+            float probability = 0.0f;
+            foreach (var m in materialBase)
+            {
+                probability += m.Probability;
+                if (rng >= probability || probability == totalProbability)
+                {
+                    // Ivory is unique... It doesn't have a group
+                    if (m.MaterialID == (uint)MaterialType.Ivory)
+                        return (int)m.MaterialID;
+
+                    var materialGroup = DatabaseManager.World.GetCachedTreasureMaterialGroup(m.MaterialID, tier);
+                    float totalGroupProbability = GetTotalProbability(materialGroup);
+                    // If there's zero chance, no point in continuing...
+                    if (totalGroupProbability == 0) return defaultMaterialType;
+
+                    var groupRng = ThreadSafeRandom.Next(0.0f, totalGroupProbability);
+                    float groupProbability = 0.0f;
+                    foreach (var g in materialGroup)
+                    {
+                        groupProbability += g.Probability;
+                        if (groupProbability > groupRng || groupProbability == totalGroupProbability)
+                            return (int)g.MaterialID;
+                    }
+
+                    break;
+                }
+            }
+
+            return (int)defaultMaterialType;
         }
 
         private static double GetMeleeDMod(int tier)
@@ -2850,5 +2291,166 @@ namespace ACE.Server.Factories
 
             return amount;
         }
+
+        /// <summary>
+        /// This will assign a completely random, valid color to the item in question. It will also randomize the shade and set the appropriate icon.
+        ///
+        /// This was a temporary function to give some color to loot until further work was put in for "proper" color handling. Leave it here as an option for future potential use (perhaps config option?)
+        /// </summary>
+        private static WorldObject RandomizeColorTotallyRandom(WorldObject wo)
+        {
+            // Make sure the item has a ClothingBase...otherwise we can't properly randomize the colors.
+            if (wo.ClothingBase != null)
+            {
+                DatLoader.FileTypes.ClothingTable item = DatLoader.DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ClothingTable>((uint)wo.ClothingBase);
+
+                // Get a random PaletteTemplate index from the ClothingBase entry
+                // But make sure there's some valid ClothingSubPalEffects (in a valid loot/clothingbase item, there always SHOULD be)
+                if (item.ClothingSubPalEffects.Count > 0)
+                {
+                    int randIndex = ThreadSafeRandom.Next(0, item.ClothingSubPalEffects.Count - 1);
+                    var cloSubPal = item.ClothingSubPalEffects.ElementAt(randIndex);
+
+                    // Make sure this entry has a valid icon, otherwise there's likely something wrong with the ClothingBase value for this WorldObject (e.g. not supposed to be a loot item)
+                    if (cloSubPal.Value.Icon > 0)
+                    {
+                        // Assign the appropriate Icon and PaletteTemplate
+                        wo.IconId = cloSubPal.Value.Icon;
+                        wo.PaletteTemplate = (int)cloSubPal.Key;
+
+                        // Throw some shade, at random
+                        wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
+                    }
+                }
+            }
+            return wo;
+        }
+
+        /// <summary>
+        /// Assign a random color (Int.PaletteTemplate and Float.Shade) to a World Object based on the material assigned to it.
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <returns>WorldObject with a random applicable PaletteTemplate and Shade applied, if available</returns>
+        private static WorldObject RandomizeColor(WorldObject wo)
+        {
+            if(wo.MaterialType > 0 && wo.TsysMutationData != null && wo.ClothingBase != null)
+            {
+                byte colorCode = (byte)( ((uint)wo.TsysMutationData >> 16) & 0xFF );
+
+                // BYTE spellCode = (tsysMutationData >> 24) & 0xFF;
+                // BYTE colorCode = (tsysMutationData >> 16) & 0xFF;
+                // BYTE gemCode = (tsysMutationData >> 8) & 0xFF;
+                // BYTE materialCode = (tsysMutationData >> 0) & 0xFF;
+
+                List<TreasureMaterialColor> colors;
+                // This is a unique situation that typically applies to Under Clothes.
+                // If the Color Code is 0, they can be PaletteTemplate 1-18, assuming there is a MaterialType
+                // (gems have ColorCode of 0, but also no MaterialCode as they are defined by the weenie)
+                if (colorCode == 0 && (uint)wo.MaterialType > 0)
+                {
+                    colors = new List<TreasureMaterialColor>();
+                    for (int i = 1; i < 19; i++)
+                    {
+                        TreasureMaterialColor tmc = new TreasureMaterialColor
+                        {
+                            PaletteTemplate = i,
+                            Probability = 1
+                        };
+                        colors.Add(tmc);
+                    }
+                }
+                else
+                {
+                    colors = DatabaseManager.World.GetCachedTreasureMaterialColors((int)wo.MaterialType, colorCode);
+                }
+
+                // Load the clothingBase associated with the WorldObject
+                DatLoader.FileTypes.ClothingTable clothingBase = DatLoader.DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ClothingTable>((uint)wo.ClothingBase);
+
+                // TODO : Probably better to use an intersect() function here. I defer to someone who knows how these work better than I - Optim
+                // Compare the colors list and the clothingBase PaletteTemplates and remove any invalid items
+                var colorsValid = new List<TreasureMaterialColor>();
+                foreach (var e in colors)
+                    if (clothingBase.ClothingSubPalEffects.ContainsKey((uint)e.PaletteTemplate))
+                        colorsValid.Add(e);
+                colors = colorsValid;
+
+                float totalProbability = GetTotalProbability(colors);
+                // If there's zero chance to get a random color, no point in continuing.
+                if (totalProbability == 0) return wo;
+
+                var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
+
+                int paletteTemplate = 0;
+                float probability = 0.0f;
+                // Loop through the colors until we've reach our target value
+                foreach (var color in colors)
+                {
+                    probability += color.Probability;
+                    if (probability >= rng || probability == totalProbability)
+                    {
+                        paletteTemplate = color.PaletteTemplate;
+                        break;
+                    }
+                }
+                if (paletteTemplate > 0)
+                {
+                    var cloSubPal = clothingBase.ClothingSubPalEffects[(uint)paletteTemplate];
+                    // Make sure this entry has a valid icon, otherwise there's likely something wrong with the ClothingBase value for this WorldObject (e.g. not supposed to be a loot item)
+                    if (cloSubPal.Icon > 0)
+                    {
+                        // Assign the appropriate Icon and PaletteTemplate
+                        wo.IconId = cloSubPal.Icon;
+                        wo.PaletteTemplate = (int)paletteTemplate;
+
+                        // Throw some shade, at random
+                        wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+                        // Some debu ginfo...
+                        // log.Info($"Color success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}. PaletteTemplate {paletteTemplate} applied.");
+                    }
+                }
+                else
+                {
+                    log.Info($"Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
+                }
+            }
+
+            return wo;
+        }
+
+        /// <summary>
+        /// Some helper functions to get Probablity from different list types
+        /// </summary>
+        /// <param name="colors"></param>
+        /// <returns></returns>
+        private static float GetTotalProbability(List<TreasureMaterialColor> colors)
+        {
+            if (colors == null || colors.Count == 0) return 0.0f;
+
+            var prob = colors.Select(i => i.Probability).ToList();
+
+            var totalSum = prob.Sum();
+            return totalSum;
+        }
+        private static float GetTotalProbability(List<TreasureMaterialBase> list)
+        {
+            if (list == null || list.Count == 0) return 0.0f;
+
+            var prob = list.Select(i => i.Probability).ToList();
+
+            var totalSum = prob.Sum();
+            return totalSum;
+        }
+        private static float GetTotalProbability(List<TreasureMaterialGroups> list)
+        {
+            if (list == null || list.Count == 0) return 0.0f;
+
+            var prob = list.Select(i => i.Probability).ToList();
+
+            var totalSum = prob.Sum();
+            return totalSum;
+        }
+
     }
 }

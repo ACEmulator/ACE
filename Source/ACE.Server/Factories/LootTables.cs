@@ -1,3 +1,4 @@
+using ACE.Server.WorldObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace ACE.Factories
         /// <summary>
         /// The following data is materialID/material value modifier
         /// </summary>
-        public static Dictionary<int, double> materialModifier = new Dictionary<int, double>()
+        private static Dictionary<int, double> materialModifier = new Dictionary<int, double>()
                                             {
                                                 {1, 1}, //ceramic
                                                 {2, 1.5}, //pocelain
@@ -91,6 +92,26 @@ namespace ACE.Factories
                                                 {74, 1.8}, //mahogany
                                                 {73, 2.0} //ebony
                                             };
+
+        public static double getMaterialValueModifier(WorldObject wo)
+        {
+            if (wo.MaterialType == null) return 1;
+            int materialType = (int)wo.MaterialType;
+            if (materialModifier.ContainsKey(materialType))
+                return materialModifier[materialType];
+            else
+                return 1;
+        }
+
+        public static double getGemMaterialValueModifier(WorldObject wo)
+        {
+            if (wo.MaterialType == null) return 1;
+            int materialType = (int)wo.MaterialType;
+            if (materialModifier.ContainsKey(materialType))
+                return materialModifier[materialType];
+            else
+                return 1;
+        }
 
         public static Dictionary<int, int> gemValues = new Dictionary<int, int>()
                                             {
@@ -272,12 +293,51 @@ namespace ACE.Factories
             new int[] { 41041, 41042, 41043, 41044, 41045 } // Magari Yari
         };
 
+        public static readonly int[,] HeavyWeaponDamageTable =
+        {
+                { 26, 33, 40, 47, 54, 61, 68, 71, 74 },
+                { 24, 31, 38, 45, 51, 58, 65, 68, 71 },
+                { 13, 16, 20, 23, 26, 30, 33, 36, 38 },
+                { 22, 29, 36, 43, 49, 56, 63, 66, 69 },
+                { 25, 32, 39, 46, 52, 59, 66, 69, 72 },
+                { 24, 31, 38, 45, 51, 58, 65, 68, 71 },
+                { 12, 16, 19, 23, 26, 30, 33, 36, 38 },
+                { 23, 30, 36, 43, 50, 56, 63, 66, 70 },
+                { 20, 26, 31, 37, 43, 48, 54, 56, 59 }
+        };
+
+        public static readonly int[,] LightWeaponDamageTable =
+        {
+                { 22, 28, 33, 39, 44, 50, 55, 57, 61},
+                { 18, 24, 29, 35, 40, 46, 51, 54, 58},
+                {  7, 10, 13, 16, 18, 21, 24, 27, 28},
+                { 19, 24, 29, 35, 40, 45, 50, 52, 57},
+                { 21, 26, 32, 37, 42, 48, 53, 56, 60},
+                { 20, 25, 31, 36, 41, 47, 52, 55, 58},
+                {  7, 10, 13, 16, 18, 21, 24, 25, 28},
+                { 19, 24, 30, 35, 40, 46, 51, 54, 57},
+                { 17, 22, 26, 31, 35, 40, 44, 46, 48}
+        };
+
+        public static readonly int[,] TwoHandedWeaponDamageTable =
+        {
+                { 13, 17, 22, 26, 30, 35, 39, 42, 45 },
+                { 14, 19, 23, 28, 33, 37, 42, 45, 48 }
+        };
+
         public static readonly int[][] CasterWeaponsMatrix =
         {
             new int[] { 2366, 2548, 2547, 2472 }, // Orb, Sceptre, Staff, Wand
             new int[] { 29265, 29264, 29260, 29263, 29262, 29259, 29261, 43381 }, // Sceptre: Slashing, Piercing, Blunt, Frost, Fire, Acid, Electric, Nether
             new int[] { 31819, 31825, 31821, 31824, 31823, 31820, 31822, 43382 }, // Baton: Slashing, Piercing, Blunt, Frost, Fire, Acid, Electric, Nether
             new int[] { 37223, 37222, 37225, 37221, 37220, 37224, 37219, 43383 }  // Staff: Slashing, Piercing, Blunt, Frost, Fire, Acid, Electric, Nether
+        };
+
+        public static readonly float[][] MissileDamageMod =
+        {
+            new float[] { 2.1f, 2.20f, 2.3f, 2.4f, 2.4f, 2.4f, 2.4f, 2.4f, 2.4f }, // Bow
+            new float[] { 2.4f, 2.5f, 2.55f, 2.65f, 2.65f, 2.65f, 2.65f, 2.65f, 2.65f }, // Crossbow
+            new float[] { 2.3f, 2.4f, 2.5f, 2.6f, 2.6f, 2.6f, 2.6f, 2.6f, 2.6f }  // Thrown
         };
 
         public static readonly int[][] NonElementalMissileWeaponsMatrix =
@@ -367,7 +427,6 @@ namespace ACE.Factories
             // Spell tier equals # value + 1
             new int[] { 0, 2 },
             new int[] { 2, 3 },
-            new int[] { 3, 4 },
             new int[] { 3, 4 },
             new int[] { 4, 5 },
             new int[] { 5, 5 },

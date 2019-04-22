@@ -63,7 +63,7 @@ namespace ACE.Server.WorldObjects
                 Session.EnqueueSend(updateCombatMode);
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall), 96.0f);
             EnqueueBroadcastMotion(motionHouseRecall);
 
             var startPos = new Position(Location);
@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
                     Session.EnqueueSend(updateCombatMode);
                 }
 
-                EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall));
+                EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall), 96.0f);
                 EnqueueBroadcastMotion(motionLifestoneRecall);
 
                 var startPos = new Position(Location);
@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
         {
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall), 96.0f);
             Session.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
             EnqueueBroadcastMotion(motionMarketplaceRecall);
 
@@ -199,7 +199,7 @@ namespace ACE.Server.WorldObjects
                 Session.EnqueueSend(updateCombatMode);
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the Allegiance hometown.", ChatMessageType.Recall));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the Allegiance hometown.", ChatMessageType.Recall), 96.0f);
             EnqueueBroadcastMotion(motionAllegianceHometownRecall);
 
             var startPos = new Position(Location);
@@ -268,7 +268,7 @@ namespace ACE.Server.WorldObjects
                 Session.EnqueueSend(updateCombatMode);
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the Allegiance housing.", ChatMessageType.Recall));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the Allegiance housing.", ChatMessageType.Recall), 96.0f);
             EnqueueBroadcastMotion(motionHouseRecall);
 
             var startPos = new Position(Location);
@@ -324,6 +324,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoPreTeleportHide()
         {
+            if (Teleporting) return;
             PlayParticleEffect(ACE.Entity.Enum.PlayScript.Hide, Guid);
         }
 

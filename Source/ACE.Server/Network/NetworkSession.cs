@@ -343,7 +343,14 @@ namespace ACE.Server.Network
                 {
                     reas = reas + ", " + PendingTermination.ExtraReason;
                 }
-                log.Info($"session {ToString()} dropped{reas}");
+                if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
+                {
+                    log.Info($"session {ToString()} dropped{reas}");
+                }
+                else
+                {
+                    log.Debug($"session {ToString()} dropped{reas}");
+                }
             }
             if (Player != null)
             {
@@ -359,7 +366,10 @@ namespace ACE.Server.Network
                 {
                     State = SessionState.TerminationStarted;
                     Update();
-                    PendingTermination.TerminationStatus = SessionTerminationPhase.SessionWorkCompleted;
+                    if (DateTime.UtcNow.Ticks > PendingTermination.TerminationEndTicks)
+                    {
+                        PendingTermination.TerminationStatus = SessionTerminationPhase.SessionWorkCompleted;
+                    }
                 }
                 return;
             }

@@ -92,8 +92,6 @@ namespace ACE.Server.WorldObjects
 
             // set pink bubble state
             IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
-
-            PhysicsObj.SetPlayer();
         }
 
         private void SetEphemeralValues()
@@ -865,6 +863,10 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
         public void ApplyConsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
+            if (IsBusy) return;
+
+            IsBusy = true;
+
             MotionCommand motionCommand;
 
             if (sound == Sound.Eat1)
@@ -947,6 +949,8 @@ namespace ACE.Server.WorldObjects
                 // return to original stance
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
+
+                IsBusy = false;
             });
 
            actionChain.EnqueueChain();
@@ -983,7 +987,7 @@ namespace ACE.Server.WorldObjects
                 var adminObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject.Visibility);
                 PhysicsObj.enqueue_objs(adminObjs);
 
-                var nodrawObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject.NoDraw ?? false);
+                var nodrawObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => (o.WeenieObj.WorldObject.NoDraw ?? false) || (o.WeenieObj.WorldObject.UiHidden ?? false));
                 foreach (var wo in nodrawObjs)
                     Session.EnqueueSend(new GameMessageUpdateObject(wo.WeenieObj.WorldObject, Adminvision, Adminvision ? true : false));
 

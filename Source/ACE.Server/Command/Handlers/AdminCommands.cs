@@ -185,14 +185,15 @@ namespace ACE.Server.Command.Handlers
                     break;
             }
             playerSession = plr.Session;
-            string bootText = $"{((session != null) ? "Player: " + session.Player.Name + " has booted " : "Console booted ")} player: {plr.Name} id: { plr.Guid.Full}";
+            string whoDid = (session != null) ? session.Player.Name  : "console";
+            string bootText = $"{whoDid} has booted player: {plr.Name} id: { plr.Guid.Full}";
 
             string specifiedReason = aceParams[2].Value != null ? aceParams[2].AsString : null;
 
             // Boot the player
             playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);
 
-            PlayerManager.BroadcastToAuditChannel(session.Player, bootText);
+            PlayerManager.BroadcastToAuditChannel(null, bootText);
 
             // log the boot to file
             log.Info(bootText);

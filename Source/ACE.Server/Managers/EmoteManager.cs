@@ -77,7 +77,7 @@ namespace ACE.Server.Managers
                     {
                         // ActOnUse delay?
                         var activationTarget = WorldObject.CurrentLandblock?.GetObject(WorldObject.ActivationTarget);
-                        activationTarget?.ActOnUse(WorldObject);
+                        activationTarget?.OnActivate(WorldObject);
                     }
                     break;
 
