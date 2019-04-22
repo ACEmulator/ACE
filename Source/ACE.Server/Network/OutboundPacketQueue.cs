@@ -1,4 +1,5 @@
 using ACE.Server.Network.Enum;
+using System;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -28,18 +29,22 @@ namespace ACE.Server.Network
         public void SendAll()
         {
             RawOutboundPacket rop = null;
-            IPEndPoint listenerEndpoint = (IPEndPoint)SendingSocket.LocalEndPoint;
-            while (UnprocessedOutboundPackets.TryDequeue(out rop))
+            try
             {
-                try
+                IPEndPoint listenerEndpoint = (IPEndPoint)SendingSocket.LocalEndPoint;
+                while (UnprocessedOutboundPackets.TryDequeue(out rop))
                 {
-                    SendingSocket.SendTo(rop.Packet, rop.Packet.Length, SocketFlags.None, rop.Session.EndPoint);
-                }
-                catch (SocketException ex)
-                {
-                    rop.Session.Terminate(SessionTerminationReason.SendToSocketException, null, null, ex.Message);
+                    try
+                    {
+                        SendingSocket.SendTo(rop.Packet, rop.Packet.Length, SocketFlags.None, rop.Session.EndPoint);
+                    }
+                    catch (SocketException ex)
+                    {
+                        rop.Session.Terminate(SessionTerminationReason.SendToSocketException, null, null, ex.Message);
+                    }
                 }
             }
+            catch (ObjectDisposedException) { }
         }
     }
 }

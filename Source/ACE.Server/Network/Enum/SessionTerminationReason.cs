@@ -22,7 +22,8 @@ namespace ACE.Server.Network.Enum
         /// The client connection is no longer able to send us packets with encrypted CRC
         /// </summary>
         ClientConnectionFailure,
-        SendToSocketException
+        SendToSocketException,
+        AbnormalSequenceReceived
     }
     public static class SessionTerminationReasonHelper
     {
@@ -42,7 +43,8 @@ namespace ACE.Server.Network.Enum
             "Not Authorized: Password does not match.",
             "Not Authorized: GlsTicket is not implemented to process login request",
             "Client connection failure",
-            "MainSocket.SendTo exception occured"
+            "MainSocket.SendTo exception occured",
+            "Client supplied an abnormal sequence"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {

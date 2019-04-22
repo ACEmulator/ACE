@@ -16,7 +16,7 @@ namespace ACE.Server.Managers
     {
         public const ushort ServerId = 0xB;
         public static InboundPacketQueue InboundQueue { get; private set; }
-        public static OutboundPacketQueue OutboundQueue { get; private set; }
+        public static OutboundPacketQueue OutboundQueue { get; set; }
         public static ConcurrentDictionary<ushort, Session> Sessions { get; private set; } = new ConcurrentDictionary<ushort, Session>();
         private static ushort NextSessionId => (ushort)Enumerable.Range(1, ushort.MaxValue).Except(Sessions.Keys.Select(k => (int)k)).First();
         private static readonly ConnectionListener[] listeners = new ConnectionListener[2];
@@ -45,7 +45,7 @@ namespace ACE.Server.Managers
         {
             InboundQueue.Shutdown();
         }
-        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint, IPEndPoint listenerEndpoint)
+        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint, IPEndPoint listenerEndpoint, Session VerifiedSession)
         {
             if (listenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
             {
@@ -102,13 +102,20 @@ namespace ACE.Server.Managers
                 }
                 else
                 {
-                    Session session = Sessions.FirstOrDefault(k => k.Value.ClientId == packet.Header.Id).Value;
-                    if (session != null)
+                    if (VerifiedSession == null)
                     {
-                        if (session.EndPoint.Equals(endPoint))
+                        Session session = Sessions.FirstOrDefault(k => k.Value.ClientId == packet.Header.Id).Value;
+                        if (session != null)
                         {
-                            session.ProcessSessionPacket(packet);
+                            if (session.EndPoint.Equals(endPoint))
+                            {
+                                session.ProcessSessionPacket(packet);
+                            }
                         }
+                    }
+                    else
+                    {
+                        VerifiedSession.ProcessSessionPacket(packet);
                     }
                 }
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);

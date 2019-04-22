@@ -8,6 +8,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameAction;
 using ACE.Server.Network.GameMessages;
+using System.Linq;
 
 namespace ACE.Server.Network.Managers
 {
@@ -41,11 +42,30 @@ namespace ACE.Server.Network.Managers
             DefineActionHandlers();
         }
 
+        /// <summary>
+        /// get list of potentially relevant types for scanning
+        /// </summary>
+        /// <returns></returns>
+        private static IEnumerable<Type> GetTypesToScan()
+        {
+            Assembly asm1 = Assembly.GetEntryAssembly();
+            Assembly asm2 = Assembly.GetCallingAssembly();
+            Assembly asm3 = Assembly.GetExecutingAssembly();
+            if (asm3 == asm2 || asm3 == asm1)
+            {
+                asm3 = null;
+            }
+            if (asm2 == asm1)
+            {
+                asm2 = null;
+            }
+            return new Assembly[] { asm1, asm2, asm3 }.Where(k => k != null).SelectMany(k => k.GetTypes());
+        }
+
         private static void DefineMessageHandlers()
         {
             messageHandlers = new Dictionary<GameMessageOpcode, MessageHandlerInfo>();
-
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            foreach (var type in GetTypesToScan())
             {
                 foreach (var methodInfo in type.GetMethods())
                 {
@@ -67,7 +87,7 @@ namespace ACE.Server.Network.Managers
         {
             actionHandlers = new Dictionary<GameActionType, ActionHandlerInfo>();
 
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            foreach (var type in GetTypesToScan())
             {
                 foreach (var methodInfo in type.GetMethods())
                 {

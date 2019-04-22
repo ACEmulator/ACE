@@ -43,18 +43,10 @@ namespace ACE.Server.Network
                     ClientPacket packet = new ClientPacket(rip.Packet);
                     if (packet.SuccessfullyParsed)
                     {
-                        CryptoSystem crypto = null;
+                        Session session = null;
                         if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
                         {
-                            Session session = NetworkManager.Sessions.Values.FirstOrDefault(k => k.EndPoint.Equals(rip.Them));
-                            if (session != null)
-                            {
-                                crypto = session.CryptoClient;
-                            }
-                            else
-                            {
-                                //wut
-                            }
+                            session = NetworkManager.Sessions.Values.FirstOrDefault(k => k.ClientId == packet.Header.Id && k.EndPoint.Equals(rip.Them));
                         }
                         else if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
                         {
@@ -64,12 +56,12 @@ namespace ACE.Server.Network
                             // and it's more secure to only accept the trusted version
                             continue;
                         }
-                        if (!packet.ValidateCRC(crypto))
+                        if (!packet.ValidateCRC(session?.CryptoClient))
                         {
                             // discard corrupt or forged packet
                             continue;
                         }
-                        NetworkManager.ProcessPacket(packet, rip.Them, rip.Us);
+                        NetworkManager.ProcessPacket(packet, rip.Them, rip.Us, session);
                     }
                 }
             });

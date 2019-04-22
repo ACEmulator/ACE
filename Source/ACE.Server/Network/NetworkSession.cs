@@ -34,7 +34,7 @@ namespace ACE.Server.Network
         public bool sendResync;
         private readonly bool sendAck = true;
 
-        public ushort ClientId { get; private set; }
+        public ushort ClientId { get; set; }
         private ushort ServerId { get; }
 
         public uint GameEventSequence { get; set; }
@@ -68,11 +68,11 @@ namespace ACE.Server.Network
         /// [World Manager Thread] WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick)<para />
         /// </summary>
         private readonly ConcurrentQueue<ServerPacket> packetQueue = new ConcurrentQueue<ServerPacket>();
-        public IPEndPoint EndPoint { get; }
+        public IPEndPoint EndPoint { get; set; }
         public SessionTerminationDetails PendingTermination { get; private set; } = null;
-        private UIntSequence PacketSequence { get; set; }
-        public readonly CryptoSystem CryptoClient = null;
-        private readonly ISAAC IssacServer = null;
+        public UIntSequence PacketSequence { get; set; }
+        public CryptoSystem CryptoClient { get; private set; } = null;
+        private ISAAC IssacServer = null;
         public Player Player { get; private set; }
 
         public byte[] ClientSeed { get; private set; }
@@ -84,7 +84,7 @@ namespace ACE.Server.Network
         private readonly ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
         private readonly ConcurrentDictionary<uint, ClientMessage> outOfOrderFragments = new ConcurrentDictionary<uint, ClientMessage>();
         private readonly ConcurrentDictionary<uint, ServerPacket> cachedPackets = new ConcurrentDictionary<uint, ServerPacket>();
-        private readonly OutboundPacketQueue OutboundQueue = null;
+        public OutboundPacketQueue OutboundQueue { get; set; } = null;
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #endregion
 
@@ -115,6 +115,11 @@ namespace ACE.Server.Network
             {
                 Terminate(SessionTerminationReason.ClientConnectionFailure);
             };
+        }
+        public void ResetCrypto(byte[] cliSeed, byte[] srvSeed)
+        {
+            CryptoClient = new CryptoSystem(cliSeed);
+            IssacServer = new ISAAC(srvSeed);
         }
         public void DiscardSeeds()
         {
@@ -155,6 +160,10 @@ namespace ACE.Server.Network
         }
         public void Terminate(SessionTerminationReason reason, GameMessage message = null, ServerPacket packet = null, string extraReason = "")
         {
+            if (PendingTermination != null)
+            {
+                return;
+            }
             if (packet != null)
             {
                 EnqueueSend(packet);
@@ -309,6 +318,7 @@ namespace ACE.Server.Network
                 }
                 return;
             }
+            log.Info(packet);
             HandleOrderedPacket(packet);
             CheckOutOfOrderPackets();
             CheckOutOfOrderFragments();
@@ -408,6 +418,11 @@ namespace ACE.Server.Network
                 desiredSeq
             };
             uint bottom = desiredSeq + 1;
+            if (rcvdSeq - bottom > CryptoSystem.MaximumEffortLevel)
+            {
+                Terminate(SessionTerminationReason.AbnormalSequenceReceived);
+                return;
+            }
             for (uint a = bottom; a < rcvdSeq; a++)
             {
                 if (!outOfOrderPackets.ContainsKey(a))
@@ -492,6 +507,7 @@ namespace ACE.Server.Network
         }
         private void HandleFragment(ClientMessage message)
         {
+            log.Info(message);
             InboundMessageManager.HandleClientMessage(message, this);
             lastReceivedFragmentSequence++;
         }
@@ -586,6 +602,7 @@ namespace ACE.Server.Network
             byte[] buffer = ArrayPool<byte>.Shared.Rent((int)(PacketHeader.HeaderSize + (packet.Data?.Length ?? 0) + (packet.Fragments.Count * PacketFragment.MaxFragementSize)));
             try
             {
+                log.Info(packet);
                 packet.CreateReadyToSendPacket(buffer, out int size);
                 byte[] data = new byte[size];
                 Buffer.BlockCopy(buffer, 0, data, 0, size);
