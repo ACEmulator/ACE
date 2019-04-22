@@ -32,8 +32,11 @@ namespace ACE.DatLoader.FileTypes
                 return 0;
 
             // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
-            int palIndex = Convert.ToInt32(Convert.ToDouble(PaletteList.Count - 0.000001) * hue); // Taken from acclient.c (PalSet::GetPaletteID)
-                                                                                                       // Since the hue numbers are a little odd, make sure we're in the bounds.
+            // int palIndex = Convert.ToInt32(Convert.ToDouble(PaletteList.Count - 0.000001) * hue); // Taken from acclient.c (PalSet::GetPaletteID)
+            // The above was taken from the client, but this is cleaned up and validated to generate accurate values against the pcaps.
+            int palIndex = (int)(Math.Ceiling((double)PaletteList.Count * hue) - 1); // Taken from acclient.c (PalSet::GetPaletteID)
+
+            // Since the hue numbers are a little odd, make sure we're in the bounds.
             if (palIndex < 0)
                 palIndex = 0;
 

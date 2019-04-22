@@ -1061,13 +1061,41 @@ namespace ACE.Server.WorldObjects
                     if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false))
                         IconId = itemSubPal.Icon;
 
+                    // Create a list of the Shades. If the shade isn't set, use the first shade value (or 0 if null)
+                    List<float> Shades = new List<float>();
                     float shade = 0;
                     if (Shade.HasValue)
                         shade = (float)Shade;
+                    else
+                        shade = 0;
+                    Shades.Add(shade);
+
+                    if (Shade2.HasValue)
+                        Shades.Add((float)Shade2);
+                    else
+                        Shades.Add(shade);
+
+                    if (Shade3.HasValue)
+                        Shades.Add((float)Shade3);
+                    else
+                        Shades.Add(shade);
+
+                    if (Shade4.HasValue)
+                        Shades.Add((float)Shade4);
+                    else
+                        Shades.Add(shade);
+
                     for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
                     {
+                        // Get the proper shade for this Clothing Sub Palette. If it doesn't exist, use the first shade value
+                        float curShade;
+                        if (Shades.Count > i)
+                            curShade = Shades[i];
+                        else
+                            curShade = Shades[0];
+
                         var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
-                        ushort itemPal = (ushort)itemPalSet.GetPaletteID(shade);
+                        ushort itemPal = (ushort)itemPalSet.GetPaletteID(curShade);
 
                         for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
                         {
