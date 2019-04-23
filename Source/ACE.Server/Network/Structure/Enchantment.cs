@@ -114,24 +114,21 @@ namespace ACE.Server.Network.Structure
             StatModValue = entry.StatModValue;
         }
 
-        public string GetInfo()
+        public void ShowInfo()
         {
             var spell = new Spell(SpellID);
-
-            var info = $"Spell: {spell.Name} ({SpellID})\n";
-            info += $"Target: {Target.Name}\n";
-            info += $"Layer: {Layer}\n";
-            info += $"SpellCategory: {(SpellCategory)SpellCategory}\n";
-            info += $"Power: {PowerLevel}\n";
-            info += $"StartTime: {StartTime}\n";
-            info += $"Duration: {Duration}\n";
-            info += $"CasterGuid: {CasterGuid}\n";
-            info += $"StatModType: {StatModType}\n";
-            info += $"StatModKey: {StatModKey}\n";
-            info += $"StatModValue: {StatModValue}\n";
-            info += "---------";
-
-            return info;
+            Console.WriteLine($"Spell: {spell.Name} ({SpellID})");
+            Console.WriteLine($"Target: {Target.Name}");
+            Console.WriteLine($"Layer: {Layer}");
+            Console.WriteLine($"SpellCategory: {(SpellCategory)SpellCategory}");
+            Console.WriteLine($"Power: {PowerLevel}");
+            Console.WriteLine($"StartTime: {StartTime}");
+            Console.WriteLine($"Duration: {Duration}");
+            Console.WriteLine($"CasterGuid: {CasterGuid}");
+            Console.WriteLine($"StatModType: {StatModType}");
+            Console.WriteLine($"StatModKey: {StatModKey}");
+            Console.WriteLine($"StatModValue: {StatModValue}");
+            Console.WriteLine("---------");
         }
     }
 
