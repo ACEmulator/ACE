@@ -2355,5 +2355,21 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine("---------------");
             }
         }
+
+        [CommandHandler("getenchantments", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Shows the enchantments for the last appraised item", "")]
+        public static void HandleGetEnchantments(Session session, params string[] parameters)
+        {
+            var item = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (item == null) return;
+
+            var enchantments = item.EnchantmentManager.GetEnchantments_TopLayer(item.Biota.GetEnchantments(item.BiotaDatabaseLock));
+
+            foreach (var enchantment in enchantments)
+            {
+                var e = new Network.Structure.Enchantment(item, enchantment);
+                var info = e.GetInfo();
+                session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            }
+        }
     }
 }
