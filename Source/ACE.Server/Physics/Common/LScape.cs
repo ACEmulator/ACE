@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Physics.Util;
 using log4net;
 
 namespace ACE.Server.Physics.Common
@@ -105,7 +106,9 @@ namespace ACE.Server.Physics.Common
 
         public static bool unload_landblock(uint landblockID)
         {
-            return Landblocks.TryRemove(landblockID, out _);
+            var result = Landblocks.TryRemove(landblockID, out _);
+            AdjustCell.AdjustCells.Remove(landblockID >> 16);
+            return result;
         }
 
         /// <summary>
