@@ -1905,6 +1905,8 @@ namespace ACE.Server.WorldObjects
 
                                     if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                         RushNextPlayerSave(5);
+
+                                    log.Info($"{Name} traded in a IOU (0x{iouToTurnIn.Guid.Full:X8}) for {wcid} which became {item.Name} (0x{item.Guid.Full:X8}).");
                                 }
                                 return;
                             }
