@@ -380,6 +380,10 @@ namespace ACE.Server.WorldObjects
                 if (_dungeonLandblockID == null)
                 {
                     var housePortal = GetHousePortals();
+
+                    if (housePortal.Count == 0)
+                        return 0;
+
                     _dungeonLandblockID = housePortal[0].ObjCellId | 0xFFFF;
                 }
                 return _dungeonLandblockID.Value;
@@ -395,6 +399,10 @@ namespace ACE.Server.WorldObjects
                 if (_dungeonHouseGuid == null)
                 {
                     var housePortals = GetHousePortals();
+
+                    if (housePortals.Count == 0)
+                        return 0;
+
                     _dungeonHouseGuid = housePortals[0].Id;
 
                 }

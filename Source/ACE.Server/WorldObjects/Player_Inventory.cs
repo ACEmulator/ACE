@@ -159,7 +159,7 @@ namespace ACE.Server.WorldObjects
             if (removeFromInventoryAction != RemoveFromInventoryAction.SellItem && removeFromInventoryAction != RemoveFromInventoryAction.GiveItem)
                 Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid));
 
-            if (removeFromInventoryAction == RemoveFromInventoryAction.TradeItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
+            if (removeFromInventoryAction == RemoveFromInventoryAction.GiveItem || removeFromInventoryAction == RemoveFromInventoryAction.TradeItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
                 Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(item));
 
             if (removeFromInventoryAction != RemoveFromInventoryAction.ToWieldedSlot)
@@ -1806,6 +1806,12 @@ namespace ACE.Server.WorldObjects
         {
             if (target == null || item == null) return;
 
+            if (PropertyManager.GetBool("iou_trades").Item && item.Name == "IOU" && item.WeenieType == WeenieType.Book && target.Name == "Town Crier")
+            {
+                HandleIOUTurnIn(target, item);
+                return;
+            }
+
             if (target.EmoteManager.IsBusy)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
@@ -1852,6 +1858,67 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
             }
+        }
+
+        private void HandleIOUTurnIn(WorldObject target, WorldObject iouToTurnIn)
+        {
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {iouToTurnIn.Name}.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, iouToTurnIn.Guid.Full, WeenieError.TradeAiRefuseEmote));
+
+            if (iouToTurnIn is Book book)
+            {
+                var page = book.GetPage(0);
+
+                if (page != null)
+                {
+                    var pageText = page.PageText;
+
+                    var split = pageText.Split("\n");
+
+                    if (split.Length > 0)
+                    {
+                        var success = uint.TryParse(split[0], out var wcid);
+
+                        //Console.WriteLine($"{success.ToString()} {wcid}");
+
+                        Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Ahh, an IOU! You know, I collect these for some reason. Let me see if I have something for it somewhere in my pack...", this, ChatMessageType.Tell));
+
+                        if (success)
+                        {
+                            var item = WorldObjectFactory.CreateNewWorldObject(wcid);
+
+                            if (item != null)
+                            {
+                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, $"You're in luck! This {item.Name} was just left here the other day.", this, ChatMessageType.Tell));
+                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, $"I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
+                                Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {iouToTurnIn.Name}.", ChatMessageType.Broadcast));
+                                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                                RemoveItemForGive(iouToTurnIn, null, false, null, 1, out WorldObject itemToGive, true);
+                                success = TryCreateInInventoryWithNetworking(item);
+
+                                if (success)
+                                {
+                                    Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Here you go.", this, ChatMessageType.Tell));
+                                    var msg = new GameMessageSystemChat($"{target.Name} gives you {item.Name}.", ChatMessageType.Broadcast);
+                                    var sound = new GameMessageSound(Guid, Sound.ReceiveItem, 1);
+                                    Session.Network.EnqueueSend(msg, sound);
+
+                                    if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                                        RushNextPlayerSave(5);
+                                }
+                                return;
+                            }
+                            else
+                            {
+                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Sorry, doesn't look I've got one of those yet. Check back again later.", this, ChatMessageType.Tell));
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Hmm... Something isn't quite right with this IOU. I can't seem to make out what its for. I'm sorry!", this, ChatMessageType.Tell));
         }
 
         private bool RemoveItemForGive(WorldObject item, Container itemFoundInContainer, bool itemWasEquipped, Container itemRootOwner, int amount, out WorldObject itemToGive, bool destroy = false)
