@@ -1793,7 +1793,10 @@ namespace ACE.Server.WorldObjects
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
-                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
+
+                // send DO to source player if not splitting a stack
+                if (item == itemToGive)
+                    Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 
                 target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                 target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
