@@ -101,91 +101,10 @@ namespace ACE.Server.Factories
         {
             int casterWeenie = 0; //done
             double elementalDamageMod = 0;
-            int wield = 0; //done
             Skill wieldSkillType = Skill.None;
             WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
-            int chance = 0;
             int subType = 0;
-
-            switch (tier)
-            {
-                case 1:
-                case 2:
-                    wield = 0;
-                    break;
-                case 3:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 80)
-                        wield = 0;
-                    else
-                        wield = 290;
-                    break;
-                case 4:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 60)
-                        wield = 0;
-                    else if (chance < 95)
-                        wield = 290;
-                    else
-                        wield = 310;
-                    break;
-                case 5:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 50)
-                        wield = 0;
-                    else if (chance < 70)
-                        wield = 290;
-                    else if (chance < 90)
-                        wield = 310;
-                    else
-                        wield = 330;
-                    break;
-                case 6:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 40)
-                        wield = 0;
-                    else if (chance < 60)
-                        wield = 290;
-                    else if (chance < 80)
-                        wield = 310;
-                    else if (chance < 90)
-                        wield = 330;
-                    else
-                        wield = 355;
-                    break;
-                case 7:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 30)
-                        wield = 0;
-                    else if (chance < 50)
-                        wield = 290;
-                    else if (chance < 60)
-                        wield = 310;
-                    else if (chance < 70)
-                        wield = 330;
-                    else if (chance < 90)
-                        wield = 355;
-                    else
-                        wield = 375;
-                    break;
-                default:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 25)
-                        wield = 0;
-                    else if (chance < 50)
-                        wield = 290;
-                    else if (chance < 60)
-                        wield = 310;
-                    else if (chance < 70)
-                        wield = 330;
-                    else if (chance < 80)
-                        wield = 355;
-                    else if (chance < 90)
-                        wield = 375;
-                    else
-                        wield = 385;
-                    break;
-            }
+            int wield = GetWield(tier, 2);
 
             ////Getting the caster Weenie needed.
             if (wield == 0)
