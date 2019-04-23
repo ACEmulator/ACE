@@ -1322,15 +1322,6 @@ namespace ACE.Server.Command.Handlers
             if (notOK) ChatPacket.SendServerMessage(session, "Appraise a locked target before using @crack", ChatMessageType.Broadcast);
         }
 
-        // cm <material type> <quantity> <ave. workmanship>
-        [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
-        public static void HandleCM(Session session, params string[] parameters)
-        {
-            // Format is: @cm <material type> <quantity> <ave. workmanship>
-
-            // TODO: output
-        }
-
         /// <summary>
         /// Displays how much experience the last appraised creature is worth when killed.
         /// </summary>
@@ -2354,6 +2345,16 @@ namespace ACE.Server.Command.Handlers
                 allegiance.ShowInfo();
                 Console.WriteLine("---------------");
             }
+        }
+
+        // cm <material type> <quantity> <ave. workmanship>
+        [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
+        public static void HandleCM(Session session, params string[] parameters)
+        {
+            // Format is: @cm <material type> <quantity> <ave. workmanship>
+            HandleCISalvage(session);
+
+            // TODO: output
         }
 
         [CommandHandler("cisalvage", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
