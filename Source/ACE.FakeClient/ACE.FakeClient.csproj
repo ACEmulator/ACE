@@ -1,24 +1,40 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="DouglasCrockford.JsMin" Version="1.1.3" />
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="NetCoreServer" Version="1.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="ACE.Common">
-      <HintPath>..\ACE.Server\bin\x64\Debug\netcoreapp2.1\ACE.Common.dll</HintPath>
+      <HintPath>E:\from desktop\ACE\ACE-plugin\Source\ACE.Server\bin\x64\Debug\netcoreapp2.1\ACE.Common.dll</HintPath>
     </Reference>
     <Reference Include="ACE.Entity">
-      <HintPath>..\ACE.Server\bin\x64\Debug\netcoreapp2.1\ACE.Entity.dll</HintPath>
+      <HintPath>E:\from desktop\ACE\ACE-plugin\Source\ACE.Server\bin\x64\Debug\netcoreapp2.1\ACE.Entity.dll</HintPath>
     </Reference>
     <Reference Include="ACE.Server">
-      <HintPath>..\ACE.Server\bin\x64\Debug\netcoreapp2.1\ACE.Server.dll</HintPath>
+      <HintPath>E:\from desktop\ACE\ACE-plugin\Source\ACE.Server\bin\x64\Debug\netcoreapp2.1\ACE.Server.dll</HintPath>
     </Reference>
+    <Reference Include="NetworkStack">
+      <HintPath>..\..\..\..\Desktop\ACE.Network\NetworkStack\bin\Debug\netstandard2.0\NetworkStack.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Config.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
