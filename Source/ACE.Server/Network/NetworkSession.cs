@@ -55,6 +55,8 @@ namespace ACE.Server.Network
         private DateTime logOffRequestTime;
         private DateTime LatestTimeOf_S2C_NAK = DateTime.MinValue;
 
+        public TimeSpan StartedAt = TimeSpan.Zero;
+
         public string Account { get; private set; }
 
         public SessionState State { get; set; }
@@ -88,8 +90,9 @@ namespace ACE.Server.Network
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #endregion
 
-        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
+        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId, TimeSpan StartedAt)
         {
+            this.StartedAt = StartedAt;
             EndPoint = endPoint;
             ClientId = clientId;
             ServerId = serverId;

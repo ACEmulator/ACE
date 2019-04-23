@@ -1,11 +1,13 @@
 using ACE.Common;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Packets;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -14,6 +16,7 @@ namespace ACE.Server.Managers
 {
     public static class NetworkManager
     {
+        private static readonly Stopwatch Timer = Stopwatch.StartNew();
         public const ushort ServerId = 0xB;
         public static InboundPacketQueue InboundQueue { get; private set; }
         public static OutboundPacketQueue OutboundQueue { get; set; }
@@ -141,9 +144,23 @@ namespace ACE.Server.Managers
                 }
                 sessionCount++;
             }
+            if (JanitorSweep % 150 == 0)
+            {
+                //sometimes multiple sessions for the same account are possible due to extreme race condition, even with the authentication logic, use a janitor as a last resort
+                List<IGrouping<uint, Session>> multiSessionAccounts = Sessions.Values.GroupBy(k => k.AccountId).Where(g => g.Count() > 1).ToList();
+                foreach (IGrouping<uint, Session> account in multiSessionAccounts)
+                {
+                    foreach (Session sessToDrop in account.Except(new Session[] { account.OrderByDescending(k => k.StartedAt).First() }))
+                    {
+                        sessToDrop.Terminate(SessionTerminationReason.AccountLoggedInAgain, new GameMessageCharacterError(CharacterError.ServerCrash1));
+                    }
+                }
+            }
+            JanitorSweep++;
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
             return sessionCount;
         }
+        private static uint JanitorSweep = 0;
         public static void RemoveSession(Session session)
         {
             Sessions.Remove(session.ClientId, out Session xSession);
@@ -155,7 +172,7 @@ namespace ACE.Server.Managers
             if (session == null)
             {
                 ushort cid = NextSessionId;
-                session = Sessions.AddOrUpdate(cid, new Session(endPoint, cid, ServerId), (a, b) => b);
+                session = Sessions.AddOrUpdate(cid, new Session(endPoint, cid, ServerId, Timer.Elapsed), (a, b) => b);
             }
             return session;
         }
@@ -170,7 +187,7 @@ namespace ACE.Server.Managers
 
         private static void SendLoginRequestReject(IPEndPoint endPoint, CharacterError error)
         {
-            Session tempSession = new Session(endPoint, NextSessionId, ServerId);
+            Session tempSession = new Session(endPoint, NextSessionId, ServerId, TimeSpan.Zero);
             PacketOutboundConnectRequest connectRequest = new PacketOutboundConnectRequest(
                 tempSession.ServerTime,
                 tempSession.ConnectionCookie,

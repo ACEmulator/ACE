@@ -93,7 +93,6 @@ namespace ACE.Server.Network.Handlers
             {
                 if (loginRequest.Account == "acservertracker:jj9h26hcsggc")
                 {
-                    //log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
                     session.Terminate(SessionTerminationReason.PongSentClosingConnection, new GameMessageCharacterError(0));
                     return;
                 }
@@ -106,28 +105,15 @@ namespace ACE.Server.Network.Handlers
                 session.Terminate(SessionTerminationReason.NotAuthorizedAccountNotFound, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
                 return;
             }
+            // TODO: check for account bans
             if (loginRequest.NetAuthType == NetAuthType.AccountPassword)
             {
                 if (!account.PasswordMatches(loginRequest.Password))
                 {
                     log.Info($"client {loginRequest.Account} connected with non matching password so booting");
                     session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
-                    // TO-DO: temporary lockout of account preventing brute force password discovery
-                    // exponential duration of lockout for targeted account
                     return;
                 }
-
-                var prevSessions = NetworkManager.Sessions.Where(k => k.Value.AccountId == account.AccountId);
-                if (prevSessions.Any())
-                {
-                    foreach (var prevSession in prevSessions.Select(k => k.Value))
-                    {
-                        // TO-DO: figure out how to boot the other sessions
-                        prevSession.Terminate(SessionTerminationReason.AccountLoggedInAgain, new GameMessageCharacterError(CharacterError.ServerCrash1));
-                    }
-                }
-
-                // TODO: check for account bans
                 session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
                 session.State = SessionState.AuthConnectResponse;
                 log.Info($"session {session} connected with verified password");
