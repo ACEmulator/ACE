@@ -26,6 +26,8 @@ namespace ACE.Server.WorldObjects
 
             EmoteManager.HeartBeat();
 
+            DamageHistory.TryPrune();
+
             base.Heartbeat(currentUnixTime);
         }
     }
