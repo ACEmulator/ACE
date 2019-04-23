@@ -377,7 +377,9 @@ namespace ACE.Server.WorldObjects
             var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
             if (book == null) return;
 
-            book.ModifyPage(pageId, pageText);
+            var success = book.ModifyPage(pageId, pageText, this);
+
+            Session.EnqueueSend(new GameEventBookModifyPageResponse(Session, bookGuid, pageId, true));
         }
 
         public void HandleActionBookDeletePage(uint bookGuid, uint pageId)
@@ -386,7 +388,7 @@ namespace ACE.Server.WorldObjects
             var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
             if (book == null) return;
 
-            var success = book.DeletePage(pageId);
+            var success = book.DeletePage(pageId, this);
 
             Session.EnqueueSend(new GameEventBookDeletePageResponse(Session, bookGuid, pageId, success));
         }

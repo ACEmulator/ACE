@@ -294,8 +294,11 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        public void Teleport(Position newPosition)
+        public void Teleport(Position _newPosition)
         {
+            var newPosition = new Position(_newPosition);
+            newPosition.PositionZ += 0.005f;
+
             //Console.WriteLine($"{Name}.Teleport() - Sending to {newPosition.ToLOCString()}");
 
             Teleporting = true;

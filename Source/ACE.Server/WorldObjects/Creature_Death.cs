@@ -125,8 +125,8 @@ namespace ACE.Server.WorldObjects
 
             foreach (var kvp in DamageHistory.TotalDamage)
             {
-                var damager = kvp.Key;
-                var totalDamage = kvp.Value;
+                var damager = kvp.Value.TryGetWorldObject();
+                var totalDamage = kvp.Value.Value;
 
                 var playerDamager = damager as Player;
                 if (playerDamager == null)

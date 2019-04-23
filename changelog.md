@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-21
+[Ripley]
+* Updated handling of scribe related functions.
+
 ### 2019-04-20
 [OptimShi]
 * Added Treasure Material tables and Treasure Color tables to apply appropriate colors and materials to items in the LootGenerationFactory
