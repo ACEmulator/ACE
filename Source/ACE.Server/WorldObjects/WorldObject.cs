@@ -322,6 +322,9 @@ namespace ACE.Server.WorldObjects
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(wo.PhysicsObj.Position);
 
+            if (PhysicsObj.GetBlockDist(startPos, targetPos) > 1)
+                return false;
+
             // set to eye level
             startPos.Frame.Origin.Z += PhysicsObj.GetHeight() - SightObj.GetHeight();
             targetPos.Frame.Origin.Z += wo.PhysicsObj.GetHeight() - SightObj.GetHeight();
@@ -354,6 +357,9 @@ namespace ACE.Server.WorldObjects
 
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(pos);
+
+            if (PhysicsObj.GetBlockDist(startPos, targetPos) > 1)
+                return false;
 
             // set to eye level
             startPos.Frame.Origin.Z += PhysicsObj.GetHeight() - SightObj.GetHeight();
