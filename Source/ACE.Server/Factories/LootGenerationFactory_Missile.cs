@@ -99,9 +99,10 @@ namespace ACE.Server.Factories
                 int lowSpellTier = GetLowSpellTier(tier);
                 int highSpellTier = GetHighSpellTier(tier);
                 int itemSkillLevelLimit = 0;
+                int maxMana = GetMaxMana(numSpells, tier);
 
-                wo.SetProperty(PropertyInt.ItemMaxMana, GetMaxMana(numSpells, tier));
-                wo.SetProperty(PropertyInt.ItemCurMana, GetMaxMana(numSpells, tier));
+                wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
+                wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
                 wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
                 wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellCraft));
                 wo.SetProperty(PropertyInt.ItemSkillLevelLimit, itemSkillLevelLimit);
