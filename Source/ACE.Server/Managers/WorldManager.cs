@@ -153,7 +153,7 @@ namespace ACE.Server.Managers
                     else if (ServerManager.ShutdownInitiated && (ServerManager.ShutdownTime - DateTime.UtcNow).TotalMinutes < 2)
                     {
                         log.InfoFormat("Login Request from {0} rejected. Server shutting down in less than 2 minutes.", endPoint);
-                        SendLoginRequestReject(endPoint, CharacterError.ServerCrash);
+                        SendLoginRequestReject(endPoint, CharacterError.ServerCrash1);
                     }
                     else
                     {
