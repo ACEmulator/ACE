@@ -176,7 +176,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
+        public static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
             int type;
             WorldObject wo;
