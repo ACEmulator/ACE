@@ -13,15 +13,6 @@ namespace ACE.Server.Factories
             int lowSpellTier = 0;
             int highSpellTier = 0;
 
-            double armorModAcid = 0;
-            double armorModBludge = 0;
-            double armorModCold = 0;
-            double armorModElectric = 0;
-            double armorModFire = 0;
-            double armorModNether = 0;
-            double armorModPierce = 0;
-            double armorModSlash = 0;
-
             int spellArray = 0;
             int cantripArray = 0;
             int equipSetId = 0;
