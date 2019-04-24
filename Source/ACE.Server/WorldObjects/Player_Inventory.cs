@@ -1782,8 +1782,7 @@ namespace ACE.Server.WorldObjects
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryCreateInInventoryWithNetworking failed!")); // Custom error message
 
-                    //// todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
-                    //log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from GiveObjecttoPlayer failure.", item.Guid.Full, item.Name, Name);
+                    // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
 
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemToGive.Guid.Full));
 
