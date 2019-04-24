@@ -1934,7 +1934,7 @@ namespace ACE.Server.Command.Handlers
             session.Player.TryCreateInInventoryWithNetworking(loot);
         }
 
-        [CommandHandler("ciloot", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates randomized loot in player's inventory", "<tier> optional: <# items>")]
+        [CommandHandler("ciloot", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generates randomized loot in player's inventory", "<tier> optional: <# items>")]
         public static void HandleCILoot(Session session, params string[] parameters)
         {
             var tier = 1;
