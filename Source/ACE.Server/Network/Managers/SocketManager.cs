@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using log4net;
 
 using ACE.Common;
+using System.Threading;
 
 namespace ACE.Server.Network.Managers
 {
@@ -35,8 +36,8 @@ namespace ACE.Server.Network.Managers
             listeners[1] = new ConnectionListener(host, ConfigManager.Config.Server.Network.Port + 1);
             log.Info($"Binding ConnectionListener to {host}:{ConfigManager.Config.Server.Network.Port + 1}");
 
-            listeners[0].Start();
-            listeners[1].Start();
+            new Thread(new ThreadStart(() => { listeners[0].Start(); })) { Name = $"{listeners[0].Socket.LocalEndPoint} Listener" }.Start();
+            new Thread(new ThreadStart(() => { listeners[1].Start(); })) { Name = $"{listeners[1].Socket.LocalEndPoint} Listener" }.Start();
         }
 
         /// <summary>

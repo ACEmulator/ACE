@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-
+using System.Threading;
 using ACE.Server.Managers;
 
 using log4net;
@@ -15,6 +15,10 @@ namespace ACE.Server.Network
         private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
 
         public Socket Socket { get; private set; }
+
+        private ManualResetEvent ReceiveComplete = new ManualResetEvent(false);
+
+        private bool Listening = true;
 
         private IPEndPoint listenerEndpoint;
 
@@ -29,17 +33,24 @@ namespace ACE.Server.Network
             log.DebugFormat("ConnectionListener ctor, host {0} port {1}", host, port);
             listeningHost = host;
             listeningPort = port;
-        }
-
-        public void Start()
-        {
-            log.DebugFormat("Starting ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
             try
             {
+                log.DebugFormat("Binding ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
                 listenerEndpoint = new IPEndPoint(listeningHost, (int)listeningPort);
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 Socket.Bind(listenerEndpoint);
+            }
+            catch (Exception exception)
+            {
+                log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
+            }
+        }
+
+        public void Start()
+        {
+            try
+            {
                 Listen();
             }
             catch (Exception exception)
@@ -50,6 +61,7 @@ namespace ACE.Server.Network
 
         public void Shutdown()
         {
+            Listening = false;
             log.DebugFormat("Shutting down ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
             if (Socket != null && Socket.IsBound)
                 Socket.Close();
@@ -57,19 +69,33 @@ namespace ACE.Server.Network
 
         private void Listen()
         {
-            try
+            while (Listening)
             {
-                EndPoint clientEndPoint = new IPEndPoint(listeningHost, 0);
-                Socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref clientEndPoint, OnDataReceieve, Socket);
-            }
-            catch (SocketException socketException)
-            {
-                log.DebugFormat("Network Socket has thrown: {0} {1}", socketException.ErrorCode, socketException.Message);
-                Listen();
-            }
-            catch (Exception exception)
-            {
-                log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
+                try
+                {
+                    ReceiveComplete.Reset();
+                    EndPoint clientEndPoint = new IPEndPoint(listeningHost, 0);
+                    Socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref clientEndPoint, OnDataReceieve, Socket);
+                    ReceiveComplete.WaitOne();
+                }
+                catch (SocketException error)
+                {
+                    if ((error.SocketErrorCode == SocketError.ConnectionAborted) ||
+                        (error.SocketErrorCode == SocketError.ConnectionRefused) ||
+                        (error.SocketErrorCode == SocketError.ConnectionReset) ||
+                        (error.SocketErrorCode == SocketError.OperationAborted))
+                    {
+                        continue;
+                    }
+
+                    log.FatalFormat("Network Socket has thrown: {0} {1}", error.ErrorCode, error.Message);
+                    break;
+                }
+                catch (Exception exception)
+                {
+                    log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
+                    break;
+                }
             }
         }
 
@@ -115,7 +141,7 @@ namespace ACE.Server.Network
                     return;
                 }
             }
-            Listen();
+            ReceiveComplete.Set();
         }
     }
 }
