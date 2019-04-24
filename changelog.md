@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-24
+[Ripley]
+* Add support for AwardXP emote taking away from available xp (Donatello Linante -> Asheron's Lesser Benediction).
+
 ### 2019-04-23
 [OptimShi]
 * Fixed gems not dropping in loot.
