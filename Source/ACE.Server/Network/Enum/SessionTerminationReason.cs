@@ -23,7 +23,8 @@ namespace ACE.Server.Network.Enum
         /// </summary>
         ClientConnectionFailure,
         SendToSocketException,
-        WorldClosed
+        WorldClosed,
+        AbnormalSequenceReceived
     }
     public static class SessionTerminationReasonHelper
     {
@@ -44,7 +45,8 @@ namespace ACE.Server.Network.Enum
             "Not Authorized: GlsTicket is not implemented to process login request",
             "Client connection failure",
             "MainSocket.SendTo exception occured",
-            "World is closed"
+            "World is closed",
+            "Client supplied an abnormal sequence"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {
