@@ -195,6 +195,9 @@ namespace ACE.Server.Network.Structure
                 // handle dynamic properties for appraisal
                 if (player.Allegiance != null && player.AllegianceNode != null)
                 {
+                    if (player.Allegiance.AllegianceName != null)
+                        PropertiesString[PropertyString.AllegianceName] = player.Allegiance.AllegianceName;
+
                     if (player.AllegianceNode.IsMonarch)
                     {
                         PropertiesInt[PropertyInt.AllegianceFollowers] = player.AllegianceNode.TotalFollowers;
