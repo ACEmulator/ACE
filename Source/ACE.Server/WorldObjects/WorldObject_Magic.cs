@@ -84,6 +84,9 @@ namespace ACE.Server.WorldObjects
             // their effects won't be seen if they broadcast from themselves
             if (target != null && spell.TargetEffect != 0)
                 target.EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+            if (caster != null && spell.CasterEffect != 0)
+                caster.EnqueueBroadcast(new GameMessageScript(caster.Guid, spell.CasterEffect, spell.Formula.Scale));
         }
 
         /// <summary>

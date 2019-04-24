@@ -1934,6 +1934,27 @@ namespace ACE.Server.Command.Handlers
             session.Player.TryCreateInInventoryWithNetworking(loot);
         }
 
+        [CommandHandler("ciloot", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generates randomized loot in player's inventory", "<tier> optional: <# items>")]
+        public static void HandleCILoot(Session session, params string[] parameters)
+        {
+            var tier = 1;
+            int.TryParse(parameters[0], out tier);
+            tier = Math.Clamp(tier, 1, 8);
+
+            var numItems = 1;
+            if (parameters.Length > 1)
+                int.TryParse(parameters[1], out numItems);
+
+            for (var i = 0; i < numItems; i++)
+            {
+                var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
+                if (wo != null)
+                    session.Player.TryCreateInInventoryWithNetworking(wo);
+                else
+                    log.Error($"{session.Player.Name}.HandleCILoot: LootGenerationFactory.CreateRandomLootObjects({tier}) returned null");
+            }
+        }
+
         [CommandHandler("makeiou", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Make an IOU and put it in your inventory","<wcid>")]
         public static void HandleMakeIOU(Session session, params string[] parameters)
         {

@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-
+using ACE.Common.Cryptography;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
@@ -307,6 +307,11 @@ namespace ACE.Server.Network
             List<uint> needSeq = new List<uint>();
             needSeq.Add(desiredSeq);
             uint bottom = desiredSeq + 1;
+            if (rcvdSeq - bottom > CryptoSystem.MaximumEffortLevel)
+            {
+                session.Terminate(SessionTerminationReason.AbnormalSequenceReceived);
+                return;
+            }
             for (uint a = bottom; a < rcvdSeq; a++)
                 if (!outOfOrderPackets.ContainsKey(a))
                     needSeq.Add(a);

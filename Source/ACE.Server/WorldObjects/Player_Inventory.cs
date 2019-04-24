@@ -72,7 +72,12 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageCreateObject(item));
 
             if (item is Container itemAsContainer)
+            {
                 Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
+
+                foreach (var obj in itemAsContainer.Inventory.Values)
+                    Session.Network.EnqueueSend(new GameMessageCreateObject(obj, Adminvision, false));
+            }
 
             Session.Network.EnqueueSend(
                 new GameEventItemServerSaysContainId(Session, item, container),
@@ -1778,7 +1783,11 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryCreateInInventoryWithNetworking failed!")); // Custom error message
 
                     // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
-                    log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from GiveObjecttoPlayer failure.", item.Guid.Full, item.Name, Name);
+
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemToGive.Guid.Full));
+
+                    if (!TryCreateInInventoryWithNetworking(itemToGive))
+                        log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from GiveObjecttoPlayer failure.", item.Guid.Full, item.Name, Name);
 
                     return;
                 }

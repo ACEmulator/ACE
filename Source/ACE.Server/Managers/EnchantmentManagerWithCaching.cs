@@ -13,6 +13,19 @@ namespace ACE.Server.Managers
 {
     public class EnchantmentManagerWithCaching : EnchantmentManager
     {
+        private bool? hasEnchantments;
+
+        public override bool HasEnchantments
+        {
+            get
+            {
+                if (hasEnchantments == null)
+                    hasEnchantments = base.HasEnchantments;
+
+                return hasEnchantments.Value;
+            }
+        }
+
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
         /// </summary>
@@ -103,6 +116,8 @@ namespace ACE.Server.Managers
 
         private void ClearCache()
         {
+            hasEnchantments = null;
+
             attributeModCache.Clear();
             vitalModAdditiveCache.Clear();
             vitalModMultiplierCache.Clear();
