@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
@@ -15,18 +16,60 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The player or creature this Damage History is tracking
         /// </summary>
-        public Creature Creature;
+        public readonly Creature Creature;
 
         /// <summary>
         /// A list of damage sources, amounts, and timestamps
         /// </summary>
-        public List<DamageHistoryEntry> Log;
+        public readonly List<DamageHistoryEntry> Log = new List<DamageHistoryEntry>();
 
         /// <summary>
         /// A lookup table of WorldObjects that have damaged this WorldObject,
         /// and the total amount of damage they have inflicted
         /// </summary>
-        public Dictionary<WorldObject, float> TotalDamage;
+        public readonly Dictionary<ObjectGuid, WorldObjectInfo<float>> TotalDamage = new Dictionary<ObjectGuid, WorldObjectInfo<float>>();
+
+        /// <summary>
+        /// Returns the list of players or creatures who inflicted damage
+        /// </summary>
+        public List<WorldObjectInfo<float>> Damagers => TotalDamage.Values.ToList();
+
+        /// <summary>
+        /// Returns the WorldObject that last damaged this WorldObject
+        /// </summary>
+        public WorldObject LastDamager
+        {
+            get
+            {
+                var lastDamager = Log.LastOrDefault(l => l.Amount < 0);
+                WorldObject lastDamagerObj = null;
+                if (lastDamager != null)
+                {
+                    if (TotalDamage.TryGetValue(lastDamager.DamageSource, out var value))
+                        lastDamagerObj = value.TryGetWorldObject();
+                }
+                //var lastDamagerName = lastDamagerObj != null ? lastDamagerObj.Name : null;
+                //Console.WriteLine($"DamageHistory.LastDamager: {lastDamagerName}");
+                return lastDamagerObj;
+            }
+        }
+
+        /// <summary>
+        /// Returns the WorldObject that did the most damage to this WorldObject
+        /// Used to determine corpse looting rights
+        /// </summary>
+        public WorldObject TopDamager
+        {
+            get
+            {
+                var sorted = TotalDamage.OrderByDescending(wo => wo.Value.Value);
+                var topDamager = sorted.FirstOrDefault().Value;
+                //var topDamagerName = topDamager != null ? topDamager.Name : null;
+                //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
+                return topDamager?.TryGetWorldObject();
+            }
+        }
+
 
         /// <summary>
         /// Constructs a new DamageHistory for a Player / Creature
@@ -34,16 +77,6 @@ namespace ACE.Server.Entity
         public DamageHistory(Creature creature)
         {
             Creature = creature;
-            Init();
-        }
-
-        /// <summary>
-        /// Clears the state of the Log and TotalDamage lists
-        /// </summary>
-        public void Init()
-        {
-            Log = new List<DamageHistoryEntry>();
-            TotalDamage = new Dictionary<WorldObject, float>();
         }
 
         /// <summary>
@@ -57,12 +90,10 @@ namespace ACE.Server.Entity
 
             if (amount == 0) return;
 
-            var entry = new DamageHistoryEntry(Creature, damager, damageType, -(int)amount);
+            var entry = new DamageHistoryEntry(Creature, damager.Guid, damageType, -(int)amount);
             Log.Add(entry);
 
             AddInternal(damager, amount);
-
-            TryPrune();
         }
 
         /// <summary>
@@ -70,10 +101,22 @@ namespace ACE.Server.Entity
         /// </summary>
         private void AddInternal(WorldObject damager, uint amount)
         {
-            if (TotalDamage.ContainsKey(damager))
-                TotalDamage[damager] += amount;
+            if (TotalDamage.TryGetValue(damager.Guid, out var value))
+                value.Value += amount;
             else
-                TotalDamage.Add(damager, amount);
+            {
+                var woi = new WorldObjectInfo<float>(damager, amount);
+
+                TotalDamage.Add(damager.Guid, woi);
+            }
+        }
+
+        /// <summary>
+        /// Internally increments the total damage table
+        /// </summary>
+        private void AddInternal(ObjectGuid damager, uint amount)
+        {
+            TotalDamage[damager].Value += amount;
         }
 
         /// <summary>
@@ -84,7 +127,7 @@ namespace ACE.Server.Entity
         {
             //Console.WriteLine($"DamageHistory.OnHeal({Creature.Name}, {healAmount})");
 
-            Log.Add(new DamageHistoryEntry(Creature, null, DamageType.Undef, (int)healAmount));
+            Log.Add(new DamageHistoryEntry(Creature, ObjectGuid.Invalid, DamageType.Undef, (int)healAmount));
 
             // calculate previous missingHealth
             OnHealInternal(healAmount, Creature.Health.Current, Creature.Health.MaxValue);
@@ -106,43 +149,7 @@ namespace ACE.Server.Entity
             var damagers = TotalDamage.Keys.ToList();
 
             foreach (var damager in damagers)
-                TotalDamage[damager] *= scalar;
-        }
-
-        /// <summary>
-        /// Returns the list of players or creatures who inflicted damage
-        /// </summary>
-        public List<WorldObject> Damagers { get => Log.Select(l => l.DamageSource).Distinct().ToList(); }
-
-        /// <summary>
-        /// Returns the WorldObject that last damaged this WorldObject
-        /// </summary>
-        public WorldObject LastDamager
-        {
-            get
-            {
-                var lastDamager = Log.LastOrDefault(l => l.Amount < 0);
-                var lastDamagerObj = lastDamager != null ? lastDamager.DamageSource : null;
-                //var lastDamagerName = lastDamagerObj != null ? lastDamagerObj.Name : null;
-                //Console.WriteLine($"DamageHistory.LastDamager: {lastDamagerName}");
-                return lastDamagerObj;
-            }
-        }
-
-        /// <summary>
-        /// Returns the WorldObject that did the most damage to this WorldObject
-        /// Used to determine corpse looting rights
-        /// </summary>
-        public WorldObject TopDamager
-        {
-            get
-            {
-                var sorted = TotalDamage.OrderByDescending(wo => wo.Value);
-                var topDamager = sorted.FirstOrDefault().Key;
-                //var topDamagerName = topDamager != null ? topDamager.Name : null;
-                //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
-                return topDamager;
-            }
+                TotalDamage[damager].Value *= scalar;
         }
 
         /// <summary>
@@ -150,8 +157,10 @@ namespace ACE.Server.Entity
         /// </summary>
         public void Reset()
         {
-            Init();
+            Log.Clear();
+            TotalDamage.Clear();
         }
+
 
         /// <summary>
         /// The last time the log was pruned
@@ -161,11 +170,6 @@ namespace ACE.Server.Entity
         private static readonly TimeSpan minimumPruneInverval = TimeSpan.FromSeconds(30);
 
         private static readonly TimeSpan maximumTimeToRetain = TimeSpan.FromMinutes(3);
-
-        /// <summary>
-        /// The number of minutes to keep a history for
-        /// </summary>
-        public static int HistoryMinutes = 3;
 
         /// <summary>
         /// Tries pruning the log according to the minimum pruning time
@@ -206,7 +210,24 @@ namespace ACE.Server.Entity
         /// </summary>
         public void BuildTotalDamage()
         {
-            TotalDamage = new Dictionary<WorldObject, float>();
+            // This is a little bit hacky.
+            // We don't want to clear our TotalDamage entries because we might lose references to WorldObjects
+            // Instead, we remove entries that are no longer needed, and set all the values to 0.
+
+            var guids = new HashSet<ObjectGuid>();
+            foreach (var entry in Log)
+                guids.Add(entry.DamageSource);
+
+            var keys = TotalDamage.Keys.ToList();
+            foreach (var key in keys)
+            {
+                if (guids.Contains(key))
+                    TotalDamage[key].Value = 0;
+                else
+                    TotalDamage.Remove(key);
+            }
+
+            // TotalDamage is now reset
 
             foreach (var entry in Log)
             {

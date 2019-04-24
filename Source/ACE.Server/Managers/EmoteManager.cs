@@ -326,7 +326,7 @@ namespace ACE.Server.Managers
                             }
                         }
                         else
-                            item = PlayerFactory.CreateIOU(player, (uint)emote.WeenieClassId);
+                            item = PlayerFactory.CreateIOU((uint)emote.WeenieClassId);
 
                         success = player.TryCreateInInventoryWithNetworking(item);
 

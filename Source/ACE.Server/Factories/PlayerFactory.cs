@@ -104,26 +104,26 @@ namespace ACE.Server.Factories
                 if (hat != null)
                     player.TryEquipObject(hat, hat.ValidLocations ?? 0);
                 else
-                    player.TryAddToInventory(CreateIOU(player, sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle)));
+                    player.TryAddToInventory(CreateIOU(sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle)));
             }
 
             var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle), characterCreateInfo.Apperance.ShirtColor, characterCreateInfo.Apperance.ShirtHue);
             if (shirt != null)
                 player.TryEquipObject(shirt, shirt.ValidLocations ?? 0);
             else
-                player.TryAddToInventory(CreateIOU(player, sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle)));
+                player.TryAddToInventory(CreateIOU(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle)));
 
             var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle), characterCreateInfo.Apperance.PantsColor, characterCreateInfo.Apperance.PantsHue);
             if (pants != null)
                 player.TryEquipObject(pants, pants.ValidLocations ?? 0);
             else
-                player.TryAddToInventory(CreateIOU(player, sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle)));
+                player.TryAddToInventory(CreateIOU(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle)));
 
             var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle), characterCreateInfo.Apperance.FootwearColor, characterCreateInfo.Apperance.FootwearHue);
             if (shoes != null)
                 player.TryEquipObject(shoes, shoes.ValidLocations ?? 0);
             else
-                player.TryAddToInventory(CreateIOU(player, sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle)));
+                player.TryAddToInventory(CreateIOU(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle)));
 
             string templateName = heritageGroup.Templates[characterCreateInfo.TemplateOption].Name;
             //player.SetProperty(PropertyString.Title, templateName);
@@ -242,7 +242,7 @@ namespace ACE.Server.Factories
                         }
                         else
                         {
-                            player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                            player.TryAddToInventory(CreateIOU(item.WeenieId));
                         }
 
                         if (loot != null && player.TryAddToInventory(loot))
@@ -259,7 +259,7 @@ namespace ACE.Server.Factories
                                 }
                                 else
                                 {
-                                    player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                    player.TryAddToInventory(CreateIOU(item.WeenieId));
                                 }
                             }
                         }
@@ -288,7 +288,7 @@ namespace ACE.Server.Factories
                             }
                             else
                             {
-                                player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                player.TryAddToInventory(CreateIOU(item.WeenieId));
                             }
 
                             if (loot != null && player.TryAddToInventory(loot))
@@ -305,7 +305,7 @@ namespace ACE.Server.Factories
                                     }
                                     else
                                     {
-                                        player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                        player.TryAddToInventory(CreateIOU(item.WeenieId));
                                     }
                                 }
                             }
@@ -453,7 +453,7 @@ namespace ACE.Server.Factories
             return worldObject;
         }
 
-        public static WorldObject CreateIOU(Player player, uint missingWeenieId)
+        public static WorldObject CreateIOU(uint missingWeenieId)
         {
             var iou = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
 
@@ -462,6 +462,8 @@ namespace ACE.Server.Factories
             iou.Bonded = (int)BondedStatus.Bonded;
             iou.Attuned = (int)AttunedStatus.Attuned;
             iou.SetProperty(PropertyBool.IsSellable, false);
+            iou.Value = 0;
+            iou.EncumbranceVal = 0;
 
             return iou;
         }

@@ -175,5 +175,12 @@ namespace ACE.Server.WorldObjects
 
             return true;
         }
+
+        public BiotaPropertiesBookPageData GetPage(uint pageId)
+        {
+            var page = Biota.GetBookPageData(Guid.Full, pageId, BiotaDatabaseLock);
+
+            return page;
+        }
     }
 }

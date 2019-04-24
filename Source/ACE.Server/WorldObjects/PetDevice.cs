@@ -506,6 +506,9 @@ namespace ACE.Server.WorldObjects
             if (!IsEncapsulatedSpirit(spirit))
                 return;
 
+            if (player.IsBusy) return;
+            player.IsBusy = true;
+
             var actionChain = new ActionChain();
 
             // handle switching to peace mode
@@ -527,6 +530,8 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat("You add the spirit to the essence.", ChatMessageType.Broadcast));
 
                 player.SendUseDoneEvent();
+
+                player.IsBusy = false;
             });
 
             actionChain.EnqueueChain();

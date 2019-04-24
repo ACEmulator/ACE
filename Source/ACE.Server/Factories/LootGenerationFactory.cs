@@ -247,7 +247,8 @@ namespace ACE.Server.Factories
         {
 
             int wield = 0;
-            int chance = 0;
+            int chance = ThreadSafeRandom.Next(1, 100);
+
             ////Types: 1 Missiles, 2 Casters, 3 melee weapons, 4 covenant armor
             switch (type)
             {
@@ -258,105 +259,58 @@ namespace ACE.Server.Factories
                             wield = 0;
                             break;
                         case 2:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 0;
-                            }
                             else
-                            {
                                 wield = 250;
-                            }
                             break;
                         case 3:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 0;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 250;
-                            }
                             else
-                            {
                                 wield = 270;
-                            }
                             break;
                         case 4:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 0;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 250;
-                            }
                             else
-                            {
                                 wield = 270;
-                            }
                             break;
                         case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 270;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 290;
-                            }
                             else
-                            {
                                 wield = 315;
-                            }
                             break;
                         case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 315;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 335;
-                            }
                             else
-                            {
                                 wield = 360;
-                            }
                             break;
                         case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 335;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 360;
-                            }
                             else
-                            {
                                 wield = 375;
-                            }
                             break;
                         case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 360;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 375;
-                            }
                             else
-                            {
                                 wield = 385;
-                            }
                             break;
                     }
                     break;
@@ -364,80 +318,56 @@ namespace ACE.Server.Factories
                     switch (tier)
                     {
                         case 1:
-                            wield = 0;
-                            break;
                         case 2:
-                            wield = 0;
-                            break;
                         case 3:
-                            wield = 0;
+                            if (chance < 80)
+                                wield = 0;
+                            else
+                                wield = 290;
                             break;
                         case 4:
-                            wield = 0;
+                            if (chance < 60)
+                                wield = 0;
+                            else
+                                wield = 290;
                             break;
                         case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 0;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 290;
-                            }
                             else
-                            {
                                 wield = 310;
-                            }
                             break;
                         case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 40)
-                            {
                                 wield = 0;
-                            }
                             else if (chance < 70)
-                            {
                                 wield = 310;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 330;
-                            }
                             else
-                            {
-                                wield = 365;
-                            }
+                                wield = 355;
                             break;
                         case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
+                            if (chance < 30)
+                                wield = 0;
+                            else if (chance < 60)
                                 wield = 330;
-                            }
                             else if (chance < 90)
-                            {
-                                wield = 365;
-                            }
+                                wield = 355;
                             else
-                            {
                                 wield = 375;
-                            }
                             break;
                         case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
+                            if (chance < 25)
+                                wield = 0;
+                            else if (chance < 50)
                                 wield = 355;
-                            }
-                            else if (chance < 90)
-                            {
+                            else if (chance < 85)
                                 wield = 375;
-                            }
                             else
-                            {
                                 wield = 385;
-                            }
                             break;
                     }
                     break;
@@ -448,105 +378,58 @@ namespace ACE.Server.Factories
                             wield = 0;
                             break;
                         case 2:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 0;
-                            }
                             else
-                            {
                                 wield = 250;
-                            }
                             break;
                         case 3:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 0;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 250;
-                            }
                             else
-                            {
                                 wield = 300;
-                            }
                             break;
                         case 4:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 0;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 250;
-                            }
                             else
-                            {
                                 wield = 300;
-                            }
                             break;
                         case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 300;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 325;
-                            }
                             else
-                            {
                                 wield = 350;
-                            }
                             break;
                         case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 350;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 370;
-                            }
                             else
-                            {
                                 wield = 400;
-                            }
                             break;
                         case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 370;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 400;
-                            }
                             else
-                            {
                                 wield = 420;
-                            }
                             break;
                         case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 60)
-                            {
                                 wield = 400;
-                            }
                             else if (chance < 90)
-                            {
                                 wield = 420;
-                            }
                             else
-                            {
                                 wield = 430;
-                            }
                             break;
                     }
                     break;
