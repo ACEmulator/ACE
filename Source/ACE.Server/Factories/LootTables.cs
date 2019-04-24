@@ -2129,18 +2129,38 @@ namespace ACE.Factories
             new int[] { 2598, 2586, 4661, 6089},
         };
 
+        public enum ArmorType
+        {
+            MiscClothing,
+            Helms,
+            Shields,
+            LeatherArmor,
+            StuddedLeatherArmor,
+            ChainmailArmor,
+            PlatemailArmor,
+            ScalemailArmor,
+            YoroiArmor,
+            DiforsaArmor,
+            CeldonArmor,
+            AmuliArmor,
+            KoujiaArmor,
+            TenassaArmor,
+            CovenantArmor,
+            LoricaArmor,
+            NariyidArmor,
+            ChiranArmor,
+            AlduressaArmor,
+            KnorrAcademyArmor,
+            SedgemailLeatherArmor,
+            HaebreanArmor,
+            OlthoiAmuliArmor,
+            OlthoiCeldonArmor,
+            OlthoiKoujiaArmor,
+            OlthoiAlduressaArmor
+        }
+
         public static readonly int[][] MiscClothing =
         {
-            new int [] { 44, 5, 10, 10 }, // Buckler
-            new int [] { 46, 2, 1, 1 }, // Metal Cap
-            new int [] { 74, 2, 1, 1 }, // Heaume
-            new int [] { 75, 2, 1, 1 }, // Helmet
-            new int [] { 76, 2, 1, 1 }, // Horned Helm
-            new int [] { 77, 2, 1, 1 }, // Kabuton
-            new int [] { 91, 5, 10, 10 }, // Kite Shield
-            new int [] { 92, 5, 10, 10 }, // Large Kite Shield
-            new int [] { 93, 5, 10, 10 }, // Round Shield
-            new int [] { 95, 5, 10, 10 }, // Round Tower Shield
             new int [] { 107, 4, 9, 9 }, // Sollerets
             new int [] { 117, 5, 10, 10 }, // Breeches
             new int [] { 118, 2, 1, 1 }, // Cloth Cap
@@ -2155,8 +2175,6 @@ namespace ACE.Factories
             new int [] { 133, 4, 9, 9 }, // Slippers
             new int [] { 134, 5, 10, 10 }, // Tunic
             new int [] { 135, 2, 1, 1 }, // Turban
-            new int [] { 296, 1, 1, 1 }, // Crown
-            new int [] { 550, 2, 1, 1 }, // Baigha
             new int [] { 2587, 5, 10, 10 }, // Shirt
             new int [] { 2589, 5, 10, 10 }, // Smock
             new int [] { 2592, 5, 10, 10 }, // Tunic
@@ -2175,10 +2193,8 @@ namespace ACE.Factories
             new int [] { 5901, 2, 1, 1 }, // Kasa
             new int [] { 5905, 2, 1, 1 }, // Hood
             new int [] { 7897, 4, 9, 9 }, // Steel Toed Boots
-            new int [] { 8488, 2, 1, 1 }, // Armet
             new int [] { 12254, 5, 10, 10 }, // Pants
             new int [] { 14798, 5, 10, 10 }, // Empyrean Pants
-            new int [] { 29528, 2, 1, 1 }, // Circlet
             new int [] { 28605, 2, 1, 1 }, // Beret
             new int [] { 28606, 5, 10, 10 }, // Viamontian Pants
             new int [] { 28607, 5, 10, 10 }, // Lace Shirt
@@ -2193,6 +2209,28 @@ namespace ACE.Factories
             new int [] { 31238, 5, 10, 10 }, // Viamontian Leggings
             new int [] { 31239, 5, 10, 10 }, // Poet's Shirt
             new int [] { 44975, 5, 10, 10 } // Hood
+        };
+
+        public static readonly int[][] Helms =
+        {
+            new int [] { 46, 2, 1, 1 }, // Metal Cap
+            new int [] { 74, 2, 1, 1 }, // Heaume
+            new int [] { 75, 2, 1, 1 }, // Helmet
+            new int [] { 76, 2, 1, 1 }, // Horned Helm
+            new int [] { 77, 2, 1, 1 }, // Kabuton
+            new int [] { 296, 1, 1, 1 }, // Crown
+            new int [] { 550, 2, 1, 1 }, // Baigha
+            new int [] { 8488, 2, 1, 1 }, // Armet
+            new int [] { 29528, 2, 1, 1 } // Circlet
+        };
+
+        public static readonly int[][] Shields =
+        {
+            new int [] { 44, 5, 10, 10 }, // Buckler
+            new int [] { 91, 5, 10, 10 }, // Kite Shield
+            new int [] { 92, 5, 10, 10 }, // Large Kite Shield
+            new int [] { 93, 5, 10, 10 }, // Round Shield
+            new int [] { 95, 5, 10, 10 } // Round Tower Shield
         };
 
         public static readonly int[][] LeatherArmor =
