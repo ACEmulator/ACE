@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-23
+[OptimShi]
+* Fixed gems not dropping in loot.
+
 ### 2019-04-21
 [Ripley]
 * Updated handling of scribe related functions.

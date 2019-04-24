@@ -22,12 +22,14 @@ namespace ACE.Server.Factories
             if (gemLootMatrixIndex > 4) gemLootMatrixIndex = 4;
             int upperLimit = LootTables.GemsMatrix[gemLootMatrixIndex].Length - 1;
 
-            gemType = (uint)LootTables.GemsMatrix[gemLootMatrixIndex][ThreadSafeRandom.Next(0, upperLimit)];
+            uint gemWCID = (uint)LootTables.GemsWCIDsMatrix[gemLootMatrixIndex][ThreadSafeRandom.Next(0, upperLimit)];
 
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemType) as Gem;
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemWCID) as Gem;
 
             if (wo == null)
                 return null;
+
+            gemType = (uint)wo.MaterialType;
 
             workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
