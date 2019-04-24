@@ -52,7 +52,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public Motion(WorldObject wo, WorldObject target, MovementType type)
         {
-            Stance = wo.CurrentMotionState.Stance;
+            Stance = wo.CurrentMotionState != null ? wo.CurrentMotionState.Stance : new Motion(MotionStance.NonCombat).Stance;
             MovementType = type;
             Position = new Position(target.Location);
             TargetGuid = target.Guid;
@@ -63,7 +63,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public Motion(WorldObject wo, Position position)
         {
-            Stance = wo.CurrentMotionState.Stance;
+            Stance = wo.CurrentMotionState != null ? wo.CurrentMotionState.Stance : new Motion(MotionStance.NonCombat).Stance;
             MovementType = MovementType.MoveToPosition;
             Position = new Position(position);
         }
@@ -73,7 +73,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public Motion(WorldObject wo, Position position, float heading)
         {
-            Stance = wo.CurrentMotionState.Stance;
+            Stance = wo.CurrentMotionState != null ? wo.CurrentMotionState.Stance : new Motion(MotionStance.NonCombat).Stance;
             MovementType = MovementType.TurnToHeading;
             Position = new Position(position);
             DesiredHeading = heading;
@@ -87,7 +87,7 @@ namespace ACE.Server.Entity
 
         public Motion(WorldObject wo, MotionCommand motion, float speed = 1.0f)
         {
-            Stance = wo.CurrentMotionState.Stance;
+            Stance = wo.CurrentMotionState != null ? wo.CurrentMotionState.Stance : new Motion(MotionStance.NonCombat).Stance;
             SetForwardCommand(motion, speed);
         }
 
