@@ -193,7 +193,7 @@ namespace ACE.Database
             biota.PopulatedCollectionFlags = (uint)populatedCollectionFlags;
         }
 
-        private static readonly ConditionalWeakTable<Biota, ShardDbContext> BiotaContexts = new ConditionalWeakTable<Biota, ShardDbContext>();
+        private static readonly ConditionalWeakTable<Biota, ShardDbContextWithFinalize> BiotaContexts = new ConditionalWeakTable<Biota, ShardDbContextWithFinalize>();
 
         private static Biota GetBiota(ShardDbContext context, uint id)
         {
@@ -237,7 +237,7 @@ namespace ACE.Database
 
         public Biota GetBiota(uint id)
         {
-            var context = new ShardDbContext();
+            var context = new ShardDbContextWithFinalize();
 
             var biota = GetBiota(context, id);
 
@@ -302,7 +302,7 @@ namespace ACE.Database
                 }
             }
 
-            var context = new ShardDbContext();
+            var context = new ShardDbContextWithFinalize();
 
             BiotaContexts.Add(biota, context);
 
