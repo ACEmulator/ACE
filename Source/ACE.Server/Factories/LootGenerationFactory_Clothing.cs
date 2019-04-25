@@ -90,7 +90,7 @@ namespace ACE.Server.Factories
                     break;
 
                 case (int)LootTables.ArmorType.Shields:
-                    armorPiece = ThreadSafeRandom.Next(0, 5);
+                    armorPiece = ThreadSafeRandom.Next(0, 4);
                     armorWeenie = LootTables.Shields[armorPiece][0];
                     armorPieceType = LootTables.Shields[armorPiece][1];
                     spellArray = LootTables.Shields[armorPiece][2];
