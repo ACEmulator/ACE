@@ -366,7 +366,7 @@ namespace ACE.Factories
             new int[] { 1331, 248, 260, 278, 302, 326, 350, 422, 471, 561, 585, 609, 633, 657, 682, 706, 730, 754, 778, 802, 828, 854, 878, 902, 926, 950, 974, 986, 1353, 1377, 1401, 1425, 1449, 1719, 1743, 1767, 5783, 5807, 5831, 5847, 5871, 6120 },
             new int[] { 1332, 249, 261, 279, 303, 327, 351, 423, 472, 562, 586, 610, 634, 658, 683, 707, 731, 755, 779, 803, 829, 855, 879, 903, 927, 951, 975, 987, 1354, 1378, 1402, 1426, 1450, 1720, 1744, 1768, 5784, 5808, 5831, 5848, 5872, 6121 },
             new int[] { 2087, 2245, 2243, 2281, 2275, 2223, 5105, 2309, 2243, 2215, 2249, 2267, 2323, 2287, 2195, 2197, 2251, 2277, 2325, 2289, 2293, 2226, 2241, 2263, 2271, 2233, 2256, 2301, 2061, 2059, 2081, 2067, 2091, 2211, 2237, 2191, 5785, 5809, 5833, 5857, 5881, 6122, 5417, 3519 },
-            new int[] { 4325, 4560, 4544, 4596, 4518, 4538, 5032, 4624, 4558, 4530, 4564, 4582, 4638, 4602, 4510, 4512, 4566, 4592, 4640, 4604, 4608, 4542, 4556, 4578, 4586, 4548, 4572, 4616, 4299, 4297, 4319, 4305, 4329, 4526, 4552, 4506, 5786, 5810, 5834, 5858, 5882, 6123, 5418, 4502 }
+            new int[] { 4325, 4560, 4558, 4596, 4518, 4538, 5032, 4624, 4522, 4530, 4564, 4582, 4638, 4602, 4510, 4512, 4566, 4592, 4640, 4604, 4608, 4542, 4556, 4578, 4586, 4548, 4572, 4616, 4299, 4297, 4319, 4305, 4329, 4526, 4552, 4506, 5786, 5810, 5834, 5858, 5882, 6123, 5418, 4502 }
         };
 
         public static readonly int[][] GemLifeSpellMatrix =
@@ -788,7 +788,7 @@ namespace ACE.Factories
         public static readonly int[] WarWallScrollSpells = { 1839, 1840, 1841, 1842, 1843, 1844, 1845 };
 
         public static readonly Dictionary<int, String> gemNames = new Dictionary<int, String>()
-                                                            { 
+                                                            {
                                                                 {10, "Agate"},
                                                                 {11, "Amber"},
                                                                 {12, "Amethyst"},
@@ -842,7 +842,7 @@ namespace ACE.Factories
             ////Invuln
             new int[] { 18, 245, 246, 247, 248, 249, 2245, 4560 },
             ////Impreg
-            new int[] { 256, 257, 258, 259, 260, 261, 2243, 4544 },
+            new int[] { 256, 257, 258, 259, 260, 261, 2243, 4522 },
             ////Magic Resist
             new int[] { 274, 275, 276, 277, 278, 279, 2281, 4596 },
             ////Dirty Fighting
@@ -1034,7 +1034,7 @@ namespace ACE.Factories
             ////Light Weapon
             new int[] { 298, 299, 300, 301, 302, 303, 2275, 4518 },
             ////Missile Weapon
-            new int[] { 467, 468, 469, 470, 471, 472, 2243, 4558 },
+            new int[] { 467, 468, 469, 470, 471, 472, 2243, 4522 },
             ////Shield
             new int[] { 5843, 5844, 5845, 5846, 5847, 5848, 5857, 5858 },
             ////Arcane Enlight
@@ -1198,11 +1198,11 @@ namespace ACE.Factories
             ////Light Weapon
             new int[] { 298, 299, 300, 301, 302, 303, 2275, 4518 },
             ////Missile Weapon
-            new int[] { 467, 468, 469, 470, 471, 472, 2243, 4558 },
+            new int[] { 467, 468, 469, 470, 471, 472, 2243, 4522 },
             ////Invuln
             new int[] { 18, 245, 246, 247, 248, 249, 2245, 4560 },
             ////Impreg
-            new int[] { 256, 257, 258, 259, 260, 261, 2243, 4544 },
+            new int[] { 256, 257, 258, 259, 260, 261, 2243, 4558 },
             ////Magic Resist
             new int[] { 274, 275, 276, 277, 278, 279, 2281, 4596 },
             ////Arcane Enlight
@@ -1341,7 +1341,7 @@ namespace ACE.Factories
             ////Invuln
             new int[] { 18, 245, 246, 247, 248, 249, 2245, 4560 },
             ////Impreg
-            new int[] { 256, 257, 258, 259, 260, 261, 2243, 4544 },
+            new int[] { 256, 257, 258, 259, 260, 261, 2243, 4558 },
             ////Magic Resist
             new int[] { 274, 275, 276, 277, 278, 279, 2281, 4596 },
             ////Shield
@@ -1374,7 +1374,7 @@ namespace ACE.Factories
             ////Invuln
             new int[] { 18, 245, 246, 247, 248, 249, 2245, 4560 },
             ////Impreg
-            new int[] { 256, 257, 258, 259, 260, 261, 2243, 4544 },
+            new int[] { 256, 257, 258, 259, 260, 261, 2243, 4558 },
             ////Magic Resist
             new int[] { 274, 275, 276, 277, 278, 279, 2281, 4596 },
             ////Light Weapon
@@ -1386,7 +1386,7 @@ namespace ACE.Factories
             ////Heavy Weapon
             new int[] { 418, 419, 420, 421, 422, 423, 2309, 4624 },
             ////Missile Weapon
-            new int[] { 467, 468, 469, 470, 471, 472, 2243, 4558 },
+            new int[] { 467, 468, 469, 470, 471, 472, 2243, 4522 },
             ////Creature Enchant
             new int[] { 557, 558, 559, 560, 561, 562, 2215, 4530 },
             ////Item Enchant
@@ -2127,6 +2127,368 @@ namespace ACE.Factories
             new int[] { 2608, 2596, 4672, 6100},
             ////Blooddrinker
             new int[] { 2598, 2586, 4661, 6089},
+        };
+
+        public enum ArmorType
+        {
+            MiscClothing,
+            Helms,
+            Shields,
+            LeatherArmor,
+            StuddedLeatherArmor,
+            ChainmailArmor,
+            PlatemailArmor,
+            ScalemailArmor,
+            YoroiArmor,
+            DiforsaArmor,
+            CeldonArmor,
+            AmuliArmor,
+            KoujiaArmor,
+            TenassaArmor,
+            CovenantArmor,
+            LoricaArmor,
+            NariyidArmor,
+            ChiranArmor,
+            AlduressaArmor,
+            KnorrAcademyArmor,
+            SedgemailLeatherArmor,
+            HaebreanArmor,
+            OlthoiAmuliArmor,
+            OlthoiCeldonArmor,
+            OlthoiKoujiaArmor,
+            OlthoiAlduressaArmor
+        }
+
+        public static readonly int[][] MiscClothing =
+        {
+            new int [] { 107, 4, 9, 9 }, // Sollerets
+            new int [] { 117, 5, 10, 10 }, // Breeches
+            new int [] { 118, 2, 1, 1 }, // Cloth Cap
+            new int [] { 119, 2, 1, 1 }, // Cowl
+            new int [] { 120, 5, 10, 10 }, // Quilted Drawers
+            new int [] { 121, 3, 5, 5 }, // Cloth gloves
+            new int [] { 126, 5, 10, 10 }, // Leggings
+            new int [] { 127, 5, 10, 10 }, // Pants
+            new int [] { 128, 5, 10, 10 }, // Qafiya
+            new int [] { 129, 4, 9, 9 }, // Sandals
+            new int [] { 132, 4, 9, 9 }, // Shoes
+            new int [] { 133, 4, 9, 9 }, // Slippers
+            new int [] { 134, 5, 10, 10 }, // Tunic
+            new int [] { 135, 2, 1, 1 }, // Turban
+            new int [] { 2587, 5, 10, 10 }, // Shirt
+            new int [] { 2589, 5, 10, 10 }, // Smock
+            new int [] { 2592, 5, 10, 10 }, // Tunic
+            new int [] { 2593, 5, 10, 10 }, // Tunic
+            new int [] { 2594, 5, 10, 10 }, // Tunic
+            new int [] { 2595, 5, 10, 10 }, // Tunic
+            new int [] { 2597, 5, 10, 10 }, // Pants
+            new int [] { 2598, 5, 10, 10 }, // Pants
+            new int [] { 2599, 5, 10, 10 }, // Trousers
+            new int [] { 2600, 5, 10, 10 }, // Pantaloons
+            new int [] { 2601, 5, 10, 10 }, // Pants
+            new int [] { 2602, 5, 10, 10 }, // Breeches
+            new int [] { 2603, 5, 10, 10 }, // Breeches
+            new int [] { 2604, 5, 10, 10 }, // Breeches
+            new int [] { 5894, 2, 1, 1 }, // Fez
+            new int [] { 5901, 2, 1, 1 }, // Kasa
+            new int [] { 5905, 2, 1, 1 }, // Hood
+            new int [] { 7897, 4, 9, 9 }, // Steel Toed Boots
+            new int [] { 12254, 5, 10, 10 }, // Pants
+            new int [] { 14798, 5, 10, 10 }, // Empyrean Pants
+            new int [] { 28605, 2, 1, 1 }, // Beret
+            new int [] { 28606, 5, 10, 10 }, // Viamontian Pants
+            new int [] { 28607, 5, 10, 10 }, // Lace Shirt
+            new int [] { 28608, 5, 10, 10 }, // Poet's Shirt
+            new int [] { 28609, 5, 10, 10 }, // Vest
+            new int [] { 28610, 4, 9, 9 }, // Loafers
+            new int [] { 28611, 4, 9, 9 }, // Viamontian Laced Boots
+            new int [] { 28612, 2, 1, 1 }, // bandana
+            new int [] { 28609, 5, 10, 10 }, // Toga
+            new int [] { 31236, 5, 10, 10 }, // Beret
+            new int [] { 31237, 5, 10, 10 }, // Loafers
+            new int [] { 31238, 5, 10, 10 }, // Viamontian Leggings
+            new int [] { 31239, 5, 10, 10 }, // Poet's Shirt
+            new int [] { 44975, 5, 10, 10 } // Hood
+        };
+
+        public static readonly int[][] Helms =
+        {
+            new int [] { 46, 2, 1, 1 }, // Metal Cap
+            new int [] { 74, 2, 1, 1 }, // Heaume
+            new int [] { 75, 2, 1, 1 }, // Helmet
+            new int [] { 76, 2, 1, 1 }, // Horned Helm
+            new int [] { 77, 2, 1, 1 }, // Kabuton
+            new int [] { 296, 1, 1, 1 }, // Crown
+            new int [] { 550, 2, 1, 1 }, // Baigha
+            new int [] { 8488, 2, 1, 1 }, // Armet
+            new int [] { 31865, 2, 1, 1 } // Circlet
+        };
+
+        public static readonly int[][] Shields =
+        {
+            new int [] { 44, 5, 10, 10 }, // Buckler
+            new int [] { 91, 5, 10, 10 }, // Kite Shield
+            new int [] { 92, 5, 10, 10 }, // Large Kite Shield
+            new int [] { 93, 5, 10, 10 }, // Round Shield
+            new int [] { 95, 5, 10, 10 } // Round Tower Shield
+        };
+
+        public static readonly int[][] LeatherArmor =
+        {
+            new int[] { 25636, 2, 1, 1 },
+            new int[] { 25640, 2, 1, 1 },
+            new int[] { 25639, 1, 2, 2 },
+            new int[] { 25641, 1, 2, 2 },
+            new int[] { 25638, 1, 2, 2 },
+            new int[] { 25651, 1, 3, 3 },
+            new int[] { 25642, 3, 5, 5 },
+            new int[] { 25637, 1, 4, 4 },
+            new int[] { 25648, 1, 3, 2 },
+            new int[] { 25643, 1, 6, 6 },
+            new int[] { 25650, 1, 6, 6 },
+            new int[] { 25647, 1, 7, 7 },
+            new int[] { 25645, 1, 7, 7 },
+            new int[] { 25652, 1, 7, 7 },
+            new int[] { 25644, 1, 8, 8 },
+            new int[] { 25661, 4, 9, 9 }
+        };
+
+        public static readonly int[][] StuddedLeatherArmor =
+        {
+            new int[] { 554, 2, 1, 1 },
+            new int[] { 116, 4, 9, 9 },
+            new int[] { 38, 1, 4, 4 },
+            new int[] { 42, 1, 2, 2 },
+            new int[] { 48, 1, 2, 2 },
+            new int[] { 723, 2, 1, 1 },
+            new int[] { 53, 1, 2, 2 },
+            new int[] { 59, 3, 5, 5 },
+            new int[] { 63, 1, 6, 6 },
+            new int[] { 68, 1, 8, 8 },
+            new int[] { 68, 2, 1, 1 },
+            new int[] { 89, 1, 8, 8 },
+            new int[] { 99, 1, 2, 2 },
+            new int[] { 105, 1, 3, 3 },
+            new int[] { 112, 1, 7, 7 }
+        };
+
+        public static readonly int[][] ChainmailArmor =
+        {
+            new int[] { 35, 2, 1, 1 },
+            new int[] { 413, 1, 4, 4 },
+            new int[] { 414, 1, 2, 2 },
+            new int[] { 85, 2, 1, 1 },
+            new int[] { 55, 3, 5, 5 },
+            new int[] { 415, 1, 6, 6 },
+            new int[] { 2605, 1, 8, 8 },
+            new int[] { 71, 1, 2, 2 },
+            new int[] { 80, 1, 7, 7 },
+            new int[] { 416, 1, 3, 3 },
+            new int[] { 96, 1, 2, 2 },
+            new int[] { 101, 1, 3, 3 },
+            new int[] { 108, 1, 7, 7 }
+        };
+
+        public static readonly int[][] PlatemailArmor =
+        {
+            new int[] { 40, 1, 2, 2 },
+            new int[] { 51, 1, 2, 2 },
+            new int[] { 57, 3, 5, 5 },
+            new int[] { 61, 1, 6, 6 },
+            new int[] { 66, 1, 8, 8 },
+            new int[] { 72, 1, 2, 2 },
+            new int[] { 82, 1, 8, 8 },
+            new int[] { 87, 1, 3, 3 },
+            new int[] { 103, 1, 3, 3 },
+            new int[] { 110, 1, 7, 7 },
+            new int[] { 114, 1, 4, 4 }
+        };
+
+        public static readonly int[][] ScalemailArmor =
+        {
+            new int[] { 552, 2, 1, 1 },
+            new int[] { 37, 1, 4, 4 },
+            new int[] { 41, 1, 2, 2 },
+            new int[] { 793, 2, 1, 1 },
+            new int[] { 52, 1, 2, 2 },
+            new int[] { 58, 3, 5, 5 },
+            new int[] { 62, 1, 6, 6 },
+            new int[] { 67, 1, 8, 8 },
+            new int[] { 73, 1, 2, 2 },
+            new int[] { 83, 1, 7, 7 },
+            new int[] { 88, 1, 3, 3 },
+            new int[] { 98, 1, 2, 2 },
+            new int[] { 104, 1, 3, 3 },
+            new int[] { 111, 1, 7, 7 }
+};
+
+        public static readonly int[][] YoroiArmor =
+        {
+            new int[] { 43, 1, 2, 2 },
+            new int[] { 54, 1, 2, 2 },
+            new int[] { 64, 1, 6, 6 },
+            new int[] { 69, 1, 8, 8 },
+            new int[] { 2437, 1, 7, 7 },
+            new int[] { 90, 1, 3, 3 },
+            new int[] { 102, 1, 3, 3 },
+            new int[] { 113, 1, 7, 7 }
+        };
+
+        public static readonly int[][] DiforsaArmor =
+        {
+            new int[] { 28627, 1, 4, 4 },
+            new int[] { 28628, 1, 2, 2 },
+            new int[] { 28630, 1, 2, 2 },
+            new int[] { 28632, 3, 5, 5 },
+            new int[] { 28633, 1, 6, 6 },
+            new int[] { 28634, 31, 8, 8 },
+            new int[] { 30948, 1, 2, 2 },
+            new int[] { 28618, 2, 1, 1 },
+            new int[] { 28621, 1, 7, 7 },
+            new int[] { 28623, 1, 3, 3 },
+            new int[] { 30949, 1, 3, 3 },
+            new int[] { 28625, 4, 9, 9 },
+            new int[] { 28626, 1, 7, 7 }
+        };
+
+        public static readonly int[][] CeldonArmor =
+        {
+            new int[] { 6044, 1, 2, 2 },
+            new int[] { 6043, 1, 6, 6 },
+            new int[] { 6045, 1, 7, 7 },
+            new int[] { 6048, 1, 3, 3 }
+        };
+
+        public static readonly int[][] AmuliArmor =
+        {
+            new int[] { 6046, 1, 2, 2 },
+            new int[] { 6047, 1, 7, 7 }
+        };
+
+        public static readonly int[][] KoujiaArmor =
+        {
+            new int[] { 6003, 1, 2, 2 },
+            new int[] { 6004, 1, 7, 7 },
+            new int[] { 6005, 1, 3, 3 }
+        };
+
+        public static readonly int[][] TenassaArmor =
+        {
+            new int[] { 31026, 1, 2, 2 },
+            new int[] { 28622, 1, 7, 7 },
+            new int[] { 28624, 1, 3, 3 }
+        };
+
+        public static readonly int[][] LoricaArmor =
+        {
+            new int[] { 27220, 4, 9, 9 },
+            new int[] { 27221, 1, 2, 2 },
+            new int[] { 27222, 3, 5, 5 },
+            new int[] { 27223, 2, 1, 1 },
+            new int[] { 27224, 1, 7, 7 },
+            new int[] { 27225, 1, 3, 3 }
+        };
+
+        public static readonly int[][] NariyidArmor =
+        {
+            new int[] { 27226, 4, 9, 9 },
+            new int[] { 27227, 1, 2, 2 },
+            new int[] { 27228, 3, 5, 5 },
+            new int[] { 27229, 1, 6, 6 },
+            new int[] { 27230, 2, 1, 1 },
+            new int[] { 27231, 1, 7, 7 },
+            new int[] { 27232, 1, 3, 3 }
+        };
+
+        public static readonly int[][] ChiranArmor =
+        {
+            new int[] { 27215, 1, 2, 2 },
+            new int[] { 27216, 3, 5, 5 },
+            new int[] { 27217, 2, 1, 1 },
+            new int[] { 27218, 1, 7, 7 },
+            new int[] { 27219, 4, 9, 9 }
+        };
+
+        public static readonly int[][] AlduressaArmor =
+        {
+            new int[] { 30950, 4, 9, 9 },
+            new int[] { 28629, 1, 2, 2 },
+            new int[] { 30951, 3, 5, 5 },
+            new int[] { 28617, 2, 1, 1 },
+            new int[] { 28620, 1, 3, 3 }
+};
+
+        public static readonly int[][] KnorrAcademyArmor =
+        {
+            new int [] { 43053, 4, 9, 9 },
+            new int [] { 43048, 1, 2, 2 },
+            new int [] { 43049, 3, 5, 5 },
+            new int [] { 43051, 1, 8, 8 },
+            new int [] { 43068, 2, 1, 1 },
+            new int [] { 43052, 1, 3, 3 },
+            new int [] { 43054, 1, 7, 7 },
+            new int [] { 43055, 1, 4, 4 }
+        };
+
+        public static readonly int[][] SedgemailLeatherArmor =
+        {
+            new int [] { 43829, 2, 1, 1 },
+            new int [] { 43830, 3, 5, 5 },
+            new int [] { 43831, 1, 8, 8 },
+            new int [] { 43832, 4, 9, 9 },
+            new int [] { 43833, 1, 3, 3 },
+            new int [] { 43828, 1, 2, 2 }
+        };
+
+        public static readonly int[][] HaebreanArmor =
+        {
+            new int [] { 42755, 4, 9, 9 },
+            new int [] { 42749, 1, 2, 2 },
+            new int [] { 42750, 3, 5, 5 },
+            new int [] { 42751, 1, 6, 6 },
+            new int [] { 42752, 1, 8, 8 },
+            new int [] { 42753, 2, 1, 1 },
+            new int [] { 42754, 1, 3, 3 },
+            new int [] { 42756, 1, 7, 7 },
+            new int [] { 42757, 1, 4, 4 }
+        };
+
+        public static readonly int[][] OlthoiAmuliArmor =
+        {
+            new int [] { 37208, 4, 9, 9 },
+            new int [] { 37299, 1, 2, 2 },
+            new int [] { 37188, 3, 5, 5 },
+            new int [] { 37201, 1, 8, 8 },
+            new int [] { 37196, 2, 1, 1 }
+        };
+
+        public static readonly int[][] OlthoiCeldonArmor =
+        {
+            new int [] { 37209, 4, 9, 9 },
+            new int [] { 37214, 1, 2, 2 },
+            new int [] { 37189, 3, 5, 5 },
+            new int [] { 37202, 1, 8, 8 },
+            new int [] { 37192, 1, 6, 6 },
+            new int [] { 37205, 1, 3, 3 },
+            new int [] { 37197, 2, 1, 1 }
+        };
+
+        public static readonly int[][] OlthoiKoujiaArmor =
+        {
+            new int [] { 37215, 1, 2, 2 },
+            new int [] { 37190, 3, 5, 5 },
+            new int [] { 37203, 1, 8, 8 },
+            new int [] { 37206, 1, 3, 3 },
+            new int [] { 37198, 2, 1, 1 }
+        };
+
+        public static readonly int[][] OlthoiAlduressaArmor =
+        {
+            new int[] { 37207, 4, 9, 9 },
+            new int[] { 37217, 1, 2, 2 },
+            new int[] { 37187, 3, 5, 5 },
+            new int[] { 37200, 1, 8, 8 },
+            new int[] { 37195, 2, 1, 1 }
         };
     }
 }
