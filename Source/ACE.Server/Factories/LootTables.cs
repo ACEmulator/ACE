@@ -1,9 +1,8 @@
-using ACE.Server.WorldObjects;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Factories
 {
@@ -2127,6 +2126,15 @@ namespace ACE.Factories
             new int[] { 2608, 2596, 4672, 6100},
             ////Blooddrinker
             new int[] { 2598, 2586, 4661, 6089},
+        };
+
+        public static readonly int[][] DefaultMaterial =
+        {
+            new int[] { (int)MaterialType.Copper, (int)MaterialType.Bronze, (int)MaterialType.Iron, (int)MaterialType.Steel },
+            new int[] { (int)MaterialType.Oak, (int)MaterialType.Teak, (int)MaterialType.Mahogany, (int)MaterialType.Pine },
+            new int[] { (int)MaterialType.Brass, (int)MaterialType.Ivory, (int)MaterialType.Gold, (int)MaterialType.Steel },
+            new int[] { (int)MaterialType.RedGarnet, (int)MaterialType.Jet, (int)MaterialType.BlackOpal, (int)MaterialType.FireOpal },
+            new int[] { (int)MaterialType.Granite, (int)MaterialType.Ceramic, (int)MaterialType.Porcelain, (int)MaterialType.Alabaster }
         };
 
         public enum ArmorType
