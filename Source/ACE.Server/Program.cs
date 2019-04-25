@@ -96,8 +96,6 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllHousePortals();
                 log.Info("Precaching Points Of Interest...");
                 DatabaseManager.World.CacheAllPointsOfInterest();
-                log.Info("Precaching Cookbooks...");
-                DatabaseManager.World.CacheAllCookbooksInParallel();
                 log.Info("Precaching Spells...");
                 DatabaseManager.World.CacheAllSpells();
                 log.Info("Precaching Events...");
@@ -111,6 +109,8 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
                 log.Info("Precaching Treasure Colors...");
                 DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
+                log.Info("Precaching Cookbooks...");
+                DatabaseManager.World.CacheAllCookbooksInParallel();
             }
             else
                 log.Info("Precaching World Database Disabled...");

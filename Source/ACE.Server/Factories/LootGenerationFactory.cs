@@ -1843,7 +1843,7 @@ namespace ACE.Server.Factories
         /// <returns></returns>
         private static int GetMaterialType(WorldObject wo, int tier)
         {
-            int defaultMaterialType = 0;
+            int defaultMaterialType = SetDefaultMaterialType(wo);
 
             if(wo.TsysMutationData == null)
             {
@@ -1895,6 +1895,12 @@ namespace ACE.Server.Factories
             }
 
             return (int)defaultMaterialType;
+        }
+
+        private static int SetDefaultMaterialType(WorldObject wo)
+        {
+
+            return 0;
         }
 
         private static double GetMeleeDMod(int tier)

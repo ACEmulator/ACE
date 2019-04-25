@@ -2153,6 +2153,7 @@ namespace ACE.Factories
             KnorrAcademyArmor,
             SedgemailLeatherArmor,
             HaebreanArmor,
+            OlthoiArmor,
             OlthoiAmuliArmor,
             OlthoiCeldonArmor,
             OlthoiKoujiaArmor,
@@ -2379,6 +2380,20 @@ namespace ACE.Factories
             new int[] { 28624, 1, 3, 3 }
         };
 
+        public static readonly int[][] CovenantArmor =
+        {
+            new int [] { 21150, 4, 9, 9 }, // Shoes
+            new int [] { 21152, 1, 2, 2 }, // Breastplate
+            new int [] { 21153, 3, 5, 5 }, // Gauntlets
+            new int [] { 21154, 1, 6, 6 }, // Girth
+            new int [] { 21155, 1, 8, 8 }, // Greaves
+            new int [] { 21156, 2, 1, 1 }, // Helm
+            new int [] { 21157, 1, 3, 3 }, // Pauldrons
+            new int [] { 21159, 1, 7, 7 }, // Tassets
+            new int [] { 21151, 1, 4, 4 }, // Bracers
+            new int [] { 21158, 5, 10, 10 } // Shield
+        };
+
         public static readonly int[][] LoricaArmor =
         {
             new int[] { 27220, 4, 9, 9 },
@@ -2451,6 +2466,20 @@ namespace ACE.Factories
             new int [] { 42754, 1, 3, 3 },
             new int [] { 42756, 1, 7, 7 },
             new int [] { 42757, 1, 4, 4 }
+        };
+
+        public static readonly int[][] OlthoiArmor =
+        {
+            new int [] { 37211, 4, 9, 9 }, // Shoes
+            new int [] { 37216, 1, 2, 2 }, // Breastplate
+            new int [] { 37191, 3, 5, 5 }, // Gauntlets
+            new int [] { 37193, 1, 6, 6 }, // Girth
+            new int [] { 37194, 1, 8, 8 }, // Greaves
+            new int [] { 37199, 2, 1, 1 }, // Helm
+            new int [] { 37204, 1, 3, 3 }, // Pauldrons
+            new int [] { 37212, 1, 7, 7 }, // Tassets
+            new int [] { 37213, 1, 4, 4 }, // Bracers
+            new int [] { 37291, 5, 10, 10 } // Shield
         };
 
         public static readonly int[][] OlthoiAmuliArmor =
