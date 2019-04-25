@@ -502,8 +502,20 @@ namespace ACE.Server.Factories
         private static int GetArmorLevelModifier(int tier, int armorType)
         {
             // Olthoi Armor base weenies already have the full amount of AL
-            if (armorType > (int)LootTables.ArmorType.HaebreanArmor)
+            if (armorType > (int)LootTables.ArmorType.OlthoiKoujiaArmor)
                 return 0;
+
+            if (armorType > (int)LootTables.ArmorType.HaebreanArmor
+                    && armorType < (int)LootTables.ArmorType.OlthoiAlduressaArmor)
+            {
+                switch (tier)
+                {
+                    case 7:
+                        return ThreadSafeRandom.Next(0, 40);
+                    default:
+                        return ThreadSafeRandom.Next(160, 200);
+                }
+            }
 
             switch (tier)
             {

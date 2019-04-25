@@ -2221,7 +2221,7 @@ namespace ACE.Factories
             new int [] { 296, 1, 1, 1 }, // Crown
             new int [] { 550, 2, 1, 1 }, // Baigha
             new int [] { 8488, 2, 1, 1 }, // Armet
-            new int [] { 29528, 2, 1, 1 } // Circlet
+            new int [] { 31865, 2, 1, 1 } // Circlet
         };
 
         public static readonly int[][] Shields =
