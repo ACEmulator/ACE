@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-26
+[Ripley]
+* Add check for RecallsDisabled to command recalls.
+
 ### 2019-04-25
 [Ripley]
 * Fix issues with crafting sending 0 burden to client.
