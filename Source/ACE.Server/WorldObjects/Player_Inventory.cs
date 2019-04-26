@@ -846,6 +846,18 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (item is Container container)
+            {
+                foreach (var obj in container.Inventory.Values)
+                {
+                    if ((obj.Attuned ?? 0) >= 1)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.AttunedItem));
+                        return;
+                    }
+                }
+            }
+
             if (IsBusy)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
@@ -1745,6 +1757,18 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (item is Container container)
+            {
+                foreach (var obj in container.Inventory.Values)
+                {
+                    if ((obj.Attuned ?? 0) >= 1)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
+                        return;
+                    }
+                }
+            }
+
             if ((target.Character.CharacterOptions1 & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) != (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
@@ -1849,13 +1873,27 @@ namespace ACE.Server.WorldObjects
                 {
                     // for NPCs that accept items with EmoteCategory.Give,
                     // if stacked item, only give 1
-                    if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
+                    if (!acceptAll && RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
                     {
                         if (itemToGive == null)
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                    }
+                    else
+                    {
+                        if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem))
+                        //Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+                        {
+                            //Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {((item.StackSize ?? 0) > 1 ? $"{item.StackSize}" : "")}{((item.StackSize ?? 0) > 1 ? $"{item.GetPluralName()}" : $"{item.Name}")}.", ChatMessageType.Broadcast));
+                            var stackSize = item.StackSize ?? 1;
+
+                            var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
+                            var itemName = stackSize > 1 ? item.GetPluralName() : item.Name;
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
+                            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                        }
                     }
                 }
                 else if (result.Category == (uint)EmoteCategory.Refuse)

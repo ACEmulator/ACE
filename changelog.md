@@ -6,6 +6,8 @@
 * Add CraftTool WeenieType.
 * Update Generic and Stackable WeenieType.
 * Fix issue with clapping motion repeating.
+* Fix giving stackables to NPCs that accept everything (Town Criers, Garbage Barrels)
+* Fix giving or dropping packs with attuned items.
 
 ### 2019-04-24
 [Ripley]
