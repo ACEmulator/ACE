@@ -318,7 +318,7 @@ namespace ACE.Server.Factories
             wo.Value = value;
 
             int wield;
-            if (tier > 6)
+            if (tier > 6 && armorType != (int)LootTables.ArmorType.CovenantArmor)
             {
                 wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
                 wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
@@ -540,8 +540,7 @@ namespace ACE.Server.Factories
 
         private static int GetCovenantWieldReq(int tier, Skill skill)
         {
-            int index = 1;
-            int wield;
+            int index, wield;
 
             switch (tier)
             {

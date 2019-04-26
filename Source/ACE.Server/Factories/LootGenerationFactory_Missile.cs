@@ -30,14 +30,32 @@ namespace ACE.Server.Factories
             int wieldDifficulty = GetWield(tier, 1);
 
             if (tier < 4)
-                weaponWeenie = GetNonElementalMissileWeapon();
-            else
             {
                 chance = ThreadSafeRandom.Next(0, 1);
                 switch (chance)
                 {
                     case 0:
                         weaponWeenie = GetNonElementalMissileWeapon();
+                        break;
+                    default:
+                        weaponWeenie = GetNonElementalThrownWeapon();
+                        break;
+                }
+            }
+            else
+            {
+                chance = ThreadSafeRandom.Next(0, 3);
+                switch (chance)
+                {
+                    case 0:
+                        weaponWeenie = GetNonElementalMissileWeapon();
+                        break;
+                    case 1:
+                        weaponWeenie = GetNonElementalThrownWeapon();
+                        break;
+                    case 2:
+                        elemenatalBonus = GetElementalBonus(wieldDifficulty);
+                        weaponWeenie = GetElementalThrownWeapon();
                         break;
                     default:
                         elemenatalBonus = GetElementalBonus(wieldDifficulty);
@@ -349,6 +367,17 @@ namespace ACE.Server.Factories
             return eleMod;
         }
 
+        private static int GetElementalThrownWeapon()
+        {
+            // Determine missile weapon type: 0 - Axe, 1 - Club, 2 - Dagger, 3 - Dart, 4 - Djarid, 5 - Javelin, 6 - Shouken
+            int missileType = ThreadSafeRandom.Next(0, 6);
+
+            // Determine element type: 0 - Standard, 1 - Acid, 2 - Fire, 3 - Frost, 4 - Electric
+            int element = ThreadSafeRandom.Next(0, 4);
+
+            return LootTables.ElementalThrownWeaponsMatrix[missileType][element];
+        }
+
         private static int GetElementalMissileWeapon()
         {
             // Determine missile weapon type: 0 - Bow, 1 - Crossbows, 2 - Atlatl, 3 - Slingshot, 4 - Compound Bow, 5 - Compound Crossbow
@@ -358,6 +387,13 @@ namespace ACE.Server.Factories
             int element = ThreadSafeRandom.Next(0, 6);
 
             return LootTables.ElementalMissileWeaponsMatrix[missileType][element];
+        }
+
+        private static int GetNonElementalThrownWeapon()
+        {
+            var missileType = ThreadSafeRandom.Next(0, LootTables.NonElementalThrownWeaponMatrix.Length - 1);
+
+            return LootTables.NonElementalThrownWeaponMatrix[missileType];
         }
 
         private static int GetNonElementalMissileWeapon()
