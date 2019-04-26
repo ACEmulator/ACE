@@ -89,7 +89,15 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
-            if ((wo.WeenieType == WeenieType.Generic && wo.ItemType == ItemType.MissileWeapon) == false)
+            if (wo.WeenieType == WeenieType.Generic && wo.ItemType == ItemType.MissileWeapon)
+            {
+                if (wo.GetProperty(PropertyInt.WeaponSkill) == (int)Skill.ThrownWeapon)
+                    wo.SetProperty(PropertyInt.WeaponSkill, (int)Skill.MissileWeapons);
+
+                if (wo.GetProperty(PropertyInt.WeaponType) != (int)WeaponType.Thrown)
+                    wo.SetProperty(PropertyInt.WeaponType, (int)WeaponType.Thrown);
+            }
+            else
             {
                 double meleeDMod = GetMeleeDMod(tier);
                 if (meleeDMod > 0.0f)
