@@ -130,6 +130,8 @@ namespace ACE.Server.Factories
                     return new AugmentationDevice(weenie, guid);
                 case WeenieType.AttributeTransferDevice:
                     return new AttributeTransferDevice(weenie, guid);
+                case WeenieType.CraftTool:
+                    return new CraftTool(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -243,6 +245,8 @@ namespace ACE.Server.Factories
                     return new AugmentationDevice(biota);
                 case WeenieType.AttributeTransferDevice:
                     return new AttributeTransferDevice(biota);
+                case WeenieType.CraftTool:
+                    return new CraftTool(biota);
                 default:
                     return new GenericObject(biota);
             }

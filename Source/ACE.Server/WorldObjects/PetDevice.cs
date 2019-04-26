@@ -500,7 +500,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Applies an encapsulated spirit to a PetDevice
         /// </summary>
-        public void Refill(Player player, GenericObject spirit)
+        public void Refill(Player player, CraftTool spirit)
         {
             // TODO: this should be moved to recipe system
             if (!IsEncapsulatedSpirit(spirit))
@@ -533,6 +533,7 @@ namespace ACE.Server.WorldObjects
 
                 player.IsBusy = false;
             });
+            player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
         }

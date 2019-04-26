@@ -542,14 +542,14 @@ namespace ACE.Server.WorldObjects
             if (container != null)
             {
                 // We add to these values because amount will be negative if we're subtracting from a stack, so we want to add a negative number.
-                container.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
-                container.Value += (stack.StackUnitValue * amount);
+                container.EncumbranceVal += (stack.StackUnitEncumbrance ?? 0) * amount;
+                container.Value += (stack.StackUnitValue ?? 0) * amount;
             }
 
             if (rootContainer != null && rootContainer != container)
             {
-                rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
-                rootContainer.Value += (stack.StackUnitValue * amount);
+                rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance ?? 0) * amount;
+                rootContainer.Value += (stack.StackUnitValue ?? 0) * amount;
             }
         }
 
