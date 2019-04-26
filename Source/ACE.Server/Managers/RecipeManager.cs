@@ -161,17 +161,21 @@ namespace ACE.Server.Managers
                 player.SendUseDoneEvent();
                 player.IsBusy = false;
             });
+            var motion2 = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+            craftChain.AddAction(player, () => player.EnqueueBroadcastMotion(motion2));
+            var craftAnimationLength2 = motionTable.GetAnimationLength(MotionCommand.Ready);
+            craftChain.AddDelaySeconds(craftAnimationLength2);
 
             craftChain.EnqueueChain();
         }
 
-        public static float DoCraftMotion(Player player)
+        public static float DoMotion(Player player, MotionCommand motionCommand)
         {
-            var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
+            var motion = new Motion(MotionStance.NonCombat, motionCommand);
             player.EnqueueBroadcastMotion(motion);
 
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
-            var craftAnimationLength = motionTable.GetAnimationLength(MotionCommand.ClapHands);
+            var craftAnimationLength = motionTable.GetAnimationLength(motionCommand);
             return craftAnimationLength;
         }
 
@@ -246,11 +250,12 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var animLength = DoCraftMotion(player);
+            var animLength = DoMotion(player, MotionCommand.ClapHands);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(player, () => DoTinkering(player, tool, target, (float)successChance));
+            actionChain.AddAction(player, () => DoMotion(player, MotionCommand.Ready));
             actionChain.EnqueueChain();
         }
 
