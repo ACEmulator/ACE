@@ -1,8 +1,23 @@
 # ACEmulator Change Log
 
+### 2019-04-24
+[Ripley]
+* Add support for AwardXP emote taking away from available xp (Donatello Linante -> Asheron's Lesser Benediction).
+* Fixes for Give to Player issues: Send contents of a container when given, Return object to giver when it fails to be given.
+* Fix for mis-matched mana on lootgen'd missile weapons.
+* Fix crash on null CurrentMotionState (statues).
+
 ### 2019-04-23
 [OptimShi]
 * Fixed gems not dropping in loot.
+
+[Ripley]
+* Fix issues with player corpse decay.
+* Add support for IOU trade ins.
+* Updates to Event generators for two staged on/off.
+* Add caster effect to spells that have them.
+* Creatures with loot and NoCorpse will drop their loot to the ground upon death.
+
 
 ### 2019-04-21
 [Ripley]
@@ -18,6 +33,9 @@
 * Changed shortcut code to fix some collision issues.
 * Updated shutdown sequence to support notifications to players at intervals and adjusted shutdown lockout to apply when server is less than 3 minutes from shutdown.
 * Fix some issues with hotspots.
+* Update myquests output to match plugin regex expectations.
+* Fix rapid player corpse decay upon server restart.
+* Fix issue with npcs activating other objects.
 
 **Stage 2 Shortcut Bar Fix**
 * Prior to update to latest master, re-run `fix-shortcut-bars` and confirm 0 bugged players. If bugged players exist, `git checkout 90c98c76a631382b761b1db49522c16dcf7602de`, follow Stage 1 guide to fix them then continue with update. `git checkout master`
