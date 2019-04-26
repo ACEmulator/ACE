@@ -24,10 +24,10 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            StackSize = null;
-            StackUnitEncumbrance = null;
-            StackUnitValue = null;
-            MaxStackSize = null;            
+            //StackSize = null;
+            //StackUnitEncumbrance = null;
+            //StackUnitValue = null;
+            //MaxStackSize = null;            
         }
     }
 }
