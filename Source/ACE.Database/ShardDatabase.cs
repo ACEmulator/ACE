@@ -637,11 +637,11 @@ namespace ACE.Database
             }
         }
 
-        private static readonly ConditionalWeakTable<Character, ShardDbContext> CharacterContexts = new ConditionalWeakTable<Character, ShardDbContext>();
+        private static readonly ConditionalWeakTable<Character, ShardDbContextWithFinalize> CharacterContexts = new ConditionalWeakTable<Character, ShardDbContextWithFinalize>();
 
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
-            var context = new ShardDbContext();
+            var context = new ShardDbContextWithFinalize();
 
             var results = context.Character
                 .Include(r => r.CharacterPropertiesContract)
@@ -662,7 +662,7 @@ namespace ACE.Database
 
         public Character GetCharacterByName(string name) // When searching by name, only non-deleted characters matter
         {
-            var context = new ShardDbContext();
+            var context = new ShardDbContextWithFinalize();
 
             var result = context.Character
                 //.Include(r => r.CharacterPropertiesContract)
@@ -719,7 +719,7 @@ namespace ACE.Database
                 }
             }
 
-            var context = new ShardDbContext();
+            var context = new ShardDbContextWithFinalize();
 
             CharacterContexts.Add(character, context);
 
