@@ -1,11 +1,4 @@
-using System.Collections.Generic;
-using System;
-
-using log4net;
-
-using ACE.Database;
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
@@ -35,10 +28,10 @@ namespace ACE.Server.Factories
                 switch (chance)
                 {
                     case 0:
-                        weaponWeenie = GetNonElementalMissileWeapon();
+                        weaponWeenie = GetNonElementalThrownWeapon();
                         break;
                     default:
-                        weaponWeenie = GetNonElementalThrownWeapon();
+                        weaponWeenie = GetNonElementalMissileWeapon();
                         break;
                 }
             }
@@ -68,6 +61,18 @@ namespace ACE.Server.Factories
 
             if (wo == null)
                 return null;
+
+            if (wo.WeenieType == WeenieType.Missile && wo.ItemType == ItemType.MissileWeapon)
+            {
+                if (wo.GetProperty(PropertyInt.WeaponSkill) == (int)Skill.ThrownWeapon)
+                    wo.SetProperty(PropertyInt.WeaponSkill, (int)Skill.MissileWeapons);
+
+                if (wo.GetProperty(PropertyInt.WeaponType) != (int)WeaponType.Thrown)
+                    wo.SetProperty(PropertyInt.WeaponType, (int)WeaponType.Thrown);
+
+                var damage = LootTables.ThrownWeaponDamageTable[GetMissileWieldToIndex(wieldDifficulty)];
+                wo.SetProperty(PropertyInt.Damage, damage);
+            }
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);

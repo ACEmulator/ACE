@@ -3,7 +3,6 @@ using System;
 
 using log4net;
 
-using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -1909,7 +1908,7 @@ namespace ACE.Server.Factories
                 return MaterialType.Unknown;
 
             MaterialType material = MaterialType.Unknown;
-            int defaultMaterialEntry = ThreadSafeRandom.Next(1, 4);
+            int defaultMaterialEntry = ThreadSafeRandom.Next(0, 4);
 
             WeenieType weenieType = wo.WeenieType;
             switch (weenieType)
@@ -1918,16 +1917,23 @@ namespace ACE.Server.Factories
                     material = (MaterialType)LootTables.DefaultMaterial[3][defaultMaterialEntry];
                     break;
                 case WeenieType.Clothing:
-                    material = (MaterialType)LootTables.DefaultMaterial[0][defaultMaterialEntry];
+                    if (wo.ItemType == ItemType.Armor)
+                        material = (MaterialType)LootTables.DefaultMaterial[0][defaultMaterialEntry];
+                    if (wo.ItemType == ItemType.Clothing)
+                        material = (MaterialType)LootTables.DefaultMaterial[5][defaultMaterialEntry];
                     break;
                 case WeenieType.MissileLauncher:
-                    material = (MaterialType)LootTables.DefaultMaterial[1][defaultMaterialEntry];
-                    break;
                 case WeenieType.Missile:
-                    material = (MaterialType)LootTables.DefaultMaterial[4][defaultMaterialEntry];
+                    material = (MaterialType)LootTables.DefaultMaterial[1][defaultMaterialEntry];
                     break;
                 case WeenieType.MeleeWeapon:
                     material = (MaterialType)LootTables.DefaultMaterial[2][defaultMaterialEntry];
+                    break;
+                case WeenieType.Generic:
+                    if (wo.ItemType == ItemType.Jewelry)
+                        material = (MaterialType)LootTables.DefaultMaterial[3][defaultMaterialEntry];
+                    if (wo.ItemType == ItemType.MissileWeapon)
+                        material = (MaterialType)LootTables.DefaultMaterial[4][defaultMaterialEntry];
                     break;
                 default:
                     material = MaterialType.Unknown;
