@@ -150,7 +150,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns missile base damage from a monster attack
         /// </summary>
-        public Range GetMissileDamage()
+        public BaseDamageMod GetMissileDamage()
         {
             // FIXME: use actual projectile, instead of currently equipped ammo
             var ammo = GetMissileAmmo();

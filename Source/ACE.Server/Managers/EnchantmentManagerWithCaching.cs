@@ -130,8 +130,8 @@ namespace ACE.Server.Managers
             vulnerabilityResistanceModCache.Clear();
             regenerationModCache.Clear();
 
+            damageBonusCache = null;
             damageModCache = null;
-            damageModifierCache = null;
             attackModCache = null;
             weaponSpeedModCache = null;
             defenseModCache = null;
@@ -298,12 +298,27 @@ namespace ACE.Server.Managers
         }
 
 
-        private int? damageModCache;
+        private int? damageBonusCache;
 
         /// <summary>
         /// Returns the weapon damage modifier, ie. Blood Drinker
         /// </summary>
-        public override int GetDamageMod()
+        public override int GetDamageBonus()
+        {
+            if (damageBonusCache.HasValue)
+                return damageBonusCache.Value;
+
+            damageBonusCache = base.GetDamageBonus();
+
+            return damageBonusCache.Value;
+        }
+
+        private float? damageModCache;
+
+        /// <summary>
+        /// Returns the DamageMod for bow / crossbow
+        /// </summary>
+        public override float GetDamageMod()
         {
             if (damageModCache.HasValue)
                 return damageModCache.Value;
@@ -311,21 +326,6 @@ namespace ACE.Server.Managers
             damageModCache = base.GetDamageMod();
 
             return damageModCache.Value;
-        }
-
-        private float? damageModifierCache;
-
-        /// <summary>
-        /// Returns the DamageMod for bow / crossbow
-        /// </summary>
-        public override float GetDamageModifier()
-        {
-            if (damageModifierCache.HasValue)
-                return damageModifierCache.Value;
-
-            damageModifierCache = base.GetDamageModifier();
-
-            return damageModifierCache.Value;
         }
 
         private float? attackModCache;

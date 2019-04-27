@@ -345,13 +345,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns an additive elemental damage bonus for the missile launcher weapon type
         /// </summary>
-        public static int GetMissileElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
+        public static int GetMissileElementalDamageModifier(Creature wielder, DamageType damageType)
         {
             // An additive bonus, so the default is zero
             int modifier = 0;
 
             var wielderAsPlayer = wielder as Player;
-            var targetAsPlayer = target as Player;
 
             WorldObject weapon = GetWeapon(wielderAsPlayer);
 
