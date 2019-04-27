@@ -459,7 +459,26 @@ namespace ACE.Server.Managers
 
             session.Player.PlayerEnterWorld();
 
-            LandblockManager.AddObject(session.Player, true);
+            var success = LandblockManager.AddObject(session.Player, true);
+            if (!success)
+            {
+                // send to lifestone, or fallback location
+                var fixLoc = session.Player.Sanctuary ?? new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f);
+
+                log.Error($"WorldManager.DoPlayerEnterWorld: failed to spawn {session.Player.Name}, relocating to {fixLoc.ToLOCString()}");
+
+                session.Player.Location = new Position(fixLoc);
+                LandblockManager.AddObject(session.Player, true);
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(5.0f);
+                actionChain.AddAction(session.Player, () =>
+                {
+                    if (session != null && session.Player != null)
+                        session.Player.Teleport(fixLoc);
+                });
+                actionChain.EnqueueChain();
+            }
 
             var popup_header = PropertyManager.GetString("popup_header").Item;
             var popup_motd = PropertyManager.GetString("popup_motd").Item;
