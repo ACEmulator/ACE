@@ -436,7 +436,12 @@ namespace ACE.Server.WorldObjects
 
             // handle items with BondedStatus.Slippery: always drop on death
             var slipperyItems = GetSlipperyItems();
-            dropItems.AddRange(slipperyItems);
+
+            foreach (var item in slipperyItems)
+            {
+                if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.ToCorpseOnDeath) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.ToCorpseOnDeath))
+                    dropItems.Add(item);
+            }
 
             var destroyCoins = PropertyManager.GetBool("corpse_destroy_pyreals").Item;
 
