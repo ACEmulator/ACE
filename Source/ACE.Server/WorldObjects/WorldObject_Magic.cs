@@ -295,6 +295,8 @@ namespace ACE.Server.WorldObjects
                     resisted = true;
                 }
             }
+            if (target == this)
+                resisted = false;
 
             if (resisted)
             {
