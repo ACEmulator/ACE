@@ -6,6 +6,7 @@
 * Add text to corpses that generated rares.
 * Add in use error message for some objects.
 * Update Storage permission error message.
+* Update Healer messags and support Stamina/Mana kits.
 
 ### 2019-04-25
 [Ripley]
