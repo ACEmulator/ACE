@@ -125,7 +125,7 @@ namespace ACE.Server.Network.Structure
             info += $"Power: {PowerLevel}\n";
             info += $"StartTime: {StartTime}\n";
             info += $"Duration: {Duration}\n";
-            info += $"CasterGuid: {CasterGuid}\n";
+            info += $"CasterGuid: {CasterGuid:X8}\n";
             info += $"StatModType: {StatModType}\n";
             info += $"StatModKey: {StatModKey}\n";
             info += $"StatModValue: {StatModValue}\n";
