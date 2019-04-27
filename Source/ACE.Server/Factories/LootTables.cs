@@ -2355,7 +2355,7 @@ namespace ACE.Factories
             new int[] { 69, 1, 8, 8 },
             new int[] { 2437, 1, 7, 7 },
             new int[] { 90, 1, 3, 3 },
-            new int[] { 102, 1, 3, 3 },
+            new int[] { 106, 1, 3, 3 },
             new int[] { 113, 1, 7, 7 }
         };
 
