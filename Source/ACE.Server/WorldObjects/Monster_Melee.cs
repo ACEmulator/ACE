@@ -274,37 +274,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the chance for creature to avoid monster attack
-        /// </summary>
-        public float GetEvadeChance()
-        {
-            // get monster attack skill
-            var target = AttackTarget as Creature;
-            var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
-            var offenseMod = GetWeaponOffenseModifier(this);
-            attackSkill = (uint)Math.Round(attackSkill * offenseMod);
-
-            //if (IsExhausted)
-                //attackSkill = GetExhaustedSkill(attackSkill);
-
-            // get creature defense skill
-            var defenseSkill = CurrentAttack == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(AttackTarget as Creature) : 1.0f;
-            var difficulty = (uint)Math.Round(target.GetCreatureSkill(defenseSkill).Current * defenseMod);
-
-            if (target.IsExhausted) difficulty = 0;
-
-            /*var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentAttackSkill()).Current})" : "";
-            Console.WriteLine("Attack skill: " + attackSkill + baseStr);
-
-            baseStr = defenseMod != 1.0f ? $" (base: {player.GetCreatureSkill(defenseSkill).Current})" : "";
-            Console.WriteLine("Defense skill: " + difficulty + baseStr);*/
-
-            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
-            return (float)evadeChance;
-        }
-
-        /// <summary>
         /// Returns the creature armor for a body part
         /// </summary>
         public List<WorldObject> GetArmorLayers(BodyPart bodyPart)
