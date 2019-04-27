@@ -3,10 +3,10 @@ using System;
 
 using log4net;
 
-using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Factories;
 using ACE.Server.WorldObjects;
 using System.Linq;
 
@@ -1843,7 +1843,7 @@ namespace ACE.Server.Factories
         /// <returns></returns>
         private static int GetMaterialType(WorldObject wo, int tier)
         {
-            int defaultMaterialType = 0;
+            int defaultMaterialType = (int)SetDefaultMaterialType(wo);
 
             if(wo.TsysMutationData == null)
             {
@@ -1897,6 +1897,52 @@ namespace ACE.Server.Factories
             return (int)defaultMaterialType;
         }
 
+        /// <summary>
+        /// Sets a randomized default material type for when a weenie does not have TsysMutationData 
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <returns></returns>
+        private static MaterialType SetDefaultMaterialType(WorldObject wo)
+        {
+            if (wo == null)
+                return MaterialType.Unknown;
+
+            MaterialType material = MaterialType.Unknown;
+            int defaultMaterialEntry = ThreadSafeRandom.Next(0, 4);
+
+            WeenieType weenieType = wo.WeenieType;
+            switch (weenieType)
+            {
+                case WeenieType.Caster:
+                    material = (MaterialType)LootTables.DefaultMaterial[3][defaultMaterialEntry];
+                    break;
+                case WeenieType.Clothing:
+                    if (wo.ItemType == ItemType.Armor)
+                        material = (MaterialType)LootTables.DefaultMaterial[0][defaultMaterialEntry];
+                    if (wo.ItemType == ItemType.Clothing)
+                        material = (MaterialType)LootTables.DefaultMaterial[5][defaultMaterialEntry];
+                    break;
+                case WeenieType.MissileLauncher:
+                case WeenieType.Missile:
+                    material = (MaterialType)LootTables.DefaultMaterial[1][defaultMaterialEntry];
+                    break;
+                case WeenieType.MeleeWeapon:
+                    material = (MaterialType)LootTables.DefaultMaterial[2][defaultMaterialEntry];
+                    break;
+                case WeenieType.Generic:
+                    if (wo.ItemType == ItemType.Jewelry)
+                        material = (MaterialType)LootTables.DefaultMaterial[3][defaultMaterialEntry];
+                    if (wo.ItemType == ItemType.MissileWeapon)
+                        material = (MaterialType)LootTables.DefaultMaterial[4][defaultMaterialEntry];
+                    break;
+                default:
+                    material = MaterialType.Unknown;
+                    break;
+            }
+
+            return material;
+        }
+
         private static double GetMeleeDMod(int tier)
         {
             double meleeMod = 0;
@@ -1908,7 +1954,7 @@ namespace ACE.Server.Factories
                     meleeMod = 0;
                     break;
                 case 2:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(1, 100);
                     if (chance < 60)
                         meleeMod = 0;
                     else if (chance < 80)
@@ -1919,7 +1965,7 @@ namespace ACE.Server.Factories
                         meleeMod = .03;
                     break;
                 case 3:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(1, 100);
                     if (chance < 60)
                         meleeMod = .03;
                     else if (chance < 80)
@@ -1930,7 +1976,7 @@ namespace ACE.Server.Factories
                         meleeMod = .06;
                     break;
                 case 4:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(1, 100);
                     if (chance < 60)
                         meleeMod = .06;
                     else if (chance < 80)
@@ -1941,7 +1987,7 @@ namespace ACE.Server.Factories
                         meleeMod = .09;
                     break;
                 case 5:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(1, 100);
                     if (chance < 60)
                         meleeMod = .09;
                     else if (chance < 80)
@@ -1952,7 +1998,7 @@ namespace ACE.Server.Factories
                         meleeMod = .12;
                     break;
                 case 6:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(1, 100);
                     if (chance < 60)
                         meleeMod = .12;
                     else if (chance < 80)
@@ -1963,7 +2009,7 @@ namespace ACE.Server.Factories
                         meleeMod = .15;
                     break;
                 case 7:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(1, 100);
                     if (chance < 60)
                         meleeMod = .15;
                     else if (chance < 80)
@@ -1974,7 +2020,7 @@ namespace ACE.Server.Factories
                         meleeMod = .18;
                     break;
                 case 8:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(1, 100);
                     if (chance < 60)
                         meleeMod = .17;
                     else if (chance < 80)

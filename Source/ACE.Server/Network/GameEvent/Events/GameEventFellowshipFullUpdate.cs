@@ -1,6 +1,7 @@
-using ACE.Server.Entity.Actions;
-using ACE.Server.WorldObjects;
 using System;
+using System.Collections.Generic;
+
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameEvent.Events
 {
@@ -25,12 +26,11 @@ namespace ACE.Server.Network.GameEvent.Events
             #region PackableHashTable of fellowship table - <ObjectID,Fellow>
             // the current number of fellowship members
             Writer.Write((ushort)fellowship.FellowshipMembers.Count); //count - number of items in the table
-            //Writer.Write((ushort)64); //tablesize - max size of the table - default of 64 taken from GDL source.
-            Writer.Write((ushort)6);    // this is actually 2^n, so 2^6 = 64
+            Writer.Write((ushort)16);    // static table size from retail pcaps
 
             // --- FellowInfo ---
 
-            var fellowshipMembers = fellowship.GetFellowshipMembers();
+            var fellowshipMembers = new SortedDictionary<uint, Player>(fellowship.GetFellowshipMembers());
             foreach (Player fellow in fellowshipMembers.Values)
             {
                 // Write data associated with each fellowship member
