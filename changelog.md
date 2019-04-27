@@ -7,6 +7,7 @@
 * Add in use error message for some objects.
 * Update Storage permission error message.
 * Update Healer messags and support Stamina/Mana kits.
+* Update Enchantment Heartbeat to expire 0 duration spells.
 
 ### 2019-04-25
 [Ripley]
