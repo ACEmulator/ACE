@@ -542,14 +542,14 @@ namespace ACE.Server.WorldObjects
             if (container != null)
             {
                 // We add to these values because amount will be negative if we're subtracting from a stack, so we want to add a negative number.
-                container.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
-                container.Value += (stack.StackUnitValue * amount);
+                container.EncumbranceVal += (stack.StackUnitEncumbrance ?? 0) * amount;
+                container.Value += (stack.StackUnitValue ?? 0) * amount;
             }
 
             if (rootContainer != null && rootContainer != container)
             {
-                rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
-                rootContainer.Value += (stack.StackUnitValue * amount);
+                rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance ?? 0) * amount;
+                rootContainer.Value += (stack.StackUnitValue ?? 0) * amount;
             }
         }
 
@@ -844,6 +844,18 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.AttunedItem));
                 return;
+            }
+
+            if (item is Container container)
+            {
+                foreach (var obj in container.Inventory.Values)
+                {
+                    if ((obj.Attuned ?? 0) >= 1)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.AttunedItem));
+                        return;
+                    }
+                }
             }
 
             if (IsBusy)
@@ -1745,6 +1757,18 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (item is Container container)
+            {
+                foreach (var obj in container.Inventory.Values)
+                {
+                    if ((obj.Attuned ?? 0) >= 1)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
+                        return;
+                    }
+                }
+            }
+
             if ((target.Character.CharacterOptions1 & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) != (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
@@ -1849,13 +1873,25 @@ namespace ACE.Server.WorldObjects
                 {
                     // for NPCs that accept items with EmoteCategory.Give,
                     // if stacked item, only give 1
-                    if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
+                    if (!acceptAll && RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
                     {
                         if (itemToGive == null)
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                    }
+                    else
+                    {
+                        if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem))
+                        {
+                            var stackSize = item.StackSize ?? 1;
+
+                            var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
+                            var itemName = stackSize > 1 ? item.GetPluralName() : item.Name;
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
+                            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                        }
                     }
                 }
                 else if (result.Category == (uint)EmoteCategory.Refuse)

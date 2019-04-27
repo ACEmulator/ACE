@@ -1,9 +1,8 @@
-using ACE.Server.WorldObjects;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Factories
 {
@@ -333,11 +332,26 @@ namespace ACE.Factories
             new int[] { 37223, 37222, 37225, 37221, 37220, 37224, 37219, 43383 }  // Staff: Slashing, Piercing, Blunt, Frost, Fire, Acid, Electric, Nether
         };
 
+        public static readonly int[] ThrownWeaponDamageTable = { 7, 10, 13, 16, 18, 21, 24, 27, 28 };
+
         public static readonly float[][] MissileDamageMod =
         {
             new float[] { 2.1f, 2.20f, 2.3f, 2.4f, 2.4f, 2.4f, 2.4f, 2.4f, 2.4f }, // Bow
             new float[] { 2.4f, 2.5f, 2.55f, 2.65f, 2.65f, 2.65f, 2.65f, 2.65f, 2.65f }, // Crossbow
             new float[] { 2.3f, 2.4f, 2.5f, 2.6f, 2.6f, 2.6f, 2.6f, 2.6f, 2.6f }  // Thrown
+        };
+
+        public static readonly int[] NonElementalThrownWeaponMatrix = { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 251, 254 }; // Table settings
+
+        public static readonly int[][] ElementalThrownWeaponsMatrix =
+        {
+            new int[] { 5552, 5548, 5549, 5550, 5551 }, // Throwing Axe
+            new int[] { 5557, 5553, 5554, 5555, 5556 }, // Throwing Club
+            new int[] { 5562, 5558, 5559, 5560, 5561 }, // Throwing Dagger
+            new int[] { 5567, 5563, 5564, 5565, 5566 }, // Throwing Dart
+            new int[] { 5572, 5568, 5569, 5570, 5571 }, // Djarid
+            new int[] { 5577, 5573, 5574, 5575, 5576 }, // Javelin
+            new int[] { 5582, 5578, 5579, 5580, 5581 } // Shouken
         };
 
         public static readonly int[][] NonElementalMissileWeaponsMatrix =
@@ -2129,6 +2143,16 @@ namespace ACE.Factories
             new int[] { 2598, 2586, 4661, 6089},
         };
 
+        public static readonly int[][] DefaultMaterial =
+        {
+            new int[] { (int)MaterialType.Copper, (int)MaterialType.Bronze, (int)MaterialType.Iron, (int)MaterialType.Steel, (int)MaterialType.Silver },            // Armor
+            new int[] { (int)MaterialType.Oak, (int)MaterialType.Teak, (int)MaterialType.Mahogany, (int)MaterialType.Pine, (int)MaterialType.Ebony },               // Missile
+            new int[] { (int)MaterialType.Brass, (int)MaterialType.Ivory, (int)MaterialType.Gold, (int)MaterialType.Steel, (int)MaterialType.Diamond },             // Melee
+            new int[] { (int)MaterialType.RedGarnet, (int)MaterialType.Jet, (int)MaterialType.BlackOpal, (int)MaterialType.FireOpal, (int)MaterialType.Emerald },   // Caster
+            new int[] { (int)MaterialType.Granite, (int)MaterialType.Ceramic, (int)MaterialType.Porcelain, (int)MaterialType.Alabaster, (int)MaterialType.Marble }, // Dinnerware
+            new int[] { (int)MaterialType.Linen, (int)MaterialType.Wool, (int)MaterialType.Velvet, (int)MaterialType.Satin, (int)MaterialType.Silk }                // Clothes
+        };
+
         public enum ArmorType
         {
             MiscClothing,
@@ -2153,6 +2177,7 @@ namespace ACE.Factories
             KnorrAcademyArmor,
             SedgemailLeatherArmor,
             HaebreanArmor,
+            OlthoiArmor,
             OlthoiAmuliArmor,
             OlthoiCeldonArmor,
             OlthoiKoujiaArmor,
@@ -2379,6 +2404,20 @@ namespace ACE.Factories
             new int[] { 28624, 1, 3, 3 }
         };
 
+        public static readonly int[][] CovenantArmor =
+        {
+            new int [] { 21150, 4, 9, 9 }, // Shoes
+            new int [] { 21152, 1, 2, 2 }, // Breastplate
+            new int [] { 21153, 3, 5, 5 }, // Gauntlets
+            new int [] { 21154, 1, 6, 6 }, // Girth
+            new int [] { 21155, 1, 8, 8 }, // Greaves
+            new int [] { 21156, 2, 1, 1 }, // Helm
+            new int [] { 21157, 1, 3, 3 }, // Pauldrons
+            new int [] { 21159, 1, 7, 7 }, // Tassets
+            new int [] { 21151, 1, 4, 4 }, // Bracers
+            new int [] { 21158, 5, 10, 10 } // Shield
+        };
+
         public static readonly int[][] LoricaArmor =
         {
             new int[] { 27220, 4, 9, 9 },
@@ -2451,6 +2490,20 @@ namespace ACE.Factories
             new int [] { 42754, 1, 3, 3 },
             new int [] { 42756, 1, 7, 7 },
             new int [] { 42757, 1, 4, 4 }
+        };
+
+        public static readonly int[][] OlthoiArmor =
+        {
+            new int [] { 37211, 4, 9, 9 }, // Shoes
+            new int [] { 37216, 1, 2, 2 }, // Breastplate
+            new int [] { 37191, 3, 5, 5 }, // Gauntlets
+            new int [] { 37193, 1, 6, 6 }, // Girth
+            new int [] { 37194, 1, 8, 8 }, // Greaves
+            new int [] { 37199, 2, 1, 1 }, // Helm
+            new int [] { 37204, 1, 3, 3 }, // Pauldrons
+            new int [] { 37212, 1, 7, 7 }, // Tassets
+            new int [] { 37213, 1, 4, 4 }, // Bracers
+            new int [] { 37291, 5, 10, 10 } // Shield
         };
 
         public static readonly int[][] OlthoiAmuliArmor =

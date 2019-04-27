@@ -981,5 +981,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.IsGagged) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsGagged); else SetProperty(PropertyBool.IsGagged, value); }
         }
+
+        public bool RecallsDisabled
+        {
+            get => GetProperty(PropertyBool.RecallsDisabled) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.RecallsDisabled); else SetProperty(PropertyBool.RecallsDisabled, value); }
+        }
     }
 }

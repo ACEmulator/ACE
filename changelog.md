@@ -1,5 +1,18 @@
 # ACEmulator Change Log
 
+### 2019-04-26
+[Ripley]
+* Add check for RecallsDisabled to command recalls.
+
+### 2019-04-25
+[Ripley]
+* Fix issues with crafting sending 0 burden to client.
+* Add CraftTool WeenieType.
+* Update Generic and Stackable WeenieType.
+* Fix issue with clapping motion repeating.
+* Fix giving stackables to NPCs that accept everything (Town Criers, Garbage Barrels)
+* Fix giving or dropping packs with attuned items.
+
 ### 2019-04-24
 [Ripley]
 * Add support for AwardXP emote taking away from available xp (Donatello Linante -> Asheron's Lesser Benediction).
@@ -17,7 +30,6 @@
 * Updates to Event generators for two staged on/off.
 * Add caster effect to spells that have them.
 * Creatures with loot and NoCorpse will drop their loot to the ground upon death.
-
 
 ### 2019-04-21
 [Ripley]
