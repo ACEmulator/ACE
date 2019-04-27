@@ -45,5 +45,12 @@ namespace ACE.DatLoader.Entity
             LowerBound = reader.ReadDouble();
             LearnMod = reader.ReadDouble();
         }
+
+        public SkillBase() { }
+
+        public SkillBase(SkillFormula formula)
+        {
+            Formula = formula;
+        }
     }
 }

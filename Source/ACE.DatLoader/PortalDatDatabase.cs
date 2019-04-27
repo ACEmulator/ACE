@@ -16,6 +16,7 @@ namespace ACE.DatLoader
             RegionDesc = ReadFromDat<RegionDesc>(RegionDesc.FILE_ID);
             SecondaryAttributeTable = ReadFromDat<SecondaryAttributeTable>(SecondaryAttributeTable.FILE_ID);
             SkillTable = ReadFromDat<SkillTable>(SkillTable.FILE_ID);
+            SkillTable.AddRetiredSkills();
             SpellComponentsTable = ReadFromDat<SpellComponentsTable>(SpellComponentsTable.FILE_ID);
             SpellTable = ReadFromDat<SpellTable>(SpellTable.FILE_ID);
             XpTable = ReadFromDat<XpTable>(XpTable.FILE_ID);
