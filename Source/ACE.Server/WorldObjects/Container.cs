@@ -483,6 +483,10 @@ namespace ACE.Server.WorldObjects
                     Close(null);
                 else if (Viewer == player.Guid.Full)
                     Close(player);
+                else
+                {
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is already in use by someone else!"));
+                }
 
                 // else error msg?
             }
