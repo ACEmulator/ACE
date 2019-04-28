@@ -321,7 +321,8 @@ namespace ACE.Server.WorldObjects
         public void Teleport(Position _newPosition)
         {
             var newPosition = new Position(_newPosition);
-            newPosition.PositionZ += 0.005f;
+            //newPosition.PositionZ += 0.005f;
+            newPosition.PositionZ += 0.005f * (ObjScale ?? 1.0f);
 
             //Console.WriteLine($"{Name}.Teleport() - Sending to {newPosition.ToLOCString()}");
 

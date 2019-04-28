@@ -958,7 +958,7 @@ namespace ACE.Server.WorldObjects
                     Teleport(rootHouse.BootSpot.Location);
                     break;
                 }
-                if (rootHouse.HouseOwner == null && CurrentLandblock.IsDungeon)
+                if (rootHouse.HouseOwner == null && rootHouse.HouseType != ACE.Entity.Enum.HouseType.Apartment && CurrentLandblock.IsDungeon)
                 {
                     Teleport(rootHouse.BootSpot.Location);
                     break;

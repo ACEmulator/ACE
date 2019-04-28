@@ -86,10 +86,10 @@ namespace ACE.Server.Managers
         /// Adds a WorldObject to the landblock defined by the object's location
         /// </summary>
         /// <param name="loadAdjacents">If TRUE, ensures all of the adjacent landblocks for this WorldObject are loaded</param>
-        public static void AddObject(WorldObject worldObject, bool loadAdjacents = false)
+        public static bool AddObject(WorldObject worldObject, bool loadAdjacents = false)
         {
             var block = GetLandblock(worldObject.Location.LandblockId, loadAdjacents);
-            block.AddWorldObject(worldObject);
+            return block.AddWorldObject(worldObject);
         }
 
         /// <summary>

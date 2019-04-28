@@ -421,8 +421,8 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                if (HouseType == ACE.Entity.Enum.HouseType.Apartment || HouseType == ACE.Entity.Enum.HouseType.Cottage)
-                    return this;
+                //if (HouseType == ACE.Entity.Enum.HouseType.Apartment || HouseType == ACE.Entity.Enum.HouseType.Cottage)
+                    //return this;
 
                 var landblock = (ushort)((RootGuid.Full >> 12) & 0xFFFF);
 
