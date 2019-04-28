@@ -201,14 +201,8 @@ namespace ACE.Server.WorldObjects
         }
         public void IncProperty(PropertyFloat property, double value)
         {
-            if (ephemeralPropertyFloats.ContainsKey(property))
-                ephemeralPropertyFloats[property] += value;
-            else
-            {
-                Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyFloats, out var biotaChanged);
-                if (biotaChanged)
-                    ChangesDetected = true;
-            }
+            var prop = GetProperty(property) ?? 0;
+            SetProperty(property, prop + value);
         }
         public void SetProperty(PropertyInstanceId property, uint value)
         {
@@ -234,14 +228,8 @@ namespace ACE.Server.WorldObjects
         }
         public void IncProperty(PropertyInt property, int value)
         {
-            if (ephemeralPropertyInts.ContainsKey(property))
-                ephemeralPropertyInts[property] += value;
-            else
-            {
-                Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInts, out var biotaChanged);
-                if (biotaChanged)
-                    ChangesDetected = true;
-            }
+            var prop = GetProperty(property) ?? 0;
+            SetProperty(property, prop + value);
         }
         public void SetProperty(PropertyInt64 property, long value)
         {
