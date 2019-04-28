@@ -332,26 +332,11 @@ namespace ACE.Factories
             new int[] { 37223, 37222, 37225, 37221, 37220, 37224, 37219, 43383 }  // Staff: Slashing, Piercing, Blunt, Frost, Fire, Acid, Electric, Nether
         };
 
-        public static readonly int[] ThrownWeaponDamageTable = { 7, 10, 13, 16, 18, 21, 24, 27, 28 };
-
         public static readonly float[][] MissileDamageMod =
         {
             new float[] { 2.1f, 2.20f, 2.3f, 2.4f, 2.4f, 2.4f, 2.4f, 2.4f, 2.4f }, // Bow
             new float[] { 2.4f, 2.5f, 2.55f, 2.65f, 2.65f, 2.65f, 2.65f, 2.65f, 2.65f }, // Crossbow
             new float[] { 2.3f, 2.4f, 2.5f, 2.6f, 2.6f, 2.6f, 2.6f, 2.6f, 2.6f }  // Thrown
-        };
-
-        public static readonly int[] NonElementalThrownWeaponMatrix = { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 251, 254 }; // Table settings
-
-        public static readonly int[][] ElementalThrownWeaponsMatrix =
-        {
-            new int[] { 5552, 5548, 5549, 5550, 5551 }, // Throwing Axe
-            new int[] { 5557, 5553, 5554, 5555, 5556 }, // Throwing Club
-            new int[] { 5562, 5558, 5559, 5560, 5561 }, // Throwing Dagger
-            new int[] { 5567, 5563, 5564, 5565, 5566 }, // Throwing Dart
-            new int[] { 5572, 5568, 5569, 5570, 5571 }, // Djarid
-            new int[] { 5577, 5573, 5574, 5575, 5576 }, // Javelin
-            new int[] { 5582, 5578, 5579, 5580, 5581 } // Shouken
         };
 
         public static readonly int[][] NonElementalMissileWeaponsMatrix =
