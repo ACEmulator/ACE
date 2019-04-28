@@ -65,9 +65,9 @@ namespace ACE.Server.Network.Structure
         public uint GetDamage(WorldObject weapon, WorldObject wielder)
         {
             var baseDamage = weapon.GetProperty(PropertyInt.Damage) ?? 0;
-            var damageMod = weapon.EnchantmentManager.GetDamageMod();
-            var auraDamageMod = wielder != null ? wielder.EnchantmentManager.GetDamageMod() : 0;
-            Enchantment_Damage = weapon.IsEnchantable ? damageMod + auraDamageMod : damageMod;
+            var damageBonus = weapon.EnchantmentManager.GetDamageBonus();
+            var auraDamageBonus = wielder != null ? wielder.EnchantmentManager.GetDamageBonus() : 0;
+            Enchantment_Damage = weapon.IsEnchantable ? damageBonus + auraDamageBonus : damageBonus;
             return (uint)Math.Max(0, baseDamage + Enchantment_Damage);
         }
 
@@ -102,9 +102,9 @@ namespace ACE.Server.Network.Structure
         public float GetDamageMultiplier(WorldObject weapon, WorldObject wielder)
         {
             var baseMultiplier = weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f;
-            var multiplierMod = weapon.EnchantmentManager.GetDamageModifier();
-            var auraMultiplierMod = wielder != null ? wielder.EnchantmentManager.GetDamageModifier() : 1.0f;
-            Enchantment_DamageMod = weapon.IsEnchantable ? multiplierMod * auraMultiplierMod : multiplierMod;
+            var damageMod = weapon.EnchantmentManager.GetDamageMod();
+            var auraDamageMod = wielder != null ? wielder.EnchantmentManager.GetDamageMod() : 1.0f;
+            Enchantment_DamageMod = weapon.IsEnchantable ? damageMod * auraDamageMod : damageMod;
             return (float)(baseMultiplier * Enchantment_DamageMod);
         }
 

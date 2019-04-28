@@ -11,7 +11,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
-using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -253,7 +252,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns base damage range for next monster attack
         /// </summary>
-        public Range GetBaseDamage(BiotaPropertiesBodyPart attackPart)
+        public BaseDamageMod GetBaseDamage(BiotaPropertiesBodyPart attackPart)
         {
             if (CurrentAttack == CombatType.Missile && GetMissileAmmo() != null)
                 return GetMissileDamage();
@@ -269,129 +268,9 @@ namespace ACE.Server.WorldObjects
 
             var maxDamage = attackPart.DVal;
             var variance = attackPart.DVar;
-            var minDamage = maxDamage - maxDamage * variance;
 
-            var baseDamage = new Range(minDamage, maxDamage);
-            //Console.WriteLine($"{Name} using base damage: {baseDamage}");
-            return baseDamage;
-        }
-
-        /// <summary>
-        /// Returns the chance for creature to avoid monster attack
-        /// </summary>
-        public float GetEvadeChance()
-        {
-            // get monster attack skill
-            var target = AttackTarget as Creature;
-            var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
-            var offenseMod = GetWeaponOffenseModifier(this);
-            attackSkill = (uint)Math.Round(attackSkill * offenseMod);
-
-            //if (IsExhausted)
-                //attackSkill = GetExhaustedSkill(attackSkill);
-
-            // get creature defense skill
-            var defenseSkill = CurrentAttack == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(AttackTarget as Creature) : 1.0f;
-            var difficulty = (uint)Math.Round(target.GetCreatureSkill(defenseSkill).Current * defenseMod);
-
-            if (target.IsExhausted) difficulty = 0;
-
-            /*var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentAttackSkill()).Current})" : "";
-            Console.WriteLine("Attack skill: " + attackSkill + baseStr);
-
-            baseStr = defenseMod != 1.0f ? $" (base: {player.GetCreatureSkill(defenseSkill).Current})" : "";
-            Console.WriteLine("Defense skill: " + difficulty + baseStr);*/
-
-            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
-            return (float)evadeChance;
-        }
-
-        /// <summary>
-        /// Calculates the creature damage for a physical monster attack
-        /// </summary>
-        /// <param name="bodyPart">The creature body part the monster is targeting</param>
-        /// <param name="criticalHit">Is TRUE if monster rolls a critical hit</param>
-        public float? CalculateDamage(ref DamageType damageType, CombatManeuver maneuver, BodyPart bodyPart, ref bool criticalHit, ref float shieldMod)
-        {
-            // check lifestone protection
-            var player = AttackTarget as Player;
-            if (player != null && player.UnderLifestoneProtection)
-            {
-                player.HandleLifestoneProtection();
-                return null;
-            }
-
-            // evasion chance
-            var evadeChance = GetEvadeChance();
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < evadeChance)
-                return null;
-
-            // get base damage
-            var attackPart = GetAttackPart(maneuver);
-            if (attackPart == null)
-                return 0.0f;
-
-            damageType = GetDamageType(attackPart);
-            var damageRange = GetBaseDamage(attackPart);
-            var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
-
-            var damageRatingMod = GetPositiveRatingMod(GetDamageRating());
-            //Console.WriteLine("Damage Rating: " + damageRatingMod);
-
-            var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
-            var target = AttackTarget as Creature;
-            var targetPet = AttackTarget as CombatPet;
-
-            // handle pet damage type
-            var pet = this as CombatPet;
-            if (pet != null)
-                damageType = pet.DamageType;
-
-            // monster weapon / attributes
-            var weapon = GetEquippedWeapon();
-
-            // critical hit
-            var critical = 0.1f;
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
-            {
-                if (player != null && player.AugmentationCriticalDefense > 0)
-                {
-                    var protChance = player.AugmentationCriticalDefense * 0.25f;
-                    if (ThreadSafeRandom.Next(0.0f, 1.0f) > protChance)
-                        criticalHit = true;
-                }
-                else
-                    criticalHit = true;
-            }
-
-            // attribute damage modifier (verify)
-            var attributeMod = GetAttributeMod(weapon);
-
-            // get armor piece
-            var armorLayers = GetArmorLayers(bodyPart);
-
-            // get armor modifiers
-            var armorMod = GetArmorMod(damageType, armorLayers, weapon);
-
-            // get resistance modifiers (protect/vuln)
-            var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
-
-            var attackTarget = AttackTarget as Creature;
-            var damageResistRatingMod = GetNegativeRatingMod(attackTarget.GetDamageResistRating());
-
-            // get shield modifier
-            shieldMod = attackTarget.GetShieldMod(this, damageType);
-
-            // scale damage by modifiers
-            var damage = baseDamage * damageRatingMod * attributeMod * armorMod * shieldMod * resistanceMod * damageResistRatingMod;
-
-            if (!criticalHit)
-                damage *= recklessnessMod;
-            else
-                damage *= 2;    // fixme: target recklessness mod still in effect?
-
-            return damage;
+            var baseDamage = new BaseDamage(maxDamage, variance);
+            return new BaseDamageMod(baseDamage);
         }
 
         /// <summary>

@@ -60,14 +60,12 @@ namespace ACE.Server.Entity
 
         public bool Evaded;
 
-        public Range BaseDamageRange;
-        public float BaseDamage;
+        public BaseDamageMod BaseDamageMod;
+        public float BaseDamage { get; set; }
 
         public float AttributeMod;
         public float PowerMod;
         public float SlayerMod;
-
-        public float ElementalDamageBonus;
 
         public float DamageRatingBaseMod;
         public float RecklessnessMod;
@@ -174,9 +172,6 @@ namespace ACE.Server.Entity
             AttributeMod = attacker.GetAttributeMod(Weapon);
             SlayerMod = WorldObject.GetWeaponCreatureSlayerModifier(attacker, defender);
 
-            // additive?
-            ElementalDamageBonus = WorldObject.GetMissileElementalDamageModifier(attacker, defender, DamageType);
-
             // ratings
             DamageRatingBaseMod = Creature.GetPositiveRatingMod(attacker.GetDamageRating());
             RecklessnessMod = Creature.GetRecklessnessMod(attacker, defender);
@@ -186,7 +181,7 @@ namespace ACE.Server.Entity
             DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, RecklessnessMod, SneakAttackMod, HeritageMod);
 
             // damage before mitigation
-            DamageBeforeMitigation = BaseDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod + ElementalDamageBonus;   // additives on the end?
+            DamageBeforeMitigation = BaseDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod;
 
             // critical hit?
             var attackSkill = attacker.GetCreatureSkill(attacker.GetCurrentWeaponSkill());
@@ -212,7 +207,7 @@ namespace ACE.Server.Entity
                     // recklessness excluded from crits
                     RecklessnessMod = 1.0f;
                     DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, SneakAttackMod, HeritageMod);
-                    DamageBeforeMitigation = BaseDamageRange.Max * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod + ElementalDamageBonus;
+                    DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod;
                 }
             }
 
@@ -293,10 +288,6 @@ namespace ACE.Server.Entity
         /// </summary>
         public void GetBaseDamage(Player attacker, CombatManeuver maneuver)
         {
-            // TODO: combat maneuvers for player?
-            BaseDamageRange = attacker.GetBaseDamage();
-            BaseDamage = ThreadSafeRandom.Next(BaseDamageRange.Min, BaseDamageRange.Max);
-
             if (DamageSource.ItemType == ItemType.MissileWeapon)
             {
                 DamageType = (DamageType)DamageSource.GetProperty(PropertyInt.DamageType);
@@ -313,6 +304,14 @@ namespace ACE.Server.Entity
             }
             else
                 DamageType = attacker.GetDamageType();
+
+            // TODO: combat maneuvers for player?
+            BaseDamageMod = attacker.GetBaseDamageMod();
+
+            if (DamageSource.ItemType == ItemType.MissileWeapon)
+                BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageModifier(attacker, DamageType);
+
+            BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
         }
 
         /// <summary>
@@ -327,8 +326,8 @@ namespace ACE.Server.Entity
                 return;
             }
 
-            BaseDamageRange = attacker.GetBaseDamage(AttackPart);
-            BaseDamage = ThreadSafeRandom.Next(BaseDamageRange.Min, BaseDamageRange.Max);
+            BaseDamageMod = attacker.GetBaseDamage(AttackPart);
+            BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
             DamageType = attacker.GetDamageType(AttackPart);
 
@@ -395,14 +394,14 @@ namespace ACE.Server.Entity
             }
 
             // base damage
-            Console.WriteLine($"BaseDamageRange: {BaseDamageRange}");
+            Console.WriteLine($"BaseDamageRange: {BaseDamageMod.Range}");
             Console.WriteLine($"BaseDamage: {BaseDamage}");
 
             // damage modifiers
             Console.WriteLine($"AttributeMod: {AttributeMod}");
             Console.WriteLine($"PowerMod: {PowerMod}");
             Console.WriteLine($"SlayerMod: {SlayerMod}");
-            Console.WriteLine($"ElementalDamageBonus: {ElementalDamageBonus}");
+            Console.WriteLine($"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}");
 
             // damage ratings
             if (!(Defender is Player))

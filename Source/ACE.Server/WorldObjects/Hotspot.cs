@@ -109,7 +109,7 @@ namespace ACE.Server.WorldObjects
             get
             {
                 var r = GetBaseDamage();
-                var p = ThreadSafeRandom.Next(r.Min, r.Max);
+                var p = ThreadSafeRandom.Next(r.MinDamage, r.MaxDamage);
                 return p;
             }
         }
