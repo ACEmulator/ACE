@@ -202,6 +202,7 @@ namespace ACE.Server.WorldObjects
                 rareGenerated = wo;
                 killerName = killer.Name.TrimStart('+');
                 CorpseGeneratedRare = true;
+                LongDesc += " This corpse generated a rare item!";
             }
             else
                 log.Error($"[RARE] failed to add to corpse inventory");

@@ -1203,7 +1203,7 @@ namespace ACE.Server.Managers
                 enchantment.StartTime -= heartbeatInterval.Value;
 
                 // StartTime ticks backwards to -Duration
-                if (enchantment.Duration > 0 && enchantment.StartTime <= -enchantment.Duration)
+                if (enchantment.Duration >= 0 && enchantment.StartTime <= -enchantment.Duration)
                     expired.Add(enchantment);
             }
 
