@@ -109,6 +109,9 @@ namespace ACE.Server.WorldObjects
 
                 healer.SendUseDoneEvent();
             });
+
+            healer.EnqueueMotion(actionChain, MotionCommand.Ready);
+
             actionChain.EnqueueChain();
         }
 
