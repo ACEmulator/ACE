@@ -2348,6 +2348,37 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+        [CommandHandler("verify-xp", AccessLevel.Admin, CommandHandlerFlag.None, 0, "fixes skill ranks from spec temple", "")]
+        public static void HandleVerifySkill(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllOffline();
+
+            foreach (var player in players)
+            {
+                var updated = false;
+
+                foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                {
+                    var rank = skill.LevelFromPP;
+
+                    var sac = (SkillAdvancementClass)skill.SAC;
+                    if (sac < SkillAdvancementClass.Trained)
+                        continue;
+
+                    var correctRank = Player.CalcSkillRank(sac, skill.PP);
+
+                    if (rank != correctRank)
+                    {
+                        Console.WriteLine($"{player.Name}'s {(Skill)skill.Type} rank is {rank}, should be {correctRank}");
+                        skill.LevelFromPP = (ushort)correctRank;
+                        updated = true;
+                    }
+                }
+                if (updated)
+                    player.SaveBiotaToDatabase();
+            }
+        }
+
         [CommandHandler("getenchantments", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Shows the enchantments for the last appraised item", "")]
         public static void HandleGetEnchantments(Session session, params string[] parameters)
         {

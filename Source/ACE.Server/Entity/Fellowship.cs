@@ -179,14 +179,11 @@ namespace ACE.Server.Entity
                         member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
 
                         if (member.Guid.Full == FellowshipLeaderGuid)
-                        {
                             member.Session.Network.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", ChatMessageType.Fellowship));
-                        }
                         else
-                        {
                             member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", ChatMessageType.Fellowship));
-                            member.Fellowship = null;
-                        }
+
+                        member.Fellowship = null;
                     }
                 }
                 else

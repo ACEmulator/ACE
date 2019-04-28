@@ -325,15 +325,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public bool IsMeleeDistance(WorldObject target)
-        {
-            // always use spheres?
-            var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
-                target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
-
-            return cylDist <= 0.6f;
-        }
-
         public bool IsStickyDistance(WorldObject target)
         {
             var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
