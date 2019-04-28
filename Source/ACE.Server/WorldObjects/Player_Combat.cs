@@ -35,6 +35,7 @@ namespace ACE.Server.WorldObjects
         };
 
         public DebugDamageType DebugDamage;
+        public ObjectGuid DebugDamageTarget;
 
         /// <summary>
         /// Returns the current attack skill for the player
