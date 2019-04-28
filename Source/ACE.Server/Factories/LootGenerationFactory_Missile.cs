@@ -23,38 +23,14 @@ namespace ACE.Server.Factories
             int wieldDifficulty = GetWield(tier, 1);
 
             if (tier < 4)
-            {
-                if (!isMagical)
-                    chance = ThreadSafeRandom.Next(0, 1);
-                else
-                    chance = 1;
-                switch (chance)
-                {
-                    case 0:
-                        weaponWeenie = GetNonElementalThrownWeapon();
-                        break;
-                    default:
-                        weaponWeenie = GetNonElementalMissileWeapon();
-                        break;
-                }
-            }
+                weaponWeenie = GetNonElementalMissileWeapon();
             else
             {
-                if (!isMagical)
-                    chance = ThreadSafeRandom.Next(0, 3);
-                else
-                    chance = ThreadSafeRandom.Next(1, 3);
+                chance = ThreadSafeRandom.Next(0, 1);
                 switch (chance)
                 {
                     case 0:
-                        weaponWeenie = GetNonElementalThrownWeapon();
-                        break;
-                    case 1:
                         weaponWeenie = GetNonElementalMissileWeapon();
-                        break;
-                    case 2:
-                        elemenatalBonus = GetElementalBonus(wieldDifficulty);
-                        weaponWeenie = GetElementalThrownWeapon();
                         break;
                     default:
                         elemenatalBonus = GetElementalBonus(wieldDifficulty);
@@ -68,18 +44,6 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-            if (wo.WeenieType == WeenieType.Missile && wo.ItemType == ItemType.MissileWeapon)
-            {
-                if (wo.GetProperty(PropertyInt.WeaponSkill) == (int)Skill.ThrownWeapon)
-                    wo.SetProperty(PropertyInt.WeaponSkill, (int)Skill.MissileWeapons);
-
-                if (wo.GetProperty(PropertyInt.WeaponType) != (int)WeaponType.Thrown)
-                    wo.SetProperty(PropertyInt.WeaponType, (int)WeaponType.Thrown);
-
-                var damage = LootTables.ThrownWeaponDamageTable[GetMissileWieldToIndex(wieldDifficulty)];
-                wo.SetProperty(PropertyInt.Damage, damage);
-            }
-
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
             int materialType = GetMaterialType(wo, tier);
@@ -89,43 +53,32 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
-            if (wo.WeenieType == WeenieType.Generic && wo.ItemType == ItemType.MissileWeapon)
-            {
-                if (wo.GetProperty(PropertyInt.WeaponSkill) == (int)Skill.ThrownWeapon)
-                    wo.SetProperty(PropertyInt.WeaponSkill, (int)Skill.MissileWeapons);
+            double meleeDMod = GetMeleeDMod(tier);
+            if (meleeDMod > 0.0f)
+                wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
 
-                if (wo.GetProperty(PropertyInt.WeaponType) != (int)WeaponType.Thrown)
-                    wo.SetProperty(PropertyInt.WeaponType, (int)WeaponType.Thrown);
+            double missileDMod = GetMissileDMod(tier);
+            if (missileDMod > 0.0f)
+                wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDMod);
+
+            // wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicDefense);
+
+            wo.SetProperty(PropertyFloat.DamageMod, GetMissileDamageMod(wieldDifficulty, wo.GetProperty(PropertyInt.WeaponType)));
+
+            if (elemenatalBonus > 0)
+                wo.SetProperty(PropertyInt.ElementalDamageBonus, elemenatalBonus);
+
+            if (wieldDifficulty > 0)
+            {
+                wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.MissileWeapons);
             }
             else
             {
-                double meleeDMod = GetMeleeDMod(tier);
-                if (meleeDMod > 0.0f)
-                    wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
-
-                double missileDMod = GetMissileDMod(tier);
-                if (missileDMod > 0.0f)
-                    wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDMod);
-
-                // wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicDefense);
-
-                wo.SetProperty(PropertyFloat.DamageMod, GetMissileDamageMod(wieldDifficulty, wo.GetProperty(PropertyInt.WeaponType)));
-
-                if (elemenatalBonus > 0)
-                    wo.SetProperty(PropertyInt.ElementalDamageBonus, elemenatalBonus);
-
-                if (wieldDifficulty > 0)
-                {
-                    wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
-                    wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
-                    wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.MissileWeapons);
-                }
-                else
-                {
-                    wo.RemoveProperty(PropertyInt.WieldDifficulty);
-                    wo.RemoveProperty(PropertyInt.WieldRequirements);
-                    wo.RemoveProperty(PropertyInt.WieldSkillType);
-                }
+                wo.RemoveProperty(PropertyInt.WieldDifficulty);
+                wo.RemoveProperty(PropertyInt.WieldRequirements);
+                wo.RemoveProperty(PropertyInt.WieldSkillType);
             }
 
             if (isMagical)
@@ -389,17 +342,6 @@ namespace ACE.Server.Factories
             return eleMod;
         }
 
-        private static int GetElementalThrownWeapon()
-        {
-            // Determine missile weapon type: 0 - Axe, 1 - Club, 2 - Dagger, 3 - Dart, 4 - Djarid, 5 - Javelin, 6 - Shouken
-            int missileType = ThreadSafeRandom.Next(0, 6);
-
-            // Determine element type: 0 - Standard, 1 - Acid, 2 - Fire, 3 - Frost, 4 - Electric
-            int element = ThreadSafeRandom.Next(0, 4);
-
-            return LootTables.ElementalThrownWeaponsMatrix[missileType][element];
-        }
-
         private static int GetElementalMissileWeapon()
         {
             // Determine missile weapon type: 0 - Bow, 1 - Crossbows, 2 - Atlatl, 3 - Slingshot, 4 - Compound Bow, 5 - Compound Crossbow
@@ -409,13 +351,6 @@ namespace ACE.Server.Factories
             int element = ThreadSafeRandom.Next(0, 6);
 
             return LootTables.ElementalMissileWeaponsMatrix[missileType][element];
-        }
-
-        private static int GetNonElementalThrownWeapon()
-        {
-            var missileType = ThreadSafeRandom.Next(0, LootTables.NonElementalThrownWeaponMatrix.Length - 1);
-
-            return LootTables.NonElementalThrownWeaponMatrix[missileType];
         }
 
         private static int GetNonElementalMissileWeapon()

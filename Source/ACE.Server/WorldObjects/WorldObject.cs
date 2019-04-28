@@ -808,55 +808,26 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the base damage for a weapon
         /// </summary>
-        public virtual Range GetBaseDamage()
+        public virtual BaseDamage GetBaseDamage()
         {
             var maxDamage = GetProperty(PropertyInt.Damage) ?? 0;
             var variance = GetProperty(PropertyFloat.DamageVariance) ?? 0;
-            var minDamage = maxDamage * (1.0f - variance);
-            return new Range((float)minDamage, (float)maxDamage);
+
+            return new BaseDamage(maxDamage, (float)variance);
         }
 
         /// <summary>
         /// Returns the modified damage for a weapon,
         /// with the wielder enchantments taken into account
         /// </summary>
-        public Range GetDamageMod(Creature wielder)
+        public BaseDamageMod GetDamageMod(Creature wielder)
         {
             var baseDamage = GetBaseDamage();
             var weapon = wielder.GetEquippedWeapon();
 
-            var damageMod = 0.0f;
-            var varianceMod = 1.0f;
+            var baseDamageMod = new BaseDamageMod(baseDamage, wielder, weapon);
 
-            if (weapon != null)
-            {
-                damageMod += weapon.EnchantmentManager.GetDamageMod();
-                varianceMod *= weapon.EnchantmentManager.GetVarianceMod();
-
-                if (weapon.IsEnchantable)
-                {
-                    // factor in wielder auras for enchantable weapons
-                    damageMod += wielder.EnchantmentManager.GetDamageMod();
-                    varianceMod *= wielder.EnchantmentManager.GetVarianceMod();
-                }
-            }
-
-            var baseVariance = 1.0f - (baseDamage.Min / baseDamage.Max);
-
-            var damageBonus = 1.0f;
-            if (weapon != null)
-            {
-                damageBonus = (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) * weapon.EnchantmentManager.GetDamageModifier();
-
-                if (weapon.IsEnchantable)
-                    damageBonus *= wielder.EnchantmentManager.GetDamageModifier();
-            }
-
-            // additives first, then multipliers?
-            var maxDamageMod = (baseDamage.Max + damageMod) * damageBonus;
-            var minDamageMod = maxDamageMod * (1.0f - baseVariance * varianceMod);
-
-            return new Range(minDamageMod, maxDamageMod);
+            return baseDamageMod;
         }
 
         /// <summary>
