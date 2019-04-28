@@ -8,6 +8,7 @@
 * Update Storage permission error message.
 * Update Healer messags and support Stamina/Mana kits.
 * Update Enchantment Heartbeat to expire 0 duration spells.
+* Swap out Dread Ursuin for Marae Ursuin in PetDevice
 
 ### 2019-04-25
 [Ripley]
