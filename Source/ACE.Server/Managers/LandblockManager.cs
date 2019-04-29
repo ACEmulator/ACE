@@ -80,7 +80,7 @@ namespace ACE.Server.Managers
                         switch (preloadLandblock.Description)
                         {
                             case "Apartment Landblocks":
-                                log.InfoFormat("Preloading {0}, IncludeAdjacents = {1}, Permaload = {2}", preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
+                                log.InfoFormat("Preloading landblock group: {0}, IncludeAdjacents = {1}, Permaload = {2}", preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
                                 foreach (var apt in apartmentLandblocks)
                                     PreloadLandblock(apt, preloadLandblock);
                                 break;
