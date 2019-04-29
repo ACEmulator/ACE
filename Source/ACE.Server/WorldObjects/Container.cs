@@ -58,6 +58,12 @@ namespace ACE.Server.WorldObjects
             var creature = this as Creature;
             if (creature == null)
                 GenerateContainList();
+
+            if (!ContainerCapacity.HasValue)
+                ContainerCapacity = 0;
+
+            if (!UseRadius.HasValue)
+                UseRadius = 0.5f;
         }
 
 
