@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-29
+[Ripley]
+* Add support for preloading landblock groups (Apartment Landblocks)
+
 ### 2019-04-28
 [Ripley]
 * Fix issue with attuned items being places in packs, packs placed in other containers.
