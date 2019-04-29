@@ -60,6 +60,19 @@ namespace ACE.Server.Factories
                 return wo;
             }
 
+            if (tier == 7)
+            {
+                // According to wiki, Tier 7 has a chance for level 8 spell components or level 7 spell scrolls
+                // No indication of weighting in either direction, so assuming a 50/50 split
+                int chance = ThreadSafeRandom.Next(1, 100);
+                if (chance > 50)
+                {
+                    int id = CreateLevel8SpellComp();
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
+                }
+            }
+
             if (tier < 1) tier = 1;
 
             int scrollLootMatrixIndex = tier - 1;
