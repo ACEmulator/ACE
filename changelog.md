@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-04-28
+[Ripley]
+* Fix issue with attuned items being places in packs, packs placed in other containers.
+
 ### 2019-04-26
 [Ripley]
 * Add check for RecallsDisabled to command recalls.
