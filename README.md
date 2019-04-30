@@ -26,7 +26,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 
 * Install Visual Studio 2017
   - [Visual Studio minimum required version - VS Community 2017 15.7.0](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15)
-  - [.NET Core 2.1 x64 SDK Required](https://www.microsoft.com/net/download/visual-studio-sdks)
+  - [.NET Core 2.2 x64 SDK (Visual Studio 2017) Required](https://www.microsoft.com/net/download/visual-studio-sdks)
   - If using Visual Studio Community Edition, make sure the following two workloads are installed: .NET Core cross-platform development and .NET Desktop Development
 * Install MySQL or MariaDB
   - [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
@@ -44,7 +44,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
   - Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
 * Copy `ACE.Server\Config.js.example` to `Config.js` and modify settings, such as passwords and other server settings.
 * Open ACE.sln with Visual Studio and build the solution.
-* Download and install [Microsoft .NET Core Runtime - 2.1](https://www.microsoft.com/net/download) if you don't already have it.
+* Download and install [Microsoft .NET Core Runtime - 2.2](https://www.microsoft.com/net/download) if you don't already have it.
 * Start the server by running the batch file located in the netcoreapp2.1 output directory: `start_server.bat`
 * Create your first account as an admin at the ACE prompt - `accountcreate testaccount testpassword 5`
 * Launch ACClient directly with this command: `acclient.exe -a testaccount -v testpassword -h 127.0.0.1:9000`
