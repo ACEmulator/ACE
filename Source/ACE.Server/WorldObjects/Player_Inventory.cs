@@ -648,6 +648,18 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
+                if (itemAsContainer != null)
+                {
+                    foreach (var obj in itemAsContainer.Inventory.Values)
+                    {
+                        if ((obj.Attuned ?? 0) >= 1)
+                        {
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
+                            return;
+                        }
+                    }
+                }
+
                 WorldObject moveToTarget;
                 if (itemRootOwner == this)
                     moveToTarget = containerRootOwner ?? container; // Movement is from player

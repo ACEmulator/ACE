@@ -432,13 +432,13 @@ namespace ACE.Factories
 
         public static readonly int[][] ScrollLootMatrix =
         {
-            // Spell tier equals # value + 1
+            // Spell level equals # value in array + 1
             new int[] { 0, 2 },
-            new int[] { 2, 3 },
-            new int[] { 3, 4 },
-            new int[] { 4, 5 },
-            new int[] { 5, 5 },
+            new int[] { 2, 4 },
+            new int[] { 3, 5 },
+            new int[] { 4, 6 },
             new int[] { 5, 6 },
+            new int[] { 6, 6 },
             new int[] { 6, 6 }
         };
 

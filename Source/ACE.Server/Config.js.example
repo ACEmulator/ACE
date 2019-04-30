@@ -54,6 +54,13 @@
             "Permaload": true,
             "IncludeAdjacents": false,
             "Enabled": false
+        },
+        {
+            "Id": "00000000",
+            "Description": "Apartment Landblocks",
+            "Permaload": true,
+            "IncludeAdjacents": false,
+            "Enabled": false
         }
     ]
   },
