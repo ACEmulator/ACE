@@ -12,6 +12,7 @@ using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Factories;
+using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -165,16 +166,23 @@ namespace ACE.Server.WorldObjects
 
         public override void EnterWorld()
         {
+            var actionChain = new ActionChain();
+
             base.EnterWorld();
 
-            if (Location != null)
+            actionChain.AddDelaySeconds(.5);
+            actionChain.AddAction(this, () =>
             {
-                if (CorpseGeneratedRare)
+                if (Location != null)
                 {
-                    EnqueueBroadcast(new GameMessageSystemChat($"{killerName} has discovered the {rareGenerated.Name}!", ChatMessageType.System));
-                    ApplySoundEffects(Sound.TriggerActivated, 10);
+                    if (CorpseGeneratedRare)
+                    {
+                        EnqueueBroadcast(new GameMessageSystemChat($"{killerName} has discovered the {rareGenerated.Name}!", ChatMessageType.System));
+                        ApplySoundEffects(Sound.TriggerActivated, 10);
+                    }
                 }
-            }
+            });
+            actionChain.EnqueueChain();
         }
 
         private WorldObject rareGenerated;
@@ -190,6 +198,9 @@ namespace ACE.Server.WorldObjects
             var wo = LootGenerationFactory.CreateRare();
             if (wo == null)
                 return;
+
+            if (!wo.IconUnderlayId.HasValue || wo.IconUnderlayId.Value != 0x6005B0C) // ensure icon underlay exists for rare (loot profiles use this)
+                wo.IconUnderlayId = 0x6005B0C;
 
             var tier = LootGenerationFactory.GetRareTier(wo.WeenieClassId);
             LootGenerationFactory.RareChances.TryGetValue(tier, out var chance);
