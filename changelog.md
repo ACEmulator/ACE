@@ -2,7 +2,7 @@
 
 ### 2019-05-01
 [Ripley]
-* Change RecipeManager.GetTargetMod to fix dye (and other) mods.
+* Change RecipeManager.ModifyX to fix dye (and other) mods.
 
 ### 2019-04-30
 [Theran]

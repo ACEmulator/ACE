@@ -1125,10 +1125,10 @@ namespace ACE.Server.Managers
                     targetMod.IncProperty(prop, value);
                     break;
                 case ModifyOp.CopyTarget:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModifyOp.CopyCreate:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyFloat({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1148,7 +1148,7 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModifyOp.SetValue:
-                    target.SetProperty(prop, value);
+                    targetMod.SetProperty(prop, value);
                     break;
                 case ModifyOp.CopyTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
@@ -1177,7 +1177,7 @@ namespace ACE.Server.Managers
                     targetMod.SetProperty(prop, value);
                     break;
                 case ModifyOp.CopyTarget:
-                    targetMod.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
+                    target.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
                     break;
                 case ModifyOp.CopyCreate:
                     result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));     // ??
@@ -1217,10 +1217,10 @@ namespace ACE.Server.Managers
                     targetMod.SetProperty(prop, value);
                     break;
                 case ModifyOp.CopyTarget:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModifyOp.CopyCreate:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
