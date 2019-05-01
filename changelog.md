@@ -1,7 +1,7 @@
 # ACEmulator Change Log
 
 ### 2019-05-01
-[Ripley]
+[Ripley, Theran]
 * Change RecipeManager.ModifyX to fix dye (and other) mods.
 
 ### 2019-04-30
