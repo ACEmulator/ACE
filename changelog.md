@@ -4,6 +4,11 @@
 [Ripley, Theran]
 * Change RecipeManager.ModifyX to fix dye (and other) mods.
 
+[Ripley]
+* Adjust rare generation code to apply expected icon underlay if wrong or missing.
+* Adjust corpse world entry to issue rare alert text/sound after corpse is spawned and not before.
+* Remove all properties from corpse assessment except those seen in pcaps.
+
 ### 2019-04-30
 [Theran]
 * Update Tusker Guard loot tier profile to T4, up from T3, to match wiki
