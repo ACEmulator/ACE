@@ -62,6 +62,9 @@ namespace ACE.Server.WorldObjects
 
                     Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, Guid, tradePartner.Guid));
 
+                    // was this sent by retail?
+                    Session.Network.EnqueueSend(new GameEventResetTrade(Session, Guid));
+
                     tradePartner.HandleActionOpenTradeNegotiations(Guid.Full, false);
                 });
             }
@@ -72,7 +75,10 @@ namespace ACE.Server.WorldObjects
 
                 ItemsInTradeWindow.Clear();
 
-                Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, Guid, tradePartner.Guid));
+                Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, tradePartner.Guid, tradePartner.Guid));
+
+                // was this sent by retail?
+                Session.Network.EnqueueSend(new GameEventResetTrade(Session, tradePartner.Guid));
             }
         }
 
