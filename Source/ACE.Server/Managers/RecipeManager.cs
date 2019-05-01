@@ -659,27 +659,6 @@ namespace ACE.Server.Managers
             4.5f    // 10
         };
 
-        public enum RequirementType
-        {
-            Target = 0,
-            Source = 1,
-            Player = 2
-        };
-
-        // todo: verify
-        public enum CompareType
-        {
-            GreaterThan,        // 0
-            LessThanEqual,      // 1
-            LessThan,           // 2
-            GreaterThanEqual,   // 3
-            NotEqual,           // 4
-            NotEqualNotExist,   // 5
-            Equal,              // 6
-            NotExist,           // 7
-            Exist               // 8
-        };
-
         public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject source, WorldObject target)
         {
             if (!VerifyRequirements(recipe, player, target, RequirementType.Target)) return false;
