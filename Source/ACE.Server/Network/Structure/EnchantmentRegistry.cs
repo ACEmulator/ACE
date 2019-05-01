@@ -1,10 +1,12 @@
-using ACE.Common.Extensions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
@@ -12,77 +14,66 @@ namespace ACE.Server.Network.Structure
     public class EnchantmentRegistry
     {
         public EnchantmentMask EnchantmentMask;
-        public List<Enchantment> Multipliers;
-        public List<Enchantment> Additives;
-        public List<Enchantment> Cooldowns;
-        public Enchantment Vitae;
+        public Dictionary<EnchantmentMask, List<Enchantment>> Enchantments;
 
         public EnchantmentRegistry(Player player)
         {
             var enchantments = player.Biota.GetEnchantments(player.BiotaDatabaseLock);
 
-            var multipliers = GetEntries(enchantments, EnchantmentMask.Multiplier);
-            var additives = GetEntries(enchantments, EnchantmentMask.Additive);
-            var cooldowns = GetEntries(enchantments, EnchantmentMask.Cooldown);
-            var vitae = GetEntries(enchantments, EnchantmentMask.Vitae);
+            Enchantments = BuildCategories(player, enchantments);
 
-            Multipliers = BuildList(multipliers, player);
-            Additives = BuildList(additives, player);
-            Cooldowns = BuildList(cooldowns, player);
-            Vitae = BuildList(vitae, player).FirstOrDefault();
+            var vitae = Enchantments[EnchantmentMask.Vitae].FirstOrDefault();
 
-            if (Vitae != null && (Vitae.StatModValue.EpsilonEquals(1.0f) || Vitae.StatModValue > 1.0f))
+            if (vitae != null && (vitae.StatModValue.EpsilonEquals(1.0f) || vitae.StatModValue > 1.0f))
             {
-                player.EnchantmentManager.Dispel(vitae.First());
-                Vitae = null;
-            }
+                player.EnchantmentManager.Dispel(enchantments.FirstOrDefault(e => e.SpellId == (int)SpellId.Vitae));
 
+                Enchantments[EnchantmentMask.Vitae].Clear();
+            }
             SetEnchantMask();
         }
 
-        private static IEnumerable<BiotaPropertiesEnchantmentRegistry> GetEntries(ICollection<BiotaPropertiesEnchantmentRegistry> registry, EnchantmentMask enchantmentMask)
+        private static Dictionary<EnchantmentMask, List<Enchantment>> BuildCategories(Player player, ICollection<BiotaPropertiesEnchantmentRegistry> registry)
         {
-            // TODO: improve this code, giving each Enchantment an EnchantmentMask,
-            // classifying Vitae / Cooldown first, and then Multiplier / Additive
-            switch (enchantmentMask)
-            {
-                case EnchantmentMask.Multiplier:
-                    return registry.Where(e => (e.StatModType & (int)EnchantmentTypeFlags.Multiplicative) != 0 && e.SpellId != (int)SpellId.Vitae && e.SpellId <= 0x8000);
+            var categories = new Dictionary<EnchantmentMask, List<Enchantment>>();
 
-                case EnchantmentMask.Additive:
-                default:
-                    return registry.Where(e => (e.StatModType & (int)EnchantmentTypeFlags.Additive) != 0 && e.SpellId != (int)SpellId.Vitae && e.SpellId <= 0x8000);
-
-                case EnchantmentMask.Vitae:
-                    return registry.Where(e => e.SpellId == (int)SpellId.Vitae);
-
-                case EnchantmentMask.Cooldown:
-                    return registry.Where(e => e.SpellId > 0x8000);
-            }
-        }
-
-        private static List<Enchantment> BuildList(IEnumerable<BiotaPropertiesEnchantmentRegistry> registry, Player player)
-        {
-            var enchantments = new List<Enchantment>();
+            categories.Add(EnchantmentMask.Multiplicative, new List<Enchantment>());
+            categories.Add(EnchantmentMask.Additive, new List<Enchantment>());
+            categories.Add(EnchantmentMask.Vitae, new List<Enchantment>());
+            categories.Add(EnchantmentMask.Cooldown, new List<Enchantment>());
 
             foreach (var entry in registry)
-                enchantments.Add(new Enchantment(player, entry));
+            {
+                var enchantment = new Enchantment(player, entry);
 
-            return enchantments;
+                if (enchantment.SpellID == (int)SpellId.Vitae)
+                {
+                    categories[EnchantmentMask.Vitae].Add(enchantment);
+                }
+                else if (enchantment.SpellID > EnchantmentManager.SpellCategory_Cooldown)
+                {
+                    categories[EnchantmentMask.Cooldown].Add(enchantment);
+                }
+                else if ((enchantment.StatModType & EnchantmentTypeFlags.Multiplicative) != 0)
+                {
+                    categories[EnchantmentMask.Multiplicative].Add(enchantment);
+                }
+                else
+                {
+                    if ((enchantment.StatModType & EnchantmentTypeFlags.Additive) == 0)
+                        Console.WriteLine($"EnchantmentRegistry.BuildCategories(): unknown enchantment {enchantment.SpellID} StatModType {enchantment.StatModType}");
+
+                    categories[EnchantmentMask.Additive].Add(enchantment);
+                }
+            }
+            return categories;
         }
 
         private void SetEnchantMask()
         {
             EnchantmentMask = 0;
-
-            if (Multipliers != null && Multipliers.Count > 0)
-                EnchantmentMask |= EnchantmentMask.Multiplier;
-            if (Additives != null && Additives.Count > 0)
-                EnchantmentMask |= EnchantmentMask.Additive;
-            if (Cooldowns != null && Cooldowns.Count > 0)
-                EnchantmentMask |= EnchantmentMask.Cooldown;
-            if (Vitae != null)
-                EnchantmentMask |= EnchantmentMask.Vitae;
+            foreach (var kvp in Enchantments.Where(e => e.Value.Count > 0))
+                EnchantmentMask |= kvp.Key;
         }
     }
 
@@ -93,14 +84,14 @@ namespace ACE.Server.Network.Structure
             var enchantmentMask = registry.EnchantmentMask;
 
             writer.Write((uint)enchantmentMask);
-            if (enchantmentMask.HasFlag(EnchantmentMask.Multiplier))
-                writer.Write(registry.Multipliers);
+            if (enchantmentMask.HasFlag(EnchantmentMask.Multiplicative))
+                writer.Write(registry.Enchantments[EnchantmentMask.Multiplicative]);
             if (enchantmentMask.HasFlag(EnchantmentMask.Additive))
-                writer.Write(registry.Additives);
+                writer.Write(registry.Enchantments[EnchantmentMask.Additive]);
             if (enchantmentMask.HasFlag(EnchantmentMask.Cooldown))
-                writer.Write(registry.Cooldowns);
+                writer.Write(registry.Enchantments[EnchantmentMask.Cooldown]);
             if (enchantmentMask.HasFlag(EnchantmentMask.Vitae))
-                writer.Write(registry.Vitae);
+                writer.Write(registry.Enchantments[EnchantmentMask.Vitae].FirstOrDefault());
         }
     }
 }
