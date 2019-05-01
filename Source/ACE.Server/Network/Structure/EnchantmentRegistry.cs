@@ -12,8 +12,8 @@ namespace ACE.Server.Network.Structure
     public class EnchantmentRegistry
     {
         public EnchantmentMask EnchantmentMask;
-        public List<Enchantment> LifeSpells;
-        public List<Enchantment> CreatureSpells;
+        public List<Enchantment> Multipliers;
+        public List<Enchantment> Additives;
         public List<Enchantment> Cooldowns;
         public Enchantment Vitae;
 
@@ -21,13 +21,13 @@ namespace ACE.Server.Network.Structure
         {
             var enchantments = player.Biota.GetEnchantments(player.BiotaDatabaseLock);
 
-            var lifeSpells = GetEntries(enchantments, EnchantmentMask.LifeSpells);
-            var creatureSpells = GetEntries(enchantments, EnchantmentMask.CreatureSpells);
+            var multipliers = GetEntries(enchantments, EnchantmentMask.Multiplier);
+            var additives = GetEntries(enchantments, EnchantmentMask.Additive);
             var cooldowns = GetEntries(enchantments, EnchantmentMask.Cooldown);
             var vitae = GetEntries(enchantments, EnchantmentMask.Vitae);
 
-            LifeSpells = BuildList(lifeSpells, player);
-            CreatureSpells = BuildList(creatureSpells, player);
+            Multipliers = BuildList(multipliers, player);
+            Additives = BuildList(additives, player);
             Cooldowns = BuildList(cooldowns, player);
             Vitae = BuildList(vitae, player).FirstOrDefault();
 
@@ -42,7 +42,23 @@ namespace ACE.Server.Network.Structure
 
         private static IEnumerable<BiotaPropertiesEnchantmentRegistry> GetEntries(ICollection<BiotaPropertiesEnchantmentRegistry> registry, EnchantmentMask enchantmentMask)
         {
-            return registry.Where(e => ((EnchantmentMask)e.EnchantmentCategory).HasFlag(enchantmentMask));
+            // TODO: improve this code, giving each Enchantment an EnchantmentMask,
+            // classifying Vitae / Cooldown first, and then Multiplier / Additive
+            switch (enchantmentMask)
+            {
+                case EnchantmentMask.Multiplier:
+                    return registry.Where(e => (e.StatModType & (int)EnchantmentTypeFlags.Multiplicative) != 0 && e.SpellId != (int)SpellId.Vitae && e.SpellId <= 0x8000);
+
+                case EnchantmentMask.Additive:
+                default:
+                    return registry.Where(e => (e.StatModType & (int)EnchantmentTypeFlags.Additive) != 0 && e.SpellId != (int)SpellId.Vitae && e.SpellId <= 0x8000);
+
+                case EnchantmentMask.Vitae:
+                    return registry.Where(e => e.SpellId == (int)SpellId.Vitae);
+
+                case EnchantmentMask.Cooldown:
+                    return registry.Where(e => e.SpellId > 0x8000);
+            }
         }
 
         private static List<Enchantment> BuildList(IEnumerable<BiotaPropertiesEnchantmentRegistry> registry, Player player)
@@ -59,10 +75,10 @@ namespace ACE.Server.Network.Structure
         {
             EnchantmentMask = 0;
 
-            if (LifeSpells != null && LifeSpells.Count > 0)
-                EnchantmentMask |= EnchantmentMask.LifeSpells;
-            if (CreatureSpells != null && CreatureSpells.Count > 0)
-                EnchantmentMask |= EnchantmentMask.CreatureSpells;
+            if (Multipliers != null && Multipliers.Count > 0)
+                EnchantmentMask |= EnchantmentMask.Multiplier;
+            if (Additives != null && Additives.Count > 0)
+                EnchantmentMask |= EnchantmentMask.Additive;
             if (Cooldowns != null && Cooldowns.Count > 0)
                 EnchantmentMask |= EnchantmentMask.Cooldown;
             if (Vitae != null)
@@ -77,10 +93,10 @@ namespace ACE.Server.Network.Structure
             var enchantmentMask = registry.EnchantmentMask;
 
             writer.Write((uint)enchantmentMask);
-            if (enchantmentMask.HasFlag(EnchantmentMask.LifeSpells))
-                writer.Write(registry.LifeSpells);
-            if (enchantmentMask.HasFlag(EnchantmentMask.CreatureSpells))
-                writer.Write(registry.CreatureSpells);
+            if (enchantmentMask.HasFlag(EnchantmentMask.Multiplier))
+                writer.Write(registry.Multipliers);
+            if (enchantmentMask.HasFlag(EnchantmentMask.Additive))
+                writer.Write(registry.Additives);
             if (enchantmentMask.HasFlag(EnchantmentMask.Cooldown))
                 writer.Write(registry.Cooldowns);
             if (enchantmentMask.HasFlag(EnchantmentMask.Vitae))
