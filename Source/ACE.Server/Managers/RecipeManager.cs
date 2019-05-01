@@ -1007,10 +1007,10 @@ namespace ACE.Server.Managers
             {
                 case ModificationType.SuccessSource:
                 case ModificationType.FailureSource:
-                    return source;
+                    return target;
 
                 default:
-                    return target;
+                    return source;
 
                 case ModificationType.SuccessPlayer:
                 case ModificationType.FailurePlayer:
