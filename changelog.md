@@ -3,6 +3,7 @@
 ### 2019-04-30
 [Theran]
 * Update Tusker Guard loot tier profile to T4, up from T3, to match wiki
+* Add ability to apply Ivory salvage to Attuned items
 
 ### 2019-04-29
 [Ripley]
