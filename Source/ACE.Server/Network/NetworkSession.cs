@@ -6,14 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+
 using ACE.Common.Cryptography;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
-using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
-using ACE.Server.Network.Packets;
+
 using log4net;
 
 namespace ACE.Server.Network
@@ -104,6 +104,9 @@ namespace ACE.Server.Network
         /// <param name="messages">One or more GameMessages to send</param>
         public void EnqueueSend(params GameMessage[] messages)
         {
+            if (isReleased) // Session has been removed
+                return;
+
             messages.GroupBy(k => k.Group).ToList().ForEach(k =>
             {
                 var grp = k.First().Group;
@@ -129,6 +132,9 @@ namespace ACE.Server.Network
         /// <param name="packets"></param>
         public void EnqueueSend(params ServerPacket[] packets)
         {
+            if (isReleased) // Session has been removed
+                return;
+
             foreach (var packet in packets)
             {
                 packetLog.DebugFormat("[{0}] Enqueuing Packet {1}", session.LoggingIdentifier, packet.GetHashCode());
@@ -141,6 +147,9 @@ namespace ACE.Server.Network
         /// </summary>
         public void Update()
         {
+            if (isReleased) // Session has been removed
+                return;
+
             for (int i = 0; i < currentBundles.Length; i++)
             {
                 NetworkBundle bundleToSend = null;
@@ -209,6 +218,9 @@ namespace ACE.Server.Network
         /// <param name="packet">The ClientPacket to process.</param>
         public void ProcessPacket(ClientPacket packet)
         {
+            if (isReleased) // Session has been removed
+                return;
+
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
             NetworkStatistics.C2S_Packets_Aggregate_Increment();
 
@@ -751,6 +763,29 @@ namespace ACE.Server.Network
                 packet.BodyWriter.Write(bundle.ClientTime);
                 packet.BodyWriter.Write((float)ConnectionData.ServerTime - bundle.ClientTime);
             }
+        }
+
+
+        private bool isReleased;
+
+        /// <summary>
+        /// This will empty out arrays, collections and dictionaries, and mark the object as released.
+        /// Any further work assigned to this object will be ignored.
+        /// </summary>
+        public void ReleaseResources()
+        {
+            isReleased = true;
+
+            for (int i = 0; i < currentBundles.Length; i++)
+                currentBundles[i] = null;
+
+            outOfOrderPackets.Clear();
+            partialFragments.Clear();
+            outOfOrderFragments.Clear();
+
+            cachedPackets.Clear();
+
+            packetQueue.Clear();
         }
     }
 }
