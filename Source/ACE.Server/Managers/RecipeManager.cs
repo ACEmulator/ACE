@@ -1007,10 +1007,10 @@ namespace ACE.Server.Managers
             {
                 case ModificationType.SuccessSource:
                 case ModificationType.FailureSource:
-                    return target;
+                    return source;
 
                 default:
-                    return source;
+                    return target;
 
                 case ModificationType.SuccessPlayer:
                 case ModificationType.FailurePlayer:
@@ -1088,7 +1088,7 @@ namespace ACE.Server.Managers
                     targetMod.IncProperty(prop, value);
                     break;
                 case ModifyOp.CopyTarget:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModifyOp.CopyCreate:
                     result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);     // ??
