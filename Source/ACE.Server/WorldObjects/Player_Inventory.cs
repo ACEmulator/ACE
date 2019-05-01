@@ -1149,6 +1149,10 @@ namespace ACE.Server.WorldObjects
             if (!PropertyManager.GetBool("use_wield_requirements").Item)
                 return WeenieError.None;
 
+            var allowedWielder = item.GetProperty(PropertyInstanceId.AllowedWielder);
+            if (allowedWielder != null && (allowedWielder != Guid.Full))
+                return WeenieError.YouDoNotOwnThatItem; // Unsure of the exact message
+
             var skillOrAttribute = item.WieldSkillType ?? 0;
             var difficulty = (uint)(item.WieldDifficulty ?? 0);
 

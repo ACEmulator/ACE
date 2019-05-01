@@ -1977,5 +1977,21 @@ namespace ACE.Server.Command.Handlers
             if (iou != null)
                 session.Player.TryCreateInInventoryWithNetworking(iou);
         }
+
+        [CommandHandler("testdeathitems", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Test death item selection", "")]
+        public static void HandleTestDeathItems(Session session, params string[] parameters)
+        {
+            var inventory = session.Player.GetAllPossessions();
+            var sorted = new DeathItems(inventory);
+
+            var i = 0;
+            foreach (var item in sorted.Inventory)
+            {
+                if ((item.WorldObject.Bonded ?? 0) != 0)
+                    continue;
+
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{++i}. {item.Name} ({item.Category}, AdjustedValue: {item.AdjustedValue})", ChatMessageType.Broadcast));
+            }
+        }
     }
 }

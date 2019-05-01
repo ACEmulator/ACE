@@ -175,6 +175,9 @@ namespace ACE.Server.Managers
 
         public static void HandleTinkering(Player player, WorldObject tool, WorldObject target, bool confirmed = false)
         {
+            double successChance;
+            bool incItemTinkered = true;
+
             Console.WriteLine($"{player.Name}.HandleTinkering({tool.Name}, {target.Name})");
 
             // calculate % success chance
@@ -196,71 +199,81 @@ namespace ACE.Server.Managers
             var recipeSkill = (Skill)recipe.Skill;
             var skill = player.GetCreatureSkill(recipeSkill);
 
-            // tinkering skill must be trained
-            if (skill.AdvancementClass < SkillAdvancementClass.Trained)
+            // Tinkering skill not required to apply Ivory or Leather
+            if (materialType != MaterialType.Ivory && materialType != MaterialType.Leather)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are not trained in {skill.Skill.ToSentence()}.", ChatMessageType.Broadcast));
-                player.SendUseDoneEvent();
-                return;
+                // tinkering skill must be trained
+                if (skill.AdvancementClass < SkillAdvancementClass.Trained)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are not trained in {skill.Skill.ToSentence()}.", ChatMessageType.Broadcast));
+                    player.SendUseDoneEvent();
+                    return;
+                }
+
+                // thanks to Endy's Tinkering Calculator for this formula!
+                var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
+
+                successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
+
+                // imbue: divide success by 3
+                if (recipe.SalvageType == 2)
+                {
+                    successChance /= 3.0f;
+
+                    if (player.AugmentationBonusImbueChance > 0)
+                        successChance += player.AugmentationBonusImbueChance * 0.05f;
+                }
+
+                // handle rare foolproof material
+                if (tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106)
+                    successChance = 1.0f;
+
+                // check for player option: 'Use Crafting Chance of Success Dialog'
+                if (player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) && !confirmed)
+                {
+                    var percent = (float)successChance * 100;
+                    var decimalPlaces = 2;
+                    var truncated = percent.Truncate(decimalPlaces);
+
+                    var templateMsg = $"You have a % chance of using {tool.Name} on {target.Name}.";
+                    var floorMsg = templateMsg.Replace("%", (int)percent + "%");
+                    var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
+                    var exactMsg = templateMsg.Replace("%", percent + "%");
+
+                    var confirm = new Confirmation(ConfirmationType.CraftInteraction, floorMsg, tool, target, player);
+                    ConfirmationManager.AddConfirmation(confirm);
+
+                    player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.CraftInteraction, confirm.ConfirmationID, floorMsg));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
+
+                    player.SendUseDoneEvent();
+                    return;
+                }
             }
-
-            // thanks to Endy's Tinkering Calculator for this formula!
-            var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
-
-            var successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
-
-            // imbue: divide success by 3
-            if (recipe.SalvageType == 2)
+            else
             {
-                successChance /= 3.0f;
-
-                if (player.AugmentationBonusImbueChance > 0)
-                    successChance += player.AugmentationBonusImbueChance * 0.05f;
-            }
-
-            // handle rare foolproof material
-            if (tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106)
+                // Applying Ivory and Leather is always successful and doesn't consume one of the ten tinking slots
                 successChance = 1.0f;
-
-            // check for player option: 'Use Crafting Chance of Success Dialog'
-            if (player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) && !confirmed)
-            {
-                var percent = (float)successChance * 100;
-                var decimalPlaces = 2;
-                var truncated = percent.Truncate(decimalPlaces);
-
-                var templateMsg = $"You have a % chance of using {tool.Name} on {target.Name}.";
-                var floorMsg = templateMsg.Replace("%", (int)percent + "%");
-                var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
-                var exactMsg = templateMsg.Replace("%", percent + "%");
-
-                var confirm = new Confirmation(ConfirmationType.CraftInteraction, floorMsg, tool, target, player);
-                ConfirmationManager.AddConfirmation(confirm);
-
-                player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.CraftInteraction, confirm.ConfirmationID, floorMsg));
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
-
-                player.SendUseDoneEvent();
-                return;
+                incItemTinkered = false;
             }
 
             var animLength = DoMotion(player, MotionCommand.ClapHands);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(player, () => DoTinkering(player, tool, target, (float)successChance));
+            actionChain.AddAction(player, () => DoTinkering(player, tool, target, (float)successChance, incItemTinkered));
             actionChain.AddAction(player, () => DoMotion(player, MotionCommand.Ready));
             actionChain.EnqueueChain();
         }
 
-        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance)
+        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance, bool incItemTinkered)
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
             var materialName = GetMaterialName(tool.MaterialType ?? 0);
 
             if (success)
             {
-                Tinkering_ModifyItem(player, tool, target);
+                Tinkering_ModifyItem(player, tool, target, incItemTinkered);
 
                 // send local broadcast
                 player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
@@ -271,11 +284,13 @@ namespace ACE.Server.Managers
             var recipe = GetRecipe(player, tool, target);
             CreateDestroyItems(player, recipe, tool, target, success);
 
-            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog))
+            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog)
+                    || (tool.MaterialType ?? 0) == MaterialType.Ivory
+                    || (tool.MaterialType ?? 0) == MaterialType.Leather)
                 player.SendUseDoneEvent();
         }
 
-        public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target)
+        public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target, bool incItemTinkered = true)
         {
             var recipe = GetRecipe(player, tool, target);
 
@@ -330,6 +345,7 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Ivory:
                     target.SetProperty(PropertyInt.Attuned, 0);
+                    target.SetProperty(PropertyBool.AppraisalHasAllowedWielder, true);
                     break;
                 case MaterialType.Leather:
                     target.SetProperty(PropertyBool.Retained, true);
@@ -486,8 +502,10 @@ namespace ACE.Server.Managers
                     Console.WriteLine($"Unknown material type: {materialType}");
                     return;
             }
-            // increase # of times tinkered
-            target.NumTimesTinkered++;
+
+            // increase # of times tinkered, if appropriate
+            if (incItemTinkered)
+                target.NumTimesTinkered++;
         }
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
@@ -1000,7 +1018,7 @@ namespace ACE.Server.Managers
 
                 case ModificationType.SuccessResult:
                 case ModificationType.FailureResult:
-                    return result;
+                    return result ?? target;
             }
         }
 
@@ -1159,15 +1177,29 @@ namespace ACE.Server.Managers
                     targetMod.SetProperty(prop, value);
                     break;
                 case ModifyOp.CopyTarget:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    targetMod.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
                     break;
                 case ModifyOp.CopyCreate:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);     // ??
+                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));     // ??
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInstanceID({source.Name}, {target.Name}): unhandled operation {op}");
                     break;
             }
+        }
+
+        private static uint ModifyInstanceIDRuleSet(PropertyInstanceId property, WorldObject sourceMod, WorldObject targetMod)
+        {
+            switch (property)
+            {
+                case PropertyInstanceId.AllowedWielder:
+                case PropertyInstanceId.AllowedActivator:
+                    return sourceMod.Guid.Full;
+                default:
+                    break;
+            }
+
+            return sourceMod.GetProperty(property) ?? 0;
         }
 
         public static void ModifyDataID(Player player, RecipeModsDID didMod, WorldObject source, WorldObject target, WorldObject result)
