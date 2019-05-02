@@ -42,11 +42,15 @@ namespace ACE.Server.WorldObjects
             CurrentCorpseInfos.TryRemove(corpse.Guid, out _);
         }
 
-        public static string GetCorpseDebugInfo()
+        public static string GetCorpseDebugInfo(DateTime getCorpsesBeforeThisTime)
         {
             var sb = new StringBuilder();
             foreach (var ci in CurrentCorpseInfos)
-                sb.Append($"0x{ci.Key.Full:X8} " + ci.Value.Created.ToString().PadRight(22) + $" - {ci.Value.CreatureName} : {ci.Value.KillerName}" + '\n');
+            {
+                if (ci.Value.Created <= getCorpsesBeforeThisTime)
+                    sb.Append($"0x{ci.Key.Full:X8} " + ci.Value.Created.ToString().PadRight(22) + $" - {ci.Value.CreatureName} : {ci.Value.KillerName}" + '\n');
+            }
+
             return sb.ToString();
         }
 

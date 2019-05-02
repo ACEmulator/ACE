@@ -2117,9 +2117,14 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("corpsedebuginfo", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Corpse debug info")]
         public static void HandleCorpseDebugInfo(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, "Number of Corpses: " + Corpse.CurrentCorpseInfos.Count() + ". Full list logged to debug");
+            var tenMinOldCorpseDebugInfo = Corpse.GetCorpseDebugInfo(DateTime.UtcNow - TimeSpan.FromMinutes(10));
 
-            log.Debug(Corpse.GetCorpseDebugInfo());
+            if (tenMinOldCorpseDebugInfo.Length > 1000)
+                tenMinOldCorpseDebugInfo = tenMinOldCorpseDebugInfo.Substring(0, 1000);
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Total Number of Corpses: {Corpse.CurrentCorpseInfos.Count}. Corpses older than 10 minutes: {'\n'}{tenMinOldCorpseDebugInfo}{'\n'}... Full list logged to debug");
+
+            log.Debug(Corpse.GetCorpseDebugInfo(DateTime.MaxValue));
         }
 
         // serverstatus
