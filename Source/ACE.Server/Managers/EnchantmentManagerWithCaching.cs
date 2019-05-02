@@ -13,7 +13,7 @@ namespace ACE.Server.Managers
 {
     public class EnchantmentManagerWithCaching : EnchantmentManager
     {
-        private bool? hasEnchantments;
+        //private bool? hasEnchantments;
 
         //public override bool HasEnchantments
         //{
@@ -116,7 +116,7 @@ namespace ACE.Server.Managers
 
         private void ClearCache()
         {
-            hasEnchantments = null;
+            //hasEnchantments = null;
 
             attributeModCache.Clear();
             vitalModAdditiveCache.Clear();
