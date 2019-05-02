@@ -12,7 +12,6 @@
 * Always Allow ID for Pets.
 * Added StartCooldown to EnchantmentManagerWithCaching.
 
-
 ### 2019-05-01
 [Ripley, Theran]
 * Change RecipeManager.ModifyX to fix dye (and other) mods.
