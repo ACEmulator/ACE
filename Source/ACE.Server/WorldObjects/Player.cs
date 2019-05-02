@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
                 //    character.IsAdvocate= true;
             }
 
-            ContainerCapacity = 7;
+            ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
 
             if (Session != null && AdvocateQuest && IsAdvocate) // Advocate permissions are per character regardless of override
             {
