@@ -276,10 +276,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the creature armor for a body part
         /// </summary>
-        public List<WorldObject> GetArmorLayers(BodyPart bodyPart)
+        public List<WorldObject> GetArmorLayers(Player target, BodyPart bodyPart)
         {
-            var target = AttackTarget as Creature;
-
             //Console.WriteLine("BodyPart: " + bodyPart);
             //Console.WriteLine("===");
 
