@@ -171,6 +171,8 @@ namespace ACE.Server.WorldObjects
             var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
             var prefix = "Corpse";
 
+            Corpse.RegisterDeath(this, corpse, killer);
+
             if (TreasureCorpse)
             {
                 // Hardcoded values from PCAPs of Treasure Pile Corpses, everything else lines up exactly with existing corpse weenie

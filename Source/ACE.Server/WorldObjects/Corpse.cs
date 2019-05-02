@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
-
+using System.Text;
 using log4net;
 
 using ACE.Database.Models.Shard;
@@ -18,6 +19,38 @@ namespace ACE.Server.WorldObjects
 {
     public partial class Corpse : Container
     {
+        public class CorpseInfo
+        {
+            public DateTime Created = DateTime.UtcNow;
+            public string CreatureName;
+            public string KillerName;
+        }
+
+        public static readonly ConcurrentDictionary<ObjectGuid, CorpseInfo> CurrentCorpseInfos = new ConcurrentDictionary<ObjectGuid, CorpseInfo>();
+
+        public static void RegisterDeath(Creature creature, Corpse corpse, WorldObject killer)
+        {
+            var corpseInfo = new CorpseInfo();
+            if (creature != null) corpseInfo.CreatureName = creature.Name;
+            if (killer != null) corpseInfo.KillerName = killer.Name;
+
+            CurrentCorpseInfos[corpse.Guid] = corpseInfo;
+        }
+
+        public static void RegisterDestroy(Corpse corpse)
+        {
+            CurrentCorpseInfos.TryRemove(corpse.Guid, out _);
+        }
+
+        public static string GetCorpseDebugInfo()
+        {
+            var sb = new StringBuilder();
+            foreach (var ci in CurrentCorpseInfos)
+                sb.Append($"0x{ci.Key.Full:X8} " + ci.Value.Created.ToString().PadRight(22) + $" - {ci.Value.CreatureName} : {ci.Value.KillerName}" + '\n');
+            return sb.ToString();
+        }
+
+
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>

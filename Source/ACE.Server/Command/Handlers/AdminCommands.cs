@@ -2114,6 +2114,12 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
         }
 
+        [CommandHandler("corpsedebuginfo", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Corpse debug info")]
+        public static void HandleCorpseDebugInfo(Session session, params string[] parameters)
+        {
+            CommandHandlerHelper.WriteOutputInfo(session, "Corpse Debug Info:" + '\n' + Corpse.GetCorpseDebugInfo());
+        }
+
         // serverstatus
         [CommandHandler("serverperformance", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server performance statistics")]
         public static void HandleServerPerformance(Session session, params string[] parameters)

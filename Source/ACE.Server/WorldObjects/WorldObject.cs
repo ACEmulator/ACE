@@ -891,6 +891,9 @@ namespace ACE.Server.WorldObjects
 
             isDestroyed = true;
 
+            if (this is Corpse corpse)
+                Corpse.RegisterDestroy(corpse);
+
             if (this is Container container)
             {
                 foreach (var item in container.Inventory.Values)
