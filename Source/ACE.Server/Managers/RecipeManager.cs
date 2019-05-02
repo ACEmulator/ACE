@@ -659,27 +659,6 @@ namespace ACE.Server.Managers
             4.5f    // 10
         };
 
-        public enum RequirementType
-        {
-            Target = 0,
-            Source = 1,
-            Player = 2
-        };
-
-        // todo: verify
-        public enum CompareType
-        {
-            GreaterThan,        // 0
-            LessThanEqual,      // 1
-            LessThan,           // 2
-            GreaterThanEqual,   // 3
-            NotEqual,           // 4
-            NotEqualNotExist,   // 5
-            Equal,              // 6
-            NotExist,           // 7
-            Exist               // 8
-        };
-
         public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject source, WorldObject target)
         {
             if (!VerifyRequirements(recipe, player, target, RequirementType.Target)) return false;
@@ -957,44 +936,13 @@ namespace ACE.Server.Managers
             }
         }
 
-        public enum ModifyOp
-        {
-            None,       // 0
-            SetValue,   // 1
-            Add,        // 2
-            CopyTarget, // 3
-            CopyCreate, // 4
-            Unknown1,   // 5
-            Unknown2,   // 6
-            AddSpell    // 7
-        }
-
-        public enum SourceType
-        {
-            Player = 0,
-            Source = 1,
-            Dye = 60
-        };
-
-        public enum ModificationType
-        {
-            SuccessTarget = 0,
-            SuccessSource = 1,
-            SuccessPlayer = 2,
-            SuccessResult = 3,
-            FailureTarget = 4,
-            FailureSource = 5,
-            FailurePlayer = 6,
-            FailureResult = 7
-        };
-
-        public static WorldObject GetSourceMod(SourceType sourceType, Player player, WorldObject source)
+        public static WorldObject GetSourceMod(RecipeSourceType sourceType, Player player, WorldObject source)
         {
             switch (sourceType)
             {
-                case SourceType.Player:
+                case RecipeSourceType.Player:
                     return player;
-                case SourceType.Source:
+                case RecipeSourceType.Source:
                     return source;
             }
             log.Warn($"RecipeManager.GetSourceMod({sourceType}, {player.Name}, {source.Name}) - unknown source type");
@@ -1055,14 +1003,14 @@ namespace ACE.Server.Managers
 
         public static void ModifyBool(Player player, RecipeModsBool boolMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)boolMod.Enum;
+            var op = (ModificationOperation)boolMod.Enum;
             var prop = (PropertyBool)boolMod.Stat;
             var value = boolMod.Value;
 
             var targetMod = GetTargetMod((ModificationType)boolMod.Index, source, target, player, result);
 
             // always SetValue?
-            if (op != ModifyOp.SetValue)
+            if (op != ModificationOperation.SetValue)
             {
                 log.Warn($"RecipeManager.ModifyBool({source.Name}, {target.Name}): unhandled operation {op}");
                 return;
@@ -1072,28 +1020,28 @@ namespace ACE.Server.Managers
 
         public static void ModifyInt(Player player, RecipeModsInt intMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)intMod.Enum;
+            var op = (ModificationOperation)intMod.Enum;
             var prop = (PropertyInt)intMod.Stat;
             var value = intMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)intMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)intMod.Source, player, source);
             var targetMod = GetTargetMod((ModificationType)intMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
+                case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.Add:
+                case ModificationOperation.Add:
                     targetMod.IncProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                case ModificationOperation.CopyFromSourceToTarget:
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
-                case ModifyOp.CopyCreate:
+                case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);     // ??
                     break;
-                case ModifyOp.AddSpell:
+                case ModificationOperation.AddSpell:
                     if (value != -1)
                     {
                         targetMod.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, target.BiotaPropertySpells, out var added);
@@ -1109,26 +1057,26 @@ namespace ACE.Server.Managers
 
         public static void ModifyFloat(Player player, RecipeModsFloat floatMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)floatMod.Enum;
+            var op = (ModificationOperation)floatMod.Enum;
             var prop = (PropertyFloat)floatMod.Stat;
             var value = floatMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)floatMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)floatMod.Source, player, source);
             var targetMod = GetTargetMod((ModificationType)floatMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
+                case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.Add:
+                case ModificationOperation.Add:
                     targetMod.IncProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                case ModificationOperation.CopyFromSourceToTarget:
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
-                case ModifyOp.CopyCreate:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                case ModificationOperation.CopyFromSourceToResult:
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyFloat({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1138,22 +1086,22 @@ namespace ACE.Server.Managers
 
         public static void ModifyString(Player player, RecipeModsString stringMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)stringMod.Enum;
+            var op = (ModificationOperation)stringMod.Enum;
             var prop = (PropertyString)stringMod.Stat;
             var value = stringMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)stringMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)stringMod.Source, player, source);
             var targetMod = GetTargetMod((ModificationType)stringMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
-                    target.SetProperty(prop, value);
+                case ModificationOperation.SetValue:
+                    targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
+                case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
                     break;
-                case ModifyOp.CopyCreate:
+                case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
                     break;
                 default:
@@ -1164,22 +1112,22 @@ namespace ACE.Server.Managers
 
         public static void ModifyInstanceID(Player player, RecipeModsIID iidMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)iidMod.Enum;
+            var op = (ModificationOperation)iidMod.Enum;
             var prop = (PropertyInstanceId)iidMod.Stat;
             var value = iidMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)iidMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)iidMod.Source, player, source);
             var targetMod = GetTargetMod((ModificationType)iidMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
+                case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
-                    targetMod.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
+                case ModificationOperation.CopyFromSourceToTarget:
+                    target.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
                     break;
-                case ModifyOp.CopyCreate:
+                case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));     // ??
                     break;
                 default:
@@ -1204,23 +1152,23 @@ namespace ACE.Server.Managers
 
         public static void ModifyDataID(Player player, RecipeModsDID didMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)didMod.Enum;
+            var op = (ModificationOperation)didMod.Enum;
             var prop = (PropertyDataId)didMod.Stat;
             var value = didMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)didMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)didMod.Source, player, source);
             var targetMod = GetTargetMod((ModificationType)didMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
+                case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                case ModificationOperation.CopyFromSourceToTarget:
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
-                case ModifyOp.CopyCreate:
-                    targetMod.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                case ModificationOperation.CopyFromSourceToResult:
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");

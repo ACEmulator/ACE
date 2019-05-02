@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2019-05-01
+[Ripley, Theran]
+* Change RecipeManager.ModifyX to fix dye (and other) mods.
+
 [Ripley]
 * Adjust rare generation code to apply expected icon underlay if wrong or missing.
 * Adjust corpse world entry to issue rare alert text/sound after corpse is spawned and not before.
