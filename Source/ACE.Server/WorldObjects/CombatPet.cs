@@ -43,6 +43,7 @@ namespace ACE.Server.WorldObjects
 
             Biota.BiotaPropertiesSpellBook.Clear();
             Biota.BiotaPropertiesCreateList.Clear();
+            Biota.BiotaPropertiesEmote.Clear();
             GeneratorProfiles.Clear();            
 
             DeathTreasureType = null;
