@@ -5,6 +5,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -47,7 +48,8 @@ namespace ACE.Server.WorldObjects
             SuppressGenerateEffect = true;
             NoCorpse = true;
             ExpirationTime = DateTime.UtcNow + TimeSpan.FromSeconds(45);
-            Location = player.Location.InFrontOf(5f);   // FIXME: get correct cell
+            Location = player.Location.InFrontOf(5f);
+            Location.LandblockId = new LandblockId(Location.GetCell());
             Name = player.Name + "'s " + Name;
             P_PetOwner = player;
             PetOwner = player.Guid.Full;
