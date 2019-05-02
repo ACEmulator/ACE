@@ -272,7 +272,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Adds a cooldown spell to the enchantment registry
         /// </summary>
-        public bool StartCooldown(WorldObject item)
+        public virtual bool StartCooldown(WorldObject item)
         {
             var cooldownID = item.CooldownId;
             if (cooldownID == null)

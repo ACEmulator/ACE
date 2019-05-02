@@ -13,18 +13,18 @@ namespace ACE.Server.Managers
 {
     public class EnchantmentManagerWithCaching : EnchantmentManager
     {
-        //private bool? hasEnchantments;
+        private bool? hasEnchantments;
 
-        //public override bool HasEnchantments
-        //{
-        //    get
-        //    {
-        //        if (hasEnchantments == null)
-        //            hasEnchantments = base.HasEnchantments;
+        public override bool HasEnchantments
+        {
+            get
+            {
+                if (hasEnchantments == null)
+                    hasEnchantments = base.HasEnchantments;
 
-        //        return hasEnchantments.Value;
-        //    }
-        //}
+                return hasEnchantments.Value;
+            }
+        }
 
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
@@ -116,7 +116,7 @@ namespace ACE.Server.Managers
 
         private void ClearCache()
         {
-            //hasEnchantments = null;
+            hasEnchantments = null;
 
             attributeModCache.Clear();
             vitalModAdditiveCache.Clear();
@@ -473,6 +473,16 @@ namespace ACE.Server.Managers
                 xpModCache = base.GetXPMod();
 
             return xpModCache.Value;
+        }
+
+        public override bool StartCooldown(WorldObject item)
+        {
+            var result = base.StartCooldown(item);
+
+            if (result)
+                ClearCache();
+
+            return result;
         }
     }
 }
