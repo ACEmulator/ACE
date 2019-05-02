@@ -2117,7 +2117,9 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("corpsedebuginfo", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Corpse debug info")]
         public static void HandleCorpseDebugInfo(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, "Corpse Debug Info:" + '\n' + Corpse.GetCorpseDebugInfo());
+            CommandHandlerHelper.WriteOutputInfo(session, "Number of Corpses: " + Corpse.CurrentCorpseInfos.Count() + ". Full list logged to debug");
+
+            log.Debug(Corpse.GetCorpseDebugInfo());
         }
 
         // serverstatus
