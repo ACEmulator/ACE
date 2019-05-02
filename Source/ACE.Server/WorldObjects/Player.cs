@@ -266,6 +266,10 @@ namespace ACE.Server.WorldObjects
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
             }
+
+            if (creature is Pet || creature is CombatPet)
+                success = true;
+
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
             if (!success && player != null)
