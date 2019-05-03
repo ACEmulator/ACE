@@ -1,5 +1,17 @@
 # ACEmulator Change Log
 
+### 2019-05-02
+[Ripley]
+* Changed House Warning Messages filter.
+* Set HousePortal destinations based on data from database with fallback to SlumLord.
+* Init House from World DB if not found in Shard DB.
+* Updated House SQL writer.
+* Update CombatPet to not drop loot, not spawn things.
+* Remove Spells, Emotes from CombatPets.
+* Add Pet and CombatPet to IsCreature in WorldDatabase load function.
+* Always Allow ID for Pets.
+* Added StartCooldown to EnchantmentManagerWithCaching.
+
 ### 2019-05-01
 [OptimShi]
 * Fixed GetFreeInventorySlots() counting packs and foci. 
