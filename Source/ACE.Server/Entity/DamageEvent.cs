@@ -226,8 +226,8 @@ namespace ACE.Server.Entity
                 // select random body part @ current attack height
                 GetBodyPart(AttackHeight);
 
-                // get armor pieces
-                Armor = attacker.GetArmorLayers(BodyPart);    // this uses attacker.AttackTarget
+                // get player armor pieces
+                Armor = attacker.GetArmorLayers(playerDefender, BodyPart);
 
                 // get armor modifiers
                 ArmorMod = attacker.GetArmorMod(DamageType, Armor, DamageSource, armorRendingMod);
