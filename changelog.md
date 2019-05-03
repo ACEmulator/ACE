@@ -12,7 +12,6 @@
 * Always Allow ID for Pets.
 * Added StartCooldown to EnchantmentManagerWithCaching.
 
-### 2019-05-01
 [OptimShi]
 * Fixed GetFreeInventorySlots() counting packs and foci. 
 
