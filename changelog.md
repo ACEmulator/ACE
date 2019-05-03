@@ -1,6 +1,10 @@
 # ACEmulator Change Log
 
 ### 2019-05-01
+[OptimShi]
+* Fixed GetFreeInventorySlots() counting packs and foci. 
+
+### 2019-05-01
 [Ripley, Theran]
 * Change RecipeManager.ModifyX to fix dye (and other) mods.
 
