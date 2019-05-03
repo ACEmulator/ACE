@@ -140,20 +140,19 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Counts the number of actual inventory items, ignoring Packs/Foci.
         /// </summary>
-        private int CountInventoryItems()
+        private int CountPackItems()
         {
-            var actualInventoryItems = Inventory.Values.Where(wo => !wo.UseBackpackSlot).Where(wo => wo.GetType() != typeof(Container)).ToList();
-            return actualInventoryItems.Count;
+            return Inventory.Values.Count(wo => !wo.UseBackpackSlot && !(wo is Container));
         }
 
         public int GetFreeInventorySlots(bool includeSidePacks = true)
         {
-            int freeSlots = (ItemCapacity ?? 0) - CountInventoryItems();
+            int freeSlots = (ItemCapacity ?? 0) - CountPackItems();
 
             if (includeSidePacks)
             {
                 foreach (var sidePack in Inventory.Values.OfType<Container>())
-                    freeSlots += (sidePack.ItemCapacity ?? 0) - sidePack.CountInventoryItems();
+                    freeSlots += (sidePack.ItemCapacity ?? 0) - sidePack.CountPackItems();
             }
 
             return freeSlots;
