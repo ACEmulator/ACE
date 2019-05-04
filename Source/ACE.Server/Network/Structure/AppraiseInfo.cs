@@ -41,6 +41,7 @@ namespace ACE.Server.Network.Structure
         public Dictionary<PropertyFloat, double> PropertiesFloat;
         public Dictionary<PropertyString, string> PropertiesString;
         public Dictionary<PropertyDataId, uint> PropertiesDID;
+        public Dictionary<PropertyInstanceId, uint> PropertiesIID;
 
         public List<AppraisalSpellBook> SpellBook;
 
@@ -88,6 +89,14 @@ namespace ACE.Server.Network.Structure
 
             // Help us make sure the item identify properly
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
+
+            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder))
+                if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
+                    PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
+
+            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator))
+                if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
+                    PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
 
             // armor / clothing / shield
             if (wo is Clothing || wo.IsShield)
@@ -190,6 +199,7 @@ namespace ACE.Server.Network.Structure
             PropertiesFloat = wo.GetAllPropertyFloat().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesString = wo.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesDID = wo.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
+            PropertiesIID = wo.GetAllPropertyInstanceId().Where(x => ClientProperties.PropertiesInstanceId.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
 
             if (wo is Player player)
             {
