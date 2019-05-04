@@ -247,7 +247,12 @@ namespace ACE.Server.Network.Structure
             if (wielder == null || !wo.IsEnchantable) return;
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Missile) && !(wo is Ammunition))
-                PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
+            {
+                var defenseMod = wo.EnchantmentManager.GetDefenseMod();
+                var auraDefenseMod = wo.IsEnchantable ? wielder.EnchantmentManager.GetDefenseMod() : 0.0f;
+
+                PropertiesFloat[PropertyFloat.WeaponDefense] += defenseMod + auraDefenseMod;
+            }
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.ManaConversionMod))
             {
