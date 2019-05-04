@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-05-04
+[Ripley]
+* Update object appraisal code to properly show Wield/Activation Requires lines.
+* Update RecipeManager for Ivory. Recipe in DB already handles mod application correctly.
+
 ### 2019-05-03
 [Ripley]
 * Add fix up SQL script (2019-05-03-00-Fix_Biota_Jewelry_WeenieType.sql) for existing servers to run to correct jewelry WeenieType on existing items.
