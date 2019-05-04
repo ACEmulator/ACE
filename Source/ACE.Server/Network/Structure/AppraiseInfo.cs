@@ -91,10 +91,12 @@ namespace ACE.Server.Network.Structure
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
             if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder))
-                PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
+                if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
+                    PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
 
             if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator))
-                PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
+                if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
+                    PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
 
             // armor / clothing / shield
             if (wo is Clothing || wo.IsShield)
