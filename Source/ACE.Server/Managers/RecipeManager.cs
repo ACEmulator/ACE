@@ -345,7 +345,6 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Ivory:
                     target.SetProperty(PropertyInt.Attuned, 0);
-                    target.SetProperty(PropertyBool.AppraisalHasAllowedWielder, true);
                     break;
                 case MaterialType.Leather:
                     target.SetProperty(PropertyBool.Retained, true);
