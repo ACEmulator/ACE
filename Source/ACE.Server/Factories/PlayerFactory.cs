@@ -214,11 +214,10 @@ namespace ACE.Server.Factories
             var isDualWieldTrainedOrSpecialized = player.Skills[Skill.DualWield].AdvancementClass > SkillAdvancementClass.Untrained;
 
             // Set Heritage based Melee and Ranged Masteries
-            GetMasteries(player.HeritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery, out SummoningMastery summoningMastery);
+            GetMasteries(player.HeritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery);
 
             player.SetProperty(PropertyInt.MeleeMastery, (int)meleeMastery);
             player.SetProperty(PropertyInt.RangedMastery, (int)rangedMastery);
-            player.SetProperty(PropertyInt.SummoningMastery, (int)summoningMastery);
 
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
@@ -466,11 +465,8 @@ namespace ACE.Server.Factories
         /// <param name="heritageGroup"></param>
         /// <param name="meleeMastery"></param>
         /// <param name="rangedMastery"></param>
-        /// <param name="summoningMastery"></param>
-        private static void GetMasteries(HeritageGroup heritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery, out SummoningMastery summoningMastery)
+        private static void GetMasteries(HeritageGroup heritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery)
         {
-            summoningMastery = (SummoningMastery)ThreadSafeRandom.Next(1, 3);
-
             switch (heritageGroup)
             {
                 case HeritageGroup.Aluvian:
@@ -514,7 +510,6 @@ namespace ACE.Server.Factories
                 default:
                     meleeMastery = WeaponType.Undef;
                     rangedMastery = WeaponType.Undef;
-                    summoningMastery = SummoningMastery.Undef;
                     break;
             }
     }
