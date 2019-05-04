@@ -5,6 +5,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -42,7 +43,9 @@ namespace ACE.Server.WorldObjects
             RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
             Usable = ACE.Entity.Enum.Usable.No;
 
-            Biota.BiotaPropertiesSpellBook.Clear();
+            if (!PropertyManager.GetBool("advanced_combat_pets").Item)
+                Biota.BiotaPropertiesSpellBook.Clear();
+
             Biota.BiotaPropertiesCreateList.Clear();
             Biota.BiotaPropertiesEmote.Clear();
             GeneratorProfiles.Clear();            
