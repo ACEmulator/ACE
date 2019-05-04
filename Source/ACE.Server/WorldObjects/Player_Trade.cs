@@ -7,6 +7,7 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 
@@ -120,7 +121,13 @@ namespace ACE.Server.WorldObjects
 
                         target.TrackObject(wo);
 
-                        target.Session.Network.EnqueueSend(new GameEventAddToTrade(target.Session, itemGuid, TradeSide.Partner));
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelaySeconds(0.001f);
+                        actionChain.AddAction(target, () =>
+                        {
+                            target.Session.Network.EnqueueSend(new GameEventAddToTrade(target.Session, itemGuid, TradeSide.Partner));
+                        });
+                        actionChain.EnqueueChain();
                     }
                 }
             }
