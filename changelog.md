@@ -3,6 +3,7 @@
 ### 2019-05-04
 [Ripley]
 * Update object appraisal code to properly show Wield/Activation Requires lines.
+* Update RecipeManager for Ivory. Recipe in DB already handles mod application correctly.
 
 ### 2019-05-03
 [Ripley]
