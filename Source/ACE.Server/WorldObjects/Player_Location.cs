@@ -55,7 +55,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (House == null)
+            var house = House ?? GetAccountHouse();
+
+            if (house == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
                 return;
@@ -89,7 +91,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Teleport(House.SlumLord.Location);
+                Teleport(house.SlumLord.Location);
             });
 
             actionChain.EnqueueChain();
