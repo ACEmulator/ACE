@@ -1264,14 +1264,19 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked your monarchy's access to the allegiance housing storage.", ChatMessageType.Broadcast));
         }
 
+        public static List<IPlayer> GetAccountPlayers(uint accountID)
+        {
+            return PlayerManager.GetAllPlayers().Where(i => i.Account != null && i.Account.AccountId == accountID).ToList();
+        }
+
         public House GetAccountHouse()
         {
-            if (HouseId != null)
+            if (HouseInstance != null)
                 return GetHouse();
 
-            var accountPlayers = PlayerManager.GetAllPlayers().Where(i => i.Account != null && i.Account.AccountId == Account.AccountId);
+            var accountPlayers = GetAccountPlayers(Account.AccountId);
 
-            var accountHouseOwners = accountPlayers.Where(i => i.HouseId != null);
+            var accountHouseOwners = accountPlayers.Where(i => i.HouseInstance != null);
 
             var firstHouseOwner = accountHouseOwners.OrderBy(i => i.HousePurchaseTimestamp).FirstOrDefault();
 
