@@ -838,6 +838,26 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.LumAugSkilledSpec); else SetProperty(PropertyInt.LumAugSkilledSpec, value); }
         }
 
+        // ============== Masteries ===============
+
+        public int MeleeMastery
+        {
+            get => GetProperty(PropertyInt.MeleeMastery) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.MeleeMastery); else SetProperty(PropertyInt.MeleeMastery, value); }
+        }
+
+        public int RangedMastery
+        {
+            get => GetProperty(PropertyInt.RangedMastery) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.RangedMastery); else SetProperty(PropertyInt.RangedMastery, value); }
+        }
+
+        public int SummoningMastery
+        {
+            get => GetProperty(PropertyInt.SummoningMastery) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.SummoningMastery); else SetProperty(PropertyInt.SummoningMastery, value); }
+        }
+
         // ============ Enlightenment =============
 
         public int Enlightenment
