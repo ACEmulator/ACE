@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-05-06
+[Ripley]
+* Add support to ACE.Adapter to convert ACE weenies to LSD weenies.
+
 ### 2019-05-04
 [Ripley]
 * Update object appraisal code to properly show Wield/Activation Requires lines.
