@@ -48,6 +48,10 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
                 var i = housePortals[0];
+
+                if (i.ObjCellId == Location.Cell && housePortals.Count > 1)
+                    i = housePortals[1];
+
                 var destination = new Position(i.ObjCellId, new Vector3(i.OriginX, i.OriginY, i.OriginZ), new Quaternion(i.AnglesX, i.AnglesY, i.AnglesZ, i.AnglesW));
 
                 wo.SetPosition(PositionType.Destination, destination);
@@ -80,7 +84,7 @@ namespace ACE.Server.WorldObjects
         {
             // if house portal in dungeon,
             // set destination to outdoor house slumlord
-            if (CurrentLandblock != null && CurrentLandblock.IsDungeon)
+            if (CurrentLandblock != null && CurrentLandblock.IsDungeon && Destination.LandblockId == CurrentLandblock.Id)
                 SetPosition(PositionType.Destination, new Position(House.RootHouse.SlumLord.Location));
 
             base.ActOnUse(worldObject);

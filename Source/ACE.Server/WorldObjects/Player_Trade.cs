@@ -7,6 +7,7 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 
@@ -62,6 +63,10 @@ namespace ACE.Server.WorldObjects
 
                     Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, Guid, tradePartner.Guid));
 
+                    // this fixes current version of DoThingsBot
+                    // ideally future version of DTB should be updated to be based on RegisterTrade event, instead of ResetTrade
+                    Session.Network.EnqueueSend(new GameEventResetTrade(Session, Guid));
+
                     tradePartner.HandleActionOpenTradeNegotiations(Guid.Full, false);
                 });
             }
@@ -72,7 +77,11 @@ namespace ACE.Server.WorldObjects
 
                 ItemsInTradeWindow.Clear();
 
-                Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, Guid, tradePartner.Guid));
+                Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, tradePartner.Guid, tradePartner.Guid));
+
+                // this fixes current version of DoThingsBot
+                // ideally future version of DTB should be updated to be based on RegisterTrade event, instead of ResetTrade
+                Session.Network.EnqueueSend(new GameEventResetTrade(Session, tradePartner.Guid));
             }
         }
 
@@ -112,7 +121,13 @@ namespace ACE.Server.WorldObjects
 
                         target.TrackObject(wo);
 
-                        target.Session.Network.EnqueueSend(new GameEventAddToTrade(target.Session, itemGuid, TradeSide.Partner));
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelaySeconds(0.001f);
+                        actionChain.AddAction(target, () =>
+                        {
+                            target.Session.Network.EnqueueSend(new GameEventAddToTrade(target.Session, itemGuid, TradeSide.Partner));
+                        });
+                        actionChain.EnqueueChain();
                     }
                 }
             }

@@ -1,5 +1,30 @@
 # ACEmulator Change Log
 
+### 2019-05-04
+[Ripley]
+* Update object appraisal code to properly show Wield/Activation Requires lines.
+* Update RecipeManager for Ivory. Recipe in DB already handles mod application correctly.
+
+### 2019-05-03
+[Ripley]
+* Add fix up SQL script (2019-05-03-00-Fix_Biota_Jewelry_WeenieType.sql) for existing servers to run to correct jewelry WeenieType on existing items.
+  - This script will only need to be run once and only fixes incorrect objects.
+
+### 2019-05-02
+[Ripley]
+* Changed House Warning Messages filter.
+* Set HousePortal destinations based on data from database with fallback to SlumLord.
+* Init House from World DB if not found in Shard DB.
+* Updated House SQL writer.
+* Update CombatPet to not drop loot, not spawn things.
+* Remove Spells, Emotes from CombatPets.
+* Add Pet and CombatPet to IsCreature in WorldDatabase load function.
+* Always Allow ID for Pets.
+* Added StartCooldown to EnchantmentManagerWithCaching.
+
+[OptimShi]
+* Fixed GetFreeInventorySlots() counting packs and foci. 
+
 ### 2019-05-01
 [Ripley, Theran]
 * Change RecipeManager.ModifyX to fix dye (and other) mods.

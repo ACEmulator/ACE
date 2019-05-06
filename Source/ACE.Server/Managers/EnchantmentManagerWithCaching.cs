@@ -474,5 +474,15 @@ namespace ACE.Server.Managers
 
             return xpModCache.Value;
         }
+
+        public override bool StartCooldown(WorldObject item)
+        {
+            var result = base.StartCooldown(item);
+
+            if (result)
+                ClearCache();
+
+            return result;
+        }
     }
 }

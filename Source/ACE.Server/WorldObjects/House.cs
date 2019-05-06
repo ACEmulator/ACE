@@ -109,6 +109,17 @@ namespace ACE.Server.WorldObjects
             var biota = DatabaseManager.Shard.GetBiota(houseGuid);
             var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
 
+            if (biota == null)
+            {
+                if (instances != null)
+                {
+                    var houseInstance = instances.Where(h => h.Guid == houseGuid).FirstOrDefault();
+
+                    if (houseInstance != null)
+                        biota = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(houseInstance.WeenieClassId), new ObjectGuid(houseInstance.Guid)).Biota;
+                }
+            }
+
             var linkedHouses = WorldObjectFactory.CreateNewWorldObjects(instances, new List<Biota>() { biota }, biota.WeenieClassId);
 
             foreach (var linkedHouse in linkedHouses)
@@ -199,19 +210,19 @@ namespace ACE.Server.WorldObjects
                 wo.UiHidden = true;
             }
 
-            if (wo.IsLinkSpot)
-            {
-                var housePortals = GetHousePortals();
-                if (housePortals.Count == 0)
-                {
-                    Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}): found LinkSpot, but empty HousePortals");
-                    return;
-                }
-                var i = housePortals[0];
-                var destination = new Position(i.ObjCellId, new Vector3(i.OriginX, i.OriginY, i.OriginZ), new Quaternion(i.AnglesX, i.AnglesY, i.AnglesZ, i.AnglesW));
+            //if (wo.IsLinkSpot)
+            //{
+            //    var housePortals = GetHousePortals();
+            //    if (housePortals.Count == 0)
+            //    {
+            //        Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}): found LinkSpot, but empty HousePortals");
+            //        return;
+            //    }
+            //    var i = housePortals[0];
+            //    var destination = new Position(i.ObjCellId, new Vector3(i.OriginX, i.OriginY, i.OriginZ), new Quaternion(i.AnglesX, i.AnglesY, i.AnglesZ, i.AnglesW));
 
-                wo.SetPosition(PositionType.Destination, destination);
-            }
+            //    wo.SetPosition(PositionType.Destination, destination);
+            //}
 
             //if (HouseOwner != null)
                 //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId:X8}, owner: {HouseOwner:X8}, instance: {HouseInstance:X8}");
@@ -526,6 +537,9 @@ namespace ACE.Server.WorldObjects
 
         public bool OnProperty(Player player)
         {
+            if (Location == null)
+                return false;
+
             if (HouseType == ACE.Entity.Enum.HouseType.Apartment)
                 return player.Location.Cell == Location.Cell;
 
