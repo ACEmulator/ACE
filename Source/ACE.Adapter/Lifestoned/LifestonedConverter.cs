@@ -1063,7 +1063,7 @@ namespace ACE.Adapter.Lifestoned
                 result.Changelog.Add(new global::Lifestoned.DataModel.Shared.ChangelogEntry
                 {
                     Author = "ACE.Adapter",
-                    Comment = "Weenie exported from ACEmulator world database using ACE.Adapater",
+                    Comment = "Weenie exported from ACEmulator world database using ACE.Adapter",
                     Created = DateTime.UtcNow
                 });
 
