@@ -82,8 +82,10 @@ namespace ACE.Server.Network.Structure
                 }
 
                 allegianceName = allegiance.AllegianceName ?? allegiance.Monarch.Player.Name;
-                motd = allegiance.AllegianceMotd ?? "";
-                motdSetBy = allegiance.AllegianceMotdSetBy ?? "";
+                //motd = allegiance.AllegianceMotd ?? "";
+                //motdSetBy = allegiance.AllegianceMotdSetBy ?? "";
+                motd = "";          // fixes decal AllegianceUpdate parsing
+                motdSetBy = "";
                 chatRoomID = allegiance.Biota.Id;
 
                 if (allegiance.Sanctuary != null)
