@@ -858,6 +858,8 @@ namespace ACE.Factories
             new int[] { 678, 679, 680, 681, 682, 683, 2195, 4510 },
             ////Mana C
             new int[] { 653, 654, 655, 656, 657, 658, 2287, 4602 },
+            ////Summoning Mastery
+            new int[] { 6116, 6117, 6118, 6119, 6120, 6121, 6122, 6123 },
             ////Creature Enchant
             new int[] { 557, 558, 559, 560, 561, 562, 2215, 4530 },
             ////Item Enchant
@@ -866,6 +868,8 @@ namespace ACE.Factories
             new int[] { 605, 606, 607, 608, 609, 610, 2267, 4582 },
             ////War Magic
             new int[] { 629, 630, 631, 632, 633, 634, 2323, 4638 },
+            ////Void Magic
+            new int[] { 5411, 5412, 5413, 5414, 5415, 5416, 5417, 5418 },
             ////Cooking Mastery
             new int[] { 1715, 1716, 1717, 1718, 1719, 1720, 2211, 4526 },
             ////Fletching
@@ -1048,6 +1052,8 @@ namespace ACE.Factories
             new int[] { 605, 606, 607, 608, 609, 610, 2267, 4582 },
             ////War Magic
             new int[] { 629, 630, 631, 632, 633, 634, 2323, 4638 },
+            ////Void Magic
+            new int[] { 5411, 5412, 5413, 5414, 5415, 5416, 5417, 5418 },
             ////Cooking Mastery
             new int[] { 1715, 1716, 1717, 1718, 1719, 1720, 2211, 4526 },
             ////Fletching
@@ -1083,7 +1089,7 @@ namespace ACE.Factories
             ////Flame Bane
             new int[] { 1547, 1548, 1549, 1550, 1551, 1552, 2102, 4401 },
             ////Pierce Bane
-            new int[] { 1569, 1570, 1571, 1572, 1573, 1574, 2113, 4412 },
+            new int[] { 1569, 1570, 1571, 1572, 1573, 1574, 2113, 4412 }
         };
 
         public static readonly int[][] AbdomenSpells =
@@ -1229,7 +1235,7 @@ namespace ACE.Factories
             ////Flame Bane
             new int[] { 1547, 1548, 1549, 1550, 1551, 1552, 2102, 4401 },
             ////Pierce Bane
-            new int[] { 1569, 1570, 1571, 1572, 1573, 1574, 2113, 4412 },
+            new int[] { 1569, 1570, 1571, 1572, 1573, 1574, 2113, 4412 }
         };
 
         public static readonly int[][] WandSpells =
@@ -1556,6 +1562,8 @@ namespace ACE.Factories
             new int[] { 2537, 2502, 4684, 6041},
             ////Mana C
             new int[] { 2560, 2525, 4705, 6064},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
             ////Creature Enchant
             new int[] { 2542, 2507, 4689, 6046},
             ////Item Enchant
@@ -1564,6 +1572,8 @@ namespace ACE.Factories
             new int[] { 2555, 2520, 4700, 6060},
             ////War Magic
             new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
             ////Cooking Mastery
             new int[] { 2541, 2506, 4688, 6045},
             ////Fletching
@@ -1723,7 +1733,7 @@ namespace ACE.Factories
             ////Willpower
             new int[] { 2584, 2577, 4227, 6101},
             ////Two Handed
-            new int[] { 2566, 2531, 4712, 6072},
+            new int[] { 5072, 5070, 5034, 6073},
             ////Finesse Weapon
             new int[] { 2544, 2509, 4691, 6047},
             ////Heavy Weapon
@@ -1746,6 +1756,8 @@ namespace ACE.Factories
             new int[] { 2555, 2520, 4700, 6060},
             ////War Magic
             new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
             ////Cooking Mastery
             new int[] { 2541, 2506, 4688, 6045},
             ////Fletching
@@ -1887,7 +1899,7 @@ namespace ACE.Factories
             ////Quickness
             new int[] { 2582, 2575, 4019, 6106},
             ////Two Handed
-            new int[] { 2566, 2531, 4712, 6072},
+            new int[] { 5072, 5070, 5034, 6073},
             ////Finesse Weapon
             new int[] { 2544, 2509, 4691, 6047},
             ////Heavy Weapon

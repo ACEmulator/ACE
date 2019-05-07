@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2019-05-06
+[Ripley]
+* Add support to ACE.Adapter to convert ACE weenies to LSD weenies.
+
+### 2019-05-04
+[Ripley]
+* Update object appraisal code to properly show Wield/Activation Requires lines.
+* Update RecipeManager for Ivory. Recipe in DB already handles mod application correctly.
+
 ### 2019-05-03
 [Ripley]
 * Add fix up SQL script (2019-05-03-00-Fix_Biota_Jewelry_WeenieType.sql) for existing servers to run to correct jewelry WeenieType on existing items.
@@ -1677,7 +1686,7 @@
 * Fixed a bug where landblocks were loading equipped items as objects owned by the landblock
 * Fixed a possible crash if invalid object added to landblock
 * Improved object decayable system:
-  - Decayable timer heirarchy now controlled by landblock
+  - Decayable timer hierarchy now controlled by landblock
   - WorldObject_Decay added to manage decay of all decayable objects
   - WorldObject_Database now has functions to determine which static and dynamic objects should be saved to shard db
 * Improved object database persistence system:
