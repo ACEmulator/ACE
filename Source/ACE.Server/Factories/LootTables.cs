@@ -1538,10 +1538,18 @@ namespace ACE.Factories
 
         public static readonly int[][] HeadCantrips =
         {
+            ////Strength
+            new int[] { 2583, 2576, 3965, 6107},
+            ////Endurance
+            new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
             ////Focus
             new int[] { 2581, 2574, 3964, 6105},
-            ////Person Attunement
-            new int[] { 2562, 2527, 4707, 6066 },
+            ////Willpower
+            new int[] { 2584, 2577, 4227, 6101},
             ////Invuln
             new int[] { 2550, 2515, 4696, 6055},
             ////Impreg
@@ -1558,10 +1566,24 @@ namespace ACE.Factories
             new int[] {5887, 5892, 5897, 6070 },
             ////Deception Mastery
             new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
             ////Arcane Enlight
             new int[] { 2537, 2502, 4684, 6041},
             ////Mana C
             new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
             ////Summoning Mastery
             new int[] { 6127, 6126, 6124, 6125},
             ////Creature Enchant
@@ -1624,106 +1646,30 @@ namespace ACE.Factories
             new int[] { 2601, 2589, 4664, 6092},
             ////Pierce Bane
             new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
         };
 
         public static readonly int[][] ChestCantrips =
         {
-            ////Strength
+           ////Strength
             new int[] { 2583, 2576, 3965, 6107},
             ////Endurance
             new int[] { 2580, 2573, 4226, 6104},
-            ////Magic Resist
-            new int[] { 2559, 2524, 4704, 6063},
-            ////Fealty
-            new int[] { 2546, 2511, 4692, 6051},
-            ////Regeneration
-            new int[] { 2626, 2623, 4680, 6077},
-            ////Rejuvenation
-            new int[] { 2628, 2625, 4682, 6076},
-            ////Imp
-            new int[] { 2604, 2592, 4667, 6095},
-            ////Blade Bane
-            new int[] { 2606, 2594, 4669, 6097},
-            ////Acid Bane
-            new int[] { 2597, 2585, 4660, 6088},
-            ////Bludge Bane
-            new int[] { 2599, 2587, 4662, 6090},
-            ////Frost Bane
-            new int[] { 2602, 2590, 4665, 6093},
-            ////Lightning Bane
-            new int[] { 2607, 2595, 4671, 6099},
-            ////Flame Bane
-            new int[] { 2601, 2589, 4664, 6092},
-            ////Pierce Bane
-            new int[] { 2605, 2593, 4668, 6096},
-        };
-
-        public static readonly int[][] UpperArmCantrips =
-        {
-            ////Strength
-            new int[] { 2583, 2576, 3965, 6107},
-            ////Endurance
-            new int[] { 2580, 2573, 4226, 6104},
-            ////Magic Resist
-            new int[] { 2559, 2524, 4704, 6063},
-            ////Fealty
-            new int[] { 2546, 2511, 4692, 6051},
-            ////Regeneration
-            new int[] { 2626, 2623, 4680, 6077},
-            ////Rejuvenation
-            new int[] { 2628, 2625, 4682, 6076},
-            ////Imp
-            new int[] { 2604, 2592, 4667, 6095},
-            ////Blade Bane
-            new int[] { 2606, 2594, 4669, 6097},
-            ////Acid Bane
-            new int[] { 2597, 2585, 4660, 6088},
-            ////Bludge Bane
-            new int[] { 2599, 2587, 4662, 6090},
-            ////Frost Bane
-            new int[] { 2602, 2590, 4665, 6093},
-            ////Lightning Bane
-            new int[] { 2607, 2595, 4671, 6099},
-            ////Flame Bane
-            new int[] { 2601, 2589, 4664, 6092},
-            ////Pierce Bane
-            new int[] { 2605, 2593, 4668, 6096},
-        };
-
-        public static readonly int[][] LowerArmCantrips =
-        {
-            ////Strength
-            new int[] { 2583, 2576, 3965, 6107},
-            ////Endurance
-            new int[] { 2580, 2573, 4226, 6104},
-            ////Magic Resist
-            new int[] { 2559, 2524, 4704, 6063},
-            ////Fealty
-            new int[] { 2546, 2511, 4692, 6051},
-            ////Regeneration
-            new int[] { 2626, 2623, 4680, 6077},
-            ////Rejuvenation
-            new int[] { 2628, 2625, 4682, 6076},
-            ////Imp
-            new int[] { 2604, 2592, 4667, 6095},
-            ////Blade Bane
-            new int[] { 2606, 2594, 4669, 6097},
-            ////Acid Bane
-            new int[] { 2597, 2585, 4660, 6088},
-            ////Bludge Bane
-            new int[] { 2599, 2587, 4662, 6090},
-            ////Frost Bane
-            new int[] { 2602, 2590, 4665, 6093},
-            ////Lightning Bane
-            new int[] { 2607, 2595, 4671, 6099},
-            ////Flame Bane
-            new int[] { 2601, 2589, 4664, 6092},
-            ////Pierce Bane
-            new int[] { 2605, 2593, 4668, 6096},
-        };
-
-        public static readonly int[][] HandCantrips =
-        {
             ////Coordination
             new int[] { 2579, 2572, 3963, 6103},
             ////Quickness
@@ -1732,6 +1678,28 @@ namespace ACE.Factories
             new int[] { 2581, 2574, 3964, 6105},
             ////Willpower
             new int[] { 2584, 2577, 4227, 6101},
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
+            ////Magic Resist
+            new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
             ////Two Handed
             new int[] { 5072, 5070, 5034, 6073},
             ////Finesse Weapon
@@ -1744,10 +1712,8 @@ namespace ACE.Factories
             new int[] { 2540, 2505, 4687, 6044},
             ////Shield
             new int[] { 5885, 5890, 5895, 6067},
-            ////Arcane Enlight
-            new int[] { 2537, 2502, 4684, 6041},
-            ////Mana C
-            new int[] { 2560, 2525, 4705, 6064},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
             ////Creature Enchant
             new int[] { 2542, 2507, 4689, 6046},
             ////Item Enchant
@@ -1778,38 +1744,20 @@ namespace ACE.Factories
             new int[] { 2558, 2523, 4703, 6062},
             ////Weapon Tinkering
             new int[] { 2570, 2535, 4912, 6039},
-            ////Imp
-            new int[] { 2604, 2592, 4667, 6095},
-            ////Blade Bane
-            new int[] { 2606, 2594, 4669, 6097},
-            ////Acid Bane
-            new int[] { 2597, 2585, 4660, 6088},
-            ////Bludge Bane
-            new int[] { 2599, 2587, 4662, 6090},
-            ////Frost Bane
-            new int[] { 2602, 2590, 4665, 6093},
-            ////Lightning Bane
-            new int[] { 2607, 2595, 4671, 6099},
-            ////Flame Bane
-            new int[] { 2601, 2589, 4664, 6092},
-            ////Pierce Bane
-            new int[] { 2605, 2593, 4668, 6096},
-        };
-
-        public static readonly int[][] AbdomenCantrips =
-        {
-            ////Strength
-            new int[] { 2583, 2576, 3965, 6107},
-            ////Endurance
-            new int[] { 2580, 2573, 4226, 6104},
-            ////Magic Resist
-            new int[] { 2559, 2524, 4704, 6063},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
             ////Fealty
             new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
             ////Regeneration
             new int[] { 2626, 2623, 4680, 6077},
             ////Rejuvenation
             new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
             ////Imp
             new int[] { 2604, 2592, 4667, 6095},
             ////Blade Bane
@@ -1826,123 +1774,25 @@ namespace ACE.Factories
             new int[] { 2601, 2589, 4664, 6092},
             ////Pierce Bane
             new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
         };
 
-        public static readonly int[][] UpperLegCantrips =
-        {
-            ////Strength
-            new int[] { 2583, 2576, 3965, 6107},
-            ////Endurance
-            new int[] { 2580, 2573, 4226, 6104},
-            ////Quickness
-            new int[] { 2582, 2575, 4019, 6106},
-            ////Jumping
-            new int[] { 2553, 2518, 4699, 6058},
-            ////Sprint
-            new int[] { 2564, 2529, 4710, 6071},
-            ////Imp
-            new int[] { 2604, 2592, 4667, 6095},
-            ////Blade Bane
-            new int[] { 2606, 2594, 4669, 6097},
-            ////Acid Bane
-            new int[] { 2597, 2585, 4660, 6088},
-            ////Bludge Bane
-            new int[] { 2599, 2587, 4662, 6090},
-            ////Frost Bane
-            new int[] { 2602, 2590, 4665, 6093},
-            ////Lightning Bane
-            new int[] { 2607, 2595, 4671, 6099},
-            ////Flame Bane
-            new int[] { 2601, 2589, 4664, 6092},
-            ////Pierce Bane
-            new int[] { 2605, 2593, 4668, 6096},
-        };
-
-        public static readonly int[][] LowerLegCantrips =
-        {
-            ////Strength
-            new int[] { 2583, 2576, 3965, 6107},
-            ////Endurance
-            new int[] { 2580, 2573, 4226, 6104},
-            ////Quickness
-            new int[] { 2582, 2575, 4019, 6106},
-            ////Jumping
-            new int[] { 2553, 2518, 4699, 6058},
-            ////Sprint
-            new int[] { 2564, 2529, 4710, 6071},
-            ////Imp
-            new int[] { 2604, 2592, 4667, 6095},
-            ////Blade Bane
-            new int[] { 2606, 2594, 4669, 6097},
-            ////Acid Bane
-            new int[] { 2597, 2585, 4660, 6088},
-            ////Bludge Bane
-            new int[] { 2599, 2587, 4662, 6090},
-            ////Frost Bane
-            new int[] { 2602, 2590, 4665, 6093},
-            ////Lightning Bane
-            new int[] { 2607, 2595, 4671, 6099},
-            ////Flame Bane
-            new int[] { 2601, 2589, 4664, 6092},
-            ////Pierce Bane
-            new int[] { 2605, 2593, 4668, 6096},
-        };
-
-        public static readonly int[][] FeetCantrips =
-        {
-            ////Strength
-            new int[] { 2583, 2576, 3965, 6107},
-            ////Endurance
-            new int[] { 2580, 2573, 4226, 6104},
-            ////Coordination
-            new int[] { 2579, 2572, 3963, 6103},
-            ////Quickness
-            new int[] { 2582, 2575, 4019, 6106},
-            ////Two Handed
-            new int[] { 5072, 5070, 5034, 6073},
-            ////Finesse Weapon
-            new int[] { 2544, 2509, 4691, 6047},
-            ////Heavy Weapon
-            new int[] { 2566, 2531, 4712, 6072},
-            ////Light Weapon
-            new int[] { 2557, 2522, 4686, 6043},
-            ////Missile Weapon
-            new int[] { 2540, 2505, 4687, 6044},
-            ////Invuln
-            new int[] { 2550, 2515, 4696, 6055},
-            ////Impreg
-            new int[] { 2549, 2514, 4695, 6054},
-            ////Magic Resist
-            new int[] { 2559, 2524, 4704, 6063},
-            ////Arcane Enlight
-            new int[] { 2537, 2502, 4684, 6041},
-            ////Mana C
-            new int[] { 2560, 2525, 4705, 6064},
-            ////Healing Mastery
-            new int[] { 2548, 2513, 4694, 6053},
-            ////Jumping
-            new int[] { 2553, 2518, 4699, 6058},
-            ////Sprint
-            new int[] { 2564, 2529, 4710, 6071},
-            ////Imp
-            new int[] { 2604, 2592, 4667, 6095},
-            ////Blade Bane
-            new int[] { 2606, 2594, 4669, 6097},
-            ////Acid Bane
-            new int[] { 2597, 2585, 4660, 6088},
-            ////Bludge Bane
-            new int[] { 2599, 2587, 4662, 6090},
-            ////Frost Bane
-            new int[] { 2602, 2590, 4665, 6093},
-            ////Lightning Bane
-            new int[] { 2607, 2595, 4671, 6099},
-            ////Flame Bane
-            new int[] { 2601, 2589, 4664, 6092},
-            ////Pierce Bane
-            new int[] { 2605, 2593, 4668, 6096},
-        };
-
-        public static readonly int[][] JewelryCantrips =
+        public static readonly int[][] UpperArmCantrips =
         {
             ////Strength
             new int[] { 2583, 2576, 3965, 6107},
@@ -1956,14 +1806,62 @@ namespace ACE.Factories
             new int[] { 2581, 2574, 3964, 6105},
             ////Willpower
             new int[] { 2584, 2577, 4227, 6101},
-            ////Person Attunement
-            new int[] { 2562, 2527, 4707, 6066 },
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
             ////Magic Resist
             new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
             ////Deception Mastery
             new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
             ////Mana C
             new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
             ////Salvaging
             new int[] { 3809, 3834, 4708, 6068},
             ////Armor Tinkering
@@ -1982,6 +1880,30 @@ namespace ACE.Factories
             new int[] { 2546, 2511, 4692, 6051},
             ////Armor Self
             new int[] { 2578, 2571, 4911, 6102},
+            ////Regeneration
+            new int[] { 2626, 2623, 4680, 6077},
+            ////Rejuvenation
+            new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
+            ////Imp
+            new int[] { 2604, 2592, 4667, 6095},
+            ////Blade Bane
+            new int[] { 2606, 2594, 4669, 6097},
+            ////Acid Bane
+            new int[] { 2597, 2585, 4660, 6088},
+            ////Bludge Bane
+            new int[] { 2599, 2587, 4662, 6090},
+            ////Frost Bane
+            new int[] { 2602, 2590, 4665, 6093},
+            ////Lightning Bane
+            new int[] { 2607, 2595, 4671, 6099},
+            ////Flame Bane
+            new int[] { 2601, 2589, 4664, 6092},
+            ////Pierce Bane
+            new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
             ////Acid Prot
             new int[] { 2616, 2609, 4673, 6080},
             ////Brudge Prot
@@ -1996,20 +1918,984 @@ namespace ACE.Factories
             new int[] { 2621, 2614, 3957, 6085},
             ////Pierce Prot
             new int[] { 2620, 2613, 3956, 6084},
+        };
+
+        public static readonly int[][] LowerArmCantrips =
+        {
+            ////Strength
+            new int[] { 2583, 2576, 3965, 6107},
+            ////Endurance
+            new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
+            ////Focus
+            new int[] { 2581, 2574, 3964, 6105},
+            ////Willpower
+            new int[] { 2584, 2577, 4227, 6101},
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
+            ////Magic Resist
+            new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
+            ////Salvaging
+            new int[] { 3809, 3834, 4708, 6068},
+            ////Armor Tinkering
+            new int[] { 2538, 2503, 4685, 6042},
+            ////Item Tinkering
+            new int[] { 2552, 2517, 4698, 6057},
+            ////Magic Item Tinkering
+            new int[] { 2558, 2523, 4703, 6062},
+            ////Weapon Tinkering
+            new int[] { 2570, 2535, 4912, 6039},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
+            ////Fealty
+            new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
             ////Regeneration
             new int[] { 2626, 2623, 4680, 6077},
             ////Rejuvenation
             new int[] { 2628, 2625, 4682, 6076},
             ////Mana Renewal
-            new int[] { 2627, 2624, 4681, 6078},
+            new int[] { 2627, 2624, 4681, 6078 },
+            ////Imp
+            new int[] { 2604, 2592, 4667, 6095},
+            ////Blade Bane
+            new int[] { 2606, 2594, 4669, 6097},
+            ////Acid Bane
+            new int[] { 2597, 2585, 4660, 6088},
+            ////Bludge Bane
+            new int[] { 2599, 2587, 4662, 6090},
+            ////Frost Bane
+            new int[] { 2602, 2590, 4665, 6093},
+            ////Lightning Bane
+            new int[] { 2607, 2595, 4671, 6099},
+            ////Flame Bane
+            new int[] { 2601, 2589, 4664, 6092},
+            ////Pierce Bane
+            new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
         };
 
-        public static readonly int[][] ClothingCantrips =
+        public static readonly int[][] HandCantrips =
         {
+            ////Strength
+            new int[] { 2583, 2576, 3965, 6107},
+            ////Endurance
+            new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
             ////Focus
             new int[] { 2581, 2574, 3964, 6105},
             ////Willpower
             new int[] { 2584, 2577, 4227, 6101},
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
+            ////Magic Resist
+            new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
+            ////Salvaging
+            new int[] { 3809, 3834, 4708, 6068},
+            ////Armor Tinkering
+            new int[] { 2538, 2503, 4685, 6042},
+            ////Item Tinkering
+            new int[] { 2552, 2517, 4698, 6057},
+            ////Magic Item Tinkering
+            new int[] { 2558, 2523, 4703, 6062},
+            ////Weapon Tinkering
+            new int[] { 2570, 2535, 4912, 6039},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
+            ////Fealty
+            new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Regeneration
+            new int[] { 2626, 2623, 4680, 6077},
+            ////Rejuvenation
+            new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
+            ////Imp
+            new int[] { 2604, 2592, 4667, 6095},
+            ////Blade Bane
+            new int[] { 2606, 2594, 4669, 6097},
+            ////Acid Bane
+            new int[] { 2597, 2585, 4660, 6088},
+            ////Bludge Bane
+            new int[] { 2599, 2587, 4662, 6090},
+            ////Frost Bane
+            new int[] { 2602, 2590, 4665, 6093},
+            ////Lightning Bane
+            new int[] { 2607, 2595, 4671, 6099},
+            ////Flame Bane
+            new int[] { 2601, 2589, 4664, 6092},
+            ////Pierce Bane
+            new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
+        };
+
+        public static readonly int[][] AbdomenCantrips =
+        {
+            ////Strength
+            new int[] { 2583, 2576, 3965, 6107},
+            ////Endurance
+            new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
+            ////Focus
+            new int[] { 2581, 2574, 3964, 6105},
+            ////Willpower
+            new int[] { 2584, 2577, 4227, 6101},
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
+            ////Magic Resist
+            new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
+            ////Salvaging
+            new int[] { 3809, 3834, 4708, 6068},
+            ////Armor Tinkering
+            new int[] { 2538, 2503, 4685, 6042},
+            ////Item Tinkering
+            new int[] { 2552, 2517, 4698, 6057},
+            ////Magic Item Tinkering
+            new int[] { 2558, 2523, 4703, 6062},
+            ////Weapon Tinkering
+            new int[] { 2570, 2535, 4912, 6039},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
+            ////Fealty
+            new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Regeneration
+            new int[] { 2626, 2623, 4680, 6077},
+            ////Rejuvenation
+            new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
+            ////Imp
+            new int[] { 2604, 2592, 4667, 6095},
+            ////Blade Bane
+            new int[] { 2606, 2594, 4669, 6097},
+            ////Acid Bane
+            new int[] { 2597, 2585, 4660, 6088},
+            ////Bludge Bane
+            new int[] { 2599, 2587, 4662, 6090},
+            ////Frost Bane
+            new int[] { 2602, 2590, 4665, 6093},
+            ////Lightning Bane
+            new int[] { 2607, 2595, 4671, 6099},
+            ////Flame Bane
+            new int[] { 2601, 2589, 4664, 6092},
+            ////Pierce Bane
+            new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
+        };
+
+        public static readonly int[][] UpperLegCantrips =
+        {
+            ////Strength
+            new int[] { 2583, 2576, 3965, 6107},
+            ////Endurance
+            new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
+            ////Focus
+            new int[] { 2581, 2574, 3964, 6105},
+            ////Willpower
+            new int[] { 2584, 2577, 4227, 6101},
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
+            ////Magic Resist
+            new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
+            ////Salvaging
+            new int[] { 3809, 3834, 4708, 6068},
+            ////Armor Tinkering
+            new int[] { 2538, 2503, 4685, 6042},
+            ////Item Tinkering
+            new int[] { 2552, 2517, 4698, 6057},
+            ////Magic Item Tinkering
+            new int[] { 2558, 2523, 4703, 6062},
+            ////Weapon Tinkering
+            new int[] { 2570, 2535, 4912, 6039},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
+            ////Fealty
+            new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Regeneration
+            new int[] { 2626, 2623, 4680, 6077},
+            ////Rejuvenation
+            new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
+            ////Imp
+            new int[] { 2604, 2592, 4667, 6095},
+            ////Blade Bane
+            new int[] { 2606, 2594, 4669, 6097},
+            ////Acid Bane
+            new int[] { 2597, 2585, 4660, 6088},
+            ////Bludge Bane
+            new int[] { 2599, 2587, 4662, 6090},
+            ////Frost Bane
+            new int[] { 2602, 2590, 4665, 6093},
+            ////Lightning Bane
+            new int[] { 2607, 2595, 4671, 6099},
+            ////Flame Bane
+            new int[] { 2601, 2589, 4664, 6092},
+            ////Pierce Bane
+            new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
+        };
+
+        public static readonly int[][] LowerLegCantrips =
+        {
+            ////Strength
+            new int[] { 2583, 2576, 3965, 6107},
+            ////Endurance
+            new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
+            ////Focus
+            new int[] { 2581, 2574, 3964, 6105},
+            ////Willpower
+            new int[] { 2584, 2577, 4227, 6101},
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
+            ////Magic Resist
+            new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
+            ////Salvaging
+            new int[] { 3809, 3834, 4708, 6068},
+            ////Armor Tinkering
+            new int[] { 2538, 2503, 4685, 6042},
+            ////Item Tinkering
+            new int[] { 2552, 2517, 4698, 6057},
+            ////Magic Item Tinkering
+            new int[] { 2558, 2523, 4703, 6062},
+            ////Weapon Tinkering
+            new int[] { 2570, 2535, 4912, 6039},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
+            ////Fealty
+            new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Regeneration
+            new int[] { 2626, 2623, 4680, 6077},
+            ////Rejuvenation
+            new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
+            ////Imp
+            new int[] { 2604, 2592, 4667, 6095},
+            ////Blade Bane
+            new int[] { 2606, 2594, 4669, 6097},
+            ////Acid Bane
+            new int[] { 2597, 2585, 4660, 6088},
+            ////Bludge Bane
+            new int[] { 2599, 2587, 4662, 6090},
+            ////Frost Bane
+            new int[] { 2602, 2590, 4665, 6093},
+            ////Lightning Bane
+            new int[] { 2607, 2595, 4671, 6099},
+            ////Flame Bane
+            new int[] { 2601, 2589, 4664, 6092},
+            ////Pierce Bane
+            new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
+        };
+
+        public static readonly int[][] FeetCantrips =
+        {
+            ////Strength
+            new int[] { 2583, 2576, 3965, 6107},
+            ////Endurance
+            new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
+            ////Focus
+            new int[] { 2581, 2574, 3964, 6105},
+            ////Willpower
+            new int[] { 2584, 2577, 4227, 6101},
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
+            ////Magic Resist
+            new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
+            ////Salvaging
+            new int[] { 3809, 3834, 4708, 6068},
+            ////Armor Tinkering
+            new int[] { 2538, 2503, 4685, 6042},
+            ////Item Tinkering
+            new int[] { 2552, 2517, 4698, 6057},
+            ////Magic Item Tinkering
+            new int[] { 2558, 2523, 4703, 6062},
+            ////Weapon Tinkering
+            new int[] { 2570, 2535, 4912, 6039},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
+            ////Fealty
+            new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Regeneration
+            new int[] { 2626, 2623, 4680, 6077},
+            ////Rejuvenation
+            new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
+            ////Imp
+            new int[] { 2604, 2592, 4667, 6095},
+            ////Blade Bane
+            new int[] { 2606, 2594, 4669, 6097},
+            ////Acid Bane
+            new int[] { 2597, 2585, 4660, 6088},
+            ////Bludge Bane
+            new int[] { 2599, 2587, 4662, 6090},
+            ////Frost Bane
+            new int[] { 2602, 2590, 4665, 6093},
+            ////Lightning Bane
+            new int[] { 2607, 2595, 4671, 6099},
+            ////Flame Bane
+            new int[] { 2601, 2589, 4664, 6092},
+            ////Pierce Bane
+            new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
+        };
+
+        public static readonly int[][] JewelryCantrips =
+        {
+            ////Strength
+            new int[] { 2583, 2576, 3965, 6107},
+            ////Endurance
+            new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
+            ////Focus
+            new int[] { 2581, 2574, 3964, 6105},
+            ////Willpower
+            new int[] { 2584, 2577, 4227, 6101},
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
+            ////Magic Resist
+            new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
+            ////Salvaging
+            new int[] { 3809, 3834, 4708, 6068},
+            ////Armor Tinkering
+            new int[] { 2538, 2503, 4685, 6042},
+            ////Item Tinkering
+            new int[] { 2552, 2517, 4698, 6057},
+            ////Magic Item Tinkering
+            new int[] { 2558, 2523, 4703, 6062},
+            ////Weapon Tinkering
+            new int[] { 2570, 2535, 4912, 6039},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
+            ////Fealty
+            new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Regeneration
+            new int[] { 2626, 2623, 4680, 6077},
+            ////Rejuvenation
+            new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
+        };
+
+        public static readonly int[][] ClothingCantrips =
+        {
+            ////Strength
+            new int[] { 2583, 2576, 3965, 6107},
+            ////Endurance
+            new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
+            ////Focus
+            new int[] { 2581, 2574, 3964, 6105},
+            ////Willpower
+            new int[] { 2584, 2577, 4227, 6101},
+            ////Invuln
+            new int[] { 2550, 2515, 4696, 6055},
+            ////Impreg
+            new int[] { 2549, 2514, 4695, 6054},
+            ////Magic Resist
+            new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
+            ////Shield
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
+            ////Salvaging
+            new int[] { 3809, 3834, 4708, 6068},
+            ////Armor Tinkering
+            new int[] { 2538, 2503, 4685, 6042},
+            ////Item Tinkering
+            new int[] { 2552, 2517, 4698, 6057},
+            ////Magic Item Tinkering
+            new int[] { 2558, 2523, 4703, 6062},
+            ////Weapon Tinkering
+            new int[] { 2570, 2535, 4912, 6039},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
+            ////Fealty
+            new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Regeneration
+            new int[] { 2626, 2623, 4680, 6077},
+            ////Rejuvenation
+            new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
+            ////Imp
+            new int[] { 2604, 2592, 4667, 6095},
             ////Armor Self
             new int[] { 2578, 2571, 4911, 6102},
             ////Acid Prot
@@ -2034,18 +2920,94 @@ namespace ACE.Factories
             new int[] { 2583, 2576, 3965, 6107},
             ////Endurance
             new int[] { 2580, 2573, 4226, 6104},
+            ////Coordination
+            new int[] { 2579, 2572, 3963, 6103},
+            ////Quickness
+            new int[] { 2582, 2575, 4019, 6106},
+            ////Focus
+            new int[] { 2581, 2574, 3964, 6105},
+            ////Willpower
+            new int[] { 2584, 2577, 4227, 6101},
             ////Invuln
             new int[] { 2550, 2515, 4696, 6055},
             ////Impreg
             new int[] { 2549, 2514, 4695, 6054},
             ////Magic Resist
             new int[] { 2559, 2524, 4704, 6063},
+            ////Dirty Fighting
+            new int[] { 5882, 5888, 5893, 6049 },
+            ////Dual Wield
+            new int[] { 5884, 5889, 5894, 6050},
+            ////Recklessness
+            new int[] { 5885, 5890,5895, 6067},
+            ////Sneak Attack
+            new int[] {5887, 5892, 5897, 6070 },
+            ////Deception Mastery
+            new int[] { 2545, 2510, 4020, 6048},
+            ////Person Attunement
+            new int[] { 2562, 2527, 4707, 6066 },
+            ////Arcane Enlight
+            new int[] { 2537, 2502, 4684, 6041},
+            ////Mana C
+            new int[] { 2560, 2525, 4705, 6064},
+            ////Two Handed
+            new int[] { 5072, 5070, 5034, 6073},
+            ////Finesse Weapon
+            new int[] { 2544, 2509, 4691, 6047},
+            ////Heavy Weapon
+            new int[] { 2566, 2531, 4712, 6072},
+            ////Light Weapon
+            new int[] { 2557, 2522, 4686, 6043},
+            ////Missile Weapon
+            new int[] { 2540, 2505, 4687, 6044},
             ////Shield
-            new int[] { 5886, 5891, 5896, 6069},
+            new int[] { 5885, 5890, 5895, 6067},
+            ////Summoning Mastery
+            new int[] { 6127, 6126, 6124, 6125},
+            ////Creature Enchant
+            new int[] { 2542, 2507, 4689, 6046},
+            ////Item Enchant
+            new int[] { 2551, 2516, 4697, 6056},
+            ////Life Magic
+            new int[] { 2555, 2520, 4700, 6060},
+            ////War Magic
+            new int[] { 2569, 2534, 4715, 6075},
+            ////Void Magic
+            new int[] { 5427, 5428, 5429, 6074},
+            ////Cooking Mastery
+            new int[] { 2541, 2506, 4688, 6045},
+            ////Fletching
+            new int[] { 2547, 2512, 4693, 6052},
+            ////Alchemy
+            new int[] { 2536, 2501, 4683, 6040},
+            ////Healing Mastery
+            new int[] { 2548, 2513, 4694, 6053},
+            ////Lockpick
+            new int[] { 2556, 2521, 4701, 6061},
+            ////Salvaging
+            new int[] { 3809, 3834, 4708, 6068},
+            ////Armor Tinkering
+            new int[] { 2538, 2503, 4685, 6042},
+            ////Item Tinkering
+            new int[] { 2552, 2517, 4698, 6057},
+            ////Magic Item Tinkering
+            new int[] { 2558, 2523, 4703, 6062},
+            ////Weapon Tinkering
+            new int[] { 2570, 2535, 4912, 6039},
+            ////Monster Attunement
+            new int[] { 2561, 2526, 4706, 6065},
+            ////Leadership
+            new int[] { 2554, 2519, 4232, 6059},
             ////Fealty
             new int[] { 2546, 2511, 4692, 6051},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Regeneration
+            new int[] { 2626, 2623, 4680, 6077},
             ////Rejuvenation
             new int[] { 2628, 2625, 4682, 6076},
+            ////Mana Renewal
+            new int[] { 2627, 2624, 4681, 6078 },
             ////Imp
             new int[] { 2604, 2592, 4667, 6095},
             ////Blade Bane
@@ -2062,6 +3024,22 @@ namespace ACE.Factories
             new int[] { 2601, 2589, 4664, 6092},
             ////Pierce Bane
             new int[] { 2605, 2593, 4668, 6096},
+            ////Armor Self
+            new int[] { 2578, 2571, 4911, 6102},
+            ////Acid Prot
+            new int[] { 2616, 2609, 4673, 6080},
+            ////Brudge Prot
+            new int[] { 2617, 2610, 4674, 6081},
+            ////Cold Prot
+            new int[] { 2619, 2612, 4676, 6083},
+            ////Lightning Prot
+            new int[] { 2622, 2615, 4679, 6079},
+            ////Fire Prot
+            new int[] { 2618, 2611, 4675, 6082},
+            ////Blade Prot
+            new int[] { 2621, 2614, 3957, 6085},
+            ////Pierce Prot
+            new int[] { 2620, 2613, 3956, 6084},
         };
 
         public static readonly int[][] WandCantrips =
