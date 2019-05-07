@@ -189,8 +189,11 @@ namespace ACE.Server.WorldObjects
                     session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeComplete));
                     target.Session.Network.EnqueueSend(new GameEventWeenieError(target.Session, WeenieError.TradeComplete));
 
-                    session.Player.HandleActionResetTrade(session, ObjectGuid.Invalid);
-                    target.HandleActionResetTrade(target.Session, ObjectGuid.Invalid);
+                    //session.Player.HandleActionResetTrade(session, ObjectGuid.Invalid);
+                    //target.HandleActionResetTrade(target.Session, ObjectGuid.Invalid);
+
+                    session.Player.HandleActionResetTrade(session, Guid);
+                    target.HandleActionResetTrade(target.Session, target.Guid);
 
                     DatabaseManager.Shard.SaveBiotasInParallel(tradedItems, null);
                 }
