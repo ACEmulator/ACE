@@ -1668,6 +1668,8 @@ namespace ACE.Factories
 
         public static readonly int[][] ChestCantrips = ArmorCantrips;
 
+        public static readonly int[][] UpperArmCantrips = ArmorCantrips;
+
         public static readonly int[][] LowerArmCantrips = ArmorCantrips;
 
         public static readonly int[][] HandCantrips = ArmorCantrips;
