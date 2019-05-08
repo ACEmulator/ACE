@@ -393,73 +393,9 @@ namespace ACE.Server.Factories
 
                 int[][] spells;
                 int[][] cantrips;
-                switch (spellArray)
-                {
-                    case 1:
-                        spells = LootTables.HeadSpells;
-                        break;
-                    case 2:
-                        spells = LootTables.ChestSpells;
-                        break;
-                    case 3:
-                        spells = LootTables.UpperArmSpells;
-                        break;
-                    case 4:
-                        spells = LootTables.LowerArmSpells;
-                        break;
-                    case 5:
-                        spells = LootTables.HandSpells;
-                        break;
-                    case 6:
-                        spells = LootTables.AbdomenSpells;
-                        break;
-                    case 7:
-                        spells = LootTables.UpperLegSpells;
-                        break;
-                    case 8:
-                        spells = LootTables.LowerLegSpells;
-                        break;
-                    case 9:
-                        spells = LootTables.FeetSpells;
-                        break;
-                    default:
-                        spells = LootTables.ShieldSpells;
-                        break;
-                }
 
-                switch (cantripArray)
-                {
-                    case 1:
-                        cantrips = LootTables.HeadCantrips;
-                        break;
-                    case 2:
-                        cantrips = LootTables.ChestCantrips;
-                        break;
-                    case 3:
-                        cantrips = LootTables.UpperArmCantrips;
-                        break;
-                    case 4:
-                        cantrips = LootTables.LowerArmCantrips;
-                        break;
-                    case 5:
-                        cantrips = LootTables.HandCantrips;
-                        break;
-                    case 6:
-                        cantrips = LootTables.AbdomenCantrips;
-                        break;
-                    case 7:
-                        cantrips = LootTables.UpperLegCantrips;
-                        break;
-                    case 8:
-                        cantrips = LootTables.LowerLegCantrips;
-                        break;
-                    case 9:
-                        cantrips = LootTables.FeetCantrips;
-                        break;
-                    default:
-                        cantrips = LootTables.ShieldCantrips;
-                        break;
-                }
+                spells = LootTables.ArmorSpells;
+                cantrips = LootTables.ArmorCantrips;
 
                 int[] shuffledValues = new int[spells.Length];
                 for (int i = 0; i < spells.Length; i++)
