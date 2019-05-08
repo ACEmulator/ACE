@@ -377,6 +377,7 @@ namespace ACE.Factories
 
         public static readonly int[][] ScrollSpells =
         {
+            /* CREATURE SPELLS */
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087 },
             ////Strength Other
@@ -397,6 +398,8 @@ namespace ACE.Factories
             new int[] { 274, 275, 276, 277, 278, 279, 2281 },
             ////Magic Resist Other
             new int[] { 268, 269, 270, 271, 272, 273, 2280 },
+            ////Magic Yield Other
+            new int[] { 280, 281, 282, 283, 284, 285, 2282 },
             ////Light Weapon
             new int[] { 298, 299, 300, 301, 302, 303, 2275 },
             ////Light Weapon Other
@@ -557,6 +560,9 @@ namespace ACE.Factories
             new int[] { 3499, 3500, 3501, 3502, 3503, 3504, 3519 },
             ////Salvaging Other
             new int[] { 3506, 3507, 3508, 3509, 3510, 3511, 3512 },
+
+            /* LIFE SPELLS */
+
             ////Regeneration
             new int[] { 165, 166, 167, 168, 169, 170, 2185 },
             ////Regeneration Other
@@ -569,39 +575,74 @@ namespace ACE.Factories
             new int[] { 212, 213, 214, 215, 216, 217, 2183 },
             ////Mana Renewal Other
             new int[] { 206, 207, 208, 209, 210, 211, 2182 },
+            ////Infuse Health
+            new int[] { 1225, 1226, 1227, 1228, 1229, 1230, 2335 },
+            ////Infuse Stamina
+            new int[] { 1243, 1244, 1245, 1246, 1247, 1248, 2337 },
+            ////Infuse Mana
+            new int[] { 9, 1255, 1256, 1257, 1258, 1259, 2336 },
+            ////Stamina to Mana Self
+            new int[] { 1676, 1677, 1678, 1679, 1680, 1681, 2345 },
+            ////Heal Self
+            new int[] { 6, 1157, 1158, 1159, 1160, 1161, 2073 },
+            ////Heal Other
+            new int[] { 5, 1162, 1163, 1164, 1165, 1166, 2072 },
+            ////Revit Self
+            new int[] { 1177, 1178, 1179, 1180, 1181, 1182, 2083 },
+            ////Revit Other
+            new int[] { 1183, 1184, 1185, 1186, 1187, 1189, 2082 },
             ////Acid Prot
             new int[] { 515, 516, 517, 518, 519, 520, 2149 },
             ////Acid Prot Other
             new int[] { 509, 510, 511, 512, 513, 514, 2148 },
-            ////Brudge Prot
+            ////Acid Vuln Other
+            new int[] { 521, 522, 523, 524, 525, 526, 2162 },
+            ////Blud Prot
             new int[] { 1018, 1019, 1020, 1021, 1022, 1023, 2153 },
-            ////Brudge Prot Other
+            ////Blud Prot Other
             new int[] { 1024, 1025, 1026, 1027, 1028, 1029, 2152 },
+            ////Blud Vuln Other
+            new int[] { 1048, 1049, 1050, 1051, 1052, 1053, 2166 },
             ////Cold Prot
             new int[] { 1030, 1031, 1032, 1033, 1034, 1035, 2155 },
             ////Cold Prot Other
             new int[] { 1036, 1037, 1038, 1039, 1040, 1041, 2154 },
+            ////Cold Vuln Other
+            new int[] { 1060, 1061, 1062, 1063, 1064, 1065, 2168 },
             ////Lightning Prot
             new int[] { 1066, 1067, 1068, 1069, 1070, 1071, 2159 },
             ////Lightning Prot Other
             new int[] { 1072, 1073, 1074, 1075, 1076, 1077, 2158 },
+            ////Lightning Vuln Other
+            new int[] { 1084, 1085, 1086, 1087, 1088, 1089, 2172 },
             ////Fire Prot
             new int[] { 20, 1090,1091, 1092, 1093, 1094, 2157 },
             ////Fire Prot Other
             new int[] { 19, 810, 836, 849, 1095, 1096, 2156 },
+            ////Fire Vuln Other
+            new int[] { 21, 1104, 1105, 1106, 1107, 1108, 2170 },
             ////Blade Prot
             new int[] { 1109, 1110, 1111, 1112, 1113, 1114, 2151 },
             ////Blade Prot Other
             new int[] { 1115, 1116, 1117, 1118, 1119, 1120, 2150 },
+            ////Blade Vuln Other
+            new int[] { 1127, 1128, 1129, 1130, 1131, 1132, 2164 },
             ////Pierce Prot
             new int[] { 1133, 1134, 1135, 1136, 1137, 1138, 2161 },
             ////Pierce Prot Other
             new int[] { 1139, 1140, 1141, 1142, 1143, 1144, 2160 },
+            ////Pierce Vuln Other
+            new int[] { 1151, 1152, 1153, 1154, 1155, 1156, 2174 },
             ////Armor Self
             new int[] { 24, 1308, 1309, 1310, 1311, 1312, 2053 },
             ////Armor Other
             new int[] { 23, 1313, 1314, 1315, 1316, 1317, 2052 },
-            ////Imp
+            ////Imperil Other
+            new int[] { 25, 1323, 1324, 1325, 1326, 1327, 2074 },
+
+            /* ITEM SPELLS */
+
+            ////Impen
             new int[] { 51, 1482, 1483, 1484, 1485, 1486, 2108 },
             ////Blade Bane
             new int[] { 37, 1558, 1559, 1560, 1561, 1562, 2094 },
@@ -617,16 +658,33 @@ namespace ACE.Factories
             new int[] { 1547, 1548, 1549, 1550, 1551, 1552, 2102 },
             ////Pierce Bane
             new int[] { 1569, 1570, 1571, 1572, 1573, 1574, 2113 },
-            ////Heart Seeker
+            ////Heart Seeker Self
             new int[] { 1587, 1588, 1589, 1590, 1591, 1592, 2106 },
-            ////Defender
+            ////Heart Seeker Other
+            new int[] { 6007, 6008, 6009, 6010, 6011, 6012, 6013 },
+            ////Defender Self
             new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101 },
-            ////SwiftKiller
+            ////Defender Other
+            new int[] { 5999, 6000, 6001, 6002, 6003, 6004, 6005 },
+            ////SwiftKiller Self
             new int[] { 49, 1623, 1624, 1625, 1626, 1627, 2116 },
-            ////Blooddrinker
+            ////SwiftKiller Other
+            new int[] { 6024, 6025, 6026, 6027, 6028, 6029, 6030 },
+            ////Blooddrinker Self
             new int[] { 35, 1612, 1613, 1614, 1615, 1616, 2096 },
-            ////Hermetic Link
+            ////Blooddrinker Other
+            new int[] { 5990, 5991, 5992, 5993, 5994, 5995, 5996 },
+            ////Hermetic Link Self
             new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117 },
+            ////Hermetic Link Other
+            new int[] { 5982, 5983, 5984, 5985, 5986, 5987, 5988 },
+            ////Spirit Drinker Self
+            new int[] { 3253, 3254, 3255, 3256, 3257, 3258, 3259 },
+            ////Spirit Drinker Other
+            new int[] { 6015, 6016, 6017, 6018, 6019, 6020, 6021 },
+
+            /* WAR SPELLS */
+
             // Flame Bolt
             new int[] { 27, 81, 1477, 1478, 1479, 1480, 2128 },
             // Frost Bolt
@@ -697,6 +755,9 @@ namespace ACE.Factories
             new int[] { 0, 0, 147, 148, 149, 150, 2134 },
             // Blade Volley
             new int[] { 0, 0, 151, 152, 153, 154, 2125 },
+
+            /* VOID SPELLS */
+
             // Nether Bolt
             new int[] { 5349, 5350, 5351, 5352, 5353, 5354, 5355 },
             // Nether Streak
