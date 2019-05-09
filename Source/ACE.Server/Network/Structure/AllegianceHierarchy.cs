@@ -7,19 +7,19 @@ using ACE.Entity.Enum;
 
 namespace ACE.Server.Network.Structure
 {
-    public class AllegianceHeirarchy
+    public class AllegianceHierarchy
     {
         public AllegianceProfile Profile;
 
-        public AllegianceHeirarchy(AllegianceProfile profile)
+        public AllegianceHierarchy(AllegianceProfile profile)
         {
             Profile = profile;
         }
     }
 
-    public static class AllegianceHeirarchyExtensions
+    public static class AllegianceHierarchyExtensions
     {
-        public static void Write(this BinaryWriter writer, AllegianceHeirarchy heirarchy)
+        public static void Write(this BinaryWriter writer, AllegianceHierarchy hierarchy)
         {
             // ushort - recordCount - Number of character allegiance records
             // ushort - oldVersion = 0x000B - Defines which properties are available. 0x000B seems to be the latest version which includes all properties.
@@ -65,8 +65,8 @@ namespace ACE.Server.Network.Structure
             AllegianceData monarchData = null;
             List<Tuple<ObjectGuid, AllegianceData>> records = null;
 
-            var allegiance = heirarchy.Profile.Allegiance;
-            var node = heirarchy.Profile.Node;
+            var allegiance = hierarchy.Profile.Allegiance;
+            var node = hierarchy.Profile.Node;
 
             if (allegiance != null && node != null)
             {
@@ -82,8 +82,10 @@ namespace ACE.Server.Network.Structure
                 }
 
                 allegianceName = allegiance.AllegianceName ?? allegiance.Monarch.Player.Name;
-                motd = allegiance.AllegianceMotd ?? "";
-                motdSetBy = allegiance.AllegianceMotdSetBy ?? "";
+                //motd = allegiance.AllegianceMotd ?? "";
+                //motdSetBy = allegiance.AllegianceMotdSetBy ?? "";
+                motd = "";          // fixes decal AllegianceUpdate parsing
+                motdSetBy = "";
                 chatRoomID = allegiance.Biota.Id;
 
                 if (allegiance.Sanctuary != null)
