@@ -86,7 +86,12 @@ namespace ACE.Server.Network.GameEvent.Events
             var keyA = a % TableSize;
             var keyB = b % TableSize;
 
-            return keyA.CompareTo(keyB);
+            var result = keyA.CompareTo(keyB);
+
+            if (result == 0)
+                result = a.CompareTo(b);
+
+            return result;
         }
     }
 }
