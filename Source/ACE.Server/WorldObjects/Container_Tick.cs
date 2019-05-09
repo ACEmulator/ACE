@@ -1,13 +1,20 @@
+using System.Linq;
+
 namespace ACE.Server.WorldObjects
 {
     partial class Container
     {
         public override void Heartbeat(double currentUnixTime)
         {
-            foreach (var wo in Inventory.Values)
+            // added where clause
+            foreach (var wo in Inventory.Values.Where(i => i.EnchantmentManager.HasEnchantments))
             {
-                if (wo.NextHeartbeatTime <= currentUnixTime)
-                    wo.Heartbeat(currentUnixTime);
+                // FIXME: wo.NextHeartbeatTime is double.MaxValue here
+                //if (wo.NextHeartbeatTime <= currentUnixTime)
+                //wo.Heartbeat(currentUnixTime);
+
+                // just go by parent heartbeats, only for enchantments?
+                wo.EnchantmentManager.HeartBeat(HeartbeatInterval);
             }
 
             // for landblock containers

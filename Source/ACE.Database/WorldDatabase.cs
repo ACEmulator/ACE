@@ -77,7 +77,8 @@ namespace ACE.Database
 
             bool isCreature = weenieType == WeenieType.Creature || weenieType == WeenieType.Cow ||
                               weenieType == WeenieType.Sentinel || weenieType == WeenieType.Admin ||
-                              weenieType == WeenieType.Vendor;
+                              weenieType == WeenieType.Vendor ||
+                              weenieType == WeenieType.CombatPet || weenieType == WeenieType.Pet;
 
             //.Include(r => r.LandblockInstances)   // When we grab a weenie, we don't need to also know everywhere it exists in the world
             //.Include(r => r.PointsOfInterest)     // I think these are just foreign keys for the POI table

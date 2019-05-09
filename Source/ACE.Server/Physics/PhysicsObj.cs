@@ -1563,6 +1563,12 @@ namespace ACE.Server.Physics
                         newPos.Frame.set_vector_heading(Vector3.Normalize(Velocity));
                 }
 
+                if (GetBlockDist(Position, newPos) > 1)
+                {
+                    Console.WriteLine($"WARNING: failed transition for {Name} from {Position} to {newPos}\n");
+                    return;
+                }
+
                 var transit = transition(Position, newPos, false);
 
                 if (transit != null)
@@ -1604,10 +1610,38 @@ namespace ACE.Server.Physics
             if (ScriptManager != null) ScriptManager.UpdateScripts();
         }
 
+        public static int GetBlockDist(Position a, Position b)
+        {
+            // protection, figure out FastTeleport state
+            if (a == null || b == null)
+                return 0;
+
+            return GetBlockDist(a.ObjCellID, b.ObjCellID);
+        }
+
+        public static int GetBlockDist(uint a, uint b)
+        {
+            var lbx_a = a >> 24;
+            var lby_a = (a >> 16) & 0xFF;
+
+            var lbx_b = b >> 24;
+            var lby_b = (b >> 16) & 0xFF;
+
+            var dx = (int)Math.Abs(lbx_a - lbx_b);
+            var dy = (int)Math.Abs(lby_a - lby_b);
+
+            return Math.Max(dx, dy);
+        }
+
         public void UpdateObjectInternalServer(double quantum)
         {
             //var offsetFrame = new AFrame();
             //UpdatePhysicsInternal((float)quantum, ref offsetFrame);
+            if (GetBlockDist(Position, RequestPos) > 1)
+            {
+                Console.WriteLine($"WARNING: failed transition for {Name} from {Position} to {RequestPos}\n");
+                return;
+            }
 
             var transit = transition(Position, RequestPos, false);
             if (transit != null)

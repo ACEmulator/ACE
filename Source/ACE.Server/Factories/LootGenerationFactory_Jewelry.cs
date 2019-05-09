@@ -22,12 +22,14 @@ namespace ACE.Server.Factories
             if (gemLootMatrixIndex > 4) gemLootMatrixIndex = 4;
             int upperLimit = LootTables.GemsMatrix[gemLootMatrixIndex].Length - 1;
 
-            gemType = (uint)LootTables.GemsMatrix[gemLootMatrixIndex][ThreadSafeRandom.Next(0, upperLimit)];
+            uint gemWCID = (uint)LootTables.GemsWCIDsMatrix[gemLootMatrixIndex][ThreadSafeRandom.Next(0, upperLimit)];
 
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemType) as Gem;
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemWCID) as Gem;
 
             if (wo == null)
                 return null;
+
+            gemType = (uint)wo.MaterialType;
 
             workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
@@ -111,13 +113,19 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
+            int materialType = GetMaterialType(wo, tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             int workmanship = GetWorkmanship(tier);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
+
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);

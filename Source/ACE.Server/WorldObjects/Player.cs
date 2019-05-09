@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
                 //    character.IsAdvocate= true;
             }
 
-            ContainerCapacity = 7;
+            ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
 
             if (Session != null && AdvocateQuest && IsAdvocate) // Advocate permissions are per character regardless of override
             {
@@ -266,6 +266,10 @@ namespace ACE.Server.WorldObjects
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
             }
+
+            if (creature is Pet || creature is CombatPet)
+                success = true;
+
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
             if (!success && player != null)
@@ -377,7 +381,9 @@ namespace ACE.Server.WorldObjects
             var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
             if (book == null) return;
 
-            book.ModifyPage(pageId, pageText);
+            var success = book.ModifyPage(pageId, pageText, this);
+
+            Session.Network.EnqueueSend(new GameEventBookModifyPageResponse(Session, bookGuid, pageId, true));
         }
 
         public void HandleActionBookDeletePage(uint bookGuid, uint pageId)
@@ -386,7 +392,7 @@ namespace ACE.Server.WorldObjects
             var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
             if (book == null) return;
 
-            var success = book.DeletePage(pageId);
+            var success = book.DeletePage(pageId, this);
 
             Session.Network.EnqueueSend(new GameEventBookDeletePageResponse(Session, bookGuid, pageId, success));
         }

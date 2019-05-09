@@ -185,7 +185,7 @@ namespace ACE.Server.WorldObjects
                 // increase value of salvage bag - salvage skill is a factor,
                 // if bags aren't being combined here
                 var valueFactor = (float)added / amountProduced;
-                if (item.WeenieType != WeenieType.CraftTool)
+                if (item.ItemType != ItemType.TinkeringMaterial)
                     valueFactor *= GetCreatureSkill(Skill.Salvaging).Current / 387.0f;  // TODO: take augs into account
 
                 var addedValue = (int)Math.Round((item.Value ?? 0) * valueFactor);
@@ -220,7 +220,7 @@ namespace ACE.Server.WorldObjects
             salvageBag.ItemWorkmanship = workmanship_bag + workmanship_item * item_numItems;
 
             // increment # of items that went into this salvage bag
-            if (item.WeenieType == WeenieType.CraftTool)
+            if (item.ItemType == ItemType.TinkeringMaterial)
             {
                 item_numItems = item.NumItemsInMaterial ?? 1;
 
@@ -249,7 +249,7 @@ namespace ACE.Server.WorldObjects
 
             salvageBag.Name = $"Salvage ({salvageBag.Structure})";
 
-            if (item.WeenieType == WeenieType.CraftTool)
+            if (item.ItemType == ItemType.TinkeringMaterial)
             {
                 if (!PropertyManager.GetBool("salvage_handle_overages").Item)
                     return tryAmount;
@@ -271,7 +271,7 @@ namespace ACE.Server.WorldObjects
 
             // is this a bag of salvage?
             // if so, return its existing structure
-            if (salvageItem.WeenieType == WeenieType.CraftTool)
+            if (salvageItem.ItemType == ItemType.TinkeringMaterial)
                 return salvageItem.Structure.Value;
 
             var workmanship = salvageItem.Workmanship ?? 1.0f;

@@ -1,3 +1,4 @@
+using System.Linq;
 
 namespace ACE.Server.WorldObjects
 {
@@ -8,15 +9,24 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void Heartbeat(double currentUnixTime)
         {
-            foreach (var wo in EquippedObjects.Values)
+            // added where clause
+            foreach (var wo in EquippedObjects.Values.Where(i => i.EnchantmentManager.HasEnchantments))
             {
-                if (wo.NextHeartbeatTime <= currentUnixTime)
-                    wo.Heartbeat(currentUnixTime);
+                // FIXME: wo.NextHeartbeatTime is double.MaxValue here
+                //if (wo.NextHeartbeatTime <= currentUnixTime)
+                    //wo.Heartbeat(currentUnixTime);
+
+                // just go by parent heartbeats, only for enchantments?
+                // TODO: handle players dropping / picking up items
+                wo.EnchantmentManager.HeartBeat(HeartbeatInterval);
+
             }
 
             VitalHeartBeat();
 
             EmoteManager.HeartBeat();
+
+            DamageHistory.TryPrune();
 
             base.Heartbeat(currentUnixTime);
         }

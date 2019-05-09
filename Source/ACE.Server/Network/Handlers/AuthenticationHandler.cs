@@ -80,7 +80,7 @@ namespace ACE.Server.Network.Handlers
             if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
             {
                 // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
-                session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(CharacterError.Undefined));
+                session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(CharacterError.ServerCrash1));
                 return;
             }
 
@@ -101,7 +101,7 @@ namespace ACE.Server.Network.Handlers
                 {
                     //log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
 
-                    session.Terminate(SessionTerminationReason.PongSentClosingConnection, new GameMessageCharacterError(CharacterError.Undefined));
+                    session.Terminate(SessionTerminationReason.PongSentClosingConnection, new GameMessageCharacterError(CharacterError.ServerCrash1));
 
                     return;
                 }
@@ -111,7 +111,7 @@ namespace ACE.Server.Network.Handlers
                 else
                     log.Debug($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
 
-                session.Terminate(SessionTerminationReason.NotAuthorizedNoPasswordOrGlsTicketIncludedInLoginReq, new GameMessageCharacterError(CharacterError.AccountInUse));
+                session.Terminate(SessionTerminationReason.NotAuthorizedNoPasswordOrGlsTicketIncludedInLoginReq, new GameMessageCharacterError(CharacterError.AccountInvalid));
 
                 return;
             }
@@ -124,7 +124,7 @@ namespace ACE.Server.Network.Handlers
 
             if (WorldManager.Find(account.AccountName) != null)
             {
-                session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.AccountInUse));
+                session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.ServerCrash1));
                 return;
             }
 

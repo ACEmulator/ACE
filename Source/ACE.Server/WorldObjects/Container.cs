@@ -58,6 +58,12 @@ namespace ACE.Server.WorldObjects
             var creature = this as Creature;
             if (creature == null)
                 GenerateContainList();
+
+            if (!ContainerCapacity.HasValue)
+                ContainerCapacity = 0;
+
+            if (!UseRadius.HasValue)
+                UseRadius = 0.5f;
         }
 
 
@@ -131,14 +137,22 @@ namespace ACE.Server.WorldObjects
             OnInitialInventoryLoadCompleted();
         }
 
+        /// <summary>
+        /// Counts the number of actual inventory items, ignoring Packs/Foci.
+        /// </summary>
+        private int CountPackItems()
+        {
+            return Inventory.Values.Count(wo => !wo.UseBackpackSlot && !(wo is Container));
+        }
+
         public int GetFreeInventorySlots(bool includeSidePacks = true)
         {
-            int freeSlots = (ItemCapacity ?? 0) - Inventory.Count;
+            int freeSlots = (ItemCapacity ?? 0) - CountPackItems();
 
             if (includeSidePacks)
             {
                 foreach (var sidePack in Inventory.Values.OfType<Container>())
-                    freeSlots += (sidePack.ItemCapacity ?? 0) - sidePack.Inventory.Count;
+                    freeSlots += (sidePack.ItemCapacity ?? 0) - sidePack.CountPackItems();
             }
 
             return freeSlots;
@@ -483,8 +497,8 @@ namespace ACE.Server.WorldObjects
                     Close(null);
                 else if (Viewer == player.Guid.Full)
                     Close(player);
-
-                // else error msg?
+                else
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is already in use by someone else!"));
             }
         }
 
@@ -663,5 +677,13 @@ namespace ACE.Server.WorldObjects
         }
 
         public virtual MotionCommand MotionPickup => MotionCommand.Pickup;
+
+        /// <summary>
+        /// Mainly used to mark containers (corpse) inventory loaded for proper decay rules
+        /// </summary>
+        public void MarkAsInventoryLoaded()
+        {
+            InventoryLoaded = true;
+        }
     }
 }

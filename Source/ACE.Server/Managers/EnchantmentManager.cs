@@ -35,7 +35,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns TRUE if this object has any active enchantments in the registry
         /// </summary>
-        public bool HasEnchantments => WorldObject.Biota.HasEnchantments(WorldObject.BiotaDatabaseLock);
+        public virtual bool HasEnchantments => WorldObject.Biota.HasEnchantments(WorldObject.BiotaDatabaseLock);
 
         /// <summary>
         /// Returns TRUE If this object has a vitae penalty
@@ -272,7 +272,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Adds a cooldown spell to the enchantment registry
         /// </summary>
-        public bool StartCooldown(WorldObject item)
+        public virtual bool StartCooldown(WorldObject item)
         {
             var cooldownID = item.CooldownId;
             if (cooldownID == null)
@@ -950,9 +950,9 @@ namespace ACE.Server.Managers
 
 
         /// <summary>
-        /// Returns the weapon damage modifier, ie. Blood Drinker
+        /// Returns the weapon damage bonus, ie. Blood Drinker
         /// </summary>
-        public virtual int GetDamageMod()
+        public virtual int GetDamageBonus()
         {
             var damageMod = GetAdditiveMod(PropertyInt.Damage);
             var auraDamageMod = GetAdditiveMod(PropertyInt.WeaponAuraDamage);
@@ -971,7 +971,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the DamageMod for bow / crossbow
         /// </summary>
-        public virtual float GetDamageModifier()
+        public virtual float GetDamageMod()
         {
             return GetMultiplicativeMod(PropertyFloat.DamageMod);
         }
@@ -1188,8 +1188,11 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Called every ~5 seconds for active object
         /// </summary>
-        public void HeartBeat()
+        public void HeartBeat(double? heartbeatInterval = null)
         {
+            if (heartbeatInterval == null)
+                heartbeatInterval = WorldObject.HeartbeatInterval ?? 5;
+
             var expired = new List<BiotaPropertiesEnchantmentRegistry>();
 
             var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
@@ -1197,10 +1200,10 @@ namespace ACE.Server.Managers
 
             foreach (var enchantment in enchantments)
             {
-                enchantment.StartTime -= WorldObject.HeartbeatInterval ?? 5;
+                enchantment.StartTime -= heartbeatInterval.Value;
 
                 // StartTime ticks backwards to -Duration
-                if (enchantment.Duration > 0 && enchantment.StartTime <= -enchantment.Duration)
+                if (enchantment.Duration >= 0 && enchantment.StartTime <= -enchantment.Duration)
                     expired.Add(enchantment);
             }
 

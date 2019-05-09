@@ -9,7 +9,7 @@ namespace ACE.Server.WorldObjects
 {
     /// <summary>
     /// Helper class for arrows / bolts / thrown weapons
-    /// outside of the WorldObject heirarchy
+    /// outside of the WorldObject hierarchy
     /// </summary>
     public class Projectile
     {

@@ -1724,32 +1724,37 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("debugdamage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles the display for player damage info", "/debugdamage <attack|defense|all|on|off>")]
         public static void HandleDebugDamage(Session session, params string[] parameters)
         {
+            // get last appraisal player target
+            var targetPlayer = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
+            if (targetPlayer == null) return;
+
             if (parameters.Length == 0)
             {
                 // toggle
-                if (session.Player.DebugDamage == Player.DebugDamageType.None)
-                    session.Player.DebugDamage = Player.DebugDamageType.All;
+                if (targetPlayer.DebugDamage == Player.DebugDamageType.None)
+                    targetPlayer.DebugDamage = Player.DebugDamageType.All;
                 else
-                    session.Player.DebugDamage = Player.DebugDamageType.None;
+                    targetPlayer.DebugDamage = Player.DebugDamageType.None;
             }
             else
             {
                 var param = parameters[0].ToLower();
                 if (param.Equals("on") || param.Equals("all"))
-                    session.Player.DebugDamage = Player.DebugDamageType.All;
+                    targetPlayer.DebugDamage = Player.DebugDamageType.All;
                 else if (param.Equals("off"))
-                    session.Player.DebugDamage = Player.DebugDamageType.None;
+                    targetPlayer.DebugDamage = Player.DebugDamageType.None;
                 else if (param.StartsWith("attack"))
-                    session.Player.DebugDamage = Player.DebugDamageType.Attacker;
+                    targetPlayer.DebugDamage = Player.DebugDamageType.Attacker;
                 else if (param.StartsWith("defen"))
-                    session.Player.DebugDamage = Player.DebugDamageType.Defender;
+                    targetPlayer.DebugDamage = Player.DebugDamageType.Defender;
                 else
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: unknown {param}", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - unknown {param} ({targetPlayer.Name})", ChatMessageType.Broadcast));
                     return;
                 }
             }
-            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: {session.Player.DebugDamage}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - {session.Player.DebugDamage} ({targetPlayer.Name})", ChatMessageType.Broadcast));
+            targetPlayer.DebugDamageTarget = session.Player.Guid;
         }
 
         /// <summary>
@@ -1924,8 +1929,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            var tsysMutationData = lootTest.GetProperty(PropertyInt.TsysMutationData);
-            if (tsysMutationData == null)
+            if (lootTest.TsysMutationData == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie has a missing PropertyInt.TsysMutationData needed for this function.", ChatMessageType.Broadcast));
                 return;
@@ -1933,6 +1937,61 @@ namespace ACE.Server.Command.Handlers
 
             WorldObject loot = LootGenerationFactory.CreateLootByWCID(weenieClassId, tier);
             session.Player.TryCreateInInventoryWithNetworking(loot);
+        }
+
+        [CommandHandler("ciloot", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generates randomized loot in player's inventory", "<tier> optional: <# items>")]
+        public static void HandleCILoot(Session session, params string[] parameters)
+        {
+            var tier = 1;
+            int.TryParse(parameters[0], out tier);
+            tier = Math.Clamp(tier, 1, 8);
+
+            var numItems = 1;
+            if (parameters.Length > 1)
+                int.TryParse(parameters[1], out numItems);
+
+            for (var i = 0; i < numItems; i++)
+            {
+                var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
+                if (wo != null)
+                    session.Player.TryCreateInInventoryWithNetworking(wo);
+                else
+                    log.Error($"{session.Player.Name}.HandleCILoot: LootGenerationFactory.CreateRandomLootObjects({tier}) returned null");
+            }
+        }
+
+        [CommandHandler("makeiou", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Make an IOU and put it in your inventory","<wcid>")]
+        public static void HandleMakeIOU(Session session, params string[] parameters)
+        {
+            string weenieClassDescription = parameters[0];
+            bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
+
+            if (!wcid)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"WCID must be a valid weenie id", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var iou = PlayerFactory.CreateIOU(weenieClassId);
+
+            if (iou != null)
+                session.Player.TryCreateInInventoryWithNetworking(iou);
+        }
+
+        [CommandHandler("testdeathitems", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Test death item selection", "")]
+        public static void HandleTestDeathItems(Session session, params string[] parameters)
+        {
+            var inventory = session.Player.GetAllPossessions();
+            var sorted = new DeathItems(inventory);
+
+            var i = 0;
+            foreach (var item in sorted.Inventory)
+            {
+                if ((item.WorldObject.Bonded ?? 0) != 0)
+                    continue;
+
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{++i}. {item.Name} ({item.Category}, AdjustedValue: {item.AdjustedValue})", ChatMessageType.Broadcast));
+            }
         }
     }
 }

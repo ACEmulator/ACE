@@ -153,8 +153,16 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        player.EarnXP((long)emote.Amount64, XpType.Quest, true);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
+                        var amt = (long)emote.Amount64;
+                        if (amt >= 1)
+                        {
+                            player.EarnXP(amt, XpType.Quest, true);
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
+                        }
+                        else if (amt < 0)
+                        {
+                            player.SpendXP(-amt);
+                        }
                     }
                     break;
 
@@ -326,7 +334,7 @@ namespace ACE.Server.Managers
                             }
                         }
                         else
-                            item = PlayerFactory.CreateIOU(player, (uint)emote.WeenieClassId);
+                            item = PlayerFactory.CreateIOU((uint)emote.WeenieClassId);
 
                         success = player.TryCreateInInventoryWithNetworking(item);
 
@@ -440,7 +448,7 @@ namespace ACE.Server.Managers
                     if (targetObject != null)
                     {
                         var stat = targetObject.GetProperty((PropertyInt64)emote.Stat) ?? 0;
-                        success = stat >= emote.Min && stat <= emote.Max;
+                        success = stat >= emote.Min64 && stat <= emote.Max64;
 
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
@@ -1357,6 +1365,8 @@ namespace ACE.Server.Managers
 
         public void OnDeath(DamageHistory damageHistory)
         {
+            IsBusy = false;
+
             if (damageHistory.Damagers.Count == 0)
                 ExecuteEmoteSet(EmoteCategory.Death, null, null);
             else 

@@ -125,8 +125,8 @@ namespace ACE.Server.WorldObjects
 
             foreach (var kvp in DamageHistory.TotalDamage)
             {
-                var damager = kvp.Key;
-                var totalDamage = kvp.Value;
+                var damager = kvp.Value.TryGetWorldObject();
+                var totalDamage = kvp.Value.Value;
 
                 var playerDamager = damager as Player;
                 if (playerDamager == null)
@@ -156,7 +156,17 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected void CreateCorpse(WorldObject killer)
         {
-            if (NoCorpse) return;
+            if (NoCorpse)
+            {
+                var loot = GenerateTreasure(null);
+
+                foreach(var item in loot)
+                {
+                    item.Location = new Position(Location);
+                    LandblockManager.AddObject(item);
+                }
+                return;
+            }
 
             var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
             var prefix = "Corpse";
@@ -257,6 +267,7 @@ namespace ACE.Server.WorldObjects
             if (CanGenerateRare && killer != null)
                 corpse.GenerateRare(killer);
 
+            corpse.MarkAsInventoryLoaded();
             corpse.EnterWorld();
 
             if (this is Player p)
@@ -280,15 +291,20 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Transfers generated treasure from creature to corpse
         /// </summary>
-        private void GenerateTreasure(Corpse corpse)
+        private List<WorldObject> GenerateTreasure(Corpse corpse)
         {
+            var droppedItems = new List<WorldObject>();
+
             // create death treasure from loot generation factory
             if (DeathTreasure != null)
             {
                 List<WorldObject> items = LootGenerationFactory.CreateRandomLootObjects(DeathTreasure);
                 foreach (WorldObject wo in items)
                 {
-                    corpse.TryAddToInventory(wo);
+                    if (corpse != null)
+                        corpse.TryAddToInventory(wo);
+                    else
+                        droppedItems.Add(wo);
                 }
             }
 
@@ -303,7 +319,12 @@ namespace ACE.Server.WorldObjects
                 var wo = WorldObjectFactory.CreateNewWorldObject(item);
 
                 if (wo != null)
-                    corpse.TryAddToInventory(wo);
+                {
+                    if (corpse != null)
+                        corpse.TryAddToInventory(wo);
+                    else
+                        droppedItems.Add(wo);
+                }
             }
 
             // move wielded treasure over
@@ -316,8 +337,13 @@ namespace ACE.Server.WorldObjects
                 if (TryDequipObjectWithBroadcasting(item.Guid, out var wo, out var wieldedLocation))
                     TryAddToInventory(wo);
 
-                corpse.TryAddToInventory(item);
+                if (corpse != null)
+                    corpse.TryAddToInventory(item);
+                else
+                    droppedItems.Add(item);
             }
+
+            return droppedItems;
         }
     }
 }

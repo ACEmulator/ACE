@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
 
         public double? CycleTimeVariance
         {
-            get => GetProperty(PropertyFloat.HotspotCycleTimeVariance);
+            get => GetProperty(PropertyFloat.HotspotCycleTimeVariance) ?? 0;
             set { if (value == null) RemoveProperty(PropertyFloat.HotspotCycleTimeVariance); else SetProperty(PropertyFloat.HotspotCycleTimeVariance, (double)value); }
         }
 
@@ -109,7 +109,7 @@ namespace ACE.Server.WorldObjects
             get
             {
                 var r = GetBaseDamage();
-                var p = ThreadSafeRandom.Next(r.Min, r.Max);
+                var p = ThreadSafeRandom.Next(r.MinDamage, r.MaxDamage);
                 return p;
             }
         }
@@ -164,7 +164,13 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case DamageType.Mana:
-                    player.UpdateVitalDelta(player.Mana, iAmount);
+                    player.UpdateVitalDelta(player.Mana, -iAmount);
+                    break;
+                case DamageType.Stamina:
+                    player.UpdateVitalDelta(player.Stamina, -iAmount);
+                    break;
+                case DamageType.Health:
+                    player.UpdateVitalDelta(player.Health, -iAmount);
                     break;
             }
 
@@ -173,6 +179,10 @@ namespace ACE.Server.WorldObjects
 
             if (!string.IsNullOrWhiteSpace(ActivationTalk))
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", Math.Abs(iAmount).ToString()), ChatMessageType.Broadcast));
+
+            // perform activation emote
+            if (ActivationResponse.HasFlag(ActivationResponse.Emote))
+                OnEmote(player);
         }
     }
 }

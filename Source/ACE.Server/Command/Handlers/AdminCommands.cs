@@ -185,14 +185,15 @@ namespace ACE.Server.Command.Handlers
                     break;
             }
             playerSession = plr.Session;
-            string bootText = $"{((session != null) ? "Player: " + session.Player.Name + " has booted " : "Console booted ")} player: {plr.Name} id: { plr.Guid.Full}";
+            string whoDid = (session != null) ? session.Player.Name : "console";
+            string bootText = $"{whoDid} has booted player: {plr.Name} id: { plr.Guid.Full}";
 
             string specifiedReason = aceParams[2].Value != null ? aceParams[2].AsString : null;
 
             // Boot the player
             playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);
 
-            PlayerManager.BroadcastToAuditChannel(session.Player, bootText);
+            PlayerManager.BroadcastToAuditChannel(session?.Player, bootText);
 
             // log the boot to file
             log.Info(bootText);
@@ -1322,15 +1323,6 @@ namespace ACE.Server.Command.Handlers
             if (notOK) ChatPacket.SendServerMessage(session, "Appraise a locked target before using @crack", ChatMessageType.Broadcast);
         }
 
-        // cm <material type> <quantity> <ave. workmanship>
-        [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
-        public static void HandleCM(Session session, params string[] parameters)
-        {
-            // Format is: @cm <material type> <quantity> <ave. workmanship>
-
-            // TODO: output
-        }
-
         /// <summary>
         /// Displays how much experience the last appraised creature is worth when killed.
         /// </summary>
@@ -2354,6 +2346,97 @@ namespace ACE.Server.Command.Handlers
                 allegiance.ShowInfo();
                 Console.WriteLine("---------------");
             }
+        }
+
+        [CommandHandler("verify-xp", AccessLevel.Admin, CommandHandlerFlag.None, 0, "fixes skill ranks from spec temple", "")]
+        public static void HandleVerifySkill(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllOffline();
+
+            foreach (var player in players)
+            {
+                var updated = false;
+
+                foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                {
+                    var rank = skill.LevelFromPP;
+
+                    var sac = (SkillAdvancementClass)skill.SAC;
+                    if (sac < SkillAdvancementClass.Trained)
+                        continue;
+
+                    var correctRank = Player.CalcSkillRank(sac, skill.PP);
+
+                    if (rank != correctRank)
+                    {
+                        Console.WriteLine($"{player.Name}'s {(Skill)skill.Type} rank is {rank}, should be {correctRank}");
+                        skill.LevelFromPP = (ushort)correctRank;
+                        updated = true;
+                    }
+                }
+                if (updated)
+                    player.SaveBiotaToDatabase();
+            }
+        }
+
+        [CommandHandler("getenchantments", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Shows the enchantments for the last appraised item", "")]
+        public static void HandleGetEnchantments(Session session, params string[] parameters)
+        {
+            var item = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (item == null) return;
+
+            var enchantments = item.EnchantmentManager.GetEnchantments_TopLayer(item.Biota.GetEnchantments(item.BiotaDatabaseLock));
+
+            foreach (var enchantment in enchantments)
+            {
+                var e = new Network.Structure.Enchantment(item, enchantment);
+                var info = e.GetInfo();
+                session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            }
+        }
+      
+        // cm <material type> <quantity> <ave. workmanship>
+        [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
+        public static void HandleCM(Session session, params string[] parameters)
+        {
+            // Format is: @cm <material type> <quantity> <ave. workmanship>
+            HandleCISalvage(session);
+
+            // TODO: output
+        }
+
+        [CommandHandler("cisalvage", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
+        public static void HandleCISalvage(Session session, params string[] parameters)
+        {
+            if (!Enum.TryParse(parameters[0], out MaterialType materialType))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find material type {parameters[0]}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var wcid = (uint)Player.MaterialSalvage[(int)materialType];
+            var salvageBag = WorldObjectFactory.CreateNewWorldObject(wcid);
+
+            ushort structure = 100;
+            if (parameters.Length > 1)
+                ushort.TryParse(parameters[1], out structure);
+
+            var workmanship = 10f;
+            if (parameters.Length > 2)
+                float.TryParse(parameters[2], out workmanship);
+
+            var numItemsInMaterial = (int)Math.Round(workmanship);
+            if (parameters.Length > 3)
+                int.TryParse(parameters[3], out numItemsInMaterial);
+
+            var itemWorkmanship = (int)Math.Round(workmanship * numItemsInMaterial);
+
+            salvageBag.Name = $"Salvage ({structure})";
+            salvageBag.Structure = structure;
+            salvageBag.ItemWorkmanship = itemWorkmanship;
+            salvageBag.NumItemsInMaterial = numItemsInMaterial;
+
+            session.Player.TryCreateInInventoryWithNetworking(salvageBag);
         }
     }
 }

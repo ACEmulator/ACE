@@ -88,11 +88,7 @@ namespace ACE.Server.Managers
                 craftChain.AddDelaySeconds(stanceTime);
             }
 
-            var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
-            craftChain.AddAction(player, () => player.EnqueueBroadcastMotion(motion));
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
-            var craftAnimationLength = motionTable.GetAnimationLength(MotionCommand.ClapHands);
-            craftChain.AddDelaySeconds(craftAnimationLength);
+            player.EnqueueMotion(craftChain, MotionCommand.ClapHands);
 
             craftChain.AddAction(player, () =>
             {
@@ -162,21 +158,26 @@ namespace ACE.Server.Managers
                 player.IsBusy = false;
             });
 
+            player.EnqueueMotion(craftChain, MotionCommand.Ready);
+
             craftChain.EnqueueChain();
         }
 
-        public static float DoCraftMotion(Player player)
+        public static float DoMotion(Player player, MotionCommand motionCommand)
         {
-            var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
+            var motion = new Motion(MotionStance.NonCombat, motionCommand);
             player.EnqueueBroadcastMotion(motion);
 
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
-            var craftAnimationLength = motionTable.GetAnimationLength(MotionCommand.ClapHands);
+            var craftAnimationLength = motionTable.GetAnimationLength(motionCommand);
             return craftAnimationLength;
         }
 
         public static void HandleTinkering(Player player, WorldObject tool, WorldObject target, bool confirmed = false)
         {
+            double successChance;
+            bool incItemTinkered = true;
+
             Console.WriteLine($"{player.Name}.HandleTinkering({tool.Name}, {target.Name})");
 
             // calculate % success chance
@@ -198,84 +199,98 @@ namespace ACE.Server.Managers
             var recipeSkill = (Skill)recipe.Skill;
             var skill = player.GetCreatureSkill(recipeSkill);
 
-            // tinkering skill must be trained
-            if (skill.AdvancementClass < SkillAdvancementClass.Trained)
+            // Tinkering skill not required to apply Ivory or Leather
+            if (materialType != MaterialType.Ivory && materialType != MaterialType.Leather)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are not trained in {skill.Skill.ToSentence()}.", ChatMessageType.Broadcast));
-                player.SendUseDoneEvent();
-                return;
+                // tinkering skill must be trained
+                if (skill.AdvancementClass < SkillAdvancementClass.Trained)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are not trained in {skill.Skill.ToSentence()}.", ChatMessageType.Broadcast));
+                    player.SendUseDoneEvent();
+                    return;
+                }
+
+                // thanks to Endy's Tinkering Calculator for this formula!
+                var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
+
+                successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
+
+                // imbue: divide success by 3
+                if (recipe.SalvageType == 2)
+                {
+                    successChance /= 3.0f;
+
+                    if (player.AugmentationBonusImbueChance > 0)
+                        successChance += player.AugmentationBonusImbueChance * 0.05f;
+                }
+
+                // handle rare foolproof material
+                if (tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106)
+                    successChance = 1.0f;
+
+                // check for player option: 'Use Crafting Chance of Success Dialog'
+                if (player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) && !confirmed)
+                {
+                    var percent = (float)successChance * 100;
+                    var decimalPlaces = 2;
+                    var truncated = percent.Truncate(decimalPlaces);
+
+                    var templateMsg = $"You have a % chance of using {tool.Name} on {target.Name}.";
+                    var floorMsg = templateMsg.Replace("%", (int)percent + "%");
+                    var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
+                    var exactMsg = templateMsg.Replace("%", percent + "%");
+
+                    var confirm = new Confirmation(ConfirmationType.CraftInteraction, floorMsg, tool, target, player);
+                    ConfirmationManager.AddConfirmation(confirm);
+
+                    player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.CraftInteraction, confirm.ConfirmationID, floorMsg));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
+
+                    player.SendUseDoneEvent();
+                    return;
+                }
             }
-
-            // thanks to Endy's Tinkering Calculator for this formula!
-            var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
-
-            var successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
-
-            // imbue: divide success by 3
-            if (recipe.SalvageType == 2)
+            else
             {
-                successChance /= 3.0f;
-
-                if (player.AugmentationBonusImbueChance > 0)
-                    successChance += player.AugmentationBonusImbueChance * 0.05f;
-            }
-
-            // handle rare foolproof material
-            if (tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106)
+                // Applying Ivory and Leather is always successful and doesn't consume one of the ten tinking slots
                 successChance = 1.0f;
-
-            // check for player option: 'Use Crafting Chance of Success Dialog'
-            if (player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) && !confirmed)
-            {
-                var percent = (float)successChance * 100;
-                var decimalPlaces = 2;
-                var truncated = percent.Truncate(decimalPlaces);
-
-                var templateMsg = $"You have a % chance of using {tool.Name} on {target.Name}.";
-                var floorMsg = templateMsg.Replace("%", (int)percent + "%");
-                var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
-                var exactMsg = templateMsg.Replace("%", percent + "%");
-
-                var confirm = new Confirmation(ConfirmationType.CraftInteraction, floorMsg, tool, target, player);
-                ConfirmationManager.AddConfirmation(confirm);
-
-                player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.CraftInteraction, confirm.ConfirmationID, floorMsg));
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
-
-                player.SendUseDoneEvent();
-                return;
+                incItemTinkered = false;
             }
 
-            var animLength = DoCraftMotion(player);
+            var animLength = DoMotion(player, MotionCommand.ClapHands);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(player, () => DoTinkering(player, tool, target, (float)successChance));
+            actionChain.AddAction(player, () => DoTinkering(player, tool, target, (float)successChance, incItemTinkered));
+            actionChain.AddAction(player, () => DoMotion(player, MotionCommand.Ready));
             actionChain.EnqueueChain();
         }
 
-        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance)
+        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance, bool incItemTinkered)
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
+            var materialName = GetMaterialName(tool.MaterialType ?? 0);
 
             if (success)
             {
-                Tinkering_ModifyItem(player, tool, target);
+                Tinkering_ModifyItem(player, tool, target, incItemTinkered);
 
                 // send local broadcast
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {tool.Name} (workmanship {(tool.Workmanship ?? 0).Round(2)}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
             }
             else
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {tool.Name} (workmanship {(tool.Workmanship ?? 0).Round(2)}) to the {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
 
             var recipe = GetRecipe(player, tool, target);
             CreateDestroyItems(player, recipe, tool, target, success);
 
-            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog))
+            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog)
+                    || (tool.MaterialType ?? 0) == MaterialType.Ivory
+                    || (tool.MaterialType ?? 0) == MaterialType.Leather)
                 player.SendUseDoneEvent();
         }
 
-        public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target)
+        public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target, bool incItemTinkered = true)
         {
             var recipe = GetRecipe(player, tool, target);
 
@@ -329,7 +344,8 @@ namespace ACE.Server.Managers
                     target.EncumbranceVal = (int)Math.Round((target.EncumbranceVal ?? 1) * 0.75f);
                     break;
                 case MaterialType.Ivory:
-                    target.SetProperty(PropertyInt.Attuned, 0);
+                    // Recipe already handles this correctly
+                    //target.SetProperty(PropertyInt.Attuned, 0);
                     break;
                 case MaterialType.Leather:
                     target.SetProperty(PropertyBool.Retained, true);
@@ -486,8 +502,10 @@ namespace ACE.Server.Managers
                     Console.WriteLine($"Unknown material type: {materialType}");
                     return;
             }
-            // increase # of times tinkered
-            target.NumTimesTinkered++;
+
+            // increase # of times tinkered, if appropriate
+            if (incItemTinkered)
+                target.NumTimesTinkered++;
         }
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
@@ -639,27 +657,6 @@ namespace ACE.Server.Managers
             3.5f,   // 8
             4.0f,   // 9
             4.5f    // 10
-        };
-
-        public enum RequirementType
-        {
-            Target = 0,
-            Source = 1,
-            Player = 2
-        };
-
-        // todo: verify
-        public enum CompareType
-        {
-            GreaterThan,        // 0
-            LessThanEqual,      // 1
-            LessThan,           // 2
-            GreaterThanEqual,   // 3
-            NotEqual,           // 4
-            NotEqualNotExist,   // 5
-            Equal,              // 6
-            NotExist,           // 7
-            Exist               // 8
         };
 
         public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject source, WorldObject target)
@@ -939,16 +936,38 @@ namespace ACE.Server.Managers
             }
         }
 
-        public enum ModifyOp
+        public static WorldObject GetSourceMod(RecipeSourceType sourceType, Player player, WorldObject source)
         {
-            None,       // 0
-            SetValue,   // 1
-            Add,        // 2
-            CopyTarget, // 3
-            CopyCreate, // 4
-            Unknown1,   // 5
-            Unknown2,   // 6
-            AddSpell    // 7
+            switch (sourceType)
+            {
+                case RecipeSourceType.Player:
+                    return player;
+                case RecipeSourceType.Source:
+                    return source;
+            }
+            log.Warn($"RecipeManager.GetSourceMod({sourceType}, {player.Name}, {source.Name}) - unknown source type");
+            return null;
+        }
+
+        public static WorldObject GetTargetMod(ModificationType type, WorldObject source, WorldObject target, Player player, WorldObject result)
+        {
+            switch (type)
+            {
+                case ModificationType.SuccessSource:
+                case ModificationType.FailureSource:
+                    return source;
+
+                default:
+                    return target;
+
+                case ModificationType.SuccessPlayer:
+                case ModificationType.FailurePlayer:
+                    return player;
+
+                case ModificationType.SuccessResult:
+                case ModificationType.FailureResult:
+                    return result ?? target;
+            }
         }
 
         public static void ModifyItem(Player player, Recipe recipe, WorldObject source, WorldObject target, WorldObject result, bool success)
@@ -959,10 +978,11 @@ namespace ACE.Server.Managers
                     continue;
 
                 // apply base mod
+                // adjust vitals, but all appear to be 0 in current database?
 
                 // apply type mods
                 foreach (var boolMod in mod.RecipeModsBool)
-                    ModifyBool(boolMod, source, target);
+                    ModifyBool(player, boolMod, source, target, result);
 
                 foreach (var intMod in mod.RecipeModsInt)
                     ModifyInt(player, intMod, source, target, result);
@@ -981,69 +1001,52 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void ModifyBool(RecipeModsBool boolMod, WorldObject source, WorldObject target)
+        public static void ModifyBool(Player player, RecipeModsBool boolMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)boolMod.Enum;
+            var op = (ModificationOperation)boolMod.Enum;
             var prop = (PropertyBool)boolMod.Stat;
             var value = boolMod.Value;
 
+            var targetMod = GetTargetMod((ModificationType)boolMod.Index, source, target, player, result);
+
             // always SetValue?
-            if (op != ModifyOp.SetValue)
+            if (op != ModificationOperation.SetValue)
             {
                 log.Warn($"RecipeManager.ModifyBool({source.Name}, {target.Name}): unhandled operation {op}");
                 return;
             }
-            target.SetProperty(prop, value);
-        }
-
-        public enum SourceType
-        {
-            Player  = 0,
-            Source  = 1,
-            Dye     = 60
-        };
-
-        public static WorldObject GetSourceMod(SourceType sourceType, Player player, WorldObject source)
-        {
-            switch (sourceType)
-            {
-                case SourceType.Player:
-                    return player;
-                case SourceType.Source:
-                    return source;
-            }
-            log.Warn($"RecipeManager.GetSourceMod({sourceType}, {player.Name}, {source.Name}) - unknown source type");
-            return null;
+            targetMod.SetProperty(prop, value);
         }
 
         public static void ModifyInt(Player player, RecipeModsInt intMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)intMod.Enum;
+            var op = (ModificationOperation)intMod.Enum;
             var prop = (PropertyInt)intMod.Stat;
             var value = intMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)intMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)intMod.Source, player, source);
+            var targetMod = GetTargetMod((ModificationType)intMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
-                    target.SetProperty(prop, value);
+                case ModificationOperation.SetValue:
+                    targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.Add:
-                    target.IncProperty(prop, value);
+                case ModificationOperation.Add:
+                    targetMod.IncProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
+                case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
-                case ModifyOp.CopyCreate:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                case ModificationOperation.CopyFromSourceToResult:
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);     // ??
                     break;
-                case ModifyOp.AddSpell:
+                case ModificationOperation.AddSpell:
                     if (value != -1)
                     {
-                        target.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, target.BiotaPropertySpells, out var added);
+                        targetMod.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, target.BiotaPropertySpells, out var added);
                         if (added)
-                            target.ChangesDetected = true;
+                            targetMod.ChangesDetected = true;
                     }
                     break;
                 default:
@@ -1054,24 +1057,25 @@ namespace ACE.Server.Managers
 
         public static void ModifyFloat(Player player, RecipeModsFloat floatMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)floatMod.Enum;
+            var op = (ModificationOperation)floatMod.Enum;
             var prop = (PropertyFloat)floatMod.Stat;
             var value = floatMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)floatMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)floatMod.Source, player, source);
+            var targetMod = GetTargetMod((ModificationType)floatMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
-                    target.SetProperty(prop, value);
+                case ModificationOperation.SetValue:
+                    targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.Add:
-                    target.IncProperty(prop, value);
+                case ModificationOperation.Add:
+                    targetMod.IncProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
+                case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
-                case ModifyOp.CopyCreate:
+                case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 default:
@@ -1082,21 +1086,22 @@ namespace ACE.Server.Managers
 
         public static void ModifyString(Player player, RecipeModsString stringMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)stringMod.Enum;
+            var op = (ModificationOperation)stringMod.Enum;
             var prop = (PropertyString)stringMod.Stat;
             var value = stringMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)stringMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)stringMod.Source, player, source);
+            var targetMod = GetTargetMod((ModificationType)stringMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
-                    target.SetProperty(prop, value);
+                case ModificationOperation.SetValue:
+                    targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
+                case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
                     break;
-                case ModifyOp.CopyCreate:
+                case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
                     break;
                 default:
@@ -1107,22 +1112,23 @@ namespace ACE.Server.Managers
 
         public static void ModifyInstanceID(Player player, RecipeModsIID iidMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)iidMod.Enum;
+            var op = (ModificationOperation)iidMod.Enum;
             var prop = (PropertyInstanceId)iidMod.Stat;
             var value = iidMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)iidMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)iidMod.Source, player, source);
+            var targetMod = GetTargetMod((ModificationType)iidMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
-                    target.SetProperty(prop, value);
+                case ModificationOperation.SetValue:
+                    targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
-                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                case ModificationOperation.CopyFromSourceToTarget:
+                    target.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
                     break;
-                case ModifyOp.CopyCreate:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                case ModificationOperation.CopyFromSourceToResult:
+                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));     // ??
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInstanceID({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1130,29 +1136,58 @@ namespace ACE.Server.Managers
             }
         }
 
+        private static uint ModifyInstanceIDRuleSet(PropertyInstanceId property, WorldObject sourceMod, WorldObject targetMod)
+        {
+            switch (property)
+            {
+                case PropertyInstanceId.AllowedWielder:
+                case PropertyInstanceId.AllowedActivator:
+                    return sourceMod.Guid.Full;
+                default:
+                    break;
+            }
+
+            return sourceMod.GetProperty(property) ?? 0;
+        }
+
         public static void ModifyDataID(Player player, RecipeModsDID didMod, WorldObject source, WorldObject target, WorldObject result)
         {
-            var op = (ModifyOp)didMod.Enum;
+            var op = (ModificationOperation)didMod.Enum;
             var prop = (PropertyDataId)didMod.Stat;
             var value = didMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)didMod.Source, player, source);
+            var sourceMod = GetSourceMod((RecipeSourceType)didMod.Source, player, source);
+            var targetMod = GetTargetMod((ModificationType)didMod.Index, source, target, player, result);
 
             switch (op)
             {
-                case ModifyOp.SetValue:
-                    target.SetProperty(prop, value);
+                case ModificationOperation.SetValue:
+                    targetMod.SetProperty(prop, value);
                     break;
-                case ModifyOp.CopyTarget:
+                case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
-                case ModifyOp.CopyCreate:
+                case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
                     break;
             }
+        }
+
+        public static uint MaterialDualDID = 0x27000000;
+
+        public static string GetMaterialName(MaterialType materialType)
+        {
+            var dualDIDs = DatManager.PortalDat.ReadFromDat<DualDidMapper>(MaterialDualDID);
+
+            if (!dualDIDs.ClientEnumToName.TryGetValue((uint)materialType, out var materialName))
+            {
+                log.Error($"RecipeManager.GetMaterialName({materialType}): couldn't find material name");
+                return materialType.ToString();
+            }
+            return materialName.Replace("_", " ");
         }
     }
 }

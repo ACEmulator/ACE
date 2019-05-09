@@ -104,26 +104,26 @@ namespace ACE.Server.Factories
                 if (hat != null)
                     player.TryEquipObject(hat, hat.ValidLocations ?? 0);
                 else
-                    player.TryAddToInventory(CreateIOU(player, sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle)));
+                    player.TryAddToInventory(CreateIOU(sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle)));
             }
 
             var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle), characterCreateInfo.Apperance.ShirtColor, characterCreateInfo.Apperance.ShirtHue);
             if (shirt != null)
                 player.TryEquipObject(shirt, shirt.ValidLocations ?? 0);
             else
-                player.TryAddToInventory(CreateIOU(player, sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle)));
+                player.TryAddToInventory(CreateIOU(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle)));
 
             var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle), characterCreateInfo.Apperance.PantsColor, characterCreateInfo.Apperance.PantsHue);
             if (pants != null)
                 player.TryEquipObject(pants, pants.ValidLocations ?? 0);
             else
-                player.TryAddToInventory(CreateIOU(player, sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle)));
+                player.TryAddToInventory(CreateIOU(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle)));
 
             var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle), characterCreateInfo.Apperance.FootwearColor, characterCreateInfo.Apperance.FootwearHue);
             if (shoes != null)
                 player.TryEquipObject(shoes, shoes.ValidLocations ?? 0);
             else
-                player.TryAddToInventory(CreateIOU(player, sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle)));
+                player.TryAddToInventory(CreateIOU(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle)));
 
             string templateName = heritageGroup.Templates[characterCreateInfo.TemplateOption].Name;
             //player.SetProperty(PropertyString.Title, templateName);
@@ -213,6 +213,12 @@ namespace ACE.Server.Factories
 
             var isDualWieldTrainedOrSpecialized = player.Skills[Skill.DualWield].AdvancementClass > SkillAdvancementClass.Untrained;
 
+            // Set Heritage based Melee and Ranged Masteries
+            GetMasteries(player.HeritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery);
+
+            player.SetProperty(PropertyInt.MeleeMastery, (int)meleeMastery);
+            player.SetProperty(PropertyInt.RangedMastery, (int)rangedMastery);
+
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
             var grantedWeenies = new List<uint>();
@@ -242,7 +248,7 @@ namespace ACE.Server.Factories
                         }
                         else
                         {
-                            player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                            player.TryAddToInventory(CreateIOU(item.WeenieId));
                         }
 
                         if (loot != null && player.TryAddToInventory(loot))
@@ -259,7 +265,7 @@ namespace ACE.Server.Factories
                                 }
                                 else
                                 {
-                                    player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                    player.TryAddToInventory(CreateIOU(item.WeenieId));
                                 }
                             }
                         }
@@ -288,7 +294,7 @@ namespace ACE.Server.Factories
                             }
                             else
                             {
-                                player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                player.TryAddToInventory(CreateIOU(item.WeenieId));
                             }
 
                             if (loot != null && player.TryAddToInventory(loot))
@@ -305,7 +311,7 @@ namespace ACE.Server.Factories
                                     }
                                     else
                                     {
-                                        player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                        player.TryAddToInventory(CreateIOU(item.WeenieId));
                                     }
                                 }
                             }
@@ -453,12 +459,72 @@ namespace ACE.Server.Factories
             return worldObject;
         }
 
-        public static WorldObject CreateIOU(Player player, uint missingWeenieId)
+        /// <summary>
+        /// Set Heritage based Melee and Ranged Masteries
+        /// </summary>
+        /// <param name="heritageGroup"></param>
+        /// <param name="meleeMastery"></param>
+        /// <param name="rangedMastery"></param>
+        private static void GetMasteries(HeritageGroup heritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery)
+        {
+            switch (heritageGroup)
+            {
+                case HeritageGroup.Aluvian:
+                    meleeMastery = WeaponType.Dagger;
+                    rangedMastery = WeaponType.Bow;
+                    break;
+                case HeritageGroup.Gharundim:
+                    meleeMastery = WeaponType.Staff;
+                    rangedMastery = WeaponType.Magic;
+                    break;
+                case HeritageGroup.Sho:
+                    meleeMastery = WeaponType.Unarmed;
+                    rangedMastery = WeaponType.Bow;
+                    break;
+                case HeritageGroup.Viamontian:
+                    meleeMastery = WeaponType.Sword;
+                    rangedMastery = WeaponType.Crossbow;
+                    break;
+                case HeritageGroup.Penumbraen:
+                case HeritageGroup.Shadowbound:
+                    meleeMastery = WeaponType.Unarmed;
+                    rangedMastery = WeaponType.Crossbow;
+                    break;
+                case HeritageGroup.Gearknight:
+                    meleeMastery = WeaponType.Mace;
+                    rangedMastery = WeaponType.Crossbow;
+                    break;
+                case HeritageGroup.Tumerok:
+                    meleeMastery = WeaponType.Spear;
+                    rangedMastery = WeaponType.Thrown;
+                    break;
+                case HeritageGroup.Undead:
+                case HeritageGroup.Lugian:
+                    meleeMastery = WeaponType.Axe;
+                    rangedMastery = WeaponType.Thrown;
+                    break;
+                case HeritageGroup.Empyrean:
+                    meleeMastery = WeaponType.Sword;
+                    rangedMastery = WeaponType.Magic;
+                    break;
+                default:
+                    meleeMastery = WeaponType.Undef;
+                    rangedMastery = WeaponType.Undef;
+                    break;
+            }
+    }
+
+        public static WorldObject CreateIOU(uint missingWeenieId)
         {
             var iou = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
 
             iou.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "ACEmulator", "prewritten");
-            iou.AddPage(player.Guid.Full, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
+            iou.AddPage(uint.MaxValue, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
+            iou.Bonded = (int)BondedStatus.Bonded;
+            iou.Attuned = (int)AttunedStatus.Attuned;
+            iou.SetProperty(PropertyBool.IsSellable, false);
+            iou.Value = 0;
+            iou.EncumbranceVal = 0;
 
             return iou;
         }

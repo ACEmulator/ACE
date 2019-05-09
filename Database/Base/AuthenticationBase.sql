@@ -52,7 +52,7 @@ CREATE TABLE `account` (
   `accountId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `accountName` varchar(50) NOT NULL,
   `passwordHash` varchar(88) NOT NULL COMMENT 'base64 encoded version of the hashed passwords.  88 characters are needed to base64 encode SHA512 output.',
-  `passwordSalt` varchar(88) NOT NULL COMMENT 'base64 encoded version of the password salt.  512 byte salts (88 characters when base64 encoded) are recommend for SHA512.',
+  `passwordSalt` varchar(88) NOT NULL DEFAULT 'use bcrypt' COMMENT 'This is no longer used, except to indicate if bcrypt is being employed for migration purposes. Previously: base64 encoded version of the password salt.  512 byte salts (88 characters when base64 encoded) are recommend for SHA512.',
   `accessLevel` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`accountId`),
   UNIQUE KEY `accountName_uidx` (`accountName`),
@@ -70,7 +70,7 @@ CREATE TABLE `account` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-09-23 14:43:29
+-- Dump completed on 2019-04-29  2:19:44
  
 /*
 -- Query: SELECT * FROM ace_auth.accesslevel

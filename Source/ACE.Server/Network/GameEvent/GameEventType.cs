@@ -19,6 +19,7 @@ namespace ACE.Server.Network.GameEvent
         FellowshipQuit                         = 0x00A3,
         FellowshipDismiss                      = 0x00A4,
         BookDataResponse                       = 0x00B4,
+        BookModifyPageResponse                 = 0x00B5,
         BookAddPageResponse                    = 0x00B6,
         BookDeletePageResponse                 = 0x00B7,
         BookPageDataResponse                   = 0x00B8,

@@ -138,6 +138,9 @@ namespace ACE.Server.WorldObjects
                 if (!(creature.GetProperty(PropertyBool.Attackable) ?? false))
                     continue;
 
+                if (creature is CombatPet && (player != null || this is CombatPet))
+                    continue;
+
                 // no objects in cleave range
                 var distSquared = Location.SquaredDistanceTo(creature.Location);
                 if (distSquared > CleaveRangeSq)

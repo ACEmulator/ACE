@@ -84,6 +84,9 @@ namespace ACE.Server.WorldObjects
             // their effects won't be seen if they broadcast from themselves
             if (target != null && spell.TargetEffect != 0)
                 target.EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+            if (caster != null && spell.CasterEffect != 0)
+                caster.EnqueueBroadcast(new GameMessageScript(caster.Guid, spell.CasterEffect, spell.Formula.Scale));
         }
 
         /// <summary>
@@ -292,6 +295,8 @@ namespace ACE.Server.WorldObjects
                     resisted = true;
                 }
             }
+            if (target == this)
+                resisted = false;
 
             if (resisted)
             {
@@ -724,7 +729,9 @@ namespace ACE.Server.WorldObjects
 
                             case SpellId.LifestoneSending1:
 
-                                if (player.GetPosition(PositionType.Sanctuary) != null)
+                                if (player != null && player.GetPosition(PositionType.Sanctuary) != null)
+                                    recall = PositionType.Sanctuary;
+                                else if (targetPlayer != null && targetPlayer.GetPosition(PositionType.Sanctuary) != null)
                                     recall = PositionType.Sanctuary;
 
                                 break;
@@ -764,9 +771,9 @@ namespace ACE.Server.WorldObjects
                             {
                                 // lifestone recall
                                 ActionChain lifestoneRecall = new ActionChain();
-                                lifestoneRecall.AddAction(targetPlayer, () => player.DoPreTeleportHide());
+                                lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                                 lifestoneRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                                lifestoneRecall.AddAction(targetPlayer, () => player.TeleToPosition(recall));
+                                lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.TeleToPosition(recall));
                                 lifestoneRecall.EnqueueChain();
                             }
                             else
@@ -785,9 +792,9 @@ namespace ACE.Server.WorldObjects
                                 }
 
                                 ActionChain portalRecall = new ActionChain();
-                                portalRecall.AddAction(targetPlayer, () => player.DoPreTeleportHide());
+                                portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                                 portalRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                                portalRecall.AddAction(targetPlayer, () => player.Teleport(portal.Destination));
+                                portalRecall.AddAction(targetPlayer, () => targetPlayer.Teleport(portal.Destination));
                                 portalRecall.EnqueueChain();
                             }
                         }

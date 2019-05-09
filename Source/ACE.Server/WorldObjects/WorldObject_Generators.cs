@@ -343,9 +343,12 @@ namespace ACE.Server.WorldObjects
 
             var now = (int)Time.GetUnixTime();
 
-            GeneratorDisabled = ((now < GeneratorStartTime) && (GeneratorStartTime > 0)) || ((now > GeneratorEndTime) && (GeneratorEndTime > 0));
+            var start = (now < GeneratorStartTime) && (GeneratorStartTime > 0);
+            var end = (now > GeneratorEndTime) && (GeneratorEndTime > 0);
 
-            HandleStatus(prevDisabled);
+            //GeneratorDisabled = ((now < GeneratorStartTime) && (GeneratorStartTime > 0)) || ((now > GeneratorEndTime) && (GeneratorEndTime > 0));
+
+            HandleStatus(prevDisabled, start, end);
         }
 
         /// <summary>
@@ -364,23 +367,50 @@ namespace ACE.Server.WorldObjects
             var enabled = EventManager.IsEventEnabled(GeneratorEvent);
             var started = EventManager.IsEventStarted(GeneratorEvent);
 
-            GeneratorDisabled = !enabled || !started;
+            //GeneratorDisabled = !enabled || !started;
 
-            HandleStatus(prevState);
+            HandleStatus(prevState, enabled, started);
         }
+
+        private bool armed = false;
 
         /// <summary>
         /// Handles starting/stopping the generator
         /// </summary>
-        public void HandleStatus(bool prevDisabled)
+        public void HandleStatus(bool prevDisabled, bool cond1, bool cond2)
         {
-            if (prevDisabled == GeneratorDisabled)
-                return;     // no state change
+            //if (prevDisabled == GeneratorDisabled)
+            //    return;     // no state change
 
-            if (prevDisabled)
-                StartGenerator();
+            var change = false;
+            switch (GeneratorTimeType)
+            {
+                case GeneratorTimeType.RealTime:
+                    change = cond1 || cond2;
+                    break;
+                case GeneratorTimeType.Event:
+                    change = !cond1 || !cond2;
+                    break;
+            }
+
+            if (armed)
+            {
+                //var prevState = GeneratorDisabled;
+                GeneratorDisabled = change;
+
+                if (!GeneratorDisabled)
+                    StartGenerator();
+                else
+                    DisableGenerator();
+
+                //GeneratorDisabled = change;
+                armed = false;
+            }
             else
-                DisableGenerator();
+            {
+                if (prevDisabled != change)
+                    armed = true;
+            }
         }
 
         /// <summary>
@@ -416,6 +446,7 @@ namespace ACE.Server.WorldObjects
 
                         generator.Spawned.Clear();
                         generator.SpawnQueue.Clear();
+                        CurrentCreate = 0;
                     }
                     break;
                 case GeneratorDestruct.Nothing:
@@ -429,6 +460,7 @@ namespace ACE.Server.WorldObjects
 
                         generator.Spawned.Clear();
                         generator.SpawnQueue.Clear();
+                        CurrentCreate = 0;
                     }
                     break;
             }

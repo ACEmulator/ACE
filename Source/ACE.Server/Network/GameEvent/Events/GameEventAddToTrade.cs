@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameEvent.Events
         {
             Writer.Write(objectGuid);
             Writer.Write((uint)tradeSide);
-            Writer.Align();
+            Writer.Write(0);    // location / slot
         }
     }
 }
