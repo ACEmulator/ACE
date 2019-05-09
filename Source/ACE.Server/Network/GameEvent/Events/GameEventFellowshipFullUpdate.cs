@@ -28,13 +28,11 @@ namespace ACE.Server.Network.GameEvent.Events
             #region PackableHashTable of fellowship table - <ObjectID,Fellow>
             // the current number of fellowship members
             Writer.Write((ushort)fellowship.FellowshipMembers.Count); //count - number of items in the table
-            Writer.Write((ushort)16);    // static table size from retail pcaps
-            //Writer.Write(FellowComparer.TableSize);    // static table size from retail pcaps
+            Writer.Write(FellowComparer.TableSize);    // static table size from retail pcaps
 
             // --- FellowInfo ---
 
-            var fellowshipMembers = new SortedDictionary<uint, Player>(fellowship.GetFellowshipMembers());
-            //var fellowshipMembers = new SortedDictionary<uint, Player>(fellowship.GetFellowshipMembers(), FellowComparer);
+            var fellowshipMembers = new SortedDictionary<uint, Player>(fellowship.GetFellowshipMembers(), FellowComparer);
             foreach (Player fellow in fellowshipMembers.Values)
             {
                 // Write data associated with each fellowship member
@@ -88,7 +86,12 @@ namespace ACE.Server.Network.GameEvent.Events
             var keyA = a % TableSize;
             var keyB = b % TableSize;
 
-            return keyA.CompareTo(keyB);
+            var result = keyA.CompareTo(keyB);
+
+            if (result == 0)
+                result = a.CompareTo(b);
+
+            return result;
         }
     }
 }
