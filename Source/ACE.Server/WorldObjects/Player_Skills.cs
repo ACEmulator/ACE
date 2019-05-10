@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 
 using ACE.Database;
 using ACE.DatLoader;
@@ -208,11 +208,14 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount"></param>
         public void AwardSkillXP(Skill skill, uint amount)
         {
+            var xpTable = DatManager.PortalDat.XpTable;
+            var maxLevelXp = xpTable.CharacterLevelXPList.Last();
+
             var playerSkill = GetCreatureSkill(skill);
 
             if (!IsSkillMaxRank(playerSkill.Ranks, playerSkill.AdvancementClass))
             {
-                if (AvailableExperience < UInt32.MaxValue)
+                if ((ulong)(AvailableExperience ?? 0) < maxLevelXp)
                     GrantXP(amount, XpType.Emote, false);
                 RaiseSkillGameAction(skill, amount, false);
             }
