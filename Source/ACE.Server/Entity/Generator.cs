@@ -8,7 +8,6 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
@@ -37,6 +36,11 @@ namespace ACE.Server.Entity
         /// The list of pending times awaiting respawning
         /// </summary>
         public readonly List<DateTime> SpawnQueue = new List<DateTime>();
+
+        /// <summary>
+        /// The 
+        /// </summary>
+        public readonly Queue<(DateTime time, uint objectGuid)> RemoveQueue = new Queue<(DateTime time, uint objectGuid)>();
 
         /// <summary>
         /// Returns TRUE if this profile is a placeholder object
@@ -93,6 +97,12 @@ namespace ACE.Server.Entity
         /// </summary>
         public void HeartBeat()
         {
+            while (RemoveQueue.TryPeek(out var result) && result.time <= DateTime.UtcNow)
+            {
+                RemoveQueue.Dequeue();
+                FreeSlot(result.objectGuid);
+            }
+
             if (SpawnQueue.Count > 0)
                 ProcessQueue();
         }
@@ -409,11 +419,7 @@ namespace ACE.Server.Entity
             if (_generator is Chest || _generator.RegenerationInterval == 0)
                 delay = 0;
 
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(delay);
-            actionChain.AddAction(_generator, () => FreeSlot(woi.Guid.Full));
-            actionChain.EnqueueChain();
-            //Enqueue(1, false);
+            RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(delay), woi.Guid.Full));
         }
 
         public void FreeSlot(uint objectGuid)
