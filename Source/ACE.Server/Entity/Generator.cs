@@ -404,6 +404,9 @@ namespace ACE.Server.Entity
         {
             //log.Debug($"{_generator.Name}.NotifyGenerator({target:X8}, {eventType})");
 
+            if (eventType == RegenerationType.PickUp && (RegenerationType)Biota.WhenCreate == RegenerationType.Destruction)
+                eventType = RegenerationType.Destruction;
+
             if (Biota.WhenCreate != (uint)eventType)
                 return;
 
