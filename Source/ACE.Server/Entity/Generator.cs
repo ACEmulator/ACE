@@ -73,7 +73,16 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The delay for respawning objects
         /// </summary>
-        public float Delay { get => Biota.Delay ?? _generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f; }
+        public float Delay
+        {
+            get
+            {
+                if (_generator is Chest || _generator.RegenerationInterval == 0)
+                    return 0;
+
+                return Biota.Delay ?? _generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f;
+            }
+        }
 
         /// <summary>
         /// The parent for this generator profile
@@ -414,12 +423,7 @@ namespace ACE.Server.Entity
 
             if (woi == null) return;
 
-            //log.Debug($"{_generator.Name}.NotifyGenerator({target}, {eventType}) - RegenerationInterval: {_generator.RegenerationInterval} - Delay: {Biota.Delay} - Link Delay: {_generator.GeneratorProfiles[0].Biota.Delay}");
-            var delay = Delay;
-            if (_generator is Chest || _generator.RegenerationInterval == 0)
-                delay = 0;
-
-            RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(delay), woi.Guid.Full));
+            RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(Delay), woi.Guid.Full));
         }
 
         public void FreeSlot(uint objectGuid)
