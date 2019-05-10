@@ -440,8 +440,10 @@ namespace ACE.Server.WorldObjects
                     {
                         foreach (var rNode in generator.Spawned.Values)
                         {
-                            if (rNode.WorldObject is Creature wo)
-                                wo.Smite(this);
+                            var wo = rNode.TryGetWorldObject();
+
+                            if (wo is Creature creature)
+                                creature.Smite(this);
                         }
 
                         generator.Spawned.Clear();
@@ -456,7 +458,12 @@ namespace ACE.Server.WorldObjects
                     foreach (var generator in GeneratorProfiles)
                     {
                         foreach (var rNode in generator.Spawned.Values)
-                            rNode.WorldObject.Destroy();
+                        {
+                            var wo = rNode.TryGetWorldObject();
+
+                            if (wo != null)
+                                wo.Destroy();
+                        }
 
                         generator.Spawned.Clear();
                         generator.SpawnQueue.Clear();

@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
         /// Directly grants XP to the player, without the XP modifier
         /// </summary>
         /// <param name="amount">The amount of XP to grant to the player</param>
-        /// <param name="passup">The source of the XP being granted</param>
+        /// <param name="xpType">The source of the XP being granted</param>
         /// <param name="shareable">If TRUE, this XP can be shared with fellowship members</param>
         public void GrantXP(long amount, XpType xpType, bool shareable = true)
         {
