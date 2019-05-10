@@ -31,12 +31,12 @@ namespace ACE.Server.Entity
         /// A list of objects that have been spawned by this generator
         /// Mapping of object guid => registry node, which provides a bunch of detailed info about the spawn
         /// </summary>
-        public Dictionary<uint, GeneratorRegistryNode> Spawned;
+        public readonly Dictionary<uint, WorldObjectInfo<GeneratorRegistryNode>> Spawned = new Dictionary<uint, WorldObjectInfo<GeneratorRegistryNode>>();
 
         /// <summary>
         /// The list of pending times awaiting respawning
         /// </summary>
-        public List<DateTime> SpawnQueue;
+        public readonly List<DateTime> SpawnQueue = new List<DateTime>();
 
         /// <summary>
         /// Returns TRUE if this profile is a placeholder object
@@ -86,9 +86,6 @@ namespace ACE.Server.Entity
         {
             _generator = generator;
             Biota = biota;
-
-            Spawned = new Dictionary<uint, GeneratorRegistryNode>();
-            SpawnQueue = new List<DateTime>();
         }
 
         /// <summary>
@@ -180,9 +177,10 @@ namespace ACE.Server.Entity
 
                             registry.WeenieClassId = Biota.WeenieClassId;
                             registry.Timestamp = DateTime.UtcNow;
-                            registry.WorldObject = obj;
 
-                            Spawned.Add(obj.Guid.Full, registry);
+                            var woi = new WorldObjectInfo<GeneratorRegistryNode>(obj, registry);
+
+                            Spawned.Add(obj.Guid.Full, woi);
                         }
                     }
                     else
@@ -423,10 +421,10 @@ namespace ACE.Server.Entity
             //Enqueue(1, false);
         }
 
-        public void FreeSlot(GeneratorRegistryNode node)
+        public void FreeSlot(WorldObjectInfo<GeneratorRegistryNode> node)
         {
-            Spawned.Remove(node.WorldObject.Guid.Full);
-            _generator.CurrentCreate--;
+            if (Spawned.Remove(node.Guid.Full))
+                _generator.CurrentCreate--;
         }
     }
 }
