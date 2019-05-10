@@ -213,7 +213,7 @@ namespace ACE.Server.WorldObjects
             if (!IsSkillMaxRank(playerSkill.Ranks, playerSkill.AdvancementClass))
             {
                 GrantXP(amount, XpType.Emote, false);
-                RaiseSkillGameAction(skill, amount, false);
+                RaiseSkillGameAction(skill, amount);
             }
         }
 
@@ -227,7 +227,7 @@ namespace ACE.Server.WorldObjects
             var prevRank = creatureSkill.Ranks;
             var prevXP = creatureSkill.ExperienceSpent;
 
-            uint result = SpendSkillXp(creatureSkill, amount, usage);
+            uint result = SpendSkillXp(creatureSkill, amount);
 
             string messageText;
 
@@ -254,10 +254,10 @@ namespace ACE.Server.WorldObjects
                 // skill usage
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
             }
-            else if (!usage)
+            else
             {
-                messageText = $"Your attempt to raise {skill} has failed!";
-                Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
+                // messageText = $"Your attempt to raise {skill} has failed!";
+                // Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
             }
         }
 
@@ -265,7 +265,7 @@ namespace ACE.Server.WorldObjects
         /// Adds experience points to a skill
         /// </summary>
         /// <returns>0 if it failed, total skill experience if successful</returns>
-        private uint SpendSkillXp(CreatureSkill skill, uint amount, bool usage = false, bool sendNetworkPropertyUpdate = true)
+        private uint SpendSkillXp(CreatureSkill skill, uint amount, bool sendNetworkPropertyUpdate = true)
         {
             uint result = 0u;
 
@@ -278,18 +278,7 @@ namespace ACE.Server.WorldObjects
 
             ushort rankUps = (ushort)(Player.CalcSkillRank(skill.AdvancementClass, skill.ExperienceSpent + amount) - skill.Ranks);
 
-            if (!usage)
-            {
-                if (SpendXP(amount, sendNetworkPropertyUpdate))
-                {
-                    if (rankUps > 0)
-                        skill.Ranks += rankUps;
-
-                    skill.ExperienceSpent += amount;
-                    result = skill.ExperienceSpent;
-                }
-            }
-            else
+            if (SpendXP(amount, sendNetworkPropertyUpdate))
             {
                 if (rankUps > 0)
                     skill.Ranks += rankUps;
@@ -323,7 +312,7 @@ namespace ACE.Server.WorldObjects
                     rank10 = xpList[Convert.ToInt32(skill.Ranks) + 10] - currentRankXp;
                 }
 
-                if (SpendSkillXp(skill, rank10, false, sendNetworkPropertyUpdate) == 0)
+                if (SpendSkillXp(skill, rank10, sendNetworkPropertyUpdate) == 0)
                     break;
             }
         }
