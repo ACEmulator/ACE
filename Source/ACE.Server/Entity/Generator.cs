@@ -31,7 +31,7 @@ namespace ACE.Server.Entity
         /// A list of objects that have been spawned by this generator
         /// Mapping of object guid => registry node, which provides a bunch of detailed info about the spawn
         /// </summary>
-        public readonly Dictionary<uint, WorldObjectInfo<GeneratorRegistryNode>> Spawned = new Dictionary<uint, WorldObjectInfo<GeneratorRegistryNode>>();
+        public readonly Dictionary<uint, WorldObjectInfo> Spawned = new Dictionary<uint, WorldObjectInfo>();
 
         /// <summary>
         /// The list of pending times awaiting respawning
@@ -173,12 +173,7 @@ namespace ACE.Server.Entity
                     {
                         foreach (var obj in objects)
                         {
-                            var registry = new GeneratorRegistryNode();
-
-                            registry.WeenieClassId = Biota.WeenieClassId;
-                            registry.Timestamp = DateTime.UtcNow;
-
-                            var woi = new WorldObjectInfo<GeneratorRegistryNode>(obj, registry);
+                            var woi = new WorldObjectInfo(obj);
 
                             Spawned.Add(obj.Guid.Full, woi);
                         }
@@ -405,9 +400,9 @@ namespace ACE.Server.Entity
             if (Biota.WhenCreate != (uint)eventType)
                 return;
 
-            Spawned.TryGetValue(target.Full, out var obj);
+            Spawned.TryGetValue(target.Full, out var woi);
 
-            if (obj == null) return;
+            if (woi == null) return;
 
             //log.Debug($"{_generator.Name}.NotifyGenerator({target}, {eventType}) - RegenerationInterval: {_generator.RegenerationInterval} - Delay: {Biota.Delay} - Link Delay: {_generator.GeneratorProfiles[0].Biota.Delay}");
             var delay = Delay;
@@ -416,14 +411,14 @@ namespace ACE.Server.Entity
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(delay);
-            actionChain.AddAction(_generator, () => FreeSlot(obj));
+            actionChain.AddAction(_generator, () => FreeSlot(woi.Guid.Full));
             actionChain.EnqueueChain();
             //Enqueue(1, false);
         }
 
-        public void FreeSlot(WorldObjectInfo<GeneratorRegistryNode> node)
+        public void FreeSlot(uint objectGuid)
         {
-            if (Spawned.Remove(node.Guid.Full))
+            if (Spawned.Remove(objectGuid))
                 _generator.CurrentCreate--;
         }
     }
