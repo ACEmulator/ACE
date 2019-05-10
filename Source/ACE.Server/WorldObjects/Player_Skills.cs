@@ -202,6 +202,23 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Wrapper method used by EmoteType.AwardSkillXP for RaiseSkillGameAction
+        /// </summary>
+        /// <param name="skill"></param>
+        /// <param name="amount"></param>
+        public void AwardSkillXP(Skill skill, uint amount)
+        {
+            var playerSkill = GetCreatureSkill(skill);
+
+            if (!IsSkillMaxRank(playerSkill.Ranks, playerSkill.AdvancementClass))
+            {
+                if (AvailableExperience < UInt32.MaxValue)
+                    GrantXP(amount, XpType.Emote, false);
+                RaiseSkillGameAction(skill, amount, false);
+            }
+        }
+
+        /// <summary>
         /// Increases a skill from the 'Raise skill' buttons, or through natural usage
         /// </summary>
         public void RaiseSkillGameAction(Skill skill, uint amount, bool usage = false)
@@ -248,10 +265,6 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Adds experience points to a skill
         /// </summary>
-        /// <remarks>
-        ///     Known Issues:
-        ///         1. Earned XP usage in ranks besides 1 or 10 need to be accounted for.
-        /// </remarks>
         /// <returns>0 if it failed, total skill experience if successful</returns>
         private uint SpendSkillXp(CreatureSkill skill, uint amount, bool usage = false, bool sendNetworkPropertyUpdate = true)
         {
@@ -264,32 +277,8 @@ namespace ACE.Server.WorldObjects
             if (skill.Ranks >= (xpList.Count - 1))
                 return result;
 
-            ushort rankUps = 0;
-            uint currentRankXp = skill.ExperienceSpent;
-            uint rank1 = xpList[Convert.ToInt32(skill.Ranks) + 1] - currentRankXp;
-            uint rank10;
-            ushort rank10Offset = 0;
+            ushort rankUps = (ushort)(Player.CalcSkillRank(skill.AdvancementClass, skill.ExperienceSpent + amount) - skill.Ranks);
 
-            if (skill.Ranks + 10 >= (xpList.Count))
-            {
-                rank10Offset = (ushort)(10 - ((skill.Ranks + 10) - (xpList.Count - 1)));
-                rank10 = xpList[skill.Ranks + rank10Offset] - currentRankXp;
-            }
-            else
-            {
-                rank10 = xpList[skill.Ranks + 10] - currentRankXp;
-            }
-
-            if (amount >= rank10)
-            {
-                if (rank10Offset > 0)
-                    rankUps = rank10Offset;
-                else
-                    rankUps = 10;
-            }
-            else if (amount >= rank1)
-                rankUps = 1;
-            
             if (!usage)
             {
                 if (SpendXP(amount, sendNetworkPropertyUpdate))

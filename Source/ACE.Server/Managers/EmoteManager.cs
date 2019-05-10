@@ -140,7 +140,7 @@ namespace ACE.Server.Managers
                 case EmoteType.AwardSkillXP:
 
                     if (player != null)
-                        player.RaiseSkillGameAction((Skill)emote.Stat, (uint)emote.Amount, true);
+                        player.AwardSkillXP((Skill)emote.Stat, (uint)emote.Amount);
                     break;
 
                 case EmoteType.AwardTrainingCredits:
