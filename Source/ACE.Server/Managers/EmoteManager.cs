@@ -134,7 +134,7 @@ namespace ACE.Server.Managers
                 case EmoteType.AwardSkillPoints:
 
                     if (player != null)
-                        player.AwardSkillPoints((Skill)emote.Stat, (uint)emote.Amount, true);
+                        player.AwardSkillPoints((Skill)emote.Stat, (uint)emote.Amount);
                     break;
 
                 case EmoteType.AwardSkillXP:

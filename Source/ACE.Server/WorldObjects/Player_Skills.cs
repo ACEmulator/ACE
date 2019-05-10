@@ -183,7 +183,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Increases a skill by some amount of points
         /// </summary>
-        public void AwardSkillPoints(Skill skill, uint amount, bool usage = false)
+        public void AwardSkillPoints(Skill skill, uint amount)
         {
             var creatureSkill = GetCreatureSkill(skill);
 
@@ -197,12 +197,12 @@ namespace ACE.Server.WorldObjects
                 if (xpToRank == uint.MaxValue)
                     return;
 
-                RaiseSkillGameAction(skill, xpToRank, usage);
+                AwardSkillXP(skill, xpToRank);
             }
         }
 
         /// <summary>
-        /// Wrapper method used by EmoteType.AwardSkillXP for RaiseSkillGameAction
+        /// Wrapper method used for increasing totalXP and then using the amount granted by RaiseSkillGameAction
         /// </summary>
         /// <param name="skill"></param>
         /// <param name="amount"></param>
@@ -220,7 +220,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Increases a skill from the 'Raise skill' buttons, or through natural usage
         /// </summary>
-        public void RaiseSkillGameAction(Skill skill, uint amount, bool usage = false)
+        public void RaiseSkillGameAction(Skill skill, uint amount)
         {
             var creatureSkill = GetCreatureSkill(skill);
 
@@ -253,11 +253,6 @@ namespace ACE.Server.WorldObjects
             {
                 // skill usage
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
-            }
-            else
-            {
-                // messageText = $"Your attempt to raise {skill} has failed!";
-                // Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
             }
         }
 
@@ -329,7 +324,7 @@ namespace ACE.Server.WorldObjects
             var nextLevelXP = GetXPBetweenSkillLevels(creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.Ranks + 1).Value;
             var amount = (uint)Math.Min(nextLevelXP * percent, max);
 
-            RaiseSkillGameAction(skill, amount, true);
+            AwardSkillXP(skill, amount);
         }
 
         /// <summary>
