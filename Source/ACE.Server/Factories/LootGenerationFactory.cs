@@ -5,7 +5,9 @@ using log4net;
 
 using ACE.Database;
 using ACE.Database.Models.World;
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Factories;
 using ACE.Server.WorldObjects;
 using System.Linq;
@@ -444,463 +446,6 @@ namespace ACE.Server.Factories
             return wield;
         }
 
-        private static double GetManaRate()
-        {
-            double manaRate = 1.0 / (double)(ThreadSafeRandom.Next(10, 30));
-            return -manaRate;
-        }
-
-        private static int GetNumSpells(int tier)
-        {
-            int chance = 0;
-            int numSpells = 0;
-            switch (tier)
-            {
-                case 1:
-                    ////1-3, minor cantrips
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 50)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 90)
-                    {
-                        numSpells = 2;
-                    }
-                    else
-                    {
-                        numSpells = 3;
-                    }
-                    break;
-                case 2:
-                    ////3-5 minor, and major
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 500)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 900)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 998)
-                    {
-                        numSpells = 4;
-                    }
-                    else
-                    {
-                        numSpells = 5;
-                    }
-                    break;
-                case 3:
-                    //4-6, major/minor
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 500)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 800)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 900)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 985)
-                    {
-                        numSpells = 5;
-                    }
-                    else
-                    {
-                        numSpells = 6;
-                    }
-                    break;
-                case 4:
-                    //5-6, major and minor
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 500)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 800)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 900)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 985)
-                    {
-                        numSpells = 5;
-                    }
-                    else
-                    {
-                        numSpells = 6;
-                    }
-                    break;
-                case 5:
-                    //5-7 major/minor
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 500)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 600)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 700)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 850)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 940)
-                    {
-                        numSpells = 5;
-                    }
-                    else if (chance < 980)
-                    {
-                        numSpells = 6;
-                    }
-                    else
-                    {
-                        numSpells = 7;
-                    }
-                    break;
-                case 6:
-                    //6-7, minor(4 total) major(2 total)
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 200)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 300)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 400)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 500)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 600)
-                    {
-                        numSpells = 5;
-                    }
-                    else if (chance < 700)
-                    {
-                        numSpells = 6;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 7;
-                    }
-                    else
-                    {
-                        numSpells = 8;
-                    }
-                    break;
-                case 7:
-                    ///6-8, minor(4), major(5), epic(3)
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 200)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 300)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 400)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 500)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 600)
-                    {
-                        numSpells = 5;
-                    }
-                    else if (chance < 700)
-                    {
-                        numSpells = 6;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 7;
-                    }
-                    else
-                    {
-                        numSpells = 8;
-                    }
-                    break;
-                default:
-                    //6-8, minor(4), major(5), epic(3), legendary(2)
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 200)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 300)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 400)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 500)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 600)
-                    {
-                        numSpells = 5;
-                    }
-                    else if (chance < 700)
-                    {
-                        numSpells = 6;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 7;
-                    }
-                    else
-                    {
-                        numSpells = 8;
-                    }
-                    break;
-
-            }
-
-            return numSpells;
-        }
-
-        private static int GetNumCantrips(int spellAmount)
-        {
-            int chance = 0;
-            int numSpells = 0;
-            switch (spellAmount)
-            {
-                case 1:
-                    if (ThreadSafeRandom.Next(0, 100) > 90)
-                    {
-                        return 1;
-                    }
-                    break;
-                case 2:
-                    if (ThreadSafeRandom.Next(0, 100) > 90)
-                    {
-                        chance = ThreadSafeRandom.Next(1, 1000);
-                        if (chance < 750)
-                        {
-                            numSpells = 1;
-                        }
-                        else
-                        {
-                            numSpells = 2;
-                        }
-                    }
-                    break;
-                case 3:
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
-                        chance = ThreadSafeRandom.Next(1, 1000);
-                        if (chance < 750)
-                        {
-                            numSpells = 1;
-                        }
-                        else if (chance < 900)
-                        {
-                            numSpells = 2;
-                        }
-                        else
-                        {
-                            numSpells = 3;
-                        }
-                    }
-                    break;
-                case 4:
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
-                        chance = ThreadSafeRandom.Next(1, 1000);
-                        if (chance < 500)
-                        {
-                            numSpells = 1;
-                        }
-                        else if (chance < 800)
-                        {
-                            numSpells = 2;
-                        }
-                        else if (chance < 950)
-                        {
-                            numSpells = 3;
-                        }
-                        else
-                        {
-                            numSpells = 4;
-                        }
-                    }
-                    break;
-                case 5:
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
-                        chance = ThreadSafeRandom.Next(1, 1000);
-                        if (chance < 500)
-                        {
-                            numSpells = 1;
-                        }
-                        else if (chance < 600)
-                        {
-                            numSpells = 2;
-                        }
-                        else if (chance < 700)
-                        {
-                            numSpells = 3;
-                        }
-                        else if (chance < 850)
-                        {
-                            numSpells = 4;
-                        }
-                        else
-                        {
-                            numSpells = 5;
-                        }
-                    }
-                    break;
-                case 6:
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
-                        chance = ThreadSafeRandom.Next(1, 1000);
-                        if (chance < 200)
-                        {
-                            numSpells = 1;
-                        }
-                        else if (chance < 300)
-                        {
-                            numSpells = 2;
-                        }
-                        else if (chance < 400)
-                        {
-                            numSpells = 3;
-                        }
-                        else if (chance < 500)
-                        {
-                            numSpells = 4;
-                        }
-                        else if (chance < 600)
-                        {
-                            numSpells = 5;
-                        }
-                        else if (chance < 700)
-                        {
-                            numSpells = 6;
-                        }
-                    }
-                    break;
-                case 7:
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
-                        chance = ThreadSafeRandom.Next(1, 1000);
-                        if (chance < 200)
-                        {
-                            numSpells = 1;
-                        }
-                        else if (chance < 300)
-                        {
-                            numSpells = 2;
-                        }
-                        else if (chance < 400)
-                        {
-                            numSpells = 3;
-                        }
-                        else if (chance < 500)
-                        {
-                            numSpells = 4;
-                        }
-                        else if (chance < 600)
-                        {
-                            numSpells = 5;
-                        }
-                        else if (chance < 700)
-                        {
-                            numSpells = 6;
-                        }
-                        else
-                        {
-                            numSpells = 7;
-                        }
-                    }
-                    break;
-                case 8:
-                    //6-8, minor(4), major(5), epic(3), legendary(2)
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
-                        chance = ThreadSafeRandom.Next(1, 1000);
-                        if (chance < 200)
-                        {
-                            numSpells = 1;
-                        }
-                        else if (chance < 300)
-                        {
-                            numSpells = 2;
-                        }
-                        else if (chance < 400)
-                        {
-                            numSpells = 3;
-                        }
-                        else if (chance < 500)
-                        {
-                            numSpells = 4;
-                        }
-                        else if (chance < 600)
-                        {
-                            numSpells = 5;
-                        }
-                        else if (chance < 700)
-                        {
-                            numSpells = 6;
-                        }
-                        else if (chance < 950)
-                        {
-                            numSpells = 7;
-                        }
-                        else
-                        {
-                            numSpells = 8;
-                        }
-                    }
-                    break;
-                default:
-                    break;
-
-            }
-
-            return numSpells;
-        }
-
         private static double GetMaxDamageMod(int tier, int maxDamageMod)
         {
             double damageMod = 0;
@@ -1337,7 +882,380 @@ namespace ACE.Server.Factories
             return damageMod2;
         }
 
-        private static int GetLowSpellTier(int tier, bool lucky = false)
+        private static WorldObject AssignMagic(WorldObject wo, bool luckFlag)
+        {
+            int tier = 7;
+
+            double manaRate = -1.0 / (double)(ThreadSafeRandom.Next(10, 30));
+
+            int[][] spells;
+            int[][] cantrips;
+
+            switch (wo.WeenieType)
+            {
+                case WeenieType.Clothing:
+                    spells = LootTables.ArmorSpells;
+                    cantrips = LootTables.ArmorCantrips;
+                    break;
+                case WeenieType.Caster:
+                    spells = LootTables.WandSpells;
+                    cantrips = LootTables.WandCantrips;
+                    break;
+                case WeenieType.Generic:
+                    spells = LootTables.JewelrySpells;
+                    cantrips = LootTables.JewelryCantrips;
+                    break;
+                case WeenieType.MeleeWeapon:
+                    spells = LootTables.MeleeSpells;
+                    cantrips = LootTables.MeleeCantrips;
+                    break;
+                case WeenieType.MissileLauncher:
+                    spells = LootTables.MissileSpells;
+                    cantrips = LootTables.MissileCantrips;
+                    manaRate = -.04166667;
+                    break;
+                default:
+                    spells = null;
+                    cantrips = null;
+                    break;
+            }
+
+            if (spells == null || cantrips == null)
+                return wo;
+
+            wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
+
+            wo.SetProperty(PropertyFloat.ManaRate, manaRate);
+
+            int lowSpellTier = GetLowSpellTier(tier, luckFlag);
+            int highSpellTier = GetHighSpellTier(tier);
+
+            int numSpells = GetSpellDistribution(tier, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips, luckFlag);
+            int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
+
+            int spellcraft = GetSpellcraft(numSpells, tier);
+            wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
+            wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellcraft));
+
+            int maxMana = GetMaxMana(numSpells, tier);
+            wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
+            wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
+
+            int[] shuffledValues = new int[spells.Length];
+            for (int i = 0; i < spells.Length; i++)
+            {
+                shuffledValues[i] = i;
+            }
+
+            Shuffle(shuffledValues);
+
+            if (numSpells - numCantrips > 0)
+            {
+                for (int a = 0; a < numSpells - numCantrips; a++)
+                {
+                    int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
+                    int spellID = spells[shuffledValues[a]][col];
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                }
+            }
+
+            if (numCantrips > 0)
+            {
+                shuffledValues = new int[cantrips.Length];
+                for (int i = 0; i < cantrips.Length; i++)
+                {
+                    shuffledValues[i] = i;
+                }
+                Shuffle(shuffledValues);
+                int shuffledPlace = 0;
+                //minor cantripps
+                for (int a = 0; a < minorCantrips; a++)
+                {
+                    int spellID = cantrips[shuffledValues[shuffledPlace]][0];
+                    shuffledPlace++;
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                }
+                //major cantrips
+                for (int a = 0; a < majorCantrips; a++)
+                {
+                    int spellID = cantrips[shuffledValues[shuffledPlace]][1];
+                    shuffledPlace++;
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                }
+                // epic cantrips
+                for (int a = 0; a < epicCantrips; a++)
+                {
+                    int spellID = cantrips[shuffledValues[shuffledPlace]][2];
+                    shuffledPlace++;
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                }
+                //legendary cantrips
+                for (int a = 0; a < legendaryCantrips; a++)
+                {
+                    int spellID = cantrips[shuffledValues[shuffledPlace]][3];
+                    shuffledPlace++;
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                }
+            }
+
+            return wo;
+        }
+
+        private static int GetSpellDistribution(int tier, out int numMinors, out int numMajors, out int numEpics, out int numLegendaries, bool luckFlag)
+        {
+            int chance = 0;
+            int numSpells = 0;
+
+            numMinors = 0;
+            numMajors = 0;
+            numEpics = 0;
+            numLegendaries = 0;
+
+            switch (tier)
+            {
+                case 1:
+                    ////1-3, minor cantrips
+                    chance = ThreadSafeRandom.Next(1, 100);
+                    if (chance < 50)
+                    {
+                        numSpells = 1;
+                    }
+                    else if (chance < 90)
+                    {
+                        numSpells = 2;
+                    }
+                    else
+                    {
+                        numSpells = 3;
+                    }
+                    break;
+                case 2:
+                    ////3-5 minor, and major
+                    chance = ThreadSafeRandom.Next(1, 1000);
+                    if (chance < 500)
+                    {
+                        numSpells = 1;
+                    }
+                    else if (chance < 900)
+                    {
+                        numSpells = 2;
+                    }
+                    else if (chance < 950)
+                    {
+                        numSpells = 3;
+                    }
+                    else if (chance < 998)
+                    {
+                        numSpells = 4;
+                    }
+                    else
+                    {
+                        numSpells = 5;
+                    }
+                    break;
+                case 3:
+                    //4-6, major/minor
+                    chance = ThreadSafeRandom.Next(1, 1000);
+                    if (chance < 500)
+                    {
+                        numSpells = 1;
+                    }
+                    else if (chance < 800)
+                    {
+                        numSpells = 2;
+                    }
+                    else if (chance < 900)
+                    {
+                        numSpells = 3;
+                    }
+                    else if (chance < 950)
+                    {
+                        numSpells = 4;
+                    }
+                    else if (chance < 985)
+                    {
+                        numSpells = 5;
+                    }
+                    else
+                    {
+                        numSpells = 6;
+                    }
+                    break;
+                case 4:
+                    //5-6, major and minor
+                    chance = ThreadSafeRandom.Next(1, 1000);
+                    if (chance < 500)
+                    {
+                        numSpells = 1;
+                    }
+                    else if (chance < 800)
+                    {
+                        numSpells = 2;
+                    }
+                    else if (chance < 900)
+                    {
+                        numSpells = 3;
+                    }
+                    else if (chance < 950)
+                    {
+                        numSpells = 4;
+                    }
+                    else if (chance < 985)
+                    {
+                        numSpells = 5;
+                    }
+                    else
+                    {
+                        numSpells = 6;
+                    }
+                    break;
+                case 5:
+                    //5-7 major/minor
+                    chance = ThreadSafeRandom.Next(1, 1000);
+                    if (chance < 500)
+                    {
+                        numSpells = 1;
+                    }
+                    else if (chance < 600)
+                    {
+                        numSpells = 2;
+                    }
+                    else if (chance < 700)
+                    {
+                        numSpells = 3;
+                    }
+                    else if (chance < 850)
+                    {
+                        numSpells = 4;
+                    }
+                    else if (chance < 940)
+                    {
+                        numSpells = 5;
+                    }
+                    else if (chance < 980)
+                    {
+                        numSpells = 6;
+                    }
+                    else
+                    {
+                        numSpells = 7;
+                    }
+                    break;
+                case 6:
+                    //6-7, minor(4 total) major(2 total)
+                    chance = ThreadSafeRandom.Next(1, 1000);
+                    if (chance < 200)
+                    {
+                        numSpells = 1;
+                    }
+                    else if (chance < 300)
+                    {
+                        numSpells = 2;
+                    }
+                    else if (chance < 400)
+                    {
+                        numSpells = 3;
+                    }
+                    else if (chance < 500)
+                    {
+                        numSpells = 4;
+                    }
+                    else if (chance < 600)
+                    {
+                        numSpells = 5;
+                    }
+                    else if (chance < 700)
+                    {
+                        numSpells = 6;
+                    }
+                    else if (chance < 950)
+                    {
+                        numSpells = 7;
+                    }
+                    else
+                    {
+                        numSpells = 8;
+                    }
+                    break;
+                case 7:
+                    ///6-8, minor(4), major(5), epic(3)
+                    chance = ThreadSafeRandom.Next(1, 1000);
+                    if (chance < 200)
+                    {
+                        numSpells = 1;
+                    }
+                    else if (chance < 300)
+                    {
+                        numSpells = 2;
+                    }
+                    else if (chance < 400)
+                    {
+                        numSpells = 3;
+                    }
+                    else if (chance < 500)
+                    {
+                        numSpells = 4;
+                    }
+                    else if (chance < 600)
+                    {
+                        numSpells = 5;
+                    }
+                    else if (chance < 700)
+                    {
+                        numSpells = 6;
+                    }
+                    else if (chance < 950)
+                    {
+                        numSpells = 7;
+                    }
+                    else
+                    {
+                        numSpells = 8;
+                    }
+                    break;
+                default:
+                    //6-8, minor(4), major(5), epic(3), legendary(2)
+                    chance = ThreadSafeRandom.Next(1, 1000);
+                    if (chance < 200)
+                    {
+                        numSpells = 1;
+                    }
+                    else if (chance < 300)
+                    {
+                        numSpells = 2;
+                    }
+                    else if (chance < 400)
+                    {
+                        numSpells = 3;
+                    }
+                    else if (chance < 500)
+                    {
+                        numSpells = 4;
+                    }
+                    else if (chance < 600)
+                    {
+                        numSpells = 5;
+                    }
+                    else if (chance < 700)
+                    {
+                        numSpells = 6;
+                    }
+                    else if (chance < 950)
+                    {
+                        numSpells = 7;
+                    }
+                    else
+                    {
+                        numSpells = 8;
+                    }
+                    break;
+
+            }
+
+            return numSpells;
+        }
+
+        private static int GetLowSpellTier(int tier, bool luckFlag)
         {
             int lowSpellTier = 0;
 
@@ -1358,7 +1276,7 @@ namespace ACE.Server.Factories
                     lowSpellTier = 5;
                     break;
                 case 7:
-                    if (lucky)
+                    if (luckFlag)
                         lowSpellTier = 7;
                     else
                         lowSpellTier = 6;
@@ -1605,40 +1523,17 @@ namespace ACE.Server.Factories
             return m2;
         }
 
-        private static int GetValue(int tier, int workmanship, double gemMod, double matMod)
+        private static WorldObject AssignValue(WorldObject wo)
         {
-            ///This is just a placeholder. This doesnt return a final value used retail, just a quick value for now.
-            ///Will use, tier, material type, amount of gems set into item, type of gems, spells on item
-            //int value = ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, work) * ThreadSafeRandom.Next(1, 250) + ThreadSafeRandom.Next(1, 50);
-            int value = 0;
-            switch (tier)
-            {
-                case 1:
-                    value = (int)(ThreadSafeRandom.Next(100, 800) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
-                    break;
-                case 2:
-                    value = (int)(ThreadSafeRandom.Next(200, 900) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
-                    break;
-                case 3:
-                    value = (int)(ThreadSafeRandom.Next(200, 1000) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
-                    break;
-                case 4:
-                    value = (int)(ThreadSafeRandom.Next(400, 1100) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
-                    break;
-                case 5:
-                    value = (int)(ThreadSafeRandom.Next(400, 1200) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
-                    break;
-                case 6:
-                    value = (int)(ThreadSafeRandom.Next(400, 1300) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
-                    break;
-                case 7:
-                    value = (int)(ThreadSafeRandom.Next(600, 1400) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
-                    break;
-                case 8:
-                    value = (int)(ThreadSafeRandom.Next(600, 1500) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
-                    break;
-            }
-            return value;
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+
+            var baseValue = ThreadSafeRandom.Next(100, 500);
+
+            var value = (int)(baseValue * gemMaterialMod * materialMod * Math.Ceiling((double)(wo.GetProperty(PropertyInt.ItemWorkmanship) ?? 1) / 2));
+            wo.Value = value;
+
+            return wo;
         }
 
         private static int GetWorkmanship(int tier)
