@@ -223,7 +223,7 @@ namespace ACE.Server.Factories
             {
                 wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
 
-                int lowSpellTier = GetLowSpellTier(tier);
+                int lowSpellTier = GetLowSpellTier(tier, lucky);
                 int highSpellTier = GetHighSpellTier(tier);
                 int numSpells = GetNumSpells(tier);
                 int spellcraft = GetSpellcraft(numSpells, tier);

@@ -352,7 +352,7 @@ namespace ACE.Server.Factories
 
                 int numSpells = GetNumSpells(tier);
 
-                int lowSpellTier = GetLowSpellTier(tier);
+                int lowSpellTier = GetLowSpellTier(tier, lucky);
                 int highSpellTier = GetHighSpellTier(tier);
                 int minorCantrips = GetNumMinorCantrips(tier, lucky);
                 int majorCantrips = GetNumMajorCantrips(tier, lucky);

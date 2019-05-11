@@ -1335,7 +1335,7 @@ namespace ACE.Server.Factories
             return damageMod2;
         }
 
-        private static int GetLowSpellTier(int tier)
+        private static int GetLowSpellTier(int tier, bool lucky = false)
         {
             int lowSpellTier = 0;
 
@@ -1351,11 +1351,15 @@ namespace ACE.Server.Factories
                     lowSpellTier = 4;
                     break;
                 case 4:
-                    lowSpellTier = 5;
-                    break;
                 case 5:
                 case 6:
                     lowSpellTier = 5;
+                    break;
+                case 7:
+                    if (lucky)
+                        lowSpellTier = 7;
+                    else
+                        lowSpellTier = 6;
                     break;
                 default:
                     lowSpellTier = 7;
@@ -1378,14 +1382,10 @@ namespace ACE.Server.Factories
                     highSpellTier = 5;
                     break;
                 case 3:
-                    highSpellTier = 6;
-                    break;
                 case 4:
                     highSpellTier = 6;
                     break;
                 case 5:
-                    highSpellTier = 7;
-                    break;
                 case 6:
                     highSpellTier = 7;
                     break;

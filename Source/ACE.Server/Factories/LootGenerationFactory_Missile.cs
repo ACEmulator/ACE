@@ -89,7 +89,7 @@ namespace ACE.Server.Factories
 
                 int numSpells = GetNumSpells(tier);
                 int spellCraft = GetSpellcraft(numSpells, tier);
-                int lowSpellTier = GetLowSpellTier(tier);
+                int lowSpellTier = GetLowSpellTier(tier, lucky);
                 int highSpellTier = GetHighSpellTier(tier);
                 int itemSkillLevelLimit = 0;
                 int maxMana = GetMaxMana(numSpells, tier);

@@ -54,7 +54,10 @@ namespace ACE.Server.Factories
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.HaebreanArmor);
                     break;
                 case 7:
-                    lowSpellTier = 6;
+                    if (lucky)
+                        lowSpellTier = 7;
+                    else
+                        lowSpellTier = 6;
                     highSpellTier = 8;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.OlthoiAlduressaArmor);
                     break;

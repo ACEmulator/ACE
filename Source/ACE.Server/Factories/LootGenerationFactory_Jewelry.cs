@@ -181,7 +181,7 @@ namespace ACE.Server.Factories
                 }
                 Shuffle(shuffledValues);
 
-                int lowSpellTier = GetLowSpellTier(tier);
+                int lowSpellTier = GetLowSpellTier(tier, lucky);
                 int highSpellTier = GetHighSpellTier(tier);
                 if (numSpells - numCantrips > 0)
                 {
