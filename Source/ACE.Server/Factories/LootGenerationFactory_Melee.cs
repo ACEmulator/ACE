@@ -8,7 +8,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateMeleeWeapon(int tier, bool isMagical)
+        private static WorldObject CreateMeleeWeapon(int tier, bool isMagical, bool lucky = false)
         {
             Skill wieldSkillType = Skill.None;
 

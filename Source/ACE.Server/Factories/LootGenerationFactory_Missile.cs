@@ -8,7 +8,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateMissileWeapon(int tier, bool isMagical)
+        private static WorldObject CreateMissileWeapon(int tier, bool isMagical, bool lucky = false)
         {
             int[][] spells = LootTables.MissileSpells;
             int[][] cantrips = LootTables.MissileCantrips;

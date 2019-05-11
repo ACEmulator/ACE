@@ -49,11 +49,11 @@ namespace ACE.Server.Factories
             return petDevice;
         }
 
-        private static WorldObject CreateRandomScroll(int tier)
+        private static WorldObject CreateRandomScroll(int tier, LootBias lootBias = LootBias.UnBiased)
         {
             WorldObject wo;
 
-            if (tier > 7)
+            if (tier > 7 || lootBias != LootBias.UnBiased)
             {
                 int id = CreateLevel8SpellComp();
                 wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -104,7 +104,7 @@ namespace ACE.Server.Factories
             return LootTables.Level8SpellComps[chance];
         }
 
-        private static WorldObject CreateCaster(int tier, bool isMagical)
+        private static WorldObject CreateCaster(int tier, bool isMagical, bool lucky = false)
         {
             int casterWeenie = 0; //done
             double elementalDamageMod = 0;
@@ -167,9 +167,17 @@ namespace ACE.Server.Factories
                 wo.MaterialType = (MaterialType)materialType;
             wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
-
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+
+            if (wield == 0)
+            {
+                // Adding in the MaterialType to the description, as for some reason
+                // the client doesn't do this for the old caster weapons
+                string desc = $"{wo.MaterialType.ToString()} {wo.GetProperty(PropertyString.Name)}";
+                wo.SetProperty(PropertyString.LongDesc, desc);
+            }
+            else
+                wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);

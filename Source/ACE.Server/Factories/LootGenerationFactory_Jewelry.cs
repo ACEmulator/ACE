@@ -95,7 +95,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static WorldObject CreateJewelry(int tier, bool isMagical)
+        private static WorldObject CreateJewelry(int tier, bool isMagical, bool lucky = false)
         {
 
             int[][] JewelrySpells = LootTables.JewelrySpells;

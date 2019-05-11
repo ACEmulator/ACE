@@ -107,7 +107,7 @@ namespace ACE.Server.Factories
                 for (var i = 0; i < numItems; i++)
                 {
                     if (lootBias != LootBias.UnBiased)
-                        lootWorldObject = CreateRandomScroll(profile.Tier);
+                        lootWorldObject = CreateRandomScroll(profile.Tier, lootBias);
                     else
                         lootWorldObject = CreateMundaneObjects(profile.Tier);
 
@@ -122,7 +122,7 @@ namespace ACE.Server.Factories
             {
                 if (lootBias == LootBias.UnBiased && profile.MagicItemMinAmount > 0)
                 {
-                    lootWorldObject = CreateRandomScroll(profile.Tier);
+                    lootWorldObject = CreateRandomScroll(profile.Tier, LootBias.UnBiased);
 
                     if (lootWorldObject != null)
                         loot.Add(lootWorldObject);
@@ -178,6 +178,7 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
+            bool lucky = false;
             int type;
             WorldObject wo;
 
@@ -194,6 +195,9 @@ namespace ACE.Server.Factories
                     break;
             }
 
+            if (lootBias != LootBias.UnBiased)
+                lucky = true;
+
             switch (type)
             {
                 case 1:
@@ -202,31 +206,31 @@ namespace ACE.Server.Factories
                     return wo;
                 case 2:
                     //armor
-                    wo = CreateArmor(tier, isMagical, lootBias);
+                    wo = CreateArmor(tier, isMagical, lootBias, lucky);
                     return wo;
                 case 3:
                     //weapons
-                    wo = CreateWeapon(tier, isMagical);
+                    wo = CreateWeapon(tier, isMagical, lucky);
                     return wo;
                 default:
                     //jewelry
-                    wo = CreateJewelry(tier, isMagical);
+                    wo = CreateJewelry(tier, isMagical, lucky);
                     return wo;
             }
         }
 
-        private static WorldObject CreateWeapon(int tier, bool isMagical)
+        private static WorldObject CreateWeapon(int tier, bool isMagical, bool lucky = false)
         {
             int chance = ThreadSafeRandom.Next(1, 3);
 
             switch (chance)
             {
                 case 1:
-                    return CreateMeleeWeapon(tier, isMagical);
+                    return CreateMeleeWeapon(tier, isMagical, lucky);
                 case 2:
-                    return CreateMissileWeapon(tier, isMagical);
+                    return CreateMissileWeapon(tier, isMagical, lucky);
                 default:
-                    return CreateCaster(tier, isMagical);
+                    return CreateCaster(tier, isMagical, lucky);
             }
         }
 
@@ -1599,7 +1603,7 @@ namespace ACE.Server.Factories
             return m2;
         }
 
-        private static int GetValue(int tier, int work, double gemMod, double matMod)
+        private static int GetValue(int tier, int workmanship, double gemMod, double matMod)
         {
             ///This is just a placeholder. This doesnt return a final value used retail, just a quick value for now.
             ///Will use, tier, material type, amount of gems set into item, type of gems, spells on item
@@ -1608,30 +1612,29 @@ namespace ACE.Server.Factories
             switch (tier)
             {
                 case 1:
-                    value = (int)(ThreadSafeRandom.Next(50, 1000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    value = (int)(ThreadSafeRandom.Next(100, 800) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 2:
-                    value = (int)(ThreadSafeRandom.Next(200, 1500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    value = (int)(ThreadSafeRandom.Next(200, 1200) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 3:
-                    value = (int)(ThreadSafeRandom.Next(200, 2000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    value = (int)(ThreadSafeRandom.Next(200, 1600) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 4:
-                    value = (int)(ThreadSafeRandom.Next(400, 2500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    value = (int)(ThreadSafeRandom.Next(400, 2000) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 5:
-                    value = (int)(ThreadSafeRandom.Next(400, 3000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    value = (int)(ThreadSafeRandom.Next(400, 2400) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 6:
-                    value = (int)(ThreadSafeRandom.Next(400, 3500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    value = (int)(ThreadSafeRandom.Next(400, 2600) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 7:
-                    value = (int)(ThreadSafeRandom.Next(600, 4000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    value = (int)(ThreadSafeRandom.Next(600, 3000) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 8:
-                    value = (int)(ThreadSafeRandom.Next(600, 4500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    value = (int)(ThreadSafeRandom.Next(600, 3400) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
-
             }
             return value;
         }
@@ -2036,7 +2039,7 @@ namespace ACE.Server.Factories
             return meleeMod;
         }
 
-        private static int GetNumLegendaryCantrips(int tier)
+        private static int GetNumLegendaryCantrips(int tier, bool lucky = false)
         {
 
             int amount = 0;
@@ -2044,44 +2047,70 @@ namespace ACE.Server.Factories
             if (tier < 8)
                 return amount;
 
-            if (ThreadSafeRandom.Next(0, 1000) == 0)
+            // w/ Luck
+            if (lucky)
+            {
+                if (ThreadSafeRandom.Next(1, 375) == 1)
+                    amount = 1;
+                if (ThreadSafeRandom.Next(1, 417) == 1)
+                    amount = 2;
+                if (ThreadSafeRandom.Next(1, 458) == 1)
+                    amount = 3;
+                if (ThreadSafeRandom.Next(1, 500) == 1)
+                    amount = 4;
+                return amount;
+            }
+
+            if (ThreadSafeRandom.Next(1, 750) == 1)
                 amount = 1;
 
-            if (ThreadSafeRandom.Next(0, 5000) == 0)
+            if (ThreadSafeRandom.Next(1, 834) == 1)
                 amount = 2;
 
-            if (ThreadSafeRandom.Next(0, 1000000) == 0)
+            if (ThreadSafeRandom.Next(1, 916) == 1)
                 amount = 3;
 
-            if (ThreadSafeRandom.Next(0, 10000000) == 0)
+            if (ThreadSafeRandom.Next(1, 1000) == 1)
                 amount = 4;
 
             return amount;
         }
 
-        private static int GetNumEpicCantrips(int tier)
+        private static int GetNumEpicCantrips(int tier, bool lucky = false)
         {
             int amount = 0;
 
             if (tier < 7)
                 return amount;
 
+            // Mana Forge chests w/ Luck
+            if (lucky)
+            {
+                if (ThreadSafeRandom.Next(1, 375) == 1)
+                    amount = 1;
+                if (ThreadSafeRandom.Next(1, 437) == 1)
+                    amount = 2;
+                if (ThreadSafeRandom.Next(1, 500) == 1)
+                    amount = 3;
+                return amount;
+            }
+
             switch (tier)
             {
                 case 7:
-                    if (ThreadSafeRandom.Next(0, 1000) == 0)
+                    if (ThreadSafeRandom.Next(1, 750) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 10000) == 0)
+                    if (ThreadSafeRandom.Next(1, 875) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(0, 100000) == 0)
+                    if (ThreadSafeRandom.Next(1, 1000) == 1)
                         amount = 3;
                     break;
                 default:
-                    if (ThreadSafeRandom.Next(0, 1000) == 0)
+                    if (ThreadSafeRandom.Next(1, 650) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 10000) == 0)
+                    if (ThreadSafeRandom.Next(1, 775) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(0, 100000) == 0)
+                    if (ThreadSafeRandom.Next(1, 900) == 1)
                         amount = 3;
                     break;
 
@@ -2090,57 +2119,69 @@ namespace ACE.Server.Factories
             return amount;
         }
 
-        private static int GetNumMajorCantrips(int tier)
+        private static int GetNumMajorCantrips(int tier, bool lucky = false)
         {
-
             int amount = 0;
+
+            // Mana Forge chests w/ Luck
+            if (lucky)
+            {
+                if (ThreadSafeRandom.Next(1, 250) == 1)
+                    amount = 1;
+                if (ThreadSafeRandom.Next(1, 375) == 1)
+                    amount = 2;
+                if (ThreadSafeRandom.Next(1, 450) == 1)
+                    amount = 3;
+                return amount;
+            }
+
             switch (tier)
             {
                 case 1:
                     amount = 0;
                     break;
                 case 2:
-                    if (ThreadSafeRandom.Next(0, 500) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 1;
                     break;
                 case 3:
-                    if (ThreadSafeRandom.Next(0, 500) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 10000) == 0)
+                    if (ThreadSafeRandom.Next(1, 750) == 1)
                         amount = 2;
                     break;
                 case 4:
-                    if (ThreadSafeRandom.Next(0, 500) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
+                    if (ThreadSafeRandom.Next(1, 750) == 1)
                         amount = 2;
                     break;
                 case 5:
-                    if (ThreadSafeRandom.Next(0, 500) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
+                    if (ThreadSafeRandom.Next(1, 750) == 1)
                         amount = 2;
                     break;
                 case 6:
-                    if (ThreadSafeRandom.Next(0, 500) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
+                    if (ThreadSafeRandom.Next(1, 750) == 1)
                         amount = 2;
                     break;
                 case 7:
-                    if (ThreadSafeRandom.Next(0, 500) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
+                    if (ThreadSafeRandom.Next(1, 750) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(0, 15000) == 0)
+                    if (ThreadSafeRandom.Next(1, 900) == 1)
                         amount = 3;
                     break;
                 default:
-                    if (ThreadSafeRandom.Next(0, 500) == 0)
+                    if (ThreadSafeRandom.Next(1, 450) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
+                    if (ThreadSafeRandom.Next(1, 700) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(0, 15000) == 0)
+                    if (ThreadSafeRandom.Next(1, 850) == 1)
                         amount = 3;
                     break;
             }
@@ -2148,72 +2189,86 @@ namespace ACE.Server.Factories
             return amount;
         }
 
-        private static int GetNumMinorCantrips(int tier)
+        private static int GetNumMinorCantrips(int tier, bool lucky = false)
         {
-
             int amount = 0;
+
+            // Mana Forge chests w/ Luck
+            if (lucky)
+            {
+                if (ThreadSafeRandom.Next(1, 25) == 1)
+                    amount = 1;
+                if (ThreadSafeRandom.Next(1, 125) == 1)
+                    amount = 2;
+                if (ThreadSafeRandom.Next(1, 250) == 1)
+                    amount = 3;
+                if (ThreadSafeRandom.Next(1, 375) == 1)
+                    amount = 4;
+                return amount;
+            }
+
             switch (tier)
             {
                 case 1:
-                    if (ThreadSafeRandom.Next(0, 100) == 0)
+                    if (ThreadSafeRandom.Next(1, 100) == 1)
                         amount = 1;
                     break;
                 case 2:
-                    if (ThreadSafeRandom.Next(0, 50) == 0)
+                    if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 250) == 0)
+                    if (ThreadSafeRandom.Next(1, 250) == 1)
                         amount = 2;
                     break;
                 case 3:
-                    if (ThreadSafeRandom.Next(0, 50) == 0)
+                    if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 250) == 0)
+                    if (ThreadSafeRandom.Next(1, 250) == 1)
                         amount = 2;
                     break;
                 case 4:
-                    if (ThreadSafeRandom.Next(0, 50) == 0)
+                    if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 250) == 0)
+                    if (ThreadSafeRandom.Next(1, 250) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(0, 1000) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 3;
                     break;
                 case 5:
-                    if (ThreadSafeRandom.Next(0, 50) == 0)
+                    if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 250) == 0)
+                    if (ThreadSafeRandom.Next(1, 250) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(0, 1000) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 3;
                     break;
                 case 6:
-                    if (ThreadSafeRandom.Next(0, 50) == 0)
+                    if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 250) == 0)
+                    if (ThreadSafeRandom.Next(1, 250) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(0, 1000) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 3;
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
+                    if (ThreadSafeRandom.Next(1, 750) == 1)
                         amount = 4;
                     break;
                 case 7:
-                    if (ThreadSafeRandom.Next(0, 50) == 0)
+                    if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 250) == 0)
+                    if (ThreadSafeRandom.Next(1, 250) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(0, 1000) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 3;
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
+                    if (ThreadSafeRandom.Next(1, 750) == 1)
                         amount = 4;
                     break;
                 default:
-                    if (ThreadSafeRandom.Next(0, 50) == 0)
+                    if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(0, 250) == 0)
+                    if (ThreadSafeRandom.Next(1, 250) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(0, 1000) == 0)
+                    if (ThreadSafeRandom.Next(1, 500) == 1)
                         amount = 3;
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
+                    if (ThreadSafeRandom.Next(1, 750) == 1)
                         amount = 4;
                     break;
             }
