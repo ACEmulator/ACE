@@ -16,6 +16,8 @@ namespace ACE.Server.Factories
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        private const float LuckFactor = 0.1f;
+
         static LootGenerationFactory()
         {
             InitRares();
@@ -2041,36 +2043,22 @@ namespace ACE.Server.Factories
 
         private static int GetNumLegendaryCantrips(int tier, bool lucky = false)
         {
+            float luckFactor = 1.0f;
+            if (lucky)
+                luckFactor = LuckFactor;
 
             int amount = 0;
 
             if (tier < 8)
                 return amount;
 
-            // w/ Luck
-            if (lucky)
-            {
-                if (ThreadSafeRandom.Next(1, 10) == 1)
-                    amount = 1;
-                if (ThreadSafeRandom.Next(1, 12) == 1)
-                    amount = 2;
-                if (ThreadSafeRandom.Next(1, 14) == 1)
-                    amount = 3;
-                if (ThreadSafeRandom.Next(1, 16) == 1)
-                    amount = 4;
-                return amount;
-            }
-
-            if (ThreadSafeRandom.Next(1, 100) == 1)
+            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(100 * luckFactor)) == 1)
                 amount = 1;
-
-            if (ThreadSafeRandom.Next(1, 120) == 1)
+            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(120 * luckFactor)) == 1)
                 amount = 2;
-
-            if (ThreadSafeRandom.Next(1, 140) == 1)
+            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
                 amount = 3;
-
-            if (ThreadSafeRandom.Next(1, 160) == 1)
+            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(160 * luckFactor)) == 1)
                 amount = 4;
 
             return amount;
@@ -2078,62 +2066,32 @@ namespace ACE.Server.Factories
 
         private static int GetNumEpicCantrips(int tier, bool lucky = false)
         {
+            float luckFactor = 1.0f;
+            if (lucky)
+                luckFactor = LuckFactor;
+
             int amount = 0;
 
             if (tier < 7)
                 return amount;
 
-            // Mana Forge chests w/ Luck
-            if (lucky)
-            {
-                if (ThreadSafeRandom.Next(1, 14) == 1)
-                    amount = 1;
-                if (ThreadSafeRandom.Next(1, 16) == 1)
-                    amount = 2;
-                if (ThreadSafeRandom.Next(1, 18) == 1)
-                    amount = 3;
-                return amount;
-            }
-
-            switch (tier)
-            {
-                case 7:
-                    if (ThreadSafeRandom.Next(1, 120) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 140) == 1)
-                        amount = 2;
-                    if (ThreadSafeRandom.Next(1, 160) == 1)
-                        amount = 3;
-                    break;
-                default:
-                    if (ThreadSafeRandom.Next(1, 100) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 120) == 1)
-                        amount = 2;
-                    if (ThreadSafeRandom.Next(1, 140) == 1)
-                        amount = 3;
-                    break;
-
-            }
+            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(100 * luckFactor)) == 1)
+                amount = 1;
+            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(120 * luckFactor)) == 1)
+                amount = 2;
+            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
+                amount = 3;
 
             return amount;
         }
 
         private static int GetNumMajorCantrips(int tier, bool lucky = false)
         {
-            int amount = 0;
-
-            // Mana Forge chests w/ Luck
+            float luckFactor = 1.0f;
             if (lucky)
-            {
-                if (ThreadSafeRandom.Next(1, 14) == 1)
-                    amount = 1;
-                if (ThreadSafeRandom.Next(1, 16) == 1)
-                    amount = 2;
-                if (ThreadSafeRandom.Next(1, 18) == 1)
-                    amount = 3;
-                return amount;
-            }
+                luckFactor = LuckFactor;
+
+            int amount = 0;
 
             switch (tier)
             {
@@ -2141,29 +2099,24 @@ namespace ACE.Server.Factories
                     amount = 0;
                     break;
                 case 2:
-                    if (ThreadSafeRandom.Next(1, 140) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
                         amount = 1;
                     break;
                 case 3:
-                    if (ThreadSafeRandom.Next(1, 140) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 160) == 1)
-                        amount = 2;
-                    break;
                 case 4:
                 case 5:
                 case 6:
-                    if (ThreadSafeRandom.Next(1, 140) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 160) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(160 * luckFactor)) == 1)
                         amount = 2;
                     break;
                 default:
-                    if (ThreadSafeRandom.Next(1, 120) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(100 * luckFactor)) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 140) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(120 * luckFactor)) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(1, 160) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
                         amount = 3;
                     break;
             }
@@ -2173,52 +2126,42 @@ namespace ACE.Server.Factories
 
         private static int GetNumMinorCantrips(int tier, bool lucky = false)
         {
-            int amount = 0;
-
-            // Mana Forge chests w/ Luck
+            float luckFactor = 1.0f;
             if (lucky)
-            {
-                if (ThreadSafeRandom.Next(1, 12) == 1)
-                    amount = 1;
-                if (ThreadSafeRandom.Next(1, 14) == 1)
-                    amount = 2;
-                if (ThreadSafeRandom.Next(1, 16) == 1)
-                    amount = 3;
-                if (ThreadSafeRandom.Next(1, 18) == 1)
-                    amount = 4;
-                return amount;
-            }
+                luckFactor = LuckFactor;
+
+            int amount = 0;
 
             switch (tier)
             {
                 case 1:
-                    if (ThreadSafeRandom.Next(1, 100) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(100 * luckFactor)) == 1)
                         amount = 1;
                     break;
                 case 2:
                 case 3:
-                    if (ThreadSafeRandom.Next(1, 50) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(50 * luckFactor)) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 60) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(60 * luckFactor)) == 1)
                         amount = 2;
                     break;
                 case 4:
                 case 5:
-                    if (ThreadSafeRandom.Next(1, 50) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(50 * luckFactor)) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 60) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(60 * luckFactor)) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(1, 70) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(70 * luckFactor)) == 1)
                         amount = 3;
                     break;
                 default:
-                    if (ThreadSafeRandom.Next(1, 50) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(50 * luckFactor)) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 60) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(60 * luckFactor)) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(1, 70) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(70 * luckFactor)) == 1)
                         amount = 3;
-                    if (ThreadSafeRandom.Next(1, 80) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(80 * luckFactor)) == 1)
                         amount = 4;
                     break;
             }
