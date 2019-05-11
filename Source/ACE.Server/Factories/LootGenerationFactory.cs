@@ -18,8 +18,6 @@ namespace ACE.Server.Factories
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private const float LuckFactor = 0.1f;
-
         static LootGenerationFactory()
         {
             InitRares();
@@ -882,10 +880,8 @@ namespace ACE.Server.Factories
             return damageMod2;
         }
 
-        private static WorldObject AssignMagic(WorldObject wo, bool luckFlag)
+        private static WorldObject AssignMagic(WorldObject wo, int tier, bool luckFlag)
         {
-            int tier = 7;
-
             int[][] spells;
             int[][] cantrips;
 
@@ -915,7 +911,7 @@ namespace ACE.Server.Factories
                 case WeenieType.MissileLauncher:
                     spells = LootTables.MissileSpells;
                     cantrips = LootTables.MissileCantrips;
-                    manaRate = -.04166667;
+                    manaRate = -0.04166667;
                     break;
                 default:
                     spells = null;
@@ -930,7 +926,7 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyFloat.ManaRate, manaRate);
 
-            int numSpells = GetSpellDistribution(tier, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips, luckFlag);
+            int numSpells = GetSpellDistribution(tier, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
 
             int spellcraft = GetSpellcraft(numSpells, tier);
@@ -1001,7 +997,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static int GetSpellDistribution(int tier, out int numMinors, out int numMajors, out int numEpics, out int numLegendaries, bool luckFlag)
+        private static int GetSpellDistribution(int tier, out int numMinors, out int numMajors, out int numEpics, out int numLegendaries)
         {
             int numNonCantrips = 0;
 
@@ -1064,8 +1060,8 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 6;
 
-                    numMinors = GetNumMinorCantrips(tier, luckFlag);
-                    numMajors = GetNumMajorCantrips(tier, luckFlag);
+                    numMinors = GetNumMinorCantrips(tier);
+                    numMajors = GetNumMajorCantrips(tier);
                     break;
 
                 case 5:
@@ -1077,8 +1073,8 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 7;
 
-                    numMinors = GetNumMinorCantrips(tier, luckFlag);
-                    numMajors = GetNumMajorCantrips(tier, luckFlag);
+                    numMinors = GetNumMinorCantrips(tier);
+                    numMajors = GetNumMajorCantrips(tier);
                     break;
 
                 case 6:
@@ -1088,8 +1084,8 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 7;
 
-                    numMinors = GetNumMinorCantrips(tier, luckFlag);
-                    numMajors = GetNumMajorCantrips(tier, luckFlag);
+                    numMinors = GetNumMinorCantrips(tier);
+                    numMajors = GetNumMajorCantrips(tier);
                     break;
 
                 case 7:
@@ -1099,9 +1095,9 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 7;
 
-                    numMinors = GetNumMinorCantrips(tier, luckFlag);
-                    numMajors = GetNumMajorCantrips(tier, luckFlag);
-                    numEpics = GetNumEpicCantrips(tier, luckFlag);
+                    numMinors = GetNumMinorCantrips(tier);
+                    numMajors = GetNumMajorCantrips(tier);
+                    numEpics = GetNumEpicCantrips(tier);
 
                     break;
                 default:
@@ -1111,10 +1107,10 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 7;
 
-                    numMinors = GetNumMinorCantrips(tier, luckFlag);
-                    numMajors = GetNumMajorCantrips(tier, luckFlag);
-                    numEpics = GetNumEpicCantrips(tier, luckFlag);
-                    numLegendaries = GetNumLegandaryCantrips(tier, luckFlag);
+                    numMinors = GetNumMinorCantrips(tier);
+                    numMajors = GetNumMajorCantrips(tier);
+                    numEpics = GetNumEpicCantrips(tier);
+                    numLegendaries = GetNumLegandaryCantrips(tier);
 
                     break;
             }
@@ -1122,7 +1118,7 @@ namespace ACE.Server.Factories
             return numNonCantrips + numMinors + numMajors + numEpics + numLegendaries;
         }
 
-        private static int GetNumMinorCantrips(int tier, bool luckFlag)
+        private static int GetNumMinorCantrips(int tier)
         {
             int numMinors = 0;
 
@@ -1161,7 +1157,7 @@ namespace ACE.Server.Factories
             return numMinors;
         }
 
-        private static int GetNumMajorCantrips(int tier, bool luckFlag)
+        private static int GetNumMajorCantrips(int tier)
         {
             int numMajors = 0;
 
@@ -1191,16 +1187,17 @@ namespace ACE.Server.Factories
                     break;
                 case 7:
                 default:
-                    // 20% chance for a major, 5% chance for 2 majors
+                    // 30% chance for a major, 20% chance for 2 majors,
+                    // 10% chance for 3 majors, 5% chance for 4 majors, and 2% chance for 5 majors
                     if (majorCantripChance > 70)
                         numMajors = 1;
-                    else if (majorCantripChance > 95)
+                    else if (majorCantripChance > 80)
                         numMajors = 2;
                     else if (majorCantripChance > 90)
                         numMajors = 3;
                     else if (majorCantripChance > 95)
                         numMajors = 4;
-                    else if (majorCantripChance > 95)
+                    else if (majorCantripChance > 98)
                         numMajors = 5;
                     break;
             }
@@ -1208,7 +1205,7 @@ namespace ACE.Server.Factories
             return numMajors;
         }
 
-        private static int GetNumEpicCantrips(int tier, bool luckFlag)
+        private static int GetNumEpicCantrips(int tier)
         {
             int numEpics = 0;
 
@@ -1228,7 +1225,7 @@ namespace ACE.Server.Factories
             return numEpics;
         }
 
-        private static int GetNumLegandaryCantrips(int tier, bool luckFlag)
+        private static int GetNumLegandaryCantrips(int tier)
         {
             int numLegendaries = 0;
 
@@ -1519,10 +1516,10 @@ namespace ACE.Server.Factories
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
 
-            var baseValue = ThreadSafeRandom.Next(100, 500);
+            var baseValue = wo.GetProperty(PropertyInt.EncumbranceVal) ?? 100;
 
             var value = (int)(baseValue * gemMaterialMod * materialMod * Math.Ceiling((double)(wo.GetProperty(PropertyInt.ItemWorkmanship) ?? 1) / 2));
-            wo.Value = value;
+            wo.SetProperty(PropertyInt.Value, value);
 
             return wo;
         }

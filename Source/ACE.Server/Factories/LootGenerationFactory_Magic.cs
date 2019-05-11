@@ -208,7 +208,7 @@ namespace ACE.Server.Factories
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
 
             if (isMagical)
-                wo = AssignMagic(wo, lucky);
+                wo = AssignMagic(wo, tier, lucky);
             else
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
