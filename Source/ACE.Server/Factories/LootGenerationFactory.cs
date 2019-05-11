@@ -1615,25 +1615,25 @@ namespace ACE.Server.Factories
                     value = (int)(ThreadSafeRandom.Next(100, 800) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 2:
-                    value = (int)(ThreadSafeRandom.Next(200, 1200) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
+                    value = (int)(ThreadSafeRandom.Next(200, 900) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 3:
-                    value = (int)(ThreadSafeRandom.Next(200, 1600) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
+                    value = (int)(ThreadSafeRandom.Next(200, 1000) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 4:
-                    value = (int)(ThreadSafeRandom.Next(400, 2000) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
+                    value = (int)(ThreadSafeRandom.Next(400, 1100) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 5:
-                    value = (int)(ThreadSafeRandom.Next(400, 2400) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
+                    value = (int)(ThreadSafeRandom.Next(400, 1200) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 6:
-                    value = (int)(ThreadSafeRandom.Next(400, 2600) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
+                    value = (int)(ThreadSafeRandom.Next(400, 1300) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 7:
-                    value = (int)(ThreadSafeRandom.Next(600, 3000) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
+                    value = (int)(ThreadSafeRandom.Next(600, 1400) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
                 case 8:
-                    value = (int)(ThreadSafeRandom.Next(600, 3400) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
+                    value = (int)(ThreadSafeRandom.Next(600, 1500) * gemMod * matMod * Math.Ceiling((double)workmanship / 2));
                     break;
             }
             return value;
@@ -2050,27 +2050,27 @@ namespace ACE.Server.Factories
             // w/ Luck
             if (lucky)
             {
-                if (ThreadSafeRandom.Next(1, 375) == 1)
+                if (ThreadSafeRandom.Next(1, 10) == 1)
                     amount = 1;
-                if (ThreadSafeRandom.Next(1, 417) == 1)
+                if (ThreadSafeRandom.Next(1, 12) == 1)
                     amount = 2;
-                if (ThreadSafeRandom.Next(1, 458) == 1)
+                if (ThreadSafeRandom.Next(1, 14) == 1)
                     amount = 3;
-                if (ThreadSafeRandom.Next(1, 500) == 1)
+                if (ThreadSafeRandom.Next(1, 16) == 1)
                     amount = 4;
                 return amount;
             }
 
-            if (ThreadSafeRandom.Next(1, 750) == 1)
+            if (ThreadSafeRandom.Next(1, 100) == 1)
                 amount = 1;
 
-            if (ThreadSafeRandom.Next(1, 834) == 1)
+            if (ThreadSafeRandom.Next(1, 120) == 1)
                 amount = 2;
 
-            if (ThreadSafeRandom.Next(1, 916) == 1)
+            if (ThreadSafeRandom.Next(1, 140) == 1)
                 amount = 3;
 
-            if (ThreadSafeRandom.Next(1, 1000) == 1)
+            if (ThreadSafeRandom.Next(1, 160) == 1)
                 amount = 4;
 
             return amount;
@@ -2086,11 +2086,11 @@ namespace ACE.Server.Factories
             // Mana Forge chests w/ Luck
             if (lucky)
             {
-                if (ThreadSafeRandom.Next(1, 375) == 1)
+                if (ThreadSafeRandom.Next(1, 14) == 1)
                     amount = 1;
-                if (ThreadSafeRandom.Next(1, 437) == 1)
+                if (ThreadSafeRandom.Next(1, 16) == 1)
                     amount = 2;
-                if (ThreadSafeRandom.Next(1, 500) == 1)
+                if (ThreadSafeRandom.Next(1, 18) == 1)
                     amount = 3;
                 return amount;
             }
@@ -2098,19 +2098,19 @@ namespace ACE.Server.Factories
             switch (tier)
             {
                 case 7:
-                    if (ThreadSafeRandom.Next(1, 750) == 1)
+                    if (ThreadSafeRandom.Next(1, 120) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 875) == 1)
+                    if (ThreadSafeRandom.Next(1, 140) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(1, 1000) == 1)
+                    if (ThreadSafeRandom.Next(1, 160) == 1)
                         amount = 3;
                     break;
                 default:
-                    if (ThreadSafeRandom.Next(1, 650) == 1)
+                    if (ThreadSafeRandom.Next(1, 100) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 775) == 1)
+                    if (ThreadSafeRandom.Next(1, 120) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(1, 900) == 1)
+                    if (ThreadSafeRandom.Next(1, 140) == 1)
                         amount = 3;
                     break;
 
@@ -2126,11 +2126,11 @@ namespace ACE.Server.Factories
             // Mana Forge chests w/ Luck
             if (lucky)
             {
-                if (ThreadSafeRandom.Next(1, 250) == 1)
+                if (ThreadSafeRandom.Next(1, 14) == 1)
                     amount = 1;
-                if (ThreadSafeRandom.Next(1, 375) == 1)
+                if (ThreadSafeRandom.Next(1, 16) == 1)
                     amount = 2;
-                if (ThreadSafeRandom.Next(1, 450) == 1)
+                if (ThreadSafeRandom.Next(1, 18) == 1)
                     amount = 3;
                 return amount;
             }
@@ -2141,47 +2141,29 @@ namespace ACE.Server.Factories
                     amount = 0;
                     break;
                 case 2:
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
+                    if (ThreadSafeRandom.Next(1, 140) == 1)
                         amount = 1;
                     break;
                 case 3:
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
+                    if (ThreadSafeRandom.Next(1, 140) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 750) == 1)
+                    if (ThreadSafeRandom.Next(1, 160) == 1)
                         amount = 2;
                     break;
                 case 4:
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 750) == 1)
-                        amount = 2;
-                    break;
                 case 5:
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 750) == 1)
-                        amount = 2;
-                    break;
                 case 6:
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
+                    if (ThreadSafeRandom.Next(1, 140) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 750) == 1)
+                    if (ThreadSafeRandom.Next(1, 160) == 1)
                         amount = 2;
-                    break;
-                case 7:
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 750) == 1)
-                        amount = 2;
-                    if (ThreadSafeRandom.Next(1, 900) == 1)
-                        amount = 3;
                     break;
                 default:
-                    if (ThreadSafeRandom.Next(1, 450) == 1)
+                    if (ThreadSafeRandom.Next(1, 120) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 700) == 1)
+                    if (ThreadSafeRandom.Next(1, 140) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(1, 850) == 1)
+                    if (ThreadSafeRandom.Next(1, 160) == 1)
                         amount = 3;
                     break;
             }
@@ -2196,13 +2178,13 @@ namespace ACE.Server.Factories
             // Mana Forge chests w/ Luck
             if (lucky)
             {
-                if (ThreadSafeRandom.Next(1, 25) == 1)
+                if (ThreadSafeRandom.Next(1, 12) == 1)
                     amount = 1;
-                if (ThreadSafeRandom.Next(1, 125) == 1)
+                if (ThreadSafeRandom.Next(1, 14) == 1)
                     amount = 2;
-                if (ThreadSafeRandom.Next(1, 250) == 1)
+                if (ThreadSafeRandom.Next(1, 16) == 1)
                     amount = 3;
-                if (ThreadSafeRandom.Next(1, 375) == 1)
+                if (ThreadSafeRandom.Next(1, 18) == 1)
                     amount = 4;
                 return amount;
             }
@@ -2214,61 +2196,29 @@ namespace ACE.Server.Factories
                         amount = 1;
                     break;
                 case 2:
-                    if (ThreadSafeRandom.Next(1, 50) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 250) == 1)
-                        amount = 2;
-                    break;
                 case 3:
                     if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 250) == 1)
+                    if (ThreadSafeRandom.Next(1, 60) == 1)
                         amount = 2;
                     break;
                 case 4:
-                    if (ThreadSafeRandom.Next(1, 50) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 250) == 1)
-                        amount = 2;
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
-                        amount = 3;
-                    break;
                 case 5:
                     if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 250) == 1)
+                    if (ThreadSafeRandom.Next(1, 60) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
+                    if (ThreadSafeRandom.Next(1, 70) == 1)
                         amount = 3;
-                    break;
-                case 6:
-                    if (ThreadSafeRandom.Next(1, 50) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 250) == 1)
-                        amount = 2;
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
-                        amount = 3;
-                    if (ThreadSafeRandom.Next(1, 750) == 1)
-                        amount = 4;
-                    break;
-                case 7:
-                    if (ThreadSafeRandom.Next(1, 50) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, 250) == 1)
-                        amount = 2;
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
-                        amount = 3;
-                    if (ThreadSafeRandom.Next(1, 750) == 1)
-                        amount = 4;
                     break;
                 default:
                     if (ThreadSafeRandom.Next(1, 50) == 1)
                         amount = 1;
-                    if (ThreadSafeRandom.Next(1, 250) == 1)
+                    if (ThreadSafeRandom.Next(1, 60) == 1)
                         amount = 2;
-                    if (ThreadSafeRandom.Next(1, 500) == 1)
+                    if (ThreadSafeRandom.Next(1, 70) == 1)
                         amount = 3;
-                    if (ThreadSafeRandom.Next(1, 750) == 1)
+                    if (ThreadSafeRandom.Next(1, 80) == 1)
                         amount = 4;
                     break;
             }

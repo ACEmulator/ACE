@@ -165,10 +165,10 @@ namespace ACE.Server.Factories
                 int difficulty = GetDifficulty(tier, spellcraft);
                 wo.SetProperty(PropertyInt.ItemDifficulty, difficulty);
 
-                int minorCantrips = GetNumMinorCantrips(tier);
-                int majorCantrips = GetNumMajorCantrips(tier);
-                int epicCantrips = GetNumEpicCantrips(tier);
-                int legendaryCantrips = GetNumLegendaryCantrips(tier);
+                int minorCantrips = GetNumMinorCantrips(tier, lucky);
+                int majorCantrips = GetNumMajorCantrips(tier, lucky);
+                int epicCantrips = GetNumEpicCantrips(tier, lucky);
+                int legendaryCantrips = GetNumLegendaryCantrips(tier, lucky);
 
                 int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
                 if (numCantrips > 10)

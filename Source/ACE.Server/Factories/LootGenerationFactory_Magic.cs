@@ -237,10 +237,10 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 7);
                 wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
 
-                int minorCantrips = GetNumMinorCantrips(tier);
-                int majorCantrips = GetNumMajorCantrips(tier);
-                int epicCantrips = GetNumEpicCantrips(tier);
-                int legendaryCantrips = GetNumLegendaryCantrips(tier);
+                int minorCantrips = GetNumMinorCantrips(tier, lucky);
+                int majorCantrips = GetNumMajorCantrips(tier, lucky);
+                int epicCantrips = GetNumEpicCantrips(tier, lucky);
+                int legendaryCantrips = GetNumLegendaryCantrips(tier, lucky);
                 int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
 
                 int[][] spells = LootTables.WandSpells;
