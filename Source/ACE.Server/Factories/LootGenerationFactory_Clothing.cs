@@ -9,9 +9,6 @@ namespace ACE.Server.Factories
     {
         private static WorldObject CreateArmor(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased, bool lucky = false)
         {
-            int lowSpellTier = 0;
-            int highSpellTier = 0;
-
             int equipSetId = 0;
 
             int materialType = 0;
@@ -23,46 +20,24 @@ namespace ACE.Server.Factories
             switch (tier)
             {
                 case 1:
-                    lowSpellTier = 1;
-                    highSpellTier = 3;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.ChainmailArmor);
                     break;
                 case 2:
-                    lowSpellTier = 3;
-                    highSpellTier = 5;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.DiforsaArmor);
                     break;
                 case 3:
-                    lowSpellTier = 4;
-                    highSpellTier = 6;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.CovenantArmor);
                     break;
                 case 4:
-                    lowSpellTier = 5;
-                    highSpellTier = 6;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.CovenantArmor);
                     break;
                 case 5:
-                    lowSpellTier = 5;
-                    highSpellTier = 7;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.AlduressaArmor);
                     break;
                 case 6:
-                    lowSpellTier = 6;
-                    highSpellTier = 7;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.HaebreanArmor);
                     break;
-                case 7:
-                    if (lucky)
-                        lowSpellTier = 7;
-                    else
-                        lowSpellTier = 6;
-                    highSpellTier = 8;
-                    armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.OlthoiAlduressaArmor);
-                    break;
                 default:
-                    lowSpellTier = 7;
-                    highSpellTier = 8;
                     if (lootBias == LootBias.Armor) // Armor Mana Forge Chests don't include clothing type items
                         armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.Helms, (int)LootTables.ArmorType.OlthoiAlduressaArmor);
                     else

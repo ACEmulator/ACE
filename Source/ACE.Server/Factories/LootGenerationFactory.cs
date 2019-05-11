@@ -886,10 +886,13 @@ namespace ACE.Server.Factories
         {
             int tier = 7;
 
-            double manaRate = -1.0 / (double)(ThreadSafeRandom.Next(10, 30));
-
             int[][] spells;
             int[][] cantrips;
+
+            int lowSpellTier = GetLowSpellTier(tier, luckFlag);
+            int highSpellTier = GetHighSpellTier(tier);
+
+            double manaRate = -1.0 / (double)(ThreadSafeRandom.Next(10, 30));
 
             switch (wo.WeenieType)
             {
@@ -926,9 +929,6 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
 
             wo.SetProperty(PropertyFloat.ManaRate, manaRate);
-
-            int lowSpellTier = GetLowSpellTier(tier, luckFlag);
-            int highSpellTier = GetHighSpellTier(tier);
 
             int numSpells = GetSpellDistribution(tier, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips, luckFlag);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
@@ -1003,256 +1003,247 @@ namespace ACE.Server.Factories
 
         private static int GetSpellDistribution(int tier, out int numMinors, out int numMajors, out int numEpics, out int numLegendaries, bool luckFlag)
         {
-            int chance = 0;
-            int numSpells = 0;
+            int numNonCantrips = 0;
 
             numMinors = 0;
             numMajors = 0;
             numEpics = 0;
             numLegendaries = 0;
 
+            int nonCantripChance = ThreadSafeRandom.Next(1, 100);
+            int minorCantripChance = ThreadSafeRandom.Next(1, 100);
+
             switch (tier)
             {
                 case 1:
-                    ////1-3, minor cantrips
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 50)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 90)
-                    {
-                        numSpells = 2;
-                    }
+                    // 1-3 w/ chance of minor cantrip
+                    if (nonCantripChance < 50)
+                        numNonCantrips = 1;
+                    else if (nonCantripChance < 90)
+                        numNonCantrips = 2;
                     else
-                    {
-                        numSpells = 3;
-                    }
+                        numNonCantrips = 3;
+
+                    // 10% chance for a minor
+                    if (minorCantripChance > 90)
+                        numMinors = 1;
                     break;
+
                 case 2:
-                    ////3-5 minor, and major
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 500)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 900)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 998)
-                    {
-                        numSpells = 4;
-                    }
+                    // 3-4 w/ chance of either minor or major
+                    if (nonCantripChance < 50)
+                        numNonCantrips = 3;
                     else
-                    {
-                        numSpells = 5;
-                    }
+                        numNonCantrips = 4;
+
+                    // 10% chance for a minor with 5% chance for a major, instead
+                    if (minorCantripChance > 90)
+                        numMinors = 1;
+                    else if (minorCantripChance > 95)
+                        numMajors = 1;
                     break;
+
                 case 3:
-                    //4-6, major/minor
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 500)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 800)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 900)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 985)
-                    {
-                        numSpells = 5;
-                    }
+                    // 4-5 w/ chance of either major or minor
+                    if (nonCantripChance < 50)
+                        numNonCantrips = 4;
                     else
-                    {
-                        numSpells = 6;
-                    }
+                        numNonCantrips = 5;
+
+                    // 20% chance for a minor with 10% chance for a major, instead
+                    if (minorCantripChance > 80)
+                        numMinors = 1;
+                    else if (minorCantripChance > 90)
+                        numMajors = 1;
                     break;
+
                 case 4:
-                    //5-6, major and minor
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 500)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 800)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 900)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 985)
-                    {
-                        numSpells = 5;
-                    }
+                    // 5-6, major and minor
+                    if (nonCantripChance < 50)
+                        numNonCantrips = 5;
                     else
-                    {
-                        numSpells = 6;
-                    }
+                        numNonCantrips = 6;
+
+                    numMinors = GetNumMinorCantrips(tier, luckFlag);
+                    numMajors = GetNumMajorCantrips(tier, luckFlag);
                     break;
+
                 case 5:
-                    //5-7 major/minor
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 500)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 600)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 700)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 850)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 940)
-                    {
-                        numSpells = 5;
-                    }
-                    else if (chance < 980)
-                    {
-                        numSpells = 6;
-                    }
+                    // 5-7 major and minor
+                    if (nonCantripChance < 50)
+                        numNonCantrips = 5;
+                    else if (nonCantripChance < 90)
+                        numNonCantrips = 6;
                     else
-                    {
-                        numSpells = 7;
-                    }
+                        numNonCantrips = 7;
+
+                    numMinors = GetNumMinorCantrips(tier, luckFlag);
+                    numMajors = GetNumMajorCantrips(tier, luckFlag);
                     break;
+
                 case 6:
-                    //6-7, minor(4 total) major(2 total)
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 200)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 300)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 400)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 500)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 600)
-                    {
-                        numSpells = 5;
-                    }
-                    else if (chance < 700)
-                    {
-                        numSpells = 6;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 7;
-                    }
+                    // 6-7, minor(4 total) major(2 total)
+                    if (nonCantripChance < 50)
+                        numNonCantrips = 6;
                     else
-                    {
-                        numSpells = 8;
-                    }
+                        numNonCantrips = 7;
+
+                    numMinors = GetNumMinorCantrips(tier, luckFlag);
+                    numMajors = GetNumMajorCantrips(tier, luckFlag);
                     break;
+
                 case 7:
-                    ///6-8, minor(4), major(5), epic(3)
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 200)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 300)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 400)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 500)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 600)
-                    {
-                        numSpells = 5;
-                    }
-                    else if (chance < 700)
-                    {
-                        numSpells = 6;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 7;
-                    }
+                    /// 6-7, minor(4), major(5), epic(3)
+                    if (nonCantripChance < 50)
+                        numNonCantrips = 6;
                     else
-                    {
-                        numSpells = 8;
-                    }
+                        numNonCantrips = 7;
+
+                    numMinors = GetNumMinorCantrips(tier, luckFlag);
+                    numMajors = GetNumMajorCantrips(tier, luckFlag);
+                    numEpics = GetNumEpicCantrips(tier, luckFlag);
+
                     break;
                 default:
-                    //6-8, minor(4), major(5), epic(3), legendary(2)
-                    chance = ThreadSafeRandom.Next(1, 1000);
-                    if (chance < 200)
-                    {
-                        numSpells = 1;
-                    }
-                    else if (chance < 300)
-                    {
-                        numSpells = 2;
-                    }
-                    else if (chance < 400)
-                    {
-                        numSpells = 3;
-                    }
-                    else if (chance < 500)
-                    {
-                        numSpells = 4;
-                    }
-                    else if (chance < 600)
-                    {
-                        numSpells = 5;
-                    }
-                    else if (chance < 700)
-                    {
-                        numSpells = 6;
-                    }
-                    else if (chance < 950)
-                    {
-                        numSpells = 7;
-                    }
+                    // 6-7, minor(4), major(5), epic(3), legendary(2)
+                    if (nonCantripChance < 50)
+                        numNonCantrips = 6;
                     else
-                    {
-                        numSpells = 8;
-                    }
-                    break;
+                        numNonCantrips = 7;
 
+                    numMinors = GetNumMinorCantrips(tier, luckFlag);
+                    numMajors = GetNumMajorCantrips(tier, luckFlag);
+                    numEpics = GetNumEpicCantrips(tier, luckFlag);
+                    numLegendaries = GetNumLegandaryCantrips(tier, luckFlag);
+
+                    break;
             }
 
-            return numSpells;
+            return numNonCantrips + numMinors + numMajors + numEpics + numLegendaries;
+        }
+
+        private static int GetNumMinorCantrips(int tier, bool luckFlag)
+        {
+            int numMinors = 0;
+
+            if (tier < 4)
+                return numMinors;
+
+            int minorCantripChance = ThreadSafeRandom.Next(1, 100);
+            switch (tier)
+            {
+                case 4:
+                    // 20% chance for a minor
+                    if (minorCantripChance > 80)
+                        numMinors = 1;
+                    break;
+                case 5:
+                    // 30% chance for a minor
+                    if (minorCantripChance > 70)
+                        numMinors = 1;
+                    break;
+                case 6:
+                case 7:
+                default:
+                    // 30% chance for a minor, 20% chance for 2 minors,
+                    // 10% chance for 3 minors, and 5% chance for 4 minors
+                    if (minorCantripChance > 70)
+                        numMinors = 1;
+                    else if (minorCantripChance > 80)
+                        numMinors = 2;
+                    else if (minorCantripChance > 90)
+                        numMinors = 3;
+                    else if (minorCantripChance > 95)
+                        numMinors = 4;
+                    break;
+            }
+
+            return numMinors;
+        }
+
+        private static int GetNumMajorCantrips(int tier, bool luckFlag)
+        {
+            int numMajors = 0;
+
+            if (tier < 4)
+                return numMajors;
+
+            int majorCantripChance = ThreadSafeRandom.Next(1, 100);
+
+            switch (tier)
+            {
+                case 4:
+                    // 10% chance for a major, also
+                    if (majorCantripChance > 90)
+                        numMajors = 1;
+                    break;
+                case 5:
+                    // 20% chance for a major
+                    if (majorCantripChance > 80)
+                        numMajors = 1;
+                    break;
+                case 6:
+                    // 20% chance for a major, 5% chance for 2 majors
+                    if (majorCantripChance > 80)
+                        numMajors = 1;
+                    else if (majorCantripChance > 95)
+                        numMajors = 2;
+                    break;
+                case 7:
+                default:
+                    // 20% chance for a major, 5% chance for 2 majors
+                    if (majorCantripChance > 70)
+                        numMajors = 1;
+                    else if (majorCantripChance > 95)
+                        numMajors = 2;
+                    else if (majorCantripChance > 90)
+                        numMajors = 3;
+                    else if (majorCantripChance > 95)
+                        numMajors = 4;
+                    else if (majorCantripChance > 95)
+                        numMajors = 5;
+                    break;
+            }
+
+            return numMajors;
+        }
+
+        private static int GetNumEpicCantrips(int tier, bool luckFlag)
+        {
+            int numEpics = 0;
+
+            if (tier < 7)
+                return numEpics;
+
+            int epicCantripChance = ThreadSafeRandom.Next(1, 100);
+
+            // 10% chance for 1 Epic, 5% chance for 2 Epics, and 2% chance for 3 Epics
+            if (epicCantripChance > 90)
+                numEpics = 1;
+            else if (epicCantripChance > 95)
+                numEpics = 2;
+            else if (epicCantripChance > 98)
+                numEpics = 3;
+
+            return numEpics;
+        }
+
+        private static int GetNumLegandaryCantrips(int tier, bool luckFlag)
+        {
+            int numLegendaries = 0;
+
+            if (tier < 8)
+                return numLegendaries;
+
+            int legendaryCantripChance = ThreadSafeRandom.Next(1, 100);
+
+            // 10% chance for a legendary, 5% chance for 2 legendaries
+            if (legendaryCantripChance > 90)
+                numLegendaries = 1;
+            else if (legendaryCantripChance > 95)
+                numLegendaries = 2;
+
+            return numLegendaries;
         }
 
         private static int GetLowSpellTier(int tier, bool luckFlag)
@@ -1934,134 +1925,6 @@ namespace ACE.Server.Factories
 
             meleeMod += 1.0;
             return meleeMod;
-        }
-
-        private static int GetNumLegendaryCantrips(int tier, bool lucky = false)
-        {
-            float luckFactor = 1.0f;
-            if (lucky)
-                luckFactor = LuckFactor;
-
-            int amount = 0;
-
-            if (tier < 8)
-                return amount;
-
-            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(100 * luckFactor)) == 1)
-                amount = 1;
-            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(120 * luckFactor)) == 1)
-                amount = 2;
-            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
-                amount = 3;
-            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(160 * luckFactor)) == 1)
-                amount = 4;
-
-            return amount;
-        }
-
-        private static int GetNumEpicCantrips(int tier, bool lucky = false)
-        {
-            float luckFactor = 1.0f;
-            if (lucky)
-                luckFactor = LuckFactor;
-
-            int amount = 0;
-
-            if (tier < 7)
-                return amount;
-
-            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(100 * luckFactor)) == 1)
-                amount = 1;
-            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(120 * luckFactor)) == 1)
-                amount = 2;
-            if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
-                amount = 3;
-
-            return amount;
-        }
-
-        private static int GetNumMajorCantrips(int tier, bool lucky = false)
-        {
-            float luckFactor = 1.0f;
-            if (lucky)
-                luckFactor = LuckFactor;
-
-            int amount = 0;
-
-            switch (tier)
-            {
-                case 1:
-                    amount = 0;
-                    break;
-                case 2:
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
-                        amount = 1;
-                    break;
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(160 * luckFactor)) == 1)
-                        amount = 2;
-                    break;
-                default:
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(100 * luckFactor)) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(120 * luckFactor)) == 1)
-                        amount = 2;
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(140 * luckFactor)) == 1)
-                        amount = 3;
-                    break;
-            }
-
-            return amount;
-        }
-
-        private static int GetNumMinorCantrips(int tier, bool lucky = false)
-        {
-            float luckFactor = 1.0f;
-            if (lucky)
-                luckFactor = LuckFactor;
-
-            int amount = 0;
-
-            switch (tier)
-            {
-                case 1:
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(100 * luckFactor)) == 1)
-                        amount = 1;
-                    break;
-                case 2:
-                case 3:
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(50 * luckFactor)) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(60 * luckFactor)) == 1)
-                        amount = 2;
-                    break;
-                case 4:
-                case 5:
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(50 * luckFactor)) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(60 * luckFactor)) == 1)
-                        amount = 2;
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(70 * luckFactor)) == 1)
-                        amount = 3;
-                    break;
-                default:
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(50 * luckFactor)) == 1)
-                        amount = 1;
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(60 * luckFactor)) == 1)
-                        amount = 2;
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(70 * luckFactor)) == 1)
-                        amount = 3;
-                    if (ThreadSafeRandom.Next(1, (int)Math.Ceiling(80 * luckFactor)) == 1)
-                        amount = 4;
-                    break;
-            }
-
-            return amount;
         }
 
         /// <summary>
