@@ -1,6 +1,8 @@
 using System;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Collision;
@@ -12,13 +14,14 @@ namespace ACE.Server.Physics.Common
     {
         public uint ID;
         public double UpdateTime;
-        public WorldObject WorldObject;
+        public readonly WorldObjectInfo WorldObjectInfo;
+        public WorldObject WorldObject => WorldObjectInfo?.TryGetWorldObject();
 
         public WeenieObject() { }
 
         public WeenieObject(WorldObject worldObject)
         {
-            WorldObject = worldObject;
+            WorldObjectInfo = new WorldObjectInfo(worldObject);
         }
 
         public bool CanJump(float extent)
