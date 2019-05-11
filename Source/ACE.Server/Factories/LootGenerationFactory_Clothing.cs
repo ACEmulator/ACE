@@ -280,11 +280,6 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.WieldDifficulty, wield);
             }
 
-            // Setting random color
-            wo.SetProperty(PropertyInt.PaletteTemplate, ThreadSafeRandom.Next(1, 2047));
-            double shade = .1 * ThreadSafeRandom.Next(0, 9);
-            wo.SetProperty(PropertyFloat.Shade, shade);
-
             var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 
             if (baseArmorLevel == 0)
