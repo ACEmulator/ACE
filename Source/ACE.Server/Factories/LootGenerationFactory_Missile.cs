@@ -1,4 +1,3 @@
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
@@ -8,14 +7,8 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateMissileWeapon(int tier, bool isMagical)
+        private static WorldObject CreateMissileWeapon(int tier, bool isMagical, bool lucky = false)
         {
-            int[][] spells = LootTables.MissileSpells;
-            int[][] cantrips = LootTables.MissileCantrips;
-
-            ////Double Values
-            double manaRate = -.04166667; ///done
-
             int weaponWeenie;
             int chance;
             int elemenatalBonus = 0;
@@ -44,6 +37,9 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
+            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 7);
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
             int materialType = GetMaterialType(wo, tier);
@@ -51,7 +47,6 @@ namespace ACE.Server.Factories
                 wo.MaterialType = (MaterialType)materialType;
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
             double meleeDMod = GetMeleeDMod(tier);
             if (meleeDMod > 0.0f)
@@ -82,86 +77,7 @@ namespace ACE.Server.Factories
             }
 
             if (isMagical)
-            {
-                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
-
-                wo.SetProperty(PropertyFloat.ManaRate, manaRate);
-
-                int numSpells = GetNumSpells(tier);
-                int spellCraft = GetSpellcraft(numSpells, tier);
-                int lowSpellTier = GetLowSpellTier(tier);
-                int highSpellTier = GetHighSpellTier(tier);
-                int itemSkillLevelLimit = 0;
-                int maxMana = GetMaxMana(numSpells, tier);
-
-                wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
-                wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
-                wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
-                wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellCraft));
-                wo.SetProperty(PropertyInt.ItemSkillLevelLimit, itemSkillLevelLimit);
-
-                int[] shuffledValues = new int[spells.Length];
-                for (int i = 0; i < spells.Length; i++)
-                {
-                    shuffledValues[i] = i;
-                }
-                Shuffle(shuffledValues);
-
-                int minorCantrips = GetNumMinorCantrips(tier);
-                int majorCantrips = GetNumMajorCantrips(tier);
-                int epicCantrips = GetNumEpicCantrips(tier);
-                int legendaryCantrips = GetNumLegendaryCantrips(tier);
-                int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-
-                if (numSpells - numCantrips > 0)
-                {
-                    for (int a = 0; a < numSpells - numCantrips; a++)
-                    {
-                        int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                        int spellID = spells[shuffledValues[a]][col];
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                }
-
-                if (numCantrips > 0)
-                {
-                    shuffledValues = new int[cantrips.Length];
-                    for (int i = 0; i < cantrips.Length; i++)
-                    {
-                        shuffledValues[i] = i;
-                    }
-                    Shuffle(shuffledValues);
-                    int shuffledPlace = 0;
-                    //minor cantripps
-                    for (int a = 0; a < minorCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][0];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    //major cantrips
-                    for (int a = 0; a < majorCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][1];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    // epic cantrips
-                    for (int a = 0; a < epicCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][2];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    //legendary cantrips
-                    for (int a = 0; a < legendaryCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][3];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                }
-            }
+                wo = AssignMagic(wo, tier, lucky);
             else
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -172,10 +88,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyFloat.ManaRate);
             }
 
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
+            wo = AssignValue(wo);
 
             wo = RandomizeColor(wo);
             return wo;
