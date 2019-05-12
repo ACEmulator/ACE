@@ -1516,9 +1516,9 @@ namespace ACE.Server.Factories
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
 
-            var baseValue = wo.GetProperty(PropertyInt.EncumbranceVal) ?? 100;
+            var baseValue = ThreadSafeRandom.Next(300, 600);
 
-            var value = (int)(baseValue * gemMaterialMod * materialMod * Math.Ceiling((double)(wo.GetProperty(PropertyInt.ItemWorkmanship) ?? 1) / 2));
+            var value = (int)(baseValue * gemMaterialMod * materialMod * Math.Ceiling((double)(wo.GetProperty(PropertyInt.ItemWorkmanship) ?? 1)));
             wo.SetProperty(PropertyInt.Value, value);
 
             return wo;
