@@ -228,6 +228,7 @@ namespace ACE.Server.WorldObjects
 
                 // ensure player or player's pet
                 var wo = obj.WeenieObj.WorldObject;
+                if (wo == null) continue;
                 if (!(wo is Player) && !(wo is CombatPet)) continue;
                 var creature = wo as Creature;
 
