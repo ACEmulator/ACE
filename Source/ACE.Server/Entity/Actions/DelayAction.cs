@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 namespace ACE.Server.Entity.Actions
 {
@@ -13,12 +14,12 @@ namespace ACE.Server.Entity.Actions
 
         // For breaking ties on compareto, two actions cannot be equal
         private readonly long sequence;
-        private static volatile uint glblSequence;
+        private static long glblSequence;
 
         public DelayAction(double waitTimePortalYearTicks)
         {
             WaitTime = waitTimePortalYearTicks;
-            sequence = glblSequence++;
+            sequence = Interlocked.Increment(ref glblSequence);
         }
 
         public void Start()

@@ -8,7 +8,6 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
@@ -31,12 +30,17 @@ namespace ACE.Server.Entity
         /// A list of objects that have been spawned by this generator
         /// Mapping of object guid => registry node, which provides a bunch of detailed info about the spawn
         /// </summary>
-        public Dictionary<uint, GeneratorRegistryNode> Spawned;
+        public readonly Dictionary<uint, WorldObjectInfo> Spawned = new Dictionary<uint, WorldObjectInfo>();
 
         /// <summary>
         /// The list of pending times awaiting respawning
         /// </summary>
-        public List<DateTime> SpawnQueue;
+        public readonly List<DateTime> SpawnQueue = new List<DateTime>();
+
+        /// <summary>
+        /// The 
+        /// </summary>
+        public readonly Queue<(DateTime time, uint objectGuid)> RemoveQueue = new Queue<(DateTime time, uint objectGuid)>();
 
         /// <summary>
         /// Returns TRUE if this profile is a placeholder object
@@ -69,7 +73,16 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The delay for respawning objects
         /// </summary>
-        public float Delay { get => Biota.Delay ?? _generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f; }
+        public float Delay
+        {
+            get
+            {
+                if (_generator is Chest || _generator.RegenerationInterval == 0)
+                    return 0;
+
+                return Biota.Delay ?? _generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f;
+            }
+        }
 
         /// <summary>
         /// The parent for this generator profile
@@ -86,9 +99,6 @@ namespace ACE.Server.Entity
         {
             _generator = generator;
             Biota = biota;
-
-            Spawned = new Dictionary<uint, GeneratorRegistryNode>();
-            SpawnQueue = new List<DateTime>();
         }
 
         /// <summary>
@@ -96,6 +106,12 @@ namespace ACE.Server.Entity
         /// </summary>
         public void HeartBeat()
         {
+            while (RemoveQueue.TryPeek(out var result) && result.time <= DateTime.UtcNow)
+            {
+                RemoveQueue.Dequeue();
+                FreeSlot(result.objectGuid);
+            }
+
             if (SpawnQueue.Count > 0)
                 ProcessQueue();
         }
@@ -176,13 +192,9 @@ namespace ACE.Server.Entity
                     {
                         foreach (var obj in objects)
                         {
-                            var registry = new GeneratorRegistryNode();
+                            var woi = new WorldObjectInfo(obj);
 
-                            registry.WeenieClassId = Biota.WeenieClassId;
-                            registry.Timestamp = DateTime.UtcNow;
-                            registry.WorldObject = obj;
-
-                            Spawned.Add(obj.Guid.Full, registry);
+                            Spawned.Add(obj.Guid.Full, woi);
                         }
                     }
                     else
@@ -404,29 +416,23 @@ namespace ACE.Server.Entity
         {
             //log.Debug($"{_generator.Name}.NotifyGenerator({target:X8}, {eventType})");
 
+            if (eventType == RegenerationType.PickUp && (RegenerationType)Biota.WhenCreate == RegenerationType.Destruction)
+                eventType = RegenerationType.Destruction;
+
             if (Biota.WhenCreate != (uint)eventType)
                 return;
 
-            Spawned.TryGetValue(target.Full, out var obj);
+            Spawned.TryGetValue(target.Full, out var woi);
 
-            if (obj == null) return;
+            if (woi == null) return;
 
-            //log.Debug($"{_generator.Name}.NotifyGenerator({target}, {eventType}) - RegenerationInterval: {_generator.RegenerationInterval} - Delay: {Biota.Delay} - Link Delay: {_generator.GeneratorProfiles[0].Biota.Delay}");
-            var delay = Delay;
-            if (_generator is Chest || _generator.RegenerationInterval == 0)
-                delay = 0;
-
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(delay);
-            actionChain.AddAction(_generator, () => FreeSlot(obj));
-            actionChain.EnqueueChain();
-            //Enqueue(1, false);
+            RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(Delay), woi.Guid.Full));
         }
 
-        public void FreeSlot(GeneratorRegistryNode node)
+        public void FreeSlot(uint objectGuid)
         {
-            Spawned.Remove(node.WorldObject.Guid.Full);
-            _generator.CurrentCreate--;
+            if (Spawned.Remove(objectGuid))
+                _generator.CurrentCreate--;
         }
     }
 }

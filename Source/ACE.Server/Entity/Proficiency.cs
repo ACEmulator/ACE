@@ -54,15 +54,15 @@ namespace ACE.Server.Entity
                 player.ChangesDetected = true;
 
                 var pp = (uint)Math.Round(difficulty * timeScale);
-                var cp = (uint)Math.Round(pp * 0.1f);   // cp = 10% PP
+                var totalXPGranted = (uint)Math.Round(pp * 1.1f);   // Total XP granted = 101% PP, CP being the 1% of that
 
                 //Console.WriteLine($"Earned {pp} PP ({skill.Skill})");
 
-                // send PP to player as skill XP
-                player.RaiseSkillGameAction(skill.Skill, pp, true);
-
                 // send CP to player as unassigned XP
-                player.GrantXP(cp, XpType.Proficiency, false);
+                player.GrantXP(totalXPGranted, XpType.Proficiency, false);
+
+                // send PP to player as skill XP, which gets spent from the CP sent
+                player.RaiseSkillGameAction(skill.Skill, pp);
             }
         }
     }
