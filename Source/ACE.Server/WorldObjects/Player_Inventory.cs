@@ -458,7 +458,7 @@ namespace ACE.Server.WorldObjects
 
             if (searchLocations.HasFlag(SearchLocations.TradedByOther))
             {
-                if (IsTrading && TradePartner != null)
+                if (IsTrading && TradePartner != ObjectGuid.Invalid)
                 {
                     if (CurrentLandblock?.GetObject(TradePartner) is Player currentTradePartner)
                     {
@@ -472,7 +472,7 @@ namespace ACE.Server.WorldObjects
 
             if (searchLocations.HasFlag(SearchLocations.ObjectsKnownByMe))
             {
-                result = GetKnownObjects().Where(o => o.Guid == objectGuid).FirstOrDefault();
+                result = GetKnownObjects().FirstOrDefault(o => o.Guid == objectGuid);
 
                 if (result != null)
                     return result;
