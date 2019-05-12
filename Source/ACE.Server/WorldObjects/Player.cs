@@ -183,7 +183,8 @@ namespace ACE.Server.WorldObjects
             // IsAlive = true;
         }
 
-        public bool IsPendingDeletion => Character.DeleteTime > 0;
+        public bool IsDeleted => Character.IsDeleted;
+        public bool IsPendingDeletion => Character.DeleteTime > 0 && !IsDeleted;
 
 
         // ******************************************************************* OLD CODE BELOW ********************************

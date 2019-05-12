@@ -52,6 +52,7 @@ namespace ACE.Server.Entity
         int? Gender { get; }
 
 
+        bool IsDeleted { get; }
         bool IsPendingDeletion { get; }
 
 

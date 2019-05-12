@@ -61,7 +61,8 @@ namespace ACE.Server.Entity
                 biotaPropertyStrings[(PropertyString)x.Type] = x;
         }
 
-        public bool IsPendingDeletion => DatabaseManager.Shard.GetCharacterByGuid(Guid.Full).DeleteTime > 0;
+        public bool IsDeleted => DatabaseManager.Shard.GetCharacterByGuid(Guid.Full).IsDeleted;
+        public bool IsPendingDeletion => DatabaseManager.Shard.GetCharacterByGuid(Guid.Full).DeleteTime > 0 && !IsDeleted;
 
         public DateTime LastRequestedDatabaseSave { get; protected set; }
 
