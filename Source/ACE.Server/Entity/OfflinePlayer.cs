@@ -37,7 +37,7 @@ namespace ACE.Server.Entity
 
             InitializePropertyDictionaries();
 
-            var character = DatabaseManager.Shard.GetCharacterByName(Name);
+            var character = DatabaseManager.Shard.GetCharacterByGuid(Guid.Full);
 
             if (character != null)
                 Account = DatabaseManager.Authentication.GetAccountById(character.AccountId);
@@ -61,6 +61,7 @@ namespace ACE.Server.Entity
                 biotaPropertyStrings[(PropertyString)x.Type] = x;
         }
 
+        public bool IsPendingDeletion => DatabaseManager.Shard.GetCharacterByGuid(Guid.Full).DeleteTime > 0;
 
         public DateTime LastRequestedDatabaseSave { get; protected set; }
 

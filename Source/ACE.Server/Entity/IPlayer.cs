@@ -52,6 +52,9 @@ namespace ACE.Server.Entity
         int? Gender { get; }
 
 
+        bool IsPendingDeletion { get; }
+
+
         uint? MonarchId { get; set; }
 
         uint? PatronId { get; set; }
