@@ -2,6 +2,7 @@ using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.WorldObjects
 {
@@ -25,6 +26,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            ActivationResponse |= ActivationResponse.Emote;
         }
 
         public override void ActOnUse(WorldObject activator)
