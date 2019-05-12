@@ -375,7 +375,7 @@ namespace ACE.Server.Managers
 
                 isOnline = false;
 
-                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.TrimStart('+').Equals(name.TrimStart('+'), StringComparison.OrdinalIgnoreCase));
+                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.TrimStart('+').Equals(name.TrimStart('+'), StringComparison.OrdinalIgnoreCase) && !p.IsPendingDeletion);
 
                 if (offlinePlayer != null)
                     return offlinePlayer;
