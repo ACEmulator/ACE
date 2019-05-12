@@ -203,6 +203,17 @@ namespace ACE.Server.WorldObjects
             {
                 if (kvp.Value.AdvancementClass == SkillAdvancementClass.Specialized)
                 {
+                    // exclude aug specs
+                    switch (kvp.Key)
+                    {
+                        case Skill.ArmorTinkering:
+                        case Skill.ItemTinkering:
+                        case Skill.MagicItemTinkering:
+                        case Skill.WeaponTinkering:
+                        case Skill.Salvaging:
+                            continue;
+                    }
+
                     var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)kvp.Key];
 
                     specializedCreditsTotal += skill.UpgradeCostFromTrainedToSpecialized;
