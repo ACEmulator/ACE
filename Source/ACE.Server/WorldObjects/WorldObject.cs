@@ -730,6 +730,11 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSound(targetId, soundId, volume));
         }
 
+        public virtual void OnGeneration(WorldObject generator)
+        {
+            EmoteManager.OnGeneration();
+        }
+
         public virtual void EnterWorld()
         {
             if (Location != null)
@@ -738,6 +743,9 @@ namespace ACE.Server.WorldObjects
 
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
+
+                if (Generator != null)
+                    OnGeneration(Generator);
             }
         }
 

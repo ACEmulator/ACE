@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-05-12
+[Ripley]
+* Add OnGeneration emote handling.
+
 ### 2019-05-10
 [Ripley]
 * Change pickup for items to also count as destruction for generators to regenerate. (Branith's Staff linked to a Linkable Monster Generator)
