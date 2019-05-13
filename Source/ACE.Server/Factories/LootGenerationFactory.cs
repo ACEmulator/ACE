@@ -1013,9 +1013,9 @@ namespace ACE.Server.Factories
             {
                 case 1:
                     // 1-3 w/ chance of minor cantrip
-                    if (nonCantripChance < 50)
+                    if (nonCantripChance <= 50)
                         numNonCantrips = 1;
-                    else if (nonCantripChance < 90)
+                    else if (nonCantripChance <= 90)
                         numNonCantrips = 2;
                     else
                         numNonCantrips = 3;
@@ -1027,7 +1027,7 @@ namespace ACE.Server.Factories
 
                 case 2:
                     // 3-4 w/ chance of either minor or major
-                    if (nonCantripChance < 50)
+                    if (nonCantripChance <= 50)
                         numNonCantrips = 3;
                     else
                         numNonCantrips = 4;
@@ -1041,7 +1041,7 @@ namespace ACE.Server.Factories
 
                 case 3:
                     // 4-5 w/ chance of either major or minor
-                    if (nonCantripChance < 50)
+                    if (nonCantripChance <= 50)
                         numNonCantrips = 4;
                     else
                         numNonCantrips = 5;
@@ -1055,7 +1055,7 @@ namespace ACE.Server.Factories
 
                 case 4:
                     // 5-6, major and minor
-                    if (nonCantripChance < 50)
+                    if (nonCantripChance <= 50)
                         numNonCantrips = 5;
                     else
                         numNonCantrips = 6;
@@ -1066,9 +1066,9 @@ namespace ACE.Server.Factories
 
                 case 5:
                     // 5-7 major and minor
-                    if (nonCantripChance < 50)
+                    if (nonCantripChance <= 50)
                         numNonCantrips = 5;
-                    else if (nonCantripChance < 90)
+                    else if (nonCantripChance <= 90)
                         numNonCantrips = 6;
                     else
                         numNonCantrips = 7;
@@ -1079,7 +1079,7 @@ namespace ACE.Server.Factories
 
                 case 6:
                     // 6-7, minor(4 total) major(2 total)
-                    if (nonCantripChance < 50)
+                    if (nonCantripChance <= 50)
                         numNonCantrips = 6;
                     else
                         numNonCantrips = 7;
@@ -1090,7 +1090,7 @@ namespace ACE.Server.Factories
 
                 case 7:
                     /// 6-7, minor(4), major(5), epic(4)
-                    if (nonCantripChance < 50)
+                    if (nonCantripChance <= 50)
                         numNonCantrips = 6;
                     else
                         numNonCantrips = 7;
@@ -1102,7 +1102,7 @@ namespace ACE.Server.Factories
                     break;
                 default:
                     // 6-7, minor(4), major(5), epic(4), legendary(2)
-                    if (nonCantripChance < 50)
+                    if (nonCantripChance <= 50)
                         numNonCantrips = 6;
                     else
                         numNonCantrips = 7;
@@ -1170,34 +1170,34 @@ namespace ACE.Server.Factories
             {
                 case 4:
                     // 10% chance for a major, also
-                    if (majorCantripChance < 1000)
+                    if (majorCantripChance <= 1000)
                         numMajors = 1;
                     break;
                 case 5:
                     // 20% chance for a major
-                    if (majorCantripChance < 2000)
+                    if (majorCantripChance <= 2000)
                         numMajors = 1;
                     break;
                 case 6:
                     // 20% chance for a major, 1% chance for 2 majors
-                    if (majorCantripChance < 2000)
+                    if (majorCantripChance <= 2000)
                         numMajors = 1;
-                    else if (majorCantripChance < 100)
+                    else if (majorCantripChance <= 100)
                         numMajors = 2;
                     break;
                 case 7:
                 default:
                     // 30% chance for a major, 10% chance for 2 majors,
                     // 1% chance for 3 majors, 0.1% chance for 4 majors, and 0.01% chance for 5 majors
-                    if (majorCantripChance < 3000)
+                    if (majorCantripChance <= 3000)
                         numMajors = 1;
-                    else if (majorCantripChance < 1000)
+                    else if (majorCantripChance <= 1000)
                         numMajors = 2;
-                    else if (majorCantripChance > 100)
+                    else if (majorCantripChance <= 100)
                         numMajors = 3;
-                    else if (majorCantripChance > 10)
+                    else if (majorCantripChance <= 10)
                         numMajors = 4;
-                    else if (majorCantripChance > 1)
+                    else if (majorCantripChance <= 1)
                         numMajors = 5;
                     break;
             }
@@ -1216,13 +1216,13 @@ namespace ACE.Server.Factories
 
             // 20% chance for 1 Epic, 1% chance for 2 Epics,
             // 0.1% chance for 3 Epics, 0.001% chance for 4 Epics 
-            if (epicCantripChance < 20000)
+            if (epicCantripChance <= 20000)
                 numEpics = 1;
-            else if (epicCantripChance < 1000)
+            else if (epicCantripChance <= 1000)
                 numEpics = 2;
-            else if (epicCantripChance < 100)
+            else if (epicCantripChance <= 100)
                 numEpics = 3;
-            else if (epicCantripChance < 1)
+            else if (epicCantripChance <= 1)
                 numEpics = 4;
 
             return numEpics;
@@ -1238,9 +1238,9 @@ namespace ACE.Server.Factories
             int legendaryCantripChance = ThreadSafeRandom.Next(1, 100);
 
             // 10% chance for a legendary, 1% chance for 2 legendaries
-            if (legendaryCantripChance < 10)
+            if (legendaryCantripChance <= 10)
                 numLegendaries = 1;
-            else if (legendaryCantripChance < 1)
+            else if (legendaryCantripChance <= 1)
                 numLegendaries = 2;
 
             return numLegendaries;
