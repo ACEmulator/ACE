@@ -3,7 +3,6 @@
 ### 2019-05-12
 [Ripley]
 * Add OnGeneration emote handling.
-* Allow 0 RegenerationInterval generators to tick
 
 ### 2019-05-10
 [Ripley]
