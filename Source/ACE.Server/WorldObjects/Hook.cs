@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
             if (!(House.HouseHooksVisible ?? true) && Item != null)
             {
                 // redirect to item.ActOnUse
-                Item.ActOnUse(wo);
+                Item.OnActivate(wo);
                 return;
             }
 

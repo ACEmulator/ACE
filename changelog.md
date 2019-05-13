@@ -4,6 +4,10 @@
 [Ripley]
 * Add OnGeneration emote handling.
 
+### 2019-05-11
+[Ripley]
+* Fix issue with `finger` command not showing correct account for character.
+
 ### 2019-05-10
 [Ripley]
 * Change pickup for items to also count as destruction for generators to regenerate. (Branith's Staff linked to a Linkable Monster Generator)
