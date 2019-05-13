@@ -94,12 +94,37 @@ namespace ACE.Server.Factories
 
             if (itemChance <= profile.MagicItemChance)
             {
+                int aetheriaDropChance;
+                bool aetheriaGenerated = false;
                 numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
                 {
-                    lootWorldObject = CreateRandomLootObjects(profile.Tier, true, lootBias);
-                    if (lootWorldObject != null)
-                        loot.Add(lootWorldObject);
+                    // TODO: Stub code: Coelesced Aetheria disabled for now, as quest to use is not available
+                    // Coalesced Aetheria doesn't drop in loot tiers less than 5
+                    // According to wiki, Weapon Mana Forge chests don't drop Aetheria, also
+                    // Role will only drop one Coealesced Aetheria per call into loot system, as I don't remember there
+                    // being multiples and I didn't find any written mention of it.
+                    // TODO: Example 10% drop rate
+                    if (aetheriaGenerated == false && profile.Tier > 4 && lootBias != LootBias.Weapons)
+                        aetheriaDropChance = 1; // ThreadSafeRandom.Next(1, 100);
+                    else
+                        aetheriaDropChance = 0;
+
+                    if (aetheriaDropChance > 90)
+                    {
+                        lootWorldObject = CreateAetheria(profile.Tier);
+                        if (lootWorldObject != null)
+                        {
+                            loot.Add(lootWorldObject);
+                            aetheriaGenerated = true;
+                        }
+                    }
+                    else
+                    {
+                        lootWorldObject = CreateRandomLootObjects(profile.Tier, true, lootBias);
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
                 }
             }
 
