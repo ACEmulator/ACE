@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-05-12
+[Ripley]
+* Add OnGeneration emote handling.
+
 ### 2019-05-11
 [Ripley]
 * Fix issue with `finger` command not showing correct account for character.
