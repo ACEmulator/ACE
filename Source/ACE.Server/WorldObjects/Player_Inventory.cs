@@ -1268,7 +1268,7 @@ namespace ACE.Server.WorldObjects
         /// - try to split a stack off of the landblock into a container
         /// - try to split a stack into a different container that doesn't already have a stack that can support a merge
         /// </summary>
-        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int placementPosition, ushort amount)
+        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, uint placementPosition, uint amount)
         {
             if (amount == 0)
             {
@@ -1368,9 +1368,9 @@ namespace ACE.Server.WorldObjects
                         }
 
                         var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-                        newStack.SetStackSize(amount);
+                        newStack.SetStackSize((int)amount);
 
-                        if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount))
+                        if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, (int)placementPosition, (int)amount))
                         {
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
@@ -1392,9 +1392,9 @@ namespace ACE.Server.WorldObjects
             else // This is a self-contained movement
             {
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-                newStack.SetStackSize(amount);
+                newStack.SetStackSize((int)amount);
 
-                DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount);
+                DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, (int)placementPosition, (int)amount);
             }
         }
 
@@ -1431,7 +1431,7 @@ namespace ACE.Server.WorldObjects
         /// This is raised when we:
         /// - try to split a stack onto the landblock
         /// </summary>
-        public void HandleActionStackableSplitTo3D(uint stackId, int amount)
+        public void HandleActionStackableSplitTo3D(uint stackId, uint amount)
         {
             if (amount == 0)
             {
@@ -1475,11 +1475,11 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
+                AdjustStack(stack, (int)-amount, stackFoundInContainer, stackRootOwner);
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-                newStack.SetStackSize(amount);
+                newStack.SetStackSize((int)amount);
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
@@ -1514,7 +1514,7 @@ namespace ACE.Server.WorldObjects
         /// - try to merge a stack from the landblock into a container
         /// - try to split a stack into a different container that has a stack that can support a merge
         /// </summary>
-        public void HandleActionStackableMerge(uint mergeFromGuid, uint mergeToGuid, int amount)
+        public void HandleActionStackableMerge(uint mergeFromGuid, uint mergeToGuid, uint amount)
         {
             if (amount == 0)
             {
@@ -1629,7 +1629,7 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
-                        if (DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount))
+                        if (DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, (int)amount))
                         {
                             // If the client used the R key to merge a partial stack from the landscape, it also tries to add the "ghosted" item of the picked up stack to the inventory as well.
                             if (sourceStackRootOwner != this && sourceStack.StackSize > 0)
@@ -1654,7 +1654,7 @@ namespace ACE.Server.WorldObjects
             }
             else // This is a self-contained movement
             {
-                DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount);
+                DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, (int)amount);
             }
         }
 
