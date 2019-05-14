@@ -1908,7 +1908,7 @@ namespace ACE.Server.Command.Handlers
             foreach (var value in ObjectMaint.ServerObjects.Values)
             {
                 {
-                    var kvps = value.ObjMaint.ObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key));
+                    var kvps = value.ObjMaint.ObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
                     foreach (var kvp in kvps)
                     {
                         if (value.ObjMaint.ObjectTable.Remove(kvp.Key))
@@ -1917,7 +1917,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 {
-                    var kvps = value.ObjMaint.VisibleObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key));
+                    var kvps = value.ObjMaint.VisibleObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
                     foreach (var kvp in kvps)
                     {
                         if (value.ObjMaint.VisibleObjectTable.Remove(kvp.Key))
@@ -1926,7 +1926,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 {
-                    var kvps = value.ObjMaint.VoyeurTable.Where(kvp => !serverObjects.Contains(kvp.Key));
+                    var kvps = value.ObjMaint.VoyeurTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
                     foreach (var kvp in kvps)
                     {
                         if (value.ObjMaint.VoyeurTable.Remove(kvp.Key))
