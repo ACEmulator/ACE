@@ -1899,7 +1899,8 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem))
+
+                        if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.GiveItem))
                         {
                             var stackSize = item.StackSize ?? 1;
 
