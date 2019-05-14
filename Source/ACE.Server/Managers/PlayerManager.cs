@@ -446,23 +446,21 @@ namespace ACE.Server.Managers
         /// <param name="monarch">The monarch of an allegiance</param>
         public static List<IPlayer> FindAllByMonarch(ObjectGuid monarch)
         {
-            IEnumerable<Player> onlinePlayersResult;
-            IEnumerable<OfflinePlayer> offlinePlayersResult;
+            var results = new List<IPlayer>();
 
             playersLock.EnterReadLock();
             try
             {
-                onlinePlayersResult = onlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
-                offlinePlayersResult = offlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
+                var onlinePlayersResult = onlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
+                var offlinePlayersResult = offlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
+
+                results.AddRange(onlinePlayersResult);
+                results.AddRange(offlinePlayersResult);
             }
             finally
             {
                 playersLock.ExitReadLock();
             }
-
-            var results = new List<IPlayer>();
-            results.AddRange(onlinePlayersResult);
-            results.AddRange(offlinePlayersResult);
 
             return results;
         }
