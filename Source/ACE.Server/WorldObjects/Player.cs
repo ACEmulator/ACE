@@ -261,6 +261,9 @@ namespace ACE.Server.WorldObjects
                 var currentSkill = (int)GetCreatureSkill(skill).Current;
                 int difficulty = (int)creature.GetCreatureSkill(Skill.Deception).Current;
 
+                if (PropertyManager.GetBool("assess_creature_mod").Item && skill == Skill.AssessCreature && currentSkill <= 5)
+                    currentSkill = (int)((Focus.Current + Self.Current) / 2);
+
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
                 if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this
