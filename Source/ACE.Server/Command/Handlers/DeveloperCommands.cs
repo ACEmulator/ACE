@@ -1912,7 +1912,7 @@ namespace ACE.Server.Command.Handlers
                     foreach (var kvp in kvps)
                     {
                         if (value.ObjMaint.ObjectTable.Remove(kvp.Key))
-                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name}");
+                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [ObjectTable]");
                     }
                 }
 
@@ -1921,7 +1921,7 @@ namespace ACE.Server.Command.Handlers
                     foreach (var kvp in kvps)
                     {
                         if (value.ObjMaint.VisibleObjectTable.Remove(kvp.Key))
-                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name}");
+                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [VisibleObjectTable]");
                     }
                 }
 
@@ -1930,7 +1930,7 @@ namespace ACE.Server.Command.Handlers
                     foreach (var kvp in kvps)
                     {
                         if (value.ObjMaint.VoyeurTable.Remove(kvp.Key))
-                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name}");
+                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [VoyeurTable]");
                     }
                 }
             }
