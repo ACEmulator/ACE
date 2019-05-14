@@ -1376,6 +1376,26 @@ namespace ACE.Database
             return result;
         }
 
+        public Character GetCharacterByGuid(uint guid)
+        {
+            var context = new ShardDbContext();
+
+            var result = context.Character
+                //.Include(r => r.CharacterPropertiesContract)
+                //.Include(r => r.CharacterPropertiesFillCompBook)
+                //.Include(r => r.CharacterPropertiesFriendList)
+                //.Include(r => r.CharacterPropertiesQuestRegistry)
+                //.Include(r => r.CharacterPropertiesShortcutBar)
+                //.Include(r => r.CharacterPropertiesSpellBar)
+                //.Include(r => r.CharacterPropertiesTitleBook)
+                .FirstOrDefault(r => r.Id == guid);
+
+            if (result != null)
+                CharacterContexts.Add(result, context);
+
+            return result;
+        }
+
         public bool SaveCharacter(Character character, ReaderWriterLockSlim rwLock)
         {
             if (CharacterContexts.TryGetValue(character, out var cachedContext))

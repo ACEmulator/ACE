@@ -162,7 +162,12 @@ namespace ACE.Server.WorldObjects
             if (WeenieClassId == 10762) return true;
 
             var cell = LScape.get_landcell(Location.Cell);
-            if (cell == null) return false;
+            if (cell == null)
+            {
+                PhysicsObj.DestroyObject();
+                PhysicsObj = null;
+                return false;
+            }
 
             PhysicsObj.Position.ObjCellID = cell.ID;
 
@@ -730,6 +735,11 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSound(targetId, soundId, volume));
         }
 
+        public virtual void OnGeneration(WorldObject generator)
+        {
+            EmoteManager.OnGeneration();
+        }
+
         public virtual void EnterWorld()
         {
             if (Location != null)
@@ -738,6 +748,9 @@ namespace ACE.Server.WorldObjects
 
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
+
+                if (Generator != null)
+                    OnGeneration(Generator);
             }
         }
 

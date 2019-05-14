@@ -264,17 +264,18 @@ namespace ACE.Server.Managers
         public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance, bool incItemTinkered)
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
-            var materialName = GetMaterialName(tool.MaterialType ?? 0);
+            var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
+            var itemMaterial = GetMaterialName(target.MaterialType ?? 0);
 
             if (success)
             {
                 Tinkering_ModifyItem(player, tool, target, incItemTinkered);
 
                 // send local broadcast
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}.", ChatMessageType.Craft), 96.0f);
             }
             else
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
 
             var recipe = GetRecipe(player, tool, target);
             CreateDestroyItems(player, recipe, tool, target, success);

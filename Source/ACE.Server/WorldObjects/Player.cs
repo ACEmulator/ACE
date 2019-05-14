@@ -183,6 +183,9 @@ namespace ACE.Server.WorldObjects
             // IsAlive = true;
         }
 
+        public bool IsDeleted => Character.IsDeleted;
+        public bool IsPendingDeletion => Character.DeleteTime > 0 && !IsDeleted;
+
 
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
