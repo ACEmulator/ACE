@@ -20,9 +20,12 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Entity;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
+
+using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -1895,6 +1898,44 @@ namespace ACE.Server.Command.Handlers
             GC.Collect();
 
             CommandHandlerHelper.WriteOutputInfo(session, ".NET Garbage Collection forced");
+        }
+
+        [CommandHandler("auditobjectmaint", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Iterates over physics objects to find leaks")]
+        public static void HandleAuditObjectMaint(Session session, params string[] parameters)
+        {
+            var serverObjects = ObjectMaint.ServerObjects.Keys.ToHashSet();
+
+            foreach (var value in ObjectMaint.ServerObjects.Values)
+            {
+                {
+                    var kvps = value.ObjMaint.ObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key));
+                    foreach (var kvp in kvps)
+                    {
+                        if (value.ObjMaint.ObjectTable.Remove(kvp.Key))
+                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name}");
+                    }
+                }
+
+                {
+                    var kvps = value.ObjMaint.VisibleObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key));
+                    foreach (var kvp in kvps)
+                    {
+                        if (value.ObjMaint.VisibleObjectTable.Remove(kvp.Key))
+                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name}");
+                    }
+                }
+
+                {
+                    var kvps = value.ObjMaint.VoyeurTable.Where(kvp => !serverObjects.Contains(kvp.Key));
+                    foreach (var kvp in kvps)
+                    {
+                        if (value.ObjMaint.VoyeurTable.Remove(kvp.Key))
+                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name}");
+                    }
+                }
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, "Physics ObjMaint Audit Completed");
         }
 
         [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory. Syntax is \"lootgen (wcid) <tier>\"")]
