@@ -1905,6 +1905,10 @@ namespace ACE.Server.Command.Handlers
         {
             var serverObjects = ObjectMaint.ServerObjects.Keys.ToHashSet();
 
+            int objectTableErrors = 0;
+            int visibleObjectTableErrors = 0;
+            int voyeurTableErrors = 0;
+
             foreach (var value in ObjectMaint.ServerObjects.Values)
             {
                 {
@@ -1912,7 +1916,10 @@ namespace ACE.Server.Command.Handlers
                     foreach (var kvp in kvps)
                     {
                         if (value.ObjMaint.ObjectTable.Remove(kvp.Key))
-                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [ObjectTable]");
+                        {
+                            log.Debug($"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [ObjectTable]");
+                            objectTableErrors++;
+                        }
                     }
                 }
 
@@ -1921,7 +1928,10 @@ namespace ACE.Server.Command.Handlers
                     foreach (var kvp in kvps)
                     {
                         if (value.ObjMaint.VisibleObjectTable.Remove(kvp.Key))
-                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [VisibleObjectTable]");
+                        {
+                            log.Debug($"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [VisibleObjectTable]");
+                            visibleObjectTableErrors++;
+                        }
                     }
                 }
 
@@ -1930,12 +1940,17 @@ namespace ACE.Server.Command.Handlers
                     foreach (var kvp in kvps)
                     {
                         if (value.ObjMaint.VoyeurTable.Remove(kvp.Key))
-                            CommandHandlerHelper.WriteOutputInfo(session, $"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [VoyeurTable]");
+                        {
+                            log.Debug($"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [VoyeurTable]");
+                            voyeurTableErrors++;
+                        }
                     }
                 }
             }
 
-            CommandHandlerHelper.WriteOutputInfo(session, "Physics ObjMaint Audit Completed");
+            if (session != null)
+                CommandHandlerHelper.WriteOutputInfo(session, $"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
+            log.Info($"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
         }
 
         [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory. Syntax is \"lootgen (wcid) <tier>\"")]
