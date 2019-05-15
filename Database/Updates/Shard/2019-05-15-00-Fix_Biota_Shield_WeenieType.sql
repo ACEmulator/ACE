@@ -8,6 +8,6 @@ SET biota.weenie_Type = 1
 WHERE biota.id > 0
 AND itemType.type = 1 and itemType.value = 2 
 AND validLocations.type = 9 and validLocations.value = 2097152
-AND combatUse.type = 51 and validLocations.value = 4
+AND combatUse.type = 51 and combatUse.value = 4
 AND biota.weenie_Type <> 1
 AND biota.weenie_Type <> 40;
