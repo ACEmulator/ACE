@@ -102,19 +102,12 @@ namespace ACE.Server.Managers
 
                     if (skill == null)
                     {
-                        log.Warn("Unexpectedly missing skill in Recipe usage");
+                        log.Warn($"RecipeManager.UseObjectOnTarget({player.Name}, {source.Name}, {target.Name}): recipe {recipe.Id} missing skill");
                         player.SendUseDoneEvent();
                         player.IsBusy = false;
                         return;
                     }
 
-                    //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
-
-                    percentSuccess = SkillCheck.GetSkillChance(skill.Current, recipe.Difficulty);
-                }
-
-                if (skill != null)
-                {
                     // check for pre-MoA skill
                     // convert into appropriate post-MoA skill
                     // pre-MoA melee weapons: get highest melee weapons skill
@@ -131,11 +124,13 @@ namespace ACE.Server.Managers
                         player.IsBusy = false;
                         return;
                     }
-                }
 
-                // perform skill check, if applicable
-                if (skill != null)
+                    //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
+
+                    percentSuccess = SkillCheck.GetSkillChance(skill.Current, recipe.Difficulty);
+
                     success = ThreadSafeRandom.Next(0.0f, 1.0f) <= percentSuccess;
+                }
 
                 CreateDestroyItems(player, recipe, source, target, success);
 
@@ -269,17 +264,18 @@ namespace ACE.Server.Managers
         public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance, bool incItemTinkered)
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
-            var materialName = GetMaterialName(tool.MaterialType ?? 0);
+            var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
+            var itemMaterial = GetMaterialName(target.MaterialType ?? 0);
 
             if (success)
             {
                 Tinkering_ModifyItem(player, tool, target, incItemTinkered);
 
                 // send local broadcast
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}.", ChatMessageType.Craft), 96.0f);
             }
             else
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
 
             var recipe = GetRecipe(player, tool, target);
             CreateDestroyItems(player, recipe, tool, target, success);
