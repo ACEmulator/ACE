@@ -183,6 +183,9 @@ namespace ACE.Server.WorldObjects
             // IsAlive = true;
         }
 
+        public bool IsDeleted => Character.IsDeleted;
+        public bool IsPendingDeletion => Character.DeleteTime > 0 && !IsDeleted;
+
 
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
@@ -257,6 +260,10 @@ namespace ACE.Server.WorldObjects
 
                 var currentSkill = (int)GetCreatureSkill(skill).Current;
                 int difficulty = (int)creature.GetCreatureSkill(Skill.Deception).Current;
+
+                if (PropertyManager.GetBool("assess_creature_mod").Item && skill == Skill.AssessCreature
+                        && Skills[Skill.AssessCreature].AdvancementClass < SkillAdvancementClass.Trained)
+                    currentSkill = (int)((Focus.Current + Self.Current) / 2);
 
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 

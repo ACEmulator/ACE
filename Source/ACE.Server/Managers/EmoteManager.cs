@@ -1333,6 +1333,11 @@ namespace ACE.Server.Managers
             ExecuteEmoteSet(EmoteCategory.Activation, null, activator);
         }
 
+        public void OnGeneration()
+        {
+            ExecuteEmoteSet(EmoteCategory.Generation, null, null);
+        }
+
         public void OnWield(Creature wielder)
         {
             ExecuteEmoteSet(EmoteCategory.Wield, null, wielder);
