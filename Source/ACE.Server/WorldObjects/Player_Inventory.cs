@@ -1899,7 +1899,7 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem))
+                        if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.GiveItem))
                         {
                             var stackSize = item.StackSize ?? 1;
 
@@ -1907,6 +1907,10 @@ namespace ACE.Server.WorldObjects
                             var itemName = stackSize > 1 ? item.GetPluralName() : item.Name;
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                        }
+                        else
+                        {
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                         }
                     }
                 }
