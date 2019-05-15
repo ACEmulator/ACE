@@ -539,7 +539,8 @@ namespace ACE.Server.Managers
             var number = spell.Number;
             var numberVariance = spell.NumberVariance;
 
-            var enchantments = GetEnchantments_TopLayer(WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock));
+            //var enchantments = GetEnchantments_TopLayer(WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock));
+            var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
 
             var filtered = enchantments.Where(e => e.PowerLevel <= maxPower);
 
