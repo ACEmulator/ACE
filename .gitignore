@@ -291,5 +291,3 @@ __pycache__/
 # ACEmulator specific files
 /Source/ACE.Server/config.js
 Database/tools/password.txt
-/Database/Updates/World/ACE-World-Database-v0.9.61.sql
-*.zip
