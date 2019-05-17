@@ -1665,17 +1665,8 @@ namespace ACE.Server.WorldObjects
                 var pickedUpFromLandblock = false;
                 if (sourceStack.CurrentLandblock != null) // Movement is an item pickup off the landblock
                 {
-                    //sourceStack.CurrentLandblock.RemoveWorldObject(sourceStack.Guid, false, true);
-                    //sourceStack.Location = null;
-
-                    //HandleActionPutItemInContainer(sourceStack.Guid.Full, targetStackFoundInContainer.Guid.Full, 0);
                     if (DoHandleActionPutItemInContainer(sourceStack, sourceStackFoundInContainer, false, targetStackFoundInContainer, targetStackRootOwner, 0))                    
-                    {
-                        //TryRemoveFromInventory(sourceStack.Guid, true);
-                        ////TryRemoveFromInventoryWithNetworking(sourceStack.Guid.Full, out _, RemoveFromInventoryAction.None);
                         pickedUpFromLandblock = true;
-                        //return true;
-                    }
                     else
                         return false;
                 }
@@ -1686,16 +1677,8 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
 
-                if (pickedUpFromLandblock)
-                {
-                    //if (sourceStack.OwnerId != Guid.Full)
-                    //    return false;
-                    //else
-                    //{
-                        if (TryRemoveFromInventory(sourceStack.Guid, true))
-                            Session.Network.EnqueueSend(new GameMessageDeleteObject(sourceStack));
-                    //}
-                }
+                if (pickedUpFromLandblock && TryRemoveFromInventory(sourceStack.Guid, true))
+                    Session.Network.EnqueueSend(new GameMessageDeleteObject(sourceStack));
                 else
                 {
                     var previousStackCheck = sourceStack;
