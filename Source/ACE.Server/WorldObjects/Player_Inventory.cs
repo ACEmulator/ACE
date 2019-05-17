@@ -1679,7 +1679,6 @@ namespace ACE.Server.WorldObjects
 
                 if (pickedUpFromLandblock && TryRemoveFromInventory(sourceStack.Guid, true))
                     Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
-                //Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
                 else
                 {
                     var previousStackCheck = sourceStack;
@@ -1688,16 +1687,10 @@ namespace ACE.Server.WorldObjects
 
                     if (sourceStack == null)
                     {
-                        //Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(previousStackCheck));
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousStackCheck.Guid.Full));
                         return false;
                     }
                 }            
-
-                //if (sourceStackRootOwner == this)
-                //    Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
-                //else
-                //    Session.Network.EnqueueSend(new GameMessageDeleteObject(sourceStack));
 
                 sourceStack.Destroy();
 
@@ -1711,7 +1704,6 @@ namespace ACE.Server.WorldObjects
 
                 if (sourceStack == null || sourceStack.StackSize < amount)
                 {
-                    //Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(previousStackCheck));
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousStackCheck.Guid.Full));
                     return false;
                 }
