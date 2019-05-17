@@ -92,12 +92,9 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                uint total = Base;
+                var attr = AttributeFormula.GetFormula(creature, Vital, true);
 
-                var multiplier = creature.EnchantmentManager.GetVitalMod_Multiplier(this);
-                var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
-
-                total = (uint)Math.Round(total * multiplier + additives);
+                uint total = StartingValue + Ranks + attr;
 
                 if (creature is Player player)
                 {
