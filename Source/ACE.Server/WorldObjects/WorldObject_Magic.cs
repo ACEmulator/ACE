@@ -841,7 +841,7 @@ namespace ACE.Server.WorldObjects
                                     var teleportDest = new Position(spell.Position);
                                     fellow.AdjustDungeon(teleportDest);
 
-                                    fellow.Teleport(teleportDest;
+                                    fellow.Teleport(teleportDest);
                                 });
                             }
                             portalSendingChain.EnqueueChain();
