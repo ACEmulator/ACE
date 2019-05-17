@@ -1665,10 +1665,13 @@ namespace ACE.Server.WorldObjects
                 var pickedUpFromLandblock = false;
                 if (sourceStack.CurrentLandblock != null) // Movement is an item pickup off the landblock
                 {
-                    if (DoHandleActionPutItemInContainer(sourceStack, sourceStackFoundInContainer, false, targetStackFoundInContainer, targetStackRootOwner, 0))                    
+                    if (DoHandleActionPutItemInContainer(sourceStack, sourceStackFoundInContainer, false, targetStackFoundInContainer, targetStackRootOwner, 0))
                         pickedUpFromLandblock = true;
                     else
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
                         return false;
+                    }
                 }
                 else if (sourceStackRootOwner != null && !sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _))
                 {
