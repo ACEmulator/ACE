@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var attr = AttributeFormula.GetFormula(creature, Vital);
+                var attr = AttributeFormula.GetFormula(creature, Vital, false);
 
                 return StartingValue + Ranks + attr;
             }
