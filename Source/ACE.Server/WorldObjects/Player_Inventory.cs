@@ -1662,30 +1662,70 @@ namespace ACE.Server.WorldObjects
         {
             if (amount == sourceStack.StackSize && sourceStack.StackSize + targetStack.StackSize <= targetStack.MaxStackSize) // The merge will consume the entire source stack
             {
+                var pickedUpFromLandblock = false;
+                var removedFromInventory = false;
                 if (sourceStack.CurrentLandblock != null) // Movement is an item pickup off the landblock
                 {
-                    sourceStack.CurrentLandblock.RemoveWorldObject(sourceStack.Guid, false, true);
-                    sourceStack.Location = null;
+                    if (DoHandleActionPutItemInContainer(sourceStack, sourceStackFoundInContainer, false, targetStackFoundInContainer, targetStackRootOwner, 0))
+                        pickedUpFromLandblock = true;
+                    else
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
+                        return false;
+                    }
                 }
-                else if (sourceStackRootOwner != null && !sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _))
+                else if (sourceStackRootOwner != null)
                 {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
-                    return false;
+                    if (!sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
+                        return false;
+                    }
+                    else
+                    {
+                        removedFromInventory = true;
+                    }
                 }
 
-                if (sourceStackRootOwner == this)
+                if (pickedUpFromLandblock && TryRemoveFromInventory(sourceStack.Guid, true))
                     Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
                 else
-                    Session.Network.EnqueueSend(new GameMessageDeleteObject(sourceStack));
+                {
+                    var previousStackCheck = sourceStack;
 
-                sourceStack.Destroy();
+                    sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out sourceStackFoundInContainer, out sourceStackRootOwner, out _);
+
+                    if (sourceStack == null && !removedFromInventory)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousStackCheck.Guid.Full));
+                        return false;
+                    }
+
+                    if (removedFromInventory)
+                    {
+                        previousStackCheck.Destroy();
+                        Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(previousStackCheck));
+                    }
+                }
+
+                if (!removedFromInventory)
+                    sourceStack.Destroy();
 
                 AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
             }
             else // The merge will reduce the size of the source stack
             {
+                var previousStackCheck = sourceStack;
+                sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out sourceStackFoundInContainer, out sourceStackRootOwner, out _);
+
+                if (sourceStack == null || sourceStack.StackSize < amount)
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousStackCheck.Guid.Full));
+                    return false;
+                }
+
                 AdjustStack(sourceStack, -amount, sourceStackFoundInContainer, sourceStackRootOwner);
                 if (sourceStackRootOwner == null)
                     EnqueueBroadcast(new GameMessageSetStackSize(sourceStack));
