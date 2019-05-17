@@ -96,6 +96,11 @@ namespace ACE.Server.WorldObjects.Entity
 
                 uint total = StartingValue + Ranks + attr;
 
+                var multiplier = creature.EnchantmentManager.GetVitalMod_Multiplier(this);
+                var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
+
+                total = (uint)Math.Round(total * multiplier + additives);
+
                 if (creature is Player player)
                 {
                     var vitae = player.Vitae;
