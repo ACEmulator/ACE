@@ -23,31 +23,44 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 * StyleCop Visual Studio Extension [on visualstudio.com](https://marketplace.visualstudio.com/items?itemName=ChrisDahlberg.StyleCop)
 
 ## Getting Started
+The following three sections (Database, Code, and Starting the Server) contain all the required steps to setup your own ACE server and connect to it. Most setup errors can be traced back to not following one or more of these steps. Be sure to follow them carefully.
 
-* Install Visual Studio 2017
-  - [Visual Studio minimum required version - VS Community 2017 15.7.0](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15)
-  - [.NET Core 2.1 x64 SDK Required](https://www.microsoft.com/net/download/visual-studio-sdks)
-  - If using Visual Studio Community Edition, make sure the following two workloads are installed: .NET Core cross-platform development and .NET Desktop Development
-* Install MySQL or MariaDB
-  - [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
-  - [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
-* Create two databases named `ace_auth`, `ace_shard`.
-* Load AuthenticationBase.sql and ShardBase.sql for their respective databases. 
-* Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
-* Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
-* Create a final database named `ace_world`.
-* Load WorldBase.sql to initialize the ace_world database. 
-* Download from [ACE-World-16PY-Patches](https://github.com/ACEmulator/ACE-World-16PY-Patches) the [latest release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest) of world data, extract and load into your ace_world database.
-  - [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.55+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
-* SKIP THIS STEP IF USING DOWNLOADED WORLD DATA FROM PREVIOUS STEP.
-  - If using custom database, you may need to update the schema for the emulator to operate correctly. If you're using the official release data, this step is not recommended.
-  - Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
-* Copy `ACE.Server\Config.js.example` to `Config.js` and modify settings, such as passwords and other server settings.
-* Open ACE.sln with Visual Studio and build the solution.
-* Download and install [Microsoft .NET Core Runtime - 2.1](https://www.microsoft.com/net/download) if you don't already have it.
-* Start the server by running the batch file located in the netcoreapp2.1 output directory: `start_server.bat`
-* Create your first account as an admin at the ACE prompt - `accountcreate testaccount testpassword 5`
-* Launch ACClient directly with this command: `acclient.exe -a testaccount -v testpassword -h 127.0.0.1:9000`
+### Database
+1. Install MySQL or MariaDB
+   * [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
+   * [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
+   * Optionally install SQLYog editor [on Github](https://github.com/webyog/sqlyog-community/wiki/Downloads) for the following steps
+2. Create two databases named `ace_auth`, `ace_shard`.
+3. Load AuthenticationBase.sql and ShardBase.sql for their respective databases. 
+4. Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
+5. Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
+6. Create a final database named `ace_world`.
+7. Load WorldBase.sql to initialize the ace_world database. 
+8. Download from [ACE-World-16PY-Patches](https://github.com/ACEmulator/ACE-World-16PY-Patches) the [latest release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest) of world data, extract and load into your ace_world database.
+   * [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.55+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
+9. SKIP THIS STEP IF USING DOWNLOADED WORLD DATA FROM PREVIOUS STEP.
+   * If using a custom database, you may need to update the schema for the emulator to operate correctly. If you're using the official release data, this step is not recommended.
+   * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
+
+
+### Code 
+1. Install Visual Studio 2017
+   * [Visual Studio minimum required version - VS Community 2017 15.7.0](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15)
+   * [.NET Core 2.1 x64 SDK Required](https://www.microsoft.com/net/download/visual-studio-sdks)
+   * If using Visual Studio Community Edition, make sure the following two workloads are installed: .NET Core cross-platform development and .NET Desktop Development
+2. Copy `ACE.Server\Config.js.example` to `ACE.Server\Config.js` and modify settings, such as passwords and other server settings.
+3. Open ACE.sln with Visual Studio and build the solution.
+4. Download and install [Microsoft .NET Core Runtime - 2.1](https://www.microsoft.com/net/download) if you don't already have it.
+
+
+### Starting the Server
+1. Start the server by running the batch file located in the netcoreapp2.1 output directory: `start_server.bat`
+   * ex. ACE\Source\ACE.Server\bin\x64\Debug\netcoreapp2.1\start_server.bat
+2. Create your first account as an admin at the ACE prompt - `accountcreate testaccount testpassword 5`
+3. Launch ACClient directly with this command: `acclient.exe -a testaccount -v testpassword -h 127.0.0.1:9000`
+
+
+
 
 ## Contributions
 
