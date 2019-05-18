@@ -8,6 +8,7 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
@@ -106,12 +107,6 @@ namespace ACE.Server.Entity
         /// </summary>
         public void HeartBeat()
         {
-            while (RemoveQueue.TryPeek(out var result) && result.time <= DateTime.UtcNow)
-            {
-                RemoveQueue.Dequeue();
-                FreeSlot(result.objectGuid);
-            }
-
             if (SpawnQueue.Count > 0)
                 ProcessQueue();
         }
@@ -426,7 +421,12 @@ namespace ACE.Server.Entity
 
             if (woi == null) return;
 
-            RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(Delay), woi.Guid.Full));
+            //log.Debug($"{_generator.Name}.NotifyGenerator({target}, {eventType}) - RegenerationInterval: {_generator.RegenerationInterval} - Delay: {Biota.Delay} - Link Delay: {_generator.GeneratorProfiles[0].Biota.Delay}");
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(Delay);
+            actionChain.AddAction(_generator, () => FreeSlot(woi.Guid.Full));
+            actionChain.EnqueueChain();
         }
 
         public void FreeSlot(uint objectGuid)
