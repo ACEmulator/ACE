@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-05-17
+[Ripley]
+* Apply position corrections for teleports using magic.
+
 ### 2019-05-12
 [Ripley]
 * Add OnGeneration emote handling.
