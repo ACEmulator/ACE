@@ -483,6 +483,7 @@ namespace ACE.Server.Entity
                 case AmuliLeggings:
                 case WingedCoat:
                 case Tentacles:
+                case DarkHeart:
 
                     return true;
 
