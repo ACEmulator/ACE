@@ -1,4 +1,3 @@
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
@@ -95,11 +94,8 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static WorldObject CreateJewelry(int tier, bool isMagical)
+        private static WorldObject CreateJewelry(int tier, bool isMagical, bool lucky = false)
         {
-
-            int[][] JewelrySpells = LootTables.JewelrySpells;
-            int[][] JewelryCantrips = LootTables.JewelryCantrips;
             int[] jewelryItems = { 621, 295, 297, 294, 623, 622 };
             int jewelType = jewelryItems[ThreadSafeRandom.Next(0, jewelryItems.Length - 1)];
 
@@ -122,10 +118,6 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.GemType, gemType);
             int workmanship = GetWorkmanship(tier);
 
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
@@ -151,87 +143,7 @@ namespace ACE.Server.Factories
             }
 
             if (isMagical)
-            {
-                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
-                int numSpells = GetNumSpells(tier);
-
-                int spellcraft = GetSpellcraft(numSpells, tier);
-                int maxMana = GetMaxMana(numSpells, tier);
-                wo.SetProperty(PropertyFloat.ManaRate, GetManaRate());
-                wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
-                wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
-                wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-
-                int difficulty = GetDifficulty(tier, spellcraft);
-                wo.SetProperty(PropertyInt.ItemDifficulty, difficulty);
-
-                int minorCantrips = GetNumMinorCantrips(tier);
-                int majorCantrips = GetNumMajorCantrips(tier);
-                int epicCantrips = GetNumEpicCantrips(tier);
-                int legendaryCantrips = GetNumLegendaryCantrips(tier);
-
-                int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-                if (numCantrips > 10)
-                    minorCantrips = 0;
-
-                int[] shuffledValues = new int[JewelrySpells.Length];
-                for (int i = 0; i < JewelrySpells.Length; i++)
-                {
-                    shuffledValues[i] = i;
-                }
-                Shuffle(shuffledValues);
-
-                int lowSpellTier = GetLowSpellTier(tier);
-                int highSpellTier = GetHighSpellTier(tier);
-                if (numSpells - numCantrips > 0)
-                {
-                    for (int a = 0; a < numSpells - numCantrips; a++)
-                    {
-                        int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                        int spellID = JewelrySpells[shuffledValues[a]][col];
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                }
-
-                if (numCantrips > 0)
-                {
-                    shuffledValues = new int[JewelryCantrips.Length];
-                    for (int i = 0; i < JewelryCantrips.Length; i++)
-                    {
-                        shuffledValues[i] = i;
-                    }
-                    Shuffle(shuffledValues);
-                    int shuffledPlace = 0;
-                    //minor cantripps
-                    for (int a = 0; a < minorCantrips; a++)
-                    {
-                        int spellID = JewelryCantrips[shuffledValues[shuffledPlace]][0];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    //major cantrips
-                    for (int a = 0; a < majorCantrips; a++)
-                    {
-                        int spellID = JewelryCantrips[shuffledValues[shuffledPlace]][1];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    // epic cantrips
-                    for (int a = 0; a < epicCantrips; a++)
-                    {
-                        int spellID = JewelryCantrips[shuffledValues[shuffledPlace]][2];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    //legendary cantrips
-                    for (int a = 0; a < legendaryCantrips; a++)
-                    {
-                        int spellID = JewelryCantrips[shuffledValues[shuffledPlace]][3];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                }
-            }
+                wo = AssignMagic(wo, tier, lucky);
             else
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -241,6 +153,8 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
                 wo.RemoveProperty(PropertyFloat.ManaRate);
             }
+
+            wo = AssignValue(wo);
 
             return wo;
         }

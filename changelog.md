@@ -1,5 +1,26 @@
 # ACEmulator Change Log
 
+### 2019-05-17
+[Ripley]
+* Apply position corrections for teleports using magic.
+
+### 2019-05-12
+[Ripley]
+* Add OnGeneration emote handling.
+
+### 2019-05-11
+[Ripley]
+* Fix issue with `finger` command not showing correct account for character.
+
+### 2019-05-10
+[Ripley]
+* Change pickup for items to also count as destruction for generators to regenerate. (Branith's Staff linked to a Linkable Monster Generator)
+* Allow the few items incorrectly marked as "Treasure" and not "ContainTreasure" or "Contain" to appear on monster corpses.
+
+### 2019-05-06
+[Ripley]
+* Add support to ACE.Adapter to convert ACE weenies to LSD weenies.
+
 ### 2019-05-04
 [Ripley]
 * Update object appraisal code to properly show Wield/Activation Requires lines.
@@ -1682,7 +1703,7 @@
 * Fixed a bug where landblocks were loading equipped items as objects owned by the landblock
 * Fixed a possible crash if invalid object added to landblock
 * Improved object decayable system:
-  - Decayable timer heirarchy now controlled by landblock
+  - Decayable timer hierarchy now controlled by landblock
   - WorldObject_Decay added to manage decay of all decayable objects
   - WorldObject_Database now has functions to determine which static and dynamic objects should be saved to shard db
 * Improved object database persistence system:

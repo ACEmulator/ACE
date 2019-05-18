@@ -33,7 +33,10 @@ namespace ACE.Server.WorldObjects
 
             if (position != null)
             {
-                Teleport(position);
+                var teleportDest = new Position(position);
+                AdjustDungeon(teleportDest);
+
+                Teleport(teleportDest);
                 return true;
             }
 

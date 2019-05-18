@@ -266,6 +266,11 @@ namespace ACE.Server.Entity
                         player.UpdateProperty(target, PropertyInt.ValidLocations, (int)EquipMask.LowerArmArmor);
                         clothingPriority = CoverageMask.OuterwearLowerArms;
                     }
+                    else if (validLocations.HasFlag(EquipMask.UpperLegArmor))
+                    {
+                        player.UpdateProperty(target, PropertyInt.ValidLocations, (int)EquipMask.LowerLegArmor);
+                        clothingPriority = CoverageMask.OuterwearLowerLegs;
+                    }
                     break;
 
                 case ArmorMiddleReductionTool:
@@ -478,6 +483,7 @@ namespace ACE.Server.Entity
                 case AmuliLeggings:
                 case WingedCoat:
                 case Tentacles:
+                case DarkHeart:
 
                     return true;
 
