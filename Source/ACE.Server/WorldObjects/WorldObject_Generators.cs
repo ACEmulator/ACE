@@ -532,7 +532,8 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Called every ~5 seconds for object generators
+        /// Called every [RegenerationInterval] seconds<para />
+        /// Also called from EmoteManager, Chest.Reset(), WorldObject.OnGenerate()
         /// </summary>
         public void Generator_HeartBeat()
         {
