@@ -28,6 +28,7 @@ using ACE.Server.Network.Packets;
 using ACE.Server.Physics.Common;
 
 using Position = ACE.Entity.Position;
+using ACE.Server.Network.GameMessages;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -1475,7 +1476,28 @@ namespace ACE.Server.Command.Handlers
         {
             // @god - Sets your own stats to the specified level.
 
-            // TODO: output
+            session.Player.TotalExperience = 100000000000;
+
+            foreach (Skill s in Enum.GetValues(typeof(Skill)))
+            {
+                session.Player.TrainSkill(s, 0);
+                session.Player.SpecializeSkill(s, 0);
+                var playerSkill = session.Player.Skills[s];
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s, playerSkill.AdvancementClass, playerSkill.Ranks, 1000, 0));
+            }
+
+            foreach (PropertyAttribute p in Enum.GetValues(typeof(PropertyAttribute)))
+            {
+                if (p == PropertyAttribute.Undef)
+                {
+                    continue;
+                }
+                var playerAttr = session.Player.Attributes[p];
+                playerAttr.StartingValue = 9999;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, p, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));   
+            }
+
+            session.Player.SetMaxVitals();
 
             // output: You are now a god!!!
 
