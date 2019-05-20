@@ -30,6 +30,8 @@ namespace ACE.Server.Managers
             Landblock_Tick_RunActions,
             Landblock_Tick_Player_Tick,
             Landblock_Tick_Monster_Tick,
+            Landblock_Tick_Monster_Tick_HandleFindTarget,
+            Landblock_Tick_Monster_Tick_update_object,
             Landblock_Tick_WorldObject_Heartbeat,
             Landblock_Tick_GeneratorHeartbeat,
             Landblock_Tick_Heartbeat,
