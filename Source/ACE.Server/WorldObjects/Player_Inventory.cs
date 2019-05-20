@@ -629,6 +629,13 @@ namespace ACE.Server.WorldObjects
 
             if ((itemRootOwner == this && containerRootOwner != this)  || (itemRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
+                if (itemRootOwner is Vendor)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.NotAllTheItemsAreAvailable));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                    return;
+                }
+
                 Container itemAsContainer = item as Container;
 
                 // Checking to see if item to pick is an container itself and IsOpen
