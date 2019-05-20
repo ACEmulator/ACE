@@ -428,8 +428,35 @@ namespace ACE.Server.Command.Handlers
             string message = "";
             uint playerCounter = 0;
 
+            AccessLevel? targetAccessLevel = null;
+            if (parameters?.Length > 0)
+            {
+                if (Enum.TryParse(parameters[0], true, out AccessLevel parsedAccessLevel))
+                {
+                    targetAccessLevel = parsedAccessLevel;
+                }
+                else
+                {
+                    try
+                    {
+                        uint accessLevel = Convert.ToUInt16(parameters[0]);
+                        targetAccessLevel = (AccessLevel)accessLevel;
+                    }
+                    catch (Exception)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, "Invalid AccessLevel value", ChatMessageType.Broadcast);
+                        return;
+                    }
+                }
+            }
+
+            if (targetAccessLevel.HasValue)
+                message += $"Listing only {targetAccessLevel.Value.ToString()}s:\n";
+
             foreach (var player in PlayerManager.GetAllOnline())
             {
+                if (targetAccessLevel.HasValue && player.Account.AccessLevel != ((uint)targetAccessLevel.Value))
+                    continue;
                 message += $"{player.Name} : {player.Session.AccountId}\n";
                 playerCounter++;
             }

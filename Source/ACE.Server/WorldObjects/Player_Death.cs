@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
         public void TeleportOnDeath()
         {
             // teleport to sanctuary or best location
-            var newPosition = Sanctuary ?? LastPortal ?? Location;
+            var newPosition = Sanctuary ?? Instantiation ?? Location;
 
             Teleport(newPosition);
 
