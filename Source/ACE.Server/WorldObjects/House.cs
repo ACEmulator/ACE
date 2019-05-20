@@ -390,12 +390,16 @@ namespace ACE.Server.WorldObjects
             {
                 if (_dungeonLandblockID == null)
                 {
-                    var housePortal = GetHousePortals();
+                    var rootHouseBlock = RootHouse.CurrentLandblock.Id.Raw | 0xFFFF;
 
-                    if (housePortal.Count == 0)
+                    var housePortals = GetHousePortals();
+
+                    var dungeonPortal = housePortals.FirstOrDefault(i => (i.ObjCellId | 0xFFFF) != rootHouseBlock);
+
+                    if (dungeonPortal == null)
                         return 0;
 
-                    _dungeonLandblockID = housePortal[0].ObjCellId | 0xFFFF;
+                    _dungeonLandblockID = dungeonPortal.ObjCellId | 0xFFFF;
                 }
                 return _dungeonLandblockID.Value;
             }

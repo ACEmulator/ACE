@@ -475,7 +475,7 @@ namespace ACE.Factories
             ////Focus
             new int[] { 1421, 1422, 1423, 1424, 1425, 1426, 2067 },
             ////Focus Other
-            new int[] { 1427, 1428, 1429, 1430, 1431, 1432, 2065 },
+            new int[] { 1427, 1428, 1429, 1430, 1431, 1432, 2066 },
             ////Bafflement Other
             new int[] { 1439, 1440, 1441, 1442, 1443, 1444, 2054 },
             ////Willpower
@@ -525,9 +525,9 @@ namespace ACE.Factories
             ////Heavy Weapon Other
             new int[] { 412, 413, 414, 415, 416, 417, 2308 },
             ////Missile Weapon
-            new int[] { 467, 468, 469, 470, 471, 472, 2237 },
+            new int[] { 467, 468, 469, 470, 471, 472, 2207 },
             ////Missile Weapon Other
-            new int[] { 461, 462, 463, 464, 465, 466, 2236 },
+            new int[] { 461, 462, 463, 464, 465, 466, 2206 },
             ////Creature Enchant
             new int[] { 557, 558, 559, 560, 561, 562, 2215 },
             ////Creature Enchant Other
@@ -717,6 +717,15 @@ namespace ACE.Factories
             new int[] { 647, 648, 649, 650, 651, 652, 2320 },
             ////Weapon Tinkering Ignorance          Eye of the Grunt
             new int[] { 792, 793, 794, 795, 796, 797, 2326 },
+            ////Summoning Inept                     Inept Other VII
+            new int[] { 6129, 6130, 6131, 6132, 6133, 6134, 6135 },
+
+            // DISPELLS //
+
+            ////Dispell
+            new int[] { 1886, 1892, 1898, 1904, 1910, 1916, 3185 },
+            ////Dispell Other
+            new int[] { 1885, 1891, 1897, 1903, 1909, 1915, 3184 },
 
             /* LIFE SPELLS */
 
@@ -836,6 +845,13 @@ namespace ACE.Factories
             ////Imperil Other
             new int[] { 25, 1323, 1324, 1325, 1326, 1327, 2074 },
 
+            // DISPELLS //
+
+            ////Dispell
+            new int[] { 1958, 1964, 1970, 1976, 1982, 1988, 3194 },
+            ////Dispell Other
+            new int[] { 1957, 1963, 1969, 1975, 1981, 1987, 3193 },
+
             /* ITEM SPELLS */
 
             // ARMOR //
@@ -918,12 +934,14 @@ namespace ACE.Factories
             new int[] { 1575, 1576, 1577, 1578, 1579, 1580, 2115 },
             ////Weaken Lock
             new int[] { 1581, 1582, 1583, 1584, 1585, 1586, 2119 },
+            ////Dispells
+            new int[] { 1919, 1925, 1931, 1937, 1943, 1949, 3190 },
             ////Portal Spells - Dont typically find these in loot.
 
             /* WAR SPELLS */
 
             // Flame Bolt
-            new int[] { 27, 81, 1477, 1478, 1479, 1480, 2128 },
+            new int[] { 27, 81, 82, 83, 84, 85, 2128 },
             // Frost Bolt
             new int[] { 28, 70, 71, 72, 73, 74, 2136 },
             // Acid Stream
@@ -1897,7 +1915,7 @@ namespace ACE.Factories
         public static readonly int[] Helms =
         {
             46, // Metal Cap
-            74, // Heaume
+            8489, // Heaume
             75, // Helmet
             76, // Horned Helm
             77, // Kabuton

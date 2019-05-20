@@ -794,7 +794,13 @@ namespace ACE.Server.WorldObjects
                                 ActionChain portalRecall = new ActionChain();
                                 portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                                 portalRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                                portalRecall.AddAction(targetPlayer, () => targetPlayer.Teleport(portal.Destination));
+                                portalRecall.AddAction(targetPlayer, () =>
+                                {
+                                    var teleportDest = new Position(portal.Destination);
+                                    targetPlayer.AdjustDungeon(teleportDest);
+
+                                    targetPlayer.Teleport(teleportDest);
+                                });
                                 portalRecall.EnqueueChain();
                             }
                         }
@@ -807,7 +813,13 @@ namespace ACE.Server.WorldObjects
                             ActionChain portalSendingChain = new ActionChain();
                             //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
                             portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
-                            portalSendingChain.AddAction(targetPlayer, () => targetPlayer.Teleport(spell.Position));
+                            portalSendingChain.AddAction(targetPlayer, () =>
+                            {
+                                var teleportDest = new Position(spell.Position);
+                                targetPlayer.AdjustDungeon(teleportDest);
+
+                                targetPlayer.Teleport(teleportDest);
+                            });
                             portalSendingChain.EnqueueChain();
                         }
                         break;
@@ -824,7 +836,13 @@ namespace ACE.Server.WorldObjects
                                 if (fellow.Guid != targetPlayer.Guid)
                                     portalSendingChain.AddAction(fellow, () => fellow.EnqueueBroadcast(new GameMessageScript(fellow.Guid, spell.TargetEffect, spell.Formula.Scale)));
                                 portalSendingChain.AddAction(fellow, () => fellow.DoPreTeleportHide());
-                                portalSendingChain.AddAction(fellow, () => fellow.Teleport(spell.Position));
+                                portalSendingChain.AddAction(fellow, () =>
+                                {
+                                    var teleportDest = new Position(spell.Position);
+                                    fellow.AdjustDungeon(teleportDest);
+
+                                    fellow.Teleport(teleportDest);
+                                });
                             }
                             portalSendingChain.EnqueueChain();
                         }

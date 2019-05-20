@@ -393,6 +393,9 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
+            //if (!GeneratorEnteredWorld)
+            //    armed = true;
+
             if (armed)
             {
                 //var prevState = GeneratorDisabled;

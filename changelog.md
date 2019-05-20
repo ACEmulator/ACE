@@ -1,8 +1,21 @@
 # ACEmulator Change Log
 
+### 2019-05-17
+[Ripley]
+* Apply position corrections for teleports using magic.
+
+### 2019-05-12
+[Ripley]
+* Add OnGeneration emote handling.
+
+### 2019-05-11
+[Ripley]
+* Fix issue with `finger` command not showing correct account for character.
+
 ### 2019-05-10
 [Ripley]
 * Change pickup for items to also count as destruction for generators to regenerate. (Branith's Staff linked to a Linkable Monster Generator)
+* Allow the few items incorrectly marked as "Treasure" and not "ContainTreasure" or "Contain" to appear on monster corpses.
 
 ### 2019-05-06
 [Ripley]
