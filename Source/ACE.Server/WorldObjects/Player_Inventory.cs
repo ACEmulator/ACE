@@ -1275,10 +1275,11 @@ namespace ACE.Server.WorldObjects
         /// - try to split a stack off of the landblock into a container
         /// - try to split a stack into a different container that doesn't already have a stack that can support a merge
         /// </summary>
-        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, uint placementPosition, uint amount)
+        public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int placementPosition, int amount)
         {
-            if (amount == 0)
+            if (amount <= 0)
             {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, stackId, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
                 return;
@@ -1382,9 +1383,9 @@ namespace ACE.Server.WorldObjects
                         }
 
                         var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-                        newStack.SetStackSize((int)amount);
+                        newStack.SetStackSize(amount);
 
-                        if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, (int)placementPosition, (int)amount))
+                        if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount))
                         {
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
@@ -1406,9 +1407,9 @@ namespace ACE.Server.WorldObjects
             else // This is a self-contained movement
             {
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-                newStack.SetStackSize((int)amount);
+                newStack.SetStackSize(amount);
 
-                DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, (int)placementPosition, (int)amount);
+                DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount);
             }
         }
 
@@ -1445,10 +1446,11 @@ namespace ACE.Server.WorldObjects
         /// This is raised when we:
         /// - try to split a stack onto the landblock
         /// </summary>
-        public void HandleActionStackableSplitTo3D(uint stackId, uint amount)
+        public void HandleActionStackableSplitTo3D(uint stackId, int amount)
         {
-            if (amount == 0)
+            if (amount <= 0)
             {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, stackId, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
                 return;
@@ -1489,11 +1491,11 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                AdjustStack(stack, (int)-amount, stackFoundInContainer, stackRootOwner);
+                AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-                newStack.SetStackSize((int)amount);
+                newStack.SetStackSize(amount);
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
@@ -1528,10 +1530,11 @@ namespace ACE.Server.WorldObjects
         /// - try to merge a stack from the landblock into a container
         /// - try to split a stack into a different container that has a stack that can support a merge
         /// </summary>
-        public void HandleActionStackableMerge(uint mergeFromGuid, uint mergeToGuid, uint amount)
+        public void HandleActionStackableMerge(uint mergeFromGuid, uint mergeToGuid, int amount)
         {
-            if (amount == 0)
+            if (amount <= 0)
             {
+                log.WarnFormat("Player 0x{0}:{1} tried to merge item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, mergeFromGuid, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
                 return;
@@ -1650,7 +1653,7 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
-                        if (DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, (int)amount))
+                        if (DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount))
                         {
                             // If the client used the R key to merge a partial stack from the landscape, it also tries to add the "ghosted" item of the picked up stack to the inventory as well.
                             if (sourceStackRootOwner != this && sourceStack.StackSize > 0)
@@ -1675,7 +1678,7 @@ namespace ACE.Server.WorldObjects
             }
             else // This is a self-contained movement
             {
-                DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, (int)amount);
+                DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount);
             }
         }
 
