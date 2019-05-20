@@ -101,6 +101,7 @@ namespace ACE.Server.WorldObjects
             var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
             session.Player.TradeAccepted = false;
+            target.TradeAccepted = false;
 
             if (itemGuid != 0 && target != null)
             {
@@ -161,6 +162,57 @@ namespace ACE.Server.WorldObjects
 
                 if (session.Player.TradeAccepted && target.TradeAccepted)
                 {
+                    var playerAitems = new List<WorldObject>();
+                    var playerBitems = new List<WorldObject>();
+
+                    foreach (ObjectGuid itemGuid in session.Player.ItemsInTradeWindow)
+                    {
+                        var wo = session.Player.GetInventoryItem(itemGuid);
+
+                        if (wo == null)
+                            wo = session.Player.GetEquippedItem(itemGuid);
+
+                        if (wo != null)
+                            playerAitems.Add(wo);
+                    }
+
+                    foreach (ObjectGuid itemGuid in target.ItemsInTradeWindow)
+                    {
+                        var wo = target.GetInventoryItem(itemGuid);
+
+                        if (wo == null)
+                            wo = target.GetEquippedItem(itemGuid);
+
+                        if (wo != null)
+                            playerBitems.Add(wo);
+                    }
+
+                    var playerACanAddToInventory = session.Player.CanAddToInventory(playerBitems);
+                    var playerBCanAddToInventory = target.CanAddToInventory(playerAitems);
+
+                    if (!playerACanAddToInventory || !playerBCanAddToInventory)
+                    {
+                        //session.Player.TradeAccepted = false;
+                        //session.Network.EnqueueSend(new GameEventDeclineTrade(session, target.Guid));
+                        //target.Session.Network.EnqueueSend(new GameEventDeclineTrade(target.Session, session.Player.Guid));
+                        //session.Network.EnqueueSend(new GameEventTradeFailure(session, WeenieError.TradeIncomplete));
+
+                        session.Player.HandleActionResetTrade(session, Guid);
+                        target.HandleActionResetTrade(target.Session, target.Guid);
+
+                        var reason = " cannot accept trade because they are too encumbered or do not have enough free inventory slots.";
+                        if (!playerACanAddToInventory)
+                            reason = session.Player.Name + reason;
+                        else if (!playerBCanAddToInventory)
+                            reason = target.Name + reason;
+
+                        session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, $"Trade Cancelled: {reason}"));
+                        target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, $"Trade Cancelled: {reason}"));
+
+                        session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeIncomplete));
+                        return;
+                    }
+
                     session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "The items are being traded"));
                     target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, "The items are being traded"));
 

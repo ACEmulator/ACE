@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2019-05-20
+[Ripley]
+* Fix Secure Trade to confirm both parties have enough pack space/burden to accept all items before trade completes.
+
+[deca]
+* Update /listplayers to accept optional accesslevel parameter.
+
 ### 2019-05-17
 [Ripley]
 * Apply position corrections for teleports using magic.
