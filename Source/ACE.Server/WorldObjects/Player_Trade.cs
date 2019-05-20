@@ -192,11 +192,6 @@ namespace ACE.Server.WorldObjects
 
                     if (!playerACanAddToInventory || !playerBCanAddToInventory)
                     {
-                        //session.Player.TradeAccepted = false;
-                        //session.Network.EnqueueSend(new GameEventDeclineTrade(session, target.Guid));
-                        //target.Session.Network.EnqueueSend(new GameEventDeclineTrade(target.Session, session.Player.Guid));
-                        //session.Network.EnqueueSend(new GameEventTradeFailure(session, WeenieError.TradeIncomplete));
-
                         session.Player.HandleActionResetTrade(session, Guid);
                         target.HandleActionResetTrade(target.Session, target.Guid);
 
