@@ -1326,6 +1326,13 @@ namespace ACE.Server.WorldObjects
 
             if ((stackRootOwner == this && containerRootOwner != this)  || (stackRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
+                if (stackRootOwner is Vendor)
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot merge from vendor")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                    return;
+                }
+
                 WorldObject moveToObject;
 
                 if (stackRootOwner == this)
@@ -1588,6 +1595,13 @@ namespace ACE.Server.WorldObjects
 
             if ((sourceStackRootOwner == this && targetStackRootOwner != this)  || (sourceStackRootOwner != this && targetStackRootOwner == this)) // Movement is between the player and the world
             {
+                if (sourceStackRootOwner is Vendor)
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot merge from vendor")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
+                    return;
+                }
+
                 WorldObject moveToObject;
 
                 if (sourceStackRootOwner == this)
