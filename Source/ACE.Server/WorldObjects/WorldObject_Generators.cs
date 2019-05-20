@@ -541,6 +541,9 @@ namespace ACE.Server.WorldObjects
             if (!FirstEnterWorldDone)
                 FirstEnterWorldDone = true;
 
+            foreach (var generator in GeneratorProfiles)
+                generator.Maintenance_HeartBeat();
+
             CheckGeneratorStatus();
 
             if (!GeneratorEnteredWorld)
@@ -562,7 +565,7 @@ namespace ACE.Server.WorldObjects
             }
 
             foreach (var generator in GeneratorProfiles)
-                generator.HeartBeat();
+                generator.Spawn_HeartBeat();
         }
     }
 }

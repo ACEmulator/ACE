@@ -102,16 +102,24 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Called every ~5 seconds for generator
+        /// Called every ~5 seconds for generator<para />
+        /// Processes the RemoveQueue
         /// </summary>
-        public void HeartBeat()
+        public void Maintenance_HeartBeat()
         {
             while (RemoveQueue.TryPeek(out var result) && result.time <= DateTime.UtcNow)
             {
                 RemoveQueue.Dequeue();
                 FreeSlot(result.objectGuid);
             }
+        }
 
+        /// <summary>
+        /// Called every ~5 seconds for generator based on conditions<para />
+        /// Processes the SpawnQueue
+        /// </summary>
+        public void Spawn_HeartBeat()
+        {
             if (SpawnQueue.Count > 0)
                 ProcessQueue();
         }
