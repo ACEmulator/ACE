@@ -162,30 +162,8 @@ namespace ACE.Server.WorldObjects
 
                 if (session.Player.TradeAccepted && target.TradeAccepted)
                 {
-                    var playerAitems = new List<WorldObject>();
-                    var playerBitems = new List<WorldObject>();
-
-                    foreach (ObjectGuid itemGuid in session.Player.ItemsInTradeWindow)
-                    {
-                        var wo = session.Player.GetInventoryItem(itemGuid);
-
-                        if (wo == null)
-                            wo = session.Player.GetEquippedItem(itemGuid);
-
-                        if (wo != null)
-                            playerAitems.Add(wo);
-                    }
-
-                    foreach (ObjectGuid itemGuid in target.ItemsInTradeWindow)
-                    {
-                        var wo = target.GetInventoryItem(itemGuid);
-
-                        if (wo == null)
-                            wo = target.GetEquippedItem(itemGuid);
-
-                        if (wo != null)
-                            playerBitems.Add(wo);
-                    }
+                    var playerAitems = GetItemsInTradeWindow(session.Player);
+                    var playerBitems = GetItemsInTradeWindow(target);
 
                     var playerACanAddToInventory = session.Player.CanAddToInventory(playerBitems);
                     var playerBCanAddToInventory = target.CanAddToInventory(playerAitems);
@@ -245,6 +223,24 @@ namespace ACE.Server.WorldObjects
                     DatabaseManager.Shard.SaveBiotasInParallel(tradedItems, null);
                 }
             }
+        }
+
+        private List<WorldObject> GetItemsInTradeWindow(Player player)
+        {
+            var results = new List<WorldObject>();
+
+            foreach (ObjectGuid itemGuid in player.ItemsInTradeWindow)
+            {
+                var wo = player.GetInventoryItem(itemGuid);
+
+                if (wo == null)
+                    wo = player.GetEquippedItem(itemGuid);
+
+                if (wo != null)
+                    results.Add(wo);
+            }
+
+            return results;
         }
 
         public void HandleActionDeclineTrade(Session session)
