@@ -440,6 +440,7 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
                 ("advanced_combat_pets", false),    // (non-retail function) If enabled, Combat Pets can cast spells
+                ("assess_creature_mod", false),     // (non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed.
                 ("iou_trades", false),              // (non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on.
                 ("chess_enabled", true),
                 ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
