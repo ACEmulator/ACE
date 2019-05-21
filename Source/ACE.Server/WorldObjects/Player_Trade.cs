@@ -142,6 +142,14 @@ namespace ACE.Server.WorldObjects
             session.Network.EnqueueSend(new GameEventResetTrade(session, whoReset));
         }
 
+        public void ClearTradeAcceptance()
+        {
+            ItemsInTradeWindow.Clear();
+            TradeAccepted = false;
+
+            Session.Network.EnqueueSend(new GameEventClearTradeAcceptance(Session));
+        }
+
         public void HandleActionAcceptTrade(Session session, ObjectGuid whoAccepted)
         {
             session.Player.TradeAccepted = true;
@@ -170,9 +178,6 @@ namespace ACE.Server.WorldObjects
 
                     if (!playerACanAddToInventory || !playerBCanAddToInventory)
                     {
-                        session.Player.HandleActionResetTrade(session, Guid);
-                        target.HandleActionResetTrade(target.Session, target.Guid);
-
                         var reason = " cannot accept trade because they are too encumbered or do not have enough free inventory slots.";
                         if (!playerACanAddToInventory)
                             reason = session.Player.Name + reason;
@@ -180,9 +185,10 @@ namespace ACE.Server.WorldObjects
                             reason = target.Name + reason;
 
                         session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, $"Trade Cancelled: {reason}"));
+                        session.Player.ClearTradeAcceptance();
                         target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, $"Trade Cancelled: {reason}"));
+                        target.ClearTradeAcceptance();
 
-                        session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeIncomplete));
                         return;
                     }
 
