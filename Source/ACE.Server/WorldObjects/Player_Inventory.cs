@@ -1776,6 +1776,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(uint targetGuid, uint itemGuid, int amount)
         {
+            if (amount <= 0)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to give item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, itemGuid, amount);
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Give amount not valid!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
             var target = FindObject(targetGuid, SearchLocations.Landblock, out _, out _, out _) as Container;
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var itemFoundInContainer, out var itemRootOwner, out var itemWasEquipped);
 
@@ -1793,16 +1801,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (amount == 0)
-            {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Give amount not valid!")); // Custom error message
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-                return;
-            }
-
             if (item.StackSize < amount)
             {
-                log.WarnFormat("Player 0x{0:X8}:{1} tried to Give item with invalid amount 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to give item with invalid amount ({4}) 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Give amount not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
                 return;
