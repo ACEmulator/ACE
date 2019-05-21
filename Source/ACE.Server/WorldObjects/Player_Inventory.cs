@@ -107,7 +107,9 @@ namespace ACE.Server.WorldObjects
                 if (stack == null || stackRootOwner == null)
                     return false;
 
-                AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
+                if (!AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner))
+                    return false;
+
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
             }
 
@@ -533,8 +535,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// If you want to subtract from a stack, amount should be negative.
         /// </summary>
-        private void AdjustStack(WorldObject stack, int amount, Container container, Container rootContainer)
+        private bool AdjustStack(WorldObject stack, int amount, Container container, Container rootContainer)
         {
+            if (stack.StackSize + amount <= 0 || stack.StackSize + amount > stack.MaxStackSize)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to adjust stack by an invalid amount amount ({4}) 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name, amount);
+                return false;
+            }
+
             stack.StackSize += amount;
             stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
             stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
@@ -551,6 +559,8 @@ namespace ACE.Server.WorldObjects
                 rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance ?? 0) * amount;
                 rootContainer.Value += (stack.StackUnitValue ?? 0) * amount;
             }
+
+            return true;
         }
 
 
@@ -1432,7 +1442,9 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageCreateObject(newStack));
             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, newStack, container));
 
-            AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
+            if (!AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner))
+                return false;
+
             if (stackRootOwner == null)
                 EnqueueBroadcast(new GameMessageSetStackSize(stack));
             else
@@ -1491,7 +1503,12 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
+                if (!AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner))
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
+                    return;
+                }
+
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
@@ -1736,7 +1753,9 @@ namespace ACE.Server.WorldObjects
                 if (!removedFromInventory)
                     sourceStack.Destroy();
 
-                AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
+                if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
+                    return false;
+
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
             }
             else // The merge will reduce the size of the source stack
@@ -1750,13 +1769,20 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
 
-                AdjustStack(sourceStack, -amount, sourceStackFoundInContainer, sourceStackRootOwner);
+                if (!AdjustStack(sourceStack, -amount, sourceStackFoundInContainer, sourceStackRootOwner))
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousStackCheck.Guid.Full));
+                    return false;
+                }
+
                 if (sourceStackRootOwner == null)
                     EnqueueBroadcast(new GameMessageSetStackSize(sourceStack));
                 else
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(sourceStack));
 
-                AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
+                if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
+                    return false;
+
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
             }
 
@@ -2026,7 +2052,7 @@ namespace ACE.Server.WorldObjects
                                 Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, $"I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
                                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {iouToTurnIn.Name}.", ChatMessageType.Broadcast));
                                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
-                                RemoveItemForGive(iouToTurnIn, null, false, null, 1, out WorldObject itemToGive, true);
+                                RemoveItemForGive(iouToTurnIn, null, false, null, 1, out _, true);
                                 success = TryCreateInInventoryWithNetworking(item);
 
                                 if (success)
@@ -2060,7 +2086,13 @@ namespace ACE.Server.WorldObjects
         {
             if (item.StackSize > 1 && amount < item.StackSize) // We're splitting a stack
             {
-                AdjustStack(item, -amount, itemFoundInContainer, itemRootOwner);
+                if (!AdjustStack(item, -amount, itemFoundInContainer, itemRootOwner))
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    itemToGive = null;
+                    return false;
+                }
+
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
 
                 var newStack = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
