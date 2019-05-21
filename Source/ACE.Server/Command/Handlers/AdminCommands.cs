@@ -1473,9 +1473,30 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleGod(Session session, params string[] parameters)
         {
-            // @god - Sets your own stats to the specified level.
+            // @god - Sets your own stats to a godly level.
 
-            // TODO: output
+            session.Player.TotalExperience = 191226310247;
+
+            foreach (Skill s in Enum.GetValues(typeof(Skill)))
+            {
+                session.Player.TrainSkill(s, 0);
+                session.Player.SpecializeSkill(s, 0);
+                var playerSkill = session.Player.Skills[s];
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s, playerSkill.AdvancementClass, playerSkill.Ranks, 1000, 0));
+            }
+
+            foreach (PropertyAttribute p in Enum.GetValues(typeof(PropertyAttribute)))
+            {
+                if (p == PropertyAttribute.Undef)
+                {
+                    continue;
+                }
+                var playerAttr = session.Player.Attributes[p];
+                playerAttr.StartingValue = 9999;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, p, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+            }
+
+            session.Player.SetMaxVitals();
 
             // output: You are now a god!!!
 
