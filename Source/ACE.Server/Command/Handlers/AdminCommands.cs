@@ -1475,7 +1475,10 @@ namespace ACE.Server.Command.Handlers
         {
             // @god - Sets your own stats to a godly level.
 
-            session.Player.TotalExperience = 191226310247;
+            session.Player.TotalExperience = 191226310246;
+            session.Player.Level = 999;
+
+            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Level, 999));
 
             foreach (Skill s in Enum.GetValues(typeof(Skill)))
             {
@@ -1497,6 +1500,9 @@ namespace ACE.Server.Command.Handlers
             }
 
             session.Player.SetMaxVitals();
+
+            session.Player.PlayParticleEffect(PlayScript.LevelUp, session.Player.Guid);
+            session.Player.PlayParticleEffect(PlayScript.BaelZharonSmite, session.Player.Guid);
 
             // output: You are now a god!!!
 
