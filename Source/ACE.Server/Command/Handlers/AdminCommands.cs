@@ -28,7 +28,6 @@ using ACE.Server.Network.Packets;
 using ACE.Server.Physics.Common;
 
 using Position = ACE.Entity.Position;
-using ACE.Server.Network.GameMessages;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -332,7 +331,7 @@ namespace ACE.Server.Command.Handlers
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
                     message += "-------------------\n";
                     foreach (var character in characters.Where(x => !x.IsDeleted && x.DeleteTime == 0))
-                        message += $"\"{(character.IsPlussed ? "+" : "")}{character.Name}\", ID 0x{character.Id.ToString("X8")}\n";                    
+                        message += $"\"{(character.IsPlussed ? "+" : "")}{character.Name}\", ID 0x{character.Id.ToString("X8")}\n";
                     var pendingDeletedCharacters = characters.Where(x => !x.IsDeleted && x.DeleteTime > 0).ToList();
                     if (pendingDeletedCharacters.Count > 0)
                     {
@@ -809,7 +808,7 @@ namespace ACE.Server.Command.Handlers
                             creature.Smite(session.Player);
                     }
 
-                    PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} used smite all.");
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite all.");
                 }
                 else
                 {
@@ -904,7 +903,7 @@ namespace ACE.Server.Command.Handlers
             player.SetPosition(PositionType.TeleportedCharacter, currentPos);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you.", ChatMessageType.Magic));
 
-            PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} has teleported {player.Name} to them.");
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has teleported {player.Name} to them.");
         }
 
         /// <summary>
@@ -963,7 +962,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a named Point of Interest",
             "[POI|list]\n" +
-            "@telepoi Arwic\n"+
+            "@telepoi Arwic\n" +
             "Get the list of POIs\n" +
             "@telepoi list")]
         public static void HandleTeleportPoi(Session session, params string[] parameters)
@@ -1250,7 +1249,7 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
                 return;
             }
-            
+
 
             WorldObject loot;
             if (wcid)
@@ -1271,7 +1270,7 @@ namespace ACE.Server.Command.Handlers
                 else if (loot.MaxStackSize != null && stackSize <= loot.MaxStackSize)
                     loot.SetStackSize(stackSize);
             }
-            
+
 
             // todo set the palette, shade here
 
@@ -1476,28 +1475,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @god - Sets your own stats to the specified level.
 
-            session.Player.TotalExperience = 100000000000;
-
-            foreach (Skill s in Enum.GetValues(typeof(Skill)))
-            {
-                session.Player.TrainSkill(s, 0);
-                session.Player.SpecializeSkill(s, 0);
-                var playerSkill = session.Player.Skills[s];
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s, playerSkill.AdvancementClass, playerSkill.Ranks, 1000, 0));
-            }
-
-            foreach (PropertyAttribute p in Enum.GetValues(typeof(PropertyAttribute)))
-            {
-                if (p == PropertyAttribute.Undef)
-                {
-                    continue;
-                }
-                var playerAttr = session.Player.Attributes[p];
-                playerAttr.StartingValue = 9999;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, p, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));   
-            }
-
-            session.Player.SetMaxVitals();
+            // TODO: output
 
             // output: You are now a god!!!
 
@@ -1622,7 +1600,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));            
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));
 
             var guid = GuidManager.NewPlayerGuid();
 
@@ -2416,7 +2394,7 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
             }
         }
-      
+
         // cm <material type> <quantity> <ave. workmanship>
         [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
         public static void HandleCM(Session session, params string[] parameters)
