@@ -1,7 +1,6 @@
 using System;
 
 using ACE.Entity.Enum;
-using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -27,9 +26,7 @@ namespace ACE.Server.WorldObjects
 
             IsMonster = true;
 
-            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick_HandleFindTarget);
             HandleFindTarget();
-            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick_HandleFindTarget);
 
             CheckMissHome();    // tickrate?
 
@@ -67,9 +64,7 @@ namespace ACE.Server.WorldObjects
                 if (IsAnimating)
                 {
                     //PhysicsObj.ShowPendingMotions();
-                    ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick_update_object);
                     PhysicsObj.update_object();
-                    ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Monster_Tick_update_object);
                     return;
                 }
 
