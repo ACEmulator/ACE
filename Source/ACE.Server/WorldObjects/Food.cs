@@ -1,3 +1,4 @@
+using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -46,6 +47,12 @@ namespace ACE.Server.WorldObjects
         {
             var player = activator as Player;
             if (player == null) return;
+
+            if (player.IsBusy)
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
+                return;
+            }
 
             var buffType = Player.ConsumableBuffType.Stamina;
 

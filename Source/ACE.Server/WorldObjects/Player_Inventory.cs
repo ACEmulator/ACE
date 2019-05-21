@@ -91,6 +91,7 @@ namespace ACE.Server.WorldObjects
 
         public bool TryConsumeFromInventoryWithNetworking(WorldObject item, int amount = int.MaxValue)
         {
+
             if (amount >= (item.StackSize ?? 1))
             {
                 if (!TryRemoveFromInventory(item.Guid, out item))

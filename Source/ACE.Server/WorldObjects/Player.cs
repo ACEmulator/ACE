@@ -876,8 +876,6 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
         public void ApplyConsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
-            if (IsBusy) return;
-
             IsBusy = true;
 
             MotionCommand motionCommand;
@@ -950,7 +948,7 @@ namespace ACE.Server.WorldObjects
                         //if (Fellowship != null)
                             //Fellowship.OnVitalUpdate(this);
                     }
-
+                    
                     buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
                 }
 
