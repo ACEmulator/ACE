@@ -372,7 +372,7 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject FindObject(uint objectGuid, SearchLocations searchLocations)
         {
-            return FindObject(new ObjectGuid(objectGuid), searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
+            return FindObject(new ObjectGuid(objectGuid), searchLocations, out _, out _, out _);
         }
 
         public WorldObject FindObject(uint objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
@@ -460,7 +460,7 @@ namespace ACE.Server.WorldObjects
 
             if (searchLocations.HasFlag(SearchLocations.TradedByOther))
             {
-                if (IsTrading && TradePartner != null)
+                if (IsTrading && TradePartner != ObjectGuid.Invalid)
                 {
                     if (CurrentLandblock?.GetObject(TradePartner) is Player currentTradePartner)
                     {
@@ -1104,7 +1104,7 @@ namespace ACE.Server.WorldObjects
                 // filtering to just armor here, or else trinkets and dual wielding breaks
                 var existing = GetEquippedClothingArmor(item.ClothingPriority ?? 0).FirstOrDefault();
 
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing.Name} to wear that"));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing?.Name} to wear that"));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 return false;
             }
@@ -1909,7 +1909,7 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
-                if (!target.TryCreateInInventoryWithNetworking(itemToGive, out var targetContainer))
+                if (!target.TryCreateInInventoryWithNetworking(itemToGive, out _))
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryCreateInInventoryWithNetworking failed!")); // Custom error message
 
@@ -2049,7 +2049,7 @@ namespace ACE.Server.WorldObjects
                             if (item != null)
                             {
                                 Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, $"You're in luck! This {item.Name} was just left here the other day.", this, ChatMessageType.Tell));
-                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, $"I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
+                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
                                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {iouToTurnIn.Name}.", ChatMessageType.Broadcast));
                                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
                                 RemoveItemForGive(iouToTurnIn, null, false, null, 1, out _, true);
@@ -2065,7 +2065,7 @@ namespace ACE.Server.WorldObjects
                                     if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                         RushNextPlayerSave(5);
 
-                                    log.Info($"{Name} (0x{Guid:X8}) traded in a IOU (0x{iouToTurnIn.Guid.Full:X8}) for {wcid} which became {item.Name} (0x{item.Guid.Full:X8}).");
+                                    log.Info($"{Name} (0x{Guid.Full:X8}) traded in a IOU (0x{iouToTurnIn.Guid.Full:X8}) for {wcid} which became {item.Name} (0x{item.Guid.Full:X8}).");
                                 }
                                 return;
                             }
