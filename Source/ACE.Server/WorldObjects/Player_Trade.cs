@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         public List<ObjectGuid> ItemsInTradeWindow = new List<ObjectGuid>();
         private bool TradeAccepted { get; set; } = false;
         private bool IsTrading = false;
-        private bool TradeTranferInProgress = false;
+        private bool TradeTranferInProgress { get; set; } = false;
         public ObjectGuid TradePartner;
 
         public void HandleActionOpenTradeNegotiations(uint tradePartnerGuid, bool initiator = false)
