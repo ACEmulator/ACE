@@ -1928,6 +1928,32 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
+        /// Set the AppraisalLongDescDecoration of the item, which controls the full descriptive text shown in the client on appraisal
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <returns></returns>
+        private static WorldObject SetAppraisalLongDescDecoration(WorldObject wo)
+        {
+            // LDDecoration_PrependWorkmanship = 0x1,
+            // LDDecoration_PrependMaterial = 0x2,
+            // LDDecoration_AppendGemInfo = 0x4,
+            int appraisalLongDescDecoration = 0;
+            if (wo.ItemWorkmanship != null)
+                appraisalLongDescDecoration |= 1;
+            if (wo.MaterialType != null)
+                appraisalLongDescDecoration |= 2;
+            if (wo.GemType != null)
+                appraisalLongDescDecoration |= 4;
+
+            if (appraisalLongDescDecoration > 0)
+                wo.AppraisalLongDescDecoration = appraisalLongDescDecoration;
+            else
+                wo.AppraisalLongDescDecoration = null;
+
+            return wo;
+        }
+
+        /// <summary>
         /// This will assign a completely random, valid color to the item in question. It will also randomize the shade and set the appropriate icon.
         ///
         /// This was a temporary function to give some color to loot until further work was put in for "proper" color handling. Leave it here as an option for future potential use (perhaps config option?)

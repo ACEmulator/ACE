@@ -1118,6 +1118,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.NumItemsInMaterial); else SetProperty(PropertyInt.NumItemsInMaterial, value.Value); }
         }
 
+        public int? AppraisalLongDescDecoration
+        {
+            get => GetProperty(PropertyInt.AppraisalLongDescDecoration);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalLongDescDecoration); else SetProperty(PropertyInt.AppraisalLongDescDecoration, value.Value); }
+        }
+
         public float? Workmanship
         {
             get

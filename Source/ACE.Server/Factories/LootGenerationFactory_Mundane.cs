@@ -53,13 +53,14 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
                 wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
 
-                wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 7);
                 wo.LongDesc = wo.Name;
 
                 int materialType = GetMaterialType(wo, tier);
                 wo.MaterialType = (MaterialType)materialType;
                 int workmanship = GetWorkmanship(tier);
                 wo.ItemWorkmanship = workmanship;
+
+                wo = SetAppraisalLongDescDecoration(wo);
 
                 wo = AssignValue(wo);
             }
