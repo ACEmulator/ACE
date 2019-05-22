@@ -335,7 +335,7 @@ namespace ACE.Server.WorldObjects
                     return false;
             }
 
-            return GetFreeInventorySlots() >= worldObjects.Count;
+            return GetFreeInventorySlots() >= (worldObjects.Count - containers.Count);
         }
 
         /// <summary>
@@ -362,7 +362,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (GetFreeInventorySlots() < worldObjects.Count)
+            if (GetFreeInventorySlots() < (worldObjects.Count - containers.Count))
             {
                 NotEnoughFreeSlots = true;
                 return false;
