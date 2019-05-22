@@ -328,6 +328,13 @@ namespace ACE.Server.WorldObjects
             if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObjects))
                 return false;
 
+            var containers = worldObjects.Where(w => w.UseBackpackSlot).ToList();
+            if (containers.Count > 0)
+            {
+                if (GetFreeContainerSlots() < containers.Count)
+                    return false;
+            }
+
             return GetFreeInventorySlots() >= worldObjects.Count;
         }
 
