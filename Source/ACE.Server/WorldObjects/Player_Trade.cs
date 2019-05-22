@@ -18,6 +18,7 @@ namespace ACE.Server.WorldObjects
         public List<ObjectGuid> ItemsInTradeWindow = new List<ObjectGuid>();
         private bool TradeAccepted { get; set; } = false;
         private bool IsTrading = false;
+        private bool TradeTranferInProgress = false;
         public ObjectGuid TradePartner;
 
         public void HandleActionOpenTradeNegotiations(uint tradePartnerGuid, bool initiator = false)
@@ -74,6 +75,8 @@ namespace ACE.Server.WorldObjects
             {
                 IsTrading = true;
                 tradePartner.IsTrading = true;
+                TradeTranferInProgress = false;
+                tradePartner.TradeTranferInProgress = false;
 
                 ItemsInTradeWindow.Clear();
 
@@ -87,8 +90,11 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionCloseTradeNegotiations(Session session, EndTradeReason endTradeReason = EndTradeReason.Normal)
         {
+            if (session.Player.TradeTranferInProgress) return;
+
             session.Player.IsTrading = false;
             session.Player.TradeAccepted = false;
+            session.Player.TradeTranferInProgress = false;
             session.Player.ItemsInTradeWindow.Clear();
             session.Player.TradePartner = ObjectGuid.Invalid;
 
@@ -98,13 +104,16 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionAddToTrade(Session session, uint itemGuid, uint tradeWindowSlotNumber)
         {
+            if (session.Player.TradeTranferInProgress) return;
+
             var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
-            session.Player.TradeAccepted = false;
-            target.TradeAccepted = false;
+            session.Player.TradeAccepted = false;            
 
             if (itemGuid != 0 && target != null)
             {
+                target.TradeAccepted = false;
+
                 WorldObject wo = GetInventoryItem(itemGuid);
 
                 if (wo != null)
@@ -136,6 +145,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionResetTrade(Session session, ObjectGuid whoReset)
         {
+            if (session.Player.TradeTranferInProgress) return;
+
             session.Player.ItemsInTradeWindow.Clear();
             session.Player.TradeAccepted = false;
 
@@ -152,6 +163,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionAcceptTrade(Session session, ObjectGuid whoAccepted)
         {
+            if (session.Player.TradeTranferInProgress) return;
+
             session.Player.TradeAccepted = true;
 
             session.Network.EnqueueSend(new GameEventAcceptTrade(session, whoAccepted));
@@ -222,6 +235,9 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
+                    session.Player.TradeTranferInProgress = true;
+                    target.TradeTranferInProgress = true;
+
                     session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "The items are being traded"));
                     target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, "The items are being traded"));
 
@@ -253,10 +269,13 @@ namespace ACE.Server.WorldObjects
                     //session.Player.HandleActionResetTrade(session, ObjectGuid.Invalid);
                     //target.HandleActionResetTrade(target.Session, ObjectGuid.Invalid);
 
-                    session.Player.HandleActionResetTrade(session, Guid);
-                    target.HandleActionResetTrade(target.Session, target.Guid);
+                    session.Player.TradeTranferInProgress = false;
+                    target.TradeTranferInProgress = false;
 
                     DatabaseManager.Shard.SaveBiotasInParallel(tradedItems, null);
+
+                    session.Player.HandleActionResetTrade(session, Guid);
+                    target.HandleActionResetTrade(target.Session, target.Guid);
                 }
             }
         }
@@ -281,6 +300,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionDeclineTrade(Session session)
         {
+            if (session.Player.TradeTranferInProgress) return;
+
             session.Player.TradeAccepted = false;
 
             session.Network.EnqueueSend(new GameEventDeclineTrade(session,session.Player.Guid));
@@ -304,7 +325,7 @@ namespace ACE.Server.WorldObjects
                 session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeNonCombatMode));
                 session.Player.HandleActionCloseTradeNegotiations(session, EndTradeReason.EnteredCombat);
 
-                if (target !=null)
+                if (target != null)
                 {
                     target.Session.Network.EnqueueSend(new GameEventWeenieError(target.Session, WeenieError.TradeNonCombatMode));
                     target.HandleActionCloseTradeNegotiations(target.Session, EndTradeReason.EnteredCombat);
