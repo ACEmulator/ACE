@@ -471,10 +471,13 @@ namespace ACE.Server.WorldObjects
                 {
                     if (CurrentLandblock?.GetObject(TradePartner) is Player currentTradePartner)
                     {
-                        result = currentTradePartner.GetInventoryItem(objectGuid);
+                        if (currentTradePartner.ItemsInTradeWindow.Contains(objectGuid))
+                        {
+                            result = currentTradePartner.GetInventoryItem(objectGuid);
 
-                        if (result != null)
-                            return result;
+                            if (result != null)
+                                return result;
+                        }
                     }
                 }
             }
