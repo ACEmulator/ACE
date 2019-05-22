@@ -314,7 +314,10 @@ namespace ACE.Server.WorldObjects
             if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObject))
                 return false;
 
-            return GetFreeInventorySlots() > 0;
+            if (worldObject.UseBackpackSlot)
+                return GetFreeContainerSlots() > 0;
+            else
+                return GetFreeInventorySlots() > 0;
         }
 
         /// <summary>
