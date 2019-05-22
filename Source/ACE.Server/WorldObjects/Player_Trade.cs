@@ -184,7 +184,7 @@ namespace ACE.Server.WorldObjects
                         if (!playerACanAddToInventory)
                         {
                             playerAreason = "You ";
-                            playerBreason = session.Player.Name + " ";
+                            playerBreason = "Your trading partner ";
 
                             if (playerAIsTooEnumbered)
                             {
@@ -199,7 +199,7 @@ namespace ACE.Server.WorldObjects
                         }
                         else if (!playerBCanAddToInventory)
                         {                            
-                            playerAreason = target.Name + " ";
+                            playerAreason = "Your trading partner ";
                             playerBreason = "You ";
 
                             if (playerBIsTooEnumbered)
