@@ -59,6 +59,11 @@ namespace ACE.Server.Entity
                 var pp = (uint)Math.Round(difficulty * timeScale);
                 var totalXPGranted = (uint)Math.Round(pp * 1.1f);   // give additional 10% of proficiency XP to unassigned XP
 
+                if (totalXPGranted > 10000)
+                {
+                    log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty})");
+                }
+
                 //Console.WriteLine($"Earned {pp} PP ({skill.Skill})");
 
                 // send CP to player as unassigned XP
