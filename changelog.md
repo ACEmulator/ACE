@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-05-21
+[OptimShi]
+* Added Dinnerware to Mundane lootgen. 
+* Removed Mana Scarabs from lootgen.
+
 ### 2019-05-17
 [Ripley]
 * Apply position corrections for teleports using magic.
