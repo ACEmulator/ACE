@@ -166,27 +166,57 @@ namespace ACE.Server.WorldObjects
                 target.Session.Network.EnqueueSend(new GameEventAcceptTrade(target.Session, whoAccepted));
 
                 if (whoAccepted == session.Player.Guid)
-                    target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, $"({session.Player.Name}) has accepted the offer"));
+                    target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, $"{session.Player.Name} has accepted the offer"));
 
                 if (session.Player.TradeAccepted && target.TradeAccepted)
                 {
                     var playerAitems = GetItemsInTradeWindow(session.Player);
                     var playerBitems = GetItemsInTradeWindow(target);
 
-                    var playerACanAddToInventory = session.Player.CanAddToInventory(playerBitems);
-                    var playerBCanAddToInventory = target.CanAddToInventory(playerAitems);
+                    var playerACanAddToInventory = session.Player.CanAddToInventory(playerBitems, out var playerAIsTooEnumbered, out var playerANotEnoughFreeSlots);
+                    var playerBCanAddToInventory = target.CanAddToInventory(playerAitems, out var playerBIsTooEnumbered, out var playerBNotEnoughFreeSlots);
 
                     if (!playerACanAddToInventory || !playerBCanAddToInventory)
                     {
-                        var reason = " cannot accept trade because they are too encumbered or do not have enough free inventory slots.";
-                        if (!playerACanAddToInventory)
-                            reason = session.Player.Name + reason;
-                        else if (!playerBCanAddToInventory)
-                            reason = target.Name + reason;
+                        var playerAreason = "";
+                        var playerBreason = "";
 
-                        session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, $"Trade Cancelled: {reason}"));
+                        if (!playerACanAddToInventory)
+                        {
+                            playerAreason = "You ";
+                            playerBreason = session.Player.Name + " ";
+
+                            if (playerAIsTooEnumbered)
+                            {
+                                playerAreason += "are too encumbered to complete the trade!";
+                                playerBreason += "is too encumbered to complete the trade!";
+                            }
+                            else if (playerANotEnoughFreeSlots)
+                            {
+                                playerAreason += "do not have enough free slots to complete the trade!";
+                                playerBreason += "does not have enough free slots to complete the trade!";
+                            }
+                        }
+                        else if (!playerBCanAddToInventory)
+                        {                            
+                            playerAreason = target.Name + " ";
+                            playerBreason = "You ";
+
+                            if (playerBIsTooEnumbered)
+                            {                                
+                                playerAreason += "is too encumbered to complete the trade!";
+                                playerBreason += "are too encumbered to complete the trade!";
+                            }
+                            else if (playerBNotEnoughFreeSlots)
+                            {                                
+                                playerAreason += "does not have enough free slots to complete the trade!";
+                                playerBreason += "do not have enough free slots to complete the trade!";
+                            }
+                        }
+
+                        session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, playerAreason));
                         session.Player.ClearTradeAcceptance();
-                        target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, $"Trade Cancelled: {reason}"));
+                        target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, playerBreason));
                         target.ClearTradeAcceptance();
 
                         return;

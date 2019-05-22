@@ -142,7 +142,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private int CountPackItems()
         {
-            return Inventory.Values.Count(wo => !wo.UseBackpackSlot && !(wo is Container));
+            return Inventory.Values.Count(wo => !wo.UseBackpackSlot);
+        }
+
+        /// <summary>
+        /// Counts the number of containers in inventory, including Foci.
+        /// </summary>
+        private int CountContainers()
+        {
+            return Inventory.Values.Count(wo => wo.UseBackpackSlot);
         }
 
         public int GetFreeInventorySlots(bool includeSidePacks = true)
@@ -156,6 +164,11 @@ namespace ACE.Server.WorldObjects
             }
 
             return freeSlots;
+        }
+
+        public int GetFreeContainerSlots()
+        {
+            return (ContainerCapacity ?? 0) - CountContainers();
         }
 
         /// <summary>
@@ -313,6 +326,39 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             return GetFreeInventorySlots() >= worldObjects.Count;
+        }
+
+        /// <summary>
+        /// Returns TRUE if there are enough free inventory slots and burden available to add all items
+        /// </summary>
+        public bool CanAddToInventory(List<WorldObject> worldObjects, out bool TooEncumbered, out bool NotEnoughFreeSlots)
+        {
+            TooEncumbered = false;
+            NotEnoughFreeSlots = false;
+
+            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObjects))
+            {
+                TooEncumbered = true; ;
+                return false;
+            }
+
+            var containers = worldObjects.Where(w => w.UseBackpackSlot).ToList();
+            if (containers.Count > 0)
+            {
+                if (GetFreeContainerSlots() < containers.Count)
+                {
+                    NotEnoughFreeSlots = true;
+                    return false;
+                }
+            }
+
+            if (GetFreeInventorySlots() < worldObjects.Count)
+            {
+                NotEnoughFreeSlots = true;
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
