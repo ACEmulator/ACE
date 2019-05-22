@@ -108,7 +108,7 @@ namespace ACE.Server.WorldObjects
 
             var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
-            session.Player.TradeAccepted = false;            
+            session.Player.TradeAccepted = false;
 
             if (itemGuid != 0 && target != null)
             {
