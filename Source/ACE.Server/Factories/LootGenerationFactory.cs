@@ -1938,11 +1938,11 @@ namespace ACE.Server.Factories
             // LDDecoration_PrependMaterial = 0x2,
             // LDDecoration_AppendGemInfo = 0x4,
             int appraisalLongDescDecoration = 0;
-            if (wo.ItemWorkmanship != null)
+            if (wo.ItemWorkmanship > 0)
                 appraisalLongDescDecoration |= 1;
-            if (wo.MaterialType != null)
+            if (wo.MaterialType > 0)
                 appraisalLongDescDecoration |= 2;
-            if (wo.GemType != null)
+            if (wo.GemType > 0 && wo.GemCount > 0)
                 appraisalLongDescDecoration |= 4;
 
             if (appraisalLongDescDecoration > 0)

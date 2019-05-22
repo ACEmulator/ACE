@@ -1254,6 +1254,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.GemType); else SetProperty(PropertyInt.GemType, (int)value.Value); }
         }
 
+        public MaterialType? GemCount
+        {
+            get => (MaterialType?)GetProperty(PropertyInt.GemCount);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GemCount); else SetProperty(PropertyInt.GemCount, (int)value.Value); }
+        }
+
         public int? Attuned
         {
             get => GetProperty(PropertyInt.Attuned);
