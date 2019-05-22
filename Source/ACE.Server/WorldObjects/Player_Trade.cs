@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         public List<ObjectGuid> ItemsInTradeWindow = new List<ObjectGuid>();
         private bool TradeAccepted { get; set; } = false;
         private bool IsTrading = false;
-        private bool TradeTranferInProgress { get; set; } = false;
+        private bool TradeTransferInProgress { get; set; } = false;
         public ObjectGuid TradePartner;
 
         public void HandleActionOpenTradeNegotiations(uint tradePartnerGuid, bool initiator = false)
@@ -75,8 +75,8 @@ namespace ACE.Server.WorldObjects
             {
                 IsTrading = true;
                 tradePartner.IsTrading = true;
-                TradeTranferInProgress = false;
-                tradePartner.TradeTranferInProgress = false;
+                TradeTransferInProgress = false;
+                tradePartner.TradeTransferInProgress = false;
 
                 ItemsInTradeWindow.Clear();
 
@@ -90,11 +90,11 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionCloseTradeNegotiations(Session session, EndTradeReason endTradeReason = EndTradeReason.Normal)
         {
-            if (session.Player.TradeTranferInProgress) return;
+            if (session.Player.TradeTransferInProgress) return;
 
             session.Player.IsTrading = false;
             session.Player.TradeAccepted = false;
-            session.Player.TradeTranferInProgress = false;
+            session.Player.TradeTransferInProgress = false;
             session.Player.ItemsInTradeWindow.Clear();
             session.Player.TradePartner = ObjectGuid.Invalid;
 
@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionAddToTrade(Session session, uint itemGuid, uint tradeWindowSlotNumber)
         {
-            if (session.Player.TradeTranferInProgress) return;
+            if (session.Player.TradeTransferInProgress) return;
 
             var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
@@ -145,7 +145,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionResetTrade(Session session, ObjectGuid whoReset)
         {
-            if (session.Player.TradeTranferInProgress) return;
+            if (session.Player.TradeTransferInProgress) return;
 
             session.Player.ItemsInTradeWindow.Clear();
             session.Player.TradeAccepted = false;
@@ -163,7 +163,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionAcceptTrade(Session session, ObjectGuid whoAccepted)
         {
-            if (session.Player.TradeTranferInProgress) return;
+            if (session.Player.TradeTransferInProgress) return;
 
             session.Player.TradeAccepted = true;
 
@@ -235,8 +235,8 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    session.Player.TradeTranferInProgress = true;
-                    target.TradeTranferInProgress = true;
+                    session.Player.TradeTransferInProgress = true;
+                    target.TradeTransferInProgress = true;
 
                     session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "The items are being traded"));
                     target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, "The items are being traded"));
@@ -269,8 +269,8 @@ namespace ACE.Server.WorldObjects
                     //session.Player.HandleActionResetTrade(session, ObjectGuid.Invalid);
                     //target.HandleActionResetTrade(target.Session, ObjectGuid.Invalid);
 
-                    session.Player.TradeTranferInProgress = false;
-                    target.TradeTranferInProgress = false;
+                    session.Player.TradeTransferInProgress = false;
+                    target.TradeTransferInProgress = false;
 
                     DatabaseManager.Shard.SaveBiotasInParallel(tradedItems, null);
 
@@ -300,7 +300,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionDeclineTrade(Session session)
         {
-            if (session.Player.TradeTranferInProgress) return;
+            if (session.Player.TradeTransferInProgress) return;
 
             session.Player.TradeAccepted = false;
 
