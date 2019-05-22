@@ -348,7 +348,7 @@ namespace ACE.Server.WorldObjects
 
             if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObjects))
             {
-                TooEncumbered = true; ;
+                TooEncumbered = true;
                 return false;
             }
 
