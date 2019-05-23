@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-05-21
+[OptimShi]
+* Added Dinnerware to Mundane lootgen. 
+* Removed Mana Scarabs from lootgen.
+
 ### 2019-05-20
 [Ripley]
 * Fix Secure Trade to confirm both parties have enough pack space/burden to accept all items before trade completes.
