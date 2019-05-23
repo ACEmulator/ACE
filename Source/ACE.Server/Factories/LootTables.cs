@@ -1915,7 +1915,7 @@ namespace ACE.Factories
         public static readonly int[] Helms =
         {
             46, // Metal Cap
-            8489, // Heaume
+            74, // Heaume
             75, // Helmet
             76, // Horned Helm
             77, // Kabuton
