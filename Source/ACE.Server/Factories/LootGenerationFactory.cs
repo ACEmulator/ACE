@@ -9,6 +9,7 @@ using ACE.Entity.Enum;
 using ACE.Factories;
 using ACE.Server.WorldObjects;
 using System.Linq;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Factories
 {
@@ -1634,6 +1635,19 @@ namespace ACE.Server.Factories
 
             }
             return value;
+        }
+
+        private static WorldObject AssignValue(WorldObject wo)
+        {
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+
+            var baseValue = ThreadSafeRandom.Next(300, 600);
+
+            var value = (int)(baseValue * gemMaterialMod * materialMod * Math.Ceiling((double)(wo.GetProperty(PropertyInt.ItemWorkmanship) ?? 1)));
+            wo.SetProperty(PropertyInt.Value, value);
+
+            return wo;
         }
 
         private static int GetWorkmanship(int tier)
