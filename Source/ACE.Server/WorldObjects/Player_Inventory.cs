@@ -52,6 +52,15 @@ namespace ACE.Server.WorldObjects
             return (EncumbranceVal + worldObject.EncumbranceVal <= (GetEncumbranceCapacity() * 3));
         }
 
+        public bool HasEnoughBurdenToAddToInventory(List<WorldObject> worldObjects)
+        {
+            var burdenTotal = 0;
+
+            foreach (var worldObject in worldObjects)
+                burdenTotal += worldObject.EncumbranceVal ?? 0;
+
+            return (EncumbranceVal + burdenTotal <= (GetEncumbranceCapacity() * 3));
+        }
 
         /// <summary>
         /// If enough burden is available, this will try to add (via create) an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.
@@ -462,10 +471,13 @@ namespace ACE.Server.WorldObjects
                 {
                     if (CurrentLandblock?.GetObject(TradePartner) is Player currentTradePartner)
                     {
-                        result = currentTradePartner.GetInventoryItem(objectGuid);
+                        if (currentTradePartner.ItemsInTradeWindow.Contains(objectGuid))
+                        {
+                            result = currentTradePartner.GetInventoryItem(objectGuid);
 
-                        if (result != null)
-                            return result;
+                            if (result != null)
+                                return result;
+                        }
                     }
                 }
             }
