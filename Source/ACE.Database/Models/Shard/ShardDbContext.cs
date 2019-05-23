@@ -916,6 +916,9 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota_properties_i_i_d");
 
+                entity.HasIndex(e => e.TypeValueCombined)
+                    .HasName("type_value_combined_idx");
+
                 entity.HasIndex(e => new { e.ObjectId, e.Type })
                     .HasName("wcid_iid_type_uidx")
                     .IsUnique();
@@ -929,6 +932,10 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.Type)
                     .HasColumnName("type")
                     .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.TypeValueCombined)
+                    .HasColumnName("type_value_combined")
+                    .HasColumnType("bigint(10)");
 
                 entity.Property(e => e.Value)
                     .HasColumnName("value")

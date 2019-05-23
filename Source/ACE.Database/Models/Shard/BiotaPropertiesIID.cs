@@ -9,6 +9,7 @@ namespace ACE.Database.Models.Shard
         public uint ObjectId { get; set; }
         public ushort Type { get; set; }
         public uint Value { get; set; }
+        public long? TypeValueCombined { get; set; }
 
         public Biota Object { get; set; }
     }
