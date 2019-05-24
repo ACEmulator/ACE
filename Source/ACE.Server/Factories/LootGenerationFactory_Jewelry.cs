@@ -98,11 +98,36 @@ namespace ACE.Server.Factories
         private static WorldObject CreateJewelry(int tier, bool isMagical)
         {
 
+            // 35% chance ring, 35% chance bracelet, 30% chance necklace
+            // 621 heavy bracelet, 295 bracelet, 297 ring, 294 amulet, 623 heavy necklace, 622 necklace, 2367 gorget
+
+            int jewelrySlot = ThreadSafeRandom.Next(0, 100);
+            int jewelType;
+
+            switch (jewelrySlot)
+            {
+                case int n when (n <= 35):
+                    // 297 ring, 624 ring
+                    int[] ringItems = { 297, 624 };
+                    jewelType = ringItems[ThreadSafeRandom.Next(0, ringItems.Length - 1)];
+                    break;
+                case int n when (n <= 70 && n > 35):
+                    // 621 heavy bracelet, 295 bracelet
+                    int[] braceletItems = { 621, 295 };
+                    jewelType = braceletItems[ThreadSafeRandom.Next(0, braceletItems.Length - 1)];
+                    break;
+                case int n when (n <= 100 && n > 70):
+                    // 294 amulet, 623 heavy necklace, 622 necklace, 2367 gorget
+                    int[] necklaceItems = { 294, 623, 622, 2367 };
+                    jewelType = necklaceItems[ThreadSafeRandom.Next(0, necklaceItems.Length - 1)];
+                    break;
+                default:
+                    return null;
+            }
+
             int[][] JewelrySpells = LootTables.JewelrySpells;
             int[][] JewelryCantrips = LootTables.JewelryCantrips;
-            int[] jewelryItems = { 621, 295, 297, 294, 623, 622 };
-            int jewelType = jewelryItems[ThreadSafeRandom.Next(0, jewelryItems.Length - 1)];
-
+                        
             //int rank = 0;
             //int skill_level_limit = 0;
 
