@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2019-05-20
+### 2019-05-24
 [Ripley]
 * Moved MinimumTimeSincePk change upon PK death to occur before flag changes. This fixes issue with PKs recovering from death being able to attack other recovering PKs.
 
