@@ -920,6 +920,9 @@ namespace ACE.Database.Models.Shard
                     .HasName("wcid_iid_type_uidx")
                     .IsUnique();
 
+                entity.HasIndex(e => new { e.Type, e.Value })
+                    .HasName("type_value_idx");
+
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
