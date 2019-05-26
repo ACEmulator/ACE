@@ -284,9 +284,7 @@ namespace ACE.Server.Factories
 
             var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 
-            if (baseArmorLevel == 0)
-                wo.RemoveProperty(PropertyInt.ArmorLevel);
-            else
+            if (baseArmorLevel > 0)
             {
                 int adjustedArmorLevel = baseArmorLevel + GetArmorLevelModifier(tier, armorType);
                 wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
