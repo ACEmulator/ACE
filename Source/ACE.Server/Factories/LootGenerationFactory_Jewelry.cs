@@ -99,24 +99,26 @@ namespace ACE.Server.Factories
         {
 
             // 35% chance ring, 35% chance bracelet, 30% chance necklace
-            // 621 heavy bracelet, 295 bracelet, 297 ring, 294 amulet, 623 heavy necklace, 622 necklace, 2367 gorget
+            int ringPercent = 35;
+            int braceletPercent = 35;
+            int necklacePercent = 30;
 
-            int jewelrySlot = ThreadSafeRandom.Next(0, 100);
+            int jewelrySlot = ThreadSafeRandom.Next(0, ringPercent + braceletPercent + necklacePercent);
             int jewelType;
 
             switch (jewelrySlot)
             {
-                case int n when (n <= 35):
+                case int n when (n <= ringPercent):
                     // 297 ring, 624 ring
                     int[] ringItems = { 297, 624 };
                     jewelType = ringItems[ThreadSafeRandom.Next(0, ringItems.Length - 1)];
                     break;
-                case int n when (n <= 70 && n > 35):
+                case int n when (n <= ringPercent + braceletPercent && n > ringPercent):
                     // 621 heavy bracelet, 295 bracelet
                     int[] braceletItems = { 621, 295 };
                     jewelType = braceletItems[ThreadSafeRandom.Next(0, braceletItems.Length - 1)];
                     break;
-                case int n when (n <= 100 && n > 70):
+                case int n when (n <= ringPercent + braceletPercent + necklacePercent && n > ringPercent + braceletPercent):
                     // 294 amulet, 623 heavy necklace, 622 necklace, 2367 gorget
                     int[] necklaceItems = { 294, 623, 622, 2367 };
                     jewelType = necklaceItems[ThreadSafeRandom.Next(0, necklaceItems.Length - 1)];
