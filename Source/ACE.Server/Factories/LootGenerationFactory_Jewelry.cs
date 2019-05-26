@@ -109,19 +109,13 @@ namespace ACE.Server.Factories
             switch (jewelrySlot)
             {
                 case int n when (n <= ringPercent):
-                    // 297 ring, 624 ring
-                    int[] ringItems = { 297, 624 };
-                    jewelType = ringItems[ThreadSafeRandom.Next(0, ringItems.Length - 1)];
+                    jewelType = LootTables.ringItems[ThreadSafeRandom.Next(0, LootTables.ringItems.Length - 1)];
                     break;
                 case int n when (n <= ringPercent + braceletPercent && n > ringPercent):
-                    // 621 heavy bracelet, 295 bracelet
-                    int[] braceletItems = { 621, 295 };
-                    jewelType = braceletItems[ThreadSafeRandom.Next(0, braceletItems.Length - 1)];
+                    jewelType = LootTables.braceletItems[ThreadSafeRandom.Next(0, LootTables.braceletItems.Length - 1)];
                     break;
                 case int n when (n <= ringPercent + braceletPercent + necklacePercent && n > ringPercent + braceletPercent):
-                    // 294 amulet, 623 heavy necklace, 622 necklace, 2367 gorget
-                    int[] necklaceItems = { 294, 623, 622, 2367 };
-                    jewelType = necklaceItems[ThreadSafeRandom.Next(0, necklaceItems.Length - 1)];
+                    jewelType = LootTables.necklaceItems[ThreadSafeRandom.Next(0, LootTables.necklaceItems.Length - 1)];
                     break;
                 default:
                     return null;
