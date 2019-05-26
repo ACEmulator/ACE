@@ -158,17 +158,17 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        /// <summary>
-        /// Force PhysicsState change that occurs upon login complete.
-        /// </summary>
-        [CommandHandler("fakelogin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Fake Login Complete response")]
-        public static void HandleFakeLogin(Session session, params string[] parameters)
-        {
-            session.Player.ReportCollisions = true;
-            session.Player.IgnoreCollisions = false;
-            session.Player.Hidden = false;
-            session.Player.EnqueueBroadcastPhysicsState();
-        }
+        ///// <summary>
+        ///// Force PhysicsState change that occurs upon login complete.
+        ///// </summary>
+        //[CommandHandler("fakelogin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Fake Login Complete response")]
+        //public static void HandleFakeLogin(Session session, params string[] parameters)
+        //{
+        //    session.Player.ReportCollisions = true;
+        //    session.Player.IgnoreCollisions = false;
+        //    session.Player.Hidden = false;
+        //    session.Player.EnqueueBroadcastPhysicsState();
+        //}
 
         [CommandHandler("netstats", AccessLevel.Developer, CommandHandlerFlag.None, "View network statistics")]
         public static void HandleNetStats(Session session, params string[] parameters)
@@ -2018,6 +2018,22 @@ namespace ACE.Server.Command.Handlers
                     continue;
 
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{++i}. {item.Name} ({item.Category}, AdjustedValue: {item.AdjustedValue})", ChatMessageType.Broadcast));
+            }
+        }
+
+        [CommandHandler("forcelogoff", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Force log off of last appraised character")]
+        public static void HandleForceLogoff(Session session, params string[] parameters)
+        {
+            var target = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (target != null && target is Player player)
+            {
+                if (player.Session != null)
+                    player.Session.LogOffPlayer();
+                else
+                    player.LogOut();
+
+                PlayerManager.BroadcastToAuditChannel(session?.Player, $"Forcing Log Off of {player.Name}...");
             }
         }
     }
