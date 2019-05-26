@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2019-05-26
+[Ripley]
+* Add QuestManager to Fellowship.
+* Add IsLocked to Fellowship.
+* Update QuestManager to support Fellowships for basic quest stamping.
+* Update Fellowship to support locking via emotes. Allow members who were in fellowship at time of lock to rejoin if they get booted from game.
+* Update EmoteManager emotes: InqFellowQuest, LockFellow, StampFellowQuest, UpdateFellowQuest
+
 ### 2019-05-24
 [Ripley]
 * Moved MinimumTimeSincePk change upon PK death to occur before flag changes. This fixes issue with PKs recovering from death being able to attack other recovering PKs.
