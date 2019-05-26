@@ -2036,5 +2036,19 @@ namespace ACE.Server.Command.Handlers
                 PlayerManager.BroadcastToAuditChannel(session?.Player, $"Forcing Log Off of {player.Name}...");
             }
         }
+
+        [CommandHandler("showsession", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Show IP and ID for network session of last appraised character")]
+        public static void HandleShowSession(Session session, params string[] parameters)
+        {
+            var target = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (target != null && target is Player player)
+            {
+                if (player.Session != null)
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Session IP: {player.Session.EndPoint} | ClientId: {player.Session.Network.ClientId} is connected to Character: {player.Name} (0x{player.Guid.Full.ToString("X8")}), Account: {session.Player.Account.AccountName} ({session.Player.Account.AccountId})", ChatMessageType.Broadcast));
+                else
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Session is null for {player.Name} which shouldn't occur.", ChatMessageType.Broadcast));
+            }
+        }
     }
 }
