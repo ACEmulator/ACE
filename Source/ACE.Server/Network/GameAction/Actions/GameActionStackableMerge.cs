@@ -12,7 +12,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint mergeFromGuid = message.Payload.ReadUInt32();
             uint mergeToGuid = message.Payload.ReadUInt32();
-            uint amount = message.Payload.ReadUInt32();
+            int amount = message.Payload.ReadInt32();
 
             session.Player.HandleActionStackableMerge(mergeFromGuid, mergeToGuid, amount);
         }

@@ -1118,6 +1118,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.NumItemsInMaterial); else SetProperty(PropertyInt.NumItemsInMaterial, value.Value); }
         }
 
+        public int? AppraisalLongDescDecoration
+        {
+            get => GetProperty(PropertyInt.AppraisalLongDescDecoration);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalLongDescDecoration); else SetProperty(PropertyInt.AppraisalLongDescDecoration, value.Value); }
+        }
+
         public float? Workmanship
         {
             get
@@ -1246,6 +1252,12 @@ namespace ACE.Server.WorldObjects
         {
             get => (MaterialType?)GetProperty(PropertyInt.GemType);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.GemType); else SetProperty(PropertyInt.GemType, (int)value.Value); }
+        }
+
+        public int? GemCount
+        {
+            get => GetProperty(PropertyInt.GemCount);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GemCount); else SetProperty(PropertyInt.GemCount, (int)value.Value); }
         }
 
         public int? Attuned

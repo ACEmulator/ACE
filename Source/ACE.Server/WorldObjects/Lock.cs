@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Broadcast));
 
                                 var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick);
-                                Proficiency.OnSuccessUse(player, lockpickSkill, (uint)difficulty);
+                                Proficiency.OnSuccessUse(player, lockpickSkill, difficulty);
                             }
                             else
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} has been unlocked.", ChatMessageType.Broadcast));

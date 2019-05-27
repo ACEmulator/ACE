@@ -1206,11 +1206,14 @@ namespace ACE.Database
 
             var staticLandblockId = 0x70000 | landblockId;
 
+            var min = staticLandblockId << 12;
+            var max = min | 0xFFF;
+
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
+                var results = context.Biota.Where(b => b.Id >= min && b.Id <= max).ToList();
 
                 foreach (var result in results)
                 {
@@ -1228,11 +1231,14 @@ namespace ACE.Database
 
             var staticLandblockId = 0x70000 | landblockId;
 
+            var min = staticLandblockId << 12;
+            var max = min | 0xFFF;
+
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
+                var results = context.Biota.Where(b => b.Id >= min && b.Id <= max).ToList();
 
                 Parallel.ForEach(results, result =>
                 {
@@ -1248,12 +1254,15 @@ namespace ACE.Database
         {
             var dynamics = new List<Biota>();
 
+            var min = landblockId << 16;
+            var max = min | 0xFFFF;
+
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
                 var results = context.BiotaPropertiesPosition
-                    .Where(p => p.PositionType == 1 && p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
+                    .Where(p => p.PositionType == 1 && p.ObjCellId >= min && p.ObjCellId <= max && p.ObjectId >= 0x80000000)
                     .ToList();
 
                 foreach (var result in results)
@@ -1279,12 +1288,15 @@ namespace ACE.Database
         {
             var dynamics = new ConcurrentBag<Biota>();
 
+            var min = landblockId << 16;
+            var max = min | 0xFFFF;
+
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
                 var results = context.BiotaPropertiesPosition
-                    .Where(p => p.PositionType == 1 && p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
+                    .Where(p => p.PositionType == 1 && p.ObjCellId >= min && p.ObjCellId <= max && p.ObjectId >= 0x80000000)
                     .ToList();
 
                 Parallel.ForEach(results, result =>
