@@ -88,6 +88,8 @@ namespace ACE.Server.WorldObjects
             {
                 var inventoryGUIDs = corpse.Inventory.Keys.ToList();
 
+                var pukedItems = "";
+
                 foreach (var guid in inventoryGUIDs)
                 {
                     if (corpse.TryRemoveFromInventory(guid, out var item))
@@ -95,8 +97,15 @@ namespace ACE.Server.WorldObjects
                         item.Location = new Position(corpse.Location);
                         item.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
                         CurrentLandblock.AddWorldObject(item);
+                        item.SaveBiotaToDatabase();
+                        pukedItems += $"{item.Name} (0x{item.Guid.Full.ToString("X8")}), ";
                     }
                 }
+
+                if (pukedItems.EndsWith(", "))
+                    pukedItems = pukedItems.Substring(0, pukedItems.Length - 2);
+
+                log.Info($"{corpse.Name} at {corpse.Location.ToLOCString()} has decayed{((pukedItems == "") ? "" : $" and placed the following items on the landblock: {pukedItems}")}.");
             }
 
             if (corpse != null)

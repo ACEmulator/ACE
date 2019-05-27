@@ -7,6 +7,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -121,94 +122,104 @@ namespace ACE.Server.WorldObjects
 
         public virtual bool FindNextTarget()
         {
-            SelectTargetingTactic();
-            SetNextTargetTime();
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Monster_Awareness_FindNextTarget);
 
-            // rebuild visible objects (handle this better for monsters)
-            GetVisibleObjects();
-
-            var players = GetAttackablePlayers();
-            if (players.Count == 0)
+            try
             {
-                if (MonsterState != State.Return)
+                SelectTargetingTactic();
+                SetNextTargetTime();
+
+                // rebuild visible objects (handle this better for monsters)
+                GetVisibleObjects();
+
+                var players = GetAttackablePlayers();
+                if (players.Count == 0)
                 {
-                    AttackTarget = null;
-                    MoveToHome();
+                    if (MonsterState != State.Return)
+                    {
+                        AttackTarget = null;
+                        MoveToHome();
+                    }
+
+                    return false;
                 }
-                return false;
+
+                // Generally, a creature chooses whom to attack based on:
+                //  - who it was last attacking,
+                //  - who attacked it last,
+                //  - or who caused it damage last.
+
+                // When players first enter the creature's detection radius, however, none of these things are useful yet,
+                // so the creature chooses a target randomly, weighted by distance.
+
+                // Players within the creature's detection sphere are weighted by how close they are to the creature --
+                // the closer you are, the more chance you have to be selected to be attacked.
+
+                switch (CurrentTargetingTactic)
+                {
+                    case TargetingTactic.None:
+
+                        Console.WriteLine($"{Name}.FindNextTarget(): TargetingTactic.None");
+                        break; // same as focused?
+
+                    case TargetingTactic.Random:
+
+                        // this is a very common tactic with monsters,
+                        // although it is not truly random, it is weighted by distance
+                        var targetDistances = BuildTargetDistance(players);
+                        AttackTarget = SelectWeightedDistance(targetDistances);
+                        break;
+
+                    case TargetingTactic.Focused:
+
+                        break; // always stick with original target?
+
+                    case TargetingTactic.LastDamager:
+
+                        var lastDamager = DamageHistory.LastDamager;
+                        if (lastDamager != null)
+                            AttackTarget = lastDamager;
+                        break;
+
+                    case TargetingTactic.TopDamager:
+
+                        var topDamager = DamageHistory.TopDamager;
+                        if (topDamager != null)
+                            AttackTarget = topDamager;
+                        break;
+
+                    // these below don't seem to be used in PY16 yet...
+
+                    case TargetingTactic.Weakest:
+
+                        // should probably shuffle the list beforehand,
+                        // in case a bunch of levels of same level are in a group,
+                        // so the same player isn't always selected
+                        var lowestLevel = players.OrderBy(p => p.Level).FirstOrDefault();
+                        AttackTarget = lowestLevel;
+                        break;
+
+                    case TargetingTactic.Strongest:
+
+                        var highestLevel = players.OrderByDescending(p => p.Level).FirstOrDefault();
+                        AttackTarget = highestLevel;
+                        break;
+
+                    case TargetingTactic.Nearest:
+
+                        var nearest = BuildTargetDistance(players);
+                        AttackTarget = nearest[0].Target;
+                        break;
+                }
+
+                //Console.WriteLine($"{Name}.FindNextTarget = {AttackTarget.Name}");
+
+                return AttackTarget != null;
             }
-
-            // Generally, a creature chooses whom to attack based on:
-            //  - who it was last attacking,
-            //  - who attacked it last,
-            //  - or who caused it damage last.
-
-            // When players first enter the creature's detection radius, however, none of these things are useful yet,
-            // so the creature chooses a target randomly, weighted by distance.
-
-            // Players within the creature's detection sphere are weighted by how close they are to the creature --
-            // the closer you are, the more chance you have to be selected to be attacked.
-
-            switch (CurrentTargetingTactic)
+            finally
             {
-                case TargetingTactic.None:
-
-                    Console.WriteLine($"{Name}.FindNextTarget(): TargetingTactic.None");
-                    break;  // same as focused?
-
-                case TargetingTactic.Random:
-
-                    // this is a very common tactic with monsters,
-                    // although it is not truly random, it is weighted by distance
-                    var targetDistances = BuildTargetDistance(players);
-                    AttackTarget = SelectWeightedDistance(targetDistances);
-                    break;
-
-                case TargetingTactic.Focused:
-
-                    break;  // always stick with original target?
-
-                case TargetingTactic.LastDamager:
-
-                    var lastDamager = DamageHistory.LastDamager;
-                    if (lastDamager != null)
-                        AttackTarget = lastDamager;
-                    break;
-
-                case TargetingTactic.TopDamager:
-
-                    var topDamager = DamageHistory.TopDamager;
-                    if (topDamager != null)
-                        AttackTarget = topDamager;
-                    break;
-
-                // these below don't seem to be used in PY16 yet...
-
-                case TargetingTactic.Weakest:
-
-                    // should probably shuffle the list beforehand,
-                    // in case a bunch of levels of same level are in a group,
-                    // so the same player isn't always selected
-                    var lowestLevel = players.OrderBy(p => p.Level).FirstOrDefault();
-                    AttackTarget = lowestLevel;
-                    break;
-
-                case TargetingTactic.Strongest:
-
-                    var highestLevel = players.OrderByDescending(p => p.Level).FirstOrDefault();
-                    AttackTarget = highestLevel;
-                    break;
-
-                case TargetingTactic.Nearest:
-
-                    var nearest = BuildTargetDistance(players);
-                    AttackTarget = nearest[0].Target;
-                    break;
+                ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Monster_Awareness_FindNextTarget);
             }
-
-            //Console.WriteLine($"{Name}.FindNextTarget = {AttackTarget.Name}");
-
-            return AttackTarget != null;
         }
 
         /// <summary>

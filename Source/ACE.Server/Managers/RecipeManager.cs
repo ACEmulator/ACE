@@ -568,8 +568,8 @@ namespace ACE.Server.Managers
             { ImbuedEffectType.CripplingBlow,   0x06003357 },
             { ImbuedEffectType.FireRending,     0x06003359 },
             { ImbuedEffectType.BludgeonRending, 0x0600335a },
-            { ImbuedEffectType.SlashRending,    0x0600335b },
-            { ImbuedEffectType.PierceRending,   0x0600335c },
+            { ImbuedEffectType.PierceRending,   0x0600335b },
+            { ImbuedEffectType.SlashRending,    0x0600335c },
         };
 
         public static ImbuedEffectType GetImbuedEffects(WorldObject target)

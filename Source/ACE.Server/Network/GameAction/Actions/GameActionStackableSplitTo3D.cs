@@ -13,7 +13,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             // Read in the applicable data.
             uint stackId    = message.Payload.ReadUInt32();
-            uint amount      = message.Payload.ReadUInt32();
+            int amount      = message.Payload.ReadInt32();
 
             session.Player.HandleActionStackableSplitTo3D(stackId, amount);
         }
