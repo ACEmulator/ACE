@@ -128,7 +128,8 @@ namespace ACE.Server.WorldObjects.Entity
                 }
 
                 var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
-                total += (uint)skillMod;    // can be negative?
+
+                total = (uint)Math.Max(0, total + skillMod);    // account for negatives, minimum skill 0
 
                 return total;
             }

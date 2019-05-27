@@ -3,11 +3,14 @@ using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
+using log4net;
 
 namespace ACE.Server.Entity
 {
     public class Proficiency
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static TimeSpan FullTime = TimeSpan.FromMinutes(15);
 
         public static void OnSuccessUse(Player player, CreatureSkill skill, uint difficulty)
@@ -54,7 +57,12 @@ namespace ACE.Server.Entity
                 player.ChangesDetected = true;
 
                 var pp = (uint)Math.Round(difficulty * timeScale);
-                var totalXPGranted = (uint)Math.Round(pp * 1.1f);   // Total XP granted = 101% PP, CP being the 1% of that
+                var totalXPGranted = (uint)Math.Round(pp * 1.1f);   // give additional 10% of proficiency XP to unassigned XP
+
+                if (totalXPGranted > 10000)
+                {
+                    log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty})");
+                }
 
                 //Console.WriteLine($"Earned {pp} PP ({skill.Skill})");
 
@@ -64,6 +72,16 @@ namespace ACE.Server.Entity
                 // send PP to player as skill XP, which gets spent from the CP sent
                 player.RaiseSkillGameAction(skill.Skill, pp);
             }
+        }
+
+        public static void OnSuccessUse(Player player, CreatureSkill skill, int difficulty)
+        {
+            if (difficulty < 0)
+            {
+                log.Error($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - difficulty cannot be negative");
+                return;
+            }
+            OnSuccessUse(player, skill, (uint)difficulty);
         }
     }
 }
