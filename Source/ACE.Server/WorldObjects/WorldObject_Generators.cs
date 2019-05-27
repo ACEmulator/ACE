@@ -532,7 +532,8 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Called every ~5 seconds for object generators
+        /// Called every [RegenerationInterval] seconds<para />
+        /// Also called from EmoteManager, Chest.Reset(), WorldObject.OnGenerate()
         /// </summary>
         public void Generator_HeartBeat()
         {
@@ -540,6 +541,9 @@ namespace ACE.Server.WorldObjects
 
             if (!FirstEnterWorldDone)
                 FirstEnterWorldDone = true;
+
+            foreach (var generator in GeneratorProfiles)
+                generator.Maintenance_HeartBeat();
 
             CheckGeneratorStatus();
 
@@ -562,7 +566,7 @@ namespace ACE.Server.WorldObjects
             }
 
             foreach (var generator in GeneratorProfiles)
-                generator.HeartBeat();
+                generator.Spawn_HeartBeat();
         }
     }
 }
