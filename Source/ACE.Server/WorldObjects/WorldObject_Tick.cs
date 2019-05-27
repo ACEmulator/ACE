@@ -75,7 +75,8 @@ namespace ACE.Server.WorldObjects
             Generator_HeartBeat();
 
             if (cachedRegenerationInterval > 0)
-                NextGeneratorHeartbeatTime = currentUnixTime + cachedRegenerationInterval;
+                //NextGeneratorHeartbeatTime = currentUnixTime + cachedRegenerationInterval;
+                NextGeneratorHeartbeatTime = currentUnixTime + 5;
             else
                 NextGeneratorHeartbeatTime = double.MaxValue;
         }
