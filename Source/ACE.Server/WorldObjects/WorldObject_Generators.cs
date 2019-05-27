@@ -393,8 +393,8 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            //if (!GeneratorEnteredWorld)
-            //    armed = true;
+            if (!GeneratorEnteredWorld)
+                armed = true;
 
             if (armed)
             {
@@ -555,7 +555,8 @@ namespace ACE.Server.WorldObjects
                 GeneratorEnteredWorld = true;
             }
             else if (!GeneratorDisabled)
-                SelectProfilesMax();
+                //SelectProfilesMax();
+                SelectProfilesInit();
 
             if (this is Chest chest)
             {
