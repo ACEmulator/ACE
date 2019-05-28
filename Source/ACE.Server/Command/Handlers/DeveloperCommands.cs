@@ -1944,7 +1944,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         if (value.ObjMaint.ObjectTable.Remove(kvp.Key))
                         {
-                            log.Debug($"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [ObjectTable]");
+                            log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [ObjectTable]");
                             objectTableErrors++;
                         }
                     }
@@ -1956,7 +1956,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         if (value.ObjMaint.VisibleObjectTable.Remove(kvp.Key))
                         {
-                            log.Debug($"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [VisibleObjectTable]");
+                            log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VisibleObjectTable]");
                             visibleObjectTableErrors++;
                         }
                     }
@@ -1968,7 +1968,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         if (value.ObjMaint.VoyeurTable.Remove(kvp.Key))
                         {
-                            log.Debug($"AuditObjectMaint removed {kvp.Value.Name} from {value.Name} [VoyeurTable]");
+                            log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VoyeurTable]");
                             voyeurTableErrors++;
                         }
                     }
