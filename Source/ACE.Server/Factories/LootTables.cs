@@ -1925,7 +1925,6 @@ namespace ACE.Factories
         };
 
         public static readonly int[] necklaceItems =
-            // 294 amulet, 623 heavy necklace, 622 necklace, 2367 gorget
         {
             294,    // amulet
             622,    // necklace
