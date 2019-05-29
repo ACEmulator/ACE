@@ -7,10 +7,13 @@
 * Update QuestManager to support Fellowships for basic quest stamping.
 * Update Fellowship to support locking via emotes. Allow members who were in fellowship at time of lock to rejoin if they get booted from game.
 * Update EmoteManager emotes: InqFellowQuest, LockFellow, StampFellowQuest, UpdateFellowQuest
+* Add `forcelogoff` command.
+* Add log messages to track corpse decay.
 
 ### 2019-05-24
 [Ripley]
 * Moved MinimumTimeSincePk change upon PK death to occur before flag changes. This fixes issue with PKs recovering from death being able to attack other recovering PKs.
+* Add type_value_idx to BiotaPropertiesIID table and Rescaffolded.
 
 ### 2019-05-21
 [OptimShi]
@@ -24,9 +27,19 @@
 [deca]
 * Update /listplayers to accept optional accesslevel parameter.
 
+### 2019-05-19
+[Ripley]
+* Item Pickup fixes.
+* More Stack Split/Merge fixes.
+
 ### 2019-05-17
 [Ripley]
 * Apply position corrections for teleports using magic.
+* More Stack Split/Merge fixes.
+
+### 2019-05-16
+[Ripley]
+* Adjust Stack Split/Merge Handling.
 
 ### 2019-05-12
 [Ripley]
