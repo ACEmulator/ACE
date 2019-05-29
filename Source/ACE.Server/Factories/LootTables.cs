@@ -1912,6 +1912,26 @@ namespace ACE.Factories
             44975  // Hood
         };
 
+        public static readonly int[] ringItems =
+        {
+            297,    // ring type 1
+            624     // ring type 2
+        };
+
+        public static readonly int[] braceletItems =
+        {
+            295,    // bracelet
+            621     // heavy bracelet
+        };
+
+        public static readonly int[] necklaceItems =
+        {
+            294,    // amulet
+            622,    // necklace
+            623,    // heavy necklace
+            2367    // gorget
+        };
+
         public static readonly int[] Helms =
         {
             46, // Metal Cap
