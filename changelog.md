@@ -8,6 +8,7 @@
 * Update Fellowship to support locking via emotes. Allow members who were in fellowship at time of lock to rejoin if they get booted from game.
 * Update EmoteManager emotes: InqFellowQuest, LockFellow, StampFellowQuest, UpdateFellowQuest
 * Add `forcelogoff` command.
+* Add `showsession` command.
 * Add log messages to track corpse decay.
 
 ### 2019-05-24
