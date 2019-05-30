@@ -1,6 +1,11 @@
 # ACEmulator Change Log
 
 ### 2019-05-26
+[Mag-nus]
+* Improved Shard database indexing.
+* Added further stack exploit mitigation and logging.
+
+### 2019-05-26
 [Ripley]
 * Add QuestManager to Fellowship.
 * Add IsLocked to Fellowship.
@@ -15,6 +20,11 @@
 [Ripley]
 * Moved MinimumTimeSincePk change upon PK death to occur before flag changes. This fixes issue with PKs recovering from death being able to attack other recovering PKs.
 * Add type_value_idx to BiotaPropertiesIID table and Rescaffolded.
+
+### 2019-05-22
+[Mag-nus]
+* Added /landblockstats command
+* Improved Shard query performance when loading landblocks
 
 ### 2019-05-21
 [OptimShi]
@@ -55,6 +65,9 @@
 * Change pickup for items to also count as destruction for generators to regenerate. (Branith's Staff linked to a Linkable Monster Generator)
 * Allow the few items incorrectly marked as "Treasure" and not "ContainTreasure" or "Contain" to appear on monster corpses.
 
+[Mag-nus]
+* Improve mem leakage by Generators
+
 ### 2019-05-06
 [Ripley]
 * Add support to ACE.Adapter to convert ACE weenies to LSD weenies.
@@ -92,6 +105,9 @@
 * Adjust rare generation code to apply expected icon underlay if wrong or missing.
 * Adjust corpse world entry to issue rare alert text/sound after corpse is spawned and not before.
 * Remove all properties from corpse assessment except those seen in pcaps.
+
+[Mag-nus]
+* Reduce Entity Framework biota tracking to only Players. Other objects will be reattached when saved.
 
 ### 2019-04-30
 [Theran]
