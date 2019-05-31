@@ -4,6 +4,7 @@
 [Ripley]
 * Add more logging info for player corpses.
 * Make sure corpses are saved if created indoors (dungeons).
+* Add ResetSkill and adjust EmoteManager to use it for UntrainSkill.
 
 [gmriggs]
 * Fixed GetDynamicObjectsByLandblock uint/int problem.
