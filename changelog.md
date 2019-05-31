@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-05-31
+[Ripley]
+* Add more logging info for player corpses.
+
 ### 2019-05-26
 [Mag-nus]
 * Improved Shard database indexing.
