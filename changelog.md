@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2019-05-31
+[Ripley]
+* Add more logging info for player corpses.
+* Make sure corpses are saved if created indoors (dungeons).
+
+[gmriggs]
+* Fixed GetDynamicObjectsByLandblock uint/int problem.
+* Adjust Decay for Corpses to ensure Inventory is loaded before decay is allowed to proccess.
+
 ### 2019-05-26
 [Mag-nus]
 * Improved Shard database indexing.
