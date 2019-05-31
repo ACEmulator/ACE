@@ -190,6 +190,11 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public override void Close(Player player)
+        {
+            Close(player);
+        }
+
         /// <summary>
         /// Called when a chest is closed, or walked away from
         /// </summary>

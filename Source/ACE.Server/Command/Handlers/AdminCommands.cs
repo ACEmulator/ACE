@@ -2103,7 +2103,7 @@ namespace ACE.Server.Command.Handlers
 
             sb.Append($"Physics Cache Counts - BSPCache: {BSPCache.Count:N0}, GfxObjCache: {GfxObjCache.Count:N0}, PolygonCache: {PolygonCache.Count:N0}, VertexCache: {VertexCache.Count:N0}{'\n'}");
 
-            sb.Append($"Physics Landblocks Count - {LScape.LandblocksCount:N0}{'\n'}");
+            sb.Append($"Physics Landblocks Count - {LScape.LandblocksCount:N0}, Total Server Objects: {ObjectMaint.ServerObjects.Count:N0}{'\n'}");
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");
@@ -2149,6 +2149,57 @@ namespace ACE.Server.Command.Handlers
             }
 
             CommandHandlerHelper.WriteOutputInfo(session, ServerPerformanceMonitor.ToString());
+        }
+
+        [CommandHandler("landblockperformance", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of landblock performance statistics")]
+        public static void HandleLandblockPerformance(Session session, params string[] parameters)
+        {
+            var sb = new StringBuilder();
+
+            var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
+
+            // Filter out landblocks that haven't recorded at least 1000 events
+            var sortedByAverage = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.AverageEventDuration).Take(10);
+
+            sb.Append($"Most Busy Landblock - By Average{'\n'}");
+            sb.Append($"~1h Hits   Avg  Long  Last  Tot - Location   Players  Creatures{'\n'}");
+
+            foreach (var entry in sortedByAverage)
+            {
+                int players = 0, creatures = 0;
+                foreach (var worldObject in entry.GetAllWorldObjectsForDiagnostics())
+                {
+                    if (worldObject is Player)
+                        players++;
+                    else if (worldObject is Creature)
+                        creatures++;
+                }
+
+                sb.Append($"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} {((int)entry.Monitor1h.TotalSeconds).ToString().PadLeft(4)} - " +
+                    $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
+            }
+
+            var sortedByLong = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.LongestEvent).Take(10);
+
+            sb.Append($"Most Busy Landblock - By Longest{'\n'}");
+            sb.Append($"~1h Hits   Avg  Long  Last  Tot - Location   Players  Creatures{'\n'}");
+
+            foreach (var entry in sortedByLong)
+            {
+                int players = 0, creatures = 0;
+                foreach (var worldObject in entry.GetAllWorldObjectsForDiagnostics())
+                {
+                    if (worldObject is Player)
+                        players++;
+                    else if (worldObject is Creature)
+                        creatures++;
+                }
+
+                sb.Append($"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} {((int)entry.Monitor1h.TotalSeconds).ToString().PadLeft(4)} - " +
+                          $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, sb.ToString());
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]

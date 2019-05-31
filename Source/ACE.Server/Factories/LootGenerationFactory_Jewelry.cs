@@ -98,11 +98,32 @@ namespace ACE.Server.Factories
         private static WorldObject CreateJewelry(int tier, bool isMagical)
         {
 
+            // 35% chance ring, 35% chance bracelet, 30% chance necklace
+            int ringPercent = 35;
+            int braceletPercent = 35;
+            int necklacePercent = 30;
+
+            int jewelrySlot = ThreadSafeRandom.Next(0, ringPercent + braceletPercent + necklacePercent);
+            int jewelType;
+
+            switch (jewelrySlot)
+            {
+                case int n when (n <= ringPercent):
+                    jewelType = LootTables.ringItems[ThreadSafeRandom.Next(0, LootTables.ringItems.Length - 1)];
+                    break;
+                case int n when (n <= ringPercent + braceletPercent && n > ringPercent):
+                    jewelType = LootTables.braceletItems[ThreadSafeRandom.Next(0, LootTables.braceletItems.Length - 1)];
+                    break;
+                case int n when (n <= ringPercent + braceletPercent + necklacePercent && n > ringPercent + braceletPercent):
+                    jewelType = LootTables.necklaceItems[ThreadSafeRandom.Next(0, LootTables.necklaceItems.Length - 1)];
+                    break;
+                default:
+                    return null;
+            }
+
             int[][] JewelrySpells = LootTables.JewelrySpells;
             int[][] JewelryCantrips = LootTables.JewelryCantrips;
-            int[] jewelryItems = { 621, 295, 297, 294, 623, 622 };
-            int jewelType = jewelryItems[ThreadSafeRandom.Next(0, jewelryItems.Length - 1)];
-
+                        
             //int rank = 0;
             //int skill_level_limit = 0;
 

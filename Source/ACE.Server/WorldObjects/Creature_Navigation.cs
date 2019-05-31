@@ -99,6 +99,9 @@ namespace ACE.Server.WorldObjects
         /// <returns>The amount of time in seconds for the rotation to complete</returns>
         public virtual float Rotate(WorldObject target)
         {
+            if (target == null || target.Location == null)
+                return 0.0f;
+
             // send network message to start turning creature
             var turnToMotion = new Motion(this, target, MovementType.TurnToObject);
             EnqueueBroadcastMotion(turnToMotion);
@@ -116,12 +119,16 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(rotateDelay);
             actionChain.AddAction(this, () =>
             {
+                if (target == null || target.Location == null)
+                    return;
+
                 var matchIndoors = Location.Indoors == target.Location.Indoors;
 
                 var globalLoc = matchIndoors ? Location.ToGlobal() : Location.Pos;
                 var targetLoc = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
 
                 var targetDir = GetDirection(globalLoc, targetLoc);
+
                 Location.Rotate(targetDir);
             });
             actionChain.EnqueueChain();

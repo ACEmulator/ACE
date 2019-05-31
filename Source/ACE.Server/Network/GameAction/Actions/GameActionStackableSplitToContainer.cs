@@ -16,7 +16,7 @@ namespace ACE.Server.Network.GameAction.Actions
             uint stackId = message.Payload.ReadUInt32();
             uint containerId = message.Payload.ReadUInt32();
             int place = message.Payload.ReadInt32();
-            ushort amount = (ushort)message.Payload.ReadUInt32();
+            int amount = message.Payload.ReadInt32();
 
             session.Player.HandleActionStackableSplitToContainer(stackId, containerId, place, amount);
         }

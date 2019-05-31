@@ -945,7 +945,7 @@ namespace ACE.Database
                     .ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialColor[result.Key] = result.ToList();
+                    cachedTreasureMaterialColor[(int)result.Key] = result.ToList();
             }
         }
 
@@ -979,7 +979,7 @@ namespace ACE.Database
                     .ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialBase[result.Key] = result.ToList();
+                    cachedTreasureMaterialBase[(int)result.Key] = result.ToList();
             }
         }
 
@@ -1025,7 +1025,7 @@ namespace ACE.Database
                     .ToList();
 
                 foreach (var result in results)
-                cachedTreasureMaterialGroups[result.Key] = result.ToList();
+                cachedTreasureMaterialGroups[(int)result.Key] = result.ToList();
             }
         }
 

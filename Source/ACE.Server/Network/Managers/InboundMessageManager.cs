@@ -100,7 +100,15 @@ namespace ACE.Server.Network.Managers
                         if (messageHandlerInfo.Attribute.State == Enum.SessionState.WorldConnected && session.Player == null)
                             return;
 
-                        messageHandlerInfo.Handler.Invoke(message, session);
+                        try
+                        {
+                            messageHandlerInfo.Handler.Invoke(message, session);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error($"Received GameMessage packet that threw an exception from account: {session.AccountId}:{session.Account}, player: {session.Player?.Name}, opcode: 0x{((int)opcode):X4}:{opcode}");
+                            log.Error(ex);
+                        }
                     }));
                 }
             }
@@ -124,7 +132,15 @@ namespace ACE.Server.Network.Managers
                 if (session.Player == null)
                     return;
 
-                actionHandlerInfo.Handler.Invoke(message, session);
+                try
+                {
+                    actionHandlerInfo.Handler.Invoke(message, session);
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Received GameAction packet that threw an exception from account: {session.AccountId}:{session.Account}, player: {session.Player?.Name}, opcode: 0x{((int)opcode):X4}:{opcode}");
+                    log.Error(ex);
+                }
             }
             else
             {

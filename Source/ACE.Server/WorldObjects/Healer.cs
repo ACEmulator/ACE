@@ -167,7 +167,7 @@ namespace ACE.Server.WorldObjects
             //target.Fellowship.OnVitalUpdate(target);
 
             var healingSkill = healer.GetCreatureSkill(Skill.Healing);
-            Proficiency.OnSuccessUse(healer, healingSkill, (uint)difficulty);
+            Proficiency.OnSuccessUse(healer, healingSkill, difficulty);
 
             var updateHealth = new GameMessagePrivateUpdateAttribute2ndLevel(target, vital, creatureVital.Current);
             var crit = critical ? "expertly " : "";

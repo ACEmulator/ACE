@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var attr = AttributeFormula.GetFormula(creature, Vital);
+                var attr = AttributeFormula.GetFormula(creature, Vital, false);
 
                 return StartingValue + Ranks + attr;
             }
@@ -92,7 +92,9 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                uint total = Base;
+                var attr = AttributeFormula.GetFormula(creature, Vital, true);
+
+                uint total = StartingValue + Ranks + attr;
 
                 var multiplier = creature.EnchantmentManager.GetVitalMod_Multiplier(this);
                 var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
