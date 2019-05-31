@@ -2430,6 +2430,162 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+        [CommandHandler("verify-skill-credits", AccessLevel.Admin, CommandHandlerFlag.None, 0, "fixes skill credits from asheron's castle", "")]
+        public static void HandleVerifySkillCredits(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllOffline();
+
+            foreach (var player in players)
+            {
+                // player starts with 52 skill credits
+                var startCredits = 52;
+
+                // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
+                // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
+                startCredits += 4;
+
+                var levelCredits = GetAdditionalCredits(player.Level ?? 1);
+
+                var totalCredits = startCredits + levelCredits;
+
+                var used = 0;
+
+                foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                {
+                    var sac = (SkillAdvancementClass)skill.SAC;
+                    if (sac < SkillAdvancementClass.Trained)
+                        continue;
+
+                    var skillInfo = DatManager.PortalDat.SkillTable.SkillBaseHash[skill.Type];
+                    //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
+
+                    if (sac == SkillAdvancementClass.Trained)
+                        used += skillInfo.TrainedCost;
+                    else if (sac == SkillAdvancementClass.Specialized)
+                    {
+                        switch ((Skill)skill.Type)
+                        {
+                            // these can only be speced through augs, they have >= 999 in the spec data
+                            case Skill.ArmorTinkering:
+                            case Skill.ItemTinkering:
+                            case Skill.MagicItemTinkering:
+                            case Skill.WeaponTinkering:
+                            case Skill.Salvaging:
+                                continue;
+                        }
+
+                        used += skillInfo.SpecializedCost;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({(Skill)skill.Type}): unknown sac {sac}");
+                        continue;
+                    }
+                }
+
+                var questCredits = 0;
+
+                // 2 possible skill credits from quests
+                // - ChasingOswaldDone
+                // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
+                var character = DatabaseManager.Shard.GetFullCharacter(player.Name);
+                if (character != null)
+                {
+                    if (character.CharacterPropertiesQuestRegistry.FirstOrDefault(i => i.QuestName.Equals("ChasingOswaldDone")) != null)
+                        questCredits++;
+
+                    if (character.CharacterPropertiesQuestRegistry.FirstOrDefault(i => i.QuestName.Equals("ArantahKill1")) != null)
+                        questCredits++;
+                }
+
+                totalCredits += questCredits;
+
+                // TODO: 2 lum augs
+
+                if (used > totalCredits)
+                    Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): used({used}) > totalCredits({totalCredits})");
+
+                var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+
+                var targetCredits = totalCredits - used;
+                if (targetCredits < 0)
+                    Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): targetCredits({targetCredits}) < 0");
+
+                targetCredits = Math.Max(0, targetCredits);
+
+                if (availableCredits != targetCredits)
+                {
+                    Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): availableCredits({availableCredits}) != targetCredits({targetCredits}) -- fixing");
+                    player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
+                    player.SaveBiotaToDatabase();
+                }
+
+                //Console.WriteLine("--------------------");
+            }
+        }
+
+        public static int GetAdditionalCredits(int level)
+        {
+            foreach (var kvp in AdditionalCredits.Reverse())
+                if (level >= kvp.Key)
+                    return kvp.Value;
+
+            return 0;
+        }
+
+        /// <summary>
+        /// level => total additional credits
+        /// </summary>
+        public static SortedDictionary<int, int> AdditionalCredits = new SortedDictionary<int, int>()
+        {
+            { 2, 1 },
+            { 3, 2 },
+            { 4, 3 },
+            { 5, 4 },
+            { 6, 5 },
+            { 7, 6 },
+            { 8, 7 },
+            { 9, 8 },
+            { 10, 9 },
+            { 12, 10 },
+            { 14, 11 },
+            { 16, 12 },
+            { 18, 13 },
+            { 20, 14 },
+            { 23, 15 },
+            { 26, 16 },
+            { 29, 17 },
+            { 32, 18 },
+            { 35, 19 },
+            { 40, 20 },
+            { 45, 21 },
+            { 50, 22 },
+            { 55, 23 },
+            { 60, 24 },
+            { 65, 25 },
+            { 70, 26 },
+            { 75, 27 },
+            { 80, 28 },
+            { 85, 29 },
+            { 90, 30 },
+            { 95, 31 },
+            { 100, 32 },
+            { 105, 33 },
+            { 110, 34 },
+            { 115, 35 },
+            { 120, 36 },
+            { 125, 37 },
+            { 130, 38 },
+            { 140, 39 },
+            { 150, 40 },
+            { 160, 41 },
+            { 180, 42 },
+            { 200, 43 },
+            { 225, 44 },
+            { 250, 45 },
+            { 275, 46 }
+        };
+
         [CommandHandler("getenchantments", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Shows the enchantments for the last appraised item", "")]
         public static void HandleGetEnchantments(Session session, params string[] parameters)
         {
