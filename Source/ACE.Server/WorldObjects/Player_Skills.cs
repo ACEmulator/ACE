@@ -704,7 +704,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             var skillRemoved = false;
-            var skillUntrainable = IsSkillUntrainable(cs);
+            var skillUntrainable = IsSkillUntrainable(skillToBeReset);
             var typeOfSkill = "";
 
             if (cs.AdvancementClass == SkillAdvancementClass.Untrained)
