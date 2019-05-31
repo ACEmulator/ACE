@@ -713,6 +713,36 @@ namespace ACE.Server.WorldObjects
                     return false;
             }
 
+            // salvage / tinkering skills specialized via augmentations
+            // cannot be untrained or unspecialized
+            bool specAug = false;
+
+            switch (cs.Skill)
+            {
+                case Skill.ArmorTinkering:
+                    specAug = AugmentationSpecializeArmorTinkering > 0;
+                    break;
+
+                case Skill.ItemTinkering:
+                    specAug = AugmentationSpecializeItemTinkering > 0;
+                    break;
+
+                case Skill.MagicItemTinkering:
+                    specAug = AugmentationSpecializeMagicItemTinkering > 0;
+                    break;
+
+                case Skill.WeaponTinkering:
+                    specAug = AugmentationSpecializeWeaponTinkering > 0;
+                    break;
+
+                case Skill.Salvaging:
+                    specAug = AugmentationSpecializeSalvaging > 0;
+                    break;
+            }
+
+            if (specAug)
+                return false;
+
             if (cs.AdvancementClass == SkillAdvancementClass.Trained || cs.AdvancementClass == SkillAdvancementClass.Specialized)
             {
                 if (cs.AdvancementClass == SkillAdvancementClass.Specialized)
