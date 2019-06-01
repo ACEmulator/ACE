@@ -571,7 +571,7 @@ namespace ACE.Server.Entity.Chess
             var frame = new AFrame(ChessBoard.PhysicsObj.Position.Frame);
             CalculateWeeniePosition(piece.Coord, piece.Color, frame);
 
-            var monster = piece.Color == ChessColor.Black ? "drudge" : "mosswart";
+            var monster = piece.Color == ChessColor.White ? "drudge" : "mosswart";
             var weeniename = "";
             switch (piece.Type)
             {
