@@ -26,7 +26,10 @@ namespace ACE.Server.Network.Structure
         // commands: list of length commandListLength
         public List<MotionItem> Commands;
 
-        public InterpretedMotionState() { }
+        public InterpretedMotionState()
+        {
+            ForwardCommand = MotionCommand.Ready;
+        }
 
         public InterpretedMotionState(MovementData data)
         {

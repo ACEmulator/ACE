@@ -50,6 +50,8 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}).Sleep()");
 
+            SetCombatMode(CombatMode.NonCombat);
+
             AttackTarget = null;
             IsAwake = false;
             IsMoving = false;

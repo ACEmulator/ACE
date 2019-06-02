@@ -1240,6 +1240,15 @@ namespace ACE.Server.Managers
                 emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == (uint)vendorType);
             if (wcid != null)
                 emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value);
+
+            if (category == EmoteCategory.HeartBeat)
+            {
+                WorldObject.GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion);
+
+                emoteSet = emoteSet.Where(e => e.Style == null || e.Style == (uint)currentStance);
+                emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion);
+            }
+
             if (useRNG)
             {
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -1418,6 +1427,12 @@ namespace ACE.Server.Managers
         public void OnAttack(Creature attacker)
         {
             ExecuteEmoteSet(EmoteCategory.NewEnemy, null, attacker);
+        }
+
+        public void OnDamage(Creature attacker)
+        {
+            // optionally restrict to Min/Max Health %
+            ExecuteEmoteSet(EmoteCategory.WoundedTaunt, null, attacker);
         }
 
         public void OnReceiveCritical(Creature attacker)

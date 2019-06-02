@@ -1033,5 +1033,19 @@ namespace ACE.Server.WorldObjects
 
             return skill;
         }
+
+        public void GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion)
+        {
+            currentStance = MotionStance.Invalid;
+            currentMotion = MotionCommand.Ready;
+
+            if (CurrentMotionState != null)
+            {
+                currentStance = CurrentMotionState.Stance;
+
+                if (CurrentMotionState.MotionState != null)
+                    currentMotion = CurrentMotionState.MotionState.ForwardCommand;
+            }
+        }
     }
 }
