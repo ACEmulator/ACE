@@ -48,9 +48,15 @@ namespace ACE.Server.WorldObjects
             if (decayCompleted)
                 return;
 
+            var previousTTR = TimeToRot;
+
             if (!TimeToRot.HasValue)
             {
                 TimeToRot = DefaultTimeToRot.TotalSeconds;
+
+                if (this is Corpse && Level.HasValue)
+                    log.Info($"{Name} (0x{Guid.ToString()}).Decay: TimeToRot had no value, set to {TimeToRot}");
+
                 return;
             }
 
@@ -64,6 +70,8 @@ namespace ACE.Server.WorldObjects
                 if (corpse.Inventory.Count == 0 && TimeToRot.Value > Corpse.EmptyDecayTime)
                 {
                     TimeToRot = Corpse.EmptyDecayTime;
+                    if (Level.HasValue)
+                        log.Info($"{corpse.Name} (0x{corpse.Guid.ToString()}).Decay({elapsed.ToString()}): InventoryLoaded = {corpse.InventoryLoaded} | Inventory.Count = {corpse.Inventory.Count} | previous TimeToRot: {previousTTR} | current TimeToRot: {TimeToRot}");
                     return;
                 }
             }
@@ -72,11 +80,17 @@ namespace ACE.Server.WorldObjects
             {
                 TimeToRot -= elapsed.TotalSeconds;
 
+                if (this is Corpse && Level.HasValue)
+                    log.Info($"{corpse.Name} (0x{corpse.Guid.ToString()}).Decay({elapsed.ToString()}): previous TimeToRot: {previousTTR} | current TimeToRot: {TimeToRot}");
+
                 // Is there still time left?
                 if (TimeToRot > 0)
                     return;
 
                 TimeToRot = -2; // We force it to -2 to make sure it doesn't end up at 0 or -1. 0 indicates instant rot. -1 indicates no rot. 0 and -1 can be found in weenie defaults
+
+                if (this is Corpse && Level.HasValue)
+                    log.Info($"{corpse.Name} (0x{corpse.Guid.ToString()}).Decay({elapsed.ToString()}): previous TimeToRot: {previousTTR} | current TimeToRot: {TimeToRot}");
             }
 
             if (this is Container container && container.IsOpen)
@@ -111,7 +125,7 @@ namespace ACE.Server.WorldObjects
                 if (pukedItems.EndsWith(", "))
                     pukedItems = pukedItems.Substring(0, pukedItems.Length - 2);
 
-                log.Info($"{corpse.Name} at {corpse.Location.ToLOCString()} has decayed{((pukedItems == "") ? "" : $" and placed the following items on the landblock: {pukedItems}")}.");
+                log.Info($"{corpse.Name} (0x{corpse.Guid.ToString()}) at {corpse.Location.ToLOCString()} has decayed{((pukedItems == "") ? "" : $" and placed the following items on the landblock: {pukedItems}")}.");
             }
 
             if (corpse != null)

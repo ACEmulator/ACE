@@ -100,6 +100,8 @@ namespace ACE.Server.WorldObjects
             var dtTimeToRot = DateTime.UtcNow.AddSeconds(TimeToRot ?? 0);
             var tsDecay = dtTimeToRot - DateTime.UtcNow;
 
+            Level = player.Level ?? 1;
+
             log.Info($"{Name}.RecalculateDecayTime({player.Name}): Player Level: {player.Level} | Inventory.Count: {Inventory.Count} | TimeToRot: {TimeToRot} | CreationTimestamp: {CreationTimestamp} ({Time.GetDateTimeFromTimestamp(CreationTimestamp ?? 0).ToString()}) | Corpse should not decay before: {dtTimeToRot.ToString()}, {tsDecay.ToString("%d")} day(s), {tsDecay.ToString("%h")} hours, {tsDecay.ToString("%m")} minutes, and {tsDecay.ToString("%s")} seconds from now.");
         }
 

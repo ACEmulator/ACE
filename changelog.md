@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2019-06-01
+[Ripley]
+* Disable players putting or merging items into corpses. You can only pull from not push to.
+* Update logging for decay of corpses.
+* Changed Landblock.Tick to not decay on first tick.
+
 ### 2019-05-31
 [Ripley]
 * Add more logging info for player corpses.
