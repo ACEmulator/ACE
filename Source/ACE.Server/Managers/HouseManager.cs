@@ -29,8 +29,15 @@ namespace ACE.Server.Managers
             BuildRentQueue();
         }
 
+        public static bool IsBuilding;
+
         public static void BuildRentQueue()
         {
+            // todo: get rid of async, use proper slumlord inventory callbacks
+            if (IsBuilding) return;
+
+            IsBuilding = true;
+
             var allPlayers = PlayerManager.GetAllPlayers();
             var houseOwners = allPlayers.Where(i => i.HouseInstance != null);
 
@@ -38,6 +45,8 @@ namespace ACE.Server.Managers
 
             foreach (var houseOwner in houseOwners)
                 AddRentQueue(houseOwner);
+
+            IsBuilding = false;
 
             //log.Info($"Loaded {RentQueue.Count} active houses.");
         }
