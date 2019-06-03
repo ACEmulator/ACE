@@ -406,8 +406,10 @@ namespace ACE.Server.Entity
                 // Decay world objects
                 foreach (var wo in worldObjects.Values)
                 {
-                    if (wo.IsDecayable())
+                    if (wo.IsDecayable() && lastHeartBeat != DateTime.MinValue)
                         wo.Decay(thisHeartBeat - lastHeartBeat);
+                    else if (wo.IsDecayable() && lastHeartBeat == DateTime.MinValue)
+                        log.Warn($"Landblock {Id.ToString()}.Tick({currentUnixTime}).Landblock_Tick_Heartbeat: Skipping {wo.Name}.Decay({(thisHeartBeat - lastHeartBeat).ToString()}) | thisHeartBeat: {thisHeartBeat.ToString()} | lastHeartBeat: {lastHeartBeat.ToString()} | worldObjects.Count: {worldObjects.Count()}");
                 }
 
                 if (!Permaload)
@@ -418,6 +420,7 @@ namespace ACE.Server.Entity
                         LandblockManager.AddToDestructionQueue(this);
                 }
 
+                //log.Info($"Landblock {Id.ToString()}.Tick({currentUnixTime}).Landblock_Tick_Heartbeat: thisHeartBeat: {thisHeartBeat.ToString()} | lastHeartBeat: {lastHeartBeat.ToString()} | worldObjects.Count: {worldObjects.Count()}");
                 lastHeartBeat = thisHeartBeat;
             }
             ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Heartbeat);

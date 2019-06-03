@@ -1151,7 +1151,7 @@ namespace ACE.Server.Managers
                 case EmoteType.UntrainSkill:
 
                     if (player != null)
-                        player.UntrainSkill((Skill)emote.Stat, 1);
+                        player.ResetSkill((Skill)emote.Stat);
                     break;
 
                 case EmoteType.UpdateFellowQuest:

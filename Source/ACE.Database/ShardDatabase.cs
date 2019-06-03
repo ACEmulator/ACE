@@ -1204,7 +1204,7 @@ namespace ACE.Database
         {
             var staticObjects = new List<Biota>();
 
-            var staticLandblockId = 0x70000 | landblockId;
+            var staticLandblockId = (uint)(0x70000 | landblockId);
 
             var min = staticLandblockId << 12;
             var max = min | 0xFFF;
@@ -1229,7 +1229,7 @@ namespace ACE.Database
         {
             var staticObjects = new ConcurrentBag<Biota>();
 
-            var staticLandblockId = 0x70000 | landblockId;
+            var staticLandblockId = (uint)(0x70000 | landblockId);
 
             var min = staticLandblockId << 12;
             var max = min | 0xFFF;
@@ -1254,7 +1254,7 @@ namespace ACE.Database
         {
             var dynamics = new List<Biota>();
 
-            var min = landblockId << 16;
+            var min = (uint)(landblockId << 16);
             var max = min | 0xFFFF;
 
             using (var context = new ShardDbContext())
@@ -1288,7 +1288,7 @@ namespace ACE.Database
         {
             var dynamics = new ConcurrentBag<Biota>();
 
-            var min = landblockId << 16;
+            var min = (uint)(landblockId << 16);
             var max = min | 0xFFFF;
 
             using (var context = new ShardDbContext())

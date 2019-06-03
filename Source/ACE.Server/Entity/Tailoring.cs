@@ -450,7 +450,7 @@ namespace ACE.Server.Entity
         public const uint Heaume = 42414;
         public const uint YoroiLeggings = 42416;
         public const uint AmuliLeggings = 42417;
-        public const uint YoroiPauldrons = 42148;
+        public const uint YoroiPauldrons = 42418;
         public const uint CeldonSleeves = 42421;
         public const uint LeatherBoots = 42422;
         public const uint Tentacles = 44863;

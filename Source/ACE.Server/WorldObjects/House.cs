@@ -596,7 +596,10 @@ namespace ACE.Server.WorldObjects
                 linkedHouse.UpdateRestrictionDB(restrictions);
 
             // update house dungeon
-            if (HasDungeon)
+
+            // TODO: handle this more gracefully: player in house dungeon,
+            // but outdoor house landblock is unloaded, and player is evicted
+            if (CurrentLandblock != null && HasDungeon)
             {
                 var dungeonHouse = GetDungeonHouse();
                 if (dungeonHouse == null || dungeonHouse.PhysicsObj == null) return;
