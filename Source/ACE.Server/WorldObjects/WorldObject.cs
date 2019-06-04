@@ -971,11 +971,11 @@ namespace ACE.Server.WorldObjects
         {
             var motionCommand = motion.MotionState.ForwardCommand;
 
-            if (motionCommand == MotionCommand.Invalid)
+            if (motionCommand == MotionCommand.Ready)
                 motionCommand = (MotionCommand)motion.Stance;
 
             // run motion command on server through physics animation system
-            if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
+            if (PhysicsObj != null && motionCommand != MotionCommand.Ready)
             {
                 var motionInterp = PhysicsObj.get_minterp();
 
