@@ -1942,12 +1942,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value); }
         }
 
-        //public bool ResetMessagePending
-        //{
-        //    get => GetProperty(PropertyBool.ResetMessagePending) ?? false;
-        //    set { if (!value) RemoveProperty(PropertyBool.ResetMessagePending); else SetProperty(PropertyBool.ResetMessagePending, value); }
-        //}
-
         public bool GeneratedTreasureItem
         {
             get => GetProperty(PropertyBool.GeneratedTreasureItem) ?? false;

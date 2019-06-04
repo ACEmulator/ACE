@@ -58,8 +58,6 @@ namespace ACE.Server.WorldObjects
                 NextGeneratorHeartbeatTime = currentUnixTime; // Generators start right away
                 if (cachedRegenerationInterval == 0)
                     NextGeneratorRegenerationTime = double.MaxValue;
-                //else
-                //    NextGeneratorRegenerationTime = currentUnixTime;
             }
             else
             {
@@ -87,10 +85,7 @@ namespace ACE.Server.WorldObjects
         {
             Generator_HeartBeat();
 
-            //if (cachedRegenerationInterval > 0)
-                NextGeneratorHeartbeatTime = currentUnixTime + 5;
-            //else
-                //NextGeneratorHeartbeatTime = double.MaxValue;
+            NextGeneratorHeartbeatTime = currentUnixTime + 5;
         }
 
         /// <summary>
@@ -98,8 +93,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void GeneratorRegeneration(double currentUnixTime)
         {
-            if (Name.Contains("Sluice Golem Gen"))
-                Console.WriteLine($"{Name}.GeneratorRegeneration({currentUnixTime})");
+            //Console.WriteLine($"{Name}.GeneratorRegeneration({currentUnixTime})");
 
             Generator_Regeneration();
 
@@ -107,11 +101,8 @@ namespace ACE.Server.WorldObjects
 
             if (cachedRegenerationInterval > 0)
                 NextGeneratorRegenerationTime = currentUnixTime + cachedRegenerationInterval;
-            //else
-            //    NextGeneratorRegenerationTime = double.MaxValue;
 
-            if (Name.Contains("Sluice Golem Gen"))
-                Console.WriteLine($"{Name}.NextGeneratorRegenerationTime({NextGeneratorRegenerationTime})");
+            //Console.WriteLine($"{Name}.NextGeneratorRegenerationTime({NextGeneratorRegenerationTime})");
         }
 
         /// <summary>

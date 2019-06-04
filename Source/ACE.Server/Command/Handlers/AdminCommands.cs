@@ -675,15 +675,11 @@ namespace ACE.Server.Command.Handlers
                 if (objectId.IsPlayer())
                     return;
 
-                //if (wo != null & wo.IsGenerator)
-                //    wo.ResetMessagePending = true;
                 if (wo != null & wo.IsGenerator)
                 {
                     wo.ResetGenerator();
                     wo.GeneratorEnteredWorld = false;
                 }
-
-                //PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted {wo.Name} (0x{wo.Guid:X8})");
             }
         }
 
