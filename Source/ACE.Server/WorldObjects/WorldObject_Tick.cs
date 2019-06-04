@@ -114,7 +114,7 @@ namespace ACE.Server.WorldObjects
         {
             if (CurrentLandblock == null)
             {
-                if (isDestroyed)
+                if (IsDestroyed)
                 {
                     // Item is gone, no more work can be done to it
                 }

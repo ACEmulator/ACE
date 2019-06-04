@@ -577,9 +577,9 @@ namespace ACE.Factories
             ////Person Attunement Other
             new int[] { 830, 831, 832, 833, 834, 835, 2292 },
             ////Deception Mastery
-            new int[] { 850, 851, 852, 853, 854, 855, 2226 },
+            new int[] { 850, 851, 852, 853, 854, 855, 2227 },
             ////Deception Mastery Other
-            new int[] { 856, 857, 858, 859, 860, 861, 2225 },
+            new int[] { 856, 857, 858, 859, 860, 861, 2226 },
             ////Healing Mastery
             new int[] { 874, 875, 876, 877, 878, 879, 2241 },
             ////Healing Mastery Other
@@ -645,7 +645,7 @@ namespace ACE.Factories
             ////Void Magic Other
             new int[] { 5403, 5404, 5405, 5406, 5407, 5408, 5409 },
             ////Salvaging
-            new int[] { 3499, 3500, 3501, 3502, 3503, 3504, 3519 },
+            new int[] { 3499, 3500, 3501, 3502, 3503, 3504, 3505 },
             ////Salvaging Other
             new int[] { 3506, 3507, 3508, 3509, 3510, 3511, 3512 },
 
@@ -1910,6 +1910,26 @@ namespace ACE.Factories
             31238, // Viamontian Leggings
             31239, // Poet's Shirt
             44975  // Hood
+        };
+
+        public static readonly int[] ringItems =
+        {
+            297,    // ring type 1
+            624     // ring type 2
+        };
+
+        public static readonly int[] braceletItems =
+        {
+            295,    // bracelet
+            621     // heavy bracelet
+        };
+
+        public static readonly int[] necklaceItems =
+        {
+            294,    // amulet
+            622,    // necklace
+            623,    // heavy necklace
+            2367    // gorget
         };
 
         public static readonly int[] Helms =
