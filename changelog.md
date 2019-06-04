@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-03
+[OptimShi]
+* Made a small adjustment to the GetPaletteID function that was, in certain circumstances, returning the wrong palette.
+
 ### 2019-06-01
 [Ripley]
 * Disable players putting or merging items into corpses. You can only pull from not push to.
