@@ -38,7 +38,7 @@ namespace ACE.Server.Entity
         public readonly List<DateTime> SpawnQueue = new List<DateTime>();
 
         /// <summary>
-        /// The 
+        /// The list of pending times awaiting slot removal
         /// </summary>
         public readonly Queue<(DateTime time, uint objectGuid)> RemoveQueue = new Queue<(DateTime time, uint objectGuid)>();
 
@@ -85,7 +85,7 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// The parent for this generator profile
+        /// The generator world object for this profile
         /// </summary>
         public WorldObject Generator;
 
