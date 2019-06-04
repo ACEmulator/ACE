@@ -230,7 +230,15 @@ namespace ACE.Server.Managers
                     var decimalPlaces = 2;
                     var truncated = percent.Truncate(decimalPlaces);
 
-                    var templateMsg = $"You have a % chance of using {tool.Name} on {target.Name}.";
+                    var toolMaterial = GetMaterialName(tool.MaterialType ?? 0);
+                    var targetMaterial = GetMaterialName(target.MaterialType ?? 0);
+
+                    // TODO: retail messages
+                    // You determine that you have a 100 percent chance to succeed.
+                    // You determine that you have a 99 percent chance to succeed.
+                    // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
+
+                    var templateMsg = $"You have a % chance of using {toolMaterial} {tool.Name} on {targetMaterial} {target.Name}.";
                     var floorMsg = templateMsg.Replace("%", (int)percent + "%");
                     var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
                     var exactMsg = templateMsg.Replace("%", percent + "%");
