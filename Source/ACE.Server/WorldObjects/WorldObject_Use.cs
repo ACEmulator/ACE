@@ -99,15 +99,6 @@ namespace ACE.Server.WorldObjects
             // if ActivationTarget is another object,
             // should this be checking the ActivationResponse of the target object?
 
-            // default use action
-            if (ActivationResponse.HasFlag(ActivationResponse.Use))
-            {
-                if (player != null)
-                    EmoteManager.OnUse(player);
-
-                target.ActOnUse(activator);
-            }
-
             // perform motion animation - rarely used (only 4 instances in PY16 db)
             if (ActivationResponse.HasFlag(ActivationResponse.Animate))
                 target.OnAnimate(activator);
@@ -127,6 +118,15 @@ namespace ACE.Server.WorldObjects
             // call to generator to spawn new object
             if (ActivationResponse.HasFlag(ActivationResponse.Generate))
                 target.OnGenerate(activator);
+
+            // default use action
+            if (ActivationResponse.HasFlag(ActivationResponse.Use))
+            {
+                if (player != null)
+                    EmoteManager.OnUse(player);
+
+                target.ActOnUse(activator);
+            }
         }
 
         public virtual void ActOnUse(WorldObject activator)
@@ -171,7 +171,7 @@ namespace ACE.Server.WorldObjects
         public virtual void OnGenerate(WorldObject activator)
         {
             if (IsGenerator)
-                Generator_HeartBeat();
+                Generator_Regeneration();
         }
 
         /// <summary>
