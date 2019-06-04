@@ -1743,7 +1743,11 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (!removedFromInventory)
-                    sourceStack.Destroy();
+                {
+                    if (pickedUpFromLandblock)
+                        sourceStack.NotifyOfEvent(RegenerationType.PickUp);
+                    sourceStack.Destroy(false);
+                }
 
                 AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
