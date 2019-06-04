@@ -2050,5 +2050,57 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat($"Session is null for {player.Name} which shouldn't occur.", ChatMessageType.Broadcast));
             }
         }
+
+        [CommandHandler("generatordump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Lists all properties for the last generator you examined.",
+            "")]
+        public static void HandleGeneratorDump(Session session, params string[] parameters)
+        {
+            // TODO: output
+
+            var objectId = new ObjectGuid();
+
+            if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+            {
+                if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                else if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+                else
+                    objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+                if (objectId.IsPlayer())
+                    return;
+
+                var msg = "";
+                if (wo.IsGenerator)
+                {
+                    msg = $"Generator Dump for {wo.Name} (0x{wo.Guid.ToString()})\n";
+                    msg += $"Generator WCID: {wo.WeenieClassId}\n";
+                    msg += $"Generator WeenieClassName: {wo.WeenieClassName}\n";
+                    msg += $"Generator WeenieType: {wo.WeenieType.ToString()}\n";
+                    msg += $"Generator Status: {(wo.GeneratorDisabled ? "Disabled" : "Enabled")}\n";
+                    msg += $"GeneratorType: {wo.GeneratorType.ToString()}\n";
+                    msg += $"GeneratorTimeType: {wo.GeneratorTimeType.ToString()}\n";
+                    msg += $"GeneratorEvent: {(!string.IsNullOrWhiteSpace(wo.GeneratorEvent) ? wo.GeneratorEvent : "Undef")}\n";
+                    msg += $"GeneratorEndDestructionType: {wo.GeneratorEndDestructionType.ToString()}\n";
+                    msg += $"GeneratorDestructionType: {wo.GeneratorDestructionType.ToString()}\n";
+                    msg += $"GeneratorRadius: {wo.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f}\n";
+                    msg += $"InitGeneratedObjects: {wo.InitGeneratedObjects}\n";
+                    msg += $"MaxGeneratedObjects: {wo.MaxGeneratedObjects}\n";
+                    msg += $"GeneratorInitialDelay: {wo.GeneratorInitialDelay}\n";
+                    msg += $"RegenerationInterval: {wo.RegenerationInterval}\n";
+
+                    msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count}\n";
+                    msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
+                }
+                else
+                    msg = $"{wo.Name} (0x{wo.Guid.ToString()}) is not a generator.";
+
+                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.System));
+            }
+        }
     }
 }

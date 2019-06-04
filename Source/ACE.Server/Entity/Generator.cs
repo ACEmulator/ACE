@@ -130,25 +130,25 @@ namespace ACE.Server.Entity
         /// </summary>
         public DateTime GetSpawnTime()
         {
-            if (_generator.CurrentlyPoweringUp)
-            {
-                // initial spawn delay
-                if (_generator.GeneratorInitialDelay == 6000)   // spawn repair golem immediately?
-                    _generator.GeneratorInitialDelay = 0;
+            //if (_generator.CurrentlyPoweringUp)
+            //{
+            //    // initial spawn delay
+            //    if (_generator.GeneratorInitialDelay == 6000)   // spawn repair golem immediately?
+            //        _generator.GeneratorInitialDelay = 0;
 
-                if (_generator.GeneratorInitialDelay == 900)    // spawn menhir drummers immmediately for testing
-                    _generator.GeneratorInitialDelay = 0;
+            //    if (_generator.GeneratorInitialDelay == 900)    // spawn menhir drummers immmediately for testing
+            //        _generator.GeneratorInitialDelay = 0;
 
-                if (_generator.GeneratorInitialDelay == 1800)   // spawn queen early
-                    _generator.GeneratorInitialDelay = 0;
+            //    if (_generator.GeneratorInitialDelay == 1800)   // spawn queen early
+            //        _generator.GeneratorInitialDelay = 0;
 
-                if (_generator.GeneratorInitialDelay > 300)     // max spawn time: 5 mins
-                    _generator.GeneratorInitialDelay = 300;
+            //    if (_generator.GeneratorInitialDelay > 300)     // max spawn time: 5 mins
+            //        _generator.GeneratorInitialDelay = 300;
 
 
-                return DateTime.UtcNow.AddSeconds(_generator.GeneratorInitialDelay);
-            }
-            else
+            //    return DateTime.UtcNow.AddSeconds(_generator.GeneratorInitialDelay);
+            //}
+            //else
                 return DateTime.UtcNow;
         }
 
@@ -230,6 +230,8 @@ namespace ACE.Server.Entity
             if (RegenLocationType.HasFlag(RegenLocationType.Treasure))
             {
                 objects = TreasureGenerator();
+                if (objects.Count > 0)
+                    _generator.GeneratedTreasureItem = true;
             }
             else
             {
@@ -239,6 +241,19 @@ namespace ACE.Server.Entity
                     log.Debug($"{_generator.Name}.Spawn(): failed to create wcid {Biota.WeenieClassId}");
                     return null;
                 }
+
+                if (Biota.PaletteId.HasValue && Biota.PaletteId > 0)
+                    wo.PaletteBaseId = Biota.PaletteId;
+
+                if (Biota.Shade.HasValue && Biota.Shade > 0)
+                    wo.Shade = Biota.Shade;
+
+                if ((Biota.Shade.HasValue && Biota.Shade > 0) || (Biota.PaletteId.HasValue && Biota.PaletteId > 0))
+                    wo.CalculateObjDesc(); // to update icon
+
+                if (Biota.StackSize.HasValue && Biota.StackSize > 0)
+                    wo.SetStackSize(Biota.StackSize);
+
                 objects.Add(wo);
             }
 
@@ -433,6 +448,8 @@ namespace ACE.Server.Entity
             Spawned.TryGetValue(target.Full, out var woi);
 
             if (woi == null) return;
+
+            if (woi.WeenieClassId != Biota.WeenieClassId) return;
 
             RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(Delay), woi.Guid.Full));
         }

@@ -248,7 +248,11 @@ namespace ACE.Server.Command.Handlers
                     return;
 
                 if (wo != null)
+                {
+                    if (wo.IsGenerator)
+                        wo.ResetGenerator();
                     wo.Destroy();
+                }
 
                 PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted {wo.Name} (0x{wo.Guid:X8})");
             }
@@ -648,12 +652,39 @@ namespace ACE.Server.Command.Handlers
         }
 
         // regen
-        [CommandHandler("regen", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 2)]
+        [CommandHandler("regen", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+            "Sends the selected generator a regeneration message.",
+            "")]
         public static void HandleRegen(Session session, params string[] parameters)
         {
             // @regen - Sends the selected generator a regeneration message.
 
-            // TODO: output
+            var objectId = new ObjectGuid();
+
+            if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+            {
+                if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                else if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+                else
+                    objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+                if (objectId.IsPlayer())
+                    return;
+
+                //if (wo != null & wo.IsGenerator)
+                //    wo.ResetMessagePending = true;
+                if (wo != null & wo.IsGenerator)
+                {
+                    wo.ResetGenerator();
+                    wo.GeneratorEnteredWorld = false;
+                }
+
+                //PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted {wo.Name} (0x{wo.Guid:X8})");
+            }
         }
 
         // reportbug < code | content > < description >
@@ -1162,20 +1193,30 @@ namespace ACE.Server.Command.Handlers
                 }
             }
             int palette = 0;
+            bool hasPalette = false;
             float shade = 0;
+            bool hasShade = false;
             int stackSize = 1;
             if (parameters.Length > 1)
+            {
                 if (!int.TryParse(parameters[1], out palette))
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
+                else
+                    hasPalette = true;
+            }
             if (parameters.Length > 2)
+            {
                 if (!float.TryParse(parameters[2], out shade))
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
+                else
+                    hasShade = true;
+            }
             if (parameters.Length > 3)
                 if (!int.TryParse(parameters[3], out stackSize))
                 {
@@ -1189,13 +1230,18 @@ namespace ACE.Server.Command.Handlers
             else
                 loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
 
-            // todo: set the palette, shade, stackSize here
+            // todo: set the palette, shade, stackSize here            
 
             if (loot == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
                 return;
             }
+
+            if (hasPalette)
+                loot.PaletteTemplate = palette;
+            if (hasShade)
+                loot.Shade = shade;
 
             if (!loot.TimeToRot.HasValue)
                 loot.TimeToRot = Double.MaxValue;
