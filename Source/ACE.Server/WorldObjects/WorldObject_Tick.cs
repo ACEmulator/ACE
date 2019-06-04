@@ -25,6 +25,10 @@ namespace ACE.Server.WorldObjects
         /// A value of Double.MaxValue indicates that there is no NextGeneratorHeartbeat
         /// </summary>
         public double NextGeneratorHeartbeatTime;
+        /// <summary>
+        /// A value of Double.MaxValue indicates that there is no NextGeneratorRegeneration
+        /// </summary>
+        public double NextGeneratorRegenerationTime;
 
         private void InitializeHeartbeats()
         {
@@ -50,9 +54,18 @@ namespace ACE.Server.WorldObjects
             cachedRegenerationInterval = RegenerationInterval;
 
             if (IsGenerator)
+            {
                 NextGeneratorHeartbeatTime = currentUnixTime; // Generators start right away
+                if (cachedRegenerationInterval == 0)
+                    NextGeneratorRegenerationTime = double.MaxValue;
+                //else
+                //    NextGeneratorRegenerationTime = currentUnixTime;
+            }
             else
+            {
                 NextGeneratorHeartbeatTime = double.MaxValue; // Disable future GeneratorHeartBeats
+                NextGeneratorRegenerationTime = double.MaxValue;
+            }
         }
 
         /// <summary>
@@ -68,16 +81,37 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Called every [RegenerationInterval] seconds for WorldObject base
+        /// Called every 5 seconds for WorldObject base
         /// </summary>
         public void GeneratorHeartbeat(double currentUnixTime)
         {
             Generator_HeartBeat();
 
+            //if (cachedRegenerationInterval > 0)
+                NextGeneratorHeartbeatTime = currentUnixTime + 5;
+            //else
+                //NextGeneratorHeartbeatTime = double.MaxValue;
+        }
+
+        /// <summary>
+        /// Called every [RegenerationInterval] seconds for WorldObject base
+        /// </summary>
+        public void GeneratorRegeneration(double currentUnixTime)
+        {
+            if (Name.Contains("Sluice Golem Gen"))
+                Console.WriteLine($"{Name}.GeneratorRegeneration({currentUnixTime})");
+
+            Generator_Regeneration();
+
+            SetProperty(PropertyFloat.RegenerationTimestamp, currentUnixTime);
+
             if (cachedRegenerationInterval > 0)
-                NextGeneratorHeartbeatTime = currentUnixTime + cachedRegenerationInterval;
-            else
-                NextGeneratorHeartbeatTime = double.MaxValue;
+                NextGeneratorRegenerationTime = currentUnixTime + cachedRegenerationInterval;
+            //else
+            //    NextGeneratorRegenerationTime = double.MaxValue;
+
+            if (Name.Contains("Sluice Golem Gen"))
+                Console.WriteLine($"{Name}.NextGeneratorRegenerationTime({NextGeneratorRegenerationTime})");
         }
 
         /// <summary>
