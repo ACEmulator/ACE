@@ -51,8 +51,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.ResetMessagePending); else SetProperty(PropertyBool.ResetMessagePending, value); }
         }
 
-        //public bool ResetGenerator;
-
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>

@@ -401,8 +401,7 @@ namespace ACE.Server.Entity
             {
                 var first = sortedGeneratorsByNextRegeneration.First.Value;
 
-                //if (first.Name.Contains("Sluice Golem Gen"))
-                //    Console.WriteLine($"{first.Name}.Landblock_Tick_GeneratorRegeneration({currentUnixTime})");
+                //Console.WriteLine($"{first.Name}.Landblock_Tick_GeneratorRegeneration({currentUnixTime})");
 
                 // If they wanted to run before or at now
                 if (first.NextGeneratorRegenerationTime <= currentUnixTime)

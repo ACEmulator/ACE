@@ -15,7 +15,7 @@ using ACE.Server.WorldObjects;
 namespace ACE.Server.Entity
 {
     /// <summary>
-    /// An active generator profile
+    /// A generator profile for a Generator
     /// </summary>
     public class GeneratorProfile
     {
