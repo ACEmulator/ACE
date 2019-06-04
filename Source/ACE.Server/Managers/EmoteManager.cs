@@ -692,7 +692,7 @@ namespace ACE.Server.Managers
 
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
-                    // TODO: refactor me!
+                    // TODO: REFACTOR ME
                     if (emoteSet.Category != (uint)EmoteCategory.Vendor && emoteSet.Style != null)
                     {
                         var startingMotion = new Motion((MotionStance)emoteSet.Style, (MotionCommand)emoteSet.Substyle);
@@ -710,7 +710,8 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand)
+                            if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand
+                                    && startingMotion.Stance == MotionStance.NonCombat)     // enforce non-combat here?
                             {
                                 if (debugMotion)
                                     Console.WriteLine($"{WorldObject.Name} running motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emote.Motion}");
