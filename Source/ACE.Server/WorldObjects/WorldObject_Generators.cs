@@ -50,8 +50,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void InitializeGenerator()
         {
-            // ensure Max is not null or less than Init
-            if (MaxGeneratedObjects == 0 && InitGeneratedObjects > 0)
+            // ensure if Max <= 0 (or defaulted to 0 from null) is not less than Init.
+            // Profiles may have different settings but the core slots require Max to be at least equal to Init
+            if (MaxGeneratedObjects <= 0 && InitGeneratedObjects > 0)
                 MaxGeneratedObjects = InitGeneratedObjects;
 
             AddGeneratorProfiles();
@@ -343,7 +344,6 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                //if (CurrentCreate >= MaxCreate && MaxCreate != 0 && !IsLinked)
                 if (CurrentCreate >= MaxCreate && MaxCreate != 0)
                 {
                     if (CurrentCreate > MaxCreate && MaxCreate != 0)
