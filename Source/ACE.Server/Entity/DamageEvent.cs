@@ -96,7 +96,7 @@ namespace ACE.Server.Entity
         public CombatManeuver CombatManeuver;
         public BiotaPropertiesBodyPart AttackPart;      // the body part this monster is attacking with
 
-        public bool IgnoreMagicArmor  => GetWeaponProperty(PropertyBool.IgnoreMagicArmor);      // ignores impen/banes
+        public bool IgnoreMagicArmor  => GetWeaponProperty(PropertyBool.IgnoreMagicArmor);      // ignores impen / banes
 
         public bool IgnoreMagicResist => GetWeaponProperty(PropertyBool.IgnoreMagicResist);     // ignores life armor / prots
 
