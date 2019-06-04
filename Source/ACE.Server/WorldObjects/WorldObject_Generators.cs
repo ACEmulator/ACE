@@ -113,6 +113,10 @@ namespace ACE.Server.WorldObjects
                 {
                     var profile = GeneratorProfiles[i];
 
+                    // skip PlaceHolder objects
+                    if (profile.IsPlaceholder)
+                        continue;
+
                     // is this profile already at its max_create?
                     if (profile.MaxObjectsSpawned)
                         continue;
@@ -158,6 +162,10 @@ namespace ACE.Server.WorldObjects
             for (var i = 0; i < GeneratorProfiles.Count; i++)
             {
                 var profile = GeneratorProfiles[i];
+
+                // skip PlaceHolder objects
+                if (profile.IsPlaceholder)
+                    continue;
 
                 // is this profile already at its max_create?
                 if (profile.MaxObjectsSpawned)
@@ -317,7 +325,6 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                //if (CurrentCreate >= InitCreate && !IsLinked)
                 if (CurrentCreate >= InitCreate)
                 {
                     if (CurrentCreate > InitCreate)
@@ -517,7 +524,7 @@ namespace ACE.Server.WorldObjects
                         {
                             var wo = rNode.TryGetWorldObject();
 
-                            if (wo is Creature creature)
+                            if (wo is Creature creature && !creature.IsDead)
                                 creature.Smite(this);
                         }
 
@@ -533,7 +540,9 @@ namespace ACE.Server.WorldObjects
                         {
                             var wo = rNode.TryGetWorldObject();
 
-                            if (wo != null)
+                            if (wo != null && wo is Creature creature && !creature.IsDead)
+                                creature.Destroy();
+                            else if (wo != null)
                                 wo.Destroy();
                         }
 
@@ -641,8 +650,8 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval})");
 
-            foreach (var generator in GeneratorProfiles)
-                generator.Maintenance_HeartBeat();
+            foreach (var profile in GeneratorProfiles)
+                profile.Maintenance_HeartBeat();
 
             if (!GeneratorDisabled)
             {
@@ -652,8 +661,8 @@ namespace ACE.Server.WorldObjects
                     SelectProfilesMax();
             }
 
-            foreach (var generator in GeneratorProfiles)
-                generator.Spawn_HeartBeat();
+            foreach (var profile in GeneratorProfiles)
+                profile.Spawn_HeartBeat();
         }
 
         public virtual void ResetGenerator()
