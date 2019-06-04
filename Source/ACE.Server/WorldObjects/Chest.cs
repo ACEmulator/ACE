@@ -6,6 +6,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
+using System.Collections.Generic;
 
 namespace ACE.Server.WorldObjects
 {
@@ -50,7 +51,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.ResetMessagePending); else SetProperty(PropertyBool.ResetMessagePending, value); }
         }
 
-        public bool ResetGenerator;
+        //public bool ResetGenerator;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -80,7 +81,13 @@ namespace ACE.Server.WorldObjects
             if (IsLocked)
                 DefaultLocked = true;
 
-            ResetGenerator = true;
+            if (DefaultLocked)
+                NextGeneratorRegenerationTime = double.MaxValue;
+                //RegenerationInterval = 0; // ignore regen interval, only regen on relock
+
+            //ResetGenerator = true;
+            //Generator_Regeneration();
+            //ResetGenerator();
         }
 
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
@@ -175,6 +182,7 @@ namespace ACE.Server.WorldObjects
             // this chest resets whenever it is closed
 
             if (!ChestRegenOnClose && !ResetMessagePending)
+            //if (!ChestRegenOnClose)
             {
                 //Console.WriteLine($"{player.Name}.Open({Name}) - enqueueing reset in {ChestResetInterval}s");
 
@@ -223,11 +231,68 @@ namespace ACE.Server.WorldObjects
 
             if (IsGenerator)
             {
-                ResetGenerator = true;
-                Generator_HeartBeat();
+                //ResetGenerator = true;
+                //Generator_Regeneration();
+                //GeneratedTreasureItem = true;
+                ResetGenerator();
+                if (InitCreate > 0)
+                    Generator_Regeneration();
             }
 
             ResetMessagePending = false;
+        }
+
+        public override void ResetGenerator()
+        {
+            foreach (var generator in GeneratorProfiles)
+            {
+                //var guidsDestroyed = new List<uint>();
+                var profileReset = false;
+
+                foreach (var rNode in generator.Spawned.Values)
+                {
+                    var wo = rNode.TryGetWorldObject();
+
+                    if (wo != null)
+                    {
+                        if (TryRemoveFromInventory(wo.Guid)) // only affect contained items.
+                        {
+                            //generator.Spawned.Remove(wo.Guid.Full);
+                            //generator.FreeSlot(wo.Guid.Full);
+                            //CurrentCreate--;
+                            //guidsDestroyed.Add(wo.Guid.Full);
+                            wo.Destroy();
+                        }
+
+                        if (!(wo is Creature))
+                            profileReset = true;
+                    }
+                }
+
+                //foreach (var guid in guidsDestroyed)
+                //    generator.FreeSlot(guid);
+
+                if (profileReset)
+                {
+                    generator.Spawned.Clear();
+                    generator.SpawnQueue.Clear();
+                    CurrentCreate--;
+                }
+                //CurrentCreate = 0;
+            }
+
+            if (GeneratedTreasureItem)
+            {
+                var items = new List<WorldObject>();
+                foreach (var item in Inventory.Values)
+                    items.Add(item);
+                foreach (var item in items)
+                {
+                    if (TryRemoveFromInventory(item.Guid))
+                        item.Destroy();
+                }
+                GeneratedTreasureItem = false;
+            }
         }
 
         protected override float DoOnOpenMotionChanges()
