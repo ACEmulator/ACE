@@ -58,6 +58,7 @@ namespace ACE.Server.WorldObjects
                 SetPosition(PositionType.Destination, new Position(wo.Location));
         }
 
+        public bool IsGateway { get => WeenieClassId == 1955; }
 
         public virtual void OnCollideObject(Player player)
         {
