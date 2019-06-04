@@ -10,6 +10,7 @@ namespace ACE.Server.Entity
 {
     public class Tailoring
     {
+        // http://acpedia.org/wiki/Tailoring
         // https://asheron.fandom.com/wiki/Tailoring
 
         // tailoring kits
