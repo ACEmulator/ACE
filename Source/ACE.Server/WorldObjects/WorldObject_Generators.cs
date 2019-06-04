@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
         /// A generator can have multiple profiles / spawn multiple types of objects
         /// Each generator profile can in turn spawn multiple objects (init_create / max_create)
         /// </summary>
-        public List<Generator> GeneratorProfiles;
+        public List<GeneratorProfile> GeneratorProfiles;
 
         /// <summary>
         /// Creates a list of active generator profiles
@@ -39,10 +39,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void AddGeneratorProfiles()
         {
-            GeneratorProfiles = new List<Generator>();
+            GeneratorProfiles = new List<GeneratorProfile>();
 
             foreach (var generator in Biota.BiotaPropertiesGenerator)
-                GeneratorProfiles.Add(new Generator(this, generator));
+                GeneratorProfiles.Add(new GeneratorProfile(this, generator));
         }
 
         /// <summary>
@@ -276,7 +276,7 @@ namespace ACE.Server.WorldObjects
         /// Get the current number of objects to spawn
         /// for profile initialization
         /// </summary>
-        public int GetInitObjects(Generator profile)
+        public int GetInitObjects(GeneratorProfile profile)
         {
             // get the number of objects to spawn for this profile
             // usually profile.InitCreate, not to exceed generator.InitCreate
@@ -293,7 +293,7 @@ namespace ACE.Server.WorldObjects
         /// Get the current number of objects to spawn
         /// for profile max
         /// </summary>
-        public int GetMaxObjects(Generator profile)
+        public int GetMaxObjects(GeneratorProfile profile)
         {
             // get the number of objects to spawn for this profile
             // usually profile.InitCreate, not to exceed generator.InitCreate
@@ -597,7 +597,7 @@ namespace ACE.Server.WorldObjects
                 profile.WhenCreate = profileTemplate.Biota.WhenCreate;
                 profile.WhereCreate = profileTemplate.Biota.WhereCreate;
 
-                GeneratorProfiles.Add(new Generator(this, profile));
+                GeneratorProfiles.Add(new GeneratorProfile(this, profile));
                 if (profile.Probability == -1)
                 {
                     InitCreate += profile.InitCreate;
