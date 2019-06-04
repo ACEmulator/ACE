@@ -3,6 +3,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -64,11 +65,12 @@ namespace ACE.Server.Entity
             if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory) == null)
                 return WeenieError.YouDoNotPassCraftingRequirements;
 
-            // TODO: more descriptive error messages?
-
             // verify not retained item
             if (target.Retained ?? false)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You must use Sandstone Salvage to remove the retained property before tailoring.", ChatMessageType.Craft));
                 return WeenieError.YouDoNotPassCraftingRequirements;
+            }
 
             return WeenieError.None;
         }
@@ -147,6 +149,8 @@ namespace ACE.Server.Entity
 
             wo.ClothingPriority = target.ClothingPriority;
 
+            // ObjDescOverride.Clear()
+
             Finalize(player, source, target, wo);
         }
 
@@ -162,6 +166,7 @@ namespace ACE.Server.Entity
             target.UiEffects = source.UiEffects;
             target.Value = source.Value;
             target.MaterialType = source.MaterialType;
+            target.TargetType = source.ItemType;
 
             target.Shade = source.Shade;
             target.Shade2 = source.Shade2;
@@ -205,8 +210,6 @@ namespace ACE.Server.Entity
             var wo = WorldObjectFactory.CreateNewWorldObject(51451);
             SetCommonProperties(target, wo);
 
-            wo.TargetType = (int)target.ItemType;
-
             if (target is MeleeWeapon)
             {
                 wo.W_WeaponType = target.W_WeaponType;
@@ -217,6 +220,7 @@ namespace ACE.Server.Entity
             }
 
             wo.W_DamageType = target.W_DamageType;
+            wo.ObjScale = target.ObjScale;
 
             Finalize(player, source, target, wo);
         }
@@ -270,6 +274,11 @@ namespace ACE.Server.Entity
                     {
                         player.UpdateProperty(target, PropertyInt.ValidLocations, (int)EquipMask.LowerLegArmor);
                         clothingPriority = CoverageMask.OuterwearLowerLegs;
+                    }
+                    else if (validLocations.HasFlag(EquipMask.LowerLegArmor | EquipMask.FootWear))
+                    {
+                        player.UpdateProperty(target, PropertyInt.ValidLocations, (int)EquipMask.FootWear);
+                        clothingPriority = CoverageMask.Feet;
                     }
                     break;
 
@@ -329,6 +338,8 @@ namespace ACE.Server.Entity
             // but we have to make sure the list of properties here is completed
             UpdateCommonProps(player, source, target);
 
+            // ObjDescOverride.Clear()
+
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
             player.SendUseDoneEvent();
@@ -342,7 +353,7 @@ namespace ACE.Server.Entity
             //Console.WriteLine($"WeaponApply({player.Name}, {source.Name}, {target.Name})");
 
             // verify weapon type
-            switch (target.ItemType)
+            switch (source.TargetType)
             {
                 case ItemType.MeleeWeapon:
 
@@ -380,6 +391,8 @@ namespace ACE.Server.Entity
             // creating a brand new item might be reasonable here,
             // but we have to make sure the list of properties here is completed
             UpdateCommonProps(player, source, target);
+
+            target.ObjScale = source.ObjScale;
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
