@@ -423,6 +423,10 @@ namespace ACE.Server.Entity
             if (eventType == RegenerationType.PickUp && (RegenerationType)Biota.WhenCreate == RegenerationType.Destruction)
                 eventType = RegenerationType.Destruction;
 
+            // If WhenCreate is Undef, assume it means Destruction (bad data)
+            if (eventType == RegenerationType.Destruction && (RegenerationType)Biota.WhenCreate == RegenerationType.Undef)
+                Biota.WhenCreate = (uint)RegenerationType.Destruction;
+
             if (Biota.WhenCreate != (uint)eventType)
                 return;
 
