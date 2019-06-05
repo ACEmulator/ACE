@@ -5,9 +5,9 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -122,6 +122,11 @@ namespace ACE.Server.Entity
         public List<ModelMesh> Buildings { get; private set; }
         public List<ModelMesh> WeenieMeshes { get; private set; }
         public List<ModelMesh> Scenery { get; private set; }
+
+
+        public readonly RateMonitor Monitor1h = new RateMonitor();
+        private readonly TimeSpan last1hClearInteval = TimeSpan.FromHours(1);
+        private DateTime last1hClear;
 
 
         public Landblock(LandblockId id)
@@ -316,6 +321,8 @@ namespace ACE.Server.Entity
 
         public void Tick(double currentUnixTime)
         {
+            Monitor1h.RegisterEventStart();
+
             ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
             actionQueue.RunActions();
             ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
@@ -399,8 +406,10 @@ namespace ACE.Server.Entity
                 // Decay world objects
                 foreach (var wo in worldObjects.Values)
                 {
-                    if (wo.IsDecayable())
+                    if (wo.IsDecayable() && lastHeartBeat != DateTime.MinValue)
                         wo.Decay(thisHeartBeat - lastHeartBeat);
+                    else if (wo.IsDecayable() && lastHeartBeat == DateTime.MinValue)
+                        log.Warn($"Landblock {Id.ToString()}.Tick({currentUnixTime}).Landblock_Tick_Heartbeat: Skipping {wo.Name}.Decay({(thisHeartBeat - lastHeartBeat).ToString()}) | thisHeartBeat: {thisHeartBeat.ToString()} | lastHeartBeat: {lastHeartBeat.ToString()} | worldObjects.Count: {worldObjects.Count()}");
                 }
 
                 if (!Permaload)
@@ -411,6 +420,7 @@ namespace ACE.Server.Entity
                         LandblockManager.AddToDestructionQueue(this);
                 }
 
+                //log.Info($"Landblock {Id.ToString()}.Tick({currentUnixTime}).Landblock_Tick_Heartbeat: thisHeartBeat: {thisHeartBeat.ToString()} | lastHeartBeat: {lastHeartBeat.ToString()} | worldObjects.Count: {worldObjects.Count()}");
                 lastHeartBeat = thisHeartBeat;
             }
             ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Heartbeat);
@@ -425,6 +435,14 @@ namespace ACE.Server.Entity
                 lastDatabaseSave = DateTime.UtcNow;
             }
             ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Database_Save);
+
+            Monitor1h.RegisterEventEnd();
+
+            if (DateTime.UtcNow - last1hClear >= last1hClearInteval)
+            {
+                Monitor1h.ClearEventHistory();
+                last1hClear = DateTime.UtcNow;
+            }
         }
 
         private void ProcessPendingWorldObjectAdditionsAndRemovals()

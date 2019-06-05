@@ -428,7 +428,21 @@ namespace ACE.Server.Managers
 
                 case EmoteType.InqFellowQuest:
 
-                    // focusing on 1 person quests to begin with
+                    if (player != null)
+                    {
+                        if (player.Fellowship != null)
+                        {
+                            var hasQuest = player.Fellowship.QuestManager.HasQuest(emote.Message);
+                            var canSolve = player.Fellowship.QuestManager.CanSolve(emote.Message);
+
+                            // verify: QuestSuccess = player has quest, and their last completed time + quest minDelta <= currentTime
+                            success = hasQuest && !canSolve;
+
+                            ExecuteEmoteSet(success ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                        }
+                        else
+                            ExecuteEmoteSet(EmoteCategory.QuestNoFellow, emote.Message, targetObject, true);
+                    }
                     break;
 
                 case EmoteType.InqFloatStat:
@@ -652,7 +666,7 @@ namespace ACE.Server.Managers
                 case EmoteType.LockFellow:
 
                     if (player != null && player.Fellowship != null)
-                        player.HandleActionFellowshipChangeOpenness(false);
+                        player.HandleActionFellowshipChangeLock(true);
 
                     break;
 
@@ -678,7 +692,7 @@ namespace ACE.Server.Managers
 
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
-                    // TODO: refactor me!
+                    // TODO: REFACTOR ME
                     if (emoteSet.Category != (uint)EmoteCategory.Vendor && emoteSet.Style != null)
                     {
                         var startingMotion = new Motion((MotionStance)emoteSet.Style, (MotionCommand)emoteSet.Substyle);
@@ -696,7 +710,8 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand)
+                            if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand
+                                    && startingMotion.Stance == MotionStance.NonCombat)     // enforce non-combat here?
                             {
                                 if (debugMotion)
                                     Console.WriteLine($"{WorldObject.Name} running motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emote.Motion}");
@@ -991,6 +1006,21 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.StampFellowQuest:
+                    if (player != null)
+                    {
+                        if (player.Fellowship != null)
+                        {
+                            var questName = emote.Message;
+
+                            // are there fellowship only kill tasks?
+                            //if (questName.EndsWith("@#kt", StringComparison.Ordinal))
+                            //{
+                            //    player.Fellowship.QuestManager.HandleKillTask(questName, WorldObject);
+                            //}
+                            //else
+                                player.Fellowship.QuestManager.Stamp(emote.Message);
+                        }
+                    }
                     break;
                 case EmoteType.StampMyQuest:
                     break;
@@ -1122,10 +1152,35 @@ namespace ACE.Server.Managers
                 case EmoteType.UntrainSkill:
 
                     if (player != null)
-                        player.UntrainSkill((Skill)emote.Stat, 1);
+                        player.ResetSkill((Skill)emote.Stat);
                     break;
 
                 case EmoteType.UpdateFellowQuest:
+                    if (player != null)
+                    {
+                        if (player.Fellowship != null)
+                        {
+                            var questName = emote.Message;
+
+                            var hasQuest = player.Fellowship.QuestManager.HasQuest(questName);
+
+                            if (!hasQuest)
+                            {
+                                // add new quest
+                                player.Fellowship.QuestManager.Update(questName);
+                                hasQuest = player.Fellowship.QuestManager.HasQuest(questName);
+                                ExecuteEmoteSet(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                            }
+                            else
+                            {
+                                // update existing quest
+                                var canSolve = player.Fellowship.QuestManager.CanSolve(questName);
+                                ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                            }
+                        }
+                        else
+                            ExecuteEmoteSet(EmoteCategory.QuestNoFellow, emote.Message, targetObject, true);
+                    }
                     break;
                 case EmoteType.UpdateMyQuest:
                     break;
@@ -1186,8 +1241,20 @@ namespace ACE.Server.Managers
                 emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == (uint)vendorType);
             if (wcid != null)
                 emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value);
+
+            if (category == EmoteCategory.HeartBeat)
+            {
+                WorldObject.GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion);
+
+                emoteSet = emoteSet.Where(e => e.Style == null || e.Style == (uint)currentStance);
+                emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion);
+            }
+
             if (useRNG)
-                emoteSet = emoteSet.Where(e => e.Probability >= ThreadSafeRandom.Next(0.0f, 1.0f));
+            {
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                emoteSet = emoteSet.Where(e => e.Probability >= rng);
+            }
 
             return emoteSet.FirstOrDefault();
         }
@@ -1361,6 +1428,12 @@ namespace ACE.Server.Managers
         public void OnAttack(Creature attacker)
         {
             ExecuteEmoteSet(EmoteCategory.NewEnemy, null, attacker);
+        }
+
+        public void OnDamage(Creature attacker)
+        {
+            // optionally restrict to Min/Max Health %
+            ExecuteEmoteSet(EmoteCategory.WoundedTaunt, null, attacker);
         }
 
         public void OnReceiveCritical(Creature attacker)

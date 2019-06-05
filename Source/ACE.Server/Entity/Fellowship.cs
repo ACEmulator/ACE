@@ -34,6 +34,10 @@ namespace ACE.Server.Entity
         public Dictionary<uint, WeakReference<Player>> FellowshipMembers;
         public Dictionary<uint, WeakReference<Player>> ShareableMembers;
 
+        public QuestManager QuestManager;
+        public bool IsLocked;
+        public Dictionary<uint, WeakReference<Player>> LockedMembers;
+
         /// <summary>
         /// Called when a player first creatures a Fellowship
         /// </summary>
@@ -52,6 +56,10 @@ namespace ACE.Server.Entity
             ShareableMembers = new Dictionary<uint, WeakReference<Player>>() { { leader.Guid.Full, new WeakReference<Player>(leader) } };
 
             Open = false;
+
+            QuestManager = new QuestManager(this);
+            IsLocked = false;
+            LockedMembers = new Dictionary<uint, WeakReference<Player>>();
         }
 
         /// <summary>
@@ -61,6 +69,12 @@ namespace ACE.Server.Entity
         {
             if (inviter == null || newMember == null)
                 return;
+
+            if (IsLocked && !LockedMembers.ContainsKey(newMember.Guid.Full))
+            {
+                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is locked", ChatMessageType.Fellowship));
+                return;
+            }
 
             if (FellowshipMembers.Count == MaxFellows)
             {
@@ -244,6 +258,23 @@ namespace ACE.Server.Entity
             Open = isOpen;
             string openness = Open ? "open" : "closed";
             SendMessageAndUpdate($"Fellowship is now {openness}");
+        }
+
+        public void UpdateLock(bool isLocked)
+        {
+            IsLocked = isLocked;
+            string lockedness = IsLocked ? "locked" : "unlocked";
+            SendMessageAndUpdate($"Fellowship is now {lockedness}");
+
+            if (isLocked)
+            {
+                foreach (var fellow in GetFellowshipMembers().Values)
+                {
+                    LockedMembers.TryAdd(fellow.Guid.Full, new WeakReference<Player>(fellow));
+                }
+            }
+            else
+                LockedMembers.Clear();
         }
 
         /// <summary>

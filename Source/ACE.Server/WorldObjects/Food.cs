@@ -47,6 +47,12 @@ namespace ACE.Server.WorldObjects
             var player = activator as Player;
             if (player == null) return;
 
+            if (activator.IsBusy)
+            {
+               player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
             var buffType = Player.ConsumableBuffType.Stamina;
 
             if (BoostEnum != null)

@@ -827,9 +827,9 @@ namespace ACE.Server.WorldObjects
 
             var prevStatus = PlayerKillerStatus;
 
+            MinimumTimeSincePk = 0;
             PlayerKillerStatus &= ~PlayerKillerStatus.PK;
             PlayerKillerStatus |= PlayerKillerStatus.NPK;
-            MinimumTimeSincePk = 0;
 
             if ((prevStatus & PlayerKillerStatus.PK) != 0)
             {

@@ -46,7 +46,7 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(Convert.ToUInt32(fellowship.EvenShare));
             Writer.Write(Convert.ToUInt32(fellowship.Open));
 
-            Writer.Write(Convert.ToUInt32(false)); //TODO: locked
+            Writer.Write(Convert.ToUInt32(fellowship.IsLocked));
 
             // TODO PackableHashTable of fellows departed - fellowsDeparted  -<ObjectID,int>
             Writer.Write((uint)0x00200000);
