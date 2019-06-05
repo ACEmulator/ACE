@@ -1475,16 +1475,26 @@ namespace ACE.Server.Command.Handlers
         {
             // @god - Sets your own stats to a godly level.
 
-            session.Player.TotalExperience = 191226310246;
+            session.Player.TotalExperience = 191226310247;
             session.Player.Level = 999;
 
             session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Level, 999));
+            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(session.Player, PropertyInt64.TotalExperience, 191226310247));
+
+            // do not trian these
+            // none, axe, bow, xbow, dagger, mace, sling, spear, staff, sword, thrown, ua, spellcraft, awareness, armsandarmorrepair, gearcraft, challenge
+            int[] retiredSkills = { 0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 17, 25, 26, 42, 53 };
 
             foreach (Skill s in Enum.GetValues(typeof(Skill)))
             {
+                if (retiredSkills.Contains((int)s))
+                {
+                    continue;
+                }
                 session.Player.TrainSkill(s, 0);
                 session.Player.SpecializeSkill(s, 0);
                 var playerSkill = session.Player.Skills[s];
+                playerSkill.Ranks = 226;
                 session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s, playerSkill.AdvancementClass, playerSkill.Ranks, 1000, 0));
             }
 
@@ -1496,7 +1506,19 @@ namespace ACE.Server.Command.Handlers
                 }
                 var playerAttr = session.Player.Attributes[p];
                 playerAttr.StartingValue = 9999;
+                playerAttr.Ranks = 190;
                 session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, p, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+            }
+
+            foreach (PropertyAttribute2nd v in Enum.GetValues(typeof(PropertyAttribute2nd)))
+            {
+                if (v != PropertyAttribute2nd.MaxHealth || v != PropertyAttribute2nd.MaxStamina || v != PropertyAttribute2nd.MaxMana)
+                {
+                    continue;
+                }
+                var playerVital = session.Player.Vitals[v];
+                playerVital.Ranks = 196;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, session.Player.Vitals[v].Current));
             }
 
             session.Player.SetMaxVitals();
@@ -1504,9 +1526,11 @@ namespace ACE.Server.Command.Handlers
             session.Player.PlayParticleEffect(PlayScript.LevelUp, session.Player.Guid);
             session.Player.PlayParticleEffect(PlayScript.BaelZharonSmite, session.Player.Guid);
 
-            // output: You are now a god!!!
+            // output: You are now a god!
 
-            ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, "You are now a god!", ChatMessageType.Broadcast);
+
+            ChatPacket.SendServerMessage(session, $"{session.Player.Name} is now a god!", ChatMessageType.WorldBroadcast);
         }
 
         // magic god
