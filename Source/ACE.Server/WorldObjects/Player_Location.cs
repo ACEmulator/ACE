@@ -92,7 +92,8 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Teleport(House.SlumLord.Location);
+                if (House != null)
+                    Teleport(House.SlumLord.Location);
             });
 
             actionChain.EnqueueChain();
@@ -240,7 +241,8 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Teleport(Allegiance.Sanctuary);
+                if (Allegiance != null)
+                    Teleport(Allegiance.Sanctuary);
             });
 
             actionChain.EnqueueChain();

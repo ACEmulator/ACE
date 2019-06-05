@@ -974,11 +974,11 @@ namespace ACE.Server.WorldObjects
         {
             var motionCommand = motion.MotionState.ForwardCommand;
 
-            if (motionCommand == MotionCommand.Invalid)
+            if (motionCommand == MotionCommand.Ready)
                 motionCommand = (MotionCommand)motion.Stance;
 
             // run motion command on server through physics animation system
-            if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
+            if (PhysicsObj != null && motionCommand != MotionCommand.Ready)
             {
                 var motionInterp = PhysicsObj.get_minterp();
 
@@ -1035,6 +1035,20 @@ namespace ACE.Server.WorldObjects
             }
 
             return skill;
+        }
+
+        public void GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion)
+        {
+            currentStance = MotionStance.Invalid;
+            currentMotion = MotionCommand.Ready;
+
+            if (CurrentMotionState != null)
+            {
+                currentStance = CurrentMotionState.Stance;
+
+                if (CurrentMotionState.MotionState != null)
+                    currentMotion = CurrentMotionState.MotionState.ForwardCommand;
+            }
         }
     }
 }
