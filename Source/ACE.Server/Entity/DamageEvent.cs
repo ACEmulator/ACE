@@ -96,8 +96,10 @@ namespace ACE.Server.Entity
         public CombatManeuver CombatManeuver;
         public BiotaPropertiesBodyPart AttackPart;      // the body part this monster is attacking with
 
-        public bool IgnoreMagicArmor => DamageSource != null ? DamageSource.IgnoreMagicArmor : false;       // ignores impen / banes
-        public bool IgnoreMagicResist => DamageSource != null ? DamageSource.IgnoreMagicResist : false;     // ignores life armor / prots
+        public bool IgnoreMagicArmor  => GetWeaponProperty(PropertyBool.IgnoreMagicArmor);      // ignores impen / banes
+
+        public bool IgnoreMagicResist => GetWeaponProperty(PropertyBool.IgnoreMagicResist);     // ignores life armor / prots
+
 
         // player defender
         public BodyPart BodyPart;
@@ -479,6 +481,23 @@ namespace ACE.Server.Entity
                 ShowInfo(defender);
                 return;
             }
+        }
+
+        public bool GetWeaponProperty(PropertyBool property)
+        {
+            if (DamageSource == null)
+                return false;
+
+            // melee weapons
+            var result = DamageSource.GetProperty(property) ?? false;
+
+            if (result || DamageSource.ItemType != ItemType.MissileWeapon)
+                return result;
+
+            // missile weapons
+            var weapon = Attacker.GetEquippedWeapon();
+
+            return weapon != null && (weapon.GetProperty(property) ?? false);
         }
     }
 }
