@@ -53,8 +53,11 @@ namespace ACE.Server.WorldObjects
             // ensure if Max <= 0 (or defaulted to 0 from null) is not less than Init.
             // Profiles may have different settings but the core slots require Max to be greater than 0 if Init is greater than 0
             // defaulting to Max == Init for our purposes.
-            if (MaxGeneratedObjects <= 0 && InitGeneratedObjects > 0)
+            if ((MaxGeneratedObjects <= 0 || MaxGeneratedObjects < InitGeneratedObjects) && InitGeneratedObjects > 0)
+            {
+                log.Warn($"0x{Guid.Full.ToString()} {Name}.InitializeGenerator: {WeenieClassName} ({WeenieClassId}) MaxGeneratedObjects = {MaxGeneratedObjects} | InitGeneratedObjects = {InitGeneratedObjects}. Setting MaxGeneratedObjects = InitGeneratedObjects");
                 MaxGeneratedObjects = InitGeneratedObjects;
+            }
 
             AddGeneratorProfiles();
         }
