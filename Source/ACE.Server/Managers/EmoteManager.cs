@@ -1083,8 +1083,16 @@ namespace ACE.Server.Managers
 
                 case EmoteType.TeleportTarget:
 
-                    //if (player != null)
-                    //player.Teleport(emote.Position);
+                    if (player != null)
+                    {
+                        if (emote.ObjCellId.HasValue && emote.OriginX.HasValue && emote.OriginY.HasValue && emote.OriginZ.HasValue && emote.AnglesX.HasValue && emote.AnglesY.HasValue && emote.AnglesZ.HasValue && emote.AnglesW.HasValue)
+                        {
+                            var destination = new Position(emote.ObjCellId.Value, emote.OriginX.Value, emote.OriginY.Value, emote.OriginZ.Value, emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value);
+
+                            player.AdjustDungeon(destination);
+                            player.Teleport(destination);
+                        }
+                    }
                     break;
 
                 case EmoteType.Tell:
