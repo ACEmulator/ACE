@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-06-06
+[Ripley]
+* Wire up EmoteType.TeleportTarget
+* Adjust appraisal code for better NpcLooksLikeObject handling.
+
 ### 2019-06-03
 [OptimShi]
 * Made a small adjustment to the GetPaletteID function that was, in certain circumstances, returning the wrong palette.
