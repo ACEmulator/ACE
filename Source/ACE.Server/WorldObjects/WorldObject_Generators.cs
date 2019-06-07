@@ -146,7 +146,7 @@ namespace ACE.Server.WorldObjects
                                         profile.Enqueue(1);
                                         CurrentCreate = MaxCreate;
                                         campSpawned = true;
-                                        return;
+                                        //return;
                                     }
                                     else
                                         continue;
@@ -359,17 +359,41 @@ namespace ACE.Server.WorldObjects
         public int GetRNGInitToMaxObjects(GeneratorProfile profile)
         {
             // get the number of objects to spawn for this profile
-            var numObjects = ThreadSafeRandom.Next(profile.Biota.InitCreate, profile.Biota.MaxCreate);
+            var initCreate = profile.Biota.InitCreate;
+            var maxCreate = profile.Biota.MaxCreate;
+            var numObjects = 0;
+            bool fillToInit = false;
+            bool fillToMax = false;
 
-            if (numObjects == -1)
+            if (initCreate == -1 || maxCreate == -1)
+            {
+                if (initCreate == -1)
+                    fillToInit = true;
+
+                if (maxCreate == -1)
+                    fillToMax = true;
+            }
+
+            if (initCreate <= 0)
+                initCreate = 1;
+
+            if (maxCreate < initCreate)
+                maxCreate = initCreate;
+
+            numObjects = ThreadSafeRandom.Next(initCreate, maxCreate);
+
+            if (fillToInit)
+                numObjects = InitCreate;
+
+            if (fillToMax)
                 numObjects = MaxCreate;
 
             var leftObjects = MaxCreate - CurrentCreate;
 
-            if (numObjects > leftObjects && InitCreate != 0)
-                numObjects = leftObjects;
+            //Console.WriteLine($"0x{Guid.ToString()} {Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.InitCreate = {profile.Biota.InitCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | InitCreate: {InitCreate} | MaxCreate: {MaxCreate} | initCreate: {initCreate} | maxCreate: {maxCreate} | fillToInit: {fillToInit} | fillToMax: {fillToMax} | leftObjects = {leftObjects} | numObjects: {numObjects}");
 
-            //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.InitCreate = {profile.Biota.InitCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | InitCreate: {InitCreate} | MaxCreate: {MaxCreate} | numObjects: {numObjects}");
+            if (numObjects > leftObjects && InitCreate != 0)
+                return leftObjects;
 
             return numObjects;
         }
