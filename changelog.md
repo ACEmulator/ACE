@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-07
+[Ripley]
+* Wire up EmoteType.CreateTreasure
+
 ### 2019-06-06
 [Ripley]
 * Wire up EmoteType.TeleportTarget
