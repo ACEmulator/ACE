@@ -190,6 +190,9 @@ namespace ACE.Server.Factories
                 case LootBias.Weapons:
                     type = 3;
                     break;
+                case LootBias.Jewelry:
+                    type = 4;
+                    break;
                 default:
                     type = ThreadSafeRandom.Next(1, 4);
                     break;
@@ -209,6 +212,7 @@ namespace ACE.Server.Factories
                     //weapons
                     wo = CreateWeapon(tier, isMagical);
                     return wo;
+                case 4:
                 default:
                     //jewelry
                     wo = CreateJewelry(tier, isMagical);
