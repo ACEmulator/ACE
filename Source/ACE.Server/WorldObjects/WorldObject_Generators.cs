@@ -347,7 +347,7 @@ namespace ACE.Server.WorldObjects
             if (numObjects > leftObjects && InitCreate != 0)
                 numObjects = leftObjects;
 
-            Console.WriteLine($"CurrentCreate = {CurrentCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | MaxCreate: {MaxCreate} | numObjects: {numObjects}");
+            //Console.WriteLine($"CurrentCreate = {CurrentCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | MaxCreate: {MaxCreate} | numObjects: {numObjects}");
 
             return numObjects;
         }
