@@ -232,7 +232,7 @@ namespace ACE.Server.Entity
                 Armor = attacker.GetArmorLayers(playerDefender, BodyPart);
 
                 // get armor modifiers
-                ArmorMod = attacker.GetArmorMod(DamageType, Armor, DamageSource, armorRendingMod);
+                ArmorMod = attacker.GetArmorMod(DamageType, Armor, DamageSource, IgnoreMagicResist, IgnoreMagicArmor, armorRendingMod);
             }
             else
             {
@@ -252,19 +252,19 @@ namespace ACE.Server.Entity
 
             if (playerDefender != null)
             {
-                ResistanceMod = playerDefender.GetResistanceMod(DamageType, DamageSource, WeaponResistanceMod);
+                ResistanceMod = playerDefender.GetResistanceMod(DamageType, DamageSource, IgnoreMagicResist, WeaponResistanceMod);
             }
             else
             {
                 var resistanceType = Creature.GetResistanceType(DamageType);
-                ResistanceMod = (float)defender.GetResistanceMod(resistanceType, DamageSource, WeaponResistanceMod);
+                ResistanceMod = (float)defender.GetResistanceMod(resistanceType, DamageSource, IgnoreMagicResist, WeaponResistanceMod);
             }
 
             // damage resistance rating
             DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetDamageResistRating());
 
             // get shield modifier
-            ShieldMod = defender.GetShieldMod(attacker, DamageType);
+            ShieldMod = defender.GetShieldMod(attacker, DamageType, IgnoreMagicArmor);
 
             // calculate final output damage
             Damage = DamageBeforeMitigation * ArmorMod * ShieldMod * ResistanceMod * DamageResistanceRatingMod;
