@@ -1503,38 +1503,6 @@ namespace ACE.Server.Command.Handlers
                 session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
             }
 
-            //// do not trian these
-            //// none, axe, bow, xbow, dagger, mace, sling, spear, staff, sword, thrown, ua, spellcraft, awareness, armsandarmorrepair, gearcraft, challenge
-            //int[] retiredSkills = { 0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 17, 25, 26, 42, 53 };
-
-            //foreach (Skill s in Enum.GetValues(typeof(Skill)))
-            //{
-            //    if (retiredSkills.Contains((int)s))
-            //    {
-            //        continue;
-            //    }
-            //    session.Player.TrainSkill(s, 0);
-            //    session.Player.SpecializeSkill(s, 0);
-            //    var playerSkill = session.Player.Skills[s];
-            //    playerSkill.Ranks = 226;
-            //    playerSkill.ExperienceSpent = 4100490438u;
-            //    playerSkill.InitLevel = 5000;
-            //    session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
-            //}
-
-            //foreach (PropertyAttribute p in Enum.GetValues(typeof(PropertyAttribute)))
-            //{
-            //    if (p == PropertyAttribute.Undef)
-            //    {
-            //        continue;
-            //    }
-            //    var playerAttr = session.Player.Attributes[p];
-            //    playerAttr.StartingValue = 9809u;
-            //    playerAttr.Ranks = 190u;
-            //    playerAttr.ExperienceSpent = 4019438644u;
-            //    session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, p, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
-            //}
-
             foreach (var a in session.Player.Attributes)
             {
                 var playerAttr = session.Player.Attributes[a.Key];
@@ -1544,26 +1512,15 @@ namespace ACE.Server.Command.Handlers
                 session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, a.Key, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
             }
 
-            //session.Player.SetMaxVitals();
-
-            //foreach (PropertyAttribute2nd v in Enum.GetValues(typeof(PropertyAttribute2nd)))
-            //{
-            //    if (v != PropertyAttribute2nd.MaxHealth || v != PropertyAttribute2nd.MaxStamina || v != PropertyAttribute2nd.MaxMana)
-            //    {
-            //        continue;
-            //    }
-            //    var playerVital = session.Player.Vitals[v];
-            //    playerVital.Ranks = 196u;
-            //    playerVital.ExperienceSpent = 4285430197u;
-            //    session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
-            //}
+            session.Player.SetMaxVitals();
 
             foreach (var v in session.Player.Vitals)
             {
                 var playerVital = session.Player.Vitals[v.Key];
                 playerVital.Ranks = 196u;
                 playerVital.ExperienceSpent = 4285430197u;
-                playerVital.StartingValue = 4804u;
+                // my OCD will not let health/stam not be equal due to the endurance calc
+                playerVital.StartingValue = (v.Key == PropertyAttribute2nd.MaxHealth) ? 94803u : 89804u;
                 session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
             }
 
