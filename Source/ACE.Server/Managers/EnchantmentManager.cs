@@ -1104,6 +1104,15 @@ namespace ACE.Server.Managers
             return (int)Math.Round(GetAdditiveMod(enchantments));
         }
 
+        /// <summary>
+        /// Returns the ResistLockpick enchantment additives, ie. Strengthen/Weaken Lock
+        /// </summary>
+        /// <returns></returns>
+        public virtual int GetResistLockpick()
+        {
+            return GetAdditiveMod(PropertyInt.ResistLockpick);
+        }
+
 
         /// <summary>
         /// Returns a rating enchantment modifier
