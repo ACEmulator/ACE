@@ -139,7 +139,7 @@ namespace ACE.Server.WorldObjects
                             if (profileSpawn != null)
                             {
                                 //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profileSpawn.Name: {profileSpawn.Name} | profileSpawn.IsGenerator: {profileSpawn.IsGenerator}");
-                                if (profileSpawn.IsGenerator && !(profileSpawn.WeenieType == WeenieType.Container || profileSpawn.WeenieType == WeenieType.Chest))
+                                if (profileSpawn.IsGenerator && !(profileSpawn.WeenieType == WeenieType.Container || profileSpawn.WeenieType == WeenieType.Chest) && profileSpawn.InitCreate > 1)
                                 {
                                     if (!campSpawned)
                                     {
