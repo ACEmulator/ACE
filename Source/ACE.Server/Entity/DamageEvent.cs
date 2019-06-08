@@ -414,15 +414,11 @@ namespace ACE.Server.Entity
             info += $"AttributeMod: {AttributeMod}\n";
             info += $"PowerMod: {PowerMod}\n";
             info += $"SlayerMod: {SlayerMod}\n";
-<<<<<<< HEAD
+
             if (BaseDamageMod != null)
                 info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
             if (BaseDamageMod != null)
                 info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
-=======
-            info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
-            info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
->>>>>>> master
 
             // damage ratings
             if (!(Defender is Player))
