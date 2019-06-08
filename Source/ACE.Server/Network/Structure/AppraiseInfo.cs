@@ -117,15 +117,19 @@ namespace ACE.Server.Network.Structure
                 // If wo is locked, append skill check percent, as int, to properties for id panel display on chances of success
                 if (wo.IsLocked)
                 {
-                    var pickSkill = examiner.Skills[Skill.Lockpick].Current;
-
                     var resistLockpick = LockHelper.GetResistLockpick(wo);
-                    PropertiesInt[PropertyInt.ResistLockpick] = (int)resistLockpick;
 
-                    var successChance = SkillCheck.GetSkillChance((int)pickSkill, (int)resistLockpick) * 100;
+                    if (resistLockpick != null)
+                    {
+                        PropertiesInt[PropertyInt.ResistLockpick] = (int)resistLockpick;
 
-                    if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
-                        PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)successChance);
+                        var pickSkill = examiner.Skills[Skill.Lockpick].Current;
+
+                        var successChance = SkillCheck.GetSkillChance((int)pickSkill, (int)resistLockpick) * 100;
+
+                        if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
+                            PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)successChance);
+                    }
                 }                
             }
 

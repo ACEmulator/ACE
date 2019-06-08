@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
             // TODO: find out if ResistLockpick >= 9999 is a special 'unpickable' value in acclient,
             // similar to ResistMagic >= 9999 being equivalent to Unenchantable?
 
-            if (resistLockpick == null || resistLockpick < 1  || resistLockpick >= 9999 )
+            if (resistLockpick == null || resistLockpick >= 9999 )
                 return false;
 
             return true;
@@ -166,8 +166,8 @@ namespace ACE.Server.WorldObjects
 
             var difficulty = resistLockpick + enchantmentMod;
 
-            // cap between 1-9998 here?
-            difficulty = Math.Clamp(difficulty, 1, 9998);
+            // minimum 0 difficulty
+            difficulty = Math.Max(0, difficulty);
 
             return difficulty;
         }

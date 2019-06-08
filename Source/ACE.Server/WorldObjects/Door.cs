@@ -51,7 +51,6 @@ namespace ACE.Server.WorldObjects
             }
 
             ResetInterval = ResetInterval ?? 30.0f;
-            ResistLockpick = ResistLockpick ?? 0;
             LockCode = LockCode ?? "";
 
             // If we had the base weenies this would be the way to go
