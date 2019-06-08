@@ -1526,10 +1526,12 @@ namespace ACE.Server.Command.Handlers
 
             session.Player.SetMaxVitals();
 
+            session.Player.ChangesDetected = true;
+
             session.Player.PlayParticleEffect(PlayScript.LevelUp, session.Player.Guid);
             session.Player.PlayParticleEffect(PlayScript.BaelZharonSmite, session.Player.Guid);
 
-            ChatPacket.SendServerMessage(session, $"{session.Player.Name} is now a god!", ChatMessageType.WorldBroadcast);
+            ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
 
             session.Player.SaveCharacterToDatabase();
         }
