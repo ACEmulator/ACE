@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-08
+[Ripley]
+* Add LightSource Weenie class.
+
 ### 2019-06-07
 [Ripley]
 * Wire up EmoteType.CreateTreasure
