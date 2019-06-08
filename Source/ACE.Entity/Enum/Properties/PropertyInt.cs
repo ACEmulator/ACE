@@ -500,6 +500,7 @@ namespace ACE.Entity.Enum.Properties
         WeaponAuraDamage                         = 360,
         [SendOnLogin]
         WeaponAuraSpeed                          = 361,
+        [SendOnLogin]
         SummoningMastery                         = 362,
         HeartbeatLifespan                        = 363,
         UseLevelRequirement                      = 364,

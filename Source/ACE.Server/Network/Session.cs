@@ -13,8 +13,8 @@ using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Packets;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.Managers;
 
 
 namespace ACE.Server.Network
@@ -259,7 +259,12 @@ namespace ACE.Server.Network
                 // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
             }
 
-            WorldManager.RemoveSession(this);
+            NetworkManager.RemoveSession(this);
+
+            // This is a temp fix to mark the Session.Network portion of the Session as released
+            // What this means is that we will release any network related resources, as well as avoid taking on additional resources
+            // In the future, we should set Network to null and funnel Network communication through Session, instead of accessing Session.Network directly.
+            Network.ReleaseResources();
         }
 
 

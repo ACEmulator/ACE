@@ -208,6 +208,42 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        public List<ItemProfile> VerifySellItems(List<ItemProfile> sellItems, Vendor vendor)
+        {
+            var uniques = new HashSet<uint>();
+
+            var verified = new List<ItemProfile>();
+
+            foreach (var sellItem in sellItems)
+            {
+                var wo = FindObject(sellItem.ObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
+
+                if (wo == null)
+                {
+                    log.Warn($"{Name} tried to sell item {sellItem.ObjectGuid:X8} not in their inventory to {vendor.Name}");
+                    continue;
+                }
+
+                if (uniques.Contains(sellItem.ObjectGuid))
+                {
+                    log.Warn($"{Name} tried to sell duplicate item {wo.Name} ({wo.Guid}) to {vendor.Name}");
+                    continue;
+                }
+
+                if (sellItem.Amount > (wo.StackSize ?? 1))
+                {
+                    log.Warn($"{Name} tried to sell {sellItem.Amount}x {wo.Name} ({wo.Guid}) to {vendor.Name}, but they only have {wo.StackSize ?? 1}x");
+                    continue;
+                }
+
+                uniques.Add(sellItem.ObjectGuid);
+
+                verified.Add(sellItem);
+            }
+
+            return verified;
+        }
+
         // ================================
         // Game Action Handlers - Sell Item
         // ================================
@@ -224,6 +260,8 @@ namespace ACE.Server.WorldObjects
                 SendUseDoneEvent(WeenieError.NoObject);
                 return;
             }
+
+            itemprofiles = VerifySellItems(itemprofiles, vendor);
 
             var allPossessions = GetAllPossessions();
 

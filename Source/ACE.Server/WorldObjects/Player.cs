@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
                 //    character.IsAdvocate= true;
             }
 
-            ContainerCapacity = 7;
+            ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
 
             if (Session != null && AdvocateQuest && IsAdvocate) // Advocate permissions are per character regardless of override
             {
@@ -182,6 +182,9 @@ namespace ACE.Server.WorldObjects
 
             // IsAlive = true;
         }
+
+        public bool IsDeleted => Character.IsDeleted;
+        public bool IsPendingDeletion => Character.DeleteTime > 0 && !IsDeleted;
 
 
         // ******************************************************************* OLD CODE BELOW ********************************
@@ -258,6 +261,10 @@ namespace ACE.Server.WorldObjects
                 var currentSkill = (int)GetCreatureSkill(skill).Current;
                 int difficulty = (int)creature.GetCreatureSkill(Skill.Deception).Current;
 
+                if (PropertyManager.GetBool("assess_creature_mod").Item && skill == Skill.AssessCreature
+                        && Skills[Skill.AssessCreature].AdvancementClass < SkillAdvancementClass.Trained)
+                    currentSkill = (int)((Focus.Current + Self.Current) / 2);
+
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
                 if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this
@@ -266,6 +273,10 @@ namespace ACE.Server.WorldObjects
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
             }
+
+            if (creature is Pet || creature is CombatPet)
+                success = true;
+
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
             if (!success && player != null)
@@ -865,8 +876,6 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
         public void ApplyConsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
-            if (IsBusy) return;
-
             IsBusy = true;
 
             MotionCommand motionCommand;

@@ -35,6 +35,7 @@ namespace ACE.Server.WorldObjects
         };
 
         public DebugDamageType DebugDamage;
+        public ObjectGuid DebugDamageTarget;
 
         /// <summary>
         /// Returns the current attack skill for the player
@@ -233,18 +234,6 @@ namespace ACE.Server.WorldObjects
             return effectiveDefense;
         }
 
-        public float GetEvadeChance(WorldObject target)
-        {
-            // get player attack skill
-            var attackSkill = GetEffectiveAttackSkill();
-
-            // get target defense skill
-            var difficulty = GetTargetEffectiveDefenseSkill(target);
-
-            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
-            return (float)evadeChance;
-        }
-
         /// <summary>
         /// Called when player successfully avoids an attack
         /// </summary>
@@ -291,186 +280,18 @@ namespace ACE.Server.WorldObjects
             Proficiency.OnSuccessUse(this, defenseSkill, difficulty);
         }
 
-        public override Range GetBaseDamage()
+        public BaseDamageMod GetBaseDamageMod()
         {
             var attackType = GetCombatType();
             var damageSource = attackType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
 
-            return damageSource != null ? damageSource.GetDamageMod(this) : new Range(1, 5);
-        }
-
-        /// <summary>
-        /// Calculates the creature damage for a physical monster attack
-        /// </summary>
-        public float? CalculateDamagePVP(WorldObject target, WorldObject damageSource, DamageType damageType, ref bool criticalHit, ref bool sneakAttack, ref BodyPart bodyPart)
-        {
-            // verify target player killer
-            var targetCreature = target as Creature;
-            var targetPlayer = target as Player;
-            if (targetPlayer == null)
-                return null;
-
-            // check lifestone protection
-            if (targetPlayer.UnderLifestoneProtection)
+            if (damageSource == null)
             {
-                targetPlayer.HandleLifestoneProtection();
-                return null;
+                var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
+                return new BaseDamageMod(baseDamage);
             }
-
-            // evasion chance
-            var evadeChance = GetEvadeChance(target);
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < evadeChance)
-                return null;
-
-            // get base damage
-            var weapon = GetEquippedWeapon();
-            var baseDamageRange = GetBaseDamage();
-            var baseDamage = ThreadSafeRandom.Next(baseDamageRange.Min, baseDamageRange.Max);
-
-            // get damage mods
-            var attackType = GetCombatType();
-            var attributeMod = GetAttributeMod(weapon);
-            var powerMod = GetPowerMod(weapon);
-            var recklessnessMod = GetRecklessnessMod(this, targetPlayer);
-            var sneakAttackMod = GetSneakAttackMod(target);
-            sneakAttack = sneakAttackMod > 1.0f;
-
-            // heritage damge mod
-            var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
-
-            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
-            //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
-
-            var damage = baseDamage * attributeMod * powerMod * damageRatingMod;
-
-            // critical hit
-            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
-            var critical = GetWeaponCritChanceModifier(this, attackSkill, targetCreature);
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
-            {
-                if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
-                {
-                    var protChance = targetPlayer.AugmentationCriticalDefense * 0.05f;
-                    if (ThreadSafeRandom.Next(0.0f, 1.0f) > protChance)
-                        criticalHit = true;
-                }
-                else
-                    criticalHit = true; 
-            }
-
-            if (criticalHit)
-            {
-                // not effective for criticals: recklessness
-                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
-                damage = baseDamageRange.Max * attributeMod * powerMod * damageRatingMod * (1.0f + GetWeaponCritDamageMod(this, attackSkill, targetCreature));
-            }
-
-            // get armor rending mod here?
-            var armorRendingMod = 1.0f;
-            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
-                armorRendingMod = GetArmorRendingMod(attackSkill);
-
-            // select random body part @ current attack height
-            bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
-
-            // get armor piece
-            var armor = GetArmorLayers(bodyPart);
-
-            // get armor modifiers
-            var armorMod = GetArmorMod(damageType, armor, damageSource, armorRendingMod);
-
-            // get resistance modifiers (protect/vuln)
-            var resistanceMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
-
-            // weapon resistance mod?
-            var attackTarget = AttackTarget as Creature;
-            var damageResistRatingMod = GetNegativeRatingMod(attackTarget.GetDamageResistRating());
-
-            // get shield modifier
-            var shieldMod = attackTarget.GetShieldMod(this, damageType);
-
-            var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
-            var elementalDamageMod = GetMissileElementalDamageModifier(this, target as Creature, damageType);
-
-            // scale damage by modifiers
-            var outDamage = (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod * resistanceMod * damageResistRatingMod;
-
-            return outDamage;
-        }
-
-        public float? CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit, ref bool sneakAttack)
-        {
-            var creature = target as Creature;
-
-            // evasion chance
-            var evadeChance = GetEvadeChance(target);
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < evadeChance)
-                return null;
-
-            // get weapon base damage
-            var weapon = GetEquippedWeapon();
-            var baseDamageRange = GetBaseDamage();
-            var baseDamage = ThreadSafeRandom.Next(baseDamageRange.Min, baseDamageRange.Max);
-
-            // get damage mods
-            var attackType = GetCombatType();
-            var attributeMod = GetAttributeMod(weapon);
-            var powerAccuracyMod = GetPowerMod(weapon);
-            var recklessnessMod = GetRecklessnessMod(this, creature);
-            var sneakAttackMod = GetSneakAttackMod(target);
-            sneakAttack = sneakAttackMod > 1.0f;
-
-            // heritage damge mod
-            var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
-
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetPositiveRatingMod(GetDamageRating()));
-            //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
-
-            var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
-
-            // critical hit
-            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
-            var critical = GetWeaponCritChanceModifier(this, attackSkill, creature);
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
-            {
-                var criticalDamageMod = 1.0f + GetWeaponCritDamageMod(this, attackSkill, creature);
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * criticalDamageMod;
-                criticalHit = true;
-            }
-
-            // get random body part @ attack height
-            var bodyPart = BodyParts.GetBodyPart(target, AttackHeight.Value);
-            if (bodyPart == null) return null;
-
-            var creaturePart = new Creature_BodyPart(creature, bodyPart, damageSource != null ? damageSource.IgnoreMagicArmor : false, damageSource != null ? damageSource.IgnoreMagicResist : false);
-
-            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
-                creaturePart.WeaponArmorMod = GetArmorRendingMod(attackSkill);
-
-            // get target armor
-            var armor = creaturePart.BaseArmorMod;
-
-            // get target resistance
-            DamageType damageType;
-            if (damageSource?.ItemType == ItemType.MissileWeapon)
-                damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
             else
-                damageType = GetDamageType();
-
-            creaturePart.WeaponResistanceMod = GetWeaponResistanceModifier(this, attackSkill, damageType);
-            var resistance = GetResistance(creaturePart, damageType);
-
-            // ratings
-            var damageResistRatingMod = GetNegativeRatingMod(creature.GetDamageResistRating());
-            //Console.WriteLine("Damage resistance rating: " + NegativeModToRating(damageResistRatingMod));
-
-            // scale damage for armor and shield
-            var armorMod = SkillFormula.CalcArmorMod(resistance);
-            var shieldMod = creature.GetShieldMod(this, damageType);
-
-            var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
-            var elementalDamageMod = GetMissileElementalDamageModifier(this, target as Creature, damageType);
-            return (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod * damageResistRatingMod;
+                return damageSource.GetDamageMod(this);
         }
 
         public override float GetPowerMod(WorldObject weapon)
@@ -530,48 +351,6 @@ namespace ACE.Server.WorldObjects
 
                 case DamageType.Nether:
                     resistance = ResistNetherMod;
-                    break;
-            }
-
-            return resistance;
-        }
-
-        public float GetResistance(Creature_BodyPart part, DamageType damageType)
-        {
-            var resistance = 1.0f;
-
-            switch (damageType)
-            {
-                case DamageType.Slash:
-                    resistance = part.ArmorVsSlash;
-                    break;
-
-                case DamageType.Pierce:
-                    resistance = part.ArmorVsPierce;
-                    break;
-
-                case DamageType.Bludgeon:
-                    resistance = part.ArmorVsBludgeon;
-                    break;
-
-                case DamageType.Fire:
-                    resistance = part.ArmorVsFire;
-                    break;
-
-                case DamageType.Cold:
-                    resistance = part.ArmorVsCold;
-                    break;
-
-                case DamageType.Acid:
-                    resistance = part.ArmorVsAcid;
-                    break;
-
-                case DamageType.Electric:
-                    resistance = part.ArmorVsElectric;
-                    break;
-
-                case DamageType.Nether:
-                    resistance = part.ArmorVsNether;
                     break;
             }
 
@@ -716,7 +495,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the total burden of items held in both hands
         /// (main hand and offhand)
         /// </summary>
-        public int GetHandItemBurden()
+        public int GetHeldItemBurden()
         {
             // get main hand item
             var weapon = GetEquippedWeapon();
@@ -764,7 +543,7 @@ namespace ACE.Server.WorldObjects
             // When stamina drops to 0, your melee and missile defenses also drop to 0 and you will be incapable of attacking.
             // In addition, you will suffer a 50% penalty to your weapon skill. This applies to players and creatures.
 
-            var burden = GetHandItemBurden();
+            var burden = GetHeldItemBurden();
 
             var baseCost = StaminaTable.GetStaminaCost(powerAccuracy, burden);
 

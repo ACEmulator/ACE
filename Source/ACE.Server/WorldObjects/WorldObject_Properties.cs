@@ -201,14 +201,8 @@ namespace ACE.Server.WorldObjects
         }
         public void IncProperty(PropertyFloat property, double value)
         {
-            if (ephemeralPropertyFloats.ContainsKey(property))
-                ephemeralPropertyFloats[property] += value;
-            else
-            {
-                Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyFloats, out var biotaChanged);
-                if (biotaChanged)
-                    ChangesDetected = true;
-            }
+            var prop = GetProperty(property) ?? 0;
+            SetProperty(property, prop + value);
         }
         public void SetProperty(PropertyInstanceId property, uint value)
         {
@@ -234,14 +228,8 @@ namespace ACE.Server.WorldObjects
         }
         public void IncProperty(PropertyInt property, int value)
         {
-            if (ephemeralPropertyInts.ContainsKey(property))
-                ephemeralPropertyInts[property] += value;
-            else
-            {
-                Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInts, out var biotaChanged);
-                if (biotaChanged)
-                    ChangesDetected = true;
-            }
+            var prop = GetProperty(property) ?? 0;
+            SetProperty(property, prop + value);
         }
         public void SetProperty(PropertyInt64 property, long value)
         {
@@ -944,10 +932,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseRadius); else SetProperty(PropertyFloat.UseRadius, value.Value); }
         }
 
-        public int? TargetType
+        public ItemType? TargetType
         {
-            get => GetProperty(PropertyInt.TargetType);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.TargetType); else SetProperty(PropertyInt.TargetType, value.Value); }
+            get => (ItemType?)GetProperty(PropertyInt.TargetType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.TargetType); else SetProperty(PropertyInt.TargetType, (int)value.Value); }
         }
 
         public UiEffects? UiEffects
@@ -1130,6 +1118,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.NumItemsInMaterial); else SetProperty(PropertyInt.NumItemsInMaterial, value.Value); }
         }
 
+        public int? AppraisalLongDescDecoration
+        {
+            get => GetProperty(PropertyInt.AppraisalLongDescDecoration);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalLongDescDecoration); else SetProperty(PropertyInt.AppraisalLongDescDecoration, value.Value); }
+        }
+
         public float? Workmanship
         {
             get
@@ -1258,6 +1252,12 @@ namespace ACE.Server.WorldObjects
         {
             get => (MaterialType?)GetProperty(PropertyInt.GemType);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.GemType); else SetProperty(PropertyInt.GemType, (int)value.Value); }
+        }
+
+        public int? GemCount
+        {
+            get => GetProperty(PropertyInt.GemCount);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GemCount); else SetProperty(PropertyInt.GemCount, (int)value.Value); }
         }
 
         public int? Attuned

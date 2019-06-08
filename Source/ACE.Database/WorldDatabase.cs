@@ -77,7 +77,8 @@ namespace ACE.Database
 
             bool isCreature = weenieType == WeenieType.Creature || weenieType == WeenieType.Cow ||
                               weenieType == WeenieType.Sentinel || weenieType == WeenieType.Admin ||
-                              weenieType == WeenieType.Vendor;
+                              weenieType == WeenieType.Vendor ||
+                              weenieType == WeenieType.CombatPet || weenieType == WeenieType.Pet;
 
             //.Include(r => r.LandblockInstances)   // When we grab a weenie, we don't need to also know everywhere it exists in the world
             //.Include(r => r.PointsOfInterest)     // I think these are just foreign keys for the POI table
@@ -944,7 +945,7 @@ namespace ACE.Database
                     .ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialColor[result.Key] = result.ToList();
+                    cachedTreasureMaterialColor[(int)result.Key] = result.ToList();
             }
         }
 
@@ -978,7 +979,7 @@ namespace ACE.Database
                     .ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialBase[result.Key] = result.ToList();
+                    cachedTreasureMaterialBase[(int)result.Key] = result.ToList();
             }
         }
 
@@ -1024,7 +1025,7 @@ namespace ACE.Database
                     .ToList();
 
                 foreach (var result in results)
-                cachedTreasureMaterialGroups[result.Key] = result.ToList();
+                cachedTreasureMaterialGroups[(int)result.Key] = result.ToList();
             }
         }
 

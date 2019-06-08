@@ -13,6 +13,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Managers;
 using ACE.Server.Network.Packets;
 
 namespace ACE.Server.Network.Handlers
@@ -122,7 +123,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (WorldManager.Find(account.AccountName) != null)
+            if (NetworkManager.Find(account.AccountName) != null)
             {
                 session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.ServerCrash1));
                 return;

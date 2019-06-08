@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
         public void TeleportOnDeath()
         {
             // teleport to sanctuary or best location
-            var newPosition = Sanctuary ?? LastPortal ?? Location;
+            var newPosition = Sanctuary ?? Instantiation ?? Location;
 
             Teleport(newPosition);
 
@@ -827,9 +827,9 @@ namespace ACE.Server.WorldObjects
 
             var prevStatus = PlayerKillerStatus;
 
+            MinimumTimeSincePk = 0;
             PlayerKillerStatus &= ~PlayerKillerStatus.PK;
             PlayerKillerStatus |= PlayerKillerStatus.NPK;
-            MinimumTimeSincePk = 0;
 
             if ((prevStatus & PlayerKillerStatus.PK) != 0)
             {

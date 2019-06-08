@@ -58,6 +58,12 @@ namespace ACE.Server.WorldObjects
             var creature = this as Creature;
             if (creature == null)
                 GenerateContainList();
+
+            if (!ContainerCapacity.HasValue)
+                ContainerCapacity = 0;
+
+            if (!UseRadius.HasValue)
+                UseRadius = 0.5f;
         }
 
 
@@ -131,17 +137,38 @@ namespace ACE.Server.WorldObjects
             OnInitialInventoryLoadCompleted();
         }
 
+        /// <summary>
+        /// Counts the number of actual inventory items, ignoring Packs/Foci.
+        /// </summary>
+        private int CountPackItems()
+        {
+            return Inventory.Values.Count(wo => !wo.UseBackpackSlot);
+        }
+
+        /// <summary>
+        /// Counts the number of containers in inventory, including Foci.
+        /// </summary>
+        private int CountContainers()
+        {
+            return Inventory.Values.Count(wo => wo.UseBackpackSlot);
+        }
+
         public int GetFreeInventorySlots(bool includeSidePacks = true)
         {
-            int freeSlots = (ItemCapacity ?? 0) - Inventory.Count;
+            int freeSlots = (ItemCapacity ?? 0) - CountPackItems();
 
             if (includeSidePacks)
             {
                 foreach (var sidePack in Inventory.Values.OfType<Container>())
-                    freeSlots += (sidePack.ItemCapacity ?? 0) - sidePack.Inventory.Count;
+                    freeSlots += (sidePack.ItemCapacity ?? 0) - sidePack.CountPackItems();
             }
 
             return freeSlots;
+        }
+
+        public int GetFreeContainerSlots()
+        {
+            return (ContainerCapacity ?? 0) - CountContainers();
         }
 
         /// <summary>
@@ -287,7 +314,51 @@ namespace ACE.Server.WorldObjects
             if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObject))
                 return false;
 
-            return GetFreeInventorySlots() > 0;
+            if (worldObject.UseBackpackSlot)
+                return GetFreeContainerSlots() > 0;
+            else
+                return GetFreeInventorySlots() > 0;
+        }
+
+        /// <summary>
+        /// Returns TRUE if there are enough free inventory slots and burden available to add all items
+        /// </summary>
+        public bool CanAddToInventory(List<WorldObject> worldObjects)
+        {
+            return CanAddToInventory(worldObjects, out _, out _);
+        }
+
+        /// <summary>
+        /// Returns TRUE if there are enough free inventory slots and burden available to add all items
+        /// </summary>
+        public bool CanAddToInventory(List<WorldObject> worldObjects, out bool TooEncumbered, out bool NotEnoughFreeSlots)
+        {
+            TooEncumbered = false;
+            NotEnoughFreeSlots = false;
+
+            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObjects))
+            {
+                TooEncumbered = true;
+                return false;
+            }
+
+            var containers = worldObjects.Where(w => w.UseBackpackSlot).ToList();
+            if (containers.Count > 0)
+            {
+                if (GetFreeContainerSlots() < containers.Count)
+                {
+                    NotEnoughFreeSlots = true;
+                    return false;
+                }
+            }
+
+            if (GetFreeInventorySlots() < (worldObjects.Count - containers.Count))
+            {
+                NotEnoughFreeSlots = true;
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -483,8 +554,8 @@ namespace ACE.Server.WorldObjects
                     Close(null);
                 else if (Viewer == player.Guid.Full)
                     Close(player);
-
-                // else error msg?
+                else
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is already in use by someone else!"));
             }
         }
 

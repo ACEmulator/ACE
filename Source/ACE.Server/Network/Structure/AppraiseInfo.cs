@@ -41,6 +41,7 @@ namespace ACE.Server.Network.Structure
         public Dictionary<PropertyFloat, double> PropertiesFloat;
         public Dictionary<PropertyString, string> PropertiesString;
         public Dictionary<PropertyDataId, uint> PropertiesDID;
+        public Dictionary<PropertyInstanceId, uint> PropertiesIID;
 
         public List<AppraisalSpellBook> SpellBook;
 
@@ -89,6 +90,14 @@ namespace ACE.Server.Network.Structure
             // Help us make sure the item identify properly
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
+            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder))
+                if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
+                    PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
+
+            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator))
+                if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
+                    PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
+
             // armor / clothing / shield
             if (wo is Clothing || wo.IsShield)
                 BuildArmor(wo);
@@ -117,6 +126,21 @@ namespace ACE.Server.Network.Structure
                     if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
                         PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)lockpickSuccessPercent);
                 }                
+            }
+
+            if (wo is Corpse)
+            {
+                PropertiesBool.Clear();
+                PropertiesDID.Clear();
+                PropertiesFloat.Clear();
+                PropertiesInt64.Clear();
+
+                var discardInts = PropertiesInt.Where(x => x.Key != PropertyInt.EncumbranceVal && x.Key != PropertyInt.Value).Select(x => x.Key).ToList();
+                foreach (var key in discardInts)
+                    PropertiesInt.Remove(key);
+                var discardString = PropertiesString.Where(x => x.Key != PropertyString.LongDesc).Select(x => x.Key).ToList();
+                foreach (var key in discardString)
+                    PropertiesString.Remove(key);
             }
 
             if (wo is Portal)
@@ -175,6 +199,7 @@ namespace ACE.Server.Network.Structure
             PropertiesFloat = wo.GetAllPropertyFloat().Where(x => ClientProperties.PropertiesDouble.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesString = wo.GetAllPropertyString().Where(x => ClientProperties.PropertiesString.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
             PropertiesDID = wo.GetAllPropertyDataId().Where(x => ClientProperties.PropertiesDataId.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
+            PropertiesIID = wo.GetAllPropertyInstanceId().Where(x => ClientProperties.PropertiesInstanceId.Contains((ushort)x.Key)).ToDictionary(x => x.Key, x => x.Value);
 
             if (wo is Player player)
             {
@@ -232,7 +257,12 @@ namespace ACE.Server.Network.Structure
             if (wielder == null || !wo.IsEnchantable) return;
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Missile) && !(wo is Ammunition))
-                PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
+            {
+                var defenseMod = wo.EnchantmentManager.GetDefenseMod();
+                var auraDefenseMod = wo.IsEnchantable ? wielder.EnchantmentManager.GetDefenseMod() : 0.0f;
+
+                PropertiesFloat[PropertyFloat.WeaponDefense] += defenseMod + auraDefenseMod;
+            }
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.ManaConversionMod))
             {
@@ -393,6 +423,9 @@ namespace ACE.Server.Network.Structure
             ArmorLevels = new ArmorLevel(creature);
 
             AddRatings(creature);
+
+            if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
+                PropertiesInt.Remove(PropertyInt.EncumbranceVal);
         }
 
         private void AddRatings(Creature creature)
@@ -503,14 +536,7 @@ namespace ACE.Server.Network.Structure
             if (PropertiesInt.Count > 0)
                 Flags |= IdentifyResponseFlags.IntStatsTable;
             if (PropertiesInt64.Count > 0)
-                Flags |= IdentifyResponseFlags.Int64StatsTable;
-            if (SpellBook.Count > 0)
-                Flags |= IdentifyResponseFlags.SpellBook;
-            if (ResistHighlight != 0)
-                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
-            
-			if (NPCLooksLikeObject) return;
-				
+                Flags |= IdentifyResponseFlags.Int64StatsTable;         				
 			if (PropertiesBool.Count > 0)
                 Flags |= IdentifyResponseFlags.BoolStatsTable;
             if (PropertiesFloat.Count > 0)
@@ -519,9 +545,14 @@ namespace ACE.Server.Network.Structure
                 Flags |= IdentifyResponseFlags.StringStatsTable;
             if (PropertiesDID.Count > 0)
                 Flags |= IdentifyResponseFlags.DidStatsTable;
+            if (SpellBook.Count > 0)
+                Flags |= IdentifyResponseFlags.SpellBook;
+
+            if (ResistHighlight != 0)
+                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
             if (ArmorProfile != null)
                 Flags |= IdentifyResponseFlags.ArmorProfile;
-            if (CreatureProfile != null)
+            if (CreatureProfile != null && !NPCLooksLikeObject)
                 Flags |= IdentifyResponseFlags.CreatureProfile;
             if (WeaponProfile != null)
                 Flags |= IdentifyResponseFlags.WeaponProfile;

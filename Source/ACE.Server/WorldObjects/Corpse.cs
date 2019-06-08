@@ -12,6 +12,8 @@ using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Factories;
+using ACE.Server.Entity.Actions;
+using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -94,6 +96,13 @@ namespace ACE.Server.WorldObjects
             else
                 // a player corpse decays after 5 mins * playerLevel with a minimum of 1 hour
                 TimeToRot = Math.Max(3600, (player.Level ?? 1) * 300);
+
+            var dtTimeToRot = DateTime.UtcNow.AddSeconds(TimeToRot ?? 0);
+            var tsDecay = dtTimeToRot - DateTime.UtcNow;
+
+            Level = player.Level ?? 1;
+
+            log.Info($"{Name}.RecalculateDecayTime({player.Name}): Player Level: {player.Level} | Inventory.Count: {Inventory.Count} | TimeToRot: {TimeToRot} | CreationTimestamp: {CreationTimestamp} ({Time.GetDateTimeFromTimestamp(CreationTimestamp ?? 0).ToString()}) | Corpse should not decay before: {dtTimeToRot.ToString()}, {tsDecay.ToString("%d")} day(s), {tsDecay.ToString("%h")} hours, {tsDecay.ToString("%m")} minutes, and {tsDecay.ToString("%s")} seconds from now.");
         }
 
         /// <summary>
@@ -165,16 +174,23 @@ namespace ACE.Server.WorldObjects
 
         public override void EnterWorld()
         {
+            var actionChain = new ActionChain();
+
             base.EnterWorld();
 
-            if (Location != null)
+            actionChain.AddDelaySeconds(.5);
+            actionChain.AddAction(this, () =>
             {
-                if (CorpseGeneratedRare)
+                if (Location != null)
                 {
-                    EnqueueBroadcast(new GameMessageSystemChat($"{killerName} has discovered the {rareGenerated.Name}!", ChatMessageType.System));
-                    ApplySoundEffects(Sound.TriggerActivated, 10);
+                    if (CorpseGeneratedRare)
+                    {
+                        EnqueueBroadcast(new GameMessageSystemChat($"{killerName} has discovered the {rareGenerated.Name}!", ChatMessageType.System));
+                        ApplySoundEffects(Sound.TriggerActivated, 10);
+                    }
                 }
-            }
+            });
+            actionChain.EnqueueChain();
         }
 
         private WorldObject rareGenerated;
@@ -191,6 +207,9 @@ namespace ACE.Server.WorldObjects
             if (wo == null)
                 return;
 
+            if (!wo.IconUnderlayId.HasValue || wo.IconUnderlayId.Value != 0x6005B0C) // ensure icon underlay exists for rare (loot profiles use this)
+                wo.IconUnderlayId = 0x6005B0C;
+
             var tier = LootGenerationFactory.GetRareTier(wo.WeenieClassId);
             LootGenerationFactory.RareChances.TryGetValue(tier, out var chance);
 
@@ -202,6 +221,7 @@ namespace ACE.Server.WorldObjects
                 rareGenerated = wo;
                 killerName = killer.Name.TrimStart('+');
                 CorpseGeneratedRare = true;
+                LongDesc += " This corpse generated a rare item!";
             }
             else
                 log.Error($"[RARE] failed to add to corpse inventory");

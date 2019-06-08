@@ -37,6 +37,7 @@ CREATE TABLE `cook_book` (
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
   `source_W_C_I_D` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of the source object for this recipe',
   `target_W_C_I_D` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of the target object for this recipe',
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `recipe_source_target_uidx` (`recipe_Id`,`source_W_C_I_D`,`target_W_C_I_D`),
   KEY `source_idx` (`source_W_C_I_D`),
@@ -58,6 +59,7 @@ CREATE TABLE `encounter` (
   `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of generator/object to spawn for Encounter',
   `cell_X` int(5) NOT NULL COMMENT 'CellX position of this Encounter',
   `cell_Y` int(5) NOT NULL COMMENT 'CellY position of this Encounter',
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `landblock_cellx_celly_uidx` (`landblock`,`cell_X`,`cell_Y`),
   KEY `landblock_idx` (`landblock`)
@@ -77,6 +79,7 @@ CREATE TABLE `event` (
   `start_Time` int(10) NOT NULL DEFAULT '-1' COMMENT 'Unixtime of Event Start',
   `end_Time` int(10) NOT NULL DEFAULT '-1' COMMENT 'Unixtime of Event End',
   `state` int(10) NOT NULL COMMENT 'State of Event (GameEventState)',
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Events';
@@ -100,6 +103,7 @@ CREATE TABLE `house_portal` (
   `angles_X` float NOT NULL,
   `angles_Y` float NOT NULL,
   `angles_Z` float NOT NULL,
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `house_Id_UNIQUE` (`house_Id`,`obj_Cell_Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='House Portal Destinations';
@@ -125,10 +129,9 @@ CREATE TABLE `landblock_instance` (
   `angles_Y` float NOT NULL,
   `angles_Z` float NOT NULL,
   `is_Link_Child` bit(1) NOT NULL COMMENT 'Is this a child link for any other instances?',
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`guid`),
-  KEY `wcid_instance` (`weenie_Class_Id`),
-  KEY `instance_landblock_idx` (`landblock`),
-  CONSTRAINT `wcid_instance` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
+  KEY `instance_landblock_idx` (`landblock`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Weenie Instances for each Landblock';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -143,8 +146,10 @@ CREATE TABLE `landblock_instance_link` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Instance Link',
   `parent_GUID` int(10) unsigned NOT NULL COMMENT 'GUID of parent instance',
   `child_GUID` int(10) unsigned NOT NULL COMMENT 'GUID of child instance',
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `parent_child_guuidx` (`parent_GUID`,`child_GUID`),
+  UNIQUE KEY `parent_child_uidx` (`parent_GUID`,`child_GUID`),
+  KEY `child_idx` (`child_GUID`),
   CONSTRAINT `instance_link` FOREIGN KEY (`parent_GUID`) REFERENCES `landblock_instance` (`guid`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Weenie Instance Links';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -160,10 +165,9 @@ CREATE TABLE `points_of_interest` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this POI',
   `name` text NOT NULL COMMENT 'Name for POI',
   `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of portal weenie to reference for destination of POI',
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name_UNIQUE` (`name`(100)),
-  KEY `wcid_poi` (`weenie_Class_Id`),
-  CONSTRAINT `wcid_poi` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
+  UNIQUE KEY `name_UNIQUE` (`name`(100))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Points of Interest for @telepoi command';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -180,6 +184,7 @@ CREATE TABLE `quest` (
   `min_Delta` int(10) unsigned NOT NULL COMMENT 'Minimum time between Quest completions',
   `max_Solves` int(10) NOT NULL COMMENT 'Maximum number of times Quest can be completed',
   `message` text COMMENT 'Quest solved text - unused?',
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Quests';
@@ -217,6 +222,7 @@ CREATE TABLE `recipe` (
   `fail_Destroy_Target_Amount` int(10) unsigned NOT NULL,
   `fail_Destroy_Target_Message` text,
   `data_Id` int(10) unsigned NOT NULL,
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipes';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -255,10 +261,11 @@ DROP TABLE IF EXISTS `recipe_mods_bool`;
 CREATE TABLE `recipe_mods_bool` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` bit(1) NOT NULL,
   `enum` int(10) NOT NULL,
-  `unknown_1` int(10) NOT NULL,
+  `source` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_bool` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_bool` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
@@ -275,10 +282,11 @@ DROP TABLE IF EXISTS `recipe_mods_d_i_d`;
 CREATE TABLE `recipe_mods_d_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` int(10) unsigned NOT NULL,
   `enum` int(10) NOT NULL,
-  `unknown_1` int(10) NOT NULL,
+  `source` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_did` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_did` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
@@ -295,10 +303,11 @@ DROP TABLE IF EXISTS `recipe_mods_float`;
 CREATE TABLE `recipe_mods_float` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` double NOT NULL,
   `enum` int(10) NOT NULL,
-  `unknown_1` int(10) NOT NULL,
+  `source` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_float` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_float` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
@@ -315,10 +324,11 @@ DROP TABLE IF EXISTS `recipe_mods_i_i_d`;
 CREATE TABLE `recipe_mods_i_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` int(10) unsigned NOT NULL,
   `enum` int(10) NOT NULL,
-  `unknown_1` int(10) NOT NULL,
+  `source` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_iid` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_iid` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
@@ -335,10 +345,11 @@ DROP TABLE IF EXISTS `recipe_mods_int`;
 CREATE TABLE `recipe_mods_int` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` int(10) NOT NULL,
   `enum` int(10) NOT NULL,
-  `unknown_1` int(10) NOT NULL,
+  `source` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_int` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_int` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
@@ -355,10 +366,11 @@ DROP TABLE IF EXISTS `recipe_mods_string`;
 CREATE TABLE `recipe_mods_string` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` text,
   `enum` int(10) NOT NULL,
-  `unknown_1` int(10) NOT NULL,
+  `source` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_string` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_string` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
@@ -375,6 +387,7 @@ DROP TABLE IF EXISTS `recipe_requirements_bool`;
 CREATE TABLE `recipe_requirements_bool` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` bit(1) NOT NULL,
   `enum` int(10) NOT NULL,
@@ -395,6 +408,7 @@ DROP TABLE IF EXISTS `recipe_requirements_d_i_d`;
 CREATE TABLE `recipe_requirements_d_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` int(10) unsigned NOT NULL,
   `enum` int(10) NOT NULL,
@@ -415,6 +429,7 @@ DROP TABLE IF EXISTS `recipe_requirements_float`;
 CREATE TABLE `recipe_requirements_float` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` double NOT NULL,
   `enum` int(10) NOT NULL,
@@ -435,6 +450,7 @@ DROP TABLE IF EXISTS `recipe_requirements_i_i_d`;
 CREATE TABLE `recipe_requirements_i_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` int(10) unsigned NOT NULL,
   `enum` int(10) NOT NULL,
@@ -455,6 +471,7 @@ DROP TABLE IF EXISTS `recipe_requirements_int`;
 CREATE TABLE `recipe_requirements_int` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` int(10) NOT NULL,
   `enum` int(10) NOT NULL,
@@ -475,6 +492,7 @@ DROP TABLE IF EXISTS `recipe_requirements_string`;
 CREATE TABLE `recipe_requirements_string` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
+  `index` tinyint(5) NOT NULL,
   `stat` int(10) NOT NULL,
   `value` text,
   `enum` int(10) NOT NULL,
@@ -495,39 +513,6 @@ DROP TABLE IF EXISTS `spell`;
 CREATE TABLE `spell` (
   `id` int(10) unsigned NOT NULL COMMENT 'Unique Id of this Spell',
   `name` text NOT NULL,
-  `description` text NOT NULL,
-  `school` int(10) NOT NULL,
-  `icon_Id` int(10) unsigned NOT NULL,
-  `category` int(10) unsigned NOT NULL,
-  `bitfield` int(10) unsigned NOT NULL,
-  `mana` int(10) unsigned NOT NULL,
-  `range_Constant` float NOT NULL,
-  `range_Mod` float NOT NULL,
-  `power` int(10) unsigned NOT NULL,
-  `economy_Mod` float NOT NULL,
-  `formula_Version` int(10) unsigned NOT NULL,
-  `component_Loss` float NOT NULL,
-  `meta_Spell_Type` int(10) NOT NULL,
-  `meta_Spell_Id` int(10) unsigned NOT NULL,
-  `spell_Formula_Comp_1_Component_Id` int(10) unsigned NOT NULL,
-  `spell_Formula_Comp_2_Component_Id` int(10) unsigned NOT NULL,
-  `spell_Formula_Comp_3_Component_Id` int(10) unsigned NOT NULL,
-  `spell_Formula_Comp_4_Component_Id` int(10) unsigned NOT NULL,
-  `spell_Formula_Comp_5_Component_Id` int(10) unsigned NOT NULL,
-  `spell_Formula_Comp_6_Component_Id` int(10) unsigned NOT NULL,
-  `spell_Formula_Comp_7_Component_Id` int(10) unsigned NOT NULL,
-  `spell_Formula_Comp_8_Component_Id` int(10) unsigned NOT NULL,
-  `caster_Effect` int(10) unsigned NOT NULL,
-  `target_Effect` int(10) unsigned NOT NULL,
-  `fizzle_Effect` int(10) unsigned NOT NULL,
-  `recovery_Interval` double NOT NULL,
-  `recovery_Amount` float NOT NULL,
-  `display_Order` int(10) unsigned NOT NULL,
-  `non_Component_Target_Type` int(10) unsigned NOT NULL,
-  `mana_Mod` int(10) unsigned NOT NULL,
-  `duration` double DEFAULT NULL,
-  `degrade_Modifier` float DEFAULT NULL,
-  `degrade_Limit` float DEFAULT NULL,
   `stat_Mod_Type` int(10) unsigned DEFAULT NULL,
   `stat_Mod_Key` int(10) unsigned DEFAULT NULL,
   `stat_Mod_Val` float DEFAULT NULL,
@@ -574,7 +559,6 @@ CREATE TABLE `spell` (
   `max_Boost_Allowed` int(10) DEFAULT NULL,
   `transfer_Bitfield` int(10) unsigned DEFAULT NULL,
   `index` int(10) DEFAULT NULL,
-  `portal_Lifetime` double DEFAULT NULL,
   `link` int(10) DEFAULT NULL,
   `position_Obj_Cell_ID` int(10) unsigned DEFAULT NULL,
   `position_Origin_X` float DEFAULT NULL,
@@ -591,8 +575,9 @@ CREATE TABLE `spell` (
   `align` int(10) DEFAULT NULL,
   `number` int(10) DEFAULT NULL,
   `number_Variance` float DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `metaspell_id_uidx` (`meta_Spell_Id`)
+  `dot_Duration` double DEFAULT NULL,
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Spell Table Extended Data';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -621,9 +606,65 @@ CREATE TABLE `treasure_death` (
   `mundane_Item_Min_Amount` int(10) NOT NULL,
   `mundane_Item_Max_Amount` int(10) NOT NULL,
   `mundane_Item_Type_Selection_Chances` int(10) NOT NULL,
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `treasureType_idx` (`treasure_Type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Death Treasure';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `treasure_material_base`
+--
+
+DROP TABLE IF EXISTS `treasure_material_base`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `treasure_material_base` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `material_Code` int(10) unsigned NOT NULL COMMENT 'Derived from PropertyInt.TsysMutationData',
+  `tier` int(10) unsigned NOT NULL COMMENT 'Loot Tier',
+  `probability` float NOT NULL,
+  `material_Id` int(10) unsigned NOT NULL COMMENT 'MaterialType',
+  PRIMARY KEY (`id`),
+  KEY `tier` (`tier`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `treasure_material_color`
+--
+
+DROP TABLE IF EXISTS `treasure_material_color`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `treasure_material_color` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `material_Id` int(10) unsigned NOT NULL,
+  `color_Code` int(10) unsigned NOT NULL,
+  `palette_Template` int(10) unsigned NOT NULL,
+  `probability` float NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `material_Id` (`material_Id`),
+  KEY `tsys_Mutation_Color` (`color_Code`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `treasure_material_groups`
+--
+
+DROP TABLE IF EXISTS `treasure_material_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `treasure_material_groups` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `material_Group` int(10) unsigned NOT NULL COMMENT 'MaterialType Group',
+  `tier` int(10) unsigned NOT NULL COMMENT 'Loot Tier',
+  `probability` float NOT NULL,
+  `material_Id` int(10) unsigned NOT NULL COMMENT 'MaterialType',
+  PRIMARY KEY (`id`),
+  KEY `tier` (`tier`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -653,6 +694,7 @@ CREATE TABLE `treasure_wielded` (
   `unknown_10` int(10) unsigned NOT NULL COMMENT 'Always 0 in cache.bin',
   `unknown_11` int(10) unsigned NOT NULL COMMENT 'Always 0 in cache.bin',
   `unknown_12` int(10) unsigned NOT NULL COMMENT 'Always 0 in cache.bin',
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `treasureType_idx` (`treasure_Type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Wielded Treasure';
@@ -669,6 +711,7 @@ CREATE TABLE `weenie` (
   `class_Id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Weenie Class Id (wcid) / (WCID) / (weenieClassId)',
   `class_Name` varchar(100) NOT NULL COMMENT 'Weenie Class Name (W_????_CLASS)',
   `type` int(5) NOT NULL DEFAULT '0' COMMENT 'WeenieType',
+  `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`class_Id`),
   UNIQUE KEY `className_UNIQUE` (`class_Name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Weenies';
@@ -922,7 +965,7 @@ CREATE TABLE `weenie_properties_emote_action` (
   `min_Dbl` double DEFAULT NULL,
   `max_Dbl` double DEFAULT NULL,
   `stat` int(10) DEFAULT NULL,
-  `display` int(10) DEFAULT NULL,
+  `display` bit(1) DEFAULT NULL,
   `amount` int(10) DEFAULT NULL,
   `amount_64` bigint(10) DEFAULT NULL,
   `hero_X_P_64` bigint(10) DEFAULT NULL,
@@ -1207,4 +1250,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-10-02 13:44:57
+-- Dump completed on 2019-04-29  2:19:18

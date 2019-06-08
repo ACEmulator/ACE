@@ -319,6 +319,11 @@ namespace ACE.Database
             return _wrappedDatabase.GetCharacterByName(name);
         }
 
+        public Character GetCharacterByGuid(uint guid)
+        {
+            return _wrappedDatabase.GetCharacterByGuid(guid);
+        }
+
         public void SaveCharacter(Character character, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>

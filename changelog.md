@@ -1,8 +1,360 @@
 # ACEmulator Change Log
 
+### 2019-06-07
+[Ripley]
+* Wire up EmoteType.CreateTreasure
+* Adjust ItemMagic/SpellType.PortalSummon to use spell.Link instead of spell.Name
+
+### 2019-06-06
+[Ripley]
+* Wire up EmoteType.TeleportTarget
+* Adjust appraisal code for better NpcLooksLikeObject handling.
+
+### 2019-06-03
+[OptimShi]
+* Made a small adjustment to the GetPaletteID function that was, in certain circumstances, returning the wrong palette.
+
+### 2019-06-01
+[Ripley]
+* Disable players putting or merging items into corpses. You can only pull from not push to.
+* Update logging for decay of corpses.
+* Changed Landblock.Tick to not decay on first tick.
+
+### 2019-05-31
+[Ripley]
+* Add more logging info for player corpses.
+* Make sure corpses are saved if created indoors (dungeons).
+* Add ResetSkill and adjust EmoteManager to use it for UntrainSkill.
+
+[gmriggs]
+* Fixed GetDynamicObjectsByLandblock uint/int problem.
+* Adjust Decay for Corpses to ensure Inventory is loaded before decay is allowed to process.
+
+[dirtyelf]
+* Fixed spell IDs for Deception Self 7 / Salvaging Self 7 scrolls
+
+### 2019-05-29
+[dirtyelf]
+* Added percentages for jewelry slot drops,
+* Updated percentages to be easier to modify, cleaned up comments
+* Moved jewelry items to loot tables for easier migration later
+
+[Theran]
+* Added Left-hand Tether and removal wcid and stub recipe for RecipeManager_New format
+* Add Asheron's Island entry portal in Eastham and Asheron's Castle spawns
+* Add Core Plating Integrator and stub recipe for RecipeManager_New format
+* Update ClothingBase of many Isparian weapons
+* Update TsysMutationData of 2 handed weapons
+* Add wcids for Alchemical Throwing Phials and recipes to support those added so far ( code changes are needed to allow the final throwing phials to work correctly, as specified in ACE Issue 1922 :: ACEmulator/ACE#1922 )
+* Various other wcid updates
+
+[Ripley]
+* Added Halls of Metos portal near Zaikhal
+
+### 2019-05-27
+[Ripley]
+* Added database info for RenegadeGenerals.sql
+
+### 2019-05-26
+[Mag-nus]
+* Improved Shard database indexing.
+* Added further stack exploit mitigation and logging.
+
+### 2019-05-26
+[Ripley]
+* Add QuestManager to Fellowship.
+* Add IsLocked to Fellowship.
+* Update QuestManager to support Fellowships for basic quest stamping.
+* Update Fellowship to support locking via emotes. Allow members who were in fellowship at time of lock to rejoin if they get booted from game.
+* Update EmoteManager emotes: InqFellowQuest, LockFellow, StampFellowQuest, UpdateFellowQuest
+* Add `forcelogoff` command.
+* Add `showsession` command.
+* Add log messages to track corpse decay.
+
+[gmriggs]
+* Swapped underlay colors for pierce/slash rends to match retail
+* Fixed AL on loot-generated clothing
+
+### 2019-05-24
+[Ripley]
+* Moved MinimumTimeSincePk change upon PK death to occur before flag changes. This fixes issue with PKs recovering from death being able to attack other recovering PKs.
+* Add type_value_idx to BiotaPropertiesIID table and Rescaffolded.
+
+### 2019-05-23
+[gmriggs, deca]
+* Fixed a bug with negative skill #s and proficiency XP
+
+### 2019-05-22
+[Mag-nus]
+* Added /landblockstats command
+* Improved InboundMessageManager network exception handling
+* Improved Shard query performance when loading landblocks
+
+[dirtyelf]
+* Fixed a bug with IsBusy check for consumables - vtank no longer conumes too much food / drink!
+
+### 2019-05-21
+[OptimShi]
+* Added Dinnerware to Mundane lootgen.
+* Removed Mana Scarabs from lootgen.
+
+[Mag-nus]
+* Monster_Tick profiling additions
+
+### 2019-05-20
+[Ripley]
+* Fix Secure Trade to confirm both parties have enough pack space/burden to accept all items before trade completes.
+
+[deca]
+* Update /listplayers to accept optional accesslevel parameter.
+
+[Mag-nus]
+* Fixed Chest.RegenOnClose issue with generators
+
+### 2019-05-19
+[Ripley]
+* Item Pickup fixes.
+* Updated Green Garnet salvage
+* More Stack Split/Merge fixes.
+
+### 2019-05-18
+[gmriggs]
+* Fixed weapon tailoring
+* Fixed house dungeon portal landblock detection
+
+[KochiroOfHG]
+* Improved Getting Started instructions in Readme
+
+### 2019-05-17
+[Ripley]
+* Apply position corrections for teleports using magic.
+* More Stack Split/Merge fixes.
+
+### 2019-05-16
+[Ripley]
+* Adjust Stack Split/Merge Handling.
+
+[gmriggs]
+* Added vendor dupe prevention
+
+### 2019-05-15
+[gmriggs]
+* Fixed a bug with player giving equipped items to NPCs
+* Fixed a bug with dispels only selecting the top layer
+
+[Mag-nus]
+* Fixed a rare concurrency bug in PlayerManager
+
+### 2019-05-14
+[Theran]
+* Adjustment to loot percentages
+* Added optional assess creature mod w/ release formula
+* Corrected properties on Overlord's Sword
+* Updated numerous creature loot tiers, as per wiki
+
+### 2019-05-13
+[Mag-nus]
+* Added PhysicsObj.Destroy() on AddPhysicsObj failure
+
+### 2019-05-12
+[Mag-nus]
+* Added ObjectMain.ServerObjects.Count to /serverstatus
+
+[Ripley]
+* Add OnGeneration emote handling.
+
+[gmriggs]
+* Fixed some issues with chest regen
+* Updated fellowship death message
+* Added item material to tinkering broadcast message
+* Fixed recipe skill check for pre-MoA skills
+
+[Theran]
+* Updated / consolidated spell assignment in loot generator
+* Fixed house hook items with emotes
+
+[dgarson]
+* Added support for lower armor reduction kit applied to leggings
+
+### 2019-05-11
+[Ripley]
+* Fix issue with `finger` command not showing correct account for character.
+
+[gmriggs]
+* Excluded augs from SkillAlterationDevice spec count
+
+### 2019-05-10
+[Ripley]
+* Change pickup for items to also count as destruction for generators to regenerate. (Branith's Staff linked to a Linkable Monster Generator)
+* Allow the few items incorrectly marked as "Treasure" and not "ContainTreasure" or "Contain" to appear on monster corpses.
+
+[Theran]
+* Improved / refactored Skill XP Rank increases
+
+[Mag-nus]
+* Improve mem leakage by Generators
+
+[dirtyelf]
+* Added more scrolls to loot generator
+
+### 2019-05-09
+[Mag-nus]
+* Fixed concurrency issue in DelayAction
+
+### 2019-05-08
+[dirtyelf]
+* Added some missing spells to drop as scrolls
+
+### 2019-05-07
+[gmriggs]
+* Fixed an AllegianceUpdate packet parsing bug for TreeStats / Decal
+* Updated Fellowship hashtables to match client order
+* Moved Jack Of All Trades aug bonus from Skill.Base to Current
+
+[dgarson]
+* Standardized spells and cantrips for armor pieces
+
+[Theran]
+* Rein in excessive max mana on loot-generated items
+* Cleaning up loot generator system
+
+### 2019-05-06
+[Ripley]
+* Add support to ACE.Adapter to convert ACE weenies to LSD weenies.
+* Updated appearance for Summoning Mastery statues
+
+[Theran]
+* Added new spells and cantrips to loot generator
+* Added emote tables for Summoning Mastery statues in Arwic
+
+### 2019-05-05
+[gmriggs]
+* Fix appraisal display for items with built-in defender spells
+
+[Theran]
+* Updated Heritage masteries to default masteries for retraining
+
+### 2019-05-04
+[Ripley]
+* Update object appraisal code to properly show Wield/Activation Requires lines.
+* Update RecipeManager for Ivory. Recipe in DB already handles mod application correctly.
+
+[gmriggs]
+* Improved trade system to work with additional Decal plugins
+
+[Theran]
+* Updates to summoned creatures
+  - Update Geomancer Golems to match retail stats
+  - Added option for CombatPets to cast spells (disabled by default to match retail)
+
+* Reclassify Shields as WeenieType.Generic and update ValidLocations, for those wcids without correct values for shields
+
+### 2019-05-03
+[Ripley]
+* Add fix up SQL script (2019-05-03-00-Fix_Biota_Jewelry_WeenieType.sql) for existing servers to run to correct jewelry WeenieType on existing items.
+  - This script will only need to be run once and only fixes incorrect objects.
+
+[gmriggs]
+* Fixed a rare bug with damage spikes
+
+### 2019-05-02
+[Theran]
+* Change lvl 8 spell comps from Generic to Stackable
+* Change some Jewelry items from Clothing to Generic
+* Fix Naughty Skeleton Kill Task NPC and mob emotes to match quest in DB
+* Add the seven Geomancer summoning CombatPets
+
+[Ripley]
+* Changed House Warning Messages filter.
+* Set HousePortal destinations based on data from database with fallback to SlumLord.
+* Init House from World DB if not found in Shard DB.
+* Updated House SQL writer.
+* Update CombatPet to not drop loot, not spawn things.
+* Remove Spells, Emotes from CombatPets.
+* Add Pet and CombatPet to IsCreature in WorldDatabase load function.
+* Always Allow ID for Pets.
+* Added StartCooldown to EnchantmentManagerWithCaching.
+
+[OptimShi]
+* Fixed GetFreeInventorySlots() counting packs and foci.
+
+[gmriggs]
+* Excluded combat pets from cleaving damage
+* Fixed extra pack slot aug
+* Fixed ordering of enchantment masks on login
+* Added missing skills to /buff
+* Fixed a bug where summoned creatures would sometimes not spawn
+
+### 2019-05-01
+[Ripley, Theran]
+* Change RecipeManager.ModifyX to fix dye (and other) mods.
+
+[Ripley]
+* Adjust rare generation code to apply expected icon underlay if wrong or missing.
+* Adjust corpse world entry to issue rare alert text/sound after corpse is spawned and not before.
+* Remove all properties from corpse assessment except those seen in pcaps.
+
+[Mag-nus]
+* Reduce Entity Framework biota tracking to only Players. Other objects will be reattached when saved.
+* Release NetworkSession resources when a session drops.
+
+[gmriggs]
+* Updated stack values for death items
+
+### 2019-04-30
+[Theran]
+* Update Tusker Guard loot tier profile to T4, up from T3, to match wiki
+* Add ability to apply Ivory salvage to Attuned items
+
+### 2019-04-29
+[Ripley]
+* Add support for preloading landblock groups (Apartment Landblocks)
+
+[gmriggs]
+* Fixed apartment landblock loading speed
+
+[Theran]
+* Align Scroll loot with wiki
+
+### 2019-04-28
+[Ripley]
+* Fix issue with attuned items being places in packs, packs placed in other containers.
+* Fix double use issue on some containers.
+
+[gmriggs]
+* Fixing recipe mods for keyrings
+* Fixing some combat lockups after healing, particular with vtank + missile
+* Fixing combining older bags of mahogany salvage
+* Elemental damage bonus refactoring (thanks to Harli Quinn)
+* Removing leader from disbanded fellowship
+* More apartment fixes for Empyreans
+* Fixing monster retired skill #s
+
+[Theran]
+* Removed some incorrectly added thrown weapons from loot gen
+* Update Olthoi Swarm mobs for loot tier updates, per wiki
+* Add Tomb Rubble weenie
+
+### 2019-04-27
+[gmriggs]
+* Added possible fix for Mowen portal not spawning - IsBusy reset OnDeath
+* Sorting appraisal properties to better match up with client hashtables
+* Ensuring self spells are never resisted
+* Fixing slippery item drop / rares popping when looted
+
+[Theran]
+* Added Covenant Armor, default Material Type, and thrown weapons to loot
+* Replace leather sleeves with yoroi
+
 ### 2019-04-26
 [Ripley]
 * Add check for RecallsDisabled to command recalls.
+* Add text to corpses that generated rares.
+* Add in use error message for some objects.
+* Update Storage permission error message.
+* Update Healer messags and support Stamina/Mana kits.
+* Update Enchantment Heartbeat to expire 0 duration spells.
+* Swap out Dread Ursuin for Marae Ursuin in PetDevice
 
 ### 2019-04-25
 [Ripley]
@@ -13,17 +365,35 @@
 * Fix giving stackables to NPCs that accept everything (Town Criers, Garbage Barrels)
 * Fix giving or dropping packs with attuned items.
 
+[Theran]
+* Loot refactoring for clothing
+* Set CraftTool weenies mistakenly marked as WeeniType.Generic to WeenieType.CraftTool
+* Move 13 weenie files to new locations
+* Add missing EncumbranceVal to Olthoi Amuli Armor
+* Remove bad keyring recipes
+
 ### 2019-04-24
+[gmriggs]
+* Added GetBlockDist pre-check to IsDirectVisible()
+* Added /ciloot dev command for RNG loot generation factory
+
 [Ripley]
 * Add support for AwardXP emote taking away from available xp (Donatello Linante -> Asheron's Lesser Benediction).
 * Fixes for Give to Player issues: Send contents of a container when given, Return object to giver when it fails to be given.
 * Fix for mis-matched mana on lootgen'd missile weapons.
 * Fix crash on null CurrentMotionState (statues).
+* Fix wonky mana on Missile weapons in LootGen
+
+[fartwhif]
+* Replaced character errors with confirmed list
+* Fixed boot command throwing exception when used at console
+
+[Theran]
+* Fix quest names in San Ming's emote table
+* Fix ClothingPriority on Olthoi Celdon armor
+* Add Donatello Linante
 
 ### 2019-04-23
-[OptimShi]
-* Fixed gems not dropping in loot.
-
 [Ripley]
 * Fix issues with player corpse decay.
 * Add support for IOU trade ins.
@@ -31,11 +401,77 @@
 * Add caster effect to spells that have them.
 * Creatures with loot and NoCorpse will drop their loot to the ground upon death.
 
+[gmriggs]
+* AdjustCells cleanup
+* Fixing spirit essence busy state
+* Updating tinkering message to match retail, adding /cisalvage dev command
+* Fixed a bug with disappearing icon when players give partial stacks
+* Added allegiance name to appraisals
+* Initial fix for item heartbeats
+
+[Theran]
+* Adjust wield requirements and method used
+* Add new Fetish of the Dark Idol recipes for new TOD missile weapons
+* Add 11 salvage recipes
+* Add missing Enhanced Isparian weapon recipes
+* Add/update 42 spells
+* Update/add four landblocks
+* Update Olthoi Larvae body height entires
+
+[Optimshi]
+* Re-added random colors to clothing in loot gen
+* Fixed gems not dropping in loot.
+* Update Gem_MaterialType odds in loot gen
+
+[fartwhif]
+* Sequence validation and negative respose
+
+### 2019-04-22
+[Theran]
+* Update loot generator for light dagger / multistrike
+* Add modified tinkering recipes
+* Update Atlan weenies
+* Add Moina NPC
+* Update two Facility Hub Wardens
+* Add Olthoi Amuli armor weenies
+
+[Mag-nus]
+* Updated DamageHistory to use WeakReference
+
+[gmriggs]
+* Fixed Olthoi Rippers spawning too many ninjas
+* Fixing /hr for some apartments
+
 ### 2019-04-21
 [Ripley]
 * Updated handling of scribe related functions.
+* Fixed more issues with hotspots
+
+[Theran]
+* Add missing Missile DamageMod property for loot gen
+* Mosswart Worshipper Kill Task fix
+* Add missed Void Gem of Enlightenment
+
+[gmriggs]
+* Adding WeakReference option to GfxObjCache
+* Added door opening ability for some newer Olthoi
 
 ### 2019-04-20
+[Theran]
+* Add shirts and pants to loot drop
+* Change weapon damage to be based on wield difficulty, instead of tier number
+* Lower essence drop rate to ~17%
+* Converted many magic numbers to descriptive, enum based values
+
+* Loot tier adjustments and updates from LSD
+  - Adjustments for loot tier 7
+  - Add new skills Gems of Enlightenment
+  - Update new skills Wardens of Enlightenment to issue their gems
+  - Update Enhanced Health Elixir
+  - Add Enhanced Mana Elixir
+  - Add Redspire Portal Gem that uses newer LinkedPortalOne
+  - Update Sanamar Portal Gem to use newer LinkedPortalOne
+
 [OptimShi]
 * Added Treasure Material tables and Treasure Color tables to apply appropriate colors and materials to items in the LootGenerationFactory
 **Note that this update requires _Database/Updates/World/2019-04-20-00-Treasure-Materials.sql_ to be applied, or ACE World Database v0.9.55 or higher**
@@ -53,6 +489,14 @@
 * Prior to update to latest master, re-run `fix-shortcut-bars` and confirm 0 bugged players. If bugged players exist, `git checkout 90c98c76a631382b761b1db49522c16dcf7602de`, follow Stage 1 guide to fix them then continue with update. `git checkout master`
 * Apply patch `2019-04-17-00-Character_Shortcut_Changes.sql` in Shard updates to fix issue with shortcuts causing a save to fail for the character.
 
+[gmriggs]
+* Clamping broadcast range on some recalls
+* Improved monster ReturnHome logic
+* Added /myquests player command, and quest_info_enabled admin option
+* Physics GC cleanup
+* Synced WieldSkillType with WeaponType
+* Fixed bug with players giving equipped items to other players
+
 ### 2019-04-19
 [Ripley, gmriggs]
 * Fix issue with non-player objects activating other non-player objects.
@@ -61,22 +505,96 @@
 **Stage 1 Shortcut Bar Fix**
   - Update to latest master
   - Start ACE and close world using `world close boot`
-    - optionally, you can use `modifybool world_closed true` and restart world as well to ensure no players are connected and online for this process.    
+    - optionally, you can use `modifybool world_closed true` and restart world as well to ensure no players are connected and online for this process.
   - Run `fix-shortcut-bars` command
     - if there are bugged players, issue `fix-shortcut-bars execute` command
   - Once that is finished, world is ready for stage two update. You will probably want to run the above command again just prior to next update to confirm no bugged players exist.
     - if you set world to closed on startup, you can use `modifybool world_closed false` return world to default startup.
 
+[gmriggs]
+* Added more code protection for TOD salvage data
+
+[Theran]
+* Remove PropertyInt 159 from base melee weapon weenies
+* Change Ruschk Iceberg Key from fixed spawn to generator based
+
 ### 2019-04-18
 [Ripley]
 * Fix bug with picking up items from your own corpse, hooks or storage that had quest stamps.
 * Fix bug with naked corpses not appearing correctly.
+* Added null check to Corpse.Open
+* Updated Player.Examine success conditions
+
+[gmriggs]
+* Added busy check for food / consumables
+* Fixed corpse null exception
+* Fixed physics landblock memory leak
+* Added CanAddToInventory / pre-check for Player.Give
+* Fixing summoned portal spawning
+* Fixing equipped item overlap
+
+[Theran]
+* Added missing WieldSkillType to loot generation factory melee weapons
+* Update Soldier 31290 with Attackable false and Soldiers 31290, 70035, and 70036 with AiImmobile true
+* Correct emote text for FH Warden
+* Remove two Encounter table entries, as they cause landscape mob spawns within Fort Tethana and the rebuilt Yanshi
+
+[Mag-nus]
+* Landblock Dormancy after 1 min of no player activity
+* Reduce rogue physics landblocks loaded by portal destination parsing
+* Dispose ShardContext on RemoveBiota
 
 ### 2019-04-16
 [Ripley]
 * Fix bug with IDing items in Trade Window.
 * Fix bug with trade causing receiver to turn to initiator when trade starts.
 * Added rot after 5 minutes to player sold items on vendors.
+
+[gmriggs]
+* Fixed allegiance ranks
+* Send RestrictionDB in order of client hash
+
+### 2019-04-15
+[gmriggs]
+* Fixed some apartment bugs
+* Fixed salvage workmanship bug
+* Removed deprecated skill check formula
+* Fixed player DoT damage history
+* Improved fellowship vital update rate / sync
+* Ensuring BF_OPENABLE flag for inventory containers
+* Fixed AnimationHook and GameActionChatChannel line endings in source repo
+
+[Theran]
+* True up some recipes
+* Fix body part heights of Fiun mobs
+* Add missing Monster Fly Trap weenie
+* Update Collectors with changes posted to LSD on 4/14
+* Update Cave Penguin Egg, per changes posted to LSD on 4/14, and add missing pickup timer
+* Hopefully, sort out Ulgrim's Recall
+
+[Ripley]
+* Update for quest changes
+* Correct name of Starter Area for OlthoiPlay
+
+[Mag-nus]
+* Physics memory related additions
+* Fix session timeout values
+* Network stability improvements
+* Fixing vendor overloads
+
+### 2019-04-14
+[gmriggs]
+* Added support for new recipe formats
+* Added support for broadcasting tinkering result message
+
+[Theran]
+* Update landblocks in Stonehold, Nanto, and Tou-Tou
+* Add Jaffres Dini's spawn data to Sanamar
+* Add Scrivener of the Void to Holtburg, Yaraq, Shoushi, and Sanamar locations
+* Added five quest flags
+* Updated pickup timers for Grael's Rage untranslated texts to align with info on wiki
+* Updated three dungeon entry portals with quest restriction, as specified on portal text
+* Updated three NPCs involved in Grael's Rage quest to stamp and erase quest stamps, as appropriate
 
 ### 2019-04-13
 [Ripley]
@@ -85,45 +603,222 @@
 * Update Crafting SQL Writer, Adapter for above fixes.
 - **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.48 or higher**
 
+[gmriggs]
+* More hotspot / corpse fixes
+* Moved IsBusy check
+* Fixing dispel filters
+* Updating kill tasks in fellowships
+* Further fixes to RestrictionDB
+* Fixed tinkering values with pine and gold material
+* Trajectory Debug.Assert -> return 0
+* Added the ability for any player to loot monster corpses after 2 mins
+* Added logging for player corpses
+
+[Theran]
+* Update Ulgrim the Unpleasant's location to AB
+* Update Ulgrim's Recall scroll
+* Update Tusker Wish statues for MoA skills
+* Revert unintended SetSantuaryPosition change on three Jonathan NPCs
+* Update Flinrala Ryndmad to once again hand out Facility Hub Portal gems
+* Update the Temples of Forgetfulness and Enlightenment
+* Update 10 F&F kill task NPCs from LSD update on 4/12
+* Update Olthoi Slayer and Slasher Carapace and Ripper Spine from LSD update on 4/12
+* Update Caliginous Aegis from LSD update on 4/12
+* Add Jacob's Axe weenie for loot drop by Hard-Headed Skeleton
+* Update Platinum Golem from LSD update on 4/13
+* Add the three Trade Alliance sub quest stub quest registry DB entries
+* Add updated Free Ride to Sanamar spell (3535)
+* Fix SetSanctuaryPosition for Jonathan (29325) for Sanamar Academy instance
+
+### 2019-04-12
+[gmriggs]
+* Fixing RestrictionDB table size
+* Fixing hotspot damage
+* Fixing blank allegiance officer title crash w/ decal
+* Added fellowship sharing to kill tasks
+* Cleaning up log messages for monster-wielded inventory
+
+[Mag-nus]
+* Process inbound GameAction packets in order received
+* Add biota id:name to db exceptions
+
+[fartwhif]
+* Session termination and boot command enhancement
+
+### 2019-04-11
+[gmriggs]
+* Adusting grant level propotional xp
+* Adjusting two-handed stance swapping / slots
+* Added AttributeTransferDevice
+* Updated fellowship to WeakReference<Player>
+* Major refactoring to fellowships to fix concurrency issues
+* Removing slash animation from thrust weapons
+* Added quest restrictions for summoned portals
+* Ensuring impen/bane applies only to enchantable items
+
+[Mag-nus]
+* Fixed network session multithreading
+* MemoryStream.ToArray() -> GetBuffer()
+
+[dgatewood]
+* Updated generated loot values
+
+[Ripley]
+* More fixes for player corpse appearance issue
+
+[Theran]
+* Fix exit portal from Karlun's Hall to remove level restriction
+* Update Marauder Eater to always drop jaw, up from zero chance
+* Update Base of the Timaru Plateau Portal to drop player near the NPC that sends the player to the top of the plateau
+* Update Jonathan's emote table; token is attuned so cannot be lost. NPC doesn't need to reissue token to player
+* Add Mountain Sewer entry portal
+* Fix Void Scriveners attacking
+
 ### 2019-04-10
 [Ripley]
 * Update Crafting SQL Writer.
 * Add in support to ACE.Adapter for converting GDLe recipes.
 * * Apply two more patches in Shard updates to fix issues with certain player appearances causing a save to fail for the corpse.
 
+[Mag-nus]
+* Updated various log messages to Debug level
+* Code cleanup
+
+[gmriggs]
+* Preventing players from deceiving themselves
+* Adding support for non-house owner rent payments
+* Added Lifestone Sending spell
+* Fixed fellowship XP earning distance to be based on distance from XP earner, instead of leader
+
+[Theran]
+* Added some missing spawn maps
+  - Add new Mountain Sewer, new Yanshi town spawns, Keminub, Iaret, and Sacmisi
+
+* Fix reported issue with corpse at the end of the Lugian Ice Tunnels; ActivationResponse was incorrectly set to 1, instead of 2
+* Fix Nullified Statues
+
 ### 2019-04-09
 [Ripley]
 * Fix issue with RealTime generators that have either no StartTime or EndTime set. (eg: Heart of the Innocent Event Gen)
 * Apply patch in Shard updates to fix issue with certain object appearances causing a save to fail for the corpse.
 
+[Mag-nus]
+* Revert MemoryStream ToArray() -> GetBuffer()
+* Fixed GetVariance
+
+[gmriggs]
+* Reduced fizzle mana usage
+
 ### 2019-04-08
+[Mag-nus]
+* Updated Generator.StopConditionsInit and StopConditionsMax log level
+* Updated Generator.AddWorldObjectInternal failures to Debug
+* ProcessPacket performance added to /serverpformance
+* Retry failed shard db queries
+
 [Ripley]
 * Fix PK status for all objects on radar bug.
+* Remove sorting on Generator list
+
+[gmriggs]
+* Fixing landblock adjacency sync / visible objs
+* Fixing temple spec
+* Adding rares to server logs
+
+[Theran]
+* Regen weenies for CreateList
+
+### 2019-04-07
+[gmriggs]
+* More fellowship null checks
+* More allegiance fixes
+* Fixed a bug with with kill tasks
+* Fixed a bug with packet crafting during character creation
+* Updated harm spell text color
+* Updated null spell -> spell.NotFound
+* Ensure cooldown spells aren't evaluated for dispels
+* Fixed a bug with scrolls and vtank
+* Fixed a null crash with CombatPets
+
+[CrimsonMage]
+* Fixed the Mite Queen Staff to drop 1 instead of 250 and 1 Crumbled Note instead of 250.
+
+[Mag-nus]
+* Added SpellbookCache
+
+[Ripley]
+* Updated LSD converter to support enum shifting
+* Fixed an issue with ClassName writer
 
 ### 2019-04-06
 [Ripley]
 * Fix OnDeath crash.
 * Adjusted OnDeath to use LastDamager instead of foreach.
 * Fix tells issue.
+* Updated SummonPortal for Gateways
+
+[gmriggs]
+* Add prevention for from being dropped into / through walls
+* Added support for prismatic arrows
+* Fixed allegiance sync bug
+
+[fartwhif]
+* Moved order-insensitive items earlier in packet processing pipeline
+
+[dgatewood]
+* Added rares to loot system
 
 ### 2019-04-05
 [Ripley]
 * Add support for Barber NPCs.
 
 ### 2019-04-04
+[CrimsonMage]
+* Added Shoichi for Tusker Guard KT to Lin
+
+[gmriggs]
+* Added rollback mitigation for players receiving items from NPCs
+* Updated spell component burn rate, and mana conversion for item spells
+* Updated 2-handed weapon skill check
+* Fixed some situations where multiple deaths could occur at the same time
+
 [Ripley]
 * Fix to prevent multiple death stacking. You can only die one time until you resurrect at lifestone.
 
+[Mag-nus]
+* Save Player Corpses if dropped.count > 0
+* Reject new connections when server shuts down
+
 ### 2019-04-03
+[Slushnas]
+* Fix issue with long chat messages
+
 [Ripley]
 * Add disable_gateway_ties_to_be_summonable configurable option.
+* Update CreateList output to not sort by weenie class id
 
 [Mag-nus]
 * /serverperformance command added. Optional parameters: start, stop, reset
 
+[Theran]
+* First pass for regen of Creature and Vendor weenies for fixing CreateList
+  - Humans, Acid Elementals, Armoredillos, Aun Tumeroks, and Vendors completed
+
 ### 2019-04-02
+[gmriggs]
+* Fixed skill credit refunds for untraining skills in Temple of Forgetfulness
+
+[Mag-nus]
+* Use ServerGarbageCollection instead of Workstation GC
+
 [Ripley]
 * Change the way GiveObjecttoNPC and HandleNPCReceiveItem deal with emotes.
+* Updated Mad Cow event
+
+[Theran]
+* Bump three loot profiles from 4 to, per wiki, as mobs using them should be dropping tier 5 loot
+* Update Gold Golem and Banderling Mauler to tier 5 loot profiles, per wiki, as other mobs still using former loot profile ID should remain as tier 4
+* Remove extra Ianto and Lady of Aerlinthe's Ornate Chest weenies
 
 ### 2019-04-01
 [Ripley]
@@ -131,6 +826,11 @@
 * Add logging to Spell.Init
 * Add warning to players about potential rollback issues when SaveBiota fails.
 * Exclude Cooldowns from HandleMaxVitalUpdate
+
+[gmriggs]
+* Updated UpdateMaxVital for some spells
+* Added more null checks to Fellowships, ConfirmationManager, and GetDeathMessage
+
 
 ### 2019-03-31
 [Ripley]
@@ -555,7 +1255,7 @@
   - Allegiance names
   - Allegiance officers / titles
   - Allegiance message of the day
-  
+
 ### 2019-01-30
 [gmriggs]
 * Fixed a bug where many players were crashing around Holtburg / Town Network
@@ -709,7 +1409,7 @@
 [Ripley]
 * Remove duplicated data from the Spell table in the World Database
   - **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.10 or higher**
-* Renamed a column in Recipe Mods table in the World Database.  
+* Renamed a column in Recipe Mods table in the World Database.
 * Changed Emote.Display column to bool in the Shard and World Databases
 
 ### 2019-01-15
@@ -988,7 +1688,7 @@
 
 [dgatewood]
 * Updated LootGenerationFactory for standardized RNG methods
-  
+
 ### 2018-12-19
 [fartwhif]
 * Improved resiliency for Command parser
@@ -1213,7 +1913,7 @@
 
 ### 2018-11-01
 [Ripley]
-* Update EmoteManager and WorldObject Generator with fixes for Anniversary event emotes. 
+* Update EmoteManager and WorldObject Generator with fixes for Anniversary event emotes.
 
 ### 2018-10-31
 [Mag-nus]
@@ -1249,7 +1949,7 @@
 * Fixed a bug where landblocks were loading equipped items as objects owned by the landblock
 * Fixed a possible crash if invalid object added to landblock
 * Improved object decayable system:
-  - Decayable timer heirarchy now controlled by landblock
+  - Decayable timer hierarchy now controlled by landblock
   - WorldObject_Decay added to manage decay of all decayable objects
   - WorldObject_Database now has functions to determine which static and dynamic objects should be saved to shard db
 * Improved object database persistence system:
@@ -2022,7 +2722,7 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 
 ### 2018-06-23
 [OptimShi]
-* Fixed a bug that left Undead player characters naked, as well as Penumbrean 
+* Fixed a bug that left Undead player characters naked, as well as Penumbrean
 
 ### 2018-06-22
 [gmriggs]
@@ -2180,8 +2880,8 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 * Added New Crafting Tables to World Database.
 * Removed old ace_recipe table.
 * Scaffolded the new tables.
-* Rewired RecipeManager to new data. 
-  - Basic X + Y = Z crafting done. 
+* Rewired RecipeManager to new data.
+  - Basic X + Y = Z crafting done.
   - Dyeing and other object modifications via crafting are not handled properly yet.
 
 [Jyrus]
@@ -2613,7 +3313,7 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 
 ### 2017-11-03
 [ddevec]
-* Change core structure eliminating multi-threading between threads.  
+* Change core structure eliminating multi-threading between threads.
 * Removed ChainOnObject() from landblock, make GetObject() public.
 * Simplified Action code to reflect for new threading model.
 
@@ -2671,7 +3371,7 @@ Thanks to everyone on the ACE development team, and in the Discord development c
   - The current defaults basically point everything to "http://+:8001" which fails to resolve. So the following changes have been made..
   - Changed AuthServer.Url to AuthServer.ListenUrl
   - Added AuthServer.PublicUrl
-  - Typically, you'll leave the AuthServer.ListenUrl to the default, but you'll want to change AuthServer.PublicUrl to either of the following: 
+  - Typically, you'll leave the AuthServer.ListenUrl to the default, but you'll want to change AuthServer.PublicUrl to either of the following:
     * The externally accessible address of the AuthServer so that clients from the internet can authenticate.
     or
     * localhost or the internal lan address so only those inside the local network/local machine can authenticate.
@@ -2705,7 +3405,7 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 
 [Og II]
 * Added processing for contract management add / abandon.
-* Removed update script I added back on 10/14 to fix the burden of the weenie for the MMD note.   This is no lonager needed - use Dereth v0.2.4 or greater the issue has been 
+* Removed update script I added back on 10/14 to fix the burden of the weenie for the MMD note.   This is no lonager needed - use Dereth v0.2.4 or greater the issue has been
 * resolved in the data and the script is no longer needed.
 * Minor code cleanup and improved some method documentation.
 * Added new table to store persisted tracked contracts (quests)
@@ -2750,8 +3450,8 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 
 ### 2017-10-13
 [Og II]
-* Added processing for item inscription. Implemented Set Inscription and Inscription Response messages. 
-* Inscriptions persist to the database and can be removed.  
+* Added processing for item inscription. Implemented Set Inscription and Inscription Response messages.
+* Inscriptions persist to the database and can be removed.
 * Implemented first pass of same inscriber check. Sends error message and does not update the item. This may need to be revisited, I * * thought it blocked you from changing it - not sure if that was a weenie error sent to client - I did not see a fail inscribe in live * pcaps. It does check the inscribable flag and will prevent any pre-inscribed items (quest items with inscriptions from being altered. * Thanks @LtRipley36706 for pointing that out.
 
 ### 2017-10-12
@@ -2787,7 +3487,7 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 [Jyrus]
 * Moved handling of the Portals into the HandleOnCollide method and implemented MoveTo for OnUse for Portals.  Currently, OnUse also queues up portaling
 	via a direct call to Portal.HandleOnCollide, which can be removed when collision is implemented.
-  
+
 [StackOverflow]
 * Added Vendors (Go buy stuff!) - work in progress
 * Added Debug command to give coins.
@@ -2817,7 +3517,7 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 * Fixed bug in universal motion using the TurnToObject
 * Added enum attributes for all of our property enums per Mogwai using the data from OptimShi found here
 * http://ac.yotesfan.com/ace_object/not_used_enums.php
-* WIP need to filer out sending of aceObject properties using this information.   I am stuck on the lambda expression.   
+* WIP need to filer out sending of aceObject properties using this information.   I am stuck on the lambda expression.
 * see line 74 in GameEventPlayerDescription.   Any help appreciated.
 * NOTE: the big gotcha with this is if we have any of the [ServerOnly] attributes set incorrectly, that data will not get sent to the client
 * and if you don't remember that we are filtering by that attribute you will be going what the hell is wrong.   Just an FYI
@@ -2847,13 +3547,13 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 
 ### 2017-09-25
 [Og II]
-* Implemented persisting of wielded items.   
+* Implemented persisting of wielded items.
 * Changed inventory to manage a list of world objects instead of ace objects.   This was needed for sequence issues.
 * fixed combat animation that had been broken for a while due to prior refactoring.
 * fixed moving inventory from container to container with persistances which was broken due to prior refactoring.
 * implemented the response message to send object description.
 * cleaned up so code, aligned enums.
-* TODO.   I have a dirty flag bug that causes issues when you do container to container moves and save.   
+* TODO.   I have a dirty flag bug that causes issues when you do container to container moves and save.
 * Not sure if you want to accept this with a known bug - it has changed a lot and is probably holding others up.
 
 ### 2017-09-20
@@ -2886,7 +3586,7 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 
 ### 2017-09-09
 [Og II]
-* Added verbiage to the readme stating the educational purpose of this project. 
+* Added verbiage to the readme stating the educational purpose of this project.
 
 ### 2017-09-05
 [OptimShi]
@@ -2900,9 +3600,9 @@ Thanks to everyone on the ACE development team, and in the Discord development c
 
 [OptimShi]
 * Added Wave (0x0A...) parsing from the client_portal.dat and a "wave-export" console function to save as a playable .wav file.
-* Added GfxObjDegradeInfo (0x11..) parsing from the client_portal.dat 
-* Added CombatManeuverTable (0x30...) parsing from the client_portal.dat 
-* Added ParticleEmitterInfo (0x32...) parsing from the client_portal.dat 
+* Added GfxObjDegradeInfo (0x11..) parsing from the client_portal.dat
+* Added CombatManeuverTable (0x30...) parsing from the client_portal.dat
+* Added ParticleEmitterInfo (0x32...) parsing from the client_portal.dat
 
 ### 2017-09-01
 [OptimShi]
@@ -2995,16 +3695,16 @@ TODO:
 
 ### 2017-07-30
 [Og II]
-* Added spell bar management and persistence.   This continues the work for learning and persisting spells.   
+* Added spell bar management and persistence.   This continues the work for learning and persisting spells.
 * Cleaned up some of the enum duplication in GameEventPlayerDescription.cs
 * Added some debug code around universal motion.
-* Added some debug asserts in PlayerDescription 
-* To test - use @learnspell to get some spells in your spell book if you do not have any.   They will persist with your character. 
+* Added some debug asserts in PlayerDescription
+* To test - use @learnspell to get some spells in your spell book if you do not have any.   They will persist with your character.
 * You can also unlearn them and they will be removed.
 * Now, drag your spells into any configuration in your spell bars you like.   You can add them, remove them or reorder them.
 * They will be saved on our periodic save, or when you log out or you can force a save with the debug command @save-now.
 * Added table to persist spell bar configuration.
-* That's all for this PR.   
+* That's all for this PR.
 
 ### 2017-07-29
 [Ripley]
@@ -3082,8 +3782,8 @@ TODO:
 * Initial work on combat mode.   System now will move into and out of the correct combat mode depending on what items you have equipped.
 * TODO: There are some edge cases I still need to implement and additional testing.   I would like to get this in so that I do not run into huge merge issues later on.
 * Testing - you can log in - run @weapons after log in.   This will get you various weapons based on weapon type.   You can go into and out of combat mode
-* Melee, missile - both bow and xbow, thrown, sword, UA, two handed as well as dual wield.    I also implemented if you remove your weapon while in combat mode, 
-* you will drop into unarmed.   If you equip an item and you are not in peace mode, you will assume the correct combat mode.   There may be some tweaking needed 
+* Melee, missile - both bow and xbow, thrown, sword, UA, two handed as well as dual wield.    I also implemented if you remove your weapon while in combat mode,
+* you will drop into unarmed.   If you equip an item and you are not in peace mode, you will assume the correct combat mode.   There may be some tweaking needed
 * for changing combat mode in combat mode - I think it did some slower animation - but the basics are in and I can tweak the sequence once I talk to players or If
 * I can find a pcap with that behavior.
 
@@ -3132,17 +3832,17 @@ TODO:
 * Changed some CharGen types that were ushort to uints. (They were short for legacy reasons no longer needed)
 
 [Og II]
-* Initial work on splitting a stackable item.   This is working and in an action chain.   Right now, it is only working for items 
-* in your position.   I need to extend it to work with items in chests and off the ground.   
+* Initial work on splitting a stackable item.   This is working and in an action chain.   Right now, it is only working for items
+* in your position.   I need to extend it to work with items in chests and off the ground.
 * There is some new type of sequence that we need to research and implement.   I put a big todo in the code.
 * I made some posts about getting guid manager going.   We are at a point where we need it.   I modified some of the ranges to make better use
-* of our guid space.   
+* of our guid space.
 * TODO - find out about sequence and then do stack which is the complement function from split.
 
 ### 2017-07-06
 [Ripley]
 * Required ACE-World database version: v0.1.4
-* Rolled in PR #430 from @Lidefeath as starting base. 
+* Rolled in PR #430 from @Lidefeath as starting base.
 * Added generator links table to WorldBase.
 * Made changes to GuidManger and ObjectGuid in an effort to avoid collisions with guids already present in ACE-World. Does not persist or track, resets each server start.
 * Above changes made IsCreature function, and smite works for at least the Sparring Golems found in the Academy, does not seem to work for Drudges in Holtburg.
@@ -3174,9 +3874,9 @@ TODO:
 ### 2017-07-02
 [Og II]
 * Started the removal of DebugObject - NPC's now spawn as creatures and containers now spawn as containers.  Need to finish this work.
-* Appraisal Event is 90% coded.   All stats (int, bool, string, int64, DataId and Double) as sent and coded.   Armor, creature, spell and weapon profiles are 
-* complete.   TODO: Hook profiles and enchantment bitfields as well as base armor status for coverage 
-* Basic infrastructure for the correct motion stance is in place.   Normally I would not have included this WIP code, but it has no negative impact and I started in the wrong 
+* Appraisal Event is 90% coded.   All stats (int, bool, string, int64, DataId and Double) as sent and coded.   Armor, creature, spell and weapon profiles are
+* complete.   TODO: Hook profiles and enchantment bitfields as well as base armor status for coverage
+* Basic infrastructure for the correct motion stance is in place.   Normally I would not have included this WIP code, but it has no negative impact and I started in the wrong
 * branch.   It would be a pain to pull it out.   If possible, I would like to add this as is - with the note that I will complete this next.
 * Fixed issue with the autonomous position flag.   The turned ankle problem is gone.
 
@@ -3213,7 +3913,7 @@ TODO:
 * Completed work on flattening PhysicsData and ModelData
 * Did work to align names of properties on aceObject and WorldObject using unabbreviated names used by the client.
 * Put in comments for aclogviewer names
-* Cleaned up initailization code for various decendants of worldObject.   
+* Cleaned up initailization code for various decendants of worldObject.
 * Cleaned up redundant using statements.
 * Tested all of my pack work, equipping items, item drop and pick up, portal summoning, world portals, ci and cirand as well as The
 * item generator work.   Could not test corpse.
@@ -3221,7 +3921,7 @@ TODO:
 
 [Lidefeath]
 * Added linked generators i.e. a generator can spawn other generators which then spawn objects - theoretically this can go even deeper
-* Added testdata for the linked generators near Holtburg: 
+* Added testdata for the linked generators near Holtburg:
 	- spawn a Drudge Skulker with his generator
 	- spawn a Drudge Camp (3 drudges) with its generator
 	- randomly spawn 10 drudge camp generators in a landblock
@@ -3249,8 +3949,8 @@ TODO:
 * Added the ability to equip items and have it also update your visual appearance.
 * We have some data work to do - finish add clothing table did values
 * Tested - pack to pack, slot to slot, pack to ground, ground to pack, ground to wielded, wielded to ground
-* move packs, move items. 
-* Fixed save character options - this will need to be refactored - our character object needs some work.   
+* move packs, move items.
+* Fixed save character options - this will need to be refactored - our character object needs some work.
 * UI changes still blows up - this fix just addressed the options1 and options2
 * TODO: clothing priority does not look to be right - somethings overlap incorrectly.
 
@@ -3319,7 +4019,7 @@ TODO:
 [ddevec]
 * Fix logoff crash in core/landblock restrucutre due to nulliing a location then
       moving an object
-* Also reintroduced learnspell       
+* Also reintroduced learnspell
 * Major overhaul to core/landblock structure.  Details can be found: (https://github.com/ACEmulator/ACE/pull/398#partial-pull-merging)
 * Added actor/action interface
 * Restrucutred parallelism in WorldManager
@@ -3368,7 +4068,7 @@ TODO:
 * Fixed saving/loading of several AceObject properties.
 
 [Ripley]
-* Made changes to WorldBase and ShardBase scripts to correct issues with landblocks and POIs. 
+* Made changes to WorldBase and ShardBase scripts to correct issues with landblocks and POIs.
 * Changed CachedWordObject to CachedWorldObject.
 * Changed CachedWorldObject.Landblock from ushort to int.
 * Changed CharacterBase and ace_character references to ShardBase and ace_shard in README.
@@ -3427,7 +4127,7 @@ TODO:
 ### 2017-06-12
 [Og II]
 * fixed issue with null exception
-* Added OptimShi code to load the correct player apperiance 
+* Added OptimShi code to load the correct player apperiance
 * Added sending the DataID and InstanceID fields on the player description event.
 * Fixed assorted bugs.
 
@@ -3455,10 +4155,10 @@ TODO:
 
 ### 2017-06-10
 [Og II]
-* Continued work loading character from ace_shard.   Character reaches world now. 
+* Continued work loading character from ace_shard.   Character reaches world now.
 * Fixed a number of null exception errors
 * Outstanding issues:
-* has an orm data load error 
+* has an orm data load error
 * abilities and skills object issue not resolved
 * palette, textures not being read or sent
 
@@ -3471,7 +4171,7 @@ TODO:
 
 ### 2017-06-07
 [Og II]
-* Continued work loading character from ace_shard.   Rebased 
+* Continued work loading character from ace_shard.   Rebased
 * Added cascade delete to all child tables in ace_shard.
 * Completed and tested up to skillz loading.   Made a few changes on the db side for key consistancy.
 * TODO items:
@@ -3486,8 +4186,8 @@ TODO:
 * Tested up to position loading.   Made changes to position, but have not loaded the dictionary yet.
 * Fixed a few bugs - attribute loading had a few.
 * TODO items:
-*	Finish up loading positions then see what is left. 
-*	Work on saving as OptimShi - has character creation ready to go.   
+*	Finish up loading positions then see what is left.
+*	Work on saving as OptimShi - has character creation ready to go.
 
 ### 2017-05-21
 [Og II]
@@ -3498,27 +4198,27 @@ TODO:
 * I would suggest we remearge with the main branch sooner rather than later - we can create another branch to introduce these
 * changes into the character side.
 * TODO items:
-*	Creature spawns need to be refactored - I left them commented out.   We need to ditch seperate tables that we have now, I think all 
+*	Creature spawns need to be refactored - I left them commented out.   We need to ditch seperate tables that we have now, I think all
 *	creature can use what we have now, plus maybe two additional world tables.   Everything else fits into the current schema.
-*	Test Ripley data and update ACE_World.   
-*	Refactor portals - I just left the old way in and faked it out with a view.  
+*	Test Ripley data and update ACE_World.
+*	Refactor portals - I just left the old way in and faked it out with a view.
 *	Once this looks good and stable and we fix any found bugs - we need to clone this over to the character database and start refactoring
-*	That will get us to persisted inventory.   
+*	That will get us to persisted inventory.
 
 ### 2017-05-21
 [Og II]
-* Continued work on Overhaul 
+* Continued work on Overhaul
 * re-enabled more constructed statements
 * Most of the work to use existance of data to set flags for both phyics and weenieHeaderFlags - some cleanup remains - either logic issues or bad data
 * modifed cirand to take an optional second parameter to spawn X items at a time.   This speeds up testing.   I set a default to 10 if you ommit the second parameter.
 * base_ace_object and ace_object both seem to be loading.
 * updated or created several views.
-* have not tested with Ripley's new data export - I did not want to add a second variable to testing.   
+* have not tested with Ripley's new data export - I did not want to add a second variable to testing.
 * Next steps - use Ripley's data, create needed views, re-enable door, portal, NPC --- all the world things.
 
 ### 2017-05-17
 [Og II]
-* Continued work on Overhaul 
+* Continued work on Overhaul
 * Created mapping cross reference file to faciltate docuatation and cleaning up names - work in progress https://goo.gl/eaaNQb
 * Created new database schema for world_object - modified mysqlinstall.bat to refect new baseline
 * created script to ETL old schema to new schema.   I have not included it as we will be refactoring the initial data load to use the new
@@ -3531,7 +4231,7 @@ TODO:
 
 ### 2017-05-12
 [Og II]
-* Started object Overhaul - added explicit values to properties enums.   Minor cleanup.  
+* Started object Overhaul - added explicit values to properties enums.   Minor cleanup.
 
 ### 2017-05-06
 [Og II]
@@ -3661,7 +4361,7 @@ TODO:
 * `@heal` should now work.
 
 [MiachofTD]
-* Added 64 ports in the destination_portal for Gharu towns. 
+* Added 64 ports in the destination_portal for Gharu towns.
 
 ### 2017-04-22
 [OptimShi]
@@ -3772,7 +4472,7 @@ TODO:
 * If a creature is killed - currently only with the smite command - it is removed and a corpse is spawned
 * Enhance GameActionQueue to handle delayed actions, so animations have time to play
 * Define two GameActionTypes for CreateObject and DeleteObject so they can be used with the delayed GameActionQueue
-* Creature Guids now start with 0x90 instead of 0x80 to separate them from items 
+* Creature Guids now start with 0x90 instead of 0x80 to separate them from items
 
 ### 2017-04-13
 [Og II]
@@ -3831,7 +4531,7 @@ TODO:
 
 ### 2017-04-06
 [fantoms]
-* Reversed the logic for distance checking, in the Queued Action code that @Mogwai introduced today on Item Usage for `Landblocks` owned Lifestones. 
+* Reversed the logic for distance checking, in the Queued Action code that @Mogwai introduced today on Item Usage for `Landblocks` owned Lifestones.
 * Changed the Lifestone usage text to be `Light Blue`.
 * Added `YourDeath` GameEvent.
 * Added `Die` GameAction.
@@ -3857,7 +4557,7 @@ TODO:
 * Updated comments on PostionTypes from @ogmage78's lifestonetie branch.
 * Added GameAction for `TeleToLifestone` and `UseItem`.
 * Added GameEvent for `UseDone` and `TeleToLifestone` allowing @ls or @lifestone commands to work.
-* Added lifestone binding capabilities. 
+* Added lifestone binding capabilities.
 * Added data to the Character position that comes from the client in `GameActionMoveToState` and set the `Location` position type.
 
 [Lidefeath]

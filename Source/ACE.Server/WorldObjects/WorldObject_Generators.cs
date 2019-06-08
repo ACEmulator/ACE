@@ -393,6 +393,9 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
+            //if (!GeneratorEnteredWorld)
+            //    armed = true;
+
             if (armed)
             {
                 //var prevState = GeneratorDisabled;
@@ -440,8 +443,10 @@ namespace ACE.Server.WorldObjects
                     {
                         foreach (var rNode in generator.Spawned.Values)
                         {
-                            if (rNode.WorldObject is Creature wo)
-                                wo.Smite(this);
+                            var wo = rNode.TryGetWorldObject();
+
+                            if (wo is Creature creature)
+                                creature.Smite(this);
                         }
 
                         generator.Spawned.Clear();
@@ -456,7 +461,12 @@ namespace ACE.Server.WorldObjects
                     foreach (var generator in GeneratorProfiles)
                     {
                         foreach (var rNode in generator.Spawned.Values)
-                            rNode.WorldObject.Destroy();
+                        {
+                            var wo = rNode.TryGetWorldObject();
+
+                            if (wo != null)
+                                wo.Destroy();
+                        }
 
                         generator.Spawned.Clear();
                         generator.SpawnQueue.Clear();
@@ -522,7 +532,8 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Called every ~5 seconds for object generators
+        /// Called every [RegenerationInterval] seconds<para />
+        /// Also called from EmoteManager, Chest.Reset(), WorldObject.OnGenerate()
         /// </summary>
         public void Generator_HeartBeat()
         {
@@ -530,6 +541,9 @@ namespace ACE.Server.WorldObjects
 
             if (!FirstEnterWorldDone)
                 FirstEnterWorldDone = true;
+
+            foreach (var generator in GeneratorProfiles)
+                generator.Maintenance_HeartBeat();
 
             CheckGeneratorStatus();
 
@@ -552,7 +566,7 @@ namespace ACE.Server.WorldObjects
             }
 
             foreach (var generator in GeneratorProfiles)
-                generator.HeartBeat();
+                generator.Spawn_HeartBeat();
         }
     }
 }

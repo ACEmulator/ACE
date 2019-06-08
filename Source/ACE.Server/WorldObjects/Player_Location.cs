@@ -33,7 +33,10 @@ namespace ACE.Server.WorldObjects
 
             if (position != null)
             {
-                Teleport(position);
+                var teleportDest = new Position(position);
+                AdjustDungeon(teleportDest);
+
+                Teleport(teleportDest);
                 return true;
             }
 
@@ -89,7 +92,8 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Teleport(House.SlumLord.Location);
+                if (House != null)
+                    Teleport(House.SlumLord.Location);
             });
 
             actionChain.EnqueueChain();
@@ -237,7 +241,8 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Teleport(Allegiance.Sanctuary);
+                if (Allegiance != null)
+                    Teleport(Allegiance.Sanctuary);
             });
 
             actionChain.EnqueueChain();
@@ -321,7 +326,8 @@ namespace ACE.Server.WorldObjects
         public void Teleport(Position _newPosition)
         {
             var newPosition = new Position(_newPosition);
-            newPosition.PositionZ += 0.005f;
+            //newPosition.PositionZ += 0.005f;
+            newPosition.PositionZ += 0.005f * (ObjScale ?? 1.0f);
 
             //Console.WriteLine($"{Name}.Teleport() - Sending to {newPosition.ToLOCString()}");
 

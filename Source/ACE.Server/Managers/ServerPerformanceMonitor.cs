@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 using ACE.Common;
@@ -14,11 +15,11 @@ namespace ACE.Server.Managers
         {
             // These are all found in WorldManager.UpdateWorld()
             PlayerManager_Tick,
-            InboundClientMessageQueueRun,
+            NetworkManager_InboundClientMessageQueueRun,
             actionQueue_RunActions,
             DelayManager_RunActions,
             UpdateGameWorld,
-            DoSessionWork,
+            NetworkManager_DoSessionWork,
 
             // These are all found in WorldManager.UpdateGameWorld()
             UpdateGameWorld_Entire,
@@ -35,16 +36,38 @@ namespace ACE.Server.Managers
             Landblock_Tick_Heartbeat,
             Landblock_Tick_Database_Save,
 
-            // These are all found in WorldManager.DoSessionWork()
+            // These are all found in various places and are cumulative per Landblock_Tick
+            Monster_Awareness_FindNextTarget,
+            Monster_Navigation_UpdatePosition_PUO,
+
+            // These are all found in NetworkManager.DoSessionWork()
             DoSessionWork_TickOutbound,
             DoSessionWork_RemoveSessions,
 
-            // These are all found in WorldManager.ProcessPacket()
+            // These are all found in NetworkManager.ProcessPacket()
             ProcessPacket_0,
             ProcessPacket_1,
 
             MonitorMaxItems // Keep this at the end to properly size our monitors array
         }
+
+        /// <summary>
+        /// These are monitors that are resumed/paused many times over the course of a single game loop (WorldManager.UpdateGameWorld)<para />
+        /// Their purpose is to give a performance value for a system and all the work it may process in a single loop (WorldManager.UpdateGameWorld).
+        /// </summary>
+        private static readonly HashSet<MonitorType> cumulativeMonitorTypes = new HashSet<MonitorType>
+        {
+            MonitorType.Landblock_Tick_RunActions,
+            MonitorType.Landblock_Tick_Player_Tick,
+            MonitorType.Landblock_Tick_Monster_Tick,
+            MonitorType.Landblock_Tick_WorldObject_Heartbeat,
+            MonitorType.Landblock_Tick_GeneratorHeartbeat,
+            MonitorType.Landblock_Tick_Heartbeat,
+            MonitorType.Landblock_Tick_Database_Save,
+
+            MonitorType.Monster_Awareness_FindNextTarget,
+            MonitorType.Monster_Navigation_UpdatePosition_PUO,
+        };
 
         private static readonly RateMonitor[] monitors5m = new RateMonitor[(int)MonitorType.MonitorMaxItems];
         private static readonly RateMonitor[] monitors1h = new RateMonitor[(int)MonitorType.MonitorMaxItems];
@@ -153,11 +176,11 @@ namespace ACE.Server.Managers
             // Reset cumulative monitors
             if (monitorType == MonitorType.UpdateGameWorld_Entire)
             {
-                for (int i = (int) MonitorType.Landblock_Tick_RunActions; i <= (int) MonitorType.Landblock_Tick_Database_Save; i++)
+                foreach (var entry in cumulativeMonitorTypes)
                 {
-                    monitors5m[i].ResetEvent();
-                    monitors1h[i].ResetEvent();
-                    monitors24h[i].ResetEvent();
+                    monitors5m[(int)entry].ResetEvent();
+                    monitors1h[(int)entry].ResetEvent();
+                    monitors24h[(int)entry].ResetEvent();
                 }
             }
         }
@@ -174,11 +197,11 @@ namespace ACE.Server.Managers
             // Register end for cumulative monitors
             if (monitorType == MonitorType.UpdateGameWorld_Entire)
             {
-                for (int i = (int)MonitorType.Landblock_Tick_RunActions; i <= (int)MonitorType.Landblock_Tick_Database_Save; i++)
+                foreach (var entry in cumulativeMonitorTypes)
                 {
-                    monitors5m[i].RegisterEventEnd();
-                    monitors1h[i].RegisterEventEnd();
-                    monitors24h[i].RegisterEventEnd();
+                    monitors5m[(int)entry].RegisterEventEnd();
+                    monitors1h[(int)entry].RegisterEventEnd();
+                    monitors24h[(int)entry].RegisterEventEnd();
                 }
             }
         }
@@ -229,7 +252,7 @@ namespace ACE.Server.Managers
             sb.Append($"~5m Hits   Avg  Long  Last Tot - ~1h Hits   Avg  Long  Last  Tot - ~24h Hits  Avg  Long  Last   Tot (s) - Name{'\n'}");
 
             sb.Append($"Calls from WorldManager.UpdateWorld(){'\n'}");
-            for (int i = (int)MonitorType.PlayerManager_Tick; i <= (int)MonitorType.DoSessionWork; i++)
+            for (int i = (int)MonitorType.PlayerManager_Tick; i <= (int)MonitorType.NetworkManager_DoSessionWork; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
             sb.Append($"WorldManager.UpdateGameWorld() time not including throttled returns{'\n'}");
@@ -243,11 +266,15 @@ namespace ACE.Server.Managers
             for (int i = (int)MonitorType.Landblock_Tick_RunActions; i <= (int)MonitorType.Landblock_Tick_Database_Save; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
-            sb.Append($"Calls from WorldManager.DoSessionWork(){'\n'}");
+            sb.Append($"Calls from Landblock.Tick() - Misc - Cumulative over a single UpdateGameWorld Tick{'\n'}");
+            for (int i = (int)MonitorType.Monster_Awareness_FindNextTarget; i <= (int)MonitorType.Monster_Navigation_UpdatePosition_PUO; i++)
+                AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
+
+            sb.Append($"Calls from NetworkManager.DoSessionWork(){'\n'}");
             for (int i = (int)MonitorType.DoSessionWork_TickOutbound; i <= (int)MonitorType.DoSessionWork_RemoveSessions; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
-            sb.Append($"Calls from WorldManager.ProcessPacket(){'\n'}");
+            sb.Append($"Calls from NetworkManager.ProcessPacket(){'\n'}");
             for (int i = (int)MonitorType.ProcessPacket_0; i <= (int)MonitorType.ProcessPacket_1; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 

@@ -7,6 +7,8 @@ namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventFellowshipFullUpdate : GameEventMessage
     {
+        public static FellowComparer FellowComparer = new FellowComparer();
+
         public GameEventFellowshipFullUpdate(Session session)
             : base(GameEventType.FellowshipFullUpdate, GameMessageGroup.UIQueue, session)
         {
@@ -26,11 +28,11 @@ namespace ACE.Server.Network.GameEvent.Events
             #region PackableHashTable of fellowship table - <ObjectID,Fellow>
             // the current number of fellowship members
             Writer.Write((ushort)fellowship.FellowshipMembers.Count); //count - number of items in the table
-            Writer.Write((ushort)16);    // static table size from retail pcaps
+            Writer.Write(FellowComparer.TableSize);    // static table size from retail pcaps
 
             // --- FellowInfo ---
 
-            var fellowshipMembers = new SortedDictionary<uint, Player>(fellowship.GetFellowshipMembers());
+            var fellowshipMembers = new SortedDictionary<uint, Player>(fellowship.GetFellowshipMembers(), FellowComparer);
             foreach (Player fellow in fellowshipMembers.Values)
             {
                 // Write data associated with each fellowship member
@@ -44,7 +46,7 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(Convert.ToUInt32(fellowship.EvenShare));
             Writer.Write(Convert.ToUInt32(fellowship.Open));
 
-            Writer.Write(Convert.ToUInt32(false)); //TODO: locked
+            Writer.Write(Convert.ToUInt32(fellowship.IsLocked));
 
             // TODO PackableHashTable of fellows departed - fellowsDeparted  -<ObjectID,int>
             Writer.Write((uint)0x00200000);
@@ -72,6 +74,24 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write((uint)0x10); // TODO: shareLoot - if 0 then noSharePhatLoot, if 16(0x0010) then sharePhatLoot
 
             Writer.WriteString16L(fellow.Name);
+        }
+    }
+
+    public class FellowComparer : IComparer<uint>
+    {
+        public static ushort TableSize = 16;
+
+        public int Compare(uint a, uint b)
+        {
+            var keyA = a % TableSize;
+            var keyB = b % TableSize;
+
+            var result = keyA.CompareTo(keyB);
+
+            if (result == 0)
+                result = a.CompareTo(b);
+
+            return result;
         }
     }
 }
