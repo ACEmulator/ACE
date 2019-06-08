@@ -1492,44 +1492,79 @@ namespace ACE.Server.Command.Handlers
             session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Level, 999));
             session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(session.Player, PropertyInt64.TotalExperience, 191226310247));
 
-            // do not trian these
-            // none, axe, bow, xbow, dagger, mace, sling, spear, staff, sword, thrown, ua, spellcraft, awareness, armsandarmorrepair, gearcraft, challenge
-            int[] retiredSkills = { 0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 17, 25, 26, 42, 53 };
-
-            foreach (Skill s in Enum.GetValues(typeof(Skill)))
+            foreach (var s in session.Player.Skills)
             {
-                if (retiredSkills.Contains((int)s))
-                {
-                    continue;
-                }
-                session.Player.TrainSkill(s, 0);
-                session.Player.SpecializeSkill(s, 0);
-                var playerSkill = session.Player.Skills[s];
+                session.Player.TrainSkill(s.Key, 0);
+                session.Player.SpecializeSkill(s.Key, 0);
+                var playerSkill = session.Player.Skills[s.Key];
                 playerSkill.Ranks = 226;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s, playerSkill.AdvancementClass, playerSkill.Ranks, 1000, 0));
+                playerSkill.ExperienceSpent = 4100490438u;
+                playerSkill.InitLevel = 5000;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
             }
 
-            foreach (PropertyAttribute p in Enum.GetValues(typeof(PropertyAttribute)))
+            //// do not trian these
+            //// none, axe, bow, xbow, dagger, mace, sling, spear, staff, sword, thrown, ua, spellcraft, awareness, armsandarmorrepair, gearcraft, challenge
+            //int[] retiredSkills = { 0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 17, 25, 26, 42, 53 };
+
+            //foreach (Skill s in Enum.GetValues(typeof(Skill)))
+            //{
+            //    if (retiredSkills.Contains((int)s))
+            //    {
+            //        continue;
+            //    }
+            //    session.Player.TrainSkill(s, 0);
+            //    session.Player.SpecializeSkill(s, 0);
+            //    var playerSkill = session.Player.Skills[s];
+            //    playerSkill.Ranks = 226;
+            //    playerSkill.ExperienceSpent = 4100490438u;
+            //    playerSkill.InitLevel = 5000;
+            //    session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
+            //}
+
+            //foreach (PropertyAttribute p in Enum.GetValues(typeof(PropertyAttribute)))
+            //{
+            //    if (p == PropertyAttribute.Undef)
+            //    {
+            //        continue;
+            //    }
+            //    var playerAttr = session.Player.Attributes[p];
+            //    playerAttr.StartingValue = 9809u;
+            //    playerAttr.Ranks = 190u;
+            //    playerAttr.ExperienceSpent = 4019438644u;
+            //    session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, p, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+            //}
+
+            foreach (var a in session.Player.Attributes)
             {
-                if (p == PropertyAttribute.Undef)
-                {
-                    continue;
-                }
-                var playerAttr = session.Player.Attributes[p];
-                playerAttr.StartingValue = 9999;
-                playerAttr.Ranks = 190;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, p, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                var playerAttr = session.Player.Attributes[a.Key];
+                playerAttr.StartingValue = 9809u;
+                playerAttr.Ranks = 190u;
+                playerAttr.ExperienceSpent = 4019438644u;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, a.Key, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
             }
 
-            foreach (PropertyAttribute2nd v in Enum.GetValues(typeof(PropertyAttribute2nd)))
+            //session.Player.SetMaxVitals();
+
+            //foreach (PropertyAttribute2nd v in Enum.GetValues(typeof(PropertyAttribute2nd)))
+            //{
+            //    if (v != PropertyAttribute2nd.MaxHealth || v != PropertyAttribute2nd.MaxStamina || v != PropertyAttribute2nd.MaxMana)
+            //    {
+            //        continue;
+            //    }
+            //    var playerVital = session.Player.Vitals[v];
+            //    playerVital.Ranks = 196u;
+            //    playerVital.ExperienceSpent = 4285430197u;
+            //    session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+            //}
+
+            foreach (var v in session.Player.Vitals)
             {
-                if (v != PropertyAttribute2nd.MaxHealth || v != PropertyAttribute2nd.MaxStamina || v != PropertyAttribute2nd.MaxMana)
-                {
-                    continue;
-                }
-                var playerVital = session.Player.Vitals[v];
-                playerVital.Ranks = 196;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, session.Player.Vitals[v].Current));
+                var playerVital = session.Player.Vitals[v.Key];
+                playerVital.Ranks = 196u;
+                playerVital.ExperienceSpent = 4285430197u;
+                playerVital.StartingValue = 4804u;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
             }
 
             session.Player.SetMaxVitals();
@@ -1537,11 +1572,9 @@ namespace ACE.Server.Command.Handlers
             session.Player.PlayParticleEffect(PlayScript.LevelUp, session.Player.Guid);
             session.Player.PlayParticleEffect(PlayScript.BaelZharonSmite, session.Player.Guid);
 
-            // output: You are now a god!
-
-            ChatPacket.SendServerMessage(session, "You are now a god!", ChatMessageType.Broadcast);
-
             ChatPacket.SendServerMessage(session, $"{session.Player.Name} is now a god!", ChatMessageType.WorldBroadcast);
+
+            session.Player.SaveCharacterToDatabase();
         }
 
         // magic god
