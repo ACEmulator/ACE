@@ -414,6 +414,7 @@ namespace ACE.Server.Entity
             info += $"PowerMod: {PowerMod}\n";
             info += $"SlayerMod: {SlayerMod}\n";
             info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
+            info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
 
             // damage ratings
             if (!(Defender is Player))
