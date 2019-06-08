@@ -133,31 +133,42 @@ namespace ACE.Server.WorldObjects
 
                     if (rng < probability || probability == -1)
                     {
-                        if (profile.Biota.WeenieClassId > 0)
+                        if (!profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
                         {
-                            var profileSpawn = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(profile.Biota.WeenieClassId), new ACE.Entity.ObjectGuid(0));
-                            if (profileSpawn != null)
+                            if (profile.Biota.WeenieClassId > 0)
                             {
-                                //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profileSpawn.Name: {profileSpawn.Name} | profileSpawn.IsGenerator: {profileSpawn.IsGenerator}");
-                                if (profileSpawn.IsGenerator && !(profileSpawn.WeenieType == WeenieType.Container || profileSpawn.WeenieType == WeenieType.Chest) && profileSpawn.InitCreate > 1)
+                                //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId}");
+                                var profileSpawn = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(profile.Biota.WeenieClassId), new ACE.Entity.ObjectGuid(0));
+                                if (profileSpawn != null)
                                 {
-                                    if (!campSpawned)
+                                    //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profileSpawn.Name: {profileSpawn.Name} | profileSpawn.IsGenerator: {profileSpawn.IsGenerator}");
+                                    if (profileSpawn.IsGenerator && !(profileSpawn.WeenieType == WeenieType.Container || profileSpawn.WeenieType == WeenieType.Chest) && profileSpawn.InitCreate > 1)
                                     {
-                                        profile.Enqueue(1);
-                                        CurrentCreate = MaxCreate;
-                                        campSpawned = true;
-                                        //return;
+                                        if (!campSpawned)
+                                        {
+                                            profile.Enqueue(1);
+                                            CurrentCreate = MaxCreate;
+                                            campSpawned = true;
+                                            //return;
+                                        }
+                                        else
+                                            continue;
                                     }
                                     else
-                                        continue;
-                                }
-                                else
-                                {
-                                    //var numObjects = GetMaxObjects(profile);
-                                    var numObjects = GetRNGInitToMaxObjects(profile);
-                                    profile.Enqueue(numObjects);
+                                    {
+                                        //var numObjects = GetMaxObjects(profile);
+                                        var numObjects = GetRNGInitToMaxObjects(profile);
+                                        profile.Enqueue(numObjects);
+                                    }
                                 }
                             }
+                        }
+                        else
+                        {
+                            //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profile.RegenLocationType = {profile.RegenLocationType.ToString()}");
+                            //var numObjects = GetInitObjects(profile);
+                            var numObjects = GetRNGInitToMaxObjects(profile);
+                            profile.Enqueue(numObjects);
                         }
 
                         //var rng_str = probability == -1 ? "" : "RNG ";
