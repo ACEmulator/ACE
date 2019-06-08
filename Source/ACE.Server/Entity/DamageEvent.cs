@@ -406,15 +406,18 @@ namespace ACE.Server.Entity
             }
 
             // base damage
-            info += $"BaseDamageRange: {BaseDamageMod.Range}\n";
+            if (BaseDamageMod != null)
+                info += $"BaseDamageRange: {BaseDamageMod.Range}\n";
             info += $"BaseDamage: {BaseDamage}\n";
 
             // damage modifiers
             info += $"AttributeMod: {AttributeMod}\n";
             info += $"PowerMod: {PowerMod}\n";
             info += $"SlayerMod: {SlayerMod}\n";
-            info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
-            info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
+            if (BaseDamageMod != null)
+                info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
+            if (BaseDamageMod != null)
+                info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
 
             // damage ratings
             if (!(Defender is Player))
