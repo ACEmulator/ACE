@@ -423,6 +423,9 @@ namespace ACE.Server.Network.Structure
             ArmorLevels = new ArmorLevel(creature);
 
             AddRatings(creature);
+
+            if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
+                PropertiesInt.Remove(PropertyInt.EncumbranceVal);
         }
 
         private void AddRatings(Creature creature)
@@ -533,14 +536,7 @@ namespace ACE.Server.Network.Structure
             if (PropertiesInt.Count > 0)
                 Flags |= IdentifyResponseFlags.IntStatsTable;
             if (PropertiesInt64.Count > 0)
-                Flags |= IdentifyResponseFlags.Int64StatsTable;
-            if (SpellBook.Count > 0)
-                Flags |= IdentifyResponseFlags.SpellBook;
-            if (ResistHighlight != 0)
-                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
-            
-			if (NPCLooksLikeObject) return;
-				
+                Flags |= IdentifyResponseFlags.Int64StatsTable;         				
 			if (PropertiesBool.Count > 0)
                 Flags |= IdentifyResponseFlags.BoolStatsTable;
             if (PropertiesFloat.Count > 0)
@@ -549,9 +545,14 @@ namespace ACE.Server.Network.Structure
                 Flags |= IdentifyResponseFlags.StringStatsTable;
             if (PropertiesDID.Count > 0)
                 Flags |= IdentifyResponseFlags.DidStatsTable;
+            if (SpellBook.Count > 0)
+                Flags |= IdentifyResponseFlags.SpellBook;
+
+            if (ResistHighlight != 0)
+                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
             if (ArmorProfile != null)
                 Flags |= IdentifyResponseFlags.ArmorProfile;
-            if (CreatureProfile != null)
+            if (CreatureProfile != null && !NPCLooksLikeObject)
                 Flags |= IdentifyResponseFlags.CreatureProfile;
             if (WeaponProfile != null)
                 Flags |= IdentifyResponseFlags.WeaponProfile;
