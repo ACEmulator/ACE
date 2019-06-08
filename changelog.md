@@ -3,6 +3,7 @@
 ### 2019-06-07
 [Ripley]
 * Wire up EmoteType.CreateTreasure
+* Adjust ItemMagic/SpellType.PortalSummon to use spell.Link instead of spell.Name
 
 ### 2019-06-06
 [Ripley]

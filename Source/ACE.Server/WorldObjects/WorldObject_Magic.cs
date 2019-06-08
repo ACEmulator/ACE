@@ -910,7 +910,10 @@ namespace ACE.Server.WorldObjects
                         uint portalId = 0;
                         bool linkSummoned;
 
-                        if (spell.Name.Contains("Primary"))
+                        // spell.link = 1 = LinkedPortalOneDID
+                        // spell.link = 2 = LinkedPortalTwoDID
+
+                        if (spell.Link <= 1)
                         {
                             portalId = source.LinkedPortalOneDID ?? 0;
                             linkSummoned = source.GetProperty(PropertyBool.LinkedPortalOneSummon) ?? false;
