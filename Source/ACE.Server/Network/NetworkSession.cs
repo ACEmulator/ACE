@@ -581,7 +581,7 @@ namespace ACE.Server.Network
                     packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
                 packet.Header.Id = ServerId;
                 packet.Header.Iteration = 0x14;
-                packet.Header.Time = (ushort)ConnectionData.ServerTime;
+                packet.Header.Time = (ushort)Timers.PortalYearTicks;
 
                 if (packet.Header.Sequence >= 2u)
                     cachedPackets.TryAdd(packet.Header.Sequence, packet);
@@ -778,9 +778,9 @@ namespace ACE.Server.Network
             if (bundle.TimeSync) // 0x1000000
             {
                 packetHeader.Flags |= PacketHeaderFlags.TimeSync;
-                packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, ConnectionData.ServerTime);
+                packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, Timers.PortalYearTicks);
                 packet.InitializeBodyWriter();
-                packet.BodyWriter.Write(ConnectionData.ServerTime);
+                packet.BodyWriter.Write(Timers.PortalYearTicks);
             }
 
             if (bundle.ClientTime != -1f) // 0x4000000
@@ -789,7 +789,7 @@ namespace ACE.Server.Network
                 packetLog.DebugFormat("[{0}] Outgoing EchoResponse: {1}", session.LoggingIdentifier, bundle.ClientTime);
                 packet.InitializeBodyWriter();
                 packet.BodyWriter.Write(bundle.ClientTime);
-                packet.BodyWriter.Write((float)ConnectionData.ServerTime - bundle.ClientTime);
+                packet.BodyWriter.Write((float)Timers.PortalYearTicks - bundle.ClientTime);
             }
         }
 
