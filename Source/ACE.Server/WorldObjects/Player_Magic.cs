@@ -353,6 +353,16 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (!isWeaponSpell)
+            {
+                if (!HasComponentsForSpell(spell))
+                {
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.YouDontHaveAllTheComponents));
+                    IsBusy = false;  // delay?
+                    return;
+                }
+            }
+
             var difficulty = spell.Power;
 
             // is this needed? should talismans remain the same, regardless of player spell formula?
@@ -736,6 +746,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!HasComponentsForSpell(spell))
+            {
+                Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.YouDontHaveAllTheComponents));
+                IsBusy = false;  // delay?
+                return;
+            }
+
             // Grab player's skill level in the spell's Magic School
             var magicSkill = GetCreatureSkill(spell.School).Current;
 
@@ -1102,6 +1119,54 @@ namespace ACE.Server.WorldObjects
             // send message to player
             var msg = Spell.GetConsumeString(burned);
             Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
+        }
+
+        public bool HasComponentsForSpell(Spell spell)
+        {
+            if (!SpellComponentsRequired) return true;
+
+            spell.Formula.GetPlayerFormula(this);
+
+            var requiredComps = spell.Formula.CurrentFormula;
+            if (requiredComps.Count == 0) return true;
+
+            var usedComps = new Dictionary<uint, int>();
+
+            // check spell components
+            foreach (var component in requiredComps)
+            {
+                if (!SpellFormula.SpellComponentsTable.SpellComponents.TryGetValue(component, out var spellComponent))
+                {
+                    Console.WriteLine($"{Name}.HasComponentsForSpell(): Couldn't find SpellComponent {component}");
+                    continue;
+                }
+
+                var wcid = Spell.GetComponentWCID(component);
+                if (wcid == 0) continue;
+
+                var item = GetInventoryItemsOfWCID(wcid).FirstOrDefault();
+                if (item == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    if (usedComps.ContainsKey(component))
+                    {
+                        usedComps[component]++;
+                        var compAmountRequired = usedComps[component];
+                        var compAmountAvailable = GetNumInventoryItemsOfWCID(wcid);
+                        if (compAmountRequired > compAmountAvailable)
+                            return false;
+                    }
+                    else
+                    {
+                        usedComps.Add(component, 1);
+                    }
+                }
+            }
+
+            return true;
         }
 
         public static Dictionary<MagicSchool, uint> FociWCIDs = new Dictionary<MagicSchool, uint>()
