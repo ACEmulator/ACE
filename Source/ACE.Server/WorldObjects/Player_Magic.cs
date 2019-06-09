@@ -1171,7 +1171,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var component in usedComps)
             {
-                var compAmountRequired = usedComps[component.Key];
+                var compAmountRequired = component.Value;
                 var compWcid = wcidComps[component.Key];
                 var compAmountAvailable = GetNumInventoryItemsOfWCID(compWcid);
                 if (compAmountRequired > compAmountAvailable)
