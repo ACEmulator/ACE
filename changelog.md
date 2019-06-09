@@ -3,7 +3,7 @@
 ### 2019-06-09
 [Ripley]
 * Prevent using contained Container (R keybind).
-* Add Do nothing stub to Generic weenie class
+* Add Do nothing stub to Generic weenie class.
 
 ### 2019-06-08
 [Ripley]
