@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 
 using ACE.Common.Cryptography;
-using ACE.Server.Managers;
+using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.Handlers;
@@ -57,6 +57,13 @@ namespace ACE.Server.Network
         /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick)
         /// </summary>
         private readonly ConcurrentDictionary<uint /*seq*/, ServerPacket> cachedPackets = new ConcurrentDictionary<uint /*seq*/, ServerPacket>();
+
+        private static readonly TimeSpan cachedPacketPruneInterval = TimeSpan.FromSeconds(5);
+        private DateTime lastCachedPacketPruneTime;
+        /// <summary>
+        /// Number of seconds to retain cachedPackets
+        /// </summary>
+        private const int cachedPacketRetentionTime = 60;
 
         /// <summary>
         /// This is referenced by multiple thread:<para />
@@ -143,12 +150,16 @@ namespace ACE.Server.Network
         }
 
         /// <summary>
+        /// Prunes the cachedPackets dictionary
         /// Checks if we should send the current bundle and then flushes all pending packets.
         /// </summary>
         public void Update()
         {
             if (isReleased) // Session has been removed
                 return;
+
+            if (DateTime.UtcNow - lastCachedPacketPruneTime > cachedPacketPruneInterval)
+                PruneCachedPackets();
 
             for (int i = 0; i < currentBundles.Length; i++)
             {
@@ -209,6 +220,22 @@ namespace ACE.Server.Network
             }
 
             FlushPackets();
+        }
+
+        private void PruneCachedPackets()
+        {
+            lastCachedPacketPruneTime = DateTime.UtcNow;
+
+            var removalList = cachedPackets.Where(x => Math.Abs(x.Value.Header.Time - (ushort)Timers.PortalYearTicks) > cachedPacketRetentionTime);
+
+            foreach (var item in removalList)
+            {
+                if (cachedPackets.TryRemove(item.Key, out var removedPacket))
+                {
+                    if (removedPacket.Data != null)
+                        removedPacket.Data.Dispose();
+                }
+            }
         }
 
         // This is called from ConnectionListener.OnDataReceieve()->Session.ProcessPacket()->This
@@ -509,14 +536,15 @@ namespace ACE.Server.Network
             // if (!sendAck)
             //    sendAck = true;
 
-            var removalList = cachedPackets.Where(x => x.Key < sequence);
+            var removalList = cachedPackets.Keys.Where(x => x < sequence);
 
-            foreach (var item in removalList)
+            foreach (var key in removalList)
             {
-                ServerPacket removedPacket;
-                cachedPackets.TryRemove(item.Key, out removedPacket);
-                if (removedPacket.Data != null)
-                    removedPacket.Data.Dispose();
+                if (cachedPackets.TryRemove(key, out var removedPacket))
+                {
+                    if (removedPacket.Data != null)
+                        removedPacket.Data.Dispose();
+                }
             }
         }
 
