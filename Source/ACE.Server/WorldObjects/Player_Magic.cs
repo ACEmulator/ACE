@@ -1131,6 +1131,7 @@ namespace ACE.Server.WorldObjects
             if (requiredComps.Count == 0) return true;
 
             var usedComps = new Dictionary<uint, int>();
+            var wcidComps = new Dictionary<uint, uint>();
 
             // check spell components
             foreach (var component in requiredComps)
@@ -1142,7 +1143,13 @@ namespace ACE.Server.WorldObjects
                 }
 
                 var wcid = Spell.GetComponentWCID(component);
-                if (wcid == 0) continue;
+                if (wcid == 0)
+                {
+                    Console.WriteLine($"{Name}.HasComponentsForSpell(): Couldn't find wcid for SpellComponent {component}");
+                    continue;
+                }
+                else
+                    wcidComps.TryAdd(component, wcid);
 
                 var item = GetInventoryItemsOfWCID(wcid).FirstOrDefault();
                 if (item == null)
@@ -1154,16 +1161,21 @@ namespace ACE.Server.WorldObjects
                     if (usedComps.ContainsKey(component))
                     {
                         usedComps[component]++;
-                        var compAmountRequired = usedComps[component];
-                        var compAmountAvailable = GetNumInventoryItemsOfWCID(wcid);
-                        if (compAmountRequired > compAmountAvailable)
-                            return false;
                     }
                     else
                     {
                         usedComps.Add(component, 1);
                     }
                 }
+            }
+
+            foreach (var component in usedComps)
+            {
+                var compAmountRequired = usedComps[component.Key];
+                var compWcid = wcidComps[component.Key];
+                var compAmountAvailable = GetNumInventoryItemsOfWCID(compWcid);
+                if (compAmountRequired > compAmountAvailable)
+                    return false;
             }
 
             return true;
