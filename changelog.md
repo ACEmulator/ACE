@@ -1,5 +1,69 @@
 # ACEmulator Change Log
 
+### 2019-06-08
+[Ripley]
+* Add LightSource Weenie class.
+
+### 2019-06-07
+[Ripley]
+* Wire up EmoteType.CreateTreasure
+* Adjust ItemMagic/SpellType.PortalSummon to use spell.Link instead of spell.Name
+
+### 2019-06-06
+[Ripley]
+* Wire up EmoteType.TeleportTarget
+* Adjust appraisal code for better NpcLooksLikeObject handling.
+
+### 2019-06-03
+[OptimShi]
+* Made a small adjustment to the GetPaletteID function that was, in certain circumstances, returning the wrong palette.
+
+### 2019-06-01
+[Ripley]
+* Disable players putting or merging items into corpses. You can only pull from not push to.
+* Update logging for decay of corpses.
+* Changed Landblock.Tick to not decay on first tick.
+
+### 2019-05-31
+[Ripley]
+* Add more logging info for player corpses.
+* Make sure corpses are saved if created indoors (dungeons).
+* Add ResetSkill and adjust EmoteManager to use it for UntrainSkill.
+
+[gmriggs]
+* Fixed GetDynamicObjectsByLandblock uint/int problem.
+* Adjust Decay for Corpses to ensure Inventory is loaded before decay is allowed to process.
+
+[dirtyelf]
+* Fixed spell IDs for Deception Self 7 / Salvaging Self 7 scrolls
+
+### 2019-05-29
+[dirtyelf]
+* Added percentages for jewelry slot drops,
+* Updated percentages to be easier to modify, cleaned up comments
+* Moved jewelry items to loot tables for easier migration later
+
+[Theran]
+* Added Left-hand Tether and removal wcid and stub recipe for RecipeManager_New format
+* Add Asheron's Island entry portal in Eastham and Asheron's Castle spawns
+* Add Core Plating Integrator and stub recipe for RecipeManager_New format
+* Update ClothingBase of many Isparian weapons
+* Update TsysMutationData of 2 handed weapons
+* Add wcids for Alchemical Throwing Phials and recipes to support those added so far ( code changes are needed to allow the final throwing phials to work correctly, as specified in ACE Issue 1922 :: ACEmulator/ACE#1922 )
+* Various other wcid updates
+
+[Ripley]
+* Added Halls of Metos portal near Zaikhal
+
+### 2019-05-27
+[Ripley]
+* Added database info for RenegadeGenerals.sql
+
+### 2019-05-26
+[Mag-nus]
+* Improved Shard database indexing.
+* Added further stack exploit mitigation and logging.
+
 ### 2019-05-26
 [Ripley]
 * Add QuestManager to Fellowship.
@@ -7,15 +71,39 @@
 * Update QuestManager to support Fellowships for basic quest stamping.
 * Update Fellowship to support locking via emotes. Allow members who were in fellowship at time of lock to rejoin if they get booted from game.
 * Update EmoteManager emotes: InqFellowQuest, LockFellow, StampFellowQuest, UpdateFellowQuest
+* Add `forcelogoff` command.
+* Add `showsession` command.
+* Add log messages to track corpse decay.
+
+[gmriggs]
+* Swapped underlay colors for pierce/slash rends to match retail
+* Fixed AL on loot-generated clothing
 
 ### 2019-05-24
 [Ripley]
 * Moved MinimumTimeSincePk change upon PK death to occur before flag changes. This fixes issue with PKs recovering from death being able to attack other recovering PKs.
+* Add type_value_idx to BiotaPropertiesIID table and Rescaffolded.
+
+### 2019-05-23
+[gmriggs, deca]
+* Fixed a bug with negative skill #s and proficiency XP
+
+### 2019-05-22
+[Mag-nus]
+* Added /landblockstats command
+* Improved InboundMessageManager network exception handling
+* Improved Shard query performance when loading landblocks
+
+[dirtyelf]
+* Fixed a bug with IsBusy check for consumables - vtank no longer conumes too much food / drink!
 
 ### 2019-05-21
 [OptimShi]
 * Added Dinnerware to Mundane lootgen.
 * Removed Mana Scarabs from lootgen.
+
+[Mag-nus]
+* Monster_Tick profiling additions
 
 ### 2019-05-20
 [Ripley]
@@ -24,38 +112,162 @@
 [deca]
 * Update /listplayers to accept optional accesslevel parameter.
 
+[Mag-nus]
+* Fixed Chest.RegenOnClose issue with generators
+
+### 2019-05-19
+[Ripley]
+* Item Pickup fixes.
+* Updated Green Garnet salvage
+* More Stack Split/Merge fixes.
+
+### 2019-05-18
+[gmriggs]
+* Fixed weapon tailoring
+* Fixed house dungeon portal landblock detection
+
+[KochiroOfHG]
+* Improved Getting Started instructions in Readme
+
 ### 2019-05-17
 [Ripley]
 * Apply position corrections for teleports using magic.
+* More Stack Split/Merge fixes.
+
+### 2019-05-16
+[Ripley]
+* Adjust Stack Split/Merge Handling.
+
+[gmriggs]
+* Added vendor dupe prevention
+
+### 2019-05-15
+[gmriggs]
+* Fixed a bug with player giving equipped items to NPCs
+* Fixed a bug with dispels only selecting the top layer
+
+[Mag-nus]
+* Fixed a rare concurrency bug in PlayerManager
+
+### 2019-05-14
+[Theran]
+* Adjustment to loot percentages
+* Added optional assess creature mod w/ release formula
+* Corrected properties on Overlord's Sword
+* Updated numerous creature loot tiers, as per wiki
+
+### 2019-05-13
+[Mag-nus]
+* Added PhysicsObj.Destroy() on AddPhysicsObj failure
 
 ### 2019-05-12
+[Mag-nus]
+* Added ObjectMain.ServerObjects.Count to /serverstatus
+
 [Ripley]
 * Add OnGeneration emote handling.
+
+[gmriggs]
+* Fixed some issues with chest regen
+* Updated fellowship death message
+* Added item material to tinkering broadcast message
+* Fixed recipe skill check for pre-MoA skills
+
+[Theran]
+* Updated / consolidated spell assignment in loot generator
+* Fixed house hook items with emotes
+
+[dgarson]
+* Added support for lower armor reduction kit applied to leggings
 
 ### 2019-05-11
 [Ripley]
 * Fix issue with `finger` command not showing correct account for character.
+
+[gmriggs]
+* Excluded augs from SkillAlterationDevice spec count
 
 ### 2019-05-10
 [Ripley]
 * Change pickup for items to also count as destruction for generators to regenerate. (Branith's Staff linked to a Linkable Monster Generator)
 * Allow the few items incorrectly marked as "Treasure" and not "ContainTreasure" or "Contain" to appear on monster corpses.
 
+[Theran]
+* Improved / refactored Skill XP Rank increases
+
+[Mag-nus]
+* Improve mem leakage by Generators
+
+[dirtyelf]
+* Added more scrolls to loot generator
+
+### 2019-05-09
+[Mag-nus]
+* Fixed concurrency issue in DelayAction
+
+### 2019-05-08
+[dirtyelf]
+* Added some missing spells to drop as scrolls
+
+### 2019-05-07
+[gmriggs]
+* Fixed an AllegianceUpdate packet parsing bug for TreeStats / Decal
+* Updated Fellowship hashtables to match client order
+* Moved Jack Of All Trades aug bonus from Skill.Base to Current
+
+[dgarson]
+* Standardized spells and cantrips for armor pieces
+
+[Theran]
+* Rein in excessive max mana on loot-generated items
+* Cleaning up loot generator system
+
 ### 2019-05-06
 [Ripley]
 * Add support to ACE.Adapter to convert ACE weenies to LSD weenies.
+* Updated appearance for Summoning Mastery statues
+
+[Theran]
+* Added new spells and cantrips to loot generator
+* Added emote tables for Summoning Mastery statues in Arwic
+
+### 2019-05-05
+[gmriggs]
+* Fix appraisal display for items with built-in defender spells
+
+[Theran]
+* Updated Heritage masteries to default masteries for retraining
 
 ### 2019-05-04
 [Ripley]
 * Update object appraisal code to properly show Wield/Activation Requires lines.
 * Update RecipeManager for Ivory. Recipe in DB already handles mod application correctly.
 
+[gmriggs]
+* Improved trade system to work with additional Decal plugins
+
+[Theran]
+* Updates to summoned creatures
+  - Update Geomancer Golems to match retail stats
+  - Added option for CombatPets to cast spells (disabled by default to match retail)
+
+* Reclassify Shields as WeenieType.Generic and update ValidLocations, for those wcids without correct values for shields
+
 ### 2019-05-03
 [Ripley]
 * Add fix up SQL script (2019-05-03-00-Fix_Biota_Jewelry_WeenieType.sql) for existing servers to run to correct jewelry WeenieType on existing items.
   - This script will only need to be run once and only fixes incorrect objects.
 
+[gmriggs]
+* Fixed a rare bug with damage spikes
+
 ### 2019-05-02
+[Theran]
+* Change lvl 8 spell comps from Generic to Stackable
+* Change some Jewelry items from Clothing to Generic
+* Fix Naughty Skeleton Kill Task NPC and mob emotes to match quest in DB
+* Add the seven Geomancer summoning CombatPets
+
 [Ripley]
 * Changed House Warning Messages filter.
 * Set HousePortal destinations based on data from database with fallback to SlumLord.
@@ -70,6 +282,13 @@
 [OptimShi]
 * Fixed GetFreeInventorySlots() counting packs and foci.
 
+[gmriggs]
+* Excluded combat pets from cleaving damage
+* Fixed extra pack slot aug
+* Fixed ordering of enchantment masks on login
+* Added missing skills to /buff
+* Fixed a bug where summoned creatures would sometimes not spawn
+
 ### 2019-05-01
 [Ripley, Theran]
 * Change RecipeManager.ModifyX to fix dye (and other) mods.
@@ -78,6 +297,13 @@
 * Adjust rare generation code to apply expected icon underlay if wrong or missing.
 * Adjust corpse world entry to issue rare alert text/sound after corpse is spawned and not before.
 * Remove all properties from corpse assessment except those seen in pcaps.
+
+[Mag-nus]
+* Reduce Entity Framework biota tracking to only Players. Other objects will be reattached when saved.
+* Release NetworkSession resources when a session drops.
+
+[gmriggs]
+* Updated stack values for death items
 
 ### 2019-04-30
 [Theran]

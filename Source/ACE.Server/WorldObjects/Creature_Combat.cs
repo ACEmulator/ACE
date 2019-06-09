@@ -545,7 +545,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Return the scalar damage absorbed by a shield
         /// </summary>
-        public float GetShieldMod(WorldObject attacker, DamageType damageType)
+        public float GetShieldMod(WorldObject attacker, DamageType damageType, bool ignoreMagicArmor)
         {
             // ensure combat stance
             if (CombatMode == CombatMode.NonCombat)
@@ -567,7 +567,7 @@ namespace ACE.Server.WorldObjects
 
             // shield AL item enchantment additives:
             // impenetrability, brittlemail
-            var modSL = shield.EnchantmentManager.GetArmorMod();
+            var modSL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorMod();
             var effectiveSL = baseSL + modSL;
 
             // get shield RL against damage type
@@ -575,7 +575,7 @@ namespace ACE.Server.WorldObjects
 
             // shield RL item enchantment additives:
             // banes, lures
-            var modRL = shield.EnchantmentManager.GetArmorModVsType(damageType);
+            var modRL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorModVsType(damageType);
             var effectiveRL = (float)(baseRL + modRL);
 
             // resistance clamp

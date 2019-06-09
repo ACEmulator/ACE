@@ -1204,7 +1204,7 @@ namespace ACE.Database
         {
             var staticObjects = new List<Biota>();
 
-            var staticLandblockId = 0x70000 | landblockId;
+            var staticLandblockId = (uint)(0x70000 | landblockId);
 
             var min = staticLandblockId << 12;
             var max = min | 0xFFF;
@@ -1229,7 +1229,7 @@ namespace ACE.Database
         {
             var staticObjects = new ConcurrentBag<Biota>();
 
-            var staticLandblockId = 0x70000 | landblockId;
+            var staticLandblockId = (uint)(0x70000 | landblockId);
 
             var min = staticLandblockId << 12;
             var max = min | 0xFFF;
@@ -1254,7 +1254,7 @@ namespace ACE.Database
         {
             var dynamics = new List<Biota>();
 
-            var min = landblockId << 16;
+            var min = (uint)(landblockId << 16);
             var max = min | 0xFFFF;
 
             using (var context = new ShardDbContext())
@@ -1288,7 +1288,7 @@ namespace ACE.Database
         {
             var dynamics = new ConcurrentBag<Biota>();
 
-            var min = landblockId << 16;
+            var min = (uint)(landblockId << 16);
             var max = min | 0xFFFF;
 
             using (var context = new ShardDbContext())
@@ -1346,6 +1346,28 @@ namespace ACE.Database
         }
 
         private static readonly ConditionalWeakTable<Character, ShardDbContext> CharacterContexts = new ConditionalWeakTable<Character, ShardDbContext>();
+
+        public Character GetFullCharacter(string name)
+        {
+            var context = new ShardDbContext();
+
+            var result = context.Character
+                .Include(r => r.CharacterPropertiesContract)
+                .Include(r => r.CharacterPropertiesFillCompBook)
+                .Include(r => r.CharacterPropertiesFriendList)
+                .Include(r => r.CharacterPropertiesQuestRegistry)
+                .Include(r => r.CharacterPropertiesShortcutBar)
+                .Include(r => r.CharacterPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesTitleBook)
+                .FirstOrDefault(r => r.Name == name && !r.IsDeleted);
+
+            if (result == null)
+                Console.WriteLine($"ShardDatabase.GetFullCharacter({name}): couldn't find character");
+            else
+                CharacterContexts.Add(result, context);
+
+            return result;
+        }
 
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {

@@ -625,6 +625,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (container is Corpse)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {item.Name} in that.")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
             if (containerRootOwner != this) // Is our target on the landscape?
             {
                 if (itemRootOwner == this && (item.Attuned ?? 0) >= 1)
@@ -1331,6 +1338,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (container is Corpse)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {stack.Name} in that.")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
             if (stack.StackSize == null || stack.StackSize == 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split invalid item 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
@@ -1589,6 +1603,13 @@ namespace ACE.Server.WorldObjects
             if (targetStack == null)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target stack not found!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                return;
+            }
+
+            if (targetStackRootOwner is Corpse)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {sourceStack.Name} in that.")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
                 return;
             }

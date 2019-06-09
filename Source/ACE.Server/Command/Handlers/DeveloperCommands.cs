@@ -20,9 +20,12 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Entity;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
+
+using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -1869,7 +1872,10 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+                var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
+                session.Player.AdjustDungeon(pos);
+
+                session.Player.Teleport(pos);
             }
         }
 
@@ -1900,7 +1906,10 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+                var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
+                session.Player.AdjustDungeon(pos);
+
+                session.Player.Teleport(pos);
             }
         }
 
@@ -1922,6 +1931,59 @@ namespace ACE.Server.Command.Handlers
             GC.Collect();
 
             CommandHandlerHelper.WriteOutputInfo(session, ".NET Garbage Collection forced");
+        }
+
+        [CommandHandler("auditobjectmaint", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Iterates over physics objects to find leaks")]
+        public static void HandleAuditObjectMaint(Session session, params string[] parameters)
+        {
+            var serverObjects = ObjectMaint.ServerObjects.Keys.ToHashSet();
+
+            int objectTableErrors = 0;
+            int visibleObjectTableErrors = 0;
+            int voyeurTableErrors = 0;
+
+            foreach (var value in ObjectMaint.ServerObjects.Values)
+            {
+                {
+                    var kvps = value.ObjMaint.ObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    foreach (var kvp in kvps)
+                    {
+                        if (value.ObjMaint.ObjectTable.Remove(kvp.Key))
+                        {
+                            log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [ObjectTable]");
+                            objectTableErrors++;
+                        }
+                    }
+                }
+
+                {
+                    var kvps = value.ObjMaint.VisibleObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    foreach (var kvp in kvps)
+                    {
+                        if (value.ObjMaint.VisibleObjectTable.Remove(kvp.Key))
+                        {
+                            log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VisibleObjectTable]");
+                            visibleObjectTableErrors++;
+                        }
+                    }
+                }
+
+                {
+                    var kvps = value.ObjMaint.VoyeurTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    foreach (var kvp in kvps)
+                    {
+                        if (value.ObjMaint.VoyeurTable.Remove(kvp.Key))
+                        {
+                            log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VoyeurTable]");
+                            voyeurTableErrors++;
+                        }
+                    }
+                }
+            }
+
+            if (session != null)
+                CommandHandlerHelper.WriteOutputInfo(session, $"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
+            log.Info($"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
         }
 
         [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory. Syntax is \"lootgen (wcid) <tier>\"")]
