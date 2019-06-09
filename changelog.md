@@ -1,5 +1,23 @@
 # ACEmulator Change Log
 
+### 2019-06-08
+[Ripley]
+* Add LightSource Weenie class.
+
+### 2019-06-07
+[Ripley]
+* Wire up EmoteType.CreateTreasure
+* Adjust ItemMagic/SpellType.PortalSummon to use spell.Link instead of spell.Name
+
+### 2019-06-06
+[Ripley]
+* Wire up EmoteType.TeleportTarget
+* Adjust appraisal code for better NpcLooksLikeObject handling.
+
+### 2019-06-03
+[OptimShi]
+* Made a small adjustment to the GetPaletteID function that was, in certain circumstances, returning the wrong palette.
+
 ### 2019-06-01
 [Ripley]
 * Disable players putting or merging items into corpses. You can only pull from not push to.

@@ -181,7 +181,6 @@ namespace ACE.Server.Managers
             var itemWorkmanship = target.Workmanship ?? 0;
 
             var tinkeredCount = target.NumTimesTinkered;
-            var attemptMod = TinkeringDifficulty[tinkeredCount];
 
             var materialType = tool.MaterialType.Value;
             var salvageMod = GetMaterialMod(materialType);
@@ -194,8 +193,8 @@ namespace ACE.Server.Managers
             var recipeSkill = (Skill)recipe.Skill;
             var skill = player.GetCreatureSkill(recipeSkill);
 
-            // Tinkering skill not required to apply Ivory or Leather
-            if (materialType != MaterialType.Ivory && materialType != MaterialType.Leather)
+            // require skill check for everything except ivory / leather / sandstone
+            if (UseSkillCheck(materialType))
             {
                 // tinkering skill must be trained
                 if (skill.AdvancementClass < SkillAdvancementClass.Trained)
@@ -206,6 +205,8 @@ namespace ACE.Server.Managers
                 }
 
                 // thanks to Endy's Tinkering Calculator for this formula!
+                var attemptMod = TinkeringDifficulty[tinkeredCount];
+
                 var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
 
                 successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
@@ -230,7 +231,15 @@ namespace ACE.Server.Managers
                     var decimalPlaces = 2;
                     var truncated = percent.Truncate(decimalPlaces);
 
-                    var templateMsg = $"You have a % chance of using {tool.Name} on {target.Name}.";
+                    var toolMaterial = GetMaterialName(tool.MaterialType ?? 0);
+                    var targetMaterial = GetMaterialName(target.MaterialType ?? 0);
+
+                    // TODO: retail messages
+                    // You determine that you have a 100 percent chance to succeed.
+                    // You determine that you have a 99 percent chance to succeed.
+                    // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
+
+                    var templateMsg = $"You have a % chance of using {toolMaterial} {tool.Name} on {targetMaterial} {target.Name}.";
                     var floorMsg = templateMsg.Replace("%", (int)percent + "%");
                     var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
                     var exactMsg = templateMsg.Replace("%", percent + "%");
@@ -247,7 +256,7 @@ namespace ACE.Server.Managers
             }
             else
             {
-                // Applying Ivory and Leather is always successful and doesn't consume one of the ten tinking slots
+                // ivory / leather / sandstone always succeeds, and doesn't consume one of the ten tinking slots
                 successChance = 1.0f;
                 incItemTinkered = false;
             }
@@ -256,12 +265,12 @@ namespace ACE.Server.Managers
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(player, () => DoTinkering(player, tool, target, (float)successChance, incItemTinkered));
+            actionChain.AddAction(player, () => DoTinkering(player, tool, target, recipe, (float)successChance, incItemTinkered));
             actionChain.AddAction(player, () => DoMotion(player, MotionCommand.Ready));
             actionChain.EnqueueChain();
         }
 
-        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance, bool incItemTinkered)
+        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, Recipe recipe, float chance, bool incItemTinkered)
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
             var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
@@ -277,12 +286,9 @@ namespace ACE.Server.Managers
             else
                 player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
 
-            var recipe = GetRecipe(player, tool, target);
             CreateDestroyItems(player, recipe, tool, target, success);
 
-            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog)
-                    || (tool.MaterialType ?? 0) == MaterialType.Ivory
-                    || (tool.MaterialType ?? 0) == MaterialType.Leather)
+            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
         }
 
@@ -345,6 +351,9 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Leather:
                     target.SetProperty(PropertyBool.Retained, true);
+                    break;
+                case MaterialType.Sandstone:
+                    target.SetProperty(PropertyBool.Retained, false);
                     break;
                 case MaterialType.Moonstone:
                     target.ItemMaxMana += 500;
@@ -1184,6 +1193,14 @@ namespace ACE.Server.Managers
                 return materialType.ToString();
             }
             return materialName.Replace("_", " ");
+        }
+
+        /// <summary>
+        /// Returns TRUE if this material requies a skill check
+        /// </summary>
+        public static bool UseSkillCheck(MaterialType material)
+        {
+            return material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
         }
     }
 }

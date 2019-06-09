@@ -96,11 +96,8 @@ namespace ACE.Server.WorldObjects
 
         public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, WorldObject damageSource, float armorRendingMod = 1.0f)
         {
-            var ignoreMagicArmor  = damageSource != null ? damageSource.IgnoreMagicArmor : false;
-            var ignoreMagicResist = damageSource != null ? damageSource.IgnoreMagicResist : false;
-
             // get base AL / RL
-            var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
+            var enchantmentMod = IgnoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
 
             var baseArmorMod = (float)(Biota.BaseArmor + enchantmentMod);
 
@@ -153,15 +150,13 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine("Base AL: " + baseArmor);
             Console.WriteLine("Base RL: " + resistance);*/
 
-            var ignoreMagicArmor = weapon != null && weapon.IgnoreMagicArmor;
-
             // armor level additives
-            var armorMod = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
+            var armorMod = IgnoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
             // Console.WriteLine("Impen: " + armorMod);
             var effectiveAL = baseArmor + armorMod;
 
             // resistance additives
-            var armorBane = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorModVsType(damageType);
+            var armorBane = IgnoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorModVsType(damageType);
             // Console.WriteLine("Bane: " + armorBane);
             var effectiveRL = (float)(resistance + armorBane);
 

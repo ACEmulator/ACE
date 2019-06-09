@@ -932,10 +932,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseRadius); else SetProperty(PropertyFloat.UseRadius, value.Value); }
         }
 
-        public int? TargetType
+        public ItemType? TargetType
         {
-            get => GetProperty(PropertyInt.TargetType);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.TargetType); else SetProperty(PropertyInt.TargetType, value.Value); }
+            get => (ItemType?)GetProperty(PropertyInt.TargetType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.TargetType); else SetProperty(PropertyInt.TargetType, (int)value.Value); }
         }
 
         public UiEffects? UiEffects
@@ -2505,7 +2505,7 @@ namespace ACE.Server.WorldObjects
 
         public int? ResistLockpick
         {
-            get => GetProperty(PropertyInt.ResistLockpick) ?? 0;
+            get => GetProperty(PropertyInt.ResistLockpick);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
         }
 

@@ -132,14 +132,44 @@ namespace ACE.Server.WorldObjects
     }
     public class LockHelper
     {
-        public static int? GetResistLockpick(WorldObject me)
+        /// <summary>
+        /// Returns TRUE if wo is a lockable item that can be picked
+        /// </summary>
+        public static bool IsPickable(WorldObject wo)
         {
-            int? myResistLockpick = null;
-            if (me is Door woDoor)
-                myResistLockpick = woDoor.ResistLockpick;
-            else if (me is Chest woChest)
-                myResistLockpick = woChest.ResistLockpick;
-            return myResistLockpick;
+            if (!(wo is Lock)) return false;
+
+            var resistLockpick = wo.ResistLockpick;
+
+            // TODO: find out if ResistLockpick >= 9999 is a special 'unpickable' value in acclient,
+            // similar to ResistMagic >= 9999 being equivalent to Unenchantable?
+
+            if (resistLockpick == null || resistLockpick >= 9999 )
+                return false;
+
+            return true;
+        }
+
+        public static int? GetResistLockpick(WorldObject wo)
+        {
+            if (!(wo is Lock)) return null;
+
+            // if base ResistLockpick without enchantments is unpickable,
+            // do not apply enchantments
+            var isPickable = IsPickable(wo);
+
+            if (!isPickable)
+                return wo.ResistLockpick;
+
+            var resistLockpick = wo.ResistLockpick.Value;
+            var enchantmentMod = wo.EnchantmentManager.GetResistLockpick();
+
+            var difficulty = resistLockpick + enchantmentMod;
+
+            // minimum 0 difficulty
+            difficulty = Math.Max(0, difficulty);
+
+            return difficulty;
         }
         public static string GetLockCode(WorldObject me)
         {
@@ -173,10 +203,12 @@ namespace ACE.Server.WorldObjects
         }
         public static UnlockResults Unlock(WorldObject target, uint playerLockpickSkillLvl, ref int difficulty)
         {
-            int? myResistLockpick = GetResistLockpick(target);
+            var isPickable = IsPickable(target);
 
-            if (!myResistLockpick.HasValue || myResistLockpick < 1)
+            if (!isPickable)
                 return UnlockResults.CannotBePicked;
+
+            int? myResistLockpick = GetResistLockpick(target);
 
             difficulty = myResistLockpick.Value;
 
@@ -186,7 +218,7 @@ namespace ACE.Server.WorldObjects
             if (!target.IsLocked)
                 return UnlockResults.AlreadyUnlocked;
 
-            var pickChance = SkillCheck.GetSkillChance((int)playerLockpickSkillLvl, (int)myResistLockpick);
+            var pickChance = SkillCheck.GetSkillChance((int)playerLockpickSkillLvl, difficulty);
 
 #if DEBUG
             Debug.WriteLine($"{pickChance.FormatChance()} chance of UnlockSuccess");
@@ -202,5 +234,4 @@ namespace ACE.Server.WorldObjects
             return UnlockResults.UnlockSuccess;
         }
     }
-
 }

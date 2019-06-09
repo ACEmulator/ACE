@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(UseRadius ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.TargetType) != 0)
-                writer.Write(TargetType ?? 0);
+                writer.Write((uint?)TargetType ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.UiEffects) != 0)
                 writer.Write((uint?)UiEffects ?? 0u);
