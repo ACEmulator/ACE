@@ -6,16 +6,10 @@ namespace ACE.Server.WorldObjects
     {
         public override void Heartbeat(double currentUnixTime)
         {
-            // added where clause
-            foreach (var wo in Inventory.Values.Where(i => i.EnchantmentManager.HasEnchantments))
-            {
-                // FIXME: wo.NextHeartbeatTime is double.MaxValue here
-                //if (wo.NextHeartbeatTime <= currentUnixTime)
-                //wo.Heartbeat(currentUnixTime);
+            Inventory_Tick();
 
-                // just go by parent heartbeats, only for enchantments?
-                wo.EnchantmentManager.HeartBeat(HeartbeatInterval);
-            }
+            foreach (var subcontainer in Inventory.Values.Where(i => i is Container))
+                (subcontainer as Container).Inventory_Tick();
 
             // for landblock containers
             if (IsOpen && CurrentLandblock != null)
@@ -34,6 +28,20 @@ namespace ACE.Server.WorldObjects
                 }
             }
             base.Heartbeat(currentUnixTime);
+        }
+
+        public void Inventory_Tick()
+        {
+            // added where clause
+            foreach (var wo in Inventory.Values.Where(i => i.EnchantmentManager.HasEnchantments))
+            {
+                // FIXME: wo.NextHeartbeatTime is double.MaxValue here
+                //if (wo.NextHeartbeatTime <= currentUnixTime)
+                //wo.Heartbeat(currentUnixTime);
+
+                // just go by parent heartbeats, only for enchantments?
+                wo.EnchantmentManager.HeartBeat(HeartbeatInterval);
+            }
         }
     }
 }
