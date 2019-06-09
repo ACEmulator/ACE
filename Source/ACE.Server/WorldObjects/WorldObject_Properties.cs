@@ -2172,6 +2172,12 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        public bool SpellComponentsRequired
+        {
+            get => GetProperty(PropertyBool.SpellComponentsRequired) ?? true;
+            set { SetProperty(PropertyBool.SpellComponentsRequired, value); }
+        }
+
         public uint? CurrentCombatTarget
         {
             get => GetProperty(PropertyInstanceId.CurrentCombatTarget);
