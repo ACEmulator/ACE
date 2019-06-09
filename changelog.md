@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-09
+[Ripley]
+* Add `requirecomps` command.
+
 ### 2019-06-08
 [Ripley]
 * Add LightSource Weenie class.
