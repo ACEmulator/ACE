@@ -36,5 +36,10 @@ namespace ACE.Server.WorldObjects
                 InitGeneratedObjects = 0;
             }
         }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            // Do nothing
+        }
     }
 }

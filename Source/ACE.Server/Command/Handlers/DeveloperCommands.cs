@@ -1872,7 +1872,10 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+                var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
+                session.Player.AdjustDungeon(pos);
+
+                session.Player.Teleport(pos);
             }
         }
 
@@ -1903,7 +1906,10 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+                var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
+                session.Player.AdjustDungeon(pos);
+
+                session.Player.Teleport(pos);
             }
         }
 

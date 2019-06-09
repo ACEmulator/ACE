@@ -1347,6 +1347,28 @@ namespace ACE.Database
 
         private static readonly ConditionalWeakTable<Character, ShardDbContext> CharacterContexts = new ConditionalWeakTable<Character, ShardDbContext>();
 
+        public Character GetFullCharacter(string name)
+        {
+            var context = new ShardDbContext();
+
+            var result = context.Character
+                .Include(r => r.CharacterPropertiesContract)
+                .Include(r => r.CharacterPropertiesFillCompBook)
+                .Include(r => r.CharacterPropertiesFriendList)
+                .Include(r => r.CharacterPropertiesQuestRegistry)
+                .Include(r => r.CharacterPropertiesShortcutBar)
+                .Include(r => r.CharacterPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesTitleBook)
+                .FirstOrDefault(r => r.Name == name && !r.IsDeleted);
+
+            if (result == null)
+                Console.WriteLine($"ShardDatabase.GetFullCharacter({name}): couldn't find character");
+            else
+                CharacterContexts.Add(result, context);
+
+            return result;
+        }
+
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
             var context = new ShardDbContext();

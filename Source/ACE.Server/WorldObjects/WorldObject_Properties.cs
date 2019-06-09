@@ -2183,7 +2183,6 @@ namespace ACE.Server.WorldObjects
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
 
-
         public uint? CurrentCombatTarget
         {
             get => GetProperty(PropertyInstanceId.CurrentCombatTarget);
@@ -2517,7 +2516,7 @@ namespace ACE.Server.WorldObjects
 
         public int? ResistLockpick
         {
-            get => GetProperty(PropertyInt.ResistLockpick) ?? 0;
+            get => GetProperty(PropertyInt.ResistLockpick);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
         }
 
