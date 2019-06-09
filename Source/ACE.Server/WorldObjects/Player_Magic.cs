@@ -366,7 +366,7 @@ namespace ACE.Server.WorldObjects
             var difficulty = spell.Power;
 
             // is this needed? should talismans remain the same, regardless of player spell formula?
-            spell.Formula.GetPlayerFormula(player);
+            //spell.Formula.GetPlayerFormula(player);
 
             var castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
 
@@ -417,7 +417,7 @@ namespace ACE.Server.WorldObjects
             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ManaConversion), spell.PowerMod);
 
             // begin spellcasting
-            spell.Formula.GetPlayerFormula(player);
+            //spell.Formula.GetPlayerFormula(player);
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (!string.IsNullOrWhiteSpace(spellWords) && !isWeaponSpell)
@@ -778,7 +778,7 @@ namespace ACE.Server.WorldObjects
             Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.ManaConversion), spell.PowerMod);
 
             // begin spellcasting
-            spell.Formula.GetPlayerFormula(this);
+            //spell.Formula.GetPlayerFormula(this);
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (!string.IsNullOrWhiteSpace(spellWords))
@@ -1122,10 +1122,10 @@ namespace ACE.Server.WorldObjects
         }
 
         public bool HasComponentsForSpell(Spell spell)
-        {
-            if (!SpellComponentsRequired) return true;
-
+        {            
             spell.Formula.GetPlayerFormula(this);
+
+            if (!SpellComponentsRequired) return true;
 
             var requiredComps = spell.Formula.CurrentFormula;
             if (requiredComps.Count == 0) return true;
