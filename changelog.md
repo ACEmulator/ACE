@@ -1,13 +1,18 @@
 # ACEmulator Change Log
 
+### 2019-06-09
+[Ripley]
+* Prevent using contained Container (R keybind).
+* Add Do nothing stub to Generic weenie class.
+
 ### 2019-06-08
 [Ripley]
 * Add LightSource Weenie class.
 
 ### 2019-06-07
 [Ripley]
-* Wire up EmoteType.CreateTreasure
-* Adjust ItemMagic/SpellType.PortalSummon to use spell.Link instead of spell.Name
+* Wire up EmoteType.CreateTreasure.
+* Adjust ItemMagic/SpellType.PortalSummon to use spell.Link instead of spell.Name.
 
 ### 2019-06-06
 [Ripley]

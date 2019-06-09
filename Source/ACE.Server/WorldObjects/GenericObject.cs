@@ -29,5 +29,10 @@ namespace ACE.Server.WorldObjects
             //StackUnitValue = null;
             //MaxStackSize = null;            
         }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            // Do nothing
+        }
     }
 }
