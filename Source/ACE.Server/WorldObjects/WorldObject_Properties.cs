@@ -2171,7 +2171,6 @@ namespace ACE.Server.WorldObjects
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
 
-
         public uint? CurrentCombatTarget
         {
             get => GetProperty(PropertyInstanceId.CurrentCombatTarget);

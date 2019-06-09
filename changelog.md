@@ -4,6 +4,10 @@
 [Ripley]
 * Prevent using contained Container (R keybind).
 * Add Do nothing stub to Generic weenie class.
+* Add `requirecomps` command.
+* Add SpellComponentsRequired property.
+* Add HasComponentsForSpell.
+* Add HasComponentsForSpell checks to Player.CreatePlayerSpell for targeted and untargeted spells.
 
 ### 2019-06-08
 [Ripley]
