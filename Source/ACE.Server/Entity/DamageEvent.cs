@@ -222,6 +222,9 @@ namespace ACE.Server.Entity
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
                 armorRendingMod = WorldObject.GetArmorRendingMod(attackSkill);
 
+            var ignoreMagicResist = IgnoreMagicResist;
+            var ignoreMagicArmor = IgnoreMagicArmor;
+
             // get body part / armor pieces / armor modifier
             if (playerDefender != null)
             {
@@ -232,7 +235,7 @@ namespace ACE.Server.Entity
                 Armor = attacker.GetArmorLayers(playerDefender, BodyPart);
 
                 // get armor modifiers
-                ArmorMod = attacker.GetArmorMod(DamageType, Armor, DamageSource, IgnoreMagicResist, IgnoreMagicArmor, armorRendingMod);
+                ArmorMod = attacker.GetArmorMod(DamageType, Armor, ignoreMagicResist, ignoreMagicArmor, armorRendingMod);
             }
             else
             {
@@ -244,7 +247,7 @@ namespace ACE.Server.Entity
                 Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
 
                 // get target armor
-                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, DamageSource, armorRendingMod);
+                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, ignoreMagicResist, ignoreMagicArmor, armorRendingMod);
             }
 
             // get resistance modifiers
@@ -252,19 +255,19 @@ namespace ACE.Server.Entity
 
             if (playerDefender != null)
             {
-                ResistanceMod = playerDefender.GetResistanceMod(DamageType, DamageSource, IgnoreMagicResist, WeaponResistanceMod);
+                ResistanceMod = playerDefender.GetResistanceMod(DamageType, ignoreMagicResist, WeaponResistanceMod);
             }
             else
             {
                 var resistanceType = Creature.GetResistanceType(DamageType);
-                ResistanceMod = (float)defender.GetResistanceMod(resistanceType, DamageSource, IgnoreMagicResist, WeaponResistanceMod);
+                ResistanceMod = (float)defender.GetResistanceMod(resistanceType, ignoreMagicResist, WeaponResistanceMod);
             }
 
             // damage resistance rating
             DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetDamageResistRating());
 
             // get shield modifier
-            ShieldMod = defender.GetShieldMod(attacker, DamageType, IgnoreMagicArmor);
+            ShieldMod = defender.GetShieldMod(attacker, DamageType, ignoreMagicArmor);
 
             // calculate final output damage
             Damage = DamageBeforeMitigation * ArmorMod * ShieldMod * ResistanceMod * DamageResistanceRatingMod;
@@ -361,7 +364,7 @@ namespace ACE.Server.Entity
                 Evaded = true;
                 return;
             }
-            CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart, IgnoreMagicArmor, IgnoreMagicResist);
+            CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart);
         }
 
         public void ShowInfo(Player player)
@@ -408,6 +411,7 @@ namespace ACE.Server.Entity
             // base damage
             if (BaseDamageMod != null)
                 info += $"BaseDamageRange: {BaseDamageMod.Range}\n";
+
             info += $"BaseDamage: {BaseDamage}\n";
 
             // damage modifiers
@@ -416,9 +420,10 @@ namespace ACE.Server.Entity
             info += $"SlayerMod: {SlayerMod}\n";
 
             if (BaseDamageMod != null)
+            {
                 info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
-            if (BaseDamageMod != null)
                 info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
+            }
 
             // damage ratings
             if (!(Defender is Player))
@@ -448,7 +453,7 @@ namespace ACE.Server.Entity
             {
                 // creature body part
                 info += $"BodyPart: {(CombatBodyPart)BiotaPropertiesBodyPart.Key}\n";
-                info += $"BaseArmorMod: {CreaturePart.BaseArmorMod}\n";
+                info += $"BaseArmor: {CreaturePart.Biota.BaseArmor}\n";
             }
 
             // damage mitigation
