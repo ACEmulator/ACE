@@ -1484,13 +1484,56 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleGod(Session session, params string[] parameters)
         {
-            // @god - Sets your own stats to the specified level.
+            // @god - Sets your own stats to a godly level.
 
-            // TODO: output
+            session.Player.TotalExperience = 191226310247;
+            session.Player.Level = 999;
 
-            // output: You are now a god!!!
+            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Level, 999));
+            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(session.Player, PropertyInt64.TotalExperience, 191226310247));
+
+            foreach (var s in session.Player.Skills)
+            {
+                session.Player.TrainSkill(s.Key, 0);
+                session.Player.SpecializeSkill(s.Key, 0);
+                var playerSkill = session.Player.Skills[s.Key];
+                playerSkill.Ranks = 226;
+                playerSkill.ExperienceSpent = 4100490438u;
+                playerSkill.InitLevel = 5000;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
+            }
+
+            foreach (var a in session.Player.Attributes)
+            {
+                var playerAttr = session.Player.Attributes[a.Key];
+                playerAttr.StartingValue = 9809u;
+                playerAttr.Ranks = 190u;
+                playerAttr.ExperienceSpent = 4019438644u;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, a.Key, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+            }
+
+            session.Player.SetMaxVitals();
+
+            foreach (var v in session.Player.Vitals)
+            {
+                var playerVital = session.Player.Vitals[v.Key];
+                playerVital.Ranks = 196u;
+                playerVital.ExperienceSpent = 4285430197u;
+                // my OCD will not let health/stam not be equal due to the endurance calc
+                playerVital.StartingValue = (v.Key == PropertyAttribute2nd.MaxHealth) ? 94803u : 89804u;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+            }
+
+            session.Player.SetMaxVitals();
+
+            session.Player.ChangesDetected = true;
+
+            session.Player.PlayParticleEffect(PlayScript.LevelUp, session.Player.Guid);
+            session.Player.PlayParticleEffect(PlayScript.BaelZharonSmite, session.Player.Guid);
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
+
+            session.Player.SaveCharacterToDatabase();
         }
 
         // magic god
