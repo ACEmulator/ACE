@@ -92,6 +92,17 @@ namespace ACE.Server.Managers
 
                     break;
 
+                case WeenieClassName.W_MATERIALSANDSTONE_CLASS:
+
+                    // ensure item is retained and sellable
+                    if (!(target.Retained ?? false) || !(target.GetProperty(PropertyBool.IsSellable) ?? true))
+                        return null;
+
+                    // use sandstone recipe as base
+                    recipe = DatabaseManager.World.GetRecipe(8003);
+
+                    break;
+
                 case WeenieClassName.W_MATERIALGOLD_CLASS:
 
                     // ensure item has value and workmanship
