@@ -1335,13 +1335,17 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                var result = context.Character
+                var resultNonDel = context.Character
                     .AsNoTracking()
                     .Where(r => !r.IsDeleted)
-                    .Where(r => !(r.DeleteTime > 0))
                     .FirstOrDefault(r => r.Name == name);
 
-                return result == null;
+                var resultDel = context.Character
+                    .AsNoTracking()
+                    .Where(r => (r.DeleteTime > 0) && !r.IsDeleted)
+                    .FirstOrDefault(r => r.Name == name);
+
+                return (resultNonDel == null) && (resultDel == null);
             }
         }
 
