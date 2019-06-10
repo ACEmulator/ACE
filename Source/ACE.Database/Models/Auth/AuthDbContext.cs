@@ -81,6 +81,49 @@ namespace ACE.Database.Models.Auth
                     .HasColumnName("accountName")
                     .HasColumnType("varchar(50)");
 
+                entity.Property(e => e.BanExpireTime)
+                    .HasColumnName("ban_Expire_Time")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.BannedByAccountID).HasColumnName("banned_By_Account_I_D");
+
+                entity.Property(e => e.BannedTime)
+                    .HasColumnName("banned_Time")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.CreateIP)
+                    .IsRequired()
+                    .HasColumnName("create_I_P")
+                    .HasColumnType("varchar(64)")
+                    .HasDefaultValueSql("'N/A'");
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnName("create_Time")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
+
+                entity.Property(e => e.EmailAddress)
+                    .IsRequired()
+                    .HasColumnName("email_Address")
+                    .HasColumnType("varchar(320)")
+                    .HasDefaultValueSql("'N/A'");
+
+                entity.Property(e => e.IsBanned)
+                    .HasColumnName("isBanned")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.LastLoginIP)
+                    .IsRequired()
+                    .HasColumnName("last_Login_I_P")
+                    .HasColumnType("varchar(64)")
+                    .HasDefaultValueSql("'N/A'");
+
+                entity.Property(e => e.LastLoginTime)
+                    .HasColumnName("last_Login_Time")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
                     .HasColumnName("passwordHash")
