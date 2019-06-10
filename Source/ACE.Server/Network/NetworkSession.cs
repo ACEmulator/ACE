@@ -226,11 +226,14 @@ namespace ACE.Server.Network
         {
             lastCachedPacketPruneTime = DateTime.UtcNow;
 
-            var removalList = cachedPackets.Where(x => Math.Abs(x.Value.Header.Time - (ushort)Timers.PortalYearTicks) > cachedPacketRetentionTime);
+            var currentTime = (ushort)Timers.PortalYearTicks;
 
-            foreach (var item in removalList)
+            // Make sure our comparison still works when ushort wraps every 18.2 hours.
+            var removalList = cachedPackets.Values.Where(x => (currentTime >= x.Header.Time ? currentTime : currentTime + ushort.MaxValue) - x.Header.Time > cachedPacketRetentionTime);
+
+            foreach (var packet in removalList)
             {
-                if (cachedPackets.TryRemove(item.Key, out var removedPacket))
+                if (cachedPackets.TryRemove(packet.Header.Sequence, out var removedPacket))
                 {
                     if (removedPacket.Data != null)
                         removedPacket.Data.Dispose();
