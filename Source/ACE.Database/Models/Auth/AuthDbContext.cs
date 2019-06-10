@@ -121,8 +121,7 @@ namespace ACE.Database.Models.Auth
                 entity.Property(e => e.LastLoginTime)
                     .HasColumnName("last_Login_Time")
                     .HasColumnType("datetime")
-                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
-                    .ValueGeneratedOnAddOrUpdate();
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
 
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
