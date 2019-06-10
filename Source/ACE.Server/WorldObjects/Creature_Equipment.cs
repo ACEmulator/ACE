@@ -522,13 +522,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in createList)
             {
                 var destinationType = (DestinationType)item.DestinationType;
-                var useRNG = destinationType.HasFlag(DestinationType.Treasure);
-
-                //if (destinationType == DestinationType.Treasure && item.Shade == 0)
-                //    useRNG = false;
-
-                if (useRNG && item.WeenieClassId != 0 && item.Shade == 0)
-                    useRNG = false;
+                var useRNG = destinationType.HasFlag(DestinationType.Treasure) && item.Shade != 0;
 
                 var shadeOrProbability = item.Shade;
 
