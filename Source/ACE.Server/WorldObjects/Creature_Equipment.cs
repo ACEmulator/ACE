@@ -524,7 +524,10 @@ namespace ACE.Server.WorldObjects
                 var destinationType = (DestinationType)item.DestinationType;
                 var useRNG = destinationType.HasFlag(DestinationType.Treasure);
 
-                if (destinationType == DestinationType.Treasure && item.Shade == 0)
+                //if (destinationType == DestinationType.Treasure && item.Shade == 0)
+                //    useRNG = false;
+
+                if (useRNG && item.WeenieClassId != 0 && item.Shade == 0)
                     useRNG = false;
 
                 var shadeOrProbability = item.Shade;
