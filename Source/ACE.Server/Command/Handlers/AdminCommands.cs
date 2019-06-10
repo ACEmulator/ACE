@@ -339,6 +339,8 @@ namespace ACE.Server.Command.Handlers
                     message = $"Account '{account.AccountName}' is not banned.\n"; //todo: fix this when banning works
                     if (account.AccessLevel > (int)AccessLevel.Player)
                         message += $"Account '{account.AccountName}' has been granted AccessLevel.{((AccessLevel)account.AccessLevel).ToString()} rights.\n";
+                    message += $"Account created on {account.CreateTime.ToLocalTime()} | Created by IP: {account.CreateIP} \n";
+                    message += $"Account last logged on at {account.LastLoginTime.ToLocalTime()} | Last Login IP: {account.LastLoginIP} \n";
                     var characters = DatabaseManager.Shard.GetCharacters(account.AccountId, true);
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
                     message += "-------------------\n";
