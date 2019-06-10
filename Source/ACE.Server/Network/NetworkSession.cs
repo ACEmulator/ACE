@@ -63,7 +63,7 @@ namespace ACE.Server.Network
         /// <summary>
         /// Number of seconds to retain cachedPackets
         /// </summary>
-        private const int cachedPacketRetentionTime = 60;
+        private const int cachedPacketRetentionTime = 120;
 
         /// <summary>
         /// This is referenced by multiple thread:<para />
