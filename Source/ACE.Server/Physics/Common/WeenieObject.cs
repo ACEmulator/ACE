@@ -90,7 +90,25 @@ namespace ACE.Server.Physics.Common
             return 0;
         }
 
-        public int DoCollision(AtkCollisionProfile prof, ObjectGuid guid, PhysicsObj target)
+        public void InqCollisionProfile(ObjCollisionProfile prof)
+        {
+            prof.WCID = ID;
+            prof.ItemType = WorldObject.ItemType;
+
+            if (WorldObject is Creature)
+                prof.Flags |= ObjCollisionProfileFlags.Creature;
+
+            if (WorldObject is Player)
+                prof.Flags |= ObjCollisionProfileFlags.Player;
+
+            if (WorldObject.Attackable ?? false)
+                prof.Flags |= ObjCollisionProfileFlags.Attackable;
+
+            if (WorldObject is Door)
+                prof.Flags |= ObjCollisionProfileFlags.Door;
+        }
+
+        public int DoCollision(ObjCollisionProfile prof, ObjectGuid guid, PhysicsObj target)
         {
             var wo = WorldObject;
 
@@ -106,7 +124,7 @@ namespace ACE.Server.Physics.Common
             if (wo.Guid.Equals(targetWO.Guid))
                 return -1;
 
-            /*Console.WriteLine("AtkCollisionProfile");
+            /*Console.WriteLine("ObjCollisionProfile");
             Console.WriteLine("Source: " + WorldObject.Name);
             Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);*/
 
@@ -150,7 +168,22 @@ namespace ACE.Server.Physics.Common
 
         public void OnMotionDone(uint motionID, bool success)
         {
+            WorldObject.HandleMotionDone(motionID, success);
+        }
 
+        public void OnMoveComplete(WeenieError status)
+        {
+            WorldObject.OnMoveComplete(status);
+        }
+
+        public void OnSticky()
+        {
+            WorldObject.OnSticky();
+        }
+
+        public void OnUnsticky()
+        {
+            WorldObject.OnUnsticky();
         }
     }
 }

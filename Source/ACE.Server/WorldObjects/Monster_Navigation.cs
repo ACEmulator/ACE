@@ -60,7 +60,6 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugMove;
 
-        public bool InitSticky;
         public bool Sticky;
 
         public double NextMoveTime;
@@ -105,15 +104,6 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.TurnToObject(AttackTarget.PhysicsObj.ID, mvp);
             else
                 PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
-
-            if (!InitSticky)
-            {
-                PhysicsObj.add_moveto_listener(OnMoveComplete);
-
-                PhysicsObj.add_sticky_listener(OnSticky);
-                PhysicsObj.add_unsticky_listener(OnUnsticky);
-                InitSticky = true;
-            }
         }
 
         /// <summary>
@@ -142,7 +132,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when the MoveTo process has completed
         /// </summary>
-        public virtual void OnMoveComplete(WeenieError status)
+        public override void OnMoveComplete(WeenieError status)
         {
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - OnMoveComplete({status})");
@@ -399,13 +389,13 @@ namespace ACE.Server.WorldObjects
             return mvp;
         }
 
-        public void OnSticky()
+        public override void OnSticky()
         {
             //Console.WriteLine($"{Name} ({Guid}) - OnSticky");
             Sticky = true;
         }
 
-        public void OnUnsticky()
+        public override void OnUnsticky()
         {
             //Console.WriteLine($"{Name} ({Guid}) - OnUnsticky");
             Sticky = false;

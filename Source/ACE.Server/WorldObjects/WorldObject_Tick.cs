@@ -140,68 +140,6 @@ namespace ACE.Server.WorldObjects
         public uint prevCell;
         public bool InUpdate;
 
-        /// <summary>
-        /// Used by physics engine to actually update a player position
-        /// Automatically notifies clients of updated position
-        /// </summary>
-        /// <param name="newPosition">The new position being requested, before verification through physics engine</param>
-        /// <returns>TRUE if object moves to a different landblock</returns>
-        public bool UpdatePlayerPhysics(ACE.Entity.Position newPosition, bool forceUpdate = false)
-        {
-            //Console.WriteLine($"UpdatePlayerPhysics: {newPosition.Cell:X8}, {newPosition.Pos}");
-
-            var player = this as Player;
-
-            // only handles player movement
-            if (player == null) return false;
-
-            // possible bug: while teleporting, client can still send AutoPos packets from old landblock
-            if (Teleporting && !forceUpdate) return false;
-
-            if (PhysicsObj != null)
-            {
-                var dist = (newPosition.Pos - PhysicsObj.Position.Frame.Origin).Length();
-                if (dist > PhysicsGlobals.EPSILON)
-                {
-                    var curCell = LScape.get_landcell(newPosition.Cell);
-                    if (curCell != null)
-                    {
-                        //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
-                        //PhysicsObj.change_cell_server(curCell);
-
-                        PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
-                        PhysicsObj.update_object_server();
-
-                        if (PhysicsObj.CurCell == null)
-                            PhysicsObj.CurCell = curCell;
-
-                        player.CheckMonsters();
-
-                        if (curCell.ID != prevCell)
-                        {
-                            //prevCell = curCell.ID;
-                            //Console.WriteLine("Player cell: " + curCell.ID.ToString("X8"));
-                            //var envCell = curCell as Physics.Common.EnvCell;
-                            //var seenOutside = envCell != null ? envCell.SeenOutside : true;
-                            //Console.WriteLine($"CurCell: {curCell.ID:X8}, SeenOutside: {seenOutside}");
-                        }
-                    }
-                }
-            }
-
-            // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
-            if (Teleporting && !forceUpdate) return true;
-
-            var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
-            Location = newPosition;
-
-            SendUpdatePosition();
-
-            if (!InUpdate)
-                LandblockManager.RelocateObjectForPhysics(this, true);
-
-            return landblockUpdate;
-        }
 
         public double lastDist;
 
@@ -216,7 +154,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles calling the physics engine for non-player objects
         /// </summary>
-        public bool UpdateObjectPhysics()
+        public virtual bool UpdateObjectPhysics()
         {
             if (PhysicsObj == null || !PhysicsObj.is_active())
                 return false;

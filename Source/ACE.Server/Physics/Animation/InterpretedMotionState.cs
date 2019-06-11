@@ -124,5 +124,11 @@ namespace ACE.Server.Physics.Animation
                     break;
             }
         }
+
+        public bool HasCommands()
+        {
+            //return ForwardCommand != 0 && ForwardCommand != (uint)MotionCommand.Ready || SideStepCommand != 0 || TurnCommand != 0;
+            return SideStepCommand != 0 || TurnCommand != 0;
+        }
     }
 }

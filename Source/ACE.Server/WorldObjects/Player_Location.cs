@@ -352,13 +352,13 @@ namespace ACE.Server.WorldObjects
             if (UnderLifestoneProtection)
                 LifestoneProtectionDispel();
 
-            UpdatePlayerPhysics(new Position(newPosition), true);
+            UpdatePlayerPosition(new Position(newPosition), true);
         }
 
         public void DoPreTeleportHide()
         {
             if (Teleporting) return;
-            PlayParticleEffect(ACE.Entity.Enum.PlayScript.Hide, Guid);
+            PlayParticleEffect(PlayScript.Hide, Guid);
         }
 
         public void DoTeleportPhysicsStateChanges()

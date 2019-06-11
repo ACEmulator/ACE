@@ -35,7 +35,6 @@ namespace ACE.Server.WorldObjects
         public static float CalcArmorMod(float armorLevel)
         {
             if (armorLevel > 0)
-                //return armorLevel / (armorLevel + ArmorMod);
                 return ArmorMod / (armorLevel + ArmorMod);
             else if (armorLevel < 0)
                 return 1.0f - armorLevel / ArmorMod;

@@ -16,25 +16,25 @@ namespace ACE.Server.WorldObjects
         private TimeSpan defaultMoveToTimeout = TimeSpan.FromSeconds(15); // This is just a starting point number. It may be far off from retail.
 
         private int moveToChainCounter;
-        private DateTime moveToChainStartTime;
+        private DateTime moveToChainStartTime { get; set; }
 
-        private int lastCompletedMove;
+        private int lastCompletedMove { get; set; }
 
-        public bool IsPlayerMovingTo => moveToChainCounter > lastCompletedMove;
+        //public bool IsPlayerMovingTo => moveToChainCounter > lastCompletedMove;
 
         private int GetNextMoveToChainNumber()
         {
             return Interlocked.Increment(ref moveToChainCounter);
         }
 
-        public void StopExistingMoveToChains()
+        /*public void StopExistingMoveToChains()
         {
             Interlocked.Increment(ref moveToChainCounter);
 
             lastCompletedMove = moveToChainCounter;
-        }
+        }*/
 
-        public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null)
+        /*public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null)
         {
             var thisMoveToChainNumber = GetNextMoveToChainNumber();
 
@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
             moveToChainStartTime = DateTime.UtcNow;
 
             MoveToChain(target, thisMoveToChainNumber, callback, useRadius);
-        }
+        }*/
 
         public void MoveToChain(WorldObject target, int thisMoveToChainNumber, Action<bool> callback, float? useRadius = null)
         {
@@ -131,8 +131,6 @@ namespace ACE.Server.WorldObjects
 
         public Position StartJump;
 
-        public bool InitMoveListener;
-
         public override void MoveTo(WorldObject target, float runRate = 0.0f)
         {
             if (runRate == 0.0f)
@@ -155,12 +153,6 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.MoveToObject(target.PhysicsObj, mvp);
 
             IsMoving = true;
-
-            if (!InitMoveListener)
-            {
-                PhysicsObj.add_moveto_listener(OnMoveComplete);
-                InitMoveListener = true;
-            }
 
             MoveTo_Tick();
         }
@@ -187,8 +179,18 @@ namespace ACE.Server.WorldObjects
 
         public override void OnMoveComplete(WeenieError status)
         {
-            //Console.WriteLine($"{Name}.OnMoveComplete()");
+            //Console.WriteLine($"{Name}.OnMoveComplete({status})");
             IsMoving = false;
+
+            if (IsPlayerMovingTo)
+            {
+                OnMoveComplete_MoveTo(status);
+
+                if (MagicState.IsCasting)
+                    OnMoveComplete_Magic(status);
+
+                return;
+            }
 
             switch (status)
             {

@@ -337,5 +337,24 @@ namespace ACE.Server.Entity
         {
             CurrentFormula = player.HasFoci(Spell.School) ? FociFormula : PlayerFormula;
         }
+
+        /// <summary>
+        /// Returns a mapping of component wcid => number required
+        /// </summary>
+        public Dictionary<uint, int> GetRequiredComps()
+        {
+            var compsRequired = new Dictionary<uint, int>();
+
+            foreach (var component in CurrentFormula)
+            {
+                var wcid = Spell.GetComponentWCID(component);
+
+                if (compsRequired.ContainsKey(wcid))
+                    compsRequired[wcid]++;
+                else
+                    compsRequired.Add(wcid, 1);
+            }
+            return compsRequired;
+        }
     }
 }

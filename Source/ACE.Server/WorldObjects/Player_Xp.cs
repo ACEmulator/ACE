@@ -344,7 +344,11 @@ namespace ACE.Server.WorldObjects
             var maxLevel = GetMaxLevel();
             if (Level >= maxLevel) return;
 
-            var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
+            var nextLevel = Level.Value + 1;
+            if (nextLevel > 275)
+                nextLevel = 275;
+
+            var nextLevelXP = GetXPBetweenLevels(Level.Value, nextLevel);
             var scaledXP = (long)Math.Min(nextLevelXP * percent, max);
 
             GrantXP(scaledXP, XpType.Quest, shareable);

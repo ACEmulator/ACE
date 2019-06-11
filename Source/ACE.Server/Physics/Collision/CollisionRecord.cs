@@ -4,5 +4,11 @@ namespace ACE.Server.Physics.Collision
     {
         public double TouchedTime;
         public bool Ethereal;
+
+        public CollisionRecord(double touchedTime, bool ethereal)
+        {
+            TouchedTime = touchedTime;
+            Ethereal = ethereal;
+        }
     }
 }

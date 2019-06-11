@@ -1,3 +1,4 @@
+using System;
 using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -10,12 +11,19 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.MoveToState)]
         public static void Handle(ClientMessage message, Session session)
         {
+            //Console.WriteLine("MoveToState");
+
             var moveToState = new MoveToState(session.Player, message.Payload);
 
-            session.Player.SetRequestedLocation(moveToState.Position);
+            if (!session.Player.Teleporting)
+            {
+                session.Player.OnMoveToState(moveToState);
+                session.Player.LastMoveToState = moveToState;
+                session.Player.SetRequestedLocation(moveToState.Position);
+            }
 
             //if (!moveToState.StandingLongJump)
-                session.Player.BroadcastMovement(moveToState);
+            session.Player.BroadcastMovement(moveToState);
 
             if (session.Player.IsPlayerMovingTo)
                 session.Player.StopExistingMoveToChains();

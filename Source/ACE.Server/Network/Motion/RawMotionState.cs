@@ -17,7 +17,7 @@ namespace ACE.Server.Network.Structure
 
         public RawMotionFlags Flags;        // stored as the first 11 bits of PackedFlags
         public ushort CommandListLength;    // starts at bit 12 of PackedFlags 
-                                            
+
         // choose valid sections by masking against Flags
         public HoldKey CurrentHoldKey;          // 0x1 - walk/run
         public MotionStance CurrentStyle;       // 0x2 - current stance
@@ -30,7 +30,7 @@ namespace ACE.Server.Network.Structure
         public MotionCommand TurnCommand;       // 0x100 - turn command - this is always sent as 1 direction in RawMotion,
                                                 // with a negative speed for the opposite direction. A negative speed
                                                 // is then in turn translated to the opposite Motion in InterpretedMotionState.
-        public uint TurnHoldKey;                // 0x200 - whether turn key is being held, or mouselook in progress
+        public HoldKey TurnHoldKey;             // 0x200 - whether turn key is being held, or mouselook in progress
         public float TurnSpeed;                 // 0x400 - turn movement speed - somewhat static
 
         // commands: list of length commandListLength
@@ -66,7 +66,7 @@ namespace ACE.Server.Network.Structure
             if ((Flags & RawMotionFlags.TurnCommand) != 0)
                 TurnCommand = (MotionCommand)reader.ReadUInt32();
             if ((Flags & RawMotionFlags.TurnHoldKey) != 0)
-                TurnHoldKey = reader.ReadUInt32();
+                TurnHoldKey = (HoldKey)reader.ReadUInt32();
             if ((Flags & RawMotionFlags.TurnSpeed) != 0)
                 TurnSpeed = reader.ReadSingle();
 
@@ -76,6 +76,48 @@ namespace ACE.Server.Network.Structure
                 for (var i = 0; i < CommandListLength; i++)
                     Commands.Add(new MotionItem(moveToState.WorldObject, reader));
             }
+        }
+
+        public void ShowInfo()
+        {
+            Console.WriteLine($"Flags: {Flags}");
+
+            if ((Flags & RawMotionFlags.CurrentHoldKey) != 0)
+                Console.WriteLine($"CurrentHoldKey: {CurrentHoldKey}");
+            if ((Flags & RawMotionFlags.CurrentStyle) != 0)
+                Console.WriteLine($"CurrentStyle: {CurrentStyle}");
+            if ((Flags & RawMotionFlags.ForwardCommand) != 0)
+                Console.WriteLine($"ForwardCommand: {ForwardCommand}");
+            if ((Flags & RawMotionFlags.ForwardHoldKey) != 0)
+                Console.WriteLine($"ForwardHoldKey: {ForwardHoldKey}");
+            if ((Flags & RawMotionFlags.ForwardSpeed) != 0)
+                Console.WriteLine($"ForwardSpeed: {ForwardSpeed}");
+            if ((Flags & RawMotionFlags.SideStepCommand) != 0)
+                Console.WriteLine($"SidestepCommand: {SidestepCommand}");
+            if ((Flags & RawMotionFlags.SideStepHoldKey) != 0)
+                Console.WriteLine($"SidestepHoldKey: {SidestepHoldKey}");
+            if ((Flags & RawMotionFlags.SideStepSpeed) != 0)
+                Console.WriteLine($"SidestepSpeed: {SidestepSpeed}");
+            if ((Flags & RawMotionFlags.TurnCommand) != 0)
+                Console.WriteLine($"TurnCommand: {TurnCommand}");
+            if ((Flags & RawMotionFlags.TurnHoldKey) != 0)
+                Console.WriteLine($"TurnHoldKey: {TurnHoldKey}");
+            if ((Flags & RawMotionFlags.TurnSpeed) != 0)
+                Console.WriteLine($"TurnSpeed: {TurnSpeed}");
+
+            if (CommandListLength > 0)
+            {
+                Console.WriteLine($"CommandListLength: {CommandListLength}");
+                foreach (var command in Commands)
+                    command.ShowInfo();
+            }
+
+            Console.WriteLine("---");
+        }
+
+        public bool HasMovement()
+        {
+            return (Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.TurnCommand | RawMotionFlags.SideStepCommand)) != 0;
         }
     }
 }

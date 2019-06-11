@@ -133,6 +133,8 @@ namespace ACE.Server.Entity
 
             actionChain.AddAction(player, () => ActivateSigil(player, source, target));
 
+            player.EnqueueMotion(actionChain, MotionCommand.Ready);
+
             actionChain.EnqueueChain();
         }
 

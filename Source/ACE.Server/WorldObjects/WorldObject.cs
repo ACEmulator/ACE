@@ -20,6 +20,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
@@ -422,27 +423,11 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
 
 
-        public static float MaxObjectTrackingRange { get; } = 20000f;
-
-        public Position ForcedLocation { get; private set; }
+        public MoveToState LastMoveToState { get; set; }
 
         public Position RequestedLocation { get; set; }
 
         public Position PreviousLocation { get; set; }
-
-
-        /// <summary>
-        /// Time when this object will despawn, -1 is never.
-        /// </summary>
-        public double DespawnTime { get; set; } = -1;
-
-        /// <summary>
-        /// tick-stamp for the server time of the last time the player moved.
-        /// TODO: implement
-        /// </summary>
-        public double LastAnimatedTicks { get; set; }
-
-        public virtual void PlayScript(Session session) { }
 
 
         ////// Logical Game Data
@@ -700,16 +685,6 @@ namespace ACE.Server.WorldObjects
 
             var proj = new Projectile(this);
             proj.OnCollideEnvironment();
-        }
-
-        public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null)
-        {
-            var msg = new GameMessageUpdateMotion(this, motion);
-
-            if (maxRange == null)
-                EnqueueBroadcast(msg);
-            else
-                EnqueueBroadcast(msg, maxRange.Value);
         }
 
         public void ApplyVisualEffects(PlayScript effect, float speed = 1)
@@ -979,11 +954,15 @@ namespace ACE.Server.WorldObjects
             {
                 var motionInterp = PhysicsObj.get_minterp();
 
-                var rawState = new RawMotionState();
+                var rawState = new Physics.Animation.RawMotionState();
                 rawState.ForwardCommand = 0;    // always 0? must be this for monster sleep animations (skeletons, golems)
                                                 // else the monster will immediately wake back up..
                 rawState.CurrentHoldKey = HoldKey.Run;
                 rawState.CurrentStyle = (uint)motionCommand;
+
+                if (!PhysicsObj.IsMovingOrAnimating)
+                    //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - PhysicsGlobals.MinQuantum;
+                    PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
 
                 motionInterp.RawState = rawState;
                 motionInterp.apply_raw_movement(true, true);
@@ -1046,6 +1025,26 @@ namespace ACE.Server.WorldObjects
                 if (CurrentMotionState.MotionState != null)
                     currentMotion = CurrentMotionState.MotionState.ForwardCommand;
             }
+        }
+
+        public virtual void HandleMotionDone(uint motionID, bool success)
+        {
+            // empty base
+        }
+
+        public virtual void OnMoveComplete(WeenieError status)
+        {
+            // empty base
+        }
+
+        public virtual void OnSticky()
+        {
+            // empty base
+        }
+
+        public virtual void OnUnsticky()
+        {
+            // empty base
         }
     }
 }

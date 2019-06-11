@@ -72,7 +72,7 @@ namespace ACE.Server.Managers
             if (WorldStatus == WorldStatusState.Closed)
                 log.Info($"To open world to players, use command: world open");
         }
- 
+
         internal static void Open(Player player)
         {
             WorldStatus = WorldStatusState.Open;
@@ -85,7 +85,7 @@ namespace ACE.Server.Managers
             var msg = "World is now closed";
             if (bootPlayers)
                 msg += ", and booting all online players.";
-            
+
             PlayerManager.BroadcastToAuditChannel(player, msg);
 
             if (bootPlayers)
@@ -449,47 +449,11 @@ namespace ACE.Server.Managers
             foreach (WorldObject wo in landblock.GetWorldObjectsForPhysicsHandling())
             {
                 // set to TRUE if object changes landblock
-                var landblockUpdate = false;
-
-                // detect player movement
-                // TODO: handle players the same as everything else
-                if (wo is Player player)
-                {
-                    wo.InUpdate = true;
-
-                    var newPosition = HandlePlayerPhysics(player, timeTick);
-
-                    // update position through physics engine
-                    if (newPosition != null)
-                        landblockUpdate = wo.UpdatePlayerPhysics(newPosition);
-
-                    wo.InUpdate = false;
-                }
-                else
-                    landblockUpdate = wo.UpdateObjectPhysics();
+                var landblockUpdate = wo.UpdateObjectPhysics();
 
                 if (landblockUpdate)
                     movedObjects.Enqueue(wo);
             }
-        }
-
-        /// <summary>
-        /// Detects if player has moved through ForcedLocation or RequestedLocation
-        /// </summary>
-        private static Position HandlePlayerPhysics(Player player, double timeTick)
-        {
-            Position newPosition = null;
-
-            if (player.ForcedLocation != null)
-                newPosition = player.ForcedLocation;
-
-            else if (player.RequestedLocation != null)
-                newPosition = player.RequestedLocation;
-
-            if (newPosition != null)
-                player.ClearRequestedPositions();
-
-            return newPosition;
         }
     }
 }

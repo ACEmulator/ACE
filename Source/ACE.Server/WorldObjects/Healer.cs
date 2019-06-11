@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {
-                // check windup move distance cap
+                // check heal movement distance cap
                 var endPos = new Position(healer.Location);
                 var dist = startPos.DistanceTo(endPos);
 

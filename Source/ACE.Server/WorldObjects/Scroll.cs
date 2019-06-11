@@ -71,9 +71,12 @@ namespace ACE.Server.WorldObjects
             }
 
             var animTime = player.EnqueueMotion(actionChain, MotionCommand.Reading);
+            player.LastUseTime += animTime;
 
-            actionChain.AddDelaySeconds(2.0f);
-            player.LastUseTime += 2.0f;
+            var readTime = 1.0f;
+
+            actionChain.AddDelaySeconds(readTime);
+            player.LastUseTime += readTime;
 
             actionChain.AddAction(player, () =>
             {
@@ -106,9 +109,10 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Broadcast));
             });
 
-            player.LastUseTime += animTime;     // return stance
 
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
+
+            player.LastUseTime += animTime;     // return stance
 
             actionChain.AddAction(player, () => player.IsBusy = false);
 

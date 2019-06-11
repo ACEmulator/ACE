@@ -114,6 +114,31 @@ namespace ACE.Server.Physics.Animation
             TurnSpeed = 1.0f;
         }
 
+        public void SetState(Network.Structure.RawMotionState state)
+        {
+            CurrentHoldKey = state.CurrentHoldKey;
+            CurrentStyle = (uint)state.CurrentStyle;
+            if (CurrentStyle == 0)
+                CurrentStyle = (uint)MotionCommand.NonCombat;
+            ForwardCommand = (uint)state.ForwardCommand;
+            if (ForwardCommand == 0)
+                ForwardCommand = (uint)MotionCommand.Ready;
+            ForwardHoldKey = state.ForwardHoldKey;
+            ForwardSpeed = state.ForwardSpeed;      // todo: verifications
+            if (ForwardSpeed == 0)
+                ForwardSpeed = 1.0f;
+            SideStepCommand = (uint)state.SidestepCommand;
+            SideStepHoldKey = state.SidestepHoldKey;
+            SideStepSpeed = state.SidestepSpeed;
+            if (SideStepSpeed == 0)
+                SideStepSpeed = 1.0f;
+            TurnCommand = (uint)state.TurnCommand;
+            TurnHoldKey = state.TurnHoldKey;
+            TurnSpeed = state.TurnSpeed;
+            if (TurnSpeed == 0)
+                TurnSpeed = 1.0f;
+        }
+
         public uint RemoveAction()
         {
             if (Actions.Count == 0)

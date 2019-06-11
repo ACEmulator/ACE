@@ -32,15 +32,6 @@ namespace ACE.Server.WorldObjects
                 CycleTime = 1;
         }
 
-        public override void OnCollideObjectEnd(WorldObject wo)
-        {
-            if (!(wo is Player player))
-                return;
-
-            if (Players.Contains(player.Guid))
-                Players.Remove(player.Guid);
-        }
-
         private HashSet<ObjectGuid> Players = new HashSet<ObjectGuid>();
 
         private ActionChain ActionLoop = null;
@@ -59,6 +50,18 @@ namespace ACE.Server.WorldObjects
                 NextActionLoop.EnqueueChain();
             }
         }
+        public override void OnCollideObjectEnd(WorldObject wo)
+        {
+            /*if (!(wo is Player player))
+                return;
+
+            if (Players.Contains(player.Guid))
+            {
+                Console.WriteLine($"{wo.Name} ({wo.Guid}).OnCollideObjectEnd({wo.Name})");
+                Players.Remove(player.Guid);
+            }*/
+        }
+
         private ActionChain NextActionLoop
         {
             get
@@ -136,7 +139,9 @@ namespace ACE.Server.WorldObjects
             foreach (var playerGuid in Players.ToList())
             {
                 var player = PlayerManager.GetOnlinePlayer(playerGuid);
-                if (player == null || player.Location.Landblock != Location.Landblock)
+
+                // verify current state of collision here
+                if (player == null || !player.PhysicsObj.is_touching(PhysicsObj))
                 {
                     Players.Remove(playerGuid);
                     continue;

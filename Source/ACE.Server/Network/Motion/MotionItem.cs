@@ -45,6 +45,13 @@ namespace ACE.Server.Network.Structure
             IsAutonomous = (PackedSequence >> 15) == 1;
             Speed = reader.ReadSingle();
         }
+
+        public void ShowInfo()
+        {
+            Console.WriteLine($"MotionCommand: {MotionCommand}");
+            Console.WriteLine($"IsAutonomous: {IsAutonomous}");
+            Console.WriteLine($"Speed: {Speed}");
+        }
     }
 
     public static class PackedCommandExtensions

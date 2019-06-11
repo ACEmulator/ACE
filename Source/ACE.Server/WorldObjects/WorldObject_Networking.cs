@@ -397,7 +397,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Broadcast position updates to players within range
         /// </summary>
-        protected void SendUpdatePosition()
+        public void SendUpdatePosition()
         {
             EnqueueBroadcast(new GameMessageUpdatePosition(this));
         }
@@ -987,18 +987,6 @@ namespace ACE.Server.WorldObjects
             return flag;
         }
 
-        public void ClearRequestedPositions()
-        {
-            ForcedLocation = null;
-            RequestedLocation = null;
-        }
-
-        public void ClearPreviousLocation()
-        {
-            PreviousLocation = null;
-        }
-
-
         public bool? IgnoreCloIcons
         {
             get => GetProperty(PropertyBool.IgnoreCloIcons);
@@ -1184,14 +1172,21 @@ namespace ACE.Server.WorldObjects
             return iterator.CurrentLandblock == null ? null : iterator;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
-            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand);
+            var animLength = 0.0f;
+            if (usePrevCommand)
+            {
+                var prevCommand = CurrentMotionState.MotionState.ForwardCommand;
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
+            }
+            else
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
 
             actionChain.AddAction(this, () =>
             {
@@ -1200,7 +1195,41 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.AddDelaySeconds(animLength);
+
             return animLength;
+        }
+
+        public static bool EnqueueBroadcastMotion_Physics = true;
+
+        public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null)
+        {
+            var msg = new GameMessageUpdateMotion(this, motion);
+
+            if (maxRange == null)
+                EnqueueBroadcast(msg);
+            else
+                EnqueueBroadcast(msg, maxRange.Value);
+
+            if (EnqueueBroadcastMotion_Physics)
+                ApplyPhysicsMotion(motion);
+        }
+
+        public void ApplyPhysicsMotion(Motion motion)
+        {
+            var minterp = PhysicsObj.get_minterp();
+            var rawState = minterp.RawState;
+
+            var allowJump = minterp.motion_allows_jump(minterp.InterpretedState.ForwardCommand) == WeenieError.None;
+
+            rawState.CurrentStyle = (uint)motion.Stance;
+            rawState.ForwardCommand = (uint)motion.MotionState.ForwardCommand;
+            rawState.ForwardSpeed = motion.MotionState.ForwardSpeed;
+
+            if (!PhysicsObj.IsMovingOrAnimating)
+                //PhysicsObj.UpdateTime = Physics.Common.PhysicsTimer.CurrentTime - PhysicsGlobals.MinQuantum;
+                PhysicsObj.UpdateTime = Physics.Common.PhysicsTimer.CurrentTime;
+
+            minterp.apply_raw_movement(true, allowJump);
         }
 
         /// <summary>

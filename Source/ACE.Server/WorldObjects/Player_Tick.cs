@@ -3,8 +3,14 @@ using System.Linq;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
+using ACE.Server.Physics;
+using ACE.Server.Physics.Common;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Sequence;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -188,6 +194,188 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
+        }
+
+        public static float MaxSpeed = 50;
+        public static float MaxSpeedSq = MaxSpeed * MaxSpeed;
+
+        public bool DebugPlayerMoveToStatePhysics = false;
+
+        public void OnMoveToState(MoveToState moveToState)
+        {
+            var rawState = moveToState.RawMotionState;
+
+            if (DebugPlayerMoveToStatePhysics)
+                rawState.ShowInfo();
+
+            var minterp = PhysicsObj.get_minterp();
+            minterp.RawState.SetState(moveToState.RawMotionState);
+
+            if (moveToState.StandingLongJump)
+            {
+                minterp.RawState.ForwardCommand = (uint)MotionCommand.Ready;
+                minterp.RawState.SideStepCommand = 0;
+            }
+
+            if (!PhysicsObj.IsMovingOrAnimating)
+                //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - PhysicsGlobals.MinQuantum;
+                PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
+            var allowJump = minterp.motion_allows_jump(minterp.InterpretedState.ForwardCommand) == WeenieError.None;
+
+            //PhysicsObj.cancel_moveto();
+
+            minterp.apply_raw_movement(true, allowJump);
+        }
+
+        public bool OnAutoPos(ACE.Entity.Position newPosition, bool forceUpdate = false)
+        {
+            return UpdatePlayerPosition(newPosition, forceUpdate);
+        }
+
+        public override bool UpdateObjectPhysics()
+        {
+            bool landblockUpdate = false;
+
+            InUpdate = true;
+
+            // update position through physics engine
+            if (RequestedLocation != null)
+            {
+                landblockUpdate = UpdatePlayerPosition(RequestedLocation);
+                RequestedLocation = null;
+            }
+
+            if (PhysicsObj.IsMovingOrAnimating)
+            {
+                UpdatePlayerPhysics();
+                WasAnimating = true;
+            }
+            else if (WasAnimating)
+            {
+                WasAnimating = false;
+
+                if (DebugPlayerMoveToStatePhysics)
+                    Console.WriteLine("--------------------------");
+
+                OnMotionQueueDone();
+            }
+
+            InUpdate = false;
+
+            return landblockUpdate;
+        }
+
+        public void UpdatePlayerPhysics()
+        {
+            if (DebugPlayerMoveToStatePhysics)
+                Console.WriteLine($"{Name}.UpdatePlayerPhysics({PhysicsObj.PartArray.Sequence.CurrAnim.Value.Anim.ID:X8})");
+
+            PhysicsObj.update_object();
+
+            if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
+            {
+                // apply latest MoveToState, if applicable
+                if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
+                {
+                    if (DebugPlayerMoveToStatePhysics)
+                        Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
+
+                    OnMoveToState(LastMoveToState);
+                }
+                LastMoveToState = null;
+            }
+        }
+
+        /// <summary>
+        /// Used by physics engine to actually update a player position
+        /// Automatically notifies clients of updated position
+        /// </summary>
+        /// <param name="newPosition">The new position being requested, before verification through physics engine</param>
+        /// <returns>TRUE if object moves to a different landblock</returns>
+        public bool UpdatePlayerPosition(ACE.Entity.Position newPosition, bool forceUpdate = false)
+        {
+            //Console.WriteLine($"UpdatePlayerPhysics: {newPosition.Cell:X8}, {newPosition.Pos}");
+            bool verifyContact = false;
+
+            // possible bug: while teleporting, client can still send AutoPos packets from old landblock
+            if (Teleporting && !forceUpdate) return false;
+
+            if (PhysicsObj != null)
+            {
+                var distSq = Location.SquaredDistanceTo(newPosition);
+
+                if (distSq > PhysicsGlobals.EpsilonSq)
+                {
+                    if (newPosition.Landblock == 0x18A && Location.Landblock != 0x18A)
+                        log.Info($"{Name} is getting swanky");
+
+                    if (!Teleporting)
+                    {
+                        var blockDist = PhysicsObj.GetBlockDist(Location.Cell, newPosition.Cell);
+
+                        // verify movement
+                        if (distSq > MaxSpeedSq && blockDist > 1)
+                        {
+                            //Session.Network.EnqueueSend(new GameMessageSystemChat("Movement error", ChatMessageType.Broadcast));
+                            log.Warn($"MOVEMENT SPEED: {Name} trying to move from {Location} to {newPosition}, speed: {Math.Sqrt(distSq)}");
+                            return false;
+                        }
+
+                        // verify z-pos
+                        if (blockDist == 0 && LastGroundPos != null && newPosition.PositionZ - LastGroundPos.PositionZ > 10 && DateTime.UtcNow - LastJumpTime > TimeSpan.FromSeconds(1))
+                            verifyContact = true;
+                    }
+
+                    var curCell = LScape.get_landcell(newPosition.Cell);
+                    if (curCell != null)
+                    {
+                        PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
+                        PhysicsObj.update_object_server();
+
+                        if (PhysicsObj.CurCell == null)
+                            PhysicsObj.CurCell = curCell;
+
+                        if (verifyContact && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                        {
+                            log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
+                            Location = new ACE.Entity.Position(LastGroundPos);
+                            Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
+                            SendUpdatePosition();
+                            return false;
+                        }
+
+                        CheckMonsters();
+                    }
+                }
+            }
+
+            // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
+            if (Teleporting && !forceUpdate) return true;
+
+            var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
+            Location = newPosition;
+
+            SendUpdatePosition();
+
+            if (!InUpdate)
+                LandblockManager.RelocateObjectForPhysics(this, true);
+
+            return landblockUpdate;
+        }
+
+        public override void HandleMotionDone(uint motionID, bool success)
+        {
+            //Console.WriteLine($"{Name}.HandleMotionDone({(MotionCommand)motionID}, {success})");
+
+            if (MagicState.IsCasting)
+                HandleMotionDone_Magic(motionID, success);
+        }
+
+        public void OnMotionQueueDone()
+        {
+            if (MagicState.IsCasting)
+                OnMotionQueueDone_Magic();
         }
     }
 }

@@ -87,6 +87,9 @@ namespace ACE.Server.Physics
         /// </summary>
         public bool IsAnimating;
 
+        public bool IsMovingOrAnimating => !PartArray.Sequence.is_first_cyclic() || CachedVelocity != Vector3.Zero || Velocity != Vector3.Zero ||
+            MovementManager.MotionInterpreter.InterpretedState.HasCommands();
+
         // server
         public Position RequestPos;
 
@@ -455,6 +458,61 @@ namespace ACE.Server.Physics
             }
             transition.SpherePath.ObstructionEthereal = false;
             return result;
+        }
+
+        public bool is_touching(PhysicsObj obj)
+        {
+            // custom for hotspots
+
+            // possible collision detection object types:
+            // - bsp
+            // - sphere
+            // - cylsphere
+
+            // player has 2 spheres
+            // hotspots appear to sphere or cylsphere?
+
+            // ensure same landblock
+            // no cross-landblock collision detection here,
+            // although it could be added if needed
+
+            if (CurLandblock != obj.CurLandblock)
+                return false;
+
+            var pSpheres = PartArray.GetSphere();
+
+            var spheres = obj.PartArray.GetSphere();
+            var cylspheres = obj.PartArray.GetCylSphere();
+
+            if (pSpheres.Count == 0 || (spheres.Count == 0 && cylspheres.Count == 0))
+                return false;
+
+            foreach (var pSphere in pSpheres)
+            {
+                foreach (var sphere in spheres)
+                {
+                    // convert to landblock coordinates
+                    var playerSphere = new Sphere(Position.Frame.LocalToGlobal(pSphere.Center), pSphere.Radius);
+                    var globSphere = new Sphere(obj.Position.Frame.LocalToGlobal(sphere.Center), sphere.Radius);
+
+                    if (playerSphere.Intersects(globSphere))
+                        return true;
+                }
+
+                foreach (var cylsphere in cylspheres)
+                {
+                    // convert to landblock coordinates
+                    var center = Position.Frame.LocalToGlobal(pSphere.Center);
+                    var lowpoint = obj.Position.Frame.LocalToGlobal(cylsphere.LowPoint);
+
+                    var disp = center - lowpoint;
+                    var radsum = pSphere.Radius + cylsphere.Radius - PhysicsGlobals.EPSILON;
+
+                    if (cylsphere.CollidesWithSphere(pSphere, disp, radsum))
+                        return true;
+                }
+            }
+            return false;
         }
 
         public SetPositionError ForceIntoCell(ObjCell newCell, Position pos)
@@ -1484,14 +1542,16 @@ namespace ACE.Server.Physics
             MovementManager.PerformMovement(mvs);
         }
 
-        public void TurnToObject(uint objectID, MovementParameters movementParams)
+        public bool TurnToObject(uint objectID, MovementParameters movementParams)
         {
-            if (ObjMaint == null) return;
             var obj = ObjectMaint.GetObjectA(objectID);
-            if (obj == null) return;
+            if (obj == null) return false;
+
             var parent = obj.Parent != null ? obj.Parent : obj;
 
             TurnToObject_Internal(objectID, parent.ID, movementParams);
+
+            return true;
         }
 
         public void TurnToObject_Internal(uint objectID, uint topLevelID, MovementParameters movementParams)
@@ -1942,37 +2002,6 @@ namespace ACE.Server.Physics
 
             if (!attackInfo.WaitingForCells)
                 report_attacks(attackInfo);
-        }
-
-        public AtkCollisionProfile build_collision_profile(PhysicsObj obj, bool prev_has_contact, Vector3 velocityCollide)
-        {
-            AtkCollisionProfile profile = null;
-
-            if (!State.HasFlag(PhysicsState.Missile))
-                profile = (AtkCollisionProfile)build_collision_profile(obj, velocityCollide, prev_has_contact,
-                    obj.State.HasFlag(PhysicsState.Missile), obj.TransientState.HasFlag(TransientStateFlags.Contact));
-            else
-            {
-                profile = new AtkCollisionProfile();
-                profile.ID = obj.ID;
-                profile.Part = -1;
-                profile.Location = obj.Position.DetermineQuadrant(obj.GetHeight(), Position);
-            }
-            return profile;
-        }
-
-        public static ObjCollisionProfile build_collision_profile(PhysicsObj obj, Vector3 velocity, bool amIInContact, bool objIsMissile, bool objHasContact)
-        {
-            if (obj.WeenieObj != null /* && vfptr */) return null;
-            var prof = new ObjCollisionProfile();
-            prof.Velocity = velocity;
-            if (objIsMissile)
-                prof.Flags |= ObjCollisionProfileFlags.Missile;
-            if (objHasContact)
-                prof.Flags |= ObjCollisionProfileFlags.Contact;
-            if (amIInContact)
-                prof.Flags |= ObjCollisionProfileFlags.MyContact;
-            return prof;
         }
 
         public void calc_acceleration()
@@ -3078,35 +3107,33 @@ namespace ACE.Server.Physics
             var velocityCollide = Velocity - obj.Velocity;
 
             bool collided = false;
+
             if (!obj.State.HasFlag(PhysicsState.IgnoreCollisions))
             {
                 if (State.HasFlag(PhysicsState.ReportCollisions) && WeenieObj != null)
                 {
                     var profile = build_collision_profile(obj, prev_has_contact, velocityCollide);
-                    WeenieObj.DoCollision(profile, ObjID, obj);
-                    collided = true;
 
-                    if (!CollisionTable.ContainsKey(obj.ID))
-                        CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime });
-                    else
-                        CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime };
+                    WeenieObj.DoCollision(profile, ObjID, obj);
+
+                    collided = true;
                 }
 
                 if (State.HasFlag(PhysicsState.Missile))
                     State &= ~(PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped);
             }
 
-            if (obj.State.HasFlag(PhysicsState.ReportCollisions) && !State.HasFlag(PhysicsState.IgnoreCollisions) && WeenieObj != null)
+            if (obj.State.HasFlag(PhysicsState.ReportCollisions) && !State.HasFlag(PhysicsState.IgnoreCollisions) && obj.WeenieObj != null)
             {
-                var profile = obj.build_collision_profile(this, prev_has_contact, velocityCollide);
-                obj.WeenieObj.DoCollision(profile, ObjID, obj);
-                collided = true;
+                // acclient might have a bug here,
+                // prev_has_contact and missie state params swapped?
+                var profile = obj.build_collision_profile(this, obj.TransientState.HasFlag(TransientStateFlags.Contact), velocityCollide);
 
-                if (!CollisionTable.ContainsKey(obj.ID))
-                    CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime });
-                else
-                    CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime };
+                obj.WeenieObj.DoCollision(profile, ObjID, obj);
+
+                collided = true;
             }
+
             return collided;
         }
 
@@ -3132,6 +3159,30 @@ namespace ACE.Server.Physics
                 WeenieObj.DoCollisionEnd(new ObjectGuid(objectID));
 
             return false;
+        }
+
+        public ObjCollisionProfile build_collision_profile(PhysicsObj obj, bool amIInContact, Vector3 velocityCollide)
+        {
+            if (State.HasFlag(PhysicsState.Missile))
+            {
+                return new AtkCollisionProfile(obj.ID, -1, obj.Position.DetermineQuadrant(obj.GetHeight(), Position));
+            }
+            else
+            {
+                return build_collision_profile(obj, velocityCollide, amIInContact, obj.State.HasFlag(PhysicsState.Missile), obj.TransientState.HasFlag(TransientStateFlags.Contact));
+            }
+        }
+
+        public ObjCollisionProfile build_collision_profile(PhysicsObj obj, Vector3 velocity, bool amIInContact, bool objIsMissile, bool objHasContact)
+        {
+            if (WeenieObj == null)
+                return null;
+
+            var profile = new ObjCollisionProfile(obj.ID, velocity, objIsMissile, objHasContact, amIInContact);
+
+            WeenieObj.InqCollisionProfile(profile);
+
+            return profile;
         }
 
         public void rotate(Vector3 offset)
@@ -3749,11 +3800,8 @@ namespace ACE.Server.Physics
             if (CollisionTable == null)
                 CollisionTable = new Dictionary<uint, CollisionRecord>();
 
-            //if (!CollisionTable.ContainsKey(obj.ID))
-            //    CollisionTable.Add(obj.ID, null);
+            CollisionTable[obj.ID] = new CollisionRecord(PhysicsTimer.CurrentTime, obj.State.HasFlag(PhysicsState.Ethereal));
 
-            //if (!CollisionTable.ContainsKey(obj.ID)) return false;
-            //CollisionTable.Remove(obj.ID);
             return report_object_collision(obj, prev_has_contact);
         }
 
@@ -3947,8 +3995,8 @@ namespace ACE.Server.Physics
                 set_current_pos(RequestPos);
 
             // temp for players
-            if ((TransientState & TransientStateFlags.Contact) != 0)
-                CachedVelocity = Vector3.Zero;
+            //if ((TransientState & TransientStateFlags.Contact) != 0)
+                //CachedVelocity = Vector3.Zero;
 
             UpdateTime = PhysicsTimer.CurrentTime;
         }
@@ -3982,39 +4030,6 @@ namespace ACE.Server.Physics
         public void get_voyeurs()
         {
             ObjMaint.get_voyeurs();
-        }
-
-        public void add_moveto_listener(Action<WeenieError> listener)
-        {
-            MovementManager.MoveToManager.add_listener(listener);
-        }
-
-        public void remove_moveto_listener(Action<WeenieError> listener)
-        {
-            MovementManager.MoveToManager.remove_listener(listener);
-        }
-
-        public void add_sticky_listener(Action listener)
-        {
-            MakePositionManager();
-            PositionManager.MakeStickyManager();
-
-            PositionManager.StickyManager.add_sticky_listener(listener);
-        }
-
-        public void remove_sticky_listener(Action listener)
-        {
-            PositionManager.StickyManager.remove_sticky_listener(listener);
-        }
-
-        public void add_unsticky_listener(Action listener)
-        {
-            PositionManager.StickyManager.add_unsticky_listener(listener);
-        }
-
-        public void remove_unsticky_listener(Action listener)
-        {
-            PositionManager.StickyManager.remove_unsticky_listener(listener);
         }
 
         public bool IsGrounded { get => TransientState.HasFlag(TransientStateFlags.OnWalkable) && CachedVelocity.Equals(Vector3.Zero); }

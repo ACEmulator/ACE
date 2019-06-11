@@ -656,8 +656,8 @@ namespace ACE.Server.Physics.Animation
             var velocity = get_state_velocity();
             velocity.Z = get_jump_v_z();
 
-            if (!velocity.Equals(Vector3.Zero))
-                velocity = PhysicsObj.Position.GlobalToLocalVec(velocity);
+            if (Vec.IsZero(velocity))
+                velocity = PhysicsObj.Position.GlobalToLocalVec(PhysicsObj.Velocity);
 
             return velocity;
         }
