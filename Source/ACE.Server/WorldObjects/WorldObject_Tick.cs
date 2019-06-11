@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A value of Double.MaxValue indicates that there is no NextGeneratorHeartbeat
         /// </summary>
-        public double NextGeneratorHeartbeatTime;
+        public double NextGeneratorUpdateTime;
         /// <summary>
         /// A value of Double.MaxValue indicates that there is no NextGeneratorRegeneration
         /// </summary>
@@ -55,13 +55,13 @@ namespace ACE.Server.WorldObjects
 
             if (IsGenerator)
             {
-                NextGeneratorHeartbeatTime = currentUnixTime; // Generators start right away
+                NextGeneratorUpdateTime = currentUnixTime; // Generators start right away
                 if (cachedRegenerationInterval == 0)
                     NextGeneratorRegenerationTime = double.MaxValue;
             }
             else
             {
-                NextGeneratorHeartbeatTime = double.MaxValue; // Disable future GeneratorHeartBeats
+                NextGeneratorUpdateTime = double.MaxValue; // Disable future GeneratorHeartBeats
                 NextGeneratorRegenerationTime = double.MaxValue;
             }
         }
@@ -81,11 +81,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called every 5 seconds for WorldObject base
         /// </summary>
-        public void GeneratorHeartbeat(double currentUnixTime)
+        public void GeneratorUpdate(double currentUnixTime)
         {
-            Generator_HeartBeat();
+            Generator_Update();
 
-            NextGeneratorHeartbeatTime = currentUnixTime + 5;
+            SetProperty(PropertyFloat.GeneratorUpdateTimestamp, currentUnixTime);
+
+            NextGeneratorUpdateTime = currentUnixTime + 5;
         }
 
         /// <summary>

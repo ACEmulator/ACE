@@ -709,7 +709,7 @@ namespace ACE.Server.WorldObjects
         /// Called every [RegenerationInterval] seconds<para />
         /// Also called from EmoteManager, Chest.Reset(), WorldObject.OnGenerate()
         /// </summary>
-        public void Generator_HeartBeat()
+        public void Generator_Update()
         {
             //Console.WriteLine($"{Name}.Generator_HeartBeat({HeartbeatInterval})");
 
