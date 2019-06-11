@@ -2146,13 +2146,10 @@ namespace ACE.Server.Command.Handlers
         public static void HandleAddItemSpell (Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
-            var spellId = Convert.ToUInt32(parameters[0]);
-            //Add Spell Check
 
-            //Check to see if Spell ID Parameter is given
-            //if (spellId == null)
-            //    session.Network.EnqueueSend(new GameMessageSystemChat("Please Speficy SpellID.", ChatMessageType.Broadcast));
-            //return;
+            // Convert to Uint and see if its a number
+            if (!int.TryParse(parameters[0], out var spellId))
+                return;
 
             //Check to see if Spell ID is valid spell
             var spell = new Spell(spellId, true);
@@ -2161,9 +2158,11 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat("SpellID is not found", ChatMessageType.Broadcast));
                 return;
             }
-            obj.Biota.GetOrAddKnownSpell((int)spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out _);
+            obj.Biota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
 
+            var msg = spellAdded ? "added to" : "already on";
 
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
 
 
         }
