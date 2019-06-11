@@ -1233,12 +1233,17 @@ namespace ACE.Server.Physics
 
         public SetPositionError SetPositionInternal(SetPosition setPos, Transition transition)
         {
+            var wo = WeenieObj.WorldObject;
+
+            if (wo == null)
+                return SetPositionError.GeneralFailure;
+
             //if (setPos.Flags.HasFlag(SetPositionFlags.RandomScatter))
             //return SetScatterPositionInternal(setPos, transition);
-            if (WeenieObj.WorldObject.ScatterPos != null)
+            if (wo.ScatterPos != null)
             {
-                WeenieObj.WorldObject.ScatterPos.Flags |= setPos.Flags;
-                return SetScatterPositionInternal(WeenieObj.WorldObject.ScatterPos, transition);
+                wo.ScatterPos.Flags |= setPos.Flags;
+                return SetScatterPositionInternal(wo.ScatterPos, transition);
             }
 
             // frame ref?
@@ -2177,7 +2182,11 @@ namespace ACE.Server.Physics
             if (player == null) return;
 
             foreach (var obj in newlyVisible)
-                player.TrackObject(obj.WeenieObj.WorldObject);
+            {
+                var wo = obj.WeenieObj.WorldObject;
+                if (wo != null)
+                    player.TrackObject(wo);
+            }
         }
 
         public void enter_cell(ObjCell newCell)
@@ -3930,7 +3939,8 @@ namespace ACE.Server.Physics
         {
             var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
 
-            if (!WeenieObj.WorldObject.Teleporting)
+            var wo = WeenieObj.WorldObject;
+            if (wo != null && !wo.Teleporting)
                 UpdateObjectInternalServer(deltaTime);
 
             if (forcePos)

@@ -10,6 +10,7 @@ using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
@@ -76,7 +77,7 @@ namespace ACE.Server.Network.Handlers
 
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
-            packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
+            packetLog.DebugFormat("ConnectRequest TS: {0}", Timers.PortalYearTicks);
 
             if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
             {
@@ -86,7 +87,7 @@ namespace ACE.Server.Network.Handlers
             }
 
             var connectRequest = new PacketOutboundConnectRequest(
-                session.Network.ConnectionData.ServerTime,
+                Timers.PortalYearTicks,
                 session.Network.ConnectionData.ConnectionCookie,
                 session.Network.ClientId,
                 session.Network.ConnectionData.ServerSeed,

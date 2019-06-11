@@ -133,13 +133,12 @@ namespace ACE.Server.WorldObjects
 
                 // exclude players
                 var wo = obj.WeenieObj.WorldObject;
-                var player = wo as Player;
-                if (player != null) continue;
+                if (wo == null) continue;
+                if (wo is Player) continue;
 
                 // ensure creature / not combat pet
                 var creature = wo as Creature;
-                var combatPet = wo as CombatPet;
-                if (creature == null || combatPet != null || creature.IsDead) continue;
+                if (creature == null || wo is CombatPet || creature.IsDead) continue;
 
                 // ensure attackable
                 var attackable = creature.GetProperty(PropertyBool.Attackable) ?? false;
