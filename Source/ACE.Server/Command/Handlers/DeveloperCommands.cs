@@ -9,6 +9,7 @@ using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.World;
+using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -25,7 +26,9 @@ using ACE.Server.Physics.Entity;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
+
 using Position = ACE.Entity.Position;
+using Spell = ACE.Server.Entity.Spell;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -2135,6 +2138,34 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat("You can no longer cast spells without components.", ChatMessageType.Broadcast));
                     break;
             }
+        }
+        /// <summary>
+        /// This is to add spells to items (whether loot or quest generated).  For making weapons to check damage from pcaps or other sources
+        /// </summary>
+        [CommandHandler("additemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "/additemspell <spell id> - adds a spell to the last appraised item. Ex /additemspell 6089 - adds Legendary Bloodthirst")]
+        public static void HandleAddItemSpell (Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            var spellId = Convert.ToUInt32(parameters[0]);
+            //Add Spell Check
+
+            //Check to see if Spell ID Parameter is given
+            //if (spellId == null)
+            //    session.Network.EnqueueSend(new GameMessageSystemChat("Please Speficy SpellID.", ChatMessageType.Broadcast));
+            //return;
+
+            //Check to see if Spell ID is valid spell
+            var spell = new Spell(spellId, true);
+            if (spell.NotFound == true)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("SpellID is not found", ChatMessageType.Broadcast));
+                return;
+            }
+            obj.Biota.GetOrAddKnownSpell((int)spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out _);
+
+
+
+
         }
     }
 }
