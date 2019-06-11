@@ -411,10 +411,8 @@ namespace ACE.Server.Entity
             // base damage
             if (BaseDamageMod != null)
                 info += $"BaseDamageRange: {BaseDamageMod.Range}\n";
-<<<<<<< HEAD
-=======
 
->>>>>>> master
+
             info += $"BaseDamage: {BaseDamage}\n";
 
             // damage modifiers
@@ -423,16 +421,11 @@ namespace ACE.Server.Entity
             info += $"SlayerMod: {SlayerMod}\n";
 
             if (BaseDamageMod != null)
-<<<<<<< HEAD
-                info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
-            if (BaseDamageMod != null)
-                info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
-=======
             {
                 info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
                 info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
+                info += $"BloodDrinker/ThirstTotal: {BaseDamageMod.DamageBonus}\n";
             }
->>>>>>> master
 
             // damage ratings
             if (!(Defender is Player))
