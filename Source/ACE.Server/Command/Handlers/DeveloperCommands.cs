@@ -2154,9 +2154,14 @@ namespace ACE.Server.Command.Handlers
                     msg += $"MaxGeneratedObjects: {wo.MaxGeneratedObjects}\n";
                     msg += $"GeneratorInitialDelay: {wo.GeneratorInitialDelay}\n";
                     msg += $"RegenerationInterval: {wo.RegenerationInterval}\n";
+                    msg += $"GeneratorUpdateTimestamp: {wo.GeneratorUpdateTimestamp}\n";
+                    msg += $"NextGeneratorUpdateTime: {wo.NextGeneratorUpdateTime}\n";
+                    msg += $"RegenerationTimestamp: {wo.RegenerationTimestamp}\n";
+                    msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime}\n";
 
                     msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count}\n";
                     msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
+                    msg += $"CurrentCreate: {wo.CurrentCreate}\n";
                 }
                 else
                     msg = $"{wo.Name} (0x{wo.Guid.ToString()}) is not a generator.";
