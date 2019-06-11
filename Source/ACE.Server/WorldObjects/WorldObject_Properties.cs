@@ -1936,6 +1936,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyFloat.RegenerationTimestamp); else SetProperty(PropertyFloat.RegenerationTimestamp, value); }
         }
 
+        public double GeneratorUpdateTimestamp
+        {
+            get => GetProperty(PropertyFloat.GeneratorUpdateTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.GeneratorUpdateTimestamp); else SetProperty(PropertyFloat.GeneratorUpdateTimestamp, value); }
+        }
+
         public bool GeneratorEnteredWorld
         {
             get => GetProperty(PropertyBool.GeneratorEnteredWorld) ?? false;
