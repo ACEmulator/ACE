@@ -142,7 +142,7 @@ namespace ACE.Server.WorldObjects
                                 if (profileSpawn != null)
                                 {
                                     //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profileSpawn.Name: {profileSpawn.Name} | profileSpawn.IsGenerator: {profileSpawn.IsGenerator}");
-                                    if (profileSpawn.IsGenerator && !(profileSpawn.WeenieType == WeenieType.Container || profileSpawn.WeenieType == WeenieType.Chest) && profileSpawn.InitCreate > 1)
+                                    if (profileSpawn.IsGenerator && !(profileSpawn.WeenieType == WeenieType.Container || profileSpawn.WeenieType == WeenieType.Chest) && probability != -1 && profileSpawn.InitCreate > 1)
                                     {
                                         if (!campSpawned)
                                         {
@@ -730,6 +730,11 @@ namespace ACE.Server.WorldObjects
 
                 GeneratorEnteredWorld = true;
             }
+            else
+            {
+                foreach (var profile in GeneratorProfiles)
+                    profile.Maintenance_HeartBeat();
+            }
         }
 
         /// <summary>
@@ -740,8 +745,8 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval})");
 
-            foreach (var profile in GeneratorProfiles)
-                profile.Maintenance_HeartBeat();
+            //foreach (var profile in GeneratorProfiles)
+            //    profile.Maintenance_HeartBeat();
 
             if (!GeneratorDisabled)
             {
