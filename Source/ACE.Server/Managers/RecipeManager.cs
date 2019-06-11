@@ -193,8 +193,8 @@ namespace ACE.Server.Managers
             var recipeSkill = (Skill)recipe.Skill;
             var skill = player.GetCreatureSkill(recipeSkill);
 
-            // Tinkering skill not required to apply Ivory or Leather
-            if (materialType != MaterialType.Ivory && materialType != MaterialType.Leather)
+            // require skill check for everything except ivory / leather / sandstone
+            if (UseSkillCheck(materialType))
             {
                 // tinkering skill must be trained
                 if (skill.AdvancementClass < SkillAdvancementClass.Trained)
@@ -256,7 +256,7 @@ namespace ACE.Server.Managers
             }
             else
             {
-                // Applying Ivory and Leather is always successful and doesn't consume one of the ten tinking slots
+                // ivory / leather / sandstone always succeeds, and doesn't consume one of the ten tinking slots
                 successChance = 1.0f;
                 incItemTinkered = false;
             }
@@ -288,9 +288,7 @@ namespace ACE.Server.Managers
 
             CreateDestroyItems(player, recipe, tool, target, success);
 
-            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog)
-                    || (tool.MaterialType ?? 0) == MaterialType.Ivory
-                    || (tool.MaterialType ?? 0) == MaterialType.Leather)
+            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
         }
 
@@ -353,6 +351,9 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Leather:
                     target.SetProperty(PropertyBool.Retained, true);
+                    break;
+                case MaterialType.Sandstone:
+                    target.SetProperty(PropertyBool.Retained, false);
                     break;
                 case MaterialType.Moonstone:
                     target.ItemMaxMana += 500;
@@ -1192,6 +1193,14 @@ namespace ACE.Server.Managers
                 return materialType.ToString();
             }
             return materialName.Replace("_", " ");
+        }
+
+        /// <summary>
+        /// Returns TRUE if this material requies a skill check
+        /// </summary>
+        public static bool UseSkillCheck(MaterialType material)
+        {
+            return material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
         }
     }
 }

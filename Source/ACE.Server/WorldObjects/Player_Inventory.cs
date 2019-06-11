@@ -486,7 +486,7 @@ namespace ACE.Server.WorldObjects
 
             if (searchLocations.HasFlag(SearchLocations.ObjectsKnownByMe))
             {
-                result = GetKnownObjects().Where(o => o.Guid == objectGuid).FirstOrDefault();
+                result = GetKnownObjects().FirstOrDefault(o => o.Guid == objectGuid);
 
                 if (result != null)
                     return result;
