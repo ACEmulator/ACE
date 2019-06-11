@@ -387,7 +387,8 @@ namespace ACE.Server.Entity
                 {
                     sortedGeneratorsByNextGeneratorUpdate.RemoveFirst();
                     first.GeneratorUpdate(currentUnixTime);
-                    InsertWorldObjectIntoSortedGeneratorUpdateList(first);
+                    //InsertWorldObjectIntoSortedGeneratorUpdateList(first);
+                    sortedGeneratorsByNextGeneratorUpdate.AddLast(first);
                 }
                 else
                 {
