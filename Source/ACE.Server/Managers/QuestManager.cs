@@ -412,6 +412,12 @@ namespace ACE.Server.Managers
 
                 Player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
             }
+            else if (PropertyManager.GetBool("fellow_kt_killer").Item)
+            {
+                // if this option is enabled (retail default), the killer is required to have kill task
+                // for it to share with fellowship
+                return;
+            }
 
             // are we in a fellowship? if so, share with fellowship
             if (shareableRange > 0.0f && Player.Fellowship != null)
