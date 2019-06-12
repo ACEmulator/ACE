@@ -433,7 +433,7 @@ namespace ACE.Server.Managers
                     // ensure within shareable distance
                     var shareable = landblockRange ?
                         Player.CurrentLandblock == fellow.CurrentLandblock || Player.Location.DistanceTo(fellow.Location) <= 192.0f :
-                        Player.Location.DistanceTo(fellow.Location) <= shareableRange;
+                        Player.Location.DistanceTo(fellow.Location) <= shareableRange;      // 2d or 3d distance here?
 
                     if (shareable)
                         fellow.QuestManager.HandleKillTask(_questName, obj, 0.0f);
