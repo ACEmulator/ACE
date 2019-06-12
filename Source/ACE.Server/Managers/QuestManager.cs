@@ -412,7 +412,7 @@ namespace ACE.Server.Managers
             }
 
             // are we in a fellowship? if so, share with fellowship
-            if (shareable && Player.Fellowship != null)
+            if (shareableRange > 0.0f && Player.Fellowship != null)
             {
                 // killtasks can be shared with all members of a fellowship,
                 // they do not use the same "ShareableMembers" as XP sharing

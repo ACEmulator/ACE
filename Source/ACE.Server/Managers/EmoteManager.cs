@@ -1043,7 +1043,7 @@ namespace ACE.Server.Managers
 
                         if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                         {
-                            player.QuestManager.HandleKillTask(questName, WorldObject);
+                            player.QuestManager.HandleKillTask(questName, WorldObject, player.CurrentRadarRange);
                         }
                         else
                             player.QuestManager.Stamp(emote.Message);
