@@ -128,13 +128,40 @@ namespace ACE.Server.WorldObjects
 
             if (vendor == null)
             {
-                SendUseDoneEvent();
+                SendUseDoneEvent(WeenieError.NoObject);
+                return;
+            }
+
+            // Validate the items first. This helps prevent OutOfMemoryExceptions and other possible issues.
+            if (!ValidateBuyItems(vendor, items))
+            {
+                SendUseDoneEvent(WeenieError.ActionCancelled);
                 return;
             }
 
             vendor.BuyItems_ValidateTransaction(items, this);
 
             SendUseDoneEvent();
+        }
+
+        private bool ValidateBuyItems(Vendor vendor, List<ItemProfile> items)
+        {
+            if (items.Count > 20) // Allow this many unique items per trasnaction
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't buy that many unique items!")); // Custom message
+                log.Warn($"{Name} tried to buy too many unique items, items.count: {items.Count}, from 0x{vendor.Guid.Full:X8}:{vendor.Name}");
+                return false;
+            }
+
+            var totalAmount = items.Sum(r => r.Amount);
+            if (totalAmount > 10000)  // Make sure total amount doesn't exceed 10,000, which can be 10 stacks of 1000 (think tapers)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't buy that many total items!")); // Custom message
+                log.Warn($"{Name} tried to buy too many total items, totalAmount: {totalAmount:N0}, from 0x{vendor.Guid.Full:X8}:{vendor.Name}");
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -208,42 +235,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public List<ItemProfile> VerifySellItems(List<ItemProfile> sellItems, Vendor vendor)
-        {
-            var uniques = new HashSet<uint>();
-
-            var verified = new List<ItemProfile>();
-
-            foreach (var sellItem in sellItems)
-            {
-                var wo = FindObject(sellItem.ObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
-
-                if (wo == null)
-                {
-                    log.Warn($"{Name} tried to sell item {sellItem.ObjectGuid:X8} not in their inventory to {vendor.Name}");
-                    continue;
-                }
-
-                if (uniques.Contains(sellItem.ObjectGuid))
-                {
-                    log.Warn($"{Name} tried to sell duplicate item {wo.Name} ({wo.Guid}) to {vendor.Name}");
-                    continue;
-                }
-
-                if (sellItem.Amount > (wo.StackSize ?? 1))
-                {
-                    log.Warn($"{Name} tried to sell {sellItem.Amount}x {wo.Name} ({wo.Guid}) to {vendor.Name}, but they only have {wo.StackSize ?? 1}x");
-                    continue;
-                }
-
-                uniques.Add(sellItem.ObjectGuid);
-
-                verified.Add(sellItem);
-            }
-
-            return verified;
-        }
-
         // ================================
         // Game Action Handlers - Sell Item
         // ================================
@@ -261,7 +252,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            itemprofiles = VerifySellItems(itemprofiles, vendor);
+            // Validate the items first. This helps prevent OutOfMemoryExceptions and other possible issues.
+            if (!ValidateSellItems(itemprofiles, vendor))
+            {
+                SendUseDoneEvent(WeenieError.ActionCancelled);
+                return;
+            }
 
             var allPossessions = GetAllPossessions();
 
@@ -338,6 +334,56 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
 
             SendUseDoneEvent();
+        }
+
+        private bool ValidateSellItems(List<ItemProfile> items, Vendor vendor)
+        {
+            if (items.Count > 40) // Allow this many unique items per trasnaction
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't sell that many unique items!")); // Custom message
+                log.Warn($"{Name} tried to sell too many unique items, items.count: {items.Count}, from 0x{vendor.Guid.Full:X8}:{vendor.Name}");
+                return false;
+            }
+
+            var totalAmount = items.Sum(r => r.Amount);
+            if (totalAmount > 10000)  // Make sure total amount doesn't exceed 10,000, which can be 10 stacks of 1000 (think tapers)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't sell that many total items!")); // Custom message
+                log.Warn($"{Name} tried to sell too many total items, totalAmount: {totalAmount:N0}, from 0x{vendor.Guid.Full:X8}:{vendor.Name}");
+                return false;
+            }
+
+            var uniques = new HashSet<uint>();
+
+            foreach (var sellItem in items)
+            {
+                var wo = FindObject(sellItem.ObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
+
+                if (wo == null)
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Sell item not found!")); // Custom message
+                    log.Warn($"{Name} tried to sell item {sellItem.ObjectGuid:X8} not in their inventory to 0x{vendor.Guid.Full:X8}:{vendor.Name}");
+                    return false;
+                }
+
+                if (uniques.Contains(sellItem.ObjectGuid))
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Duplicate items in sell list!")); // Custom message
+                    log.Warn($"{Name} tried to sell duplicate item 0x{wo.Guid.Full:X8}:{wo.Name} to 0x{vendor.Guid.Full:X8}:{vendor.Name}");
+                    return false;
+                }
+
+                if (sellItem.Amount > (wo.StackSize ?? 1))
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Invalid amount for item in sell list!")); // Custom message
+                    log.Warn($"{Name} tried to sell {sellItem.Amount}x 0x{wo.Guid.Full:X8}:{wo.Name} to 0x{vendor.Guid.Full:X8}:{vendor.Name}, but they only have {wo.StackSize ?? 1}x");
+                    return false;
+                }
+
+                uniques.Add(sellItem.ObjectGuid);
+            }
+
+            return true;
         }
     }
 }

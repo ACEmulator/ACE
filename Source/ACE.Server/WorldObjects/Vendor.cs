@@ -302,33 +302,30 @@ namespace ACE.Server.WorldObjects
                     wo.Shade = itemprofile.Shade;
 
                 // can we stack this ?
-                if (wo.MaxStackSize.HasValue)
+                if (wo.MaxStackSize.HasValue && wo.MaxStackSize.Value > 0)
                 {
-                    if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value <= itemprofile.Amount))
+                    if (wo.MaxStackSize.Value <= itemprofile.Amount)
                     {
                         wo.SetStackSize(wo.MaxStackSize.Value);
                         worldobjects.Add(wo);
-                        itemprofile.Amount = itemprofile.Amount - wo.MaxStackSize.Value;
+                        itemprofile.Amount -= wo.MaxStackSize.Value;
                     }
-                    else // we cant stack this but its not a single item
+                    else 
                     {
                         wo.SetStackSize((int)itemprofile.Amount);
                         worldobjects.Add(wo);
-                        itemprofile.Amount = itemprofile.Amount - itemprofile.Amount;
+                        itemprofile.Amount = 0;
                     }
                 }
-                else
+                else // if there multiple items of the same  type.. 
                 {
-                    // if there multiple items of the same  type.. 
-                    if (itemprofile.Amount > 0)
-                    {
-                        // single item with no stack options. 
-                        itemprofile.Amount = itemprofile.Amount - 1;
-                        wo.StackSize = null;
-                        worldobjects.Add(wo);
-                    }
+                    // single item with no stack options. 
+                    wo.StackSize = null;
+                    worldobjects.Add(wo);
+                    itemprofile.Amount -= 1;
                 }
             }
+
             return worldobjects;
         }
 
