@@ -154,7 +154,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var totalAmount = items.Sum(r => r.Amount);
-            if (totalAmount > 10000)  // Make sure total amount doesn't exceed 10,000, which can be 10 stacks of 1000 (think tapers)
+            if (totalAmount > 5000)  // Make sure total amount doesn't exceed this value. Think # of stacks at MaxStackSize
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't buy that many total items!")); // Custom message
                 log.Warn($"{Name} tried to buy too many total items, totalAmount: {totalAmount:N0}, from 0x{vendor.Guid.Full:X8}:{vendor.Name}");
@@ -346,7 +346,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var totalAmount = items.Sum(r => r.Amount);
-            if (totalAmount > 10000)  // Make sure total amount doesn't exceed 10,000, which can be 10 stacks of 1000 (think tapers)
+            if (totalAmount > 10000)  // Make sure total amount doesn't exceed this value. Think # of stacks at MaxStackSize
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't sell that many total items!")); // Custom message
                 log.Warn($"{Name} tried to sell too many total items, totalAmount: {totalAmount:N0}, from 0x{vendor.Guid.Full:X8}:{vendor.Name}");
