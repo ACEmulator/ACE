@@ -414,14 +414,20 @@ namespace ACE.Server.Managers
             // are we in a fellowship? if so, share with fellowship
             if (shareableRange > 0.0f && Player.Fellowship != null)
             {
+                var landblockRange = PropertyManager.GetBool("fellow_kt_landblock").Item;
+
                 // killtasks can be shared with all members of a fellowship,
                 // they do not use the same "ShareableMembers" as XP sharing
                 var fellows = Player.Fellowship.GetFellowshipMembers();
 
-                foreach (var fellow in fellows.Values)
+                foreach (var fellow in fellows.Values.Where(f => f != Player))
                 {
-                    // ensure within landblock distance
-                    if (fellow != Player && Player.Location.DistanceTo(fellow.Location) <= shareableRange)
+                    // ensure within shareable distance
+                    var shareable = landblockRange ?
+                        Player.CurrentLandblock == fellow.CurrentLandblock || Player.Location.DistanceTo(fellow.Location) <= 192.0f :
+                        Player.Location.DistanceTo(fellow.Location) <= shareableRange;
+
+                    if (shareable)
                         fellow.QuestManager.HandleKillTask(_questName, obj, 0.0f);
                 }
             }
