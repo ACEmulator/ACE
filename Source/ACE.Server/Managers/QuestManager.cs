@@ -374,6 +374,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public void HandleKillTask(string _questName, WorldObject obj, float shareableRange)
         {
+            // http://acpedia.org/wiki/Announcements_-_2012/12_-_A_Growing_Twilight#Release_Notes
+
             if (HasQuest(_questName))
             {
                 Stamp(_questName);
