@@ -105,8 +105,9 @@ namespace ACE.Database.Models.Auth
 
         public static void UpdateLastLogin(this Account account, IPAddress address)
         {
-            account.LastLoginIP = address.ToString();
+            account.LastLoginIP = address.GetAddressBytes();
             account.LastLoginTime = DateTime.UtcNow;
+            account.TotalTimesLoggedIn++;
 
             DatabaseManager.Authentication.UpdateAccount(account);
         }

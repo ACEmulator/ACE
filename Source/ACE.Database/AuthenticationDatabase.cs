@@ -61,7 +61,7 @@ namespace ACE.Database
             account.AccessLevel = (uint)accessLevel;
 
             account.CreateTime = DateTime.UtcNow;
-            account.CreateIP = address.ToString();
+            account.CreateIP = address.GetAddressBytes();
 
             using (var context = new AuthDbContext())
             {

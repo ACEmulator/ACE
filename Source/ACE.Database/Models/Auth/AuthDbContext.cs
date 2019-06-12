@@ -85,6 +85,10 @@ namespace ACE.Database.Models.Auth
                     .HasColumnName("ban_Expire_Time")
                     .HasColumnType("datetime");
 
+                entity.Property(e => e.BanReason)
+                    .HasColumnName("ban_Reason")
+                    .HasColumnType("varchar(1000)");
+
                 entity.Property(e => e.BannedByAccountID).HasColumnName("banned_By_Account_I_D");
 
                 entity.Property(e => e.BannedTime)
@@ -92,10 +96,8 @@ namespace ACE.Database.Models.Auth
                     .HasColumnType("datetime");
 
                 entity.Property(e => e.CreateIP)
-                    .IsRequired()
                     .HasColumnName("create_I_P")
-                    .HasColumnType("varchar(64)")
-                    .HasDefaultValueSql("'N/A'");
+                    .HasMaxLength(16);
 
                 entity.Property(e => e.CreateTime)
                     .HasColumnName("create_Time")
@@ -103,25 +105,16 @@ namespace ACE.Database.Models.Auth
                     .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
 
                 entity.Property(e => e.EmailAddress)
-                    .IsRequired()
                     .HasColumnName("email_Address")
-                    .HasColumnType("varchar(320)")
-                    .HasDefaultValueSql("'N/A'");
-
-                entity.Property(e => e.IsBanned)
-                    .HasColumnName("isBanned")
-                    .HasColumnType("bit(1)");
+                    .HasColumnType("varchar(320)");
 
                 entity.Property(e => e.LastLoginIP)
-                    .IsRequired()
                     .HasColumnName("last_Login_I_P")
-                    .HasColumnType("varchar(64)")
-                    .HasDefaultValueSql("'N/A'");
+                    .HasMaxLength(16);
 
                 entity.Property(e => e.LastLoginTime)
                     .HasColumnName("last_Login_Time")
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
+                    .HasColumnType("datetime");
 
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
@@ -133,6 +126,10 @@ namespace ACE.Database.Models.Auth
                     .HasColumnName("passwordSalt")
                     .HasColumnType("varchar(88)")
                     .HasDefaultValueSql("'use bcrypt'");
+
+                entity.Property(e => e.TotalTimesLoggedIn)
+                    .HasColumnName("total_Times_Logged_In")
+                    .HasDefaultValueSql("'0'");
 
                 entity.HasOne(d => d.AccessLevelNavigation)
                     .WithMany(p => p.Account)
