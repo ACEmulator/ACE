@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -89,7 +89,7 @@ namespace ACE.Database.Models.Auth
                     .HasColumnName("ban_Reason")
                     .HasColumnType("varchar(1000)");
 
-                entity.Property(e => e.BannedByAccountID).HasColumnName("banned_By_Account_I_D");
+                entity.Property(e => e.BannedByAccountId).HasColumnName("banned_By_Account_Id");
 
                 entity.Property(e => e.BannedTime)
                     .HasColumnName("banned_Time")

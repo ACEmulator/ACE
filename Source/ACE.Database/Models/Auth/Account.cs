@@ -17,7 +17,7 @@ namespace ACE.Database.Models.Auth
         public byte[] LastLoginIP { get; set; }
         public uint TotalTimesLoggedIn { get; set; }
         public DateTime? BannedTime { get; set; }
-        public uint? BannedByAccountID { get; set; }
+        public uint? BannedByAccountId { get; set; }
         public DateTime? BanExpireTime { get; set; }
         public string BanReason { get; set; }
 

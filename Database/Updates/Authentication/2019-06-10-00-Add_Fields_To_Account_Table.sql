@@ -8,6 +8,6 @@ ADD COLUMN `last_Login_Time` DATETIME NULL DEFAULT NULL AFTER `create_I_P`,
 ADD COLUMN `last_Login_I_P` VARBINARY(16) NULL DEFAULT NULL AFTER `last_Login_Time`,
 ADD COLUMN `total_Times_Logged_In` INT(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `last_Login_I_P`,
 ADD COLUMN `banned_Time` DATETIME NULL AFTER `total_Times_Logged_In`,
-ADD COLUMN `banned_By_Account_I_D` INT(10) UNSIGNED NULL AFTER `banned_Time`,
-ADD COLUMN `ban_Expire_Time` DATETIME NULL AFTER `banned_By_Account_I_D`,
+ADD COLUMN `banned_By_Account_Id` INT(10) UNSIGNED NULL AFTER `banned_Time`,
+ADD COLUMN `ban_Expire_Time` DATETIME NULL AFTER `banned_By_Account_Id`,
 ADD COLUMN `ban_Reason` VARCHAR(1000) NULL DEFAULT NULL AFTER `ban_Expire_Time`;
