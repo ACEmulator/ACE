@@ -372,7 +372,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Increments the counter for a kill task, and optionally shares with fellowship
         /// </summary>
-        public void HandleKillTask(string _questName, WorldObject obj, bool shareable = true)
+        public void HandleKillTask(string _questName, WorldObject obj, float shareableRange)
         {
             if (HasQuest(_questName))
             {
@@ -421,8 +421,8 @@ namespace ACE.Server.Managers
                 foreach (var fellow in fellows.Values)
                 {
                     // ensure within landblock distance
-                    if (fellow != Player && (Player.CurrentLandblock == fellow.CurrentLandblock || Player.Location.DistanceTo(fellow.Location) <= 192.0f))
-                        fellow.QuestManager.HandleKillTask(_questName, obj, false);
+                    if (fellow != Player && Player.Location.DistanceTo(fellow.Location) <= shareableRange)
+                        fellow.QuestManager.HandleKillTask(_questName, obj, 0.0f);
                 }
             }
         }
