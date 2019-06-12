@@ -271,6 +271,8 @@ namespace ACE.Server.WorldObjects
             if (DebugPlayerMoveToStatePhysics)
                 Console.WriteLine($"{Name}.UpdatePlayerPhysics({PhysicsObj.PartArray.Sequence.CurrAnim.Value.Anim.ID:X8})");
 
+            //Console.WriteLine($"{PhysicsObj.Position.Frame.Origin}");
+
             PhysicsObj.update_object();
 
             if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)

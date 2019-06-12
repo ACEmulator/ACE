@@ -221,28 +221,28 @@ namespace ACE.Server.WorldObjects
         public void HandleFallingDamage(EnvCollisionProfile collision)
         {
             // starting with phat logic
+
+            // jumping skill sort of used as a damping factor here
             var jumpVelocity = 0.0f;
-            PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, ref jumpVelocity);
+            PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, out jumpVelocity);
 
-            var cachedVelocity = PhysicsObj.CachedVelocity;
-
-            var overspeed = jumpVelocity + cachedVelocity.Z + 4.5f;     // a little leeway
+            var overspeed = jumpVelocity + PhysicsObj.Velocity.Z + 4.5f;     // a little leeway
 
             var ratio = -overspeed / jumpVelocity;
 
-            /*Console.WriteLine($"Collision velocity: {cachedVelocity}");
-            Console.WriteLine($"Jump velocity: {jumpVelocity}");
+            /*Console.WriteLine($"Jump velocity: {jumpVelocity}");
+            Console.WriteLine($"Velocity: {PhysicsObj.Velocity}");
             Console.WriteLine($"Overspeed: {overspeed}");
             Console.WriteLine($"Ratio: {ratio}");*/
 
             if (ratio > 0.0f)
             {
-                var damage = ratio * 40.0f;
+                var damage = ratio * 87.293810f;
                 //Console.WriteLine($"Damage: {damage}");
 
                 // bludgeon damage
                 // impact damage
-                if (damage > 0.0f && (StartJump == null || StartJump.PositionZ - PhysicsObj.Position.Frame.Origin.Z > 10.0f))
+                if (damage > 0.0f)
                     TakeDamage_Falling(damage);
             }
         }

@@ -3994,9 +3994,17 @@ namespace ACE.Server.Physics
             if (forcePos)
                 set_current_pos(RequestPos);
 
-            // temp for players
-            //if ((TransientState & TransientStateFlags.Contact) != 0)
-                //CachedVelocity = Vector3.Zero;
+            // for teleport, use SetPosition?
+            if (wo.Teleporting)
+            {
+                //Console.WriteLine($"*** SETTING TELEPORT ***");
+
+                var setPosition = new SetPosition();
+                setPosition.Pos = RequestPos;
+                setPosition.Flags = SetPositionFlags.SendPositionEvent | SetPositionFlags.Slide | SetPositionFlags.Placement | SetPositionFlags.Teleport;
+
+                SetPosition(setPosition);
+            }
 
             UpdateTime = PhysicsTimer.CurrentTime;
         }

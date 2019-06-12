@@ -645,7 +645,7 @@ namespace ACE.Server.Physics.Animation
                 return 10.0f;
 
             float vz = extent;
-            if (WeenieObj.InqJumpVelocity(extent, ref vz))
+            if (WeenieObj.InqJumpVelocity(extent, out vz))
                 return vz;
 
             return 0.0f;
