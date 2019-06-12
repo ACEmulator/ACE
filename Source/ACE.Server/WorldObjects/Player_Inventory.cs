@@ -1065,7 +1065,7 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionGetAndWieldItem(WorldObject item, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
         {
-            var wieldError = CheckWieldRequirement(item);
+            var wieldError = CheckWieldRequirements(item);
 
             if (wieldError != WeenieError.None)
             {
@@ -1180,7 +1180,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        private WeenieError CheckWieldRequirement(WorldObject item)
+        private WeenieError CheckWieldRequirements(WorldObject item)
         {
             if (!PropertyManager.GetBool("use_wield_requirements").Item)
                 return WeenieError.None;
@@ -1189,10 +1189,31 @@ namespace ACE.Server.WorldObjects
             if (allowedWielder != null && (allowedWielder != Guid.Full))
                 return WeenieError.YouDoNotOwnThatItem; // Unsure of the exact message
 
-            var skillOrAttribute = item.WieldSkillType ?? 0;
-            var difficulty = (uint)(item.WieldDifficulty ?? 0);
+            var result = CheckWieldRequirement(item.WieldRequirements, item.WieldSkillType, item.WieldDifficulty);
+            if (result != WeenieError.None)
+                return result;
 
-            switch (item.WieldRequirements)
+            result = CheckWieldRequirement(item.WieldRequirements2, item.WieldSkillType2, item.WieldDifficulty2);
+            if (result != WeenieError.None)
+                return result;
+
+            result = CheckWieldRequirement(item.WieldRequirements3, item.WieldSkillType3, item.WieldDifficulty3);
+            if (result != WeenieError.None)
+                return result;
+
+            result = CheckWieldRequirement(item.WieldRequirements4, item.WieldSkillType4, item.WieldDifficulty4);
+            if (result != WeenieError.None)
+                return result;
+
+            return WeenieError.None;
+        }
+
+        private WeenieError CheckWieldRequirement(WieldRequirement wieldRequirement, int? wieldSkillType, int? wieldDifficulty)
+        {
+            var skillOrAttribute = wieldSkillType ?? 0;
+            var difficulty = (uint)(wieldDifficulty ?? 0);
+
+            switch (wieldRequirement)
             {
                 case WieldRequirement.Skill:
 
