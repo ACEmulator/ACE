@@ -7,8 +7,7 @@ namespace ACE.Server.Physics.Animation
     {
         public static float GetJumpHeight(float burden, uint jumpSkill, float power, float scaling)
         {
-            if (power < 0.0f) power = 0.0f;
-            if (power > 1.0f) power = 1.0f;
+            power = Math.Clamp(power, 0.0f, 1.0f);
 
             var result = EncumbranceSystem.GetBurdenMod(burden) * (jumpSkill / (jumpSkill + 1300.0f) * 22.2f + 0.05f) * power / scaling;
 

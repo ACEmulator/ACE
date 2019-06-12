@@ -225,6 +225,7 @@ namespace ACE.Server.WorldObjects
             // jumping skill sort of used as a damping factor here
             var jumpVelocity = 0.0f;
             PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, out jumpVelocity);
+            jumpVelocity = 11.25434f;       // TODO: figure out how to scale this better
 
             var overspeed = jumpVelocity + PhysicsObj.Velocity.Z + 4.5f;     // a little leeway
 
