@@ -421,7 +421,7 @@ namespace ACE.Server.Managers
                 foreach (var fellow in fellows.Values)
                 {
                     // ensure within landblock distance
-                    if (fellow != Player && (Player.Location.DistanceTo(fellow.Location) <= 192.0f  || Player.CurrentLandblock == fellow.CurrentLandblock))
+                    if (fellow != Player && (Player.CurrentLandblock == fellow.CurrentLandblock || Player.Location.DistanceTo(fellow.Location) <= 192.0f))
                         fellow.QuestManager.HandleKillTask(_questName, obj, false);
                 }
             }
