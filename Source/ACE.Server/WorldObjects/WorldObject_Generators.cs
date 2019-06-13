@@ -291,7 +291,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentCreate >= InitCreate && !IsLinked)
                 {
                     if (CurrentCreate > InitCreate)
-                        log.Debug($"{WeenieClassId} - 0x{Guid.Full:X8}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
+                        log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
 
                     return true;
                 }
@@ -309,7 +309,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentCreate >= MaxCreate && MaxCreate != 0 && !IsLinked)
                 {
                     if (CurrentCreate > MaxCreate && MaxCreate != 0)
-                        log.Debug($"{WeenieClassId} - 0x{Guid.Full:X8}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
+                        log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
 
                     return true;
                 }
