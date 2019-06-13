@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-using ACE.Server.Managers;
-
 using log4net;
+
+using ACE.Server.Network.Managers;
 
 namespace ACE.Server.Network
 {
@@ -98,7 +98,7 @@ namespace ACE.Server.Network
 
                 var packet = new ClientPacket(data);
                 if (packet.IsValid)
-                    WorldManager.ProcessPacket(packet, ipEndpoint, listenerEndpoint);
+                    NetworkManager.ProcessPacket(packet, ipEndpoint, listenerEndpoint);
             }
             catch (SocketException socketException)
             {

@@ -15,11 +15,11 @@ namespace ACE.Server.Managers
         {
             // These are all found in WorldManager.UpdateWorld()
             PlayerManager_Tick,
-            InboundClientMessageQueueRun,
+            NetworkManager_InboundClientMessageQueueRun,
             actionQueue_RunActions,
             DelayManager_RunActions,
             UpdateGameWorld,
-            DoSessionWork,
+            NetworkManager_DoSessionWork,
 
             // These are all found in WorldManager.UpdateGameWorld()
             UpdateGameWorld_Entire,
@@ -40,11 +40,11 @@ namespace ACE.Server.Managers
             Monster_Awareness_FindNextTarget,
             Monster_Navigation_UpdatePosition_PUO,
 
-            // These are all found in WorldManager.DoSessionWork()
+            // These are all found in NetworkManager.DoSessionWork()
             DoSessionWork_TickOutbound,
             DoSessionWork_RemoveSessions,
 
-            // These are all found in WorldManager.ProcessPacket()
+            // These are all found in NetworkManager.ProcessPacket()
             ProcessPacket_0,
             ProcessPacket_1,
 
@@ -252,7 +252,7 @@ namespace ACE.Server.Managers
             sb.Append($"~5m Hits   Avg  Long  Last Tot - ~1h Hits   Avg  Long  Last  Tot - ~24h Hits  Avg  Long  Last   Tot (s) - Name{'\n'}");
 
             sb.Append($"Calls from WorldManager.UpdateWorld(){'\n'}");
-            for (int i = (int)MonitorType.PlayerManager_Tick; i <= (int)MonitorType.DoSessionWork; i++)
+            for (int i = (int)MonitorType.PlayerManager_Tick; i <= (int)MonitorType.NetworkManager_DoSessionWork; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
             sb.Append($"WorldManager.UpdateGameWorld() time not including throttled returns{'\n'}");
@@ -270,11 +270,11 @@ namespace ACE.Server.Managers
             for (int i = (int)MonitorType.Monster_Awareness_FindNextTarget; i <= (int)MonitorType.Monster_Navigation_UpdatePosition_PUO; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
-            sb.Append($"Calls from WorldManager.DoSessionWork(){'\n'}");
+            sb.Append($"Calls from NetworkManager.DoSessionWork(){'\n'}");
             for (int i = (int)MonitorType.DoSessionWork_TickOutbound; i <= (int)MonitorType.DoSessionWork_RemoveSessions; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
-            sb.Append($"Calls from WorldManager.ProcessPacket(){'\n'}");
+            sb.Append($"Calls from NetworkManager.ProcessPacket(){'\n'}");
             for (int i = (int)MonitorType.ProcessPacket_0; i <= (int)MonitorType.ProcessPacket_1; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 

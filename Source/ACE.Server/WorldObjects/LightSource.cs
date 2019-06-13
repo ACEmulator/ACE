@@ -4,12 +4,12 @@ using ACE.Entity;
 
 namespace ACE.Server.WorldObjects
 {
-    public class GenericObject : WorldObject
+    public class LightSource : GenericObject
     {
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public GenericObject(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public LightSource(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -17,17 +17,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public GenericObject(Biota biota) : base(biota)
+        public LightSource(Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }
 
         private void SetEphemeralValues()
-        {
-            //StackSize = null;
-            //StackUnitEncumbrance = null;
-            //StackUnitValue = null;
-            //MaxStackSize = null;            
+        {        
         }
 
         public override void ActOnUse(WorldObject wo)

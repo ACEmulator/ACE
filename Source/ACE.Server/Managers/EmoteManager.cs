@@ -210,6 +210,17 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.CreateTreasure:
+
+                    if (emote.WealthRating.HasValue)
+                    {
+                        // todo: make use of emote.TreasureClass and emote.TreasureType fields.
+                        // this emote is primarily seen on fishing holes so defaulting with jewelery as the only pcap showed 2:1 amulet to crown pull (not much to go on) for now
+                        var treasure = LootGenerationFactory.CreateRandomLootObjects(emote.WealthRating ?? 1, false, LootGenerationFactory.LootBias.Jewelry /* probably treasure type here */);
+                        if (treasure != null)
+                        {
+                            player.TryCreateInInventoryWithNetworking(treasure);
+                        }
+                    }
                     break;
 
                 /* decrements a PropertyInt stat by some amount */
@@ -692,7 +703,7 @@ namespace ACE.Server.Managers
 
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
-                    // TODO: refactor me!
+                    // TODO: REFACTOR ME
                     if (emoteSet.Category != (uint)EmoteCategory.Vendor && emoteSet.Style != null)
                     {
                         var startingMotion = new Motion((MotionStance)emoteSet.Style, (MotionCommand)emoteSet.Substyle);
@@ -710,7 +721,8 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand)
+                            if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand
+                                    && startingMotion.Stance == MotionStance.NonCombat)     // enforce non-combat here?
                             {
                                 if (debugMotion)
                                     Console.WriteLine($"{WorldObject.Name} running motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emote.Motion}");
@@ -1082,8 +1094,16 @@ namespace ACE.Server.Managers
 
                 case EmoteType.TeleportTarget:
 
-                    //if (player != null)
-                    //player.Teleport(emote.Position);
+                    if (player != null)
+                    {
+                        if (emote.ObjCellId.HasValue && emote.OriginX.HasValue && emote.OriginY.HasValue && emote.OriginZ.HasValue && emote.AnglesX.HasValue && emote.AnglesY.HasValue && emote.AnglesZ.HasValue && emote.AnglesW.HasValue)
+                        {
+                            var destination = new Position(emote.ObjCellId.Value, emote.OriginX.Value, emote.OriginY.Value, emote.OriginZ.Value, emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value);
+
+                            player.AdjustDungeon(destination);
+                            player.Teleport(destination);
+                        }
+                    }
                     break;
 
                 case EmoteType.Tell:
@@ -1240,8 +1260,20 @@ namespace ACE.Server.Managers
                 emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == (uint)vendorType);
             if (wcid != null)
                 emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value);
+
+            if (category == EmoteCategory.HeartBeat)
+            {
+                WorldObject.GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion);
+
+                emoteSet = emoteSet.Where(e => e.Style == null || e.Style == (uint)currentStance);
+                emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion);
+            }
+
             if (useRNG)
-                emoteSet = emoteSet.Where(e => e.Probability >= ThreadSafeRandom.Next(0.0f, 1.0f));
+            {
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                emoteSet = emoteSet.Where(e => e.Probability >= rng);
+            }
 
             return emoteSet.FirstOrDefault();
         }
@@ -1415,6 +1447,12 @@ namespace ACE.Server.Managers
         public void OnAttack(Creature attacker)
         {
             ExecuteEmoteSet(EmoteCategory.NewEnemy, null, attacker);
+        }
+
+        public void OnDamage(Creature attacker)
+        {
+            // optionally restrict to Min/Max Health %
+            ExecuteEmoteSet(EmoteCategory.WoundedTaunt, null, attacker);
         }
 
         public void OnReceiveCritical(Creature attacker)

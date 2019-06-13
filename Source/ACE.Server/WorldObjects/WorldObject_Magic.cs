@@ -353,7 +353,7 @@ namespace ACE.Server.WorldObjects
                     var resistanceType = minBoostValue > 0 ? GetBoostResistanceType(spell.VitalDamageType) : GetDrainResistanceType(spell.VitalDamageType);
 
                     int tryBoost = ThreadSafeRandom.Next(minBoostValue, maxBoostValue);
-                    tryBoost = (int)Math.Round(tryBoost * spellTarget.GetResistanceMod(resistanceType, this));
+                    tryBoost = (int)Math.Round(tryBoost * spellTarget.GetResistanceMod(resistanceType, false));
 
                     int boost = tryBoost;
                     damage = tryBoost < 0 ? (uint)Math.Abs(tryBoost) : 0;
@@ -438,7 +438,7 @@ namespace ACE.Server.WorldObjects
 
                     // Drain Resistances - allows one to partially resist drain health/stamina/mana and harm attacks (not including other life transfer spells).
                     var isDrain = spell.TransferFlags.HasFlag(TransferFlags.TargetSource | TransferFlags.CasterDestination);
-                    var drainMod = isDrain ? (float)source.GetResistanceMod(GetDrainResistanceType(spell.Source), caster) : 1.0f;
+                    var drainMod = isDrain ? (float)source.GetResistanceMod(GetDrainResistanceType(spell.Source), false) : 1.0f;
 
                     srcVitalChange = (uint)Math.Round(source.GetCurrentCreatureVital(spell.Source) * spell.Proportion * drainMod);
 
@@ -447,7 +447,7 @@ namespace ACE.Server.WorldObjects
                         if (srcVitalChange > spell.TransferCap)
                             srcVitalChange = (uint)spell.TransferCap;
                     }
-                    var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination), caster) : 1.0f;
+                    var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination), false) : 1.0f;
 
                     destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
 
@@ -910,7 +910,10 @@ namespace ACE.Server.WorldObjects
                         uint portalId = 0;
                         bool linkSummoned;
 
-                        if (spell.Name.Contains("Primary"))
+                        // spell.link = 1 = LinkedPortalOneDID
+                        // spell.link = 2 = LinkedPortalTwoDID
+
+                        if (spell.Link <= 1)
                         {
                             portalId = source.LinkedPortalOneDID ?? 0;
                             linkSummoned = source.GetProperty(PropertyBool.LinkedPortalOneSummon) ?? false;

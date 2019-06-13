@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Text;
 using System.Threading;
 
 using log4net;
@@ -22,10 +20,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using ACE.Server.Physics.Entity;
 using ACE.Server.Network.Enum;
-using ACE.Server.Network.Packets;
-using ACE.Server.Physics.Common;
 
 using Position = ACE.Entity.Position;
 
@@ -224,34 +219,51 @@ namespace ACE.Server.Command.Handlers
         }
 
         // delete
-        [CommandHandler("delete", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
-             "Deletes the selected object.",
-            "Players may not be deleted this way.")]
+        [CommandHandler("delete", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Deletes the selected object.", "Players may not be deleted this way.")]
         public static void HandleDeleteSelected(Session session, params string[] parameters)
         {
             // @delete - Deletes the selected object. Players may not be deleted this way.
 
-            var objectId = new ObjectGuid();
+            var objectId = ObjectGuid.Invalid;
 
-            if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+            if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid(session.Player.HealthQueryTarget.Value);
+            else if (session.Player.ManaQueryTarget.HasValue)
+                objectId = new ObjectGuid(session.Player.ManaQueryTarget.Value);
+            else if (session.Player.CurrentAppraisalTarget.HasValue)
+                objectId = new ObjectGuid(session.Player.CurrentAppraisalTarget.Value);
+
+            if (objectId == ObjectGuid.Invalid)
+                ChatPacket.SendServerMessage(session, "Delete failed. Please identify the object you wish to delete first.", ChatMessageType.Broadcast);
+
+            if (objectId.IsPlayer())
             {
-                if (session.Player.HealthQueryTarget.HasValue)
-                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
-                else if (session.Player.HealthQueryTarget.HasValue)
-                    objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
-                else
-                    objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
-
-                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
-
-                if (objectId.IsPlayer())
-                    return;
-
-                if (wo != null)
-                    wo.Destroy();
-
-                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted {wo.Name} (0x{wo.Guid:X8})");
+                ChatPacket.SendServerMessage(session, "Delete failed. Players cannot be deleted.", ChatMessageType.Broadcast);
+                return;
             }
+
+            var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+            if (wo == null)
+            {
+                ChatPacket.SendServerMessage(session, "Delete failed. Object not found.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (parameters.Length == 1)
+            {
+                var objectType = parameters[0].ToLower();
+
+                if (objectType != wo.GetType().Name.ToLower() && objectType != wo.WeenieType.ToString().ToLower())
+                {
+                    ChatPacket.SendServerMessage(session, $"Delete failed. Object type specified ({parameters[0]}) does not match object type ({wo.GetType().Name}) or weenie type ({wo.WeenieType.ToString()}) for 0x{wo.Guid}:{wo.Name}.", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+
+            wo.Destroy();
+
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted 0x{wo.Guid}:{wo.Name}");
         }
 
         // draw
@@ -1473,13 +1485,56 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleGod(Session session, params string[] parameters)
         {
-            // @god - Sets your own stats to the specified level.
+            // @god - Sets your own stats to a godly level.
 
-            // TODO: output
+            session.Player.TotalExperience = 191226310247;
+            session.Player.Level = 999;
 
-            // output: You are now a god!!!
+            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Level, 999));
+            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(session.Player, PropertyInt64.TotalExperience, 191226310247));
+
+            foreach (var s in session.Player.Skills)
+            {
+                session.Player.TrainSkill(s.Key, 0);
+                session.Player.SpecializeSkill(s.Key, 0);
+                var playerSkill = session.Player.Skills[s.Key];
+                playerSkill.Ranks = 226;
+                playerSkill.ExperienceSpent = 4100490438u;
+                playerSkill.InitLevel = 5000;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
+            }
+
+            foreach (var a in session.Player.Attributes)
+            {
+                var playerAttr = session.Player.Attributes[a.Key];
+                playerAttr.StartingValue = 9809u;
+                playerAttr.Ranks = 190u;
+                playerAttr.ExperienceSpent = 4019438644u;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, a.Key, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+            }
+
+            session.Player.SetMaxVitals();
+
+            foreach (var v in session.Player.Vitals)
+            {
+                var playerVital = session.Player.Vitals[v.Key];
+                playerVital.Ranks = 196u;
+                playerVital.ExperienceSpent = 4285430197u;
+                // my OCD will not let health/stam not be equal due to the endurance calc
+                playerVital.StartingValue = (v.Key == PropertyAttribute2nd.MaxHealth) ? 94803u : 89804u;
+                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+            }
+
+            session.Player.SetMaxVitals();
+
+            session.Player.ChangesDetected = true;
+
+            session.Player.PlayParticleEffect(PlayScript.LevelUp, session.Player.Guid);
+            session.Player.PlayParticleEffect(PlayScript.BaelZharonSmite, session.Player.Guid);
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
+
+            session.Player.SaveCharacterToDatabase();
         }
 
         // magic god
@@ -2045,163 +2100,6 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
-        // serverstatus
-        [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server statistics and usage")]
-        public static void HandleServerStatus(Session session, params string[] parameters)
-        {
-            // This is formatted very similarly to GDL.
-
-            var sb = new StringBuilder();
-
-            var proc = Process.GetCurrentProcess();
-
-            sb.Append($"Server Status:{'\n'}");
-
-            var runTime = DateTime.Now - proc.StartTime;
-            sb.Append($"Server Runtime: {(int)runTime.TotalHours}h {runTime.Minutes}m {runTime.Seconds}s{'\n'}");
-
-            sb.Append($"Total CPU Time: {(int)proc.TotalProcessorTime.TotalHours}h {proc.TotalProcessorTime.Minutes}m {proc.TotalProcessorTime.Seconds}s, Threads: {proc.Threads.Count}{'\n'}");
-
-            // todo, add actual system memory used/avail
-            sb.Append($"{(proc.PrivateMemorySize64 >> 20):N0} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
-
-            sb.Append($"{WorldManager.GetSessionCount():N0} connections, {PlayerManager.GetAllOnline().Count:N0} players online{'\n'}");
-            sb.Append($"Total Accounts Created: {DatabaseManager.Authentication.GetAccountCount():N0}, Total Characters Created: {(PlayerManager.GetAllOffline().Count + PlayerManager.GetAllOnline().Count):N0}{'\n'}");
-
-            // 330 active objects, 1931 total objects(16777216 buckets.)
-
-            // todo, expand this
-            var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
-            int dormantLandblocks = 0;
-            int players = 0, creatures = 0, missiles = 0, other = 0, total = 0;
-            foreach (var landblock in loadedLandblocks)
-            {
-                if (landblock.IsDormant)
-                    dormantLandblocks++;
-
-                foreach (var worldObject in landblock.GetAllWorldObjectsForDiagnostics())
-                {
-                    if (worldObject is Player)
-                        players++;
-                    else if (worldObject is Creature)
-                        creatures++;
-                    else if (worldObject.Missile ?? false)
-                        missiles++;
-                    else
-                        other++;
-
-                    total++;
-                }
-            }
-            sb.Append($"Landblocks: {(loadedLandblocks.Count - dormantLandblocks):N0} active, {dormantLandblocks:N0} dormant - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
-            // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
-
-            if (ServerPerformanceMonitor.IsRunning)
-                sb.Append($"Server Performance Monitor - UpdateGameWorld ~5m {ServerPerformanceMonitor.GetMonitor5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3}, ~1h {ServerPerformanceMonitor.GetMonitor1h(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3} s{'\n'}");
-            else
-                sb.Append($"Server Performance Monitor - Not running. To start use /serverperformance start{'\n'}");
-
-            sb.Append($"Physics Cache Counts - BSPCache: {BSPCache.Count:N0}, GfxObjCache: {GfxObjCache.Count:N0}, PolygonCache: {PolygonCache.Count:N0}, VertexCache: {VertexCache.Count:N0}{'\n'}");
-
-            sb.Append($"Physics Landblocks Count - {LScape.LandblocksCount:N0}, Total Server Objects: {ObjectMaint.ServerObjects.Count:N0}{'\n'}");
-
-            sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
-            sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");
-
-            sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
-            sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
-
-            CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
-        }
-
-        // serverstatus
-        [CommandHandler("serverperformance", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server performance statistics")]
-        public static void HandleServerPerformance(Session session, params string[] parameters)
-        {
-            if (parameters != null && parameters.Length == 1)
-            {
-                if (parameters[0].ToLower() == "start")
-                {
-                    ServerPerformanceMonitor.Start();
-                    CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor started");
-                    return;
-                }
-
-                if (parameters[0].ToLower() == "stop")
-                {
-                    ServerPerformanceMonitor.Stop();
-                    CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor stopped");
-                    return;
-                }
-
-                if (parameters[0].ToLower() == "reset")
-                {
-                    ServerPerformanceMonitor.Reset();
-                    CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor reset");
-                    return;
-                }
-            }
-
-            if (!ServerPerformanceMonitor.IsRunning)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor not running. To start use /serverperformance start");
-                return;
-            }
-
-            CommandHandlerHelper.WriteOutputInfo(session, ServerPerformanceMonitor.ToString());
-        }
-
-        [CommandHandler("landblockperformance", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of landblock performance statistics")]
-        public static void HandleLandblockPerformance(Session session, params string[] parameters)
-        {
-            var sb = new StringBuilder();
-
-            var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
-
-            // Filter out landblocks that haven't recorded at least 1000 events
-            var sortedByAverage = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.AverageEventDuration).Take(10);
-
-            sb.Append($"Most Busy Landblock - By Average{'\n'}");
-            sb.Append($"~1h Hits   Avg  Long  Last  Tot - Location   Players  Creatures{'\n'}");
-
-            foreach (var entry in sortedByAverage)
-            {
-                int players = 0, creatures = 0;
-                foreach (var worldObject in entry.GetAllWorldObjectsForDiagnostics())
-                {
-                    if (worldObject is Player)
-                        players++;
-                    else if (worldObject is Creature)
-                        creatures++;
-                }
-
-                sb.Append($"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} {((int)entry.Monitor1h.TotalSeconds).ToString().PadLeft(4)} - " +
-                    $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
-            }
-
-            var sortedByLong = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.LongestEvent).Take(10);
-
-            sb.Append($"Most Busy Landblock - By Longest{'\n'}");
-            sb.Append($"~1h Hits   Avg  Long  Last  Tot - Location   Players  Creatures{'\n'}");
-
-            foreach (var entry in sortedByLong)
-            {
-                int players = 0, creatures = 0;
-                foreach (var worldObject in entry.GetAllWorldObjectsForDiagnostics())
-                {
-                    if (worldObject is Player)
-                        players++;
-                    else if (worldObject is Creature)
-                        creatures++;
-                }
-
-                sb.Append($"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} {((int)entry.Monitor1h.TotalSeconds).ToString().PadLeft(4)} - " +
-                          $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
-            }
-
-            CommandHandlerHelper.WriteOutputInfo(session, sb.ToString());
-        }
-
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]
         public static void HandleModifyServerBoolProperty(Session session, params string[] paramters)
         {
@@ -2429,6 +2327,162 @@ namespace ACE.Server.Command.Handlers
                     player.SaveBiotaToDatabase();
             }
         }
+
+        [CommandHandler("verify-skill-credits", AccessLevel.Admin, CommandHandlerFlag.None, 0, "fixes skill credits from asheron's castle", "")]
+        public static void HandleVerifySkillCredits(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllOffline();
+
+            foreach (var player in players)
+            {
+                // player starts with 52 skill credits
+                var startCredits = 52;
+
+                // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
+                // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
+                startCredits += 4;
+
+                var levelCredits = GetAdditionalCredits(player.Level ?? 1);
+
+                var totalCredits = startCredits + levelCredits;
+
+                var used = 0;
+
+                foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                {
+                    var sac = (SkillAdvancementClass)skill.SAC;
+                    if (sac < SkillAdvancementClass.Trained)
+                        continue;
+
+                    var skillInfo = DatManager.PortalDat.SkillTable.SkillBaseHash[skill.Type];
+                    //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
+
+                    if (sac == SkillAdvancementClass.Trained)
+                        used += skillInfo.TrainedCost;
+                    else if (sac == SkillAdvancementClass.Specialized)
+                    {
+                        switch ((Skill)skill.Type)
+                        {
+                            // these can only be speced through augs, they have >= 999 in the spec data
+                            case Skill.ArmorTinkering:
+                            case Skill.ItemTinkering:
+                            case Skill.MagicItemTinkering:
+                            case Skill.WeaponTinkering:
+                            case Skill.Salvaging:
+                                continue;
+                        }
+
+                        used += skillInfo.SpecializedCost;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({(Skill)skill.Type}): unknown sac {sac}");
+                        continue;
+                    }
+                }
+
+                var questCredits = 0;
+
+                // 2 possible skill credits from quests
+                // - ChasingOswaldDone
+                // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
+                var character = DatabaseManager.Shard.GetFullCharacter(player.Name);
+                if (character != null)
+                {
+                    if (character.CharacterPropertiesQuestRegistry.FirstOrDefault(i => i.QuestName.Equals("ChasingOswaldDone")) != null)
+                        questCredits++;
+
+                    if (character.CharacterPropertiesQuestRegistry.FirstOrDefault(i => i.QuestName.Equals("ArantahKill1")) != null)
+                        questCredits++;
+                }
+
+                totalCredits += questCredits;
+
+                // TODO: 2 lum augs
+
+                if (used > totalCredits)
+                    Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): used({used}) > totalCredits({totalCredits})");
+
+                var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+
+                var targetCredits = totalCredits - used;
+                if (targetCredits < 0)
+                    Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): targetCredits({targetCredits}) < 0");
+
+                targetCredits = Math.Max(0, targetCredits);
+
+                if (availableCredits != targetCredits)
+                {
+                    Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): availableCredits({availableCredits}) != targetCredits({targetCredits}) -- fixing");
+                    player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
+                    player.SaveBiotaToDatabase();
+                }
+
+                //Console.WriteLine("--------------------");
+            }
+        }
+
+        public static int GetAdditionalCredits(int level)
+        {
+            foreach (var kvp in AdditionalCredits.Reverse())
+                if (level >= kvp.Key)
+                    return kvp.Value;
+
+            return 0;
+        }
+
+        /// <summary>
+        /// level => total additional credits
+        /// </summary>
+        public static SortedDictionary<int, int> AdditionalCredits = new SortedDictionary<int, int>()
+        {
+            { 2, 1 },
+            { 3, 2 },
+            { 4, 3 },
+            { 5, 4 },
+            { 6, 5 },
+            { 7, 6 },
+            { 8, 7 },
+            { 9, 8 },
+            { 10, 9 },
+            { 12, 10 },
+            { 14, 11 },
+            { 16, 12 },
+            { 18, 13 },
+            { 20, 14 },
+            { 23, 15 },
+            { 26, 16 },
+            { 29, 17 },
+            { 32, 18 },
+            { 35, 19 },
+            { 40, 20 },
+            { 45, 21 },
+            { 50, 22 },
+            { 55, 23 },
+            { 60, 24 },
+            { 65, 25 },
+            { 70, 26 },
+            { 75, 27 },
+            { 80, 28 },
+            { 85, 29 },
+            { 90, 30 },
+            { 95, 31 },
+            { 100, 32 },
+            { 105, 33 },
+            { 110, 34 },
+            { 115, 35 },
+            { 120, 36 },
+            { 125, 37 },
+            { 130, 38 },
+            { 140, 39 },
+            { 150, 40 },
+            { 160, 41 },
+            { 180, 42 },
+            { 200, 43 },
+            { 225, 44 },
+            { 250, 45 },
+            { 275, 46 }
+        };
 
         [CommandHandler("getenchantments", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Shows the enchantments for the last appraised item", "")]
         public static void HandleGetEnchantments(Session session, params string[] parameters)

@@ -544,6 +544,9 @@ namespace ACE.Server.WorldObjects
                     lastOpenedContainer.Close(player);
             }
 
+            if ((OwnerId.HasValue && OwnerId.Value > 0) || (ContainerId.HasValue && ContainerId.Value > 0))
+                return; // Do nothing else if container is owned by something.
+
             if (!IsOpen)
             {
                 Open(player);

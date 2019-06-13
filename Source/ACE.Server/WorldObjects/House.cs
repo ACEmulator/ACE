@@ -596,7 +596,10 @@ namespace ACE.Server.WorldObjects
                 linkedHouse.UpdateRestrictionDB(restrictions);
 
             // update house dungeon
-            if (HasDungeon)
+
+            // TODO: handle this more gracefully: player in house dungeon,
+            // but outdoor house landblock is unloaded, and player is evicted
+            if (CurrentLandblock != null && HasDungeon)
             {
                 var dungeonHouse = GetDungeonHouse();
                 if (dungeonHouse == null || dungeonHouse.PhysicsObj == null) return;
@@ -610,7 +613,7 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj == null)
                 return;
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
                 player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictions));
         }
@@ -621,7 +624,7 @@ namespace ACE.Server.WorldObjects
 
             var restrictionDB = new RestrictionDB();
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
             {
                 // clear house owner

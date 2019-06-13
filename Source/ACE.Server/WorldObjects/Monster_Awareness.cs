@@ -50,6 +50,8 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}).Sleep()");
 
+            SetCombatMode(CombatMode.NonCombat);
+
             AttackTarget = null;
             IsAwake = false;
             IsMoving = false;
@@ -239,6 +241,7 @@ namespace ACE.Server.WorldObjects
 
                 // ensure player or player's pet
                 var wo = obj.WeenieObj.WorldObject;
+                if (wo == null) continue;
                 if (!(wo is Player) && !(wo is CombatPet)) continue;
                 var creature = wo as Creature;
 

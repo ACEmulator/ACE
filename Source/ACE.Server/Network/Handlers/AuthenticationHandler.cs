@@ -10,9 +10,11 @@ using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Managers;
 using ACE.Server.Network.Packets;
 
 namespace ACE.Server.Network.Handlers
@@ -75,7 +77,7 @@ namespace ACE.Server.Network.Handlers
 
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
-            packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
+            packetLog.DebugFormat("ConnectRequest TS: {0}", Timers.PortalYearTicks);
 
             if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
             {
@@ -85,7 +87,7 @@ namespace ACE.Server.Network.Handlers
             }
 
             var connectRequest = new PacketOutboundConnectRequest(
-                session.Network.ConnectionData.ServerTime,
+                Timers.PortalYearTicks,
                 session.Network.ConnectionData.ConnectionCookie,
                 session.Network.ClientId,
                 session.Network.ConnectionData.ServerSeed,
@@ -122,7 +124,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (WorldManager.Find(account.AccountName) != null)
+            if (NetworkManager.Find(account.AccountName) != null)
             {
                 session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.ServerCrash1));
                 return;

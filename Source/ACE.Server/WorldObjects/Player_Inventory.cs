@@ -486,7 +486,7 @@ namespace ACE.Server.WorldObjects
 
             if (searchLocations.HasFlag(SearchLocations.ObjectsKnownByMe))
             {
-                result = GetKnownObjects().Where(o => o.Guid == objectGuid).FirstOrDefault();
+                result = GetKnownObjects().FirstOrDefault(o => o.Guid == objectGuid);
 
                 if (result != null)
                     return result;
@@ -621,6 +621,13 @@ namespace ACE.Server.WorldObjects
             if (container == null)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target container not found!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
+            if (container is Corpse)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {item.Name} in that.")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
                 return;
             }
@@ -1058,7 +1065,7 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionGetAndWieldItem(WorldObject item, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
         {
-            var wieldError = CheckWieldRequirement(item);
+            var wieldError = CheckWieldRequirements(item);
 
             if (wieldError != WeenieError.None)
             {
@@ -1173,7 +1180,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        private WeenieError CheckWieldRequirement(WorldObject item)
+        private WeenieError CheckWieldRequirements(WorldObject item)
         {
             if (!PropertyManager.GetBool("use_wield_requirements").Item)
                 return WeenieError.None;
@@ -1182,10 +1189,31 @@ namespace ACE.Server.WorldObjects
             if (allowedWielder != null && (allowedWielder != Guid.Full))
                 return WeenieError.YouDoNotOwnThatItem; // Unsure of the exact message
 
-            var skillOrAttribute = item.WieldSkillType ?? 0;
-            var difficulty = (uint)(item.WieldDifficulty ?? 0);
+            var result = CheckWieldRequirement(item.WieldRequirements, item.WieldSkillType, item.WieldDifficulty);
+            if (result != WeenieError.None)
+                return result;
 
-            switch (item.WieldRequirements)
+            result = CheckWieldRequirement(item.WieldRequirements2, item.WieldSkillType2, item.WieldDifficulty2);
+            if (result != WeenieError.None)
+                return result;
+
+            result = CheckWieldRequirement(item.WieldRequirements3, item.WieldSkillType3, item.WieldDifficulty3);
+            if (result != WeenieError.None)
+                return result;
+
+            result = CheckWieldRequirement(item.WieldRequirements4, item.WieldSkillType4, item.WieldDifficulty4);
+            if (result != WeenieError.None)
+                return result;
+
+            return WeenieError.None;
+        }
+
+        private WeenieError CheckWieldRequirement(WieldRequirement wieldRequirement, int? wieldSkillType, int? wieldDifficulty)
+        {
+            var skillOrAttribute = wieldSkillType ?? 0;
+            var difficulty = (uint)(wieldDifficulty ?? 0);
+
+            switch (wieldRequirement)
             {
                 case WieldRequirement.Skill:
 
@@ -1327,6 +1355,13 @@ namespace ACE.Server.WorldObjects
             if (container == null)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target container not found!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
+            if (container is Corpse)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {stack.Name} in that.")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
                 return;
             }
@@ -1589,6 +1624,13 @@ namespace ACE.Server.WorldObjects
             if (targetStack == null)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target stack not found!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                return;
+            }
+
+            if (targetStackRootOwner is Corpse)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {sourceStack.Name} in that.")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
                 return;
             }
@@ -2077,7 +2119,7 @@ namespace ACE.Server.WorldObjects
                                     if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                         RushNextPlayerSave(5);
 
-                                    log.Info($"{Name} (0x{Guid.Full:X8}) traded in a IOU (0x{iouToTurnIn.Guid.Full:X8}) for {wcid} which became {item.Name} (0x{item.Guid.Full:X8}).");
+                                    log.Info($"{Name} (0x{Guid}) traded in a IOU (0x{iouToTurnIn.Guid}) for {wcid} which became {item.Name} (0x{item.Guid}).");
                                 }
                                 return;
                             }

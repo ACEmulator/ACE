@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 
 using ACE.Common.Cryptography;
-using ACE.Server.Managers;
+using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.Handlers;
@@ -57,6 +57,13 @@ namespace ACE.Server.Network
         /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick)
         /// </summary>
         private readonly ConcurrentDictionary<uint /*seq*/, ServerPacket> cachedPackets = new ConcurrentDictionary<uint /*seq*/, ServerPacket>();
+
+        private static readonly TimeSpan cachedPacketPruneInterval = TimeSpan.FromSeconds(5);
+        private DateTime lastCachedPacketPruneTime;
+        /// <summary>
+        /// Number of seconds to retain cachedPackets
+        /// </summary>
+        private const int cachedPacketRetentionTime = 120;
 
         /// <summary>
         /// This is referenced by multiple thread:<para />
@@ -143,12 +150,16 @@ namespace ACE.Server.Network
         }
 
         /// <summary>
+        /// Prunes the cachedPackets dictionary
         /// Checks if we should send the current bundle and then flushes all pending packets.
         /// </summary>
         public void Update()
         {
             if (isReleased) // Session has been removed
                 return;
+
+            if (DateTime.UtcNow - lastCachedPacketPruneTime > cachedPacketPruneInterval)
+                PruneCachedPackets();
 
             for (int i = 0; i < currentBundles.Length; i++)
             {
@@ -211,6 +222,25 @@ namespace ACE.Server.Network
             FlushPackets();
         }
 
+        private void PruneCachedPackets()
+        {
+            lastCachedPacketPruneTime = DateTime.UtcNow;
+
+            var currentTime = (ushort)Timers.PortalYearTicks;
+
+            // Make sure our comparison still works when ushort wraps every 18.2 hours.
+            var removalList = cachedPackets.Values.Where(x => (currentTime >= x.Header.Time ? currentTime : currentTime + ushort.MaxValue) - x.Header.Time > cachedPacketRetentionTime);
+
+            foreach (var packet in removalList)
+            {
+                if (cachedPackets.TryRemove(packet.Header.Sequence, out var removedPacket))
+                {
+                    if (removedPacket.Data != null)
+                        removedPacket.Data.Dispose();
+                }
+            }
+        }
+
         // This is called from ConnectionListener.OnDataReceieve()->Session.ProcessPacket()->This
         /// <summary>
         /// Processes and incoming packet from a client.
@@ -260,7 +290,7 @@ namespace ACE.Server.Network
             // Example: Applications that check uptime will stay in the AuthLoginRequest state.
             session.Network.TimeoutTick = (session.State == SessionState.AuthLoginRequest) ?
                 DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks : // Default is 15s
-                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks; // Default is 60s
+                DateTime.UtcNow.AddSeconds(NetworkManager.DefaultSessionTimeout).Ticks; // Default is 60s
 
             #endregion
 
@@ -509,14 +539,15 @@ namespace ACE.Server.Network
             // if (!sendAck)
             //    sendAck = true;
 
-            var removalList = cachedPackets.Where(x => x.Key < sequence);
+            var removalList = cachedPackets.Keys.Where(x => x < sequence);
 
-            foreach (var item in removalList)
+            foreach (var key in removalList)
             {
-                ServerPacket removedPacket;
-                cachedPackets.TryRemove(item.Key, out removedPacket);
-                if (removedPacket.Data != null)
-                    removedPacket.Data.Dispose();
+                if (cachedPackets.TryRemove(key, out var removedPacket))
+                {
+                    if (removedPacket.Data != null)
+                        removedPacket.Data.Dispose();
+                }
             }
         }
 
@@ -553,7 +584,7 @@ namespace ACE.Server.Network
                     packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
                 packet.Header.Id = ServerId;
                 packet.Header.Iteration = 0x14;
-                packet.Header.Time = (ushort)ConnectionData.ServerTime;
+                packet.Header.Time = (ushort)Timers.PortalYearTicks;
 
                 if (packet.Header.Sequence >= 2u)
                     cachedPackets.TryAdd(packet.Header.Sequence, packet);
@@ -750,9 +781,9 @@ namespace ACE.Server.Network
             if (bundle.TimeSync) // 0x1000000
             {
                 packetHeader.Flags |= PacketHeaderFlags.TimeSync;
-                packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, ConnectionData.ServerTime);
+                packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, Timers.PortalYearTicks);
                 packet.InitializeBodyWriter();
-                packet.BodyWriter.Write(ConnectionData.ServerTime);
+                packet.BodyWriter.Write(Timers.PortalYearTicks);
             }
 
             if (bundle.ClientTime != -1f) // 0x4000000
@@ -761,7 +792,7 @@ namespace ACE.Server.Network
                 packetLog.DebugFormat("[{0}] Outgoing EchoResponse: {1}", session.LoggingIdentifier, bundle.ClientTime);
                 packet.InitializeBodyWriter();
                 packet.BodyWriter.Write(bundle.ClientTime);
-                packet.BodyWriter.Write((float)ConnectionData.ServerTime - bundle.ClientTime);
+                packet.BodyWriter.Write((float)Timers.PortalYearTicks - bundle.ClientTime);
             }
         }
 

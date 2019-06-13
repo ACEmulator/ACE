@@ -226,6 +226,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HouseRentTimestamp); else SetProperty(PropertyInt.HouseRentTimestamp, value.Value); }
         }
 
+        public bool SpellComponentsRequired
+        {
+            get => GetProperty(PropertyBool.SpellComponentsRequired) ?? true;
+            set { if (value) RemoveProperty(PropertyBool.SpellComponentsRequired); else SetProperty(PropertyBool.SpellComponentsRequired, value); }
+        }
+
 
         // ========================================
         // ===== Player Properties - Titles========

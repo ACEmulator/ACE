@@ -371,7 +371,7 @@ namespace ACE.Server.Entity
         public int Index { get => _spell.Index ?? 0; }
 
         /// <summary>
-        /// Unknown link field?
+        /// For SpellType.PortalSummon spells, Link is set to either 1 for LinkedPortalOneDID or 2 for LinkedPortalTwoDID
         /// </summary>
         public int Link { get => _spell.Link ?? 0; }
 

@@ -9,6 +9,7 @@ using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.World;
+using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -20,9 +21,14 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Entity;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
+
+
+using Position = ACE.Entity.Position;
+using Spell = ACE.Server.Entity.Spell;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -1869,7 +1875,10 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+                var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
+                session.Player.AdjustDungeon(pos);
+
+                session.Player.Teleport(pos);
             }
         }
 
@@ -1900,7 +1909,10 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+                var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
+                session.Player.AdjustDungeon(pos);
+
+                session.Player.Teleport(pos);
             }
         }
 
@@ -1922,6 +1934,59 @@ namespace ACE.Server.Command.Handlers
             GC.Collect();
 
             CommandHandlerHelper.WriteOutputInfo(session, ".NET Garbage Collection forced");
+        }
+
+        [CommandHandler("auditobjectmaint", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Iterates over physics objects to find leaks")]
+        public static void HandleAuditObjectMaint(Session session, params string[] parameters)
+        {
+            var serverObjects = ObjectMaint.ServerObjects.Keys.ToHashSet();
+
+            int objectTableErrors = 0;
+            int visibleObjectTableErrors = 0;
+            int voyeurTableErrors = 0;
+
+            foreach (var value in ObjectMaint.ServerObjects.Values)
+            {
+                {
+                    var kvps = value.ObjMaint.ObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    foreach (var kvp in kvps)
+                    {
+                        if (value.ObjMaint.ObjectTable.Remove(kvp.Key))
+                        {
+                            log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [ObjectTable]");
+                            objectTableErrors++;
+                        }
+                    }
+                }
+
+                {
+                    var kvps = value.ObjMaint.VisibleObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    foreach (var kvp in kvps)
+                    {
+                        if (value.ObjMaint.VisibleObjectTable.Remove(kvp.Key))
+                        {
+                            log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VisibleObjectTable]");
+                            visibleObjectTableErrors++;
+                        }
+                    }
+                }
+
+                {
+                    var kvps = value.ObjMaint.VoyeurTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    foreach (var kvp in kvps)
+                    {
+                        if (value.ObjMaint.VoyeurTable.Remove(kvp.Key))
+                        {
+                            log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VoyeurTable]");
+                            voyeurTableErrors++;
+                        }
+                    }
+                }
+            }
+
+            if (session != null)
+                CommandHandlerHelper.WriteOutputInfo(session, $"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
+            log.Info($"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
         }
 
         [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory. Syntax is \"lootgen (wcid) <tier>\"")]
@@ -2049,6 +2114,57 @@ namespace ACE.Server.Command.Handlers
                 else
                     session.Network.EnqueueSend(new GameMessageSystemChat($"Session is null for {player.Name} which shouldn't occur.", ChatMessageType.Broadcast));
             }
+        }
+
+        [CommandHandler("requirecomps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Sets whether spell components are required to cast spells.",
+            "[ on | off ]\n"
+            + "This command sets whether spell components are required to cast spells..\n When turned on, spell components are required.\n When turned off, spell components are ignored.")]
+        public static void HandleRequireComps(Session session, params string[] parameters)
+        {
+            var param = parameters[0];
+
+            switch (param)
+            {
+                case "off":
+                    session.Player.SpellComponentsRequired = false;
+                    session.Player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(session.Player, PropertyBool.SpellComponentsRequired, session.Player.SpellComponentsRequired));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("You can now cast spells without components.", ChatMessageType.Broadcast));
+                    break;
+                case "on":
+                default:
+                    session.Player.SpellComponentsRequired = true;
+                    session.Player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(session.Player, PropertyBool.SpellComponentsRequired, session.Player.SpellComponentsRequired));
+                    session.Network.EnqueueSend(new GameMessageSystemChat("You can no longer cast spells without components.", ChatMessageType.Broadcast));
+                    break;
+            }
+        }
+        /// <summary>
+        /// This is to add spells to items (whether loot or quest generated).  For making weapons to check damage from pcaps or other sources
+        /// </summary>
+        [CommandHandler("additemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "/additemspell <spell id> - adds a spell to the last appraised item. Ex /additemspell 6089 - adds Legendary Bloodthirst")]
+        public static void HandleAddItemSpell (Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            // Convert to Uint and see if its a number
+            if (!int.TryParse(parameters[0], out var spellId))
+                return;
+
+            //Check to see if Spell ID is valid spell
+            var spell = new Spell(spellId, true);
+            if (spell.NotFound == true)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("SpellID is not found", ChatMessageType.Broadcast));
+                return;
+            }
+            obj.Biota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
+
+            var msg = spellAdded ? "added to" : "already on";
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
+
+
         }
     }
 }
