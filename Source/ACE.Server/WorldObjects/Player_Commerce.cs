@@ -146,15 +146,20 @@ namespace ACE.Server.WorldObjects
 
         private bool ValidateBuyItems(Vendor vendor, List<ItemProfile> items)
         {
-            if (items.Count > 20) // Allow this many unique items per trasnaction
+            // Allow this many unique items per trasnaction
+            // Max found in retail pcaps: 20
+            if (items.Count > 40)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't buy that many unique items!")); // Custom message
                 log.Warn($"{Name} tried to buy too many unique items, items.count: {items.Count}, from 0x{vendor.Guid}:{vendor.Name}");
                 return false;
             }
 
+            // Make sure total amount doesn't exceed this value. Think # of stacks at MaxStackSize
+            // Max single item stack size found in pcaps: 5000
+            // Max total items found in pcaps: 5000
             var totalAmount = items.Sum(r => r.Amount);
-            if (totalAmount > 5000)  // Make sure total amount doesn't exceed this value. Think # of stacks at MaxStackSize
+            if (totalAmount > 10000)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't buy that many total items!")); // Custom message
                 log.Warn($"{Name} tried to buy too many total items, totalAmount: {totalAmount:N0}, from 0x{vendor.Guid}:{vendor.Name}");
@@ -352,15 +357,20 @@ namespace ACE.Server.WorldObjects
 
         private bool ValidateSellItems(List<ItemProfile> items, Vendor vendor)
         {
-            if (items.Count > 40) // Allow this many unique items per trasnaction
+            // Allow this many unique items per trasnaction
+            // Max found in retail pcaps: 49
+            if (items.Count > 100)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't sell that many unique items!")); // Custom message
                 log.Warn($"{Name} tried to sell too many unique items, items.count: {items.Count}, from 0x{vendor.Guid}:{vendor.Name}");
                 return false;
             }
 
+            // Make sure total amount doesn't exceed this value. Think # of stacks at MaxStackSize
+            // Max single item stack size found in pcaps: 1000
+            // Max total items found in pcaps: 1000
             var totalAmount = items.Sum(r => r.Amount);
-            if (totalAmount > 10000)  // Make sure total amount doesn't exceed this value. Think # of stacks at MaxStackSize
+            if (totalAmount > 10000)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't sell that many total items!")); // Custom message
                 log.Warn($"{Name} tried to sell too many total items, totalAmount: {totalAmount:N0}, from 0x{vendor.Guid}:{vendor.Name}");
