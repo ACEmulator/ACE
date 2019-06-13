@@ -38,9 +38,9 @@ namespace ACE.Server.Entity.Actions
                     if (sw.Elapsed.TotalSeconds > 1)
                     {
                         if (result is ActionEventDelegate actionEventDelegate)
-                            log.Error($"ActionQueue Act() took {sw.Elapsed.TotalSeconds:N0}s. Method.Name: {actionEventDelegate.Action.Method.Name}, Target: {actionEventDelegate.Action.Target}");
+                            log.Warn($"ActionQueue Act() took {sw.Elapsed.TotalSeconds:N0}s. Method.Name: {actionEventDelegate.Action.Method.Name}, Target: {actionEventDelegate.Action.Target}");
                         else
-                            log.Error($"ActionQueue Act() took {sw.Elapsed.TotalSeconds:N0}s.");
+                            log.Warn($"ActionQueue Act() took {sw.Elapsed.TotalSeconds:N0}s.");
                     }
                     #endif
 
