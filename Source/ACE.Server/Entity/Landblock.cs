@@ -613,6 +613,15 @@ namespace ACE.Server.Entity
             sortedGeneratorsByNextRegeneration.AddLast(worldObject); // This line really shouldn't be hit
         }
 
+        public void ResortWorldObjectIntoSortedGeneratorRegenerationList(WorldObject worldObject)
+        {
+            if (sortedGeneratorsByNextRegeneration.Contains(worldObject))
+            {
+                sortedGeneratorsByNextRegeneration.Remove(worldObject);
+                InsertWorldObjectIntoSortedGeneratorRegenerationList(worldObject);
+            }
+        }
+
         public void EnqueueAction(IAction action)
         {
             actionQueue.EnqueueAction(action);

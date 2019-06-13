@@ -559,11 +559,13 @@ namespace ACE.Server.WorldObjects
         {
             CurrentlyPoweringUp = true;
 
-
             SelectProfilesInit();
 
             if (GeneratorInitialDelay > 0)
+            {
                 NextGeneratorRegenerationTime = GetNextRegenerationTime(GeneratorInitialDelay);
+                CurrentLandblock?.ResortWorldObjectIntoSortedGeneratorRegenerationList(this);
+            }
             else
             {
                 if (InitCreate > 0)
@@ -743,7 +745,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Generator_Regeneration()
         {
-            //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval})");
+            if (Name.Contains("Billy Bad-ass"))
+            Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval})");
 
             //foreach (var profile in GeneratorProfiles)
             //    profile.Maintenance_HeartBeat();
