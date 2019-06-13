@@ -278,20 +278,23 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var equippedItem in player.EquippedObjects.Values)
             {
-                var itemWieldReq = (WieldRequirement)(equippedItem.GetProperty(PropertyInt.WieldRequirements) ?? 0);
-
-                if (itemWieldReq == WieldRequirement.RawSkill || itemWieldReq == WieldRequirement.Skill)
+                if (CheckWieldRequirement(player, equippedItem.WieldRequirements, equippedItem.WieldSkillType) ||
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements2, equippedItem.WieldSkillType2) ||
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements3, equippedItem.WieldSkillType3) ||
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4))
                 {
-                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkillType property
-                    var itemSkillReq = player.ConvertToMoASkill((Skill)(equippedItem.GetProperty(PropertyInt.WieldSkillType) ?? 0));
-
-                    if (itemSkillReq == SkillToBeAltered)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             return false;
+        }
+
+        private bool CheckWieldRequirement(Player player, WieldRequirement itemWieldReq, int? wieldSkillType)
+        {
+            if (itemWieldReq != WieldRequirement.RawSkill && itemWieldReq != WieldRequirement.Skill)
+                return false;
+
+            return player.ConvertToMoASkill((Skill)(wieldSkillType ?? 0)) == SkillToBeAltered;
         }
     }
 }
