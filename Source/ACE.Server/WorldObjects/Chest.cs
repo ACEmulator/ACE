@@ -161,32 +161,14 @@ namespace ACE.Server.WorldObjects
         {
             base.Open(player);
 
-            // chests can have a couple of different profiles
-            // by default, most chests use the 'ResetInterval' setup
-            // some things like Mana Forge chests use the 'RegenOnClose' variant
-
-            // ResetInterval (default):
-
-            // if no ResetInterval is defined, the DefaultResetInterval of 2 mins is used.
-            // when a player opens this chest, a timer starts, and the chest will automatically close/reset in ResetInterval
-
-            // RegenOnClose (Mana Forge Chest etc.):
-
-            // this chest resets whenever it is closed
-
-            if (!ChestRegenOnClose && !ResetMessagePending)
+            if (!ResetMessagePending)
             {
-                //Console.WriteLine($"{player.Name}.Open({Name}) - enqueueing reset in {ChestResetInterval}s");
-
-                // uses the ResetInterval setup
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(ChestResetInterval);
                 actionChain.AddAction(this, Reset);
                 actionChain.EnqueueChain();
 
                 ResetMessagePending = true;
-
-                //UseTimestamp++;
             }
         }
 
