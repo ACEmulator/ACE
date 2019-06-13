@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -50,6 +50,38 @@ namespace ACE.Server.WorldObjects
                 {
                     currencyStack.SetStackSize(amount);
                     coinStacks.Add(currencyStack);
+                    amount -= amount;
+                }
+            }
+
+            return coinStacks;
+        }
+
+        private int PreCreatePayoutCoinStacks(int amount, out int requiredEncumbrance)
+        {
+            const uint coinWeenieId = 273;
+
+            var coinStacks = 0;
+            requiredEncumbrance = 0;
+
+            var coinStack = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(coinWeenieId), new ACE.Entity.ObjectGuid(0));
+
+            var coinStackUnitEncumbrance = coinStack.StackUnitEncumbrance ?? 0;
+            var coinStackMaxStackSize = coinStack.MaxStackSize ?? 1;
+
+            while (amount > 0)
+            {
+                // payment contains a max stack
+                if (coinStackMaxStackSize <= amount)
+                {
+                    coinStacks++;
+                    requiredEncumbrance += coinStackUnitEncumbrance * coinStackMaxStackSize;
+                    amount -= coinStackMaxStackSize;
+                }
+                else // not a full stack
+                {
+                    coinStacks++;
+                    requiredEncumbrance += coinStackUnitEncumbrance * amount;
                     amount -= amount;
                 }
             }
@@ -295,6 +327,16 @@ namespace ACE.Server.WorldObjects
             }
 
             var payoutCoinAmount = vendor.CalculatePayoutCoinAmount(sellList);
+
+            var numberOfCoinStacksToCreate = PreCreatePayoutCoinStacks(payoutCoinAmount, out var encumburanceOfCoinStacksToCreate);
+
+            if (!CanAddToInventory(0, numberOfCoinStacksToCreate, encumburanceOfCoinStacksToCreate))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to sell that!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
+                SendUseDoneEvent();
+                return;
+            }
 
             var payoutCoinStacks = CreatePayoutCoinStacks(payoutCoinAmount);
 
