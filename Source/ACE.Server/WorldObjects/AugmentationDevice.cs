@@ -60,7 +60,7 @@ namespace ACE.Server.WorldObjects
             // show confirmation message
             var msg = $"This action will augment your character with {Name} and will cost {AugmentationCost:N0} available experience.";
 
-            var confirm = new Confirmation(ConfirmationType.Augmentation, msg, this, player, player);
+            var confirm = new Confirmation_Augmentation(player.Guid, Guid);
             ConfirmationManager.AddConfirmation(confirm);
 
             player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Augmentation, confirm.ConfirmationID, msg));

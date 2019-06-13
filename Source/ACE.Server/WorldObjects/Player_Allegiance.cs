@@ -54,9 +54,23 @@ namespace ACE.Server.WorldObjects
         /// Called when a player tries to Swear Allegiance to a target
         /// </summary>
         /// <param name="targetGuid">The target this player is attempting to swear allegiance to</param>
-        public void HandleActionSwearAllegiance(uint targetGuid)
+        public void HandleActionSwearAllegiance(uint targetGuid, bool approved = false)
         {
             if (!IsPledgable(targetGuid)) return;
+
+            if (!approved)
+            {
+                var target = PlayerManager.GetOnlinePlayer(targetGuid);
+
+                if (target == null)
+                    return;
+
+                var confirm = new Confirmation_SwearAllegiance(target.Guid, Guid);
+                ConfirmationManager.AddConfirmation(confirm);
+
+                Session.Network.EnqueueSend(new GameEventConfirmationRequest(Session, ConfirmationType.SwearAllegiance, confirm.ConfirmationID, target.Name));
+                return;
+            }
 
             var patron = PlayerManager.GetOnlinePlayer(targetGuid);
 

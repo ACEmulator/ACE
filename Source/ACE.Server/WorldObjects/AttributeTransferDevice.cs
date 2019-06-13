@@ -4,6 +4,9 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
+using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -44,6 +47,11 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject activator)
         {
+            ActOnUse(activator, false);
+        }
+
+        public void ActOnUse(WorldObject activator, bool confirmed)
+        {
             var player = activator as Player;
             if (player == null) return;
 
@@ -65,6 +73,17 @@ namespace ACE.Server.WorldObjects
             if (toAttr.StartingValue >= 100)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your innate {TransferToAttribute} must be below 100 to use the {Name}.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (!confirmed)
+            {
+                var confirm = new Confirmation_AlterAttribute(player.Guid, Guid);
+                ConfirmationManager.AddConfirmation(confirm);
+
+                player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.AlterAttribute, confirm.ConfirmationID,
+                    $"This action will transfer 10 points from your {fromAttr.Attribute} to your {toAttr.Attribute}."));
+
                 return;
             }
 

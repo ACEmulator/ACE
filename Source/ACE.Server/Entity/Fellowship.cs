@@ -94,11 +94,11 @@ namespace ACE.Server.Entity
                 }
                 else
                 {
-                    var confirm = new Confirmation(ConfirmationType.Fellowship, $"{inviter.Name} invites to you join a fellowship.", inviter, newMember);
+                    var confirm = new Confirmation_Fellowship(inviter.Guid, newMember.Guid);
                     ConfirmationManager.AddConfirmation(confirm);
 
                     newMember.Session.Network.EnqueueSend(new GameEventConfirmationRequest(newMember.Session, ConfirmationType.Fellowship,
-                        confirm.ConfirmationID, confirm.Message));
+                        confirm.ConfirmationID, $"{inviter.Name} invites to you join a fellowship."));
                 }
             }
         }

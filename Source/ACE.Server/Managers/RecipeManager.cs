@@ -244,7 +244,7 @@ namespace ACE.Server.Managers
                     var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
                     var exactMsg = templateMsg.Replace("%", percent + "%");
 
-                    var confirm = new Confirmation(ConfirmationType.CraftInteraction, floorMsg, tool, target, player);
+                    var confirm = new Confirmation_CraftInteration(player.Guid, tool.Guid, target.Guid);
                     ConfirmationManager.AddConfirmation(confirm);
 
                     player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.CraftInteraction, confirm.ConfirmationID, floorMsg));

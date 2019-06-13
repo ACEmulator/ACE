@@ -649,7 +649,7 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        var confirm = new Confirmation(ConfirmationType.Yes_No, emote.TestString, WorldObject, null, player, emote.Message);
+                        var confirm = new Confirmation_YesNo(WorldObject.Guid, player.Guid, emote.Message);
                         ConfirmationManager.AddConfirmation(confirm);
 
                         player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Yes_No, confirm.ConfirmationID, emote.TestString));
@@ -875,17 +875,9 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.PopUp:
+
                     if (player != null)
-                    {
-                        if ((emote.Stat == null) || ((ConfirmationType)emote.Stat == ConfirmationType.Undefined))
-                            player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, emote.Message));
-                        else
-                        {
-                            Confirmation confirm = new Confirmation((ConfirmationType)emote.Stat, emote.Message, WorldObject, targetObject);
-                            ConfirmationManager.AddConfirmation(confirm);
-                            player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, (ConfirmationType)emote.Stat, confirm.ConfirmationID, confirm.Message));
-                        }
-                    }
+                        player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, emote.Message));
                     break;
 
                 case EmoteType.RemoveContract:
