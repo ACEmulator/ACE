@@ -229,12 +229,12 @@ namespace ACE.Server.Entity
             var patron = PlayerManager.GetOnlinePlayer(PatronGuid);
             var vassal = PlayerManager.GetOnlinePlayer(VassalGuid);
 
-            if (vassal == null)
+            if (patron == null)
                 return;
 
-            vassal.CompleteConfirmation(ConfirmationType, ConfirmationID);
+            patron.CompleteConfirmation(ConfirmationType, ConfirmationID);
 
-            if (response && patron != null)
+            if (response && vassal != null)
                 vassal.HandleActionSwearAllegiance(patron.Guid.Full, true);
         }
     }

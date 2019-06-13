@@ -97,8 +97,7 @@ namespace ACE.Server.Entity
                     var confirm = new Confirmation_Fellowship(inviter.Guid, newMember.Guid);
                     ConfirmationManager.AddConfirmation(confirm);
 
-                    newMember.Session.Network.EnqueueSend(new GameEventConfirmationRequest(newMember.Session, ConfirmationType.Fellowship,
-                        confirm.ConfirmationID, $"{inviter.Name} invites to you join a fellowship."));
+                    newMember.Session.Network.EnqueueSend(new GameEventConfirmationRequest(newMember.Session, ConfirmationType.Fellowship, confirm.ConfirmationID, $"{inviter.Name}"));
                 }
             }
         }

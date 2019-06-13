@@ -68,7 +68,7 @@ namespace ACE.Server.WorldObjects
                 var confirm = new Confirmation_SwearAllegiance(target.Guid, Guid);
                 ConfirmationManager.AddConfirmation(confirm);
 
-                Session.Network.EnqueueSend(new GameEventConfirmationRequest(Session, ConfirmationType.SwearAllegiance, confirm.ConfirmationID, target.Name));
+                target.Session.Network.EnqueueSend(new GameEventConfirmationRequest(target.Session, ConfirmationType.SwearAllegiance, confirm.ConfirmationID, Name));
                 return;
             }
 
