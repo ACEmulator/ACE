@@ -57,36 +57,40 @@ namespace ACE.Server.WorldObjects
             return coinStacks;
         }
 
-        private int PreCreatePayoutCoinStacks(int amount, out int requiredEncumbrance)
+        public int PreCreateItem(uint weenieClassId, int amount, out int requiredEncumbrance, out bool isContainer)
         {
-            const uint coinWeenieId = 273;
-
-            var coinStacks = 0;
+            var itemStacks = 0;
             requiredEncumbrance = 0;
+            isContainer = false;
 
-            var coinStack = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(coinWeenieId), new ACE.Entity.ObjectGuid(0));
+            var item = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(weenieClassId), new ACE.Entity.ObjectGuid(0));
 
-            var coinStackUnitEncumbrance = coinStack.StackUnitEncumbrance ?? 0;
-            var coinStackMaxStackSize = coinStack.MaxStackSize ?? 1;
-
-            while (amount > 0)
+            if (item != null)
             {
-                // payment contains a max stack
-                if (coinStackMaxStackSize <= amount)
+                var itemStackUnitEncumbrance = item.StackUnitEncumbrance.HasValue ? item.StackUnitEncumbrance ?? 0 : item.EncumbranceVal ?? 0;
+                var itemStackMaxStackSize = item.MaxStackSize ?? 1;
+
+                isContainer = item.UseBackpackSlot;
+
+                while (amount > 0)
                 {
-                    coinStacks++;
-                    requiredEncumbrance += coinStackUnitEncumbrance * coinStackMaxStackSize;
-                    amount -= coinStackMaxStackSize;
-                }
-                else // not a full stack
-                {
-                    coinStacks++;
-                    requiredEncumbrance += coinStackUnitEncumbrance * amount;
-                    amount -= amount;
+                    // amount contains a max stack
+                    if (itemStackMaxStackSize <= amount)
+                    {
+                        itemStacks++;
+                        requiredEncumbrance += itemStackUnitEncumbrance * itemStackMaxStackSize;
+                        amount -= itemStackMaxStackSize;
+                    }
+                    else // not a full stack
+                    {
+                        itemStacks++;
+                        requiredEncumbrance += itemStackUnitEncumbrance * amount;
+                        amount -= amount;
+                    }
                 }
             }
 
-            return coinStacks;
+            return itemStacks;
         }
 
         private List<WorldObject> SpendCurrency(uint amount, WeenieType type)
@@ -280,6 +284,8 @@ namespace ACE.Server.WorldObjects
         // Game Action Handlers - Sell Item
         // ================================
 
+        private const uint coinStackWeenieClassId = 273;
+
         /// <summary>
         /// Client Calls this when Sell is clicked.
         /// </summary>
@@ -328,7 +334,7 @@ namespace ACE.Server.WorldObjects
 
             var payoutCoinAmount = vendor.CalculatePayoutCoinAmount(sellList);
 
-            var numberOfCoinStacksToCreate = PreCreatePayoutCoinStacks(payoutCoinAmount, out var encumburanceOfCoinStacksToCreate);
+            var numberOfCoinStacksToCreate = PreCreateItem(coinStackWeenieClassId, payoutCoinAmount, out var encumburanceOfCoinStacksToCreate, out _);
 
             if (!CanAddToInventory(0, numberOfCoinStacksToCreate, encumburanceOfCoinStacksToCreate))
             {

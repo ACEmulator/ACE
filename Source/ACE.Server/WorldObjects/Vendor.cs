@@ -14,6 +14,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
+using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
@@ -369,6 +370,33 @@ namespace ACE.Server.WorldObjects
                         UniqueItemsForSale.Remove(new ObjectGuid(item.ObjectGuid));
                     }
                 }
+            }
+
+            var totalItemsToBuy = 0;
+            var totalContainersToBuy = 0;
+            var totalEncumburanceOfItemsToBuy = 0;
+
+            foreach (ItemProfile item in filteredlist)
+            {
+                var itemAmount = player.PreCreateItem(item.WeenieClassId, (int)item.Amount, out var itemEncumberance, out bool itemIsContainer);
+
+                if (itemIsContainer)
+                {
+                    totalContainersToBuy += itemAmount;
+                    totalEncumburanceOfItemsToBuy += itemEncumberance;
+                }
+                else
+                {
+                    totalItemsToBuy += itemAmount;
+                    totalEncumburanceOfItemsToBuy += itemEncumberance;
+                }
+            }
+
+            if (!player.CanAddToInventory(totalContainersToBuy, totalItemsToBuy, totalEncumburanceOfItemsToBuy))
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to buy that!"));
+                player.Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(player.Session, player.Guid.Full));
+                return;
             }
 
             // convert profile to world objects / stack logic does not include unique items.
