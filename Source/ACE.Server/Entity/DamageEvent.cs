@@ -267,7 +267,7 @@ namespace ACE.Server.Entity
             DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetDamageResistRating());
 
             // get shield modifier
-            ShieldMod = defender.GetShieldMod(attacker, DamageType, IgnoreMagicArmor);
+            ShieldMod = defender.GetShieldMod(attacker, DamageType, Weapon);
 
             // calculate final output damage
             Damage = DamageBeforeMitigation * ArmorMod * ShieldMod * ResistanceMod * DamageResistanceRatingMod;
