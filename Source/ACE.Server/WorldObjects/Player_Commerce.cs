@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
                         amount -= amount;
                     }
 
-                    if (!CanAddToInventory(0, itemStacks, requiredEncumbrance))
+                    if (!CanAddToInventory(isContainer ? 1 : 0, itemStacks, requiredEncumbrance))
                         break;
                 }
             }
