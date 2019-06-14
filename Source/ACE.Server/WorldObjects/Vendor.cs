@@ -365,7 +365,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (UniqueItemsForSale.TryGetValue(new ObjectGuid(item.ObjectGuid), out var wo))
                     {
-                        wo.RemoveProperty(PropertyFloat.SoldTimestamp);
+                        //wo.RemoveProperty(PropertyFloat.SoldTimestamp);
                         uqlist.Add(wo);
                         UniqueItemsForSale.Remove(new ObjectGuid(item.ObjectGuid));
                     }
@@ -399,6 +399,16 @@ namespace ACE.Server.WorldObjects
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to buy that!"));
                 player.Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(player.Session, player.Guid.Full));
+
+                if (uqlist.Count > 0)
+                {
+                    foreach (var item in uqlist)
+                    {
+                        //item.SetProperty(PropertyFloat.SoldTimestamp, Common.Time.GetUnixTime());
+                        UniqueItemsForSale.Add(item.Guid, item);
+                    }
+                }
+
                 return;
             }
 

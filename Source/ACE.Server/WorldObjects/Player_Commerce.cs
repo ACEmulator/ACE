@@ -227,7 +227,10 @@ namespace ACE.Server.WorldObjects
                 SpendCurrency(goldcost, WeenieType.Coin);
 
                 foreach (WorldObject wo in uqlist)
+                {
+                    wo.RemoveProperty(PropertyFloat.SoldTimestamp);
                     TryCreateInInventoryWithNetworking(wo);
+                }
 
                 foreach (var gen in genlist)
                 {
