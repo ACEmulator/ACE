@@ -51,6 +51,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// This flag indicates if a player can pass up allegiance XP
+        /// </summary>
+        public bool ExistedBeforeAllegianceXpChanges
+        {
+            get => GetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges) ?? true;
+            set { if (value) RemoveProperty(PropertyBool.ExistedBeforeAllegianceXpChanges); else SetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges, value); }
+        }
+
+        /// <summary>
         /// Called when a player tries to Swear Allegiance to a target
         /// </summary>
         /// <param name="targetGuid">The target this player is attempting to swear allegiance to</param>
@@ -86,6 +95,8 @@ namespace ACE.Server.WorldObjects
 
             PatronId = targetGuid;
             MonarchId = AllegianceManager.GetMonarch(patron).Guid.Full;
+
+            ExistedBeforeAllegianceXpChanges = (patron.Level ?? 1) >= (Level ?? 1);
 
             // handle special case: monarch swearing into another allegiance
             if (Allegiance != null && Allegiance.MonarchId == Guid.Full)
@@ -254,13 +265,13 @@ namespace ACE.Server.WorldObjects
             }
 
             // patron must currently be greater or equal level
-            if (target.Level < Level)
+            /*if (target.Level < Level)
             {
                 //Console.WriteLine(Name + " tried to swear to a lower level character");
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear to a lower level character.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.AllegianceIllegalLevel));
                 return false;
-            }
+            }*/
 
             var selfNode = AllegianceNode;
             var targetNode = target.AllegianceNode;

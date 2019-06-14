@@ -240,6 +240,9 @@ namespace ACE.Server.Managers
             var vassal = vassalNode.Player;
             var patron = patronNode.Player;
 
+            if (!vassal.ExistedBeforeAllegianceXpChanges)
+                return;
+
             var loyalty = Math.Min(vassal.GetCurrentLoyalty(), SkillCap);
             var leadership = Math.Min(patron.GetCurrentLeadership(), SkillCap);
 

@@ -328,6 +328,15 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// This flag indicates if a player can pass up allegiance XP
+        /// </summary>
+        public bool ExistedBeforeAllegianceXpChanges
+        {
+            get => GetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges) ?? true;
+            set { if (value) RemoveProperty(PropertyBool.ExistedBeforeAllegianceXpChanges); else SetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges, value); }
+        }
+
+        /// <summary>
         /// Used for allegiance recall to monarch's mansion / villa
         /// </summary>
         public uint? HouseInstance
