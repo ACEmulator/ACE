@@ -390,6 +390,9 @@ namespace ACE.Server.WorldObjects
                     totalItemsToBuy += itemAmount;
                     totalEncumburanceOfItemsToBuy += itemEncumberance;
                 }
+
+                if (!player.CanAddToInventory(totalContainersToBuy, totalItemsToBuy, totalEncumburanceOfItemsToBuy))
+                    break;
             }
 
             if (!player.CanAddToInventory(totalContainersToBuy, totalItemsToBuy, totalEncumburanceOfItemsToBuy))
