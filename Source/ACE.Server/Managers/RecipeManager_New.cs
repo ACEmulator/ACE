@@ -172,8 +172,8 @@ namespace ACE.Server.Managers
 
                 case WeenieClassName.W_MATERIALOAK_CLASS:
 
-                    // ensure melee weapon and workmanship
-                    if (target.WeenieType != WeenieType.MeleeWeapon || target.Workmanship == null)
+                    // ensure melee or missile weapon, and workmanship
+                    if (target.WeenieType != WeenieType.MeleeWeapon && target.WeenieType != WeenieType.MissileLauncher || target.Workmanship == null)
                         return null;
 
                     // use mahogany recipe as base
