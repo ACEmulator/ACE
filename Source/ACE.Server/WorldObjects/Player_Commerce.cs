@@ -67,10 +67,22 @@ namespace ACE.Server.WorldObjects
 
             if (item != null)
             {
+                var isVendorService = item.GetProperty(PropertyBool.VendorService) ?? false;
+                if (isVendorService)
+                    return 0;
+
                 var itemStackUnitEncumbrance = item.StackUnitEncumbrance.HasValue ? item.StackUnitEncumbrance ?? 0 : item.EncumbranceVal ?? 0;
                 var itemStackMaxStackSize = item.MaxStackSize ?? 1;
 
                 isContainer = item.UseBackpackSlot;
+
+                var isStackable = item is Stackable;
+
+                if (!isStackable)
+                {
+                    requiredEncumbrance = itemStackUnitEncumbrance;
+                    return amount;
+                }
 
                 while (amount > 0)
                 {
@@ -87,6 +99,9 @@ namespace ACE.Server.WorldObjects
                         requiredEncumbrance += itemStackUnitEncumbrance * amount;
                         amount -= amount;
                     }
+
+                    if (!CanAddToInventory(0, itemStacks, requiredEncumbrance))
+                        break;
                 }
             }
 
