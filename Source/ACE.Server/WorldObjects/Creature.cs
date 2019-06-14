@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 using log4net;
 
 using ACE.Database.Models.World;
@@ -9,7 +8,6 @@ using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
 using ACE.Database.Models.Shard;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Entity;
@@ -192,6 +190,11 @@ namespace ACE.Server.WorldObjects
             // Eye Color
             if (!EyesPaletteDID.HasValue)
                 EyesPaletteDID = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
+        }
+
+        public virtual float GetBurdenMod()
+        {
+            return 1.0f;    // override for players
         }
 
         /// <summary>

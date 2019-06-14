@@ -867,6 +867,24 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns a modifier for a player's Run, Jump, Melee Defense, and Missile Defense skills if they are overburdened
+        /// </summary>
+        public override float GetBurdenMod()
+        {
+            var strength = Strength.Current;
+
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
+
+            var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
+
+            var burdenMod = EncumbranceSystem.GetBurdenMod(burden);
+
+            //Console.WriteLine($"Burden mod: {burdenMod}");
+
+            return burdenMod;
+        }
+
+        /// <summary>
         /// Method used to perform the animation, sound, and vital update on consumption of food or potions
         /// </summary>
         /// <param name="consumableName">Name of the consumable</param>
