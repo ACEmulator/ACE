@@ -58,21 +58,15 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsPledgable(targetGuid)) return;
 
+            var patron = PlayerManager.GetOnlinePlayer(targetGuid);
+
+            if (patron == null) return;
+
             if (!approved)
             {
-                var target = PlayerManager.GetOnlinePlayer(targetGuid);
-
-                if (target == null)
-                    return;
-
-                var confirm = new Confirmation_SwearAllegiance(target.Guid, Guid);
-                ConfirmationManager.AddConfirmation(confirm);
-
-                target.Session.Network.EnqueueSend(new GameEventConfirmationRequest(target.Session, ConfirmationType.SwearAllegiance, confirm.ConfirmationID, Name));
+                patron.ConfirmationManager.EnqueueSend(new Confirmation_SwearAllegiance(patron.Guid, Guid), Name);
                 return;
             }
-
-            var patron = PlayerManager.GetOnlinePlayer(targetGuid);
 
             log.Info($"{Name} swearing allegiance to {patron.Name}");
 

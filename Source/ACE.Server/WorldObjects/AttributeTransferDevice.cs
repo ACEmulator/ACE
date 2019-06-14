@@ -5,8 +5,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Managers;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -78,12 +76,7 @@ namespace ACE.Server.WorldObjects
 
             if (!confirmed)
             {
-                var confirm = new Confirmation_AlterAttribute(player.Guid, Guid);
-                ConfirmationManager.AddConfirmation(confirm);
-
-                player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.AlterAttribute, confirm.ConfirmationID,
-                    $"This action will transfer 10 points from your {fromAttr.Attribute} to your {toAttr.Attribute}."));
-
+                player.ConfirmationManager.EnqueueSend(new Confirmation_AlterAttribute(player.Guid, Guid), $"This action will transfer 10 points from your {fromAttr.Attribute} to your {toAttr.Attribute}.");
                 return;
             }
 

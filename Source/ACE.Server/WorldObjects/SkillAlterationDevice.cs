@@ -82,12 +82,7 @@ namespace ACE.Server.WorldObjects
             // confirmation dialog only for spec?
             if (!confirmed && TypeOfAlteration == SkillAlterationType.Specialize)
             {
-                var confirm = new Confirmation_AlterSkill(player.Guid, Guid);
-                ConfirmationManager.AddConfirmation(confirm);
-
-                var msg = $"This action will specialize your {skill.Skill.ToSentence()} skill and cost {skillBase.UpgradeCostFromTrainedToSpecialized} credits.";
-
-                player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.AlterSkill, confirm.ConfirmationID, msg));
+                player.ConfirmationManager.EnqueueSend(new Confirmation_AlterSkill(player.Guid, Guid), $"This action will specialize your {skill.Skill.ToSentence()} skill and cost {skillBase.UpgradeCostFromTrainedToSpecialized} credits.");
                 return;
             }
 

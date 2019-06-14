@@ -649,10 +649,7 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        var confirm = new Confirmation_YesNo(WorldObject.Guid, player.Guid, emote.Message);
-                        ConfirmationManager.AddConfirmation(confirm);
-
-                        player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Yes_No, confirm.ConfirmationID, emote.TestString));
+                        player.ConfirmationManager.EnqueueSend(new Confirmation_YesNo(WorldObject.Guid, player.Guid, emote.Message), emote.TestString);
                     }
                     break;
 

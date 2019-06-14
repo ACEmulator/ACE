@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -93,12 +91,7 @@ namespace ACE.Server.Entity
                     AddConfirmedMember(inviter, newMember, true);
                 }
                 else
-                {
-                    var confirm = new Confirmation_Fellowship(inviter.Guid, newMember.Guid);
-                    ConfirmationManager.AddConfirmation(confirm);
-
-                    newMember.Session.Network.EnqueueSend(new GameEventConfirmationRequest(newMember.Session, ConfirmationType.Fellowship, confirm.ConfirmationID, $"{inviter.Name}"));
-                }
+                    newMember.ConfirmationManager.EnqueueSend(new Confirmation_Fellowship(inviter.Guid, newMember.Guid), inviter.Name);
             }
         }
 

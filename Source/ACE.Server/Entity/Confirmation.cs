@@ -1,6 +1,3 @@
-using System;
-using System.Security.Cryptography;
-using System.Text;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
@@ -10,231 +7,159 @@ namespace ACE.Server.Entity
 {
     public abstract class Confirmation
     {
+        public ObjectGuid PlayerGuid;
+
         public ConfirmationType ConfirmationType;
 
-        public uint ConfirmationID;
-
-        public virtual void ProcessConfirmation(bool response) { }
-
-        protected uint GenerateContextId()
+        public Confirmation(ObjectGuid playerGuid, ConfirmationType confirmationType)
         {
-            // this seems to be a much smaller # in retail... the highest i saw was between ~400-500 in a brief search
-            // these #s also seem to always increase, not sure if these are just sequence #s in a particular context?
-            // sending a context id for a lower # might have the client reject the message...
+            PlayerGuid = playerGuid;
 
-            char[] chars = new char[] {'1','2','3','4','5','6','7','8','9','0' };
-            byte[] data = new byte[1];
-            RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider();
-            crypto.GetNonZeroBytes(data);
-            data = new byte[9];
-            crypto.GetNonZeroBytes(data);
-            StringBuilder sb = new StringBuilder(9);
-            foreach (byte b in data)
-            {
-                sb.Append(chars[b % (chars.Length)]);
-            }
-            return Convert.ToUInt32(sb.ToString());
+            ConfirmationType = confirmationType;
+        }
+
+        public virtual void ProcessConfirmation(bool response)
+        {
+            // empty base
+        }
+
+        public Player GetPlayerResponse(bool response)
+        {
+            return response ? PlayerManager.GetOnlinePlayer(PlayerGuid) : null;
         }
     }
 
     public class Confirmation_AlterAttribute: Confirmation
     {
-        public ObjectGuid PlayerGuid;
         public ObjectGuid AttributeTransferDevice;
 
         public Confirmation_AlterAttribute(ObjectGuid playerGuid, ObjectGuid attributeTransferDevice)
+            : base(playerGuid, ConfirmationType.AlterAttribute)
         {
-            ConfirmationType = ConfirmationType.AlterAttribute;
-
-            PlayerGuid = playerGuid;
             AttributeTransferDevice = attributeTransferDevice;
-
-            GenerateContextId();
         }
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = PlayerManager.GetOnlinePlayer(PlayerGuid);
-            if (player == null)
-                return;
-
-            player.CompleteConfirmation(ConfirmationType, ConfirmationID);
-
-            if (!response)
-                return;
+            var player = GetPlayerResponse(response);
+            if (player == null) return;
 
             var attributeTransferDevice = player.FindObject(AttributeTransferDevice.Full, Player.SearchLocations.MyInventory) as AttributeTransferDevice;
-            if (attributeTransferDevice == null)
-                return;
 
-            attributeTransferDevice.ActOnUse(player, true);
+            if (attributeTransferDevice != null)
+                attributeTransferDevice.ActOnUse(player, true);
         }
     }
 
     public class Confirmation_AlterSkill : Confirmation
     {
-        public ObjectGuid PlayerGuid;
         public ObjectGuid SkillAlterationDevice;
 
         public Confirmation_AlterSkill(ObjectGuid playerGuid, ObjectGuid skillAlterationDevice)
+            : base(playerGuid, ConfirmationType.AlterSkill)
         {
-            ConfirmationType = ConfirmationType.AlterSkill;
-
-            PlayerGuid = playerGuid;
             SkillAlterationDevice = skillAlterationDevice;
-
-            GenerateContextId();
         }
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = PlayerManager.GetOnlinePlayer(PlayerGuid);
-            if (player == null)
-                return;
-
-            player.CompleteConfirmation(ConfirmationType, ConfirmationID);
-
-            if (!response)
-                return;
+            var player = GetPlayerResponse(response);
+            if (player == null) return;
 
             var skillAlterationDevice = player.FindObject(SkillAlterationDevice.Full, Player.SearchLocations.MyInventory) as SkillAlterationDevice;
-            if (skillAlterationDevice == null)
-                return;
 
-            skillAlterationDevice.ActOnUse(player, true);
+            if (skillAlterationDevice != null)
+                skillAlterationDevice.ActOnUse(player, true);
         }
     }
 
     public class Confirmation_Augmentation: Confirmation
     {
-        public ObjectGuid PlayerGuid;
         public ObjectGuid AugmentationGuid;
 
         public Confirmation_Augmentation(ObjectGuid playerGuid, ObjectGuid augmentationGuid)
+            : base(playerGuid, ConfirmationType.Augmentation)
         {
-            ConfirmationType = ConfirmationType.Augmentation;
-
-            PlayerGuid = playerGuid;
             AugmentationGuid = augmentationGuid;
-
-            GenerateContextId();
         }
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = PlayerManager.GetOnlinePlayer(PlayerGuid);
-            if (player == null)
-                return;
-
-            player.CompleteConfirmation(ConfirmationType, ConfirmationID);
-
-            if (!response)
-                return;
+            var player = GetPlayerResponse(response);
+            if (player == null) return;
 
             var augmentation = player.FindObject(AugmentationGuid.Full, Player.SearchLocations.MyInventory) as AugmentationDevice;
-            if (augmentation == null)
-                return;
 
-            augmentation.DoAugmentation(player);
+            if (augmentation != null)
+                augmentation.ActOnUse(player, true);
         }
     }
 
     public class Confirmation_CraftInteration: Confirmation
     {
-        public ObjectGuid PlayerGuid;
-
         public ObjectGuid SourceGuid;
         public ObjectGuid TargetGuid;
 
         public Confirmation_CraftInteration(ObjectGuid playerGuid, ObjectGuid sourceGuid, ObjectGuid targetGuid)
+            : base (playerGuid, ConfirmationType.CraftInteraction)
         {
-            ConfirmationType = ConfirmationType.CraftInteraction;
-
-            PlayerGuid = playerGuid;
-
             SourceGuid = sourceGuid;
             TargetGuid = targetGuid;
-
-            GenerateContextId();
         }
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = PlayerManager.GetOnlinePlayer(PlayerGuid);
-            if (player == null)
-                return;
-
-            player.CompleteConfirmation(ConfirmationType, ConfirmationID);
-
-            if (!response)
-                return;
+            var player = GetPlayerResponse(response);
+            if (player == null) return;
 
             var source = player.FindObject(SourceGuid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
             var target = player.FindObject(TargetGuid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
 
-            if (source == null || target == null)
-                return;
-
-            RecipeManager.HandleTinkering(player, source, target, true);
+            if (source != null && target != null)
+                RecipeManager.HandleTinkering(player, source, target, true);
         }
     }
 
     public class Confirmation_Fellowship : Confirmation
     {
         public ObjectGuid InviterGuid;
-        public ObjectGuid InvitedGuid;
 
         public Confirmation_Fellowship(ObjectGuid inviterGuid, ObjectGuid invitedGuid)
+            : base(invitedGuid, ConfirmationType.Fellowship)
         {
-            ConfirmationType = ConfirmationType.Fellowship;
-
             InviterGuid = inviterGuid;
-            InvitedGuid = invitedGuid;
-
-            GenerateContextId();
         }
 
         public override void ProcessConfirmation(bool response)
         {
+            var invited = GetPlayerResponse(response);
+            if (invited == null) return;
+
             var inviter = PlayerManager.GetOnlinePlayer(InviterGuid);
-            var invited = PlayerManager.GetOnlinePlayer(InvitedGuid);
 
-            if (inviter == null)
-                return;
-
-            inviter.CompleteConfirmation(ConfirmationType, ConfirmationID);
-
-            if (response && inviter.Fellowship != null)
+            if (inviter != null && inviter.Fellowship != null)
                 inviter.Fellowship.AddConfirmedMember(inviter, invited, response);
         }
     }
 
     public class Confirmation_SwearAllegiance : Confirmation
     {
-        public ObjectGuid PatronGuid;
         public ObjectGuid VassalGuid;
 
         public Confirmation_SwearAllegiance(ObjectGuid patronGuid, ObjectGuid vassalGuid)
+            : base(patronGuid, ConfirmationType.SwearAllegiance)
         {
-            ConfirmationType = ConfirmationType.SwearAllegiance;
-
-            PatronGuid = patronGuid;
             VassalGuid = vassalGuid;
-
-            GenerateContextId();
         }
 
         public override void ProcessConfirmation(bool response)
         {
-            var patron = PlayerManager.GetOnlinePlayer(PatronGuid);
+            var patron = GetPlayerResponse(response);
+            if (patron == null) return;
+
             var vassal = PlayerManager.GetOnlinePlayer(VassalGuid);
 
-            if (patron == null)
-                return;
-
-            patron.CompleteConfirmation(ConfirmationType, ConfirmationID);
-
-            if (response && vassal != null)
+            if (vassal != null)
                 vassal.HandleActionSwearAllegiance(patron.Guid.Full, true);
         }
     }
@@ -242,36 +167,25 @@ namespace ACE.Server.Entity
     public class Confirmation_YesNo: Confirmation
     {
         public ObjectGuid SourceGuid;
-        public ObjectGuid TargetPlayerGuid;
 
         public string Quest;
 
         public Confirmation_YesNo(ObjectGuid sourceGuid, ObjectGuid targetPlayerGuid, string quest)
+            : base(targetPlayerGuid, ConfirmationType.Yes_No)
         {
-            ConfirmationType = ConfirmationType.Yes_No;
-
             SourceGuid = sourceGuid;
-            TargetPlayerGuid = targetPlayerGuid;
-
             Quest = quest;
-
-            GenerateContextId();
         }
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = PlayerManager.GetOnlinePlayer(TargetPlayerGuid);
-
-            if (player == null)
-                return;
-
-            player.CompleteConfirmation(ConfirmationType, ConfirmationID);
+            var player = PlayerManager.GetOnlinePlayer(PlayerGuid);
+            if (player == null) return;
 
             var source = player.FindObject(SourceGuid.Full, Player.SearchLocations.Landblock);
-            if (source == null)
-                return;
 
-            source.EmoteManager.ExecuteEmoteSet(response ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, Quest, player);
+            if (source != null)
+                source.EmoteManager.ExecuteEmoteSet(response ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, Quest, player);
         }
     }
 }
