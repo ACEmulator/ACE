@@ -412,6 +412,7 @@ namespace ACE.Server.Entity
             if (BaseDamageMod != null)
                 info += $"BaseDamageRange: {BaseDamageMod.Range}\n";
 
+
             info += $"BaseDamage: {BaseDamage}\n";
 
             // damage modifiers
@@ -423,6 +424,7 @@ namespace ACE.Server.Entity
             {
                 info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
                 info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
+                info += $"BloodDrinker/ThirstTotal: {BaseDamageMod.DamageBonus}\n";
             }
 
             // damage ratings
