@@ -54,15 +54,29 @@ namespace ACE.Server.WorldObjects
         /// Called when a player tries to Swear Allegiance to a target
         /// </summary>
         /// <param name="targetGuid">The target this player is attempting to swear allegiance to</param>
-        public void HandleActionSwearAllegiance(uint targetGuid, bool approved = false)
+        public void HandleActionSwearAllegiance(uint targetGuid)
         {
-            if (!IsPledgable(targetGuid)) return;
-
             var patron = PlayerManager.GetOnlinePlayer(targetGuid);
 
             if (patron == null) return;
 
-            if (!approved)
+            if (!IsPledgable(patron)) return;
+
+            // perform moveto / turnto
+            CreateMoveToChain(patron, (success) => SwearAllegiance(patron.Guid.Full, success), Allegiance_MaxSwearDistance);
+        }
+
+        public void SwearAllegiance(uint targetGuid, bool success, bool confirmed = false)
+        {
+            if (!success) return;
+
+            var patron = PlayerManager.GetOnlinePlayer(targetGuid);
+            if (patron == null)
+                return;
+
+            if (!IsPledgable(patron)) return;
+
+            if (!confirmed)
             {
                 patron.ConfirmationManager.EnqueueSend(new Confirmation_SwearAllegiance(patron.Guid, Guid), Name);
                 return;
@@ -104,7 +118,6 @@ namespace ACE.Server.WorldObjects
 
             UpdateChatChannels();
         }
-
 
         /// <summary>
         /// Handle monarch swearing into another allegiance
@@ -204,23 +217,16 @@ namespace ACE.Server.WorldObjects
             UpdateChatChannels();
         }
 
-        public static float Allegiance_MaxSwearDistance = 4.0f;
+        //public static float Allegiance_MaxSwearDistance = 4.0f;
+        public static float Allegiance_MaxSwearDistance = 2.0f;
 
         /// <summary>
         /// Returns TRUE if this player can swear to the target guid
         /// </summary>
-        public bool IsPledgable(uint targetGuid)
+        public bool IsPledgable(Player target)
         {
             // the client doesn't seem to display most of these werrors,
             // so we also send similar messages as text
-
-            // ensure target player is online, and within range
-            var target = PlayerManager.GetOnlinePlayer(targetGuid);
-            if (target == null)
-            {
-                //Console.WriteLine(Name + " tried to swear to an unknown player guid: " + targetGuid.Full.ToString("X8"));
-                return false;
-            }
 
             // check ignore allegiance requests
             if (target.GetCharacterOption(CharacterOption.IgnoreAllegianceRequests))
@@ -240,7 +246,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // player can't swear to themselves
-            if (targetGuid == Guid.Full)
+            if (target.Guid == Guid)
             {
                 //Console.WriteLine(Name + " tried to swear to themselves");
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear allegiance to yourself.", ChatMessageType.Broadcast));
@@ -253,21 +259,6 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine(Name + " tried to swear to a lower level character");
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear to a lower level character.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.AllegianceIllegalLevel));
-                return false;
-            }
-
-            // verify max distance
-            if (GetCylinderDistance(target) > Allegiance_MaxSwearDistance)
-            {
-                CreateMoveToChain(target, (success) =>
-                {
-                    if (success)
-                        HandleActionSwearAllegiance(target.Guid.Full);
-                    else
-                        Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.AllegianceMaxDistanceExceeded));
-
-                }, Allegiance_MaxSwearDistance);
-                
                 return false;
             }
 

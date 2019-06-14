@@ -160,7 +160,7 @@ namespace ACE.Server.Entity
             var vassal = PlayerManager.GetOnlinePlayer(VassalGuid);
 
             if (vassal != null)
-                vassal.HandleActionSwearAllegiance(patron.Guid.Full, true);
+                vassal.SwearAllegiance(patron.Guid.Full, true, true);
         }
     }
 
