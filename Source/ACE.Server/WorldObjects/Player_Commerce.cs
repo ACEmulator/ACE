@@ -352,6 +352,14 @@ namespace ACE.Server.WorldObjects
 
             var payoutCoinAmount = vendor.CalculatePayoutCoinAmount(sellList);
 
+            if (payoutCoinAmount < 0)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Illegal transaction: Payout exceeded Int32.MaxValue"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
+                SendUseDoneEvent();
+                return;
+            }
+
             var numberOfCoinStacksToCreate = PreCreateItem(coinStackWeenieClassId, payoutCoinAmount, out var encumburanceOfCoinStacksToCreate, out _);
 
             if (!CanAddToInventory(0, numberOfCoinStacksToCreate, encumburanceOfCoinStacksToCreate))
