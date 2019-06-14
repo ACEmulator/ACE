@@ -176,7 +176,7 @@ namespace ACE.Server.Managers
                     if (target.WeenieType != WeenieType.MeleeWeapon && target.WeenieType != WeenieType.MissileLauncher || target.Workmanship == null)
                         return null;
 
-                    // use mahogany recipe as base
+                    // use oak recipe as base
                     recipe = DatabaseManager.World.GetRecipe(3857);
                     break;
 
@@ -187,7 +187,7 @@ namespace ACE.Server.Managers
                     if (target.WeenieType != WeenieType.Caster || target.Workmanship == null)
                         return null;
 
-                    // use mahogany recipe as base
+                    // use opal recipe as base
                     recipe = DatabaseManager.World.GetRecipe(3979);
                     break;
 
@@ -198,7 +198,7 @@ namespace ACE.Server.Managers
                     if (target.WeenieType != WeenieType.Caster || target.Workmanship == null)
                         return null;
 
-                    // use mahogany recipe as base
+                    // use green garnet recipe as base
                     recipe = DatabaseManager.World.GetRecipe(5202);
                     break;
 
@@ -208,7 +208,7 @@ namespace ACE.Server.Managers
                     // ensure item has workmanship
                     if (target.Workmanship == null) return null;
 
-                    // use mahogany recipe as base
+                    // use brass recipe as base
                     recipe = DatabaseManager.World.GetRecipe(3848);
                     break;
 
