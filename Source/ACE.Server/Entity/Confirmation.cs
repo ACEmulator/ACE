@@ -132,12 +132,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
-            var invited = GetPlayerResponse(response);
-            if (invited == null) return;
-
+            var invited = PlayerManager.GetOnlinePlayer(PlayerGuid);
             var inviter = PlayerManager.GetOnlinePlayer(InviterGuid);
 
-            if (inviter != null && inviter.Fellowship != null)
+            if (invited != null && inviter != null && inviter.Fellowship != null)
                 inviter.Fellowship.AddConfirmedMember(inviter, invited, response);
         }
     }
