@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
             {
                 var chestResetInterval = ResetInterval ?? Default_ChestResetInterval;
 
-                if (chestResetInterval == 0)
+                if (chestResetInterval < 15)
                     chestResetInterval = Default_ChestResetInterval;
 
                 return chestResetInterval;
@@ -44,12 +44,6 @@ namespace ACE.Server.WorldObjects
         }
 
         public double Default_ChestResetInterval = 120;
-
-        public bool ResetMessagePending
-        {
-            get => GetProperty(PropertyBool.ResetMessagePending) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.ResetMessagePending); else SetProperty(PropertyBool.ResetMessagePending, value); }
-        }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

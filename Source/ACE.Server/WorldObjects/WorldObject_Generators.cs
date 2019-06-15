@@ -133,43 +133,44 @@ namespace ACE.Server.WorldObjects
 
                     if (rng < probability || probability == -1)
                     {
-                        if (!profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
-                        {
-                            if (profile.Biota.WeenieClassId > 0)
-                            {
-                                //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId}");
-                                var profileSpawn = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(profile.Biota.WeenieClassId), new ACE.Entity.ObjectGuid(0));
-                                if (profileSpawn != null)
-                                {
-                                    //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profileSpawn.Name: {profileSpawn.Name} | profileSpawn.IsGenerator: {profileSpawn.IsGenerator}");
-                                    if (profileSpawn.IsGenerator && !(profileSpawn.WeenieType == WeenieType.Container || profileSpawn.WeenieType == WeenieType.Chest) && probability != -1 && profileSpawn.InitCreate > 1)
-                                    {
-                                        if (!campSpawned)
-                                        {
-                                            profile.Enqueue(1);
-                                            CurrentCreate = MaxCreate;
-                                            campSpawned = true;
-                                            //return;
-                                        }
-                                        else
-                                            continue;
-                                    }
-                                    else
-                                    {
-                                        //var numObjects = GetMaxObjects(profile);
-                                        var numObjects = GetRNGInitToMaxObjects(profile);
-                                        profile.Enqueue(numObjects);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profile.RegenLocationType = {profile.RegenLocationType.ToString()}");
-                            //var numObjects = GetInitObjects(profile);
-                            var numObjects = GetRNGInitToMaxObjects(profile);
-                            profile.Enqueue(numObjects);
-                        }
+                        //if (!profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
+                        //{
+                        //    if (profile.Biota.WeenieClassId > 0)
+                        //    {
+                        //        //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId}");
+                        //        var profileSpawn = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(profile.Biota.WeenieClassId), new ACE.Entity.ObjectGuid(0));
+                        //        if (profileSpawn != null)
+                        //        {
+                        //            //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profileSpawn.Name: {profileSpawn.Name} | profileSpawn.IsGenerator: {profileSpawn.IsGenerator}");
+                        //            if (profileSpawn.IsGenerator && !(profileSpawn.WeenieType == WeenieType.Container || profileSpawn.WeenieType == WeenieType.Chest) && probability != -1 && profileSpawn.InitCreate > 1)
+                        //            {
+                        //                if (!campSpawned)
+                        //                {
+                        //                    profile.Enqueue(1);
+                        //                    CurrentCreate = MaxCreate;
+                        //                    campSpawned = true;
+                        //                    //return;
+                        //                }
+                        //                else
+                        //                    continue;
+                        //            }
+                        //            else
+                        //            {
+                        //                //var numObjects = GetMaxObjects(profile);
+                        //                var numObjects = GetRNGInitToMaxObjects(profile);
+                        //                profile.Enqueue(numObjects);
+                        //            }
+                        //        }
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profile.RegenLocationType = {profile.RegenLocationType.ToString()}");
+                        //    //var numObjects = GetInitObjects(profile);
+                              //var numObjects = GetRNGInitToMaxObjects(profile);
+                        var numObjects = GetInitObjects(profile);
+                        profile.Enqueue(numObjects);
+                        //}
 
                         //var rng_str = probability == -1 ? "" : "RNG ";
                         //History.Add($"[{DateTime.UtcNow}] - SelectProfilesInit() - {rng_str}selected slot {i} to spawn, adding {numObjects} objects ({profile.CurrentCreate}/{profile.MaxCreate})");
@@ -331,11 +332,35 @@ namespace ACE.Server.WorldObjects
         {
             // get the number of objects to spawn for this profile
             // usually profile.InitCreate, not to exceed generator.InitCreate
-            var numObjects = profile.Biota.InitCreate;
+            //var numObjects = profile.Biota.InitCreate;
+            var initCreate = profile.Biota.InitCreate;
+            var maxCreate = profile.Biota.MaxCreate;
+            var numObjects = 0;
+            bool fillToInit = false;
+            bool fillToMax = false;
+
+            if (initCreate == -1 || maxCreate == -1)
+            {
+                if (initCreate == -1)
+                    fillToInit = true;
+
+                if (maxCreate == -1)
+                    fillToMax = true;
+            }
+
+            if (fillToInit)
+                numObjects = InitCreate;
+            else if (fillToMax)
+                numObjects = MaxCreate;
+            else
+                numObjects = initCreate;
+
             var leftObjects = InitCreate - CurrentCreate;
 
-            if (numObjects > leftObjects && InitCreate != 0)
-                numObjects = leftObjects;
+            //Console.WriteLine($"0x{Guid.ToString()} {Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.InitCreate = {profile.Biota.InitCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | InitCreate: {InitCreate} | MaxCreate: {MaxCreate} | initCreate: {initCreate} | maxCreate: {maxCreate} | fillToInit: {fillToInit} | fillToMax: {fillToMax} | leftObjects = {leftObjects} | numObjects: {numObjects}");
+
+            if (numObjects > leftObjects && InitCreate != 0 && !fillToInit && !fillToMax)
+                return leftObjects;
 
             return numObjects;
         }
@@ -745,8 +770,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Generator_Regeneration()
         {
-            if (Name.Contains("Billy Bad-ass"))
-            Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval})");
+            //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval})");
 
             //foreach (var profile in GeneratorProfiles)
             //    profile.Maintenance_HeartBeat();
