@@ -372,32 +372,48 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            var totalItemsToBuy = 0;
-            var totalContainersToBuy = 0;
-            var totalEncumburanceOfItemsToBuy = 0;
+            var playerFreeInventorySlots = player.GetFreeInventorySlots();
+            var playerFreeContainerSlots = player.GetFreeContainerSlots();
+            var playerAvailableBurden = player.GetAvailableBurden();
+
+            var playerOutOfInventorySlots = false;
+            var playerOutOfContainerSlots = false;
+            var playerExceedsAvailableBurden = false;
 
             foreach (ItemProfile item in filteredlist)
             {
-                var itemAmount = player.PreCreateItem(item.WeenieClassId, (int)item.Amount, out var itemEncumberance, out bool itemIsContainer);
+                var itemAmount = player.PreCheckItem(item.WeenieClassId, (int)item.Amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemIsContainer);
 
                 if (itemIsContainer)
                 {
-                    totalContainersToBuy += itemAmount;
-                    totalEncumburanceOfItemsToBuy += itemEncumberance;
+                    playerFreeContainerSlots -= itemAmount;
+                    playerAvailableBurden -= itemEncumberance;
+
+                    playerOutOfContainerSlots = playerFreeContainerSlots < 0;
                 }
                 else
                 {
-                    totalItemsToBuy += itemAmount;
-                    totalEncumburanceOfItemsToBuy += itemEncumberance;
-                }
+                    playerFreeInventorySlots -= itemAmount;
+                    playerAvailableBurden -= itemEncumberance;
 
-                if (!player.CanAddToInventory(totalContainersToBuy, totalItemsToBuy, totalEncumburanceOfItemsToBuy))
+                    playerOutOfInventorySlots = playerFreeInventorySlots < 0;
+                }
+                               
+                playerExceedsAvailableBurden = playerAvailableBurden < 0;
+
+                if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
                     break;
             }
 
-            if (!player.CanAddToInventory(totalContainersToBuy, totalItemsToBuy, totalEncumburanceOfItemsToBuy))
+            if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
             {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to buy that!"));
+                if (playerExceedsAvailableBurden)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to buy that!"));
+                else if (playerOutOfInventorySlots)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to buy that!"));
+                else //if (playerOutOfContainerSlots)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to buy that!"));
+
                 player.Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(player.Session, player.Guid.Full));
 
                 if (uqlist.Count > 0)

@@ -57,6 +57,11 @@ namespace ACE.Server.WorldObjects
             return (EncumbranceVal + totalEncumbranceToCheck <= (GetEncumbranceCapacity() * 3));
         }
 
+        public int GetAvailableBurden()
+        {
+            return (GetEncumbranceCapacity() * 3) - EncumbranceVal ?? 0;
+        }
+
         public bool HasEnoughBurdenToAddToInventory(List<WorldObject> worldObjects)
         {
             var burdenTotal = 0;

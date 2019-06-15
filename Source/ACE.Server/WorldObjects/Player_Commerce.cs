@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -8,6 +9,8 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Spell = ACE.Server.Entity.Spell;
 
 namespace ACE.Server.WorldObjects
 {
@@ -101,6 +104,60 @@ namespace ACE.Server.WorldObjects
                     }
 
                     if (!CanAddToInventory(isContainer ? 1 : 0, itemStacks, requiredEncumbrance))
+                        break;
+                }
+            }
+
+            return itemStacks;
+        }
+
+        public int PreCheckItem(uint weenieClassId, int amount, int playerFreeContainerSlots, int playerFreeInventorySlots, int playerFreeAvailableBurden, out int requiredEncumbrance, out bool isContainer)
+        {
+            var itemStacks = 0;
+            requiredEncumbrance = 0;
+            isContainer = false;
+
+            var item = DatabaseManager.World.GetCachedWeenie(weenieClassId);
+
+            if (item != null)
+            {
+                var isVendorService = item.GetProperty(PropertyBool.VendorService) ?? false;
+                if (isVendorService)
+                    return 0;
+
+                var weenieType = (WeenieType)item.Type;
+
+                isContainer = item.GetProperty(PropertyBool.RequiresBackpackSlot) ?? false || weenieType == WeenieType.Container;
+
+                var isStackable = weenieType == WeenieType.Stackable || weenieType == WeenieType.Food || weenieType == WeenieType.Coin || weenieType == WeenieType.CraftTool
+                    || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
+
+                var itemStackUnitEncumbrance = isStackable ? (item.GetProperty(PropertyInt.StackUnitEncumbrance).HasValue ? item.GetProperty(PropertyInt.StackUnitEncumbrance) ?? 0 : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0) : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0;
+                var itemStackMaxStackSize = isStackable ? item.GetProperty(PropertyInt.MaxStackSize) ?? 1 : 1;
+
+                if (!isStackable)
+                {
+                    requiredEncumbrance = itemStackUnitEncumbrance;
+                    return amount;
+                }
+
+                while (amount > 0)
+                {
+                    // amount contains a max stack
+                    if (itemStackMaxStackSize <= amount)
+                    {
+                        itemStacks++;
+                        requiredEncumbrance += itemStackUnitEncumbrance * itemStackMaxStackSize;
+                        amount -= itemStackMaxStackSize;
+                    }
+                    else // not a full stack
+                    {
+                        itemStacks++;
+                        requiredEncumbrance += itemStackUnitEncumbrance * amount;
+                        amount -= amount;
+                    }
+
+                    if (itemStacks > playerFreeInventorySlots || requiredEncumbrance > playerFreeAvailableBurden)
                         break;
                 }
             }
