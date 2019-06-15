@@ -60,57 +60,6 @@ namespace ACE.Server.WorldObjects
             return coinStacks;
         }
 
-        public int PreCreateItem(uint weenieClassId, int amount, out int requiredEncumbrance, out bool isContainer)
-        {
-            var itemStacks = 0;
-            requiredEncumbrance = 0;
-            isContainer = false;
-
-            var item = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(weenieClassId), new ACE.Entity.ObjectGuid(0));
-
-            if (item != null)
-            {
-                var isVendorService = item.GetProperty(PropertyBool.VendorService) ?? false;
-                if (isVendorService)
-                    return 0;
-
-                var itemStackUnitEncumbrance = item.StackUnitEncumbrance.HasValue ? item.StackUnitEncumbrance ?? 0 : item.EncumbranceVal ?? 0;
-                var itemStackMaxStackSize = item.MaxStackSize ?? 1;
-
-                isContainer = item.UseBackpackSlot;
-
-                var isStackable = item is Stackable;
-
-                if (!isStackable)
-                {
-                    requiredEncumbrance = itemStackUnitEncumbrance;
-                    return amount;
-                }
-
-                while (amount > 0)
-                {
-                    // amount contains a max stack
-                    if (itemStackMaxStackSize <= amount)
-                    {
-                        itemStacks++;
-                        requiredEncumbrance += itemStackUnitEncumbrance * itemStackMaxStackSize;
-                        amount -= itemStackMaxStackSize;
-                    }
-                    else // not a full stack
-                    {
-                        itemStacks++;
-                        requiredEncumbrance += itemStackUnitEncumbrance * amount;
-                        amount -= amount;
-                    }
-
-                    if (!CanAddToInventory(isContainer ? 1 : 0, itemStacks, requiredEncumbrance))
-                        break;
-                }
-            }
-
-            return itemStacks;
-        }
-
         public int PreCheckItem(uint weenieClassId, int amount, int playerFreeContainerSlots, int playerFreeInventorySlots, int playerFreeAvailableBurden, out int requiredEncumbrance, out bool isContainer)
         {
             var itemStacks = 0;
@@ -418,11 +367,20 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var numberOfCoinStacksToCreate = PreCreateItem(coinStackWeenieClassId, payoutCoinAmount, out var encumburanceOfCoinStacksToCreate, out _);
+            var playerFreeInventorySlots = GetFreeInventorySlots();
+            var playerAvailableBurden = GetAvailableBurden();
 
-            if (!CanAddToInventory(0, numberOfCoinStacksToCreate, encumburanceOfCoinStacksToCreate))
+            var numberOfCoinStacksToCreate = PreCheckItem(coinStackWeenieClassId, payoutCoinAmount, 0, GetFreeInventorySlots(), GetAvailableBurden(), out var totalEncumburanceOfCoinStacks, out _);
+
+            var playerDoesNotHaveEnoughPackSpace = playerFreeInventorySlots < numberOfCoinStacksToCreate;
+            var playerDoesNotHaveEnoughBurdenCapacity = playerAvailableBurden < totalEncumburanceOfCoinStacks;
+
+            if (playerDoesNotHaveEnoughPackSpace || playerDoesNotHaveEnoughBurdenCapacity)
             {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to sell that!"));
+                if (playerDoesNotHaveEnoughBurdenCapacity)
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to sell that!"));
+                else // if (playerDoesNotHaveEnoughPackSpace)
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You do not have enough free pack space to sell that!"));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
                 SendUseDoneEvent();
                 return;
