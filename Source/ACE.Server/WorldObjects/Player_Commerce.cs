@@ -354,7 +354,8 @@ namespace ACE.Server.WorldObjects
 
             if (payoutCoinAmount < 0)
             {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Illegal transaction: Payout exceeded Int32.MaxValue"));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Transaction failed."));
+                log.Warn($"{Name} (0x({Guid}) tried to sell something to {vendor.Name} (0x{vendor.Guid}) resulting in a payout of {payoutCoinAmount} pyreals.");
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
                 SendUseDoneEvent();
                 return;
