@@ -69,11 +69,13 @@ namespace ACE.Server.Network.Structure
                 characterID = player.Guid.Full;
                 cpCached = (uint)player.AllegianceXPCached;
                 cpTithed = (uint)player.AllegianceXPGenerated;
-                if (playerIsOnline) bitfield |= AllegianceIndex.LoggedIn;
-                // TODO: We need further checks here to determine if the character can pass up experience
-                // If the character has sworn to a patron of lower level, we can't pass up experience until
-                // our patron has become >= to that characters level. Use EXISTED_BEFORE_ALLEGIANCE_XP_CHANGES_BOOL?
-                if (!node.IsMonarch) bitfield |= AllegianceIndex.MayPassupExperience;
+
+                if (playerIsOnline)
+                    bitfield |= AllegianceIndex.LoggedIn;
+
+                if (!node.IsMonarch && node.Player.ExistedBeforeAllegianceXpChanges)
+                    bitfield |= AllegianceIndex.MayPassupExperience;
+
                 gender = (Gender)player.Gender;
                 hg = (HeritageGroup)player.Heritage;
                 rank = (ushort)node.Rank;

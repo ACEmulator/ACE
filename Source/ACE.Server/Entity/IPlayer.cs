@@ -68,6 +68,8 @@ namespace ACE.Server.Entity
 
         int? AllegianceOfficerRank { get; set; }
 
+        bool ExistedBeforeAllegianceXpChanges { get; set; }
+
         uint? HouseId { get; set; }
 
         uint? HouseInstance { get; set; }
