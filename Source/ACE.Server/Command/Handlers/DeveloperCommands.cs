@@ -2217,6 +2217,45 @@ namespace ACE.Server.Command.Handlers
                     msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count}\n";
                     msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
                     msg += $"CurrentCreate: {wo.CurrentCreate}\n";
+
+                    foreach (var activeProfile in wo.GeneratorActiveProfiles)
+                    {
+                        var profile = wo.GeneratorProfiles[activeProfile];
+
+                        msg += $"Active GeneratorProfile id: {activeProfile}\n";
+
+                        msg += $"Probability: {profile.Biota.Probability} | WCID: {profile.Biota.WeenieClassId} | Delay: {profile.Biota.Delay} | Init: {profile.Biota.InitCreate} | Max: {profile.Biota.MaxCreate}\n";
+                        msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
+                        msg += $"StackSize: {profile.Biota.StackSize} | PaletteId: {profile.Biota.PaletteId} | Shade: {profile.Biota.Shade}\n";
+                        msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
+
+                        if (profile.Spawned.Count > 0)
+                        {
+                            msg += "Spawned Objects:\n";
+                            foreach (var spawn in profile.Spawned.Values)
+                            {
+                                msg += $"0x{spawn.Guid}: {spawn.Name} - {spawn.WeenieClassId} - {spawn.WeenieType}\n";
+                            }
+                        }
+
+                        if (profile.Spawned.Count > 0)
+                        {
+                            msg += "Pending Spawn Times:\n";
+                            foreach (var spawn in profile.SpawnQueue)
+                            {
+                                msg += $"{spawn.ToLocalTime()}\n";
+                            }
+                        }
+
+                        if (profile.RemoveQueue.Count > 0)
+                        {
+                            msg += "Pending Removed Objects:\n";
+                            foreach (var spawn in profile.RemoveQueue)
+                            {
+                                msg += $"0x{spawn.objectGuid:X8} removed at {spawn.time.ToLocalTime()}\n";
+                            }
+                        }
+                    }
                 }
                 else
                     msg = $"{wo.Name} (0x{wo.Guid.ToString()}) is not a generator.";
