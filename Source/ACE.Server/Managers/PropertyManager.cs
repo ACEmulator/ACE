@@ -443,6 +443,7 @@ namespace ACE.Server.Managers
                 ("assess_creature_mod", false),     // (non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed.
                 ("iou_trades", false),              // (non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on.
                 ("chess_enabled", true),
+                ("corpse_decay_tick_logging", false), // log decaying player corpse ticks.
                 ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
                 ("gateway_ties_summonable", true),        // if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail
                 ("house_purchase_requirements", true),
