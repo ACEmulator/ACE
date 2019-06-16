@@ -126,20 +126,19 @@ namespace ACE.Server.WorldObjects
                 if (player.Vitals.TryGetValue(maxVital, out var vital))
                 {
                     var boostAmount = Boost ?? 0;
-                    var absBoost = (uint)Math.Abs(boostAmount);
 
-                    var vitalChange = player.UpdateVitalDelta(vital, boostAmount);
+                    var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, boostAmount));
 
                     if (BoostEnum == PropertyAttribute2nd.Health)
                     {
                         if (boostAmount >= 0)
-                            player.DamageHistory.OnHeal((uint)boostAmount);
+                            player.DamageHistory.OnHeal(vitalChange);
                         else
-                            player.DamageHistory.Add(this, DamageType.Health, absBoost);
+                            player.DamageHistory.Add(this, DamageType.Health, vitalChange);
                     }
 
                     var verb = boostAmount >= 0 ? "restores" : "takes";
-                    buffMessage = new GameMessageSystemChat($"The {Name} {verb} {absBoost} points of your {BoostEnum}.", ChatMessageType.Broadcast);
+                    buffMessage = new GameMessageSystemChat($"The {Name} {verb} {vitalChange} points of your {BoostEnum}.", ChatMessageType.Broadcast);
                 }
                 else
                 {
