@@ -356,6 +356,8 @@ namespace ACE.Server.Managers
                             var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
                             if (!(WorldObject.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
                                 player.Session.Network.EnqueueSend(msg, sound);
+                            else
+                                player.Session.Network.EnqueueSend(sound);
 
                             if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                 player.RushNextPlayerSave(5);
