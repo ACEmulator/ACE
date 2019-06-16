@@ -9,6 +9,7 @@ using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.World;
+using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -25,7 +26,9 @@ using ACE.Server.Physics.Entity;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
+
 using Position = ACE.Entity.Position;
+using Spell = ACE.Server.Entity.Spell;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -698,7 +701,7 @@ namespace ACE.Server.Command.Handlers
             {
                 string parsePositionString = parameters[0].Length > 3 ? parameters[0].Substring(0, 3) : parameters[0];
 
-                if (Enum.TryParse(parsePositionString, out PositionType positionType))
+                if (Enum.TryParse(parsePositionString, true, out PositionType positionType))
                 {
                     if (session.Player.TeleToPosition(positionType))
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location}", ChatMessageType.Broadcast));
@@ -738,7 +741,7 @@ namespace ACE.Server.Command.Handlers
                 // The enum labels max character length has been observered as length 19
                 // int value can be: 0-27
 
-                if (Enum.TryParse(parsePositionString, out PositionType positionType))
+                if (Enum.TryParse(parsePositionString, true, out PositionType positionType))
                 {
                     if (positionType != PositionType.Undef)
                     {
@@ -1574,7 +1577,7 @@ namespace ACE.Server.Command.Handlers
 
             }
 
-            if (!Enum.TryParse(pType, propName, out var result))
+            if (!Enum.TryParse(pType, propName, true, out var result))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
                 return;
@@ -1645,7 +1648,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (!Enum.TryParse(pType, propName, out var result))
+            if (!Enum.TryParse(pType, propName, true, out var result))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
                 return;
@@ -2135,6 +2138,33 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat("You can no longer cast spells without components.", ChatMessageType.Broadcast));
                     break;
             }
+        }
+        /// <summary>
+        /// This is to add spells to items (whether loot or quest generated).  For making weapons to check damage from pcaps or other sources
+        /// </summary>
+        [CommandHandler("additemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "/additemspell <spell id> - adds a spell to the last appraised item. Ex /additemspell 6089 - adds Legendary Bloodthirst")]
+        public static void HandleAddItemSpell (Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            // Convert to Uint and see if its a number
+            if (!int.TryParse(parameters[0], out var spellId))
+                return;
+
+            //Check to see if Spell ID is valid spell
+            var spell = new Spell(spellId, true);
+            if (spell.NotFound == true)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("SpellID is not found", ChatMessageType.Broadcast));
+                return;
+            }
+            obj.Biota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
+
+            var msg = spellAdded ? "added to" : "already on";
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
+
+
         }
     }
 }

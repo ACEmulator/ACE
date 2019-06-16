@@ -263,6 +263,9 @@ namespace ACE.Server.WorldObjects
                 if (Fellowship != null)
                     Fellowship.OnFellowLevelUp(this);
 
+                if (AllegianceNode != null)
+                    AllegianceNode.OnLevelUp();
+
                 Session.Network.EnqueueSend(levelUp);
 
                 SetMaxVitals();
