@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject activator)
         {
-            if (!(activator is Player player))
+            if (!(activator is Player player) || player.Teleporting)
                 return;
 
             if (UseCreateContractId != null)
