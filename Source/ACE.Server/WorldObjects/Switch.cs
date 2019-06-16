@@ -52,7 +52,15 @@ namespace ACE.Server.WorldObjects
                 EnqueueMotion(actionChain, useAnimation);
             }
 
-            actionChain.AddAction(this, () => base.OnActivate(activator));
+            actionChain.AddAction(this, () =>
+            {
+                var target = ActivationTarget != 0 ? CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget)) : this;
+
+                if (target is Door)
+                    base.OnActivate(this);
+                else
+                    base.OnActivate(activator);
+            });
 
             actionChain.EnqueueChain();
         }

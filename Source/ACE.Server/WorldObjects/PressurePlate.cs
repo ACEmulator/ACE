@@ -70,7 +70,12 @@ namespace ACE.Server.WorldObjects
 
             player.EnqueueBroadcast(new GameMessageSound(player.Guid, (Sound)UseSound));
 
-            base.OnActivate(activator);
+            var target = ActivationTarget != 0 ? CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget)) : this;
+            
+            if (target is Door)
+                base.OnActivate(this);
+            else
+                base.OnActivate(activator);
         }
     }
 }
