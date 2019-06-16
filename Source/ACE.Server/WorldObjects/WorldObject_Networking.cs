@@ -1191,7 +1191,7 @@ namespace ACE.Server.WorldObjects
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
-            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand);
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
 
             actionChain.AddAction(this, () =>
             {

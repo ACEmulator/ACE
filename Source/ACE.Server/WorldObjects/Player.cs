@@ -44,6 +44,8 @@ namespace ACE.Server.WorldObjects
 
         public SquelchDB Squelches;
 
+        public ConfirmationManager ConfirmationManager;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -134,6 +136,8 @@ namespace ACE.Server.WorldObjects
 
             QuestManager = new QuestManager(this);
 
+            ConfirmationManager = new ConfirmationManager(this);
+
             LastUseTracker = new Dictionary<int, DateTime>();
 
             LootPermission = new Dictionary<ObjectGuid, DateTime>();
@@ -210,12 +214,6 @@ namespace ACE.Server.WorldObjects
         /// This tracks the contract tracker objects
         /// </summary>
         public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
-
-
-        public void CompleteConfirmation(ConfirmationType confirmationType, uint contextId)
-        {
-            Session.Network.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
-        }
 
 
         public MotionStance stance = MotionStance.NonCombat;
@@ -864,6 +862,24 @@ namespace ACE.Server.WorldObjects
                     EnqueueBroadcastMotion(motion);
             }
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
+        }
+
+        /// <summary>
+        /// Returns a modifier for a player's Run, Jump, Melee Defense, and Missile Defense skills if they are overburdened
+        /// </summary>
+        public override float GetBurdenMod()
+        {
+            var strength = Strength.Current;
+
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
+
+            var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
+
+            var burdenMod = EncumbranceSystem.GetBurdenMod(burden);
+
+            //Console.WriteLine($"Burden mod: {burdenMod}");
+
+            return burdenMod;
         }
 
         /// <summary>

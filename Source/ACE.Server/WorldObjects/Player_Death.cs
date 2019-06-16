@@ -481,7 +481,7 @@ namespace ACE.Server.WorldObjects
             var msg = $"{Name} dropped items on corpse: ";
 
             foreach (var dropItem in dropItems)
-                msg += $"{dropItem.Name} ({dropItem.Guid.Full:X8}), ";
+                msg += $"{dropItem.Name} ({dropItem.Guid}), ";
 
             msg = msg.Substring(0, msg.Length - 2);
 

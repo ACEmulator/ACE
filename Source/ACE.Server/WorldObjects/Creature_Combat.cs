@@ -428,8 +428,9 @@ namespace ACE.Server.WorldObjects
         {
             var defenseSkill = combatType == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(this) : 1.0f;
+            var burdenMod = GetBurdenMod();
 
-            var effectiveDefense = (uint)Math.Round(GetCreatureSkill(defenseSkill).Current * defenseMod);
+            var effectiveDefense = (uint)Math.Round(GetCreatureSkill(defenseSkill).Current * defenseMod * burdenMod);
 
             if (IsExhausted) effectiveDefense = 0;
 
@@ -545,7 +546,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Return the scalar damage absorbed by a shield
         /// </summary>
-        public float GetShieldMod(WorldObject attacker, DamageType damageType, bool ignoreMagicArmor)
+        public float GetShieldMod(WorldObject attacker, DamageType damageType, WorldObject weapon)
         {
             // ensure combat stance
             if (CombatMode == CombatMode.NonCombat)
@@ -554,6 +555,10 @@ namespace ACE.Server.WorldObjects
             // does the player have a shield equipped?
             var shield = GetEquippedShield();
             if (shield == null) return 1.0f;
+
+            // phantom weapons ignore all armor and shields
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
+                return 1.0f;
 
             // is monster in front of player,
             // within shield effectiveness area?
@@ -567,6 +572,8 @@ namespace ACE.Server.WorldObjects
 
             // shield AL item enchantment additives:
             // impenetrability, brittlemail
+            var ignoreMagicArmor = weapon != null ? weapon.IgnoreMagicArmor : false;
+
             var modSL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorMod();
             var effectiveSL = baseSL + modSL;
 

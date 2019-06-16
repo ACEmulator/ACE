@@ -701,7 +701,7 @@ namespace ACE.Server.Command.Handlers
             {
                 string parsePositionString = parameters[0].Length > 3 ? parameters[0].Substring(0, 3) : parameters[0];
 
-                if (Enum.TryParse(parsePositionString, out PositionType positionType))
+                if (Enum.TryParse(parsePositionString, true, out PositionType positionType))
                 {
                     if (session.Player.TeleToPosition(positionType))
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location}", ChatMessageType.Broadcast));
@@ -741,7 +741,7 @@ namespace ACE.Server.Command.Handlers
                 // The enum labels max character length has been observered as length 19
                 // int value can be: 0-27
 
-                if (Enum.TryParse(parsePositionString, out PositionType positionType))
+                if (Enum.TryParse(parsePositionString, true, out PositionType positionType))
                 {
                     if (positionType != PositionType.Undef)
                     {
@@ -1577,7 +1577,7 @@ namespace ACE.Server.Command.Handlers
 
             }
 
-            if (!Enum.TryParse(pType, propName, out var result))
+            if (!Enum.TryParse(pType, propName, true, out var result))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
                 return;
@@ -1648,7 +1648,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (!Enum.TryParse(pType, propName, out var result))
+            if (!Enum.TryParse(pType, propName, true, out var result))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
                 return;
