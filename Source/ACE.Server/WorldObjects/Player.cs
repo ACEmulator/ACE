@@ -46,6 +46,8 @@ namespace ACE.Server.WorldObjects
 
         public ConfirmationManager ConfirmationManager;
 
+        public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
