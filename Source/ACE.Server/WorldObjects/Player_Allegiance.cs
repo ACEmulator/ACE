@@ -225,7 +225,14 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
 
             // TODO: update chat channel for orphaned players in OnBreakAllegiance()
-            UpdateChatChannels();
+            if (isVassal && targetIsOnline)
+            {
+                var targetPlayer = PlayerManager.GetOnlinePlayer(targetGuid);
+                if (targetPlayer != null)
+                    targetPlayer.UpdateChatChannels();
+            }
+            else
+                UpdateChatChannels();
         }
 
         //public static float Allegiance_MaxSwearDistance = 4.0f;
