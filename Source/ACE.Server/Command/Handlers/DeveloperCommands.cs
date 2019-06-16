@@ -2218,6 +2218,7 @@ namespace ACE.Server.Command.Handlers
                     msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
                     msg += $"CurrentCreate: {wo.CurrentCreate}\n";
 
+                    msg += $"===============================================\n";
                     foreach (var activeProfile in wo.GeneratorActiveProfiles)
                     {
                         var profile = wo.GeneratorProfiles[activeProfile];
@@ -2228,7 +2229,7 @@ namespace ACE.Server.Command.Handlers
                         msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
                         msg += $"StackSize: {profile.Biota.StackSize} | PaletteId: {profile.Biota.PaletteId} | Shade: {profile.Biota.Shade}\n";
                         msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
-
+                        msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)
                         {
                             msg += "Spawned Objects:\n";
@@ -2236,15 +2237,17 @@ namespace ACE.Server.Command.Handlers
                             {
                                 msg += $"0x{spawn.Guid}: {spawn.Name} - {spawn.WeenieClassId} - {spawn.WeenieType}\n";
                             }
+                            msg += $"--====--\n";
                         }
 
-                        if (profile.Spawned.Count > 0)
+                        if (profile.SpawnQueue.Count > 0)
                         {
                             msg += "Pending Spawn Times:\n";
                             foreach (var spawn in profile.SpawnQueue)
                             {
                                 msg += $"{spawn.ToLocalTime()}\n";
                             }
+                            msg += $"--====--\n";
                         }
 
                         if (profile.RemoveQueue.Count > 0)
@@ -2254,7 +2257,10 @@ namespace ACE.Server.Command.Handlers
                             {
                                 msg += $"0x{spawn.objectGuid:X8} removed at {spawn.time.ToLocalTime()}\n";
                             }
+                            msg += $"--====--\n";
                         }
+
+                        msg += $"===============================================\n";
                     }
                 }
                 else
