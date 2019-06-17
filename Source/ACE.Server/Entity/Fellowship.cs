@@ -357,13 +357,28 @@ namespace ACE.Server.Entity
         /// <param name="player">The fellowship member who originated the XP</param>
         public void SplitXp(ulong amount, XpType xpType, ShareType shareType, Player player)
         {
+            // https://asheron.fandom.com/wiki/Announcements_-_2002/02_-_Fever_Dreams#Letter_to_the_Players_1
+
             var shareableMembers = GetShareableMembers();
 
             shareType &= ~ShareType.Fellowship;
 
+            // quest turn-ins: flat share (retail default)
+            if (xpType == XpType.Quest && !PropertyManager.GetBool("fellow_quest_bonus").Item)
+            {
+                var perAmount = (long)amount / shareableMembers.Count;
+
+                foreach (var member in shareableMembers.Values)
+                {
+                    var fellowXpType = player == member ? XpType.Quest : XpType.Fellowship;
+
+                    member.GrantXP(perAmount, fellowXpType, shareType);
+                }
+            }
+
             // divides XP evenly to all the sharable fellows within level range,
             // but with a significant boost to the amount of xp, based on # of fellowship members
-            if (EvenShare)
+            else if (EvenShare)
             {
                 var totalAmount = (ulong)Math.Round(amount * GetMemberSharePercent());
 
