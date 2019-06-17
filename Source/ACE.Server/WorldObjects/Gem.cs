@@ -50,8 +50,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject activator)
         {
-            if (!(activator is Player player) || player.Teleporting)
+            if (!(activator is Player player))
                 return;
+
+            if (player.IsBusy || player.Teleporting)
+            {
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                return;
+            }
 
             if (UseCreateContractId != null)
             {
