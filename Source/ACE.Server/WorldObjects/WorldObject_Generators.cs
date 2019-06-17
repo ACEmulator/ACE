@@ -108,7 +108,7 @@ namespace ACE.Server.WorldObjects
             //History.Add($"[{DateTime.UtcNow}] - SelectProfilesInit()");
 
             bool rng_selected = false;
-            bool campSpawned = false;
+            //bool campSpawned = false;
 
             while (true)
             {

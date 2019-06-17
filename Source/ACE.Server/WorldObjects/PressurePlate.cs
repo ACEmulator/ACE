@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             if (UseSound == 0)
-                UseSound = (uint)Sound.TriggerActivated;
+                UseSound = Sound.TriggerActivated;
         }
 
         public override void SetLinkProperties(WorldObject wo)
