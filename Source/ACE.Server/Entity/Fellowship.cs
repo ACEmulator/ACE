@@ -361,17 +361,6 @@ namespace ACE.Server.Entity
 
             shareType &= ~ShareType.Fellowship;
 
-            // handle sharing quest XP with fellows
-            if (xpType == XpType.Quest)
-            {
-                foreach (var member in shareableMembers.Values)
-                {
-                    var fellowXpType = player == member ? XpType.Quest : XpType.Fellowship;
-
-                    member.GrantXP((long)amount, fellowXpType, shareType);
-                }
-            }
-
             // divides XP evenly to all the sharable fellows within level range,
             // but with a significant boost to the amount of xp, based on # of fellowship members
             else if (EvenShare)
@@ -380,7 +369,7 @@ namespace ACE.Server.Entity
 
                 foreach (var member in shareableMembers.Values)
                 {
-                    var shareAmount = (ulong)Math.Round(totalAmount * GetDistanceScalar(player, member));
+                    var shareAmount = (ulong)Math.Round(totalAmount * GetDistanceScalar(player, member, xpType));
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
@@ -400,7 +389,7 @@ namespace ACE.Server.Entity
                 {
                     var levelScale = (float)(member.Level ?? 1) / levelSum;
 
-                    var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(player, member));
+                    var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(player, member, xpType));
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
@@ -444,10 +433,13 @@ namespace ACE.Server.Entity
         /// Returns the amount to scale the XP for a fellow
         /// based on distance from the leader
         /// </summary>
-        private double GetDistanceScalar(Player earner, Player fellow)
+        private double GetDistanceScalar(Player earner, Player fellow, XpType xpType)
         {
             if (earner == null || fellow == null)
                 return 0.0f;
+
+            if (xpType == XpType.Quest)
+                return 1.0f;
 
             var earnerPosition = earner.Location;
             var fellowPosition = fellow.Location;
