@@ -331,6 +331,8 @@ namespace ACE.Server.Command.Handlers
                         CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
                         return;
                     }
+                    else // get updated data from db.
+                        account = DatabaseManager.Authentication.GetAccountById(account.AccountId);
                 }
                 else
                     account = DatabaseManager.Authentication.GetAccountByName(charName);
