@@ -29,13 +29,17 @@ namespace ACE.Server.Entity
         public bool ShareLoot;          // determined by the leader's 'ShareFellowshipLoot' client option when fellowship is created
 
         public bool ShareXP;            // whether or not XP sharing is currently enabled, as determined by DesiredShareXP && level restrictions
-        public bool EvenShare;          // XP equal sharing: 0=proportional to level, 1=even
+        public bool EvenShare;          // true if all fellows are >= level 50, or all fellows are within 5 levels of the leader
 
-        public bool Open;               // Open fellowship: 0=no, 1=yes
-        public bool IsLocked;
+        public bool Open;               // indicates if non-leaders can invite new fellowship members
+        public bool IsLocked;           // only set through emotes. if a fellowship is locked, new fellowship members cannot be added
 
         public Dictionary<uint, WeakReference<Player>> FellowshipMembers;
         public Dictionary<uint, WeakReference<Player>> LockedMembers;
+
+        // todo: fellows departed
+        // if fellowship locked, and one of the fellows disconnects and reconnects,
+        // they can rejoin the fellowship within a certain amount of time
 
         public QuestManager QuestManager;
 
