@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -398,13 +399,13 @@ namespace ACE.Server.Entity
             // based on each fellowship member's level
             else
             {
-                var levelSum = shareableMembers.Values.Select(p => p.Level ?? 1).Sum();
+                var levelXPSum = shareableMembers.Values.Select(p => p.GetXPBetweenLevels(p.Level.Value, p.Level.Value + 1)).Sum();
 
                 foreach (var member in shareableMembers.Values)
                 {
-                    var levelScale = (float)(member.Level ?? 1) / levelSum;
+                    var levelXPScale = (double)member.GetXPBetweenLevels(member.Level.Value, member.Level.Value + 1) / levelXPSum;
 
-                    var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(player, member, xpType));
+                    var playerTotal = (ulong)Math.Round(amount * levelXPScale * GetDistanceScalar(player, member, xpType));
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
