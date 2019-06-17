@@ -355,9 +355,11 @@ namespace ACE.Server.Entity
         /// <param name="amount">The input amount of XP</param>
         /// <param name="xpType">The type of XP (quest XP is handled differently)</param>
         /// <param name="player">The fellowship member who originated the XP</param>
-        public void SplitXp(ulong amount, XpType xpType, Player player)
+        public void SplitXp(ulong amount, XpType xpType, ShareType shareType, Player player)
         {
             var shareableMembers = GetShareableMembers();
+
+            shareType &= ~ShareType.Fellowship;
 
             // handle sharing quest XP with fellows
             if (xpType == XpType.Quest)
@@ -366,7 +368,7 @@ namespace ACE.Server.Entity
                 {
                     var fellowXpType = player == member ? XpType.Quest : XpType.Fellowship;
 
-                    member.GrantXP((long)amount, fellowXpType, false);
+                    member.GrantXP((long)amount, fellowXpType, shareType);
                 }
             }
 
@@ -382,7 +384,7 @@ namespace ACE.Server.Entity
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
-                    member.GrantXP((long)shareAmount, fellowXpType, false);
+                    member.GrantXP((long)shareAmount, fellowXpType, shareType);
                 }
 
                 return;
@@ -402,7 +404,7 @@ namespace ACE.Server.Entity
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
-                    member.GrantXP((long)playerTotal, fellowXpType, false);
+                    member.GrantXP((long)playerTotal, fellowXpType, shareType);
                 }
             }
         }
