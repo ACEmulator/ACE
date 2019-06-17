@@ -441,6 +441,8 @@ namespace ACE.Server.Managers
             DictOf(
                 ("advanced_combat_pets", false),    // (non-retail function) If enabled, Combat Pets can cast spells
                 ("assess_creature_mod", false),     // (non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed.
+                ("fellow_kt_killer", true),         // if FALSE, fellowship kill tasks will share with the fellowship, even if the killer doesn't have the quest
+                ("fellow_kt_landblock", false),     // if TRUE, fellowship kill tasks will share with landblock range (192 distance radius, or entire dungeon)
                 ("iou_trades", false),              // (non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on.
                 ("chess_enabled", true),
                 ("corpse_decay_tick_logging", false), // log decaying player corpse ticks.

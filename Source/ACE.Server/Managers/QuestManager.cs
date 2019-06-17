@@ -372,55 +372,71 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Increments the counter for a kill task, and optionally shares with fellowship
         /// </summary>
-        public void HandleKillTask(string _questName, WorldObject obj, bool shareable = true)
+        public void HandleKillTask(string _questName, WorldObject obj, float shareableRange)
         {
-            if (!HasQuest(_questName))
-                return;
+            // http://acpedia.org/wiki/Announcements_-_2012/12_-_A_Growing_Twilight#Release_Notes
 
-            Stamp(_questName);
-
-            var questName = GetQuestName(_questName);
-            var quest = DatabaseManager.World.GetCachedQuest(questName);
-
-            if (quest == null)
+            if (HasQuest(_questName))
             {
-                log.Error($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HandleKillTask({_questName}): couldn't find kill task {questName} in database");
+                Stamp(_questName);
+
+                var questName = GetQuestName(_questName);
+                var quest = DatabaseManager.World.GetCachedQuest(questName);
+
+                if (quest == null)
+                {
+                    log.Error($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HandleKillTask({_questName}): couldn't find kill task {questName} in database");
+                    return;
+                }
+
+                var playerQuest = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+                if (playerQuest == null)
+                {
+                    log.Error($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HandleKillTask({_questName}): couldn't find kill task {questName} in player quests");
+                    return;
+                }
+
+                if (obj == null)
+                {
+                    log.Error($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HandleKillTask({_questName}): input object is null!");
+                    return;
+                }
+
+                var msg = "";
+
+                if (IsMaxSolves(questName))
+                    msg = $"You have killed {quest.MaxSolves} {obj.GetPluralName()}. Your task is complete!";
+                else
+                    msg = $"You have killed {playerQuest.NumTimesCompleted} {obj.GetPluralName()}. You must kill {quest.MaxSolves} to complete your task!";
+
+                Player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            }
+            else if (PropertyManager.GetBool("fellow_kt_killer").Item)
+            {
+                // if this option is enabled (retail default), the killer is required to have kill task
+                // for it to share with fellowship
                 return;
             }
-
-            var playerQuest = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-
-            if (playerQuest == null)
-            {
-                log.Error($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HandleKillTask({_questName}): couldn't find kill task {questName} in player quests");
-                return;
-            }
-
-            if (obj == null)
-            {
-                log.Error($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HandleKillTask({_questName}): input object is null!");
-                return;
-            }
-
-            var msg = "";
-            
-            if (IsMaxSolves(questName))
-                msg = $"You have killed {quest.MaxSolves} {obj.GetPluralName()}. Your task is complete!";
-            else
-                msg = $"You have killed {playerQuest.NumTimesCompleted} {obj.GetPluralName()}. You must kill {quest.MaxSolves} to complete your task!";
-
-            Player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
             // are we in a fellowship? if so, share with fellowship
-            if (shareable && Player.Fellowship != null)
+            if (shareableRange > 0.0f && Player.Fellowship != null)
             {
-                var shareableMembers = Player.Fellowship.GetShareableMembers();
+                var landblockRange = PropertyManager.GetBool("fellow_kt_landblock").Item;
 
-                foreach (var fellow in shareableMembers.Values)
+                // killtasks can be shared with all members of a fellowship,
+                // they do not use the same "ShareableMembers" as XP sharing
+                var fellows = Player.Fellowship.GetFellowshipMembers();
+
+                foreach (var fellow in fellows.Values.Where(f => f != Player))
                 {
-                    // ensure within landblock distance
-                    if (fellow != Player && Player.Location.DistanceTo(fellow.Location) <= 192.0f)
-                        fellow.QuestManager.HandleKillTask(_questName, obj, false);
+                    // ensure within shareable distance
+                    var shareable = landblockRange ?
+                        Player.CurrentLandblock == fellow.CurrentLandblock || Player.Location.DistanceTo(fellow.Location) <= 192.0f :
+                        Player.Location.DistanceTo(fellow.Location) <= shareableRange;      // 2d or 3d distance here?
+
+                    if (shareable)
+                        fellow.QuestManager.HandleKillTask(_questName, obj, 0.0f);
                 }
             }
         }

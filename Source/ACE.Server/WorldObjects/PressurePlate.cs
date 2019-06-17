@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
 
             LastUseTime = currentTime;
 
-            player.EnqueueBroadcast(new GameMessageSound(player.Guid, (Sound)UseSound));
+            player.EnqueueBroadcast(new GameMessageSound(player.Guid, UseSound));
 
             base.OnActivate(activator);
         }
