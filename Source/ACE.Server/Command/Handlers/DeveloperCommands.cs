@@ -2163,8 +2163,35 @@ namespace ACE.Server.Command.Handlers
             var msg = spellAdded ? "added to" : "already on";
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
+        }
 
+        [CommandHandler("fellow-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleFellowInfo(Session session, params string[] parameters)
+        {
+            var player = session.Player;
 
+            var fellowship = player.Fellowship;
+
+            if (fellowship == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("You must be in a fellowship to use this command.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var fellows = fellowship.GetFellowshipMembers();
+
+            //var levelSum = fellows.Values.Select(f => f.Level.Value).Sum();
+            var levelXPSum = fellows.Values.Select(f => f.GetXPToNextLevel(f.Level.Value)).Sum();
+
+            // this should match up with the client
+            foreach (var fellow in fellows.Values.OrderBy(f => f.Level))
+            {
+                //var levelScale = (double)fellow.Level.Value / levelSum;
+                var levelXPScale = (double)fellow.GetXPToNextLevel(fellow.Level.Value) / levelXPSum;
+
+                //session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelScale * 100, 2)}% / {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
+            }
         }
     }
 }

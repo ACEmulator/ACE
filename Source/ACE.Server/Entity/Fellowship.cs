@@ -370,11 +370,11 @@ namespace ACE.Server.Entity
             // based on each fellowship member's level
             else
             {
-                var levelXPSum = fellowshipMembers.Values.Select(p => p.GetXPBetweenLevels(p.Level.Value, p.Level.Value + 1)).Sum();
+                var levelXPSum = fellowshipMembers.Values.Select(p => p.GetXPToNextLevel(p.Level.Value)).Sum();
 
                 foreach (var member in fellowshipMembers.Values)
                 {
-                    var levelXPScale = (double)member.GetXPBetweenLevels(member.Level.Value, member.Level.Value + 1) / levelXPSum;
+                    var levelXPScale = (double)member.GetXPToNextLevel(member.Level.Value) / levelXPSum;
 
                     var playerTotal = (ulong)Math.Round(amount * levelXPScale * GetDistanceScalar(player, member, xpType));
 

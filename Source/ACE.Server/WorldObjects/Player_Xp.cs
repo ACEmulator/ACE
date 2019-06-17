@@ -207,6 +207,11 @@ namespace ACE.Server.WorldObjects
             return levelB_totalXP - levelA_totalXP;
         }
 
+        public ulong GetXPToNextLevel(int level)
+        {
+            return GetXPBetweenLevels(level, level + 1);
+        }
+
         /// <summary>
         /// Determines if the player has advanced a level
         /// </summary>
