@@ -212,7 +212,7 @@ namespace ACE.Server.WorldObjects
 
             if (!IsSkillMaxRank(playerSkill.Ranks, playerSkill.AdvancementClass))
             {
-                GrantXP(amount, XpType.Emote, false);
+                GrantXP(amount, XpType.Emote, ShareType.None);
                 RaiseSkillGameAction(skill, amount);
             }
         }

@@ -443,6 +443,7 @@ namespace ACE.Server.Managers
                 ("assess_creature_mod", false),     // (non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed.
                 ("fellow_kt_killer", true),         // if FALSE, fellowship kill tasks will share with the fellowship, even if the killer doesn't have the quest
                 ("fellow_kt_landblock", false),     // if TRUE, fellowship kill tasks will share with landblock range (192 distance radius, or entire dungeon)
+                ("fellow_quest_bonus", false),      // if TRUE, applies EvenShare formula to fellowship quest reward XP (300% max bonus, defaults to false in retail)
                 ("iou_trades", false),              // (non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on.
                 ("chess_enabled", true),
                 ("corpse_destroy_pyreals", true),       // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
