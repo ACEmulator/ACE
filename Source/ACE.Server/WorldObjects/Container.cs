@@ -502,8 +502,8 @@ namespace ACE.Server.WorldObjects
             {
                 int removedItemsPlacementPosition = item.PlacementPosition ?? 0;
 
-                item.OwnerId = null;
                 item.Owner = null;
+                item.OwnerId = null;
                 item.ContainerId = null;
                 item.PlacementPosition = null;
 
