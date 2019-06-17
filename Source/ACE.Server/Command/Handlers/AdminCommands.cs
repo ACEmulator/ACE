@@ -257,14 +257,14 @@ namespace ACE.Server.Command.Handlers
 
                 if (objectType != wo.GetType().Name.ToLower() && objectType != wo.WeenieType.ToString().ToLower())
                 {
-                    ChatPacket.SendServerMessage(session, $"Delete failed. Object type specified ({parameters[0]}) does not match object type ({wo.GetType().Name}) or weenie type ({wo.WeenieType.ToString()}) for 0x{wo.Guid.Full:X8}:{wo.Name}.", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, $"Delete failed. Object type specified ({parameters[0]}) does not match object type ({wo.GetType().Name}) or weenie type ({wo.WeenieType.ToString()}) for 0x{wo.Guid}:{wo.Name}.", ChatMessageType.Broadcast);
                     return;
                 }
             }
 
             wo.Destroy();
 
-            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted 0x{wo.Guid.Full:X8}:{wo.Name}");
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted 0x{wo.Guid}:{wo.Name}");
         }
 
         // draw
@@ -2517,7 +2517,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("cisalvage", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCISalvage(Session session, params string[] parameters)
         {
-            if (!Enum.TryParse(parameters[0], out MaterialType materialType))
+            if (!Enum.TryParse(parameters[0], true, out MaterialType materialType))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find material type {parameters[0]}", ChatMessageType.Broadcast));
                 return;

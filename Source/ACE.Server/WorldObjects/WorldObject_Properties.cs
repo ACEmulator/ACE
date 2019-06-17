@@ -1019,6 +1019,69 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldDifficulty); else SetProperty(PropertyInt.WieldDifficulty, (int)value); }
         }
 
+        public WieldRequirement WieldRequirements2
+        {
+            get => (WieldRequirement)(GetProperty(PropertyInt.WieldRequirements2) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WieldRequirements2); else SetProperty(PropertyInt.WieldRequirements2, (int)value); }
+        }
+
+        /// <summary>
+        /// can also be used for attributes
+        /// </summary>
+        public int? WieldSkillType2
+        {
+            get => GetProperty(PropertyInt.WieldSkillType2);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType2); else SetProperty(PropertyInt.WieldSkillType2, value.Value); }
+        }
+
+        public int? WieldDifficulty2
+        {
+            get => GetProperty(PropertyInt.WieldDifficulty2);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldDifficulty2); else SetProperty(PropertyInt.WieldDifficulty2, (int)value); }
+        }
+
+        public WieldRequirement WieldRequirements3
+        {
+            get => (WieldRequirement)(GetProperty(PropertyInt.WieldRequirements3) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WieldRequirements3); else SetProperty(PropertyInt.WieldRequirements3, (int)value); }
+        }
+
+        /// <summary>
+        /// can also be used for attributes
+        /// </summary>
+        public int? WieldSkillType3
+        {
+            get => GetProperty(PropertyInt.WieldSkillType3);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType3); else SetProperty(PropertyInt.WieldSkillType3, value.Value); }
+        }
+
+        public int? WieldDifficulty3
+        {
+            get => GetProperty(PropertyInt.WieldDifficulty3);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldDifficulty3); else SetProperty(PropertyInt.WieldDifficulty3, (int)value); }
+        }
+
+        public WieldRequirement WieldRequirements4
+        {
+            get => (WieldRequirement)(GetProperty(PropertyInt.WieldRequirements4) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WieldRequirements4); else SetProperty(PropertyInt.WieldRequirements4, (int)value); }
+        }
+
+        /// <summary>
+        /// can also be used for attributes
+        /// </summary>
+        public int? WieldSkillType4
+        {
+            get => GetProperty(PropertyInt.WieldSkillType4);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType4); else SetProperty(PropertyInt.WieldSkillType4, value.Value); }
+        }
+
+        public int? WieldDifficulty4
+        {
+            get => GetProperty(PropertyInt.WieldDifficulty4);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldDifficulty4); else SetProperty(PropertyInt.WieldDifficulty4, (int)value); }
+        }
+
         public int? ItemAllegianceRankLimit
         {
             get => GetProperty(PropertyInt.ItemAllegianceRankLimit);
@@ -1810,12 +1873,6 @@ namespace ACE.Server.WorldObjects
             set { if (value.HasValue) RemoveProperty(PropertyInt.ItemSpellcraft); else SetProperty(PropertyInt.ItemSpellcraft, value.Value); }
         }
 
-        public int? BoostEnum
-        {
-            get => GetProperty(PropertyInt.BoosterEnum);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, value.Value); }
-        }
-
         public double? HealkitMod
         {
             get => GetProperty(PropertyFloat.HealkitMod);
@@ -2467,13 +2524,10 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.ActivationTalk); else SetProperty(PropertyString.ActivationTalk, value); }
         }
 
-        /// <summary>
-        /// The sound played when pressure plate is activated
-        /// </summary>
-        public uint UseSound
+        public Sound UseSound
         {
-            get => GetProperty(PropertyDataId.UseSound) ?? 0;
-            set { if (value == 0) RemoveProperty(PropertyDataId.UseSound); else SetProperty(PropertyDataId.UseSound, value); }
+            get => (Sound)(GetProperty(PropertyDataId.UseSound) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyDataId.UseSound); else SetProperty(PropertyDataId.UseSound, (uint)value); }
         }
 
         /* advocate */

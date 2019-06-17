@@ -6,6 +6,7 @@ using System.Threading;
 using log4net;
 
 using ACE.Common;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.Packets;
@@ -154,7 +155,7 @@ namespace ACE.Server.Network.Managers
 
             // First we must send the connect request response
             var connectRequest = new PacketOutboundConnectRequest(
-                tempSession.Network.ConnectionData.ServerTime,
+                Timers.PortalYearTicks,
                 tempSession.Network.ConnectionData.ConnectionCookie,
                 tempSession.Network.ClientId,
                 tempSession.Network.ConnectionData.ServerSeed,

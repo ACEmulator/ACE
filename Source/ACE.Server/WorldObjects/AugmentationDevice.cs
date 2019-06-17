@@ -7,8 +7,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Managers;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -49,29 +47,30 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject activator)
         {
+            ActOnUse(activator, false);
+        }
+
+        public void ActOnUse(WorldObject activator, bool confirmed = false)
+        {
             if (!(activator is Player player))
                 return;
 
-            ShowConfirmation(player);
-        }
+            if (!VerifyRequirements(player))
+                return;
 
-        public void ShowConfirmation(Player player)
-        {
-            // show confirmation message
-            var msg = $"This action will augment your character with {Name} and will cost {AugmentationCost:N0} available experience.";
+            if (!confirmed)
+            {
+                player.ConfirmationManager.EnqueueSend(new Confirmation_Augmentation(player.Guid, Guid),
+                    $"This action will augment your character with {Name} and will cost {AugmentationCost:N0} available experience.");
 
-            var confirm = new Confirmation(ConfirmationType.Augmentation, msg, this, player, player);
-            ConfirmationManager.AddConfirmation(confirm);
-
-            player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Augmentation, confirm.ConfirmationID, msg));
+                return;
+            }
+            DoAugmentation(player);
         }
 
         public void DoAugmentation(Player player)
         {
             //Console.WriteLine($"{Name}.DoAugmentation({player.Name})");
-
-            if (!VerifyRequirements(player))
-                return;
 
             // set augmentation props for player
             var type = (AugmentationType)(AugmentationStat ?? 0);
@@ -134,6 +133,8 @@ namespace ACE.Server.WorldObjects
             // also broadcast to nearby players
             player.EnqueueBroadcast(new GameMessageScript(player.Guid, AugTypeHelper.GetEffect(type)));
             player.EnqueueBroadcast(false, new GameMessageSystemChat($"{player.Name} has acquired the {Name} augmentation!", ChatMessageType.Broadcast));
+
+            player.SaveBiotaToDatabase();
         }
 
         public bool VerifyRequirements(Player player)

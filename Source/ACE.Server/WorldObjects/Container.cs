@@ -307,6 +307,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if there are enough free inventory slots and burden available to add items
+        /// </summary>
+        public bool CanAddToInventory(int totalContainerObjectsToAdd, int totalInventoryObjectsToAdd, int totalBurdenToAdd)
+        {
+            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(totalBurdenToAdd))
+                return false;
+
+            return (GetFreeContainerSlots() >= totalContainerObjectsToAdd) && (GetFreeInventorySlots() >= totalInventoryObjectsToAdd);
+        }
+
+        /// <summary>
         /// Returns TRUE if there are enough free inventory slots and burden available to add item
         /// </summary>
         public bool CanAddToInventory(WorldObject worldObject)

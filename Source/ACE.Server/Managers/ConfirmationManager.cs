@@ -1,82 +1,72 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.WorldObjects;
+
+using log4net;
 
 namespace ACE.Server.Managers
 {
-    public static class ConfirmationManager
+    public class ConfirmationManager
     {
-        static ConcurrentDictionary<uint, Confirmation> confirmations = new ConcurrentDictionary<uint, Confirmation>();
+        private Player Player;
 
-        public static void AddConfirmation(Confirmation confirmation)
+        private ConcurrentDictionary<ConfirmationType, Confirmation> confirmations = new ConcurrentDictionary<ConfirmationType, Confirmation>();
+
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public ConfirmationManager(Player player)
         {
-            var isAlreadyInQueue = (from conf in confirmations
-                                    where conf.Key == confirmation.ConfirmationID
-                                    select conf).Count();
-
-            if (isAlreadyInQueue == 0)
-                confirmations.TryAdd(confirmation.ConfirmationID, confirmation);
+            Player = player;
         }
 
-        public static void ProcessConfirmation(uint contextId, bool response)
+        /// <summary>
+        /// Builds a new confirmation request on the server,
+        /// and sends the request to the client
+        /// </summary>
+        public void EnqueueSend(Confirmation confirmation, string text)
         {
-            if (!confirmations.Remove(contextId, out var confirm))
-                return;
-
-            switch (confirm.ConfirmationType)
+            if (confirmations.TryAdd(confirmation.ConfirmationType, confirmation))
             {
-                case ConfirmationType.Augmentation:
-
-                    confirm.Player.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
-
-                    if (response)
-                    {
-                        if (!(confirm.Source is AugmentationDevice aug))
-                            return;
-
-                        aug.DoAugmentation(confirm.Player);
-                    }
-                    break;
-
-                case ConfirmationType.CraftInteraction:
-
-                    confirm.Player.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
-
-                    if (response)
-                        RecipeManager.HandleTinkering(confirm.Player, confirm.Source, confirm.Target, true);
-                    break;
-
-                case ConfirmationType.Fellowship:
-
-                    var inviter = PlayerManager.GetOnlinePlayer(confirm.Source.Guid);
-                    var invited = PlayerManager.GetOnlinePlayer(confirm.Target.Guid);
-
-                    if (inviter == null || invited == null || inviter.Fellowship == null) return;
-
-                    inviter.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
-
-                    if (response)
-                        inviter.Fellowship.AddConfirmedMember(inviter, invited, response);
-
-                    break;
-
-                case ConfirmationType.SwearAllegiance:
-                    break;
-
-                case ConfirmationType.Yes_No:
-
-                    confirm.Player.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
-
-                    confirm.Source.EmoteManager.ExecuteEmoteSet(response ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, confirm.Quest, confirm.Player);
-
-                    break;
-
-                default:
-                    break;
+                Player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(Player.Session, confirmation.ConfirmationType, (uint)confirmation.ConfirmationType, text));
             }
+            else
+            {
+                log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}) - duplicate confirmation type");
+            }
+        }
+
+        /// <summary>
+        /// This only needs to be sent in the rare event the server needs to force close
+        /// a confirmation dialog that is still active on the client
+        /// </summary>
+        public void EnqueueAbort(ConfirmationType confirmationType, uint contextId)
+        {
+            Player.Session.Network.EnqueueSend(new GameEventConfirmationDone(Player.Session, confirmationType, contextId));
+        }
+
+        /// <summary>
+        /// The client has responded to a confirmation box
+        /// </summary>
+        public bool HandleResponse(ConfirmationType confirmType, uint contextId, bool response)
+        {
+            // these should match up in current implementation
+            if ((uint)confirmType != contextId)
+            {
+                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType != contextId");
+                return false;
+            }
+
+            if (!confirmations.TryRemove(confirmType, out var confirm))
+            {
+                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType not found");
+                return false;
+            }
+
+            confirm.ProcessConfirmation(response);
+
+            return true;
         }
     }
 }

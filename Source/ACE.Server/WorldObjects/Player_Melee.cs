@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects
 
             // get world object of target guid
             var target = CurrentLandblock?.GetObject(targetGuid);
-            if (target == null)
+            if (target == null || target.Teleporting)
             {
                 log.Warn($"Unknown target guid {targetGuid:X8}");
                 return;

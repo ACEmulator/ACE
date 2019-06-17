@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
                 target = this;
             }
 
-            if (target == null)
+            if (target == null || target.Teleporting)
             {
                 Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.TargetNotAcquired));
                 return;
@@ -289,7 +289,7 @@ namespace ACE.Server.WorldObjects
             var player = this;
             var creatureTarget = target as Creature;
 
-            if (player.IsBusy == true)
+            if (player.IsBusy || player.Teleporting)
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
                 return;
