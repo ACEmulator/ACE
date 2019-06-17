@@ -355,18 +355,24 @@ namespace ACE.Server.Entity
         /// <param name="amount">The input amount of XP</param>
         /// <param name="xpType">The type of XP (quest XP is handled differently)</param>
         /// <param name="player">The fellowship member who originated the XP</param>
-        public void SplitXp(ulong amount, XpType xpType, Player player)
+        public void SplitXp(ulong amount, XpType xpType, ShareType shareType, Player player)
         {
+            // https://asheron.fandom.com/wiki/Announcements_-_2002/02_-_Fever_Dreams#Letter_to_the_Players_1
+
             var shareableMembers = GetShareableMembers();
 
-            // handle sharing quest XP with fellows
-            if (xpType == XpType.Quest)
+            shareType &= ~ShareType.Fellowship;
+
+            // quest turn-ins: flat share (retail default)
+            if (xpType == XpType.Quest && !PropertyManager.GetBool("fellow_quest_bonus").Item)
             {
+                var perAmount = (long)amount / shareableMembers.Count;
+
                 foreach (var member in shareableMembers.Values)
                 {
                     var fellowXpType = player == member ? XpType.Quest : XpType.Fellowship;
 
-                    member.GrantXP((long)amount, fellowXpType, false);
+                    member.GrantXP(perAmount, fellowXpType, shareType);
                 }
             }
 
@@ -378,11 +384,11 @@ namespace ACE.Server.Entity
 
                 foreach (var member in shareableMembers.Values)
                 {
-                    var shareAmount = (ulong)Math.Round(totalAmount * GetDistanceScalar(player, member));
+                    var shareAmount = (ulong)Math.Round(totalAmount * GetDistanceScalar(player, member, xpType));
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
-                    member.GrantXP((long)shareAmount, fellowXpType, false);
+                    member.GrantXP((long)shareAmount, fellowXpType, shareType);
                 }
 
                 return;
@@ -398,11 +404,11 @@ namespace ACE.Server.Entity
                 {
                     var levelScale = (float)(member.Level ?? 1) / levelSum;
 
-                    var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(player, member));
+                    var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(player, member, xpType));
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
-                    member.GrantXP((long)playerTotal, fellowXpType, false);
+                    member.GrantXP((long)playerTotal, fellowXpType, shareType);
                 }
             }
         }
@@ -442,10 +448,13 @@ namespace ACE.Server.Entity
         /// Returns the amount to scale the XP for a fellow
         /// based on distance from the leader
         /// </summary>
-        private double GetDistanceScalar(Player earner, Player fellow)
+        private double GetDistanceScalar(Player earner, Player fellow, XpType xpType)
         {
             if (earner == null || fellow == null)
                 return 0.0f;
+
+            if (xpType == XpType.Quest)
+                return 1.0f;
 
             var earnerPosition = earner.Location;
             var fellowPosition = fellow.Location;
