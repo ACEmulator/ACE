@@ -1186,7 +1186,14 @@ namespace ACE.Server.WorldObjects
 
         public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, MotionStance? _stance = null)
         {
-            var stance = CurrentMotionState != null && _stance == null ? CurrentMotionState.Stance : _stance.Value;
+            var stance = MotionStance.NonCombat;
+            if (_stance != null)
+                stance = _stance.Value;
+            else if (CurrentMotionState != null)
+                stance = CurrentMotionState.Stance;
+
+            if (CurrentMotionState == null)
+                log.Warn($"{Name} ({Guid}).EnqueueMotion({motionCommand}, {speed}, {stance}): CurrentMotionState == null");
 
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
