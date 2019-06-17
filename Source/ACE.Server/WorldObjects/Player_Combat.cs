@@ -780,7 +780,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// If a player has been involved in a PK battle this recently,
-        /// logging off leaves their character in a frozen state for pk_timer (20 seconds by default)
+        /// logging off leaves their character in a frozen state for 20 seconds
         /// </summary>
         public static TimeSpan PKLogoffTimer = TimeSpan.FromMinutes(2);
 
