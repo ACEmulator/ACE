@@ -363,7 +363,7 @@ namespace ACE.Server.Entity
 
             // divides XP evenly to all the sharable fellows within level range,
             // but with a significant boost to the amount of xp, based on # of fellowship members
-            else if (EvenShare)
+            if (EvenShare)
             {
                 var totalAmount = (ulong)Math.Round(amount * GetMemberSharePercent());
 
