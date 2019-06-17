@@ -2166,12 +2166,12 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("set-pk-timer", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleSetPKTimer(Session session, params string[] parameters)
+        [CommandHandler("pktimer", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void HandlePKTimer(Session session, params string[] parameters)
         {
             session.Player.UpdatePKTimer();
 
-            session.Network.EnqueueSend(new GameMessageSystemChat("updated PK timer", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Updated PK timer", ChatMessageType.Broadcast));
         }
     }
 }
