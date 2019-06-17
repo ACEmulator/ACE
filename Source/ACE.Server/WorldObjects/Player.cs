@@ -789,7 +789,7 @@ namespace ACE.Server.WorldObjects
 
             // calculate stamina cost for this jump
             var extent = Math.Clamp(jump.Extent, 0.0f, 1.0f);
-            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, false);
+            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, PKTimerActive);
 
             //Console.WriteLine($"Strength: {strength}, Capacity: {capacity}, Encumbrance: {EncumbranceVal ?? 0}, Burden: {burden}, StaminaCost: {staminaCost}");
 

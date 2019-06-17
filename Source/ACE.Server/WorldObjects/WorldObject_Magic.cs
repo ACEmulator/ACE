@@ -695,6 +695,12 @@ namespace ACE.Server.WorldObjects
                 {
                     case SpellType.PortalRecall:
 
+                        if (player != null && player.PKTimerActive)
+                        {
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                            break;
+                        }
+
                         PositionType recall = PositionType.Undef;
                         uint? recallDID = null;
 
@@ -810,6 +816,12 @@ namespace ACE.Server.WorldObjects
 
                         if (targetPlayer != null)
                         {
+                            if (targetPlayer.PKTimerActive)
+                            {
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                break;
+                            }
+
                             ActionChain portalSendingChain = new ActionChain();
                             //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
                             portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
@@ -828,6 +840,12 @@ namespace ACE.Server.WorldObjects
 
                         if (targetPlayer != null && targetPlayer.Fellowship != null)
                         {
+                            if (targetPlayer.PKTimerActive)
+                            {
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                break;
+                            }
+
                             ActionChain portalSendingChain = new ActionChain();
                             //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
                             var fellows = targetPlayer.Fellowship.GetFellowshipMembers().Values;
@@ -904,6 +922,12 @@ namespace ACE.Server.WorldObjects
                         break;
 
                     case SpellType.PortalSummon:
+
+                        if (player != null && player.PKTimerActive)
+                        {
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                            break;
+                        }
 
                         var source = player != null ? player : itemCaster;
 

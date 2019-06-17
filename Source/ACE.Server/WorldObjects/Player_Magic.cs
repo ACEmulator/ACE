@@ -8,7 +8,6 @@ using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
@@ -562,6 +561,7 @@ namespace ACE.Server.WorldObjects
         {
             var player = this as Player;
             var creatureTarget = target as Creature;
+            var targetPlayer = target as Player;
 
             bool targetDeath;
             var enchantmentStatus = new EnchantmentStatus(spell);
@@ -579,7 +579,8 @@ namespace ACE.Server.WorldObjects
                     break;
                 case MagicSchool.CreatureEnchantment:
 
-                    if (player != null && !(target is Player))
+
+                    if (targetPlayer == null)
                         player.OnAttackMonster(creatureTarget);
 
                     if (spell.IsHarmful)
@@ -601,11 +602,14 @@ namespace ACE.Server.WorldObjects
 
                     if (spell.IsHarmful)
                     {
-                        Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+                        Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), creatureTarget.GetCreatureSkill(Skill.MagicDefense).Current);
 
                         // handle target procs
-                        if (creatureTarget != null && creatureTarget != this)
+                        if (creatureTarget != this)
                             TryProcEquippedItems(creatureTarget, false);
+
+                        if (targetPlayer != null)
+                            UpdatePKTimers(this, targetPlayer);
                     }
                     else
                         Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
@@ -614,7 +618,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    if (player != null && !(target is Player))
+                    if (targetPlayer == null)
                         player.OnAttackMonster(creatureTarget);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
@@ -644,6 +648,9 @@ namespace ACE.Server.WorldObjects
                             // handle target procs
                             if (creatureTarget != null && creatureTarget != this)
                                 TryProcEquippedItems(creatureTarget, false);
+
+                            if (targetPlayer != null)
+                                UpdatePKTimers(this, targetPlayer);
                         }
                         else
                             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), spell.PowerMod);
@@ -681,7 +688,7 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        if ((target as Player) == null)
+                        if (targetPlayer == null)
                         {
                             // Individual impen/bane WeenieType.Clothing target
                             enchantmentStatus = ItemMagic(target, spell);
@@ -707,7 +714,11 @@ namespace ACE.Server.WorldObjects
                                 }
                             }
                         }
+
                     }
+                    if (targetPlayer != null && spell.IsHarmful)
+                        UpdatePKTimers(this, targetPlayer);
+
                     Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ItemEnchantment), spell.PowerMod);
                     break;
             }
