@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="shareable">If TRUE, this XP can be shared with fellowship members</param>
         public void GrantXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
-            if (shareType.HasFlag(ShareType.Fellowship) && Fellowship != null && Fellowship.ShareXP && Fellowship.ShareableMembers.ContainsKey(Guid.Full))
+            if (Fellowship != null && Fellowship.ShareXP && shareType.HasFlag(ShareType.Fellowship))
             {
                 // this will divy up the XP, and re-call this function
                 // with shareable = false
@@ -195,10 +195,21 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public ulong GetXPBetweenLevels(int levelA, int levelB)
         {
-            var levelA_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelA + 1];
-            var levelB_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelB + 1];
+            // special case for max level
+            var maxLevel = (int)GetMaxLevel();
+
+            levelA = Math.Clamp(levelA, 1, maxLevel - 1);
+            levelB = Math.Clamp(levelB, 1, maxLevel);
+
+            var levelA_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelA];
+            var levelB_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelB];
 
             return levelB_totalXP - levelA_totalXP;
+        }
+
+        public ulong GetXPToNextLevel(int level)
+        {
+            return GetXPBetweenLevels(level, level + 1);
         }
 
         /// <summary>

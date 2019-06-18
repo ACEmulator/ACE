@@ -776,7 +776,7 @@ namespace ACE.Factories
             ////Revit Self
             new int[] { 1177, 1178, 1179, 1180, 1181, 1182, 2083 },
             ////Revit Other
-            new int[] { 1183, 1184, 1185, 1186, 1187, 1189, 2082 },
+            new int[] { 1183, 1184, 1185, 1186, 1187, 1188, 2082 },
             ////Enfeeble Other
             new int[] { 1195, 1196, 1197, 1198, 1199, 1200, 2062 },
             ////Mana Drain
@@ -935,7 +935,7 @@ namespace ACE.Factories
             ////Weaken Lock
             new int[] { 1581, 1582, 1583, 1584, 1585, 1586, 2119 },
             ////Dispells
-            new int[] { 1919, 1925, 1931, 1937, 1943, 1949, 3190 },
+            new int[] { 1919, 1925, 1931, 1937, 1943, 1950, 3190 },
             ////Portal Spells - Dont typically find these in loot.
 
             /* WAR SPELLS */

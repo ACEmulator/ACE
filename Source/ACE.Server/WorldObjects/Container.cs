@@ -15,6 +15,7 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -109,6 +110,8 @@ namespace ACE.Server.WorldObjects
                         EncumbranceVal += (worldObjects[i].EncumbranceVal ?? 0);
                         Value += (worldObjects[i].Value ?? 0);
                     }
+
+                    worldObjects[i].Owner = new WorldObjectInfo(this);
 
                     worldObjects.RemoveAt(i);
                 }
@@ -437,6 +440,7 @@ namespace ACE.Server.WorldObjects
             worldObject.Location = null;
             worldObject.Placement = ACE.Entity.Enum.Placement.Resting;
 
+            worldObject.Owner = new WorldObjectInfo(this);
             worldObject.OwnerId = Guid.Full;
             worldObject.ContainerId = Guid.Full;
             worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container
@@ -498,6 +502,7 @@ namespace ACE.Server.WorldObjects
             {
                 int removedItemsPlacementPosition = item.PlacementPosition ?? 0;
 
+                item.Owner = null;
                 item.OwnerId = null;
                 item.ContainerId = null;
                 item.PlacementPosition = null;
