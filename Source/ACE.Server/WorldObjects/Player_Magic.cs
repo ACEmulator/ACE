@@ -691,7 +691,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (spell.IsImpenBaneType())
+                    if (spell.IsImpenBaneType)
                     {
                         // impen / bane / brittlemail / lure
 

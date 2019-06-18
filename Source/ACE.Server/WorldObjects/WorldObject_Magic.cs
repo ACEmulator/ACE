@@ -222,19 +222,12 @@ namespace ACE.Server.WorldObjects
                     return true;
             }
 
-            if (spell.IsImpenBaneType())
-            {
-                // Cannot cast impen/bane on creature targets, unless self
-                //if (spell.IsBeneficial && targetCreature != null && targetCreature != caster)
-                    //return true;
+            // brittlemail / lure / other negative item spells cannot be cast with player as target
 
-                // Cannot cast brittlemail/lure on creature targets
-                //if (spell.IsHarmful && targetCreature != null)
-                    //return true;
-
-                // Cannot cast brittlemail/lure with self-target
-
-            }
+            // TODO: by end of retail, players couldn't cast any negative spells on themselves
+            // this feature is currently in ace for dev testing...
+            if (caster == target && spell.IsNegativeRedirectable)
+                return true;
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
