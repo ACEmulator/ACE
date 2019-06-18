@@ -181,7 +181,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines whether the target for the spell being cast is invalid
         /// </summary>
-        protected bool IsInvalidTarget(Spell spell, WorldObject target)
+        protected bool IsInvalidTarget(Player caster, Spell spell, WorldObject target)
         {
             var targetPlayer = target as Player;
             var targetCreature = target as Creature;
@@ -216,10 +216,24 @@ namespace ACE.Server.WorldObjects
             }
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
-            if ((spell.Name.Contains("Aura of")) && (spell.School == MagicSchool.ItemEnchantment))
+            if (spell.Name.Contains("Aura of") && spell.School == MagicSchool.ItemEnchantment)
             {
                 if (targetCreature == null)
                     return true;
+            }
+
+            if (spell.IsImpenBaneType())
+            {
+                // Cannot cast impen/bane on creature targets, unless self
+                //if (spell.IsBeneficial && targetCreature != null && targetCreature != caster)
+                    //return true;
+
+                // Cannot cast brittlemail/lure on creature targets
+                //if (spell.IsHarmful && targetCreature != null)
+                    //return true;
+
+                // Cannot cast brittlemail/lure with self-target
+
             }
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
@@ -234,7 +248,7 @@ namespace ACE.Server.WorldObjects
                     || (target.WeenieType == WeenieType.Missile)
                     || (target.WeenieType == WeenieType.Door)
                     || (target.WeenieType == WeenieType.Chest)
-                    || (target.CombatUse != null && target.CombatUse == ACE.Entity.Enum.CombatUse.Shield))
+                    || target.IsShield)
                     return false;
 
                 return true;

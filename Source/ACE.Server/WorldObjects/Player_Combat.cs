@@ -798,6 +798,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static void UpdatePKTimers(Player attacker, Player defender)
         {
+            if (attacker == defender) return;
+
             attacker.UpdatePKTimer();
             defender.UpdatePKTimer();
         }

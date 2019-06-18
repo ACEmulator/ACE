@@ -215,6 +215,23 @@ namespace ACE.Server.Entity
             return Skill.None;
         }
 
+        public bool IsImpenBaneType()
+        {
+            return Category >= SpellCategory.ArmorValueRaising && Category <= SpellCategory.AcidicResistanceLowering;
+        }
+
+        public bool IsOtherNegativeRedirectable
+        {
+            get
+            {
+                return Category == SpellCategory.DamageLowering     // encompasses both blood and spirit loather, inconsistent with spirit drinker in dat
+                    || Category == SpellCategory.DefenseModLowering
+                    || Category == SpellCategory.AttackModLowering
+                    || Category == SpellCategory.WeaponTimeLowering
+                    || Category == SpellCategory.AppraisalResistanceRaising;    // hermetic void, replaced hide value, unchanged category in dat
+            }
+        }
+
         public bool IsPortalSpell
         {
             get
