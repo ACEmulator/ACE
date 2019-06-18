@@ -221,7 +221,7 @@ namespace ACE.Server.WorldObjects
             // Loop over the parts in the Setup of the WorldObject
             for (var i = 0; i < wo.CSetup.Parts.Count; i++)
             {
-                if(wo.CSetup.Parts[i] != 0x010001ec) // This is essentially a "null" part...so do not add it!
+                if(wo.CSetup.Parts[i] != 0x010001EC || i != 16) // This is essentially a "null" part, so do not add it for the head
                     objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)i, PartID = wo.CSetup.Parts[i] });
             }
 
