@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-18
+[Ripley]
+* Fix gems that cast recall spells.
+
 ### 2019-06-17
 [Ripley]
 * Prevent using Hookers if they aren't hooked.
