@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-18
+[OptimShi]
+* Added code to use the Setup of a piece of clothing to visually equip it if no ClothingBase exists. This specifically applies to Ursuin Guise, WCID 32155, but may apply to others in the future.
+
 ### 2019-06-17
 [Ripley]
 * Prevent using Hookers if they aren't hooked.
