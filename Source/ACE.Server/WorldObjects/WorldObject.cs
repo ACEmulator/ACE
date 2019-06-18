@@ -269,7 +269,7 @@ namespace ACE.Server.WorldObjects
                 CurrentMotionState = new Motion(MotionStance.Invalid);
 
             if (WeenieType == WeenieType.Corpse)
-                HeartbeatInterval = 5;            
+                HeartbeatInterval = 5;
         }
 
         /// <summary>
