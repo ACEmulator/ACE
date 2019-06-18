@@ -762,7 +762,7 @@ namespace ACE.Server.WorldObjects
                         else
                         {
                             // targeting a creature, try to redirect to primary weapon
-                            var weapon = creatureTarget.GetEquippedWeapon();
+                            var weapon = creatureTarget.GetEquippedWeapon() ?? creatureTarget.GetEquippedWand();
 
                             if (weapon != null)
                             {
