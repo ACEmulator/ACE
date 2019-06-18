@@ -63,6 +63,7 @@ namespace ACE.Server.Managers
             MonitorType.Landblock_Tick_Monster_Tick,
             MonitorType.Landblock_Tick_WorldObject_Heartbeat,
             MonitorType.Landblock_Tick_GeneratorUpdate,
+            MonitorType.Landblock_Tick_GeneratorRegeneration,
             MonitorType.Landblock_Tick_Heartbeat,
             MonitorType.Landblock_Tick_Database_Save,
 
