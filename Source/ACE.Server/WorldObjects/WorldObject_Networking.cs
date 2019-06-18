@@ -1212,7 +1212,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion);
             });
 
-            if (stance != CurrentMotionState.Stance)
+            if (CurrentMotionState != null && stance != CurrentMotionState.Stance)
                 CurrentMotionState.Stance = stance;
 
             actionChain.AddDelaySeconds(animLength);
