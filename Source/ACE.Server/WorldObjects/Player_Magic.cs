@@ -794,10 +794,18 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(enchantmentStatus.Message);
                     }
 
-                    if (targetPlayer != null && spell.IsHarmful)
-                        UpdatePKTimers(this, targetPlayer);
-
                     Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ItemEnchantment), spell.PowerMod);
+
+                    if (spell.IsHarmful)
+                    {
+                        var playerRedirect = targetPlayer;
+                        if (playerRedirect == null && target.WielderId != null)
+                            playerRedirect = CurrentLandblock?.GetObject(target.WielderId.Value) as Player;
+
+                        if (playerRedirect != null)
+                            UpdatePKTimers(this, playerRedirect);
+                    }
+
                     break;
             }
         }

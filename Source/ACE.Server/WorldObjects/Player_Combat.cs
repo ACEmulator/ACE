@@ -786,6 +786,8 @@ namespace ACE.Server.WorldObjects
 
         public void UpdatePKTimer()
         {
+            //log.Info($"Updating PK timer for {Name}");
+
             LastPkAttackTimestamp = Time.GetUnixTime();
         }
 
