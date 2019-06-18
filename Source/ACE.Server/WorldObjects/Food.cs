@@ -121,7 +121,7 @@ namespace ACE.Server.WorldObjects
             // vitals
             else
             {
-                var maxVital = BoostEnum + 1;
+                var maxVital = BoostEnum - 1;
 
                 if (player.Vitals.TryGetValue(maxVital, out var vital))
                 {
