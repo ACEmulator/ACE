@@ -2193,5 +2193,19 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
             }
         }
+
+        [CommandHandler("purchase-house", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandlePurchaseHouse(Session session, params string[] parameters)
+        {
+            var slumlord = CommandHandlerHelper.GetLastAppraisedObject(session) as SlumLord;
+
+            if (slumlord == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("Couldn't find slumlord", ChatMessageType.Broadcast));
+                return;
+            }
+            session.Player.SetHouseOwner(slumlord);
+            session.Player.GiveDeed();
+        }
     }
 }
