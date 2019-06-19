@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-18
+[Ripley]
+* Prevent using Hookers if house isn't owned or is closed and player isn't on guestlist.
+
 ### 2019-06-17
 [Ripley]
 * Prevent using Hookers if they aren't hooked.
