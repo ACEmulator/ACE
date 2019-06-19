@@ -752,7 +752,7 @@ namespace ACE.Server.WorldObjects
 
                             case SpellId.PortalTieRecall2:   // secondary portal tie recall
 
-                                if (player.LinkedPortalTwoDID == null)
+                                if (targetPlayer.LinkedPortalTwoDID == null)
                                 {
                                     // You must link to a portal to recall it!
                                     targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
