@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-19
+[Ripley]
+* Fire EmoteManager.OnDrop when an item is dropped to landblock. (Clutch of Kings (Rehir))
+
 ### 2019-06-18
 [Ripley]
 * Prevent using Hookers if house isn't owned or is closed and player isn't on guestlist.
