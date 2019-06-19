@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
 
             var targetCategory = GetTargetCategory(targetGuid, spellId, out var target);
 
-            if (target == null)
+            if (target == null || target.Teleporting)
             {
                 SendUseDoneEvent(WeenieError.TargetNotAcquired);
                 return;

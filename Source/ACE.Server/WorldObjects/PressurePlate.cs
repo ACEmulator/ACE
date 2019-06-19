@@ -68,7 +68,7 @@ namespace ACE.Server.WorldObjects
 
             LastUseTime = currentTime;
 
-            player.EnqueueBroadcast(new GameMessageSound(player.Guid, (Sound)UseSound));
+            player.EnqueueBroadcast(new GameMessageSound(player.Guid, UseSound));
 
             // if target is door, only activate if closed?
             var target = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget));

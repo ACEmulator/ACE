@@ -416,7 +416,7 @@ namespace ACE.Server.WorldObjects
                 var weaponResistanceMod = GetWeaponResistanceModifier(source, attackSkill, Spell.DamageType);
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
-                finalDamage *= target.GetResistanceMod(resistanceType, false, weaponResistanceMod)
+                finalDamage *= target.GetResistanceMod(resistanceType, null, weaponResistanceMod)
                     * elementalDmgBonus * slayerBonus * shieldMod;
 
                 return finalDamage;

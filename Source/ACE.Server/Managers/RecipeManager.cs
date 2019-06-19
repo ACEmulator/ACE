@@ -244,10 +244,8 @@ namespace ACE.Server.Managers
                     var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
                     var exactMsg = templateMsg.Replace("%", percent + "%");
 
-                    var confirm = new Confirmation(ConfirmationType.CraftInteraction, floorMsg, tool, target, player);
-                    ConfirmationManager.AddConfirmation(confirm);
+                    player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, tool.Guid, target.Guid), floorMsg);
 
-                    player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.CraftInteraction, confirm.ConfirmationID, floorMsg));
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
 
                     player.SendUseDoneEvent();
@@ -281,12 +279,13 @@ namespace ACE.Server.Managers
                 Tinkering_ModifyItem(player, tool, target, incItemTinkered);
 
                 // send local broadcast
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}.", ChatMessageType.Craft), 96.0f);
+                if (incItemTinkered)
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}.", ChatMessageType.Craft), 96.0f);
             }
-            else
+            else if (incItemTinkered)
                 player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
 
-            CreateDestroyItems(player, recipe, tool, target, success);
+            CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
             if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
@@ -862,7 +861,7 @@ namespace ACE.Server.Managers
             return success;
         }
 
-        public static void CreateDestroyItems(Player player, Recipe recipe, WorldObject source, WorldObject target, bool success)
+        public static void CreateDestroyItems(Player player, Recipe recipe, WorldObject source, WorldObject target, bool success, bool sendMsg = true)
         {
             var destroyTargetChance = success ? recipe.SuccessDestroyTargetChance : recipe.FailDestroyTargetChance;
             var destroySourceChance = success ? recipe.SuccessDestroySourceChance : recipe.FailDestroySourceChance;
@@ -896,9 +895,17 @@ namespace ACE.Server.Managers
 
             ModifyItem(player, recipe, source, target, result, success);
 
-            var message = success ? recipe.SuccessMessage : recipe.FailMessage;
+            if (sendMsg)
+            {
+                // TODO: remove this in data for imbues
 
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
+                // suppress message for imbues w/ a chance of failure here,
+                // handled previously in local broadcast
+
+                var message = success ? recipe.SuccessMessage : recipe.FailMessage;
+
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
+            }
         }
 
         public static WorldObject CreateItem(Player player, uint wcid, uint amount)

@@ -30,7 +30,10 @@ namespace ACE.Server.WorldObjects
             var animLength = 0.0f;
             if (weapon.IsAmmoLauncher)
             {
-                animLength = EnqueueMotion(actionChain, MotionCommand.Reload);   // start pulling out next arrow
+                var animSpeed = GetAnimSpeed();
+                //Console.WriteLine($"AnimSpeed: {animSpeed}");
+
+                animLength = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);   // start pulling out next arrow
                 EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
             }
 

@@ -18,7 +18,6 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
-using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
@@ -48,6 +47,10 @@ namespace ACE.Server.WorldObjects
         public ACE.Entity.Position SnapPos;
 
         public SquelchDB Squelches;
+
+        public ConfirmationManager ConfirmationManager;
+
+        public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -139,6 +142,8 @@ namespace ACE.Server.WorldObjects
 
             QuestManager = new QuestManager(this);
 
+            ConfirmationManager = new ConfirmationManager(this);
+
             LastUseTracker = new Dictionary<int, DateTime>();
 
             LootPermission = new Dictionary<ObjectGuid, DateTime>();
@@ -203,26 +208,9 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
 
         /// <summary>
-        /// Enum used for the DoEatOrDrink() method
-        /// </summary>
-        public enum ConsumableBuffType : uint
-        {
-            Spell = 0,
-            Health = 2,
-            Stamina = 4,
-            Mana = 6
-        }
-
-        /// <summary>
         /// This tracks the contract tracker objects
         /// </summary>
         public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
-
-
-        public void CompleteConfirmation(ConfirmationType confirmationType, uint contextId)
-        {
-            Session.Network.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
-        }
 
 
         public MotionStance stance = MotionStance.NonCombat;
@@ -884,104 +872,21 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Method used to perform the animation, sound, and vital update on consumption of food or potions
+        /// Returns a modifier for a player's Run, Jump, Melee Defense, and Missile Defense skills if they are overburdened
         /// </summary>
-        /// <param name="consumableName">Name of the consumable</param>
-        /// <param name="sound">Either Sound.Eat1 or Sound.Drink1</param>
-        /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
-        /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
-        /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
-        public void ApplyConsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
+        public override float GetBurdenMod()
         {
-            IsBusy = true;
+            var strength = Strength.Current;
 
-            MotionCommand motionCommand;
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
 
-            if (sound == Sound.Eat1)
-                motionCommand = MotionCommand.Eat;
-            else
-                motionCommand = MotionCommand.Drink;
+            var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
-            // start the eat/drink motion
-            var motion = new Motion(MotionStance.NonCombat, motionCommand);
-            EnqueueBroadcastMotion(motion);
+            var burdenMod = EncumbranceSystem.GetBurdenMod(burden);
 
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var animTime = motionTable.GetAnimationLength(CurrentMotionState.Stance, motionCommand, MotionCommand.Ready);
+            //Console.WriteLine($"Burden mod: {burdenMod}");
 
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animTime);
-
-            actionChain.AddAction(this, () =>
-            {
-                GameMessageSystemChat buffMessage;
-
-                if (buffType == ConsumableBuffType.Spell)
-                {
-                    bool result = false;
-
-                    uint spellId = spellDID ?? 0;
-
-                    if (spellId != 0)
-                        result = CreateSingleSpell(spellId);
-
-                    if (result)
-                    {
-                        var spell = new Server.Entity.Spell(spellId);
-                        buffMessage = new GameMessageSystemChat($"{consumableName} casts {spell.Name} on you.", ChatMessageType.Magic);
-                    }
-                    else
-                        buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
-                }
-                else
-                {
-                    CreatureVital creatureVital;
-                    string vitalName;
-
-                    // Null check for safety
-                    if (boostAmount == null)
-                        boostAmount = 0;
-
-                    switch (buffType)
-                    {
-                        case ConsumableBuffType.Health:
-                            creatureVital = Health;
-                            vitalName = "Health";
-                            break;
-                        case ConsumableBuffType.Mana:
-                            creatureVital = Mana;
-                            vitalName = "Mana";
-                            break;
-                        default:
-                            creatureVital = Stamina;
-                            vitalName = "Stamina";
-                            break;
-                    }
-
-                    var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
-                    if (vitalName == "Health")
-                    {
-                        DamageHistory.OnHeal((uint)vitalChange);
-                        //if (Fellowship != null)
-                            //Fellowship.OnVitalUpdate(this);
-                    }
-
-                    buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
-                }
-
-                var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
-                EnqueueBroadcast(soundEvent);
-
-                Session.Network.EnqueueSend(buffMessage);
-
-                // return to original stance
-                var returnStance = new Motion(CurrentMotionState.Stance, MotionCommand.Ready);
-                EnqueueBroadcastMotion(returnStance);
-
-                IsBusy = false;
-            });
-
-           actionChain.EnqueueChain();
+            return burdenMod;
         }
 
         public bool Adminvision;

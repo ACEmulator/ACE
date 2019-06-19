@@ -1873,12 +1873,6 @@ namespace ACE.Server.WorldObjects
             set { if (value.HasValue) RemoveProperty(PropertyInt.ItemSpellcraft); else SetProperty(PropertyInt.ItemSpellcraft, value.Value); }
         }
 
-        public int? BoostEnum
-        {
-            get => GetProperty(PropertyInt.BoosterEnum);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, value.Value); }
-        }
-
         public double? HealkitMod
         {
             get => GetProperty(PropertyFloat.HealkitMod);
@@ -2370,6 +2364,8 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.FirstEnterWorldDone); else SetProperty(PropertyBool.FirstEnterWorldDone, value); }
         }
 
+        public WorldObjectInfo Owner;
+
         public uint? OwnerId
         {
             get => GetProperty(PropertyInstanceId.Owner);
@@ -2530,13 +2526,10 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.ActivationTalk); else SetProperty(PropertyString.ActivationTalk, value); }
         }
 
-        /// <summary>
-        /// The sound played when pressure plate is activated
-        /// </summary>
-        public uint UseSound
+        public Sound UseSound
         {
-            get => GetProperty(PropertyDataId.UseSound) ?? 0;
-            set { if (value == 0) RemoveProperty(PropertyDataId.UseSound); else SetProperty(PropertyDataId.UseSound, value); }
+            get => (Sound)(GetProperty(PropertyDataId.UseSound) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyDataId.UseSound); else SetProperty(PropertyDataId.UseSound, (uint)value); }
         }
 
         /* advocate */

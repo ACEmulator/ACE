@@ -266,7 +266,9 @@ namespace ACE.Server.WorldObjects
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
-            //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            if (MotionTableId != 0)
+                CurrentMotionState = new Motion(MotionStance.Invalid);
+
             if (WeenieType == WeenieType.Corpse)
                 HeartbeatInterval = 5;
         }

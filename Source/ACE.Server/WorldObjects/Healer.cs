@@ -45,13 +45,13 @@ namespace ACE.Server.WorldObjects
 
         public override void HandleActionUseOnTarget(Player healer, WorldObject target)
         {
-            if (healer.IsBusy)
+            if (healer.IsBusy || healer.Teleporting)
             {
                 healer.SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return;
             }
 
-            if (!(target is Player targetPlayer))
+            if (!(target is Player targetPlayer) || targetPlayer.Teleporting)
             {
                 healer.SendUseDoneEvent(WeenieError.YouCantHealThat);
                 return;

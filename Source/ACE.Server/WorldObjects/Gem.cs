@@ -53,6 +53,12 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return;
 
+            if (player.IsBusy || player.Teleporting)
+            {
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
             if (UseCreateContractId != null)
             {
                 ActOnUseContract(player);

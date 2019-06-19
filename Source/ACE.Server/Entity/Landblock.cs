@@ -404,12 +404,13 @@ namespace ACE.Server.Entity
                 ProcessPendingWorldObjectAdditionsAndRemovals();
 
                 // Decay world objects
-                foreach (var wo in worldObjects.Values)
+                if (lastHeartBeat != DateTime.MinValue)
                 {
-                    if (wo.IsDecayable() && lastHeartBeat != DateTime.MinValue)
-                        wo.Decay(thisHeartBeat - lastHeartBeat);
-                    else if (wo.IsDecayable() && lastHeartBeat == DateTime.MinValue)
-                        log.Warn($"Landblock {Id.ToString()}.Tick({currentUnixTime}).Landblock_Tick_Heartbeat: Skipping {wo.Name}.Decay({(thisHeartBeat - lastHeartBeat).ToString()}) | thisHeartBeat: {thisHeartBeat.ToString()} | lastHeartBeat: {lastHeartBeat.ToString()} | worldObjects.Count: {worldObjects.Count()}");
+                    foreach (var wo in worldObjects.Values)
+                    {
+                        if (wo.IsDecayable())
+                            wo.Decay(thisHeartBeat - lastHeartBeat);
+                    }
                 }
 
                 if (!Permaload)
@@ -597,9 +598,9 @@ namespace ACE.Server.Entity
                 {
                     wo.CurrentLandblock = null;
                     if (wo.Generator != null)
-                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid.Full:X8}:{wo.Generator.Name}");
+                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}");
                     else
-                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name}");
+                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name}");
                     return false;
                 }
             }

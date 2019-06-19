@@ -240,6 +240,9 @@ namespace ACE.Server.Managers
             var vassal = vassalNode.Player;
             var patron = patronNode.Player;
 
+            if (!vassal.ExistedBeforeAllegianceXpChanges)
+                return;
+
             var loyalty = Math.Min(vassal.GetCurrentLoyalty(), SkillCap);
             var leadership = Math.Min(patron.GetCurrentLeadership(), SkillCap);
 
@@ -409,16 +412,25 @@ namespace ACE.Server.Managers
             player.MonarchId = null;
 
             // vassals now become monarchs...
-            foreach (var vassal in allegianceNode.Vassals.Values)
+            foreach (var vassalNode in allegianceNode.Vassals.Values)
             {
-                var vassalPlayer = PlayerManager.FindByGuid(vassal.PlayerGuid, out bool isOnline);
+                var vassal = PlayerManager.FindByGuid(vassalNode.PlayerGuid);
 
-                if (vassalPlayer == null) continue;
+                if (vassal == null) continue;
 
-                vassalPlayer.PatronId = null;
-                vassalPlayer.MonarchId = null;
+                vassal.PatronId = null;
+                vassal.MonarchId = null;
 
-                players.Add(vassal.Player);
+                // walk the allegiance tree from this node, update monarch ids
+                vassalNode.Walk((node) =>
+                {
+                    node.Player.MonarchId = vassalNode.PlayerGuid.Full;
+
+                    node.Player.SaveBiotaToDatabase();
+
+                }, false);
+
+                players.Add(vassal);
             }
 
             RemoveCache(allegiance);
@@ -435,17 +447,7 @@ namespace ACE.Server.Managers
 
             // save immediately?
             foreach (var p in players)
-            {
-                var offline = PlayerManager.GetOfflinePlayer(p.Guid);
-                if (offline != null)
-                    offline.SaveBiotaToDatabase();
-                else
-                {
-                    var online = PlayerManager.GetOnlinePlayer(p.Guid);
-                    if (online != null)
-                        online.SaveBiotaToDatabase();
-                }
-            }
+                p.SaveBiotaToDatabase();
         }
     }
 }

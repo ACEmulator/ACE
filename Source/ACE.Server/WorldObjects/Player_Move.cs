@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
             if (target.WeenieType == WeenieType.Portal)
                 MoveToPosition(target.Location);
             else
-                MoveToObject(target);
+                MoveToObject(target, useRadius);
 
             moveToChainStartTime = DateTime.UtcNow;
 

@@ -1199,6 +1199,36 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
+        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f)
+        {
+            var motion = new Motion(stance, motionCommand, speed);
+
+            var animLength = 0.0f;
+
+            if (prevCommand == null)
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            else
+            {
+                var isStance = Enum.IsDefined(typeof(MotionStance), (uint)prevCommand);
+
+                if (isStance)
+                    animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, (MotionStance)prevCommand, motionCommand, (MotionCommand)stance, speed);
+                else
+                    animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand.Value, motionCommand, speed);
+            }
+
+            actionChain.AddAction(this, () =>
+            {
+                CurrentMotionState = motion;
+
+                EnqueueBroadcastMotion(motion);
+            });
+
+            actionChain.AddDelaySeconds(animLength);
+            return animLength;
+        }
+
+
         public static bool EnqueueBroadcastMotion_Physics = true;
 
         public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null)

@@ -52,6 +52,16 @@ namespace ACE.Server.WorldObjects
             return (EncumbranceVal + worldObject.EncumbranceVal <= (GetEncumbranceCapacity() * 3));
         }
 
+        public bool HasEnoughBurdenToAddToInventory(int totalEncumbranceToCheck)
+        {
+            return (EncumbranceVal + totalEncumbranceToCheck <= (GetEncumbranceCapacity() * 3));
+        }
+
+        public int GetAvailableBurden()
+        {
+            return (GetEncumbranceCapacity() * 3) - EncumbranceVal ?? 0;
+        }
+
         public bool HasEnoughBurdenToAddToInventory(List<WorldObject> worldObjects)
         {
             var burdenTotal = 0;
@@ -2119,7 +2129,7 @@ namespace ACE.Server.WorldObjects
                                     if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                         RushNextPlayerSave(5);
 
-                                    log.Info($"{Name} (0x{Guid.Full:X8}) traded in a IOU (0x{iouToTurnIn.Guid.Full:X8}) for {wcid} which became {item.Name} (0x{item.Guid.Full:X8}).");
+                                    log.Info($"{Name} (0x{Guid}) traded in a IOU (0x{iouToTurnIn.Guid}) for {wcid} which became {item.Name} (0x{item.Guid}).");
                                 }
                                 return;
                             }

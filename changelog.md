@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-17
+[Ripley]
+* Prevent using Hookers if they aren't hooked.
+
 ### 2019-06-09
 [Ripley]
 * Prevent using contained Container (R keybind).
