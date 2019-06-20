@@ -46,7 +46,7 @@ namespace ACE.Server.Network
         public Player Player { get; private set; }
 
 
-        private DateTime logOffRequestTime;
+        public DateTime logOffRequestTime;
 
         public SessionTerminationDetails PendingTermination { get; set; } = null;
 
@@ -177,9 +177,10 @@ namespace ACE.Server.Network
         {
             if (logOffRequestTime == DateTime.MinValue)
             {
-                Player.LogOut();
+                var result = Player.LogOut();
 
-                logOffRequestTime = DateTime.UtcNow;
+                if (result)
+                    logOffRequestTime = DateTime.UtcNow;
             }
         }
 

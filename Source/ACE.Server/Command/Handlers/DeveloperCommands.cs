@@ -2052,7 +2052,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("makeiou", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Make an IOU and put it in your inventory","<wcid>")]
+        [CommandHandler("makeiou", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Make an IOU and put it in your inventory", "<wcid>")]
         public static void HandleMakeIOU(Session session, params string[] parameters)
         {
             string weenieClassDescription = parameters[0];
@@ -2143,26 +2143,35 @@ namespace ACE.Server.Command.Handlers
         /// This is to add spells to items (whether loot or quest generated).  For making weapons to check damage from pcaps or other sources
         /// </summary>
         [CommandHandler("additemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "/additemspell <spell id> - adds a spell to the last appraised item. Ex /additemspell 6089 - adds Legendary Bloodthirst")]
-        public static void HandleAddItemSpell (Session session, params string[] parameters)
+        public static void HandleAddItemSpell(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
 
-            // Convert to Uint and see if its a number
             if (!int.TryParse(parameters[0], out var spellId))
                 return;
 
-            //Check to see if Spell ID is valid spell
-            var spell = new Spell(spellId, true);
-            if (spell.NotFound == true)
+            // ensure valid spell id
+            var spell = new Spell(spellId);
+
+            if (spell.NotFound)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat("SpellID is not found", ChatMessageType.Broadcast));
                 return;
             }
+
             obj.Biota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
 
             var msg = spellAdded ? "added to" : "already on";
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("pktimer", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void HandlePKTimer(Session session, params string[] parameters)
+        {
+            session.Player.UpdatePKTimer();
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Updated PK timer", ChatMessageType.Broadcast));
         }
 
         [CommandHandler("fellow-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
