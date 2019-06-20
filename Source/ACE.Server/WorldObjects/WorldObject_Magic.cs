@@ -181,7 +181,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines whether the target for the spell being cast is invalid
         /// </summary>
-        protected bool IsInvalidTarget(Spell spell, WorldObject target)
+        protected bool IsInvalidTarget(Player caster, Spell spell, WorldObject target)
         {
             var targetPlayer = target as Player;
             var targetCreature = target as Creature;
@@ -216,11 +216,18 @@ namespace ACE.Server.WorldObjects
             }
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
-            if ((spell.Name.Contains("Aura of")) && (spell.School == MagicSchool.ItemEnchantment))
+            if (spell.Name.Contains("Aura of") && spell.School == MagicSchool.ItemEnchantment)
             {
                 if (targetCreature == null)
                     return true;
             }
+
+            // brittlemail / lure / other negative item spells cannot be cast with player as target
+
+            // TODO: by end of retail, players couldn't cast any negative spells on themselves
+            // this feature is currently in ace for dev testing...
+            if (caster == target && spell.IsNegativeRedirectable)
+                return true;
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
@@ -234,7 +241,7 @@ namespace ACE.Server.WorldObjects
                     || (target.WeenieType == WeenieType.Missile)
                     || (target.WeenieType == WeenieType.Door)
                     || (target.WeenieType == WeenieType.Chest)
-                    || (target.CombatUse != null && target.CombatUse == ACE.Entity.Enum.CombatUse.Shield))
+                    || target.IsShield)
                     return false;
 
                 return true;
@@ -695,6 +702,12 @@ namespace ACE.Server.WorldObjects
                 {
                     case SpellType.PortalRecall:
 
+                        if (player != null && player.PKTimerActive)
+                        {
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                            break;
+                        }
+
                         PositionType recall = PositionType.Undef;
                         uint? recallDID = null;
 
@@ -810,6 +823,12 @@ namespace ACE.Server.WorldObjects
 
                         if (targetPlayer != null)
                         {
+                            if (targetPlayer.PKTimerActive)
+                            {
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                break;
+                            }
+
                             ActionChain portalSendingChain = new ActionChain();
                             //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
                             portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
@@ -828,6 +847,12 @@ namespace ACE.Server.WorldObjects
 
                         if (targetPlayer != null && targetPlayer.Fellowship != null)
                         {
+                            if (targetPlayer.PKTimerActive)
+                            {
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                break;
+                            }
+
                             ActionChain portalSendingChain = new ActionChain();
                             //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
                             var fellows = targetPlayer.Fellowship.GetFellowshipMembers().Values;
@@ -904,6 +929,12 @@ namespace ACE.Server.WorldObjects
                         break;
 
                     case SpellType.PortalSummon:
+
+                        if (player != null && player.PKTimerActive)
+                        {
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                            break;
+                        }
 
                         var source = player != null ? player : itemCaster;
 

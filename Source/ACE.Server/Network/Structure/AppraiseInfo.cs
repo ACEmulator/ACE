@@ -26,6 +26,7 @@ namespace ACE.Server.Network.Structure
         public ushort SpellId { get; set; }
         public _EnchantmentState EnchantmentState { get; set; }
     }
+
     /// <summary>
     /// Handles calculating and sending all object appraisal info
     /// </summary>
@@ -60,15 +61,7 @@ namespace ACE.Server.Network.Structure
         public ArmorLevel ArmorLevels;
 
         // This helps ensure the item will identify properly. Some "items" are technically "Creatures".
-        private bool NPCLooksLikeObject; 
-
-        /// <summary>
-        /// Construct all of the info required for appraising any WorldObject
-        /// </summary>
-        public AppraiseInfo(WorldObject wo, Player examiner, bool success = true)
-        {
-            generateAppraisalInfo(wo, examiner, success);
-        }
+        private bool NPCLooksLikeObject;
 
         public AppraiseInfo()
         {
@@ -76,7 +69,15 @@ namespace ACE.Server.Network.Structure
             Success = false;
         }
 
-        private void generateAppraisalInfo(WorldObject wo, Player examiner, bool success = true)
+        /// <summary>
+        /// Construct all of the info required for appraising any WorldObject
+        /// </summary>
+        public AppraiseInfo(WorldObject wo, Player examiner, bool success = true)
+        {
+            BuildProfile(wo, examiner, success);
+        }
+
+        public void BuildProfile(WorldObject wo, Player examiner, bool success = true)
         {
             //Console.WriteLine("Appraise: " + wo.Guid);
             Success = success;
@@ -163,7 +164,7 @@ namespace ACE.Server.Network.Structure
                     WorldObject hookedItem = hook.Inventory.First().Value;
 
                     // Hooked items have a custom "description", containing the desc of the sub item and who the owner of the house is (if any)
-                    generateAppraisalInfo(hookedItem, examiner, success);
+                    BuildProfile(hookedItem, examiner, success);
                     string baseDescString = "";
                     if (wo.ParentLink.HouseOwner != null)
                     {
