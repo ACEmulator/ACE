@@ -2194,7 +2194,7 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
             }
         }
-      
+
         [CommandHandler("generatordump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Lists all properties for the last generator you examined.",
             "")]
@@ -2295,7 +2295,8 @@ namespace ACE.Server.Command.Handlers
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.System));
             }
-  
+        }
+
         [CommandHandler("purchase-house", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandlePurchaseHouse(Session session, params string[] parameters)
         {
