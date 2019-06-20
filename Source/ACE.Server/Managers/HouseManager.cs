@@ -280,9 +280,16 @@ namespace ACE.Server.Managers
                 return false;
             }
 
-            var rank = player.AllegianceNode != null ? player.AllegianceNode.Rank : 0;
+            // ensure allegiance is loaded
+            var allegiance = AllegianceManager.GetAllegiance(player);
 
-            if (player.Allegiance == null || rank < allegianceMinLevel)
+            AllegianceNode allegianceNode = null;
+            if (allegiance != null)
+                allegiance.Members.TryGetValue(player.Guid, out allegianceNode);
+
+            var rank = allegianceNode != null ? allegianceNode.Rank : 0;
+
+            if (allegiance == null || rank < allegianceMinLevel)
             {
                 log.Info($"{playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
                 return false;

@@ -1184,20 +1184,36 @@ namespace ACE.Server.WorldObjects
             return iterator.CurrentLandblock == null ? null : iterator;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, MotionStance? _stance = null)
         {
-            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+            var stance = MotionStance.NonCombat;
+            if (_stance != null)
+                stance = _stance.Value;
+            else if (CurrentMotionState != null)
+                stance = CurrentMotionState.Stance;
+
+            if (CurrentMotionState == null)
+                log.Warn($"{Name} ({Guid}).EnqueueMotion({motionCommand}, {speed}, {stance}): CurrentMotionState == null");
 
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
-            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand);
+            var animLength = 0.0f;
+
+            if (CurrentMotionState == null || CurrentMotionState.Stance == stance)
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            else
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand, (MotionCommand)stance, speed);
 
             actionChain.AddAction(this, () =>
             {
                 CurrentMotionState = motion;
+
                 EnqueueBroadcastMotion(motion);
             });
+
+            if (CurrentMotionState != null && stance != CurrentMotionState.Stance)
+                CurrentMotionState.Stance = stance;
 
             actionChain.AddDelaySeconds(animLength);
             return animLength;

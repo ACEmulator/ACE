@@ -15,6 +15,7 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -304,6 +305,17 @@ namespace ACE.Server.WorldObjects
         public bool TryAddToInventory(WorldObject worldObject, int placementPosition = 0, bool limitToMainPackOnly = false)
         {
             return TryAddToInventory(worldObject, out _, placementPosition, limitToMainPackOnly);
+        }
+
+        /// <summary>
+        /// Returns TRUE if there are enough free inventory slots and burden available to add items
+        /// </summary>
+        public bool CanAddToInventory(int totalContainerObjectsToAdd, int totalInventoryObjectsToAdd, int totalBurdenToAdd)
+        {
+            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(totalBurdenToAdd))
+                return false;
+
+            return (GetFreeContainerSlots() >= totalContainerObjectsToAdd) && (GetFreeInventorySlots() >= totalInventoryObjectsToAdd);
         }
 
         /// <summary>

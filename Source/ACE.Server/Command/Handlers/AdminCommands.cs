@@ -2513,7 +2513,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("cisalvage", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCISalvage(Session session, params string[] parameters)
         {
-            if (!Enum.TryParse(parameters[0], out MaterialType materialType))
+            if (!Enum.TryParse(parameters[0], true, out MaterialType materialType))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find material type {parameters[0]}", ChatMessageType.Broadcast));
                 return;

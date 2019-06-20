@@ -5,6 +5,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -45,49 +46,45 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionTargetedMeleeAttack(uint targetGuid, uint attackHeight, float powerLevel)
         {
-            /*Console.WriteLine("HandleActionTargetedMeleeAttack");
-            Console.WriteLine("Target ID: " + guid.Full.ToString("X8"));
-            Console.WriteLine("Attack height: " + attackHeight);
-            Console.WriteLine("Power level: " + powerLevel);*/
-
-            // sanity check
+            // verify input
             powerLevel = Math.Clamp(powerLevel, 0.0f, 1.0f);
 
             AttackHeight = (AttackHeight)attackHeight;
             PowerLevel = powerLevel;
 
-            // get world object of target guid
+            // already in melee loop?
+            if (MeleeTarget != null)
+                return;
+
+            // get world object for target creature
             var target = CurrentLandblock?.GetObject(targetGuid);
+
             if (target == null)
             {
-                log.Warn($"Unknown target guid {targetGuid:X8}");
+                log.Warn($"{Name}.HandleActionTargetdMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
                 return;
             }
+
             var creatureTarget = target as Creature;
             if (creatureTarget == null)
             {
-                log.Warn($"Target GUID not creature {targetGuid:X8}");
+                log.Warn($"{Name}.HandleActionTargetdMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - target guid not creature");
                 return;
             }
 
-            if (MeleeTarget == null)
+            // perform verifications
+            if (IsBusy || Teleporting)
             {
-                MeleeTarget = target;
-                AttackTarget = MeleeTarget;
-            }
-            else
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
+            }
 
-            // get distance from target
-            var dist = GetDistance(target);
+            if (target.Teleporting)
+                return;     // werror?
 
-            // get angle to target
-            var angle = GetAngle(target);
+            MeleeTarget = target;
+            AttackTarget = MeleeTarget;
 
-            //Console.WriteLine("Dist: " + dist);
-            //Console.WriteLine("Angle: " + angle);
-
-            // turn / moveto if required
             if (IsStickyDistance(target) && IsDirectVisible(target))
             {
                 // sticky melee
@@ -99,6 +96,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                // turn / move to required
                 if (GetCharacterOption(CharacterOption.UseChargeAttack))
                 {
                     // charge attack
@@ -106,7 +104,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    // move to
+                    
                     CreateMoveToChain(target, (success) =>
                     {
                         if (success)

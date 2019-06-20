@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -8,6 +9,8 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Spell = ACE.Server.Entity.Spell;
 
 namespace ACE.Server.WorldObjects
 {
@@ -55,6 +58,60 @@ namespace ACE.Server.WorldObjects
             }
 
             return coinStacks;
+        }
+
+        public int PreCheckItem(uint weenieClassId, int amount, int playerFreeContainerSlots, int playerFreeInventorySlots, int playerFreeAvailableBurden, out int requiredEncumbrance, out bool isContainer)
+        {
+            var itemStacks = 0;
+            requiredEncumbrance = 0;
+            isContainer = false;
+
+            var item = DatabaseManager.World.GetCachedWeenie(weenieClassId);
+
+            if (item != null)
+            {
+                var isVendorService = item.GetProperty(PropertyBool.VendorService) ?? false;
+                if (isVendorService)
+                    return 0;
+
+                var weenieType = (WeenieType)item.Type;
+
+                isContainer = item.GetProperty(PropertyBool.RequiresBackpackSlot) ?? false || weenieType == WeenieType.Container;
+
+                var isStackable = weenieType == WeenieType.Stackable || weenieType == WeenieType.Food || weenieType == WeenieType.Coin || weenieType == WeenieType.CraftTool
+                    || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
+
+                var itemStackUnitEncumbrance = isStackable ? (item.GetProperty(PropertyInt.StackUnitEncumbrance).HasValue ? item.GetProperty(PropertyInt.StackUnitEncumbrance) ?? 0 : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0) : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0;
+                var itemStackMaxStackSize = isStackable ? item.GetProperty(PropertyInt.MaxStackSize) ?? 1 : 1;
+
+                if (!isStackable)
+                {
+                    requiredEncumbrance = itemStackUnitEncumbrance;
+                    return amount;
+                }
+
+                while (amount > 0)
+                {
+                    // amount contains a max stack
+                    if (itemStackMaxStackSize <= amount)
+                    {
+                        itemStacks++;
+                        requiredEncumbrance += itemStackUnitEncumbrance * itemStackMaxStackSize;
+                        amount -= itemStackMaxStackSize;
+                    }
+                    else // not a full stack
+                    {
+                        itemStacks++;
+                        requiredEncumbrance += itemStackUnitEncumbrance * amount;
+                        amount -= amount;
+                    }
+
+                    if (itemStacks > playerFreeInventorySlots || requiredEncumbrance > playerFreeAvailableBurden)
+                        break;
+                }
+            }
+
+            return itemStacks;
         }
 
         private List<WorldObject> SpendCurrency(uint amount, WeenieType type)
@@ -176,7 +233,10 @@ namespace ACE.Server.WorldObjects
                 SpendCurrency(goldcost, WeenieType.Coin);
 
                 foreach (WorldObject wo in uqlist)
+                {
+                    wo.RemoveProperty(PropertyFloat.SoldTimestamp);
                     TryCreateInInventoryWithNetworking(wo);
+                }
 
                 foreach (var gen in genlist)
                 {
@@ -248,6 +308,8 @@ namespace ACE.Server.WorldObjects
         // Game Action Handlers - Sell Item
         // ================================
 
+        private const uint coinStackWeenieClassId = 273;
+
         /// <summary>
         /// Client Calls this when Sell is clicked.
         /// </summary>
@@ -295,6 +357,34 @@ namespace ACE.Server.WorldObjects
             }
 
             var payoutCoinAmount = vendor.CalculatePayoutCoinAmount(sellList);
+
+            if (payoutCoinAmount < 0)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Transaction failed."));
+                log.Warn($"{Name} (0x({Guid}) tried to sell something to {vendor.Name} (0x{vendor.Guid}) resulting in a payout of {payoutCoinAmount} pyreals.");
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
+                SendUseDoneEvent();
+                return;
+            }
+
+            var playerFreeInventorySlots = GetFreeInventorySlots();
+            var playerAvailableBurden = GetAvailableBurden();
+
+            var numberOfCoinStacksToCreate = PreCheckItem(coinStackWeenieClassId, payoutCoinAmount, 0, GetFreeInventorySlots(), GetAvailableBurden(), out var totalEncumburanceOfCoinStacks, out _);
+
+            var playerDoesNotHaveEnoughPackSpace = playerFreeInventorySlots < numberOfCoinStacksToCreate;
+            var playerDoesNotHaveEnoughBurdenCapacity = playerAvailableBurden < totalEncumburanceOfCoinStacks;
+
+            if (playerDoesNotHaveEnoughPackSpace || playerDoesNotHaveEnoughBurdenCapacity)
+            {
+                if (playerDoesNotHaveEnoughBurdenCapacity)
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to sell that!"));
+                else // if (playerDoesNotHaveEnoughPackSpace)
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You do not have enough free pack space to sell that!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
+                SendUseDoneEvent();
+                return;
+            }
 
             var payoutCoinStacks = CreatePayoutCoinStacks(payoutCoinAmount);
 

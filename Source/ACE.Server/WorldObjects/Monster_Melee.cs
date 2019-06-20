@@ -292,8 +292,11 @@ namespace ACE.Server.WorldObjects
         /// Returns the percent of damage absorbed by layered armor + clothing
         /// </summary>
         /// <param name="armors">The list of armor/clothing covering the targeted body part</param>
-        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, bool ignoreMagicResist, bool ignoreMagicArmor, float armorRendingMod = 1.0f)
+        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject weapon, float armorRendingMod = 1.0f)
         {
+            var ignoreMagicArmor  = weapon != null ? weapon.IgnoreMagicArmor : false;
+            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
+
             var effectiveAL = 0.0f;
 
             foreach (var armor in armors)

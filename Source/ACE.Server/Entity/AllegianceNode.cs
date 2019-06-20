@@ -101,5 +101,21 @@ namespace ACE.Server.Entity
             foreach (var vassal in Vassals.Values)
                 vassal.ShowInfo(depth + 1);
         }
+
+        public void OnLevelUp()
+        {
+            // patron = self node
+            var patronLevel = Player.Level ?? 1;
+
+            // find vassals who are not passing xp
+            foreach (var vassal in Vassals.Values.Where(i => !i.Player.ExistedBeforeAllegianceXpChanges))
+            {
+                var vassalLevel = vassal.Player.Level ?? 1;
+
+                // check if vassal now meets criteria for passing xp
+                if (patronLevel >= vassalLevel)
+                    vassal.Player.ExistedBeforeAllegianceXpChanges = true;
+            }
+        }
     }
 }

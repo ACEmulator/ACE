@@ -26,15 +26,18 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Main entry point for getting the armor mod
         /// </summary>
-        public float GetArmorMod(DamageType damageType, List<WorldObject> armorLayers, bool ignoreMagicResist, bool ignoreMagicArmor, float armorRendingMod = 1.0f)
+        public float GetArmorMod(DamageType damageType, List<WorldObject> armorLayers, WorldObject weapon, float armorRendingMod = 1.0f)
         {
-            var effectiveArmorVsType = GetEffectiveArmorVsType(damageType, armorLayers, ignoreMagicResist, ignoreMagicArmor, armorRendingMod);
+            var effectiveArmorVsType = GetEffectiveArmorVsType(damageType, armorLayers, weapon, armorRendingMod);
 
             return SkillFormula.CalcArmorMod(effectiveArmorVsType);
         }
 
-        public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, bool ignoreMagicResist, bool ignoreMagicArmor, float armorRendingMod = 1.0f)
+        public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, WorldObject weapon, float armorRendingMod = 1.0f)
         {
+            var ignoreMagicArmor  = weapon != null ? weapon.IgnoreMagicArmor : false;
+            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
+
             // get base AL / RL
             var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
 

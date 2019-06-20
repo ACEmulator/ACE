@@ -701,7 +701,7 @@ namespace ACE.Server.Command.Handlers
             {
                 string parsePositionString = parameters[0].Length > 3 ? parameters[0].Substring(0, 3) : parameters[0];
 
-                if (Enum.TryParse(parsePositionString, out PositionType positionType))
+                if (Enum.TryParse(parsePositionString, true, out PositionType positionType))
                 {
                     if (session.Player.TeleToPosition(positionType))
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{PositionType.Location} {session.Player.Location}", ChatMessageType.Broadcast));
@@ -741,7 +741,7 @@ namespace ACE.Server.Command.Handlers
                 // The enum labels max character length has been observered as length 19
                 // int value can be: 0-27
 
-                if (Enum.TryParse(parsePositionString, out PositionType positionType))
+                if (Enum.TryParse(parsePositionString, true, out PositionType positionType))
                 {
                     if (positionType != PositionType.Undef)
                     {
@@ -823,7 +823,7 @@ namespace ACE.Server.Command.Handlers
                     try
                     {
                         var amount = aceParams[1].AsLong;
-                        aceParams[0].AsPlayer.GrantXP(amount, XpType.Admin, false); 
+                        aceParams[0].AsPlayer.GrantXP(amount, XpType.Admin, ShareType.None); 
 
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted.", ChatMessageType.Advancement));
 
@@ -1577,7 +1577,7 @@ namespace ACE.Server.Command.Handlers
 
             }
 
-            if (!Enum.TryParse(pType, propName, out var result))
+            if (!Enum.TryParse(pType, propName, true, out var result))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
                 return;
@@ -1648,7 +1648,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (!Enum.TryParse(pType, propName, out var result))
+            if (!Enum.TryParse(pType, propName, true, out var result))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
                 return;
@@ -2052,7 +2052,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("makeiou", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Make an IOU and put it in your inventory","<wcid>")]
+        [CommandHandler("makeiou", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Make an IOU and put it in your inventory", "<wcid>")]
         public static void HandleMakeIOU(Session session, params string[] parameters)
         {
             string weenieClassDescription = parameters[0];
@@ -2143,28 +2143,78 @@ namespace ACE.Server.Command.Handlers
         /// This is to add spells to items (whether loot or quest generated).  For making weapons to check damage from pcaps or other sources
         /// </summary>
         [CommandHandler("additemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "/additemspell <spell id> - adds a spell to the last appraised item. Ex /additemspell 6089 - adds Legendary Bloodthirst")]
-        public static void HandleAddItemSpell (Session session, params string[] parameters)
+        public static void HandleAddItemSpell(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
 
-            // Convert to Uint and see if its a number
             if (!int.TryParse(parameters[0], out var spellId))
                 return;
 
-            //Check to see if Spell ID is valid spell
-            var spell = new Spell(spellId, true);
-            if (spell.NotFound == true)
+            // ensure valid spell id
+            var spell = new Spell(spellId);
+
+            if (spell.NotFound)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat("SpellID is not found", ChatMessageType.Broadcast));
                 return;
             }
+
             obj.Biota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
 
             var msg = spellAdded ? "added to" : "already on";
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
+        }
 
+        [CommandHandler("pktimer", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void HandlePKTimer(Session session, params string[] parameters)
+        {
+            session.Player.UpdatePKTimer();
 
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Updated PK timer", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("fellow-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleFellowInfo(Session session, params string[] parameters)
+        {
+            var player = session.Player;
+
+            var fellowship = player.Fellowship;
+
+            if (fellowship == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("You must be in a fellowship to use this command.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var fellows = fellowship.GetFellowshipMembers();
+
+            //var levelSum = fellows.Values.Select(f => f.Level.Value).Sum();
+            var levelXPSum = fellows.Values.Select(f => f.GetXPToNextLevel(f.Level.Value)).Sum();
+
+            // this should match up with the client
+            foreach (var fellow in fellows.Values.OrderBy(f => f.Level))
+            {
+                //var levelScale = (double)fellow.Level.Value / levelSum;
+                var levelXPScale = (double)fellow.GetXPToNextLevel(fellow.Level.Value) / levelXPSum;
+
+                //session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelScale * 100, 2)}% / {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
+            }
+        }
+
+        [CommandHandler("purchase-house", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandlePurchaseHouse(Session session, params string[] parameters)
+        {
+            var slumlord = CommandHandlerHelper.GetLastAppraisedObject(session) as SlumLord;
+
+            if (slumlord == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("Couldn't find slumlord", ChatMessageType.Broadcast));
+                return;
+            }
+            session.Player.SetHouseOwner(slumlord);
+            session.Player.GiveDeed();
         }
     }
 }

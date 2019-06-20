@@ -1,5 +1,21 @@
 # ACEmulator Change Log
 
+### 2019-06-19
+[Ripley]
+* Fire EmoteManager.OnDrop when an item is dropped to landblock. (Clutch of Kings (Rehir))
+
+### 2019-06-18
+[OptimShi]
+* Added code to use the Setup of a piece of clothing to visually equip it if no ClothingBase exists. This specifically applies to Ursuin Guise, WCID 32155, but may apply to others in the future.
+
+[Ripley]
+* Prevent using Hookers if house isn't owned or is closed and player isn't on guestlist.
+* Fix gems that cast recall spells.
+
+### 2019-06-17
+[Ripley]
+* Prevent using Hookers if they aren't hooked.
+
 ### 2019-06-09
 [Ripley]
 * Prevent using contained Container (R keybind).
