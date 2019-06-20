@@ -451,6 +451,7 @@ namespace ACE.Server.Managers
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
                 ("log_audit", true),                        // if disabled, audit channel is not logged.
+                ("spellcast_recoil_queue", false),  // if true, players can queue the next spell to cast during recoil animation
                 ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
                 ("pk_server", false),               // set this to TRUE for darktide servers
                 ("quest_info_enabled", false),      // toggles the /myquests player command

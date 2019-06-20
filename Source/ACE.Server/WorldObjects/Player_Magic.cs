@@ -8,6 +8,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
@@ -537,12 +538,19 @@ namespace ACE.Server.WorldObjects
 
         public void FinishCast(WeenieError useDone)
         {
+            var queue = PropertyManager.GetBool("spellcast_recoil_queue").Item;
+
+            if (queue)
+                MagicState.OnCastDone();
+
             // return to magic ready stance
             var actionChain = new ActionChain();
             EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, true);
             actionChain.AddAction(this, () =>
             {
-                MagicState.OnCastDone();
+                if (!queue)
+                    MagicState.OnCastDone();
+
                 SendUseDoneEvent(useDone);
             });
             actionChain.EnqueueChain();
