@@ -965,6 +965,8 @@ namespace ACE.Server.WorldObjects
                         new GameMessageUpdatePosition(item));
 
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+
+                    item.EmoteManager.OnDrop(this);
                 }
                 else
                 {

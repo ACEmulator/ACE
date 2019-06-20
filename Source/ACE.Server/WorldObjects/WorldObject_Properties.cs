@@ -2382,8 +2382,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.FirstEnterWorldDone); else SetProperty(PropertyBool.FirstEnterWorldDone, value); }
         }
 
-        public WorldObjectInfo Owner;
-
         public uint? OwnerId
         {
             get => GetProperty(PropertyInstanceId.Owner);
