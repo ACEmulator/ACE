@@ -704,24 +704,24 @@ namespace ACE.Server.WorldObjects
                         {
                             case SpellId.PortalRecall:       // portal recall
 
-                                if (player.LastPortalDID == null)
+                                if (targetPlayer.LastPortalDID == null)
                                 {
                                     // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
                                 {
                                     recall = PositionType.LastPortal;
-                                    recallDID = player.LastPortalDID;
+                                    recallDID = targetPlayer.LastPortalDID;
                                 }
                                 break;
 
                             case SpellId.LifestoneRecall1:   // lifestone recall
 
-                                if (player.GetPosition(PositionType.LinkedLifestone) == null)
+                                if (targetPlayer.GetPosition(PositionType.LinkedLifestone) == null)
                                 {
                                     // You must link to a lifestone to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToLifestoneToRecall));
                                 }
                                 else
                                     recall = PositionType.LinkedLifestone;
@@ -738,29 +738,29 @@ namespace ACE.Server.WorldObjects
 
                             case SpellId.PortalTieRecall1:   // primary portal tie recall
 
-                                if (player.LinkedPortalOneDID == null)
+                                if (targetPlayer.LinkedPortalOneDID == null)
                                 {
                                     // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
                                 {
                                     recall = PositionType.LinkedPortalOne;
-                                    recallDID = player.LinkedPortalOneDID;
+                                    recallDID = targetPlayer.LinkedPortalOneDID;
                                 }
                                 break;
 
                             case SpellId.PortalTieRecall2:   // secondary portal tie recall
 
-                                if (player.LinkedPortalTwoDID == null)
+                                if (targetPlayer.LinkedPortalTwoDID == null)
                                 {
                                     // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
                                 {
                                     recall = PositionType.LinkedPortalTwo;
-                                    recallDID = player.LinkedPortalTwoDID;
+                                    recallDID = targetPlayer.LinkedPortalTwoDID;
                                 }
                                 break;
                         }
@@ -782,11 +782,11 @@ namespace ACE.Server.WorldObjects
                                 var portal = GetPortal(recallDID.Value);
                                 if (portal == null) break;
 
-                                var result = portal.CheckUseRequirements(player);
+                                var result = portal.CheckUseRequirements(targetPlayer);
                                 if (!result.Success)
                                 {
                                     if (result.Message != null)
-                                        player.Session.Network.EnqueueSend(result.Message);
+                                        targetPlayer.Session.Network.EnqueueSend(result.Message);
 
                                     break;
                                 }

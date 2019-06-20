@@ -10,6 +10,7 @@
 
 [Ripley]
 * Prevent using Hookers if house isn't owned or is closed and player isn't on guestlist.
+* Fix gems that cast recall spells.
 
 ### 2019-06-17
 [Ripley]
