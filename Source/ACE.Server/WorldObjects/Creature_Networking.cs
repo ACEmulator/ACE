@@ -108,7 +108,15 @@ namespace ACE.Server.WorldObjects
                     if (w.ClothingBase.HasValue)
                         item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)w.ClothingBase);
                     else
+                    {
+                        objDesc = AddSetupAsClothingBase(objDesc, w);
+                        // Add any potentially added parts back into the coverage list
+                        foreach(var a in objDesc.AnimPartChanges)
+                            if (!coverage.Contains(a.PartIndex))
+                                coverage.Add(a.PartIndex);
                         continue;
+                    }
+                        
 
                     if (item.ClothingBaseEffects.ContainsKey(thisSetupId))
                     // Check if the player model has data. Gear Knights, this is usually you.
@@ -204,6 +212,22 @@ namespace ACE.Server.WorldObjects
 
             return objDesc;
         }
+
+        /// <summary>
+        /// Certain items do not contain a ClothingBase. Ursuin Guise, WCID 32155 is one of them. This function will use the Setup of the weenie as a pseudo-ClothingBase.
+        /// </summary>
+        protected ACE.Entity.ObjDesc AddSetupAsClothingBase(ACE.Entity.ObjDesc objDesc, WorldObject wo)
+        {
+            // Loop over the parts in the Setup of the WorldObject
+            for (var i = 0; i < wo.CSetup.Parts.Count; i++)
+            {
+                if(wo.CSetup.Parts[i] != 0x010001EC || i != 16) // This is essentially a "null" part, so do not add it for the head
+                    objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)i, PartID = wo.CSetup.Parts[i] });
+            }
+
+            return objDesc;
+        }
+
 
         protected static void WriteIdentifyObjectCreatureProfile(BinaryWriter writer, Creature creature, bool success)
         {

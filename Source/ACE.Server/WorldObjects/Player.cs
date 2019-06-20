@@ -434,7 +434,30 @@ namespace ACE.Server.WorldObjects
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
-        public void LogOut(bool clientSessionTerminatedAbruptly = false)
+        public bool LogOut(bool clientSessionTerminatedAbruptly = false)
+        {
+            if (PKLogoutActive)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(20.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    LogOut_Inner(clientSessionTerminatedAbruptly);
+                    Session.logOffRequestTime = DateTime.UtcNow;
+                });
+                actionChain.EnqueueChain();
+                return false;
+            }
+
+            LogOut_Inner(clientSessionTerminatedAbruptly);
+
+            return true;
+        }
+
+        public void LogOut_Inner(bool clientSessionTerminatedAbruptly = false)
         {
             if (Fellowship != null)
                 FellowshipQuit(false);
@@ -444,7 +467,7 @@ namespace ACE.Server.WorldObjects
                 var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
 
                 if (tradePartner != null)
-                    tradePartner.HandleActionCloseTradeNegotiations(tradePartner.Session);                
+                    tradePartner.HandleActionCloseTradeNegotiations(tradePartner.Session);
             }
 
             if (!clientSessionTerminatedAbruptly)
@@ -797,7 +820,7 @@ namespace ACE.Server.WorldObjects
 
             // calculate stamina cost for this jump
             var extent = Math.Clamp(jump.Extent, 0.0f, 1.0f);
-            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, false);
+            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, PKTimerActive);
 
             //Console.WriteLine($"Strength: {strength}, Capacity: {capacity}, Encumbrance: {EncumbranceVal ?? 0}, Burden: {burden}, StaminaCost: {staminaCost}");
 

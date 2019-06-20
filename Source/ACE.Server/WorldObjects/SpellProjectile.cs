@@ -365,6 +365,9 @@ namespace ACE.Server.WorldObjects
 
             bool isPVP = sourcePlayer != null && targetPlayer != null;
 
+            if (isPVP && Spell.IsHarmful)
+                Player.UpdatePKTimers(sourcePlayer, targetPlayer);
+
             var elementalDmgBonus = GetCasterElementalDamageModifier(source, target, Spell.DamageType);
 
             // Possible 2x + damage bonus for the slayer property
