@@ -372,8 +372,10 @@ namespace ACE.Server.WorldObjects
                 {
                     var windupTime = EnqueueMotion(castChain, windupGesture, CastSpeed);
 
-                    //Console.WriteLine($"Windup Gesture: " + windupGesture);
-                    //Console.WriteLine($"Windup time: " + windupTime);
+                    /*Console.WriteLine($"{spell.Name}");
+                    Console.WriteLine($"Windup Gesture: " + windupGesture);
+                    Console.WriteLine($"Windup time: " + windupTime);
+                    Console.WriteLine("-------");*/
                 }
             }
         }
