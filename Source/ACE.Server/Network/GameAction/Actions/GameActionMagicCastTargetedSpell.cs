@@ -1,3 +1,4 @@
+using System;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -8,6 +9,8 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var targetGuid = message.Payload.ReadUInt32();
             var spellId = message.Payload.ReadUInt32();
+
+            //Console.WriteLine($"{session.Player.Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId})");
 
             session.Player.HandleActionCastTargetedSpell(targetGuid, spellId);
         }

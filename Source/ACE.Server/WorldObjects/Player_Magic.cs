@@ -72,11 +72,16 @@ namespace ACE.Server.WorldObjects
         public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false)
         {
             //Console.WriteLine($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell}");
+            if (!VerifyBusy())
+                return;
 
             // verify spell is contained in player's spellbook,
             // or in the weapon's spellbook in the case of built-in spells
             if (!VerifySpell(spellId, builtInSpell))
+            {
+                SendUseDoneEvent(WeenieError.MagicInvalidSpellType);
                 return;
+            }
 
             var targetCategory = GetTargetCategory(targetGuid, spellId, out var target);
 
@@ -165,6 +170,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionMagicCastUnTargetedSpell(uint spellId)
         {
+            if (!VerifyBusy())
+                return;
+
             // verify spell is contained in player's spellbook,
             // or in the weapon's spellbook in the case of built-in spells
             if (!VerifySpell(spellId))
@@ -529,12 +537,14 @@ namespace ACE.Server.WorldObjects
 
         public void FinishCast(WeenieError useDone)
         {
-            MagicState.OnCastDone();
-
             // return to magic ready stance
             var actionChain = new ActionChain();
             EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, true);
-            actionChain.AddAction(this, () => SendUseDoneEvent(useDone));
+            actionChain.AddAction(this, () =>
+            {
+                MagicState.OnCastDone();
+                SendUseDoneEvent(useDone);
+            });
             actionChain.EnqueueChain();
         }
 
