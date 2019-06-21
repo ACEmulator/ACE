@@ -965,6 +965,8 @@ namespace ACE.Server.WorldObjects
                         new GameMessageUpdatePosition(item));
 
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+
+                    item.EmoteManager.OnDrop(this);
                 }
                 else
                 {
@@ -1815,7 +1817,11 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (!removedFromInventory)
-                    sourceStack.Destroy();
+                {
+                    if (pickedUpFromLandblock)
+                        sourceStack.NotifyOfEvent(RegenerationType.PickUp);
+                    sourceStack.Destroy(false);
+                }
 
                 if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
                     return false;

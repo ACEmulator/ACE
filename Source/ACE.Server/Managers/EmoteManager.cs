@@ -324,7 +324,7 @@ namespace ACE.Server.Managers
                 case EmoteType.Generate:
 
                     if (WorldObject.IsGenerator)
-                        WorldObject.Generator_HeartBeat();
+                        WorldObject.Generator_Regeneration();
                     break;
 
                 case EmoteType.Give:
@@ -354,7 +354,10 @@ namespace ACE.Server.Managers
                         {
                             var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
                             var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
-                            player.Session.Network.EnqueueSend(msg, sound);
+                            if (!(WorldObject.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
+                                player.Session.Network.EnqueueSend(msg, sound);
+                            else
+                                player.Session.Network.EnqueueSend(sound);
 
                             if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                 player.RushNextPlayerSave(5);

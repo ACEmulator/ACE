@@ -59,6 +59,17 @@ namespace ACE.Server.WorldObjects
             SuppressGenerateEffect = true;
         }
 
+        protected override void OnInitialInventoryLoadCompleted()
+        {
+            if (Level.HasValue)
+            {
+                var dtTimeToRot = DateTime.UtcNow.AddSeconds(TimeToRot ?? 0);
+                var tsDecay = dtTimeToRot - DateTime.UtcNow;
+
+                log.Info($"{Name} 0x({Guid.ToString()}) Reloaded from Database: Corpse Level: {Level ?? 0} | InventoryLoaded: {InventoryLoaded} | Inventory.Count: {Inventory.Count} | TimeToRot: {TimeToRot} | CreationTimestamp: {CreationTimestamp} ({Time.GetDateTimeFromTimestamp(CreationTimestamp ?? 0).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}) | Corpse should not decay before: {dtTimeToRot.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}, {tsDecay.ToString("%d")} day(s), {tsDecay.ToString("%h")} hours, {tsDecay.ToString("%m")} minutes, and {tsDecay.ToString("%s")} seconds from now.");
+            }
+        }
+
         /// <summary>
         /// Sets the object description for a corpse
         /// </summary>
@@ -102,7 +113,7 @@ namespace ACE.Server.WorldObjects
 
             Level = player.Level ?? 1;
 
-            log.Info($"{Name}.RecalculateDecayTime({player.Name}): Player Level: {player.Level} | Inventory.Count: {Inventory.Count} | TimeToRot: {TimeToRot} | CreationTimestamp: {CreationTimestamp} ({Time.GetDateTimeFromTimestamp(CreationTimestamp ?? 0).ToString()}) | Corpse should not decay before: {dtTimeToRot.ToString()}, {tsDecay.ToString("%d")} day(s), {tsDecay.ToString("%h")} hours, {tsDecay.ToString("%m")} minutes, and {tsDecay.ToString("%s")} seconds from now.");
+            log.Info($"{Name}.RecalculateDecayTime({player.Name}): Player Level: {player.Level} | Inventory.Count: {Inventory.Count} | TimeToRot: {TimeToRot} | CreationTimestamp: {CreationTimestamp} ({Time.GetDateTimeFromTimestamp(CreationTimestamp ?? 0).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}) | Corpse should not decay before: {dtTimeToRot.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}, {tsDecay.ToString("%d")} day(s), {tsDecay.ToString("%h")} hours, {tsDecay.ToString("%m")} minutes, and {tsDecay.ToString("%s")} seconds from now.");
         }
 
         /// <summary>

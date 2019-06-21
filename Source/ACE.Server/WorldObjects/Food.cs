@@ -116,12 +116,12 @@ namespace ACE.Server.WorldObjects
                     buffMessage = new GameMessageSystemChat($"{Name} casts {spell.Name} on you.", ChatMessageType.Magic);
                 }
                 else
-                    buffMessage = new GameMessageSystemChat($"{Name} has invalid spell id {SpellDID}", ChatMessageType.Broadcast);
+                    buffMessage = new GameMessageSystemChat($"{Name} has invalid spell id {spellID}", ChatMessageType.Broadcast);
             }
             // vitals
             else
             {
-                var maxVital = BoostEnum + 1;
+                var maxVital = BoostEnum - 1;
 
                 if (player.Vitals.TryGetValue(maxVital, out var vital))
                 {

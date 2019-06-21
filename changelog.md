@@ -1,7 +1,91 @@
 # ACEmulator Change Log
 
-### 2019-06-10
+### 2019-06-21
 [Ripley]
+* Generator system revamp
+  - Add Landblock_Tick_GeneratorRegeneration
+  - Split up Generator Regeneration and Heartbeats
+  - Notify Geneator of Pickup of Landblock Stackable
+  - Add RegenerationTimestamp and GeneratedTreasureItem properties
+  - Add InitializeGenerator
+  - Remove IsLinked
+  - Change SelectProfilesInit to use GetMaxObjects
+  - Change SelectProfilesMax to use GetMaxObjects
+  - Update GetMaxObjects
+    - -1 MaxCreate == Fill up all slots
+  - Renamed HandleStatus to HandleStatusStaged
+  - Restore previous HandleStatus
+  - Update StartGenerator
+    - GeneratorInitialDelay > 0: offset NextGeneratorRegenerationTime
+    - else if InitCreate > 0: Regen
+  - Add GetNextRegenerationTime
+    - If generator isn't previously loaded, skip delay
+  - Update DisableGenerator
+    -  Add ProcessGeneratorDestructionDirective
+    - Support GeneratorDestructionType and GeneratorEndDestructionType
+  - Update AddGeneratorLinks
+    - Increment InitCreate and MaxCreate per profile template spec (placeholder), per each link added
+  - Update Generator_HeartBeat
+    - Starts/Stops Generator, checks event status
+  - Add Generator_Regeneration
+    - Queues for Respawn and/or/both Spawns objects
+  - Add ResetGenerator
+  - Update GetSpawnTime to always return UtcNow
+  - Update Spawn
+    - If TreasureGenerator is used, set GeneratedTreasureItem
+    - If profile PaletteId and/or/both Shade have value, use it
+  - Wire up `@regen` command
+  - Add `@generatordump` command
+  - Change EmoteType.Generate to use Generator_Regeneration
+  - Update OnDeath to call OnGeneratorDeath for Generators
+  - Update OnActivate
+    - Move default action to last action to allow other actions to start before
+    - Change OnGenerate to use Generator_Regeneration
+  - Update Chests
+    - Remove ResetGenerator
+    - If Locked disable timed regen of contents
+    - Update Reset
+    - Override ResetGenerator
+    - Update ResetInterval resetting
+  - Rename Generator to GeneratorProfile
+  - Rename Generator.cs to GeneratorProfile.cs
+  - Update WorldObject_Generators.cs
+    - Skip PlaceHolder object profiles
+    - Change ProcessGeneratorDestructionDirective to not affect dead/dying creatures
+  - Update WorldObject_Generators.cs
+    - Bad data protection
+  - Code fix for linkitemgen2minutes
+    - Bad Init/Max for this linkable
+  - Add GeneratorUpdateTimestamp
+  - GeneratorHeartbeat renamed to GeneratorUpdate
+    - This matches property found in enum
+
+* Stop saving Gateway portals to Shard DB
+* Add IsGateway to Portal
+* Add default sound to Pressure Plates
+* Update Corpse Decay Logging
+* Do not change default icon unless Shade or Palette was defined
+* Add NpcInteractsSilently handling for EmoteType.Give
+* Wire up `trophies` command
+
+### 2019-06-19
+[Ripley]
+* Fire EmoteManager.OnDrop when an item is dropped to landblock. (Clutch of Kings (Rehir))
+
+### 2019-06-18
+[OptimShi]
+* Added code to use the Setup of a piece of clothing to visually equip it if no ClothingBase exists. This specifically applies to Ursuin Guise, WCID 32155, but may apply to others in the future.
+
+[Ripley]
+* Prevent using Hookers if house isn't owned or is closed and player isn't on guestlist.
+* Fix gems that cast recall spells.
+
+### 2019-06-17
+[Ripley]
+* Prevent using Hookers if they aren't hooked.
+
+### 2019-06-10
+[Ripley, Mag-nus]
 * Add `2019-06-10-00-Add_Fields_To_Account_Table.sql` to Auth Updates folder. Required to update Auth database.
 * Rescaffolded to add in new fields to Account.
 * Add in creation ip/time and last login ip/time to account creation/login.

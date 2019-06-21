@@ -30,6 +30,9 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
+    /// <summary>
+    /// Base Object for Game World
+    /// </summary>
     public abstract partial class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -90,6 +93,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeGenerator();
             InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
@@ -108,6 +112,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeGenerator();
             InitializeHeartbeats();
         }
 
@@ -253,9 +258,7 @@ namespace ACE.Server.WorldObjects
                 ephemeralPositions.TryAdd((PositionType)x, null);
 
             foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
-                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
-
-            AddGeneratorProfiles();
+                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);            
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
@@ -265,7 +268,9 @@ namespace ACE.Server.WorldObjects
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
-            //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            if (MotionTableId != 0)
+                CurrentMotionState = new Motion(MotionStance.Invalid);
+
             if (WeenieType == WeenieType.Corpse)
                 HeartbeatInterval = 5;
         }
