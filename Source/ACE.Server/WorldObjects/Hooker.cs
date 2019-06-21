@@ -41,10 +41,19 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (Owner != null && Owner.WeenieType != WeenieType.Hook)
+            if (!OwnerId.HasValue || OwnerId.Value == 0)
                 return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemOnlyUsableOnHook, Name));
-            else if (Owner == null)
+
+            var wo = player.CurrentLandblock.GetObject(OwnerId.Value);
+
+            if (wo == null)
                 return new ActivationResult(false);
+
+            if (!(wo is Hook hook))
+                return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemOnlyUsableOnHook, Name));
+
+            if (!hook.HouseOwner.HasValue || hook.HouseOwner.Value == 0 || (!hook.House.OpenStatus && !hook.House.HasPermission(player)))
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouAreNotPermittedToUseThatHook));
 
             var baseRequirements = base.CheckUseRequirements(activator);
             if (!baseRequirements.Success)
