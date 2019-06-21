@@ -1482,10 +1482,12 @@ namespace ACE.Server.Command.Handlers
         }
 
         // god
-        [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0, "Specalizes all skills and then sets attributes and skills to higher than max levels.")]
         public static void HandleGod(Session session, params string[] parameters)
         {
             // @god - Sets your own stats to a godly level.
+
+            session.Player.DoNotSave = true;
 
             session.Player.TotalExperience = 191226310247;
             session.Player.Level = 999;
@@ -1527,14 +1529,10 @@ namespace ACE.Server.Command.Handlers
 
             session.Player.SetMaxVitals();
 
-            session.Player.ChangesDetected = true;
-
             session.Player.PlayParticleEffect(PlayScript.LevelUp, session.Player.Guid);
             session.Player.PlayParticleEffect(PlayScript.BaelZharonSmite, session.Player.Guid);
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
-
-            session.Player.SaveCharacterToDatabase();
         }
 
         // magic god

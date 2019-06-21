@@ -18,7 +18,25 @@ namespace ACE.Server.WorldObjects
         /// This variable is set to true when a change is made, and set to false before a save is requested.<para />
         /// The primary use for this is to trigger save on add/modify/remove of properties.
         /// </summary>
-        public bool ChangesDetected { get; set; }
+        private bool changesDetected;
+        public bool ChangesDetected
+        {
+            get
+            {
+                return changesDetected;
+            }
+            set
+            {
+                if(DoNotSave)
+                {
+                     changesDetected = false;
+                }
+                else
+                {
+                    changesDetected = value;
+                }
+            }
+        }
 
         /// <summary>
         /// Best practice says you should use this lock any time you read/write the Biota.<para />
@@ -46,6 +64,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void SaveBiotaToDatabase(bool enqueueSave = true)
         {
+            if(DoNotSave) { return; }
+
             // Make sure all of our positions in the biota are up to date with our current cached values.
             foreach (var kvp in positionCache)
                 Biota.SetPosition(kvp.Key, kvp.Value, BiotaDatabaseLock, out _);
@@ -95,6 +115,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsStaticThatShouldPersistToShard()
         {
+            if (DoNotSave)
+                return false;
+
             if (!Guid.IsStatic())
                 return false;
 
@@ -132,6 +155,9 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public bool IsDynamicThatShouldPersistToShard()
         {
+            if (DoNotSave)
+                return false;
+
             if (!Guid.IsDynamic())
                 return false;
 

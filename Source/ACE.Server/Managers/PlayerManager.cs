@@ -299,7 +299,18 @@ namespace ACE.Server.Managers
                 if (!onlinePlayers.Remove(player.Guid.Full, out _))
                     return false; // This should never happen
 
-                var offlinePlayer = new OfflinePlayer(player.Biota);
+                OfflinePlayer offlinePlayer;
+
+                if (player.DoNotSave)
+                {
+                    //reload player biota from database, only Admin should get here via the /god command
+                    var restoreBiota = DatabaseManager.Shard.GetBiota(player.Guid.Full);
+                    offlinePlayer = new OfflinePlayer(restoreBiota);
+                }
+                else
+                {
+                    offlinePlayer = new OfflinePlayer(player.Biota);
+                }
 
                 offlinePlayer.Allegiance = player.Allegiance;
                 offlinePlayer.AllegianceNode = player.AllegianceNode;

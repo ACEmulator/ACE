@@ -66,6 +66,7 @@ namespace ACE.Server.Entity
 
         public DateTime LastRequestedDatabaseSave { get; protected set; }
 
+        public bool DoNotSave { get; set; }
         public bool ChangesDetected { get; set; }
 
         public readonly ReaderWriterLockSlim BiotaDatabaseLock = new ReaderWriterLockSlim();
