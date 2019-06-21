@@ -216,9 +216,9 @@ namespace ACE.Server.Physics.Common
             WorldObject.HandleMotionDone(motionID, success);
         }
 
-        public void OnMoveComplete(WeenieError status)
+        public void OnMoveComplete(WeenieError status, int cycles)
         {
-            WorldObject.OnMoveComplete(status);
+            WorldObject.OnMoveComplete(status, cycles);
         }
 
         public void OnSticky()

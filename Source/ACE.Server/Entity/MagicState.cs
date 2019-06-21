@@ -37,6 +37,8 @@ namespace ACE.Server.Entity
 
         public bool CastTurn { get; set; }
 
+        public bool CastTurnStarted { get; set; }
+
         public bool Launched { get; set; }
 
         public CastSpellParams CastSpellParams { get; set; }
@@ -62,6 +64,7 @@ namespace ACE.Server.Entity
             Launched = false;
             WindupTurn = false;
             CastTurn = false;
+            CastTurnStarted = false;
 
             if (Player.UnderLifestoneProtection)
                 Player.LifestoneProtectionDispel();
@@ -78,6 +81,7 @@ namespace ACE.Server.Entity
             Launched = false;
             WindupTurn = false;
             CastTurn = false;
+            CastTurnStarted = false;
 
             CastSpellParams = null;
         }

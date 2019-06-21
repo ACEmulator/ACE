@@ -32,6 +32,7 @@ namespace ACE.Server.Physics.Animation
         public List<MovementNode> PendingActions;
         public PhysicsObj PhysicsObj;
         public WeenieObject WeenieObj;
+        public int Cycles;      // temporary for debugging
 
         public MoveToManager()
         {
@@ -570,6 +571,7 @@ namespace ACE.Server.Physics.Animation
         public void HandleTurnToHeading()
         {
             //Console.WriteLine("HandleTurnToHeading");
+            Cycles++;
 
             if (PhysicsObj == null)
             {
@@ -689,6 +691,8 @@ namespace ACE.Server.Physics.Animation
 
         public void CancelMoveTo(WeenieError retval)
         {
+            //Console.WriteLine($"CancelMoveTo({retval})");
+
             if (MovementType == MovementType.Invalid)
                 return;
 
@@ -723,7 +727,8 @@ namespace ACE.Server.Physics.Animation
                 PhysicsObj.StopCompletely(false);
 
             // server custom
-            WeenieObj.OnMoveComplete(status);
+            WeenieObj.OnMoveComplete(status, Cycles);
+            Cycles = 0;
         }
 
         public float GetCurrentDistance()

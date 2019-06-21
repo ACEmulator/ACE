@@ -177,17 +177,17 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        public override void OnMoveComplete(WeenieError status)
+        public override void OnMoveComplete(WeenieError status, int cycles)
         {
-            //Console.WriteLine($"{Name}.OnMoveComplete({status})");
+            //Console.WriteLine($"{Name}.OnMoveComplete({status}, IsMoving={IsMoving}, IsPlayerMovingTo={IsPlayerMovingTo}, IsCasting={MagicState.IsCasting}, CastTurn={MagicState.CastTurn}, Cycles={cycles})");
             IsMoving = false;
 
             if (IsPlayerMovingTo)
             {
-                OnMoveComplete_MoveTo(status);
+                OnMoveComplete_MoveTo(status, cycles);
 
                 if (MagicState.IsCasting)
-                    OnMoveComplete_Magic(status);
+                    OnMoveComplete_Magic(status, cycles);
 
                 return;
             }

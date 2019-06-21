@@ -439,6 +439,7 @@ namespace ACE.Server.WorldObjects
             CreateTurnToChain(target, null);
 
             MagicState.CastTurn = true;
+            MagicState.CastTurnStarted = true;
         }
 
         public Position StartPos;
@@ -554,6 +555,8 @@ namespace ACE.Server.WorldObjects
                     MagicState.OnCastDone();
 
                 SendUseDoneEvent(useDone);
+
+                //Console.WriteLine("====================================");
             });
             actionChain.EnqueueChain();
         }
@@ -1103,9 +1106,9 @@ namespace ACE.Server.WorldObjects
             DoCastSpell(MagicState);
         }
 
-        public void OnMoveComplete_Magic(WeenieError status)
+        public void OnMoveComplete_Magic(WeenieError status, int cycles)
         {
-            if (!MagicState.IsCasting || !MagicState.CastTurn || status != WeenieError.None)
+            if (!MagicState.IsCasting || !MagicState.CastTurnStarted || status != WeenieError.None)
                 return;
 
             // this occurs after a normal secondary turn

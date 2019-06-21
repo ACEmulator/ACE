@@ -114,11 +114,11 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public override void OnMoveComplete(WeenieError status)
+        public override void OnMoveComplete(WeenieError status, int cycles)
         {
             //Console.WriteLine($"{Name}.OnMoveComplete({status})");
 
-            base.OnMoveComplete(status);
+            base.OnMoveComplete(status, cycles);
 
             if (status != WeenieError.None)
                 return;

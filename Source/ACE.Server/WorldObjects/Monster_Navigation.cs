@@ -132,7 +132,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when the MoveTo process has completed
         /// </summary>
-        public override void OnMoveComplete(WeenieError status)
+        public override void OnMoveComplete(WeenieError status, int cycles)
         {
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - OnMoveComplete({status})");

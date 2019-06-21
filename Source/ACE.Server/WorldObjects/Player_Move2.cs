@@ -109,7 +109,7 @@ namespace ACE.Server.WorldObjects
             return mvp;
         }
 
-        public void OnMoveComplete_MoveTo(WeenieError status)
+        public void OnMoveComplete_MoveTo(WeenieError status, int cycles)
         {
             if (DebugPlayerMoveToStatePhysics)
                 Console.WriteLine($"{Name}.OnMoveComplete_MoveTo({status})");
