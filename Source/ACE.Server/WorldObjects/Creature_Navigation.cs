@@ -65,6 +65,11 @@ namespace ACE.Server.WorldObjects
             return Vector3.Normalize(Vector3.Transform(Vector3.UnitY, PhysicsObj.Position.Frame.Orientation));
         }
 
+        public float GetAngle_Physics2(WorldObject target)
+        {
+            return PhysicsObj.Position.heading_diff(target.PhysicsObj.Position);
+        }
+
         /// <summary>
         /// Returns the 2D angle between current direction
         /// and rotation from an input position

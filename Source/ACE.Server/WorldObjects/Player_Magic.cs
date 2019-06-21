@@ -420,8 +420,8 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // do second rotate, if applicable
-                var angle = GetAngle_Physics(target);
-                //Console.WriteLine("Angle: " + angle);
+                //var angle = GetAngle_Physics(target);
+                var angle = Math.Abs(GetAngle_Physics2(target));
 
                 if (angle > MaxAngle)
                 {
