@@ -355,7 +355,7 @@ namespace ACE.Server.WorldObjects
             return isVisible;
         }
 
-        public bool IsDirectVisible(WorldObject wo, Position pos)
+        public bool IsDirectVisible(Position pos)
         {
             if (PhysicsObj == null)
                 return false;
@@ -1049,5 +1049,7 @@ namespace ACE.Server.WorldObjects
                     currentMotion = CurrentMotionState.MotionState.ForwardCommand;
             }
         }
+
+        public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
     }
 }
