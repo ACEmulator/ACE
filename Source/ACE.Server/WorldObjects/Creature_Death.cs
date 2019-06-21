@@ -33,6 +33,9 @@ namespace ACE.Server.WorldObjects
 
             OnDeath_GrantXP();
 
+            if (IsGenerator)
+                OnGeneratorDeath();
+
             return GetDeathMessage(lastDamager, damageType, criticalHit);
         }
 

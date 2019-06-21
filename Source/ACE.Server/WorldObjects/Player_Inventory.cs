@@ -1817,7 +1817,11 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (!removedFromInventory)
-                    sourceStack.Destroy();
+                {
+                    if (pickedUpFromLandblock)
+                        sourceStack.NotifyOfEvent(RegenerationType.PickUp);
+                    sourceStack.Destroy(false);
+                }
 
                 if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
                     return false;

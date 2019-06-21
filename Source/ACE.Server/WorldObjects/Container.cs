@@ -587,6 +587,23 @@ namespace ACE.Server.WorldObjects
             DoOnOpenMotionChanges();
 
             SendInventory(player);
+
+            if (!(this is Chest) && !ResetMessagePending && ResetInterval.HasValue)
+            {
+                var actionChain = new ActionChain();
+                if (ResetInterval.Value < 15)
+                    actionChain.AddDelaySeconds(15);
+                else
+                    actionChain.AddDelaySeconds(ResetInterval.Value);
+                actionChain.AddAction(this, Reset);
+                //actionChain.AddAction(this, () =>
+                //{
+                //    Close(player);
+                //});
+                actionChain.EnqueueChain();
+
+                ResetMessagePending = true;
+            }
         }
 
         protected virtual float DoOnOpenMotionChanges()
@@ -663,11 +680,24 @@ namespace ACE.Server.WorldObjects
 
                 player.Session.Network.EnqueueSend(itemsToSend.ToArray());*/
             }
+
         }
 
         public virtual void Reset()
         {
-            // do reset stuff here
+            var player = CurrentLandblock.GetObject(Viewer) as Player;
+
+            if (IsOpen)
+                Close(player);
+
+            //if (IsGenerator)
+            //{
+            //    ResetGenerator();
+            //    if (InitCreate > 0)
+            //        Generator_Regeneration();
+            //}
+
+            ResetMessagePending = false;
         }
 
         private void GenerateContainList()
