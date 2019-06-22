@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-22
+[Ripley]
+* Fix issue with food consumables ObjectDescriptionFlag.
+
 ### 2019-06-21
 [Ripley]
 * Generator system revamp
