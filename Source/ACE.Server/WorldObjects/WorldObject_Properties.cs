@@ -201,14 +201,8 @@ namespace ACE.Server.WorldObjects
         }
         public void IncProperty(PropertyFloat property, double value)
         {
-            if (ephemeralPropertyFloats.ContainsKey(property))
-                ephemeralPropertyFloats[property] += value;
-            else
-            {
-                Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyFloats, out var biotaChanged);
-                if (biotaChanged)
-                    ChangesDetected = true;
-            }
+            var prop = GetProperty(property) ?? 0;
+            SetProperty(property, prop + value);
         }
         public void SetProperty(PropertyInstanceId property, uint value)
         {
@@ -234,14 +228,8 @@ namespace ACE.Server.WorldObjects
         }
         public void IncProperty(PropertyInt property, int value)
         {
-            if (ephemeralPropertyInts.ContainsKey(property))
-                ephemeralPropertyInts[property] += value;
-            else
-            {
-                Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInts, out var biotaChanged);
-                if (biotaChanged)
-                    ChangesDetected = true;
-            }
+            var prop = GetProperty(property) ?? 0;
+            SetProperty(property, prop + value);
         }
         public void SetProperty(PropertyInt64 property, long value)
         {
@@ -944,10 +932,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseRadius); else SetProperty(PropertyFloat.UseRadius, value.Value); }
         }
 
-        public int? TargetType
+        public ItemType? TargetType
         {
-            get => GetProperty(PropertyInt.TargetType);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.TargetType); else SetProperty(PropertyInt.TargetType, value.Value); }
+            get => (ItemType?)GetProperty(PropertyInt.TargetType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.TargetType); else SetProperty(PropertyInt.TargetType, (int)value.Value); }
         }
 
         public UiEffects? UiEffects
@@ -1029,6 +1017,69 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.WieldDifficulty);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldDifficulty); else SetProperty(PropertyInt.WieldDifficulty, (int)value); }
+        }
+
+        public WieldRequirement WieldRequirements2
+        {
+            get => (WieldRequirement)(GetProperty(PropertyInt.WieldRequirements2) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WieldRequirements2); else SetProperty(PropertyInt.WieldRequirements2, (int)value); }
+        }
+
+        /// <summary>
+        /// can also be used for attributes
+        /// </summary>
+        public int? WieldSkillType2
+        {
+            get => GetProperty(PropertyInt.WieldSkillType2);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType2); else SetProperty(PropertyInt.WieldSkillType2, value.Value); }
+        }
+
+        public int? WieldDifficulty2
+        {
+            get => GetProperty(PropertyInt.WieldDifficulty2);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldDifficulty2); else SetProperty(PropertyInt.WieldDifficulty2, (int)value); }
+        }
+
+        public WieldRequirement WieldRequirements3
+        {
+            get => (WieldRequirement)(GetProperty(PropertyInt.WieldRequirements3) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WieldRequirements3); else SetProperty(PropertyInt.WieldRequirements3, (int)value); }
+        }
+
+        /// <summary>
+        /// can also be used for attributes
+        /// </summary>
+        public int? WieldSkillType3
+        {
+            get => GetProperty(PropertyInt.WieldSkillType3);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType3); else SetProperty(PropertyInt.WieldSkillType3, value.Value); }
+        }
+
+        public int? WieldDifficulty3
+        {
+            get => GetProperty(PropertyInt.WieldDifficulty3);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldDifficulty3); else SetProperty(PropertyInt.WieldDifficulty3, (int)value); }
+        }
+
+        public WieldRequirement WieldRequirements4
+        {
+            get => (WieldRequirement)(GetProperty(PropertyInt.WieldRequirements4) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WieldRequirements4); else SetProperty(PropertyInt.WieldRequirements4, (int)value); }
+        }
+
+        /// <summary>
+        /// can also be used for attributes
+        /// </summary>
+        public int? WieldSkillType4
+        {
+            get => GetProperty(PropertyInt.WieldSkillType4);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType4); else SetProperty(PropertyInt.WieldSkillType4, value.Value); }
+        }
+
+        public int? WieldDifficulty4
+        {
+            get => GetProperty(PropertyInt.WieldDifficulty4);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldDifficulty4); else SetProperty(PropertyInt.WieldDifficulty4, (int)value); }
         }
 
         public int? ItemAllegianceRankLimit
@@ -1128,6 +1179,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.NumItemsInMaterial);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.NumItemsInMaterial); else SetProperty(PropertyInt.NumItemsInMaterial, value.Value); }
+        }
+
+        public int? AppraisalLongDescDecoration
+        {
+            get => GetProperty(PropertyInt.AppraisalLongDescDecoration);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalLongDescDecoration); else SetProperty(PropertyInt.AppraisalLongDescDecoration, value.Value); }
         }
 
         public float? Workmanship
@@ -1252,6 +1309,18 @@ namespace ACE.Server.WorldObjects
         {
             get => (MaterialType?)GetProperty(PropertyInt.MaterialType);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaterialType); else SetProperty(PropertyInt.MaterialType, (int)value.Value); }
+        }
+
+        public MaterialType? GemType
+        {
+            get => (MaterialType?)GetProperty(PropertyInt.GemType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GemType); else SetProperty(PropertyInt.GemType, (int)value.Value); }
+        }
+
+        public int? GemCount
+        {
+            get => GetProperty(PropertyInt.GemCount);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GemCount); else SetProperty(PropertyInt.GemCount, (int)value.Value); }
         }
 
         public int? Attuned
@@ -1804,12 +1873,6 @@ namespace ACE.Server.WorldObjects
             set { if (value.HasValue) RemoveProperty(PropertyInt.ItemSpellcraft); else SetProperty(PropertyInt.ItemSpellcraft, value.Value); }
         }
 
-        public int? BoostEnum
-        {
-            get => GetProperty(PropertyInt.BoosterEnum);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, value.Value); }
-        }
-
         public double? HealkitMod
         {
             get => GetProperty(PropertyFloat.HealkitMod);
@@ -1924,10 +1987,34 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyFloat.RegenerationInterval); else SetProperty(PropertyFloat.RegenerationInterval, value); }
         }
 
+        public double RegenerationTimestamp
+        {
+            get => GetProperty(PropertyFloat.RegenerationTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.RegenerationTimestamp); else SetProperty(PropertyFloat.RegenerationTimestamp, value); }
+        }
+
+        public double GeneratorUpdateTimestamp
+        {
+            get => GetProperty(PropertyFloat.GeneratorUpdateTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.GeneratorUpdateTimestamp); else SetProperty(PropertyFloat.GeneratorUpdateTimestamp, value); }
+        }
+
         public bool GeneratorEnteredWorld
         {
             get => GetProperty(PropertyBool.GeneratorEnteredWorld) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value); }
+        }
+
+        public bool GeneratedTreasureItem
+        {
+            get => GetProperty(PropertyBool.GeneratedTreasureItem) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.GeneratedTreasureItem); else SetProperty(PropertyBool.GeneratedTreasureItem, value); }
+        }
+
+        public int? TsysMutationData
+        {
+            get => GetProperty(PropertyInt.TsysMutationData);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.TsysMutationData); else SetProperty(PropertyInt.TsysMutationData, value.Value); }
         }
 
         /// <summary>
@@ -2159,7 +2246,6 @@ namespace ACE.Server.WorldObjects
             set { SetPosition(PositionType.TeleportedCharacter, value); }
         }
 
-
         public uint? CurrentCombatTarget
         {
             get => GetProperty(PropertyInstanceId.CurrentCombatTarget);
@@ -2263,10 +2349,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IgnorePortalRestrictions); else SetProperty(PropertyBool.IgnorePortalRestrictions, value); }
         }
 
-        public bool? Invincible
+        public bool Invincible
         {
-            get => GetProperty(PropertyBool.Invincible);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Invincible); else SetProperty(PropertyBool.Invincible, value.Value); }
+            get => GetProperty(PropertyBool.Invincible) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Invincible); else SetProperty(PropertyBool.Invincible, value); }
         }
 
         public int? XpOverride
@@ -2456,13 +2542,10 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.ActivationTalk); else SetProperty(PropertyString.ActivationTalk, value); }
         }
 
-        /// <summary>
-        /// The sound played when pressure plate is activated
-        /// </summary>
-        public uint UseSound
+        public Sound UseSound
         {
-            get => GetProperty(PropertyDataId.UseSound) ?? 0;
-            set { if (value == 0) RemoveProperty(PropertyDataId.UseSound); else SetProperty(PropertyDataId.UseSound, value); }
+            get => (Sound)(GetProperty(PropertyDataId.UseSound) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyDataId.UseSound); else SetProperty(PropertyDataId.UseSound, (uint)value); }
         }
 
         /* advocate */
@@ -2493,7 +2576,7 @@ namespace ACE.Server.WorldObjects
 
         public int? ResistLockpick
         {
-            get => GetProperty(PropertyInt.ResistLockpick) ?? 0;
+            get => GetProperty(PropertyInt.ResistLockpick);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
         }
 

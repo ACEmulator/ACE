@@ -188,7 +188,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (House == null) LoadHouse();
-            if (House == null) return;
+            if (House == null || House.SlumLord == null) return;
 
             var purchaseTime = (uint)(HousePurchaseTimestamp ?? 0);
 
@@ -199,15 +199,17 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(5.0f);
             actionChain.AddAction(this, () =>
             {
+                if (House == null || House.SlumLord == null) return;
+
                 if (!House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.System));
                 }
 
                 if (!House.SlumLord.HasRequirements(this) && PropertyManager.GetBool("house_purchase_requirements").Item)
                 {
                     var rankStr = AllegianceNode != null ? $"{AllegianceNode.Rank}" : "";
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  Your allegiance rank {rankStr} is now below the requirements for owning a mansion.  Please raise your allegiance rank to {House.SlumLord.GetAllegianceMinLevel()} before the end of the maintenance period or you will lose your mansion, and all your items within it.", ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  Your allegiance rank {rankStr} is now below the requirements for owning a mansion.  Please raise your allegiance rank to {House.SlumLord.GetAllegianceMinLevel()} before the end of the maintenance period or you will lose your mansion, and all your items within it.", ChatMessageType.System));
                 }
             });
             actionChain.EnqueueChain();
@@ -948,12 +950,15 @@ namespace ACE.Server.WorldObjects
                 if (!rootHouse.OnProperty(this))
                     continue;
 
+                if (IgnoreHouseBarriers ?? false)
+                    continue;
+
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
                     Teleport(rootHouse.BootSpot.Location);
                     break;
                 }
-                if (rootHouse.HouseOwner == null && CurrentLandblock.IsDungeon)
+                if (rootHouse.HouseOwner == null && rootHouse.HouseType != ACE.Entity.Enum.HouseType.Apartment && CurrentLandblock.IsDungeon)
                 {
                     Teleport(rootHouse.BootSpot.Location);
                     break;

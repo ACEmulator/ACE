@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ACE.Entity;
 using ACE.Server.WorldObjects;
 
@@ -30,8 +31,12 @@ namespace ACE.Server.Network.Structure
                 MonarchID = new ObjectGuid(house.MonarchId.Value);      // for allegiance guest/storage access
 
             Table = new Dictionary<ObjectGuid, uint>();
+
             foreach (var guest in house.Guests)
-                Table.Add(guest.Key, Convert.ToUInt32(guest.Value));
+            {
+                if (guest.Key != MonarchID)
+                    Table.Add(guest.Key, Convert.ToUInt32(guest.Value));
+            }
         }
     }
 
@@ -47,11 +52,23 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, uint> db)
         {
-            PHashTable.WriteHeader(writer, db.Count);
+            //PHashTable.WriteHeader(writer, db.Count);
+
+            writer.Write((ushort)db.Count);
+            writer.Write((ushort)768);  // from retail pcaps, TODO: determine how this is calculated
+
+            // reorder
+            var _db = new List<Tuple<ObjectGuid, uint>>();
             foreach (var entry in db)
+                _db.Add(new Tuple<ObjectGuid, uint>(entry.Key, entry.Value));
+
+            // sort by client function - hashKey % tableSize - how it gets tableSize 89 from 768, no idea
+            _db = _db.OrderBy(i => i.Item1.Full % 89).ToList();
+
+            foreach (var entry in _db)
             {
-                writer.Write(entry.Key.Full);
-                writer.Write(entry.Value);
+                writer.Write(entry.Item1.Full);
+                writer.Write(entry.Item2);
             }
         }
     }

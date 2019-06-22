@@ -14,6 +14,13 @@ namespace ACE.Server.Physics.Entity
         public static int Requests;
         public static int Hits;
 
+        public static int Count => BSPTrees.Count;
+
+        public static void Clear()
+        {
+            BSPTrees.Clear();
+        }
+
         public static BSPTree Get(BSPTree bspTree)
         {
             if (!Enabled)

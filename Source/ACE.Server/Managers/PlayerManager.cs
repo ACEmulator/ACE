@@ -7,14 +7,22 @@ using System.Threading;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Network.Enum;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+
+using log4net;
 
 namespace ACE.Server.Managers
 {
     public static class PlayerManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private static readonly ReaderWriterLockSlim playersLock = new ReaderWriterLockSlim();
         private static readonly Dictionary<uint, Player> onlinePlayers = new Dictionary<uint, Player>();
         private static readonly Dictionary<uint, OfflinePlayer> offlinePlayers = new Dictionary<uint, OfflinePlayer>();
@@ -367,7 +375,7 @@ namespace ACE.Server.Managers
 
                 isOnline = false;
 
-                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.TrimStart('+').Equals(name.TrimStart('+'), StringComparison.OrdinalIgnoreCase));
+                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.TrimStart('+').Equals(name.TrimStart('+'), StringComparison.OrdinalIgnoreCase) && !p.IsPendingDeletion);
 
                 if (offlinePlayer != null)
                     return offlinePlayer;
@@ -438,23 +446,21 @@ namespace ACE.Server.Managers
         /// <param name="monarch">The monarch of an allegiance</param>
         public static List<IPlayer> FindAllByMonarch(ObjectGuid monarch)
         {
-            IEnumerable<Player> onlinePlayersResult;
-            IEnumerable<OfflinePlayer> offlinePlayersResult;
+            var results = new List<IPlayer>();
 
             playersLock.EnterReadLock();
             try
             {
-                onlinePlayersResult = onlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
-                offlinePlayersResult = offlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
+                var onlinePlayersResult = onlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
+                var offlinePlayersResult = offlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
+
+                results.AddRange(onlinePlayersResult);
+                results.AddRange(offlinePlayersResult);
             }
             finally
             {
                 playersLock.ExitReadLock();
             }
-
-            var results = new List<IPlayer>();
-            results.AddRange(onlinePlayersResult);
-            results.AddRange(offlinePlayersResult);
 
             return results;
         }
@@ -492,6 +498,77 @@ namespace ACE.Server.Managers
         {
             foreach (var player in GetAllOnline())
                 player.Session.Network.EnqueueSend(msg);
+        }
+
+        public static void BroadcastToAuditChannel(Player issuer, string message)
+        {
+            if (issuer != null)
+                BroadcastToChannel(Channel.Audit, issuer, message, true, true);
+            else
+                BroadcastToChannelFromConsole(Channel.Audit, message);
+
+            if (PropertyManager.GetBool("log_audit", true).Item)
+                log.Info($"[AUDIT] {(issuer != null ? $"{issuer.Name} says on the Audit channel: " : "")}{message}");
+        }
+
+        public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false, bool ignoreActive = false)
+        {
+            if ((sender.ChannelsActive.HasValue && sender.ChannelsActive.Value.HasFlag(channel)) || ignoreActive)
+            {
+                foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                {
+                    if (!player.Squelches.Contains(sender) || ignoreSquelch)
+                        player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, sender.Guid == player.Guid ? "" : sender.Name, message));
+                }
+            }
+        }
+
+        public static void BroadcastToChannelFromConsole(Channel channel, string message)
+        {
+            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "CONSOLE", message));
+        }
+
+        public static bool GagPlayer(Player issuer, string playerName)
+        {
+            var player = FindByName(playerName);
+
+            if (player == null)
+                return false;
+
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGagged, true);
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagTimestamp, Common.Time.GetUnixTime());
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration, 300);
+
+            player.SaveBiotaToDatabase();
+
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has gagged {player.Name} for five minutes.");
+
+            return true;
+        }
+
+        public static bool UnGagPlayer(Player issuer, string playerName)
+        {
+            var player = FindByName(playerName);
+
+            if (player == null)
+                return false;
+
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGagged);
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagTimestamp);
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration);
+
+            player.SaveBiotaToDatabase();
+
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has ungagged {player.Name}.");
+
+            return true;
+        }
+
+        public static void BootAllPlayers()
+        {
+            foreach (var player in GetAllOnline().Where(p => p.Session.AccessLevel < AccessLevel.Advocate))
+                player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, "The world is now closed"), null, "The world is now closed");
         }
     }
 }

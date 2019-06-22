@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
             if (target.WeenieType == WeenieType.Portal)
                 MoveToPosition(target.Location);
             else
-                MoveToObject(target);
+                MoveToObject(target, useRadius);
 
             moveToChainStartTime = DateTime.UtcNow;
 
@@ -247,7 +247,7 @@ namespace ACE.Server.WorldObjects
 
         public void TakeDamage_Falling(float amount)
         {
-            if (Invincible ?? false) return;
+            if (Invincible) return;
 
             // handle lifestone protection?
             if (UnderLifestoneProtection)

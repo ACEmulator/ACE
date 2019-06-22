@@ -30,6 +30,9 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
+    /// <summary>
+    /// Base Object for Game World
+    /// </summary>
     public abstract partial class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -47,8 +50,6 @@ namespace ACE.Server.WorldObjects
 
         public PhysicsObj PhysicsObj { get; protected set; }
 
-        public bool InitPhysics { get; protected set; }
-
         public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
 
         public SequenceManager Sequences { get; } = new SequenceManager();
@@ -64,7 +65,6 @@ namespace ACE.Server.WorldObjects
         public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;
 
         public bool IsBusy { get; set; }
-        public bool IsMovingTo { get; set; }
         public bool IsShield { get => CombatUse != null && CombatUse == ACE.Entity.Enum.CombatUse.Shield; }
         public bool IsTwoHanded { get => CurrentWieldedLocation != null && CurrentWieldedLocation == EquipMask.TwoHanded; }
         public bool IsBow { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Bow || DefaultCombatStyle == CombatStyle.Crossbow); }
@@ -93,6 +93,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeGenerator();
             InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
@@ -111,6 +112,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeGenerator();
             InitializeHeartbeats();
         }
 
@@ -123,21 +125,20 @@ namespace ACE.Server.WorldObjects
 
             var defaultState = CalculatedPhysicsState();
 
-            PhysicsObj = new PhysicsObj();
-            PhysicsObj.set_object_guid(Guid);
-
-            // will eventually map directly to WorldObject
-            PhysicsObj.set_weenie_obj(new WeenieObject(this));
-
-            var creature = this as Creature;
-            if (creature == null)
+            if (!(this is Creature))
             {
                 var isDynamic = Static == null || !Static.Value;
                 PhysicsObj = PhysicsObj.makeObject(SetupTableId, Guid.Full, isDynamic);
-                PhysicsObj.set_weenie_obj(new WeenieObject(this));
             }
             else
+            {
+                PhysicsObj = new PhysicsObj();
                 PhysicsObj.makeAnimObject(SetupTableId, true);
+            }
+
+            PhysicsObj.set_object_guid(Guid);
+
+            PhysicsObj.set_weenie_obj(new WeenieObject(this));
 
             PhysicsObj.SetMotionTableID(MotionTableId);
 
@@ -166,7 +167,12 @@ namespace ACE.Server.WorldObjects
             if (WeenieClassId == 10762) return true;
 
             var cell = LScape.get_landcell(Location.Cell);
-            if (cell == null) return false;
+            if (cell == null)
+            {
+                PhysicsObj.DestroyObject();
+                PhysicsObj = null;
+                return false;
+            }
 
             PhysicsObj.Position.ObjCellID = cell.ID;
 
@@ -179,9 +185,12 @@ namespace ACE.Server.WorldObjects
 
             if (!success)
             {
+                PhysicsObj.DestroyObject();
+                PhysicsObj = null;
                 //Console.WriteLine($"AddPhysicsObj: failure: {Name} @ {cell.ID.ToString("X8")} - {Location.Pos} - {Location.Rotation} - SetupID: {SetupTableId.ToString("X8")}, MTableID: {MotionTableId.ToString("X8")}");
                 return false;
             }
+
             //Console.WriteLine($"AddPhysicsObj: success: {Name} ({Guid})");
             Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
             Location.Pos = PhysicsObj.Position.Frame.Origin;
@@ -249,9 +258,7 @@ namespace ACE.Server.WorldObjects
                 ephemeralPositions.TryAdd((PositionType)x, null);
 
             foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
-                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
-
-            AddGeneratorProfiles();
+                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);            
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
@@ -261,7 +268,11 @@ namespace ACE.Server.WorldObjects
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
-            //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            if (MotionTableId != 0)
+                CurrentMotionState = new Motion(MotionStance.Invalid);
+
+            if (WeenieType == WeenieType.Corpse)
+                HeartbeatInterval = 5;
         }
 
         /// <summary>
@@ -306,7 +317,7 @@ namespace ACE.Server.WorldObjects
             return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
         }
 
-        public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);     // arrow
+        //public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);     // arrow
 
         /// <summary>
         /// Returns TRUE if this object has direct line-of-sight visibility to input object
@@ -316,8 +327,13 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj == null || wo.PhysicsObj == null)
                 return false;
 
+            var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
+
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(wo.PhysicsObj.Position);
+
+            if (PhysicsObj.GetBlockDist(startPos, targetPos) > 1)
+                return false;
 
             // set to eye level
             startPos.Frame.Origin.Z += PhysicsObj.GetHeight() - SightObj.GetHeight();
@@ -332,6 +348,9 @@ namespace ACE.Server.WorldObjects
 
             // perform line of sight test
             var transition = SightObj.transition(startPos, targetPos, false);
+
+            SightObj.DestroyObject();
+
             if (transition == null) return false;
 
             // check if target object was reached
@@ -344,8 +363,13 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj == null)
                 return false;
 
+            var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
+
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(pos);
+
+            if (PhysicsObj.GetBlockDist(startPos, targetPos) > 1)
+                return false;
 
             // set to eye level
             startPos.Frame.Origin.Z += PhysicsObj.GetHeight() - SightObj.GetHeight();
@@ -360,6 +384,8 @@ namespace ACE.Server.WorldObjects
 
             // perform line of sight test
             var transition = SightObj.transition(targetPos, startPos, false);
+
+            SightObj.DestroyObject();
 
             if (transition == null) return false;
 
@@ -634,7 +660,23 @@ namespace ACE.Server.WorldObjects
         public void EnqueueBroadcastPhysicsState()
         {
             if (PhysicsObj != null)
-                EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+            {
+                if (!Visibility)
+                    EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+                else
+                {
+                    if (this is Player player && player.CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+                    {
+                        var ps = PhysicsObj.State;
+                        ps &= ~PhysicsState.Cloaked;
+                        ps &= ~PhysicsState.NoDraw;
+                        player.Session.Network.EnqueueSend(new GameMessageSetState(this, PhysicsObj.State));
+                        EnqueueBroadcast(false, new GameMessageSetState(this, ps));
+                    }
+                    else
+                        EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+                }
+            }
         }
 
         public void EnqueueBroadcastUpdateObject()
@@ -698,6 +740,11 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSound(targetId, soundId, volume));
         }
 
+        public virtual void OnGeneration(WorldObject generator)
+        {
+            EmoteManager.OnGeneration();
+        }
+
         public virtual void EnterWorld()
         {
             if (Location != null)
@@ -706,6 +753,9 @@ namespace ACE.Server.WorldObjects
 
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
+
+                if (Generator != null)
+                    OnGeneration(Generator);
             }
         }
 
@@ -776,55 +826,26 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the base damage for a weapon
         /// </summary>
-        public virtual Range GetBaseDamage()
+        public virtual BaseDamage GetBaseDamage()
         {
             var maxDamage = GetProperty(PropertyInt.Damage) ?? 0;
             var variance = GetProperty(PropertyFloat.DamageVariance) ?? 0;
-            var minDamage = maxDamage * (1.0f - variance);
-            return new Range((float)minDamage, (float)maxDamage);
+
+            return new BaseDamage(maxDamage, (float)variance);
         }
 
         /// <summary>
         /// Returns the modified damage for a weapon,
         /// with the wielder enchantments taken into account
         /// </summary>
-        public Range GetDamageMod(Creature wielder)
+        public BaseDamageMod GetDamageMod(Creature wielder)
         {
             var baseDamage = GetBaseDamage();
             var weapon = wielder.GetEquippedWeapon();
 
-            var damageMod = 0.0f;
-            var varianceMod = 1.0f;
+            var baseDamageMod = new BaseDamageMod(baseDamage, wielder, weapon);
 
-            if (weapon != null)
-            {
-                damageMod += weapon.EnchantmentManager.GetDamageMod();
-                varianceMod *= weapon.EnchantmentManager.GetVarianceMod();
-
-                if (weapon.IsEnchantable)
-                {
-                    // factor in wielder auras for enchantable weapons
-                    damageMod += wielder.EnchantmentManager.GetDamageMod();
-                    varianceMod *= wielder.EnchantmentManager.GetVarianceMod();
-                }
-            }
-
-            var baseVariance = 1.0f - (baseDamage.Min / baseDamage.Max);
-
-            var damageBonus = 1.0f;
-            if (weapon != null)
-            {
-                damageBonus = (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) * weapon.EnchantmentManager.GetDamageModifier();
-
-                if (weapon.IsEnchantable)
-                    damageBonus *= wielder.EnchantmentManager.GetDamageModifier();
-            }
-
-            // additives first, then multipliers?
-            var maxDamageMod = (baseDamage.Max + damageMod) * damageBonus;
-            var minDamageMod = maxDamageMod * (1.0f - baseVariance * varianceMod);
-
-            return new Range(minDamageMod, maxDamageMod);
+            return baseDamageMod;
         }
 
         /// <summary>
@@ -872,7 +893,7 @@ namespace ACE.Server.WorldObjects
             return damageTypes;
         }
 
-        private bool isDestroyed;
+        public bool IsDestroyed { get; private set; }
 
         /// <summary>
         /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.<para />
@@ -880,13 +901,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
         {
-            if (isDestroyed)
+            if (IsDestroyed)
             {
                 log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
                 return;
             }
 
-            isDestroyed = true;
+            IsDestroyed = true;
 
             if (this is Container container)
             {
@@ -955,11 +976,11 @@ namespace ACE.Server.WorldObjects
         {
             var motionCommand = motion.MotionState.ForwardCommand;
 
-            if (motionCommand == MotionCommand.Invalid)
+            if (motionCommand == MotionCommand.Ready)
                 motionCommand = (MotionCommand)motion.Stance;
 
             // run motion command on server through physics animation system
-            if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
+            if (PhysicsObj != null && motionCommand != MotionCommand.Ready)
             {
                 var motionInterp = PhysicsObj.get_minterp();
 
@@ -1016,6 +1037,20 @@ namespace ACE.Server.WorldObjects
             }
 
             return skill;
+        }
+
+        public void GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion)
+        {
+            currentStance = MotionStance.Invalid;
+            currentMotion = MotionCommand.Ready;
+
+            if (CurrentMotionState != null)
+            {
+                currentStance = CurrentMotionState.Stance;
+
+                if (CurrentMotionState.MotionState != null)
+                    currentMotion = CurrentMotionState.MotionState.ForwardCommand;
+            }
         }
     }
 }

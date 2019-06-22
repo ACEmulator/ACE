@@ -29,8 +29,15 @@ namespace ACE.Server.Managers
             BuildRentQueue();
         }
 
+        public static bool IsBuilding;
+
         public static void BuildRentQueue()
         {
+            // todo: get rid of async, use proper slumlord inventory callbacks
+            if (IsBuilding) return;
+
+            IsBuilding = true;
+
             var allPlayers = PlayerManager.GetAllPlayers();
             var houseOwners = allPlayers.Where(i => i.HouseInstance != null);
 
@@ -38,6 +45,8 @@ namespace ACE.Server.Managers
 
             foreach (var houseOwner in houseOwners)
                 AddRentQueue(houseOwner);
+
+            IsBuilding = false;
 
             //log.Info($"Loaded {RentQueue.Count} active houses.");
         }
@@ -271,9 +280,18 @@ namespace ACE.Server.Managers
                 return false;
             }
 
-            if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
+            // ensure allegiance is loaded
+            var allegiance = AllegianceManager.GetAllegiance(player);
+
+            AllegianceNode allegianceNode = null;
+            if (allegiance != null)
+                allegiance.Members.TryGetValue(player.Guid, out allegianceNode);
+
+            var rank = allegianceNode != null ? allegianceNode.Rank : 0;
+
+            if (allegiance == null || rank < allegianceMinLevel)
             {
-                log.Info($"{playerHouse.PlayerName}.HasRequirements() - allegiance rank {player.AllegianceNode.Rank} < {allegianceMinLevel}");
+                log.Info($"{playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
                 return false;
             }
             return true;

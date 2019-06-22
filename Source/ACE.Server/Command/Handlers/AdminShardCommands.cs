@@ -35,8 +35,8 @@ namespace ACE.Server.Command.Handlers
         /// Increase or decrease the server shutdown interval in seconds
         /// </summary>
         [CommandHandler("set-shutdown-interval", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Changes the delay before the server will shutdown.",
-            "< 0-99999 >")]
+            "Changes the delay, in seconds, before the server will shutdown.",
+            "< 0-99999 > in seconds")]
         public static void HandleSetShutdownInterval(Session session, params string[] parameters)
         {
             if (parameters?.Length > 0)
@@ -57,7 +57,7 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
             }
-            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /set-shutdown-interval <00000>", ChatMessageType.Broadcast);
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace ACE.Server.Command.Handlers
             "Begins the server shutdown process. Optionally displays a shutdown message, if a string is passed.",
             "< Optional Shutdown Message >\n" +
             "\tUse @cancel-shutdown too abort an active shutdown!\n" +
-            "\tSet the shutdown delay with @set-shutdown-interval < 0-99999 >")]
+            "\tSet the shutdown delay in seconds with @set-shutdown-interval < 0-99999 >")]
         public static void ShutdownServer(Session session, params string[] parameters)
         {
             // inform the world that a shutdown is about to take place
@@ -115,12 +115,69 @@ namespace ACE.Server.Command.Handlers
             foreach (var player in PlayerManager.GetAllOnline())
             {
                 // send server shutdown message and time remaining till shutdown
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(shutdownText + "\n" + timeRemaining, ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(shutdownText + "\n" + timeRemaining, ChatMessageType.WorldBroadcast));
 
                 if (adminShutdownText.Length > 0)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.Broadcast));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.WorldBroadcast));
             }
             ServerManager.BeginShutdown();
+        }
+
+        [CommandHandler("world", AccessLevel.Admin, CommandHandlerFlag.None, 0,
+            "Open or Close world to player access.",
+            "[open | close] <boot>\nIf closing world, using @world close boot will force players to logoff immediately")]
+        public static void HandleHelp(Session session, params string[] parameters)
+        {
+            var open = false;
+            var close = false;
+            var bootPlayers = false;
+
+            var message = $"World is currently {WorldManager.WorldStatus.ToString()}\nPlease specify state to change\n@world [open | close] <boot>\nIf closing world, using @world close boot will force players to logoff immediately";
+            if (parameters.Length >= 1)
+            {
+                switch (parameters[0].ToLower())
+                {
+                    case "open":
+                        if (WorldManager.WorldStatus != WorldManager.WorldStatusState.Open)
+                        {                            
+                            message = "Opening world to players...";
+                            open = true;
+                        }
+                        else
+                        {
+                            message = "World is already open.";
+                        }
+                        break;
+                    case "close":
+                        if (WorldManager.WorldStatus != WorldManager.WorldStatusState.Closed)
+                        {
+                            if (parameters.Length > 1)
+                            {
+                                if (parameters[1].ToLower() == "boot")
+                                    bootPlayers = true;
+                            }
+                            message = "Closing world";
+                            if (bootPlayers)
+                                message += ", and booting all online players.";
+                            else
+                                message += "...";
+
+                            close = true;
+                        }
+                        else
+                        {
+                            message = "World is already closed.";
+                        }
+                        break;
+                }
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
+
+            if (open)
+                WorldManager.Open(session == null ? null : session.Player);
+            else if (close)
+                WorldManager.Close(session == null ? null : session.Player, bootPlayers);
         }
     }
 }

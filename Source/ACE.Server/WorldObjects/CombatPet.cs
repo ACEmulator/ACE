@@ -5,6 +5,8 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -40,14 +42,25 @@ namespace ACE.Server.WorldObjects
             Ethereal = true;
             RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
             Usable = ACE.Entity.Enum.Usable.No;
+
+            if (!PropertyManager.GetBool("advanced_combat_pets").Item)
+                Biota.BiotaPropertiesSpellBook.Clear();
+
+            Biota.BiotaPropertiesCreateList.Clear();
+            Biota.BiotaPropertiesEmote.Clear();
+            GeneratorProfiles.Clear();            
+
+            DeathTreasureType = null;
         }
 
         public void Init(Player player, DamageType damageType, PetDevice petDevice)
         {
             SuppressGenerateEffect = true;
             NoCorpse = true;
+            TreasureCorpse = false;
             ExpirationTime = DateTime.UtcNow + TimeSpan.FromSeconds(45);
-            Location = player.Location.InFrontOf(5f);   // FIXME: get correct cell
+            Location = player.Location.InFrontOf(5f);
+            Location.LandblockId = new LandblockId(Location.GetCell());
             Name = player.Name + "'s " + Name;
             P_PetOwner = player;
             PetOwner = player.Guid.Full;
@@ -66,20 +79,6 @@ namespace ACE.Server.WorldObjects
             CritDamageResistRating = petDevice.GearCritDamageResist;
             CritRating = petDevice.GearCrit;
             CritResistRating = petDevice.GearCritResist;
-
-            /*var spellBase = DatManager.PortalDat.SpellTable.Spells[32981];
-            var spell = DatabaseManager.World.GetCachedSpell(32981);
-
-            if (spell != null && spellBase != null)
-            {
-                var enchantment = new Enchantment(this, player.Guid, spellBase, spellBase.Duration, 1, (uint)EnchantmentMask.Cooldown, spell.StatModType);
-                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, enchantment));
-            }
-            else
-            {
-                Console.WriteLine("Cooldown spell or spellBase were null");
-            }
-            */
         }
 
         public override void HandleFindTarget()
@@ -134,13 +133,12 @@ namespace ACE.Server.WorldObjects
 
                 // exclude players
                 var wo = obj.WeenieObj.WorldObject;
-                var player = wo as Player;
-                if (player != null) continue;
+                if (wo == null) continue;
+                if (wo is Player) continue;
 
                 // ensure creature / not combat pet
                 var creature = wo as Creature;
-                var combatPet = wo as CombatPet;
-                if (creature == null || combatPet != null || creature.IsDead) continue;
+                if (creature == null || wo is CombatPet || creature.IsDead) continue;
 
                 // ensure attackable
                 var attackable = creature.GetProperty(PropertyBool.Attackable) ?? false;

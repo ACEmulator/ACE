@@ -14,6 +14,13 @@ namespace ACE.Server.Physics.Entity
         public static int Requests;
         public static int Hits;
 
+        public static int Count => Polygons.Count;
+
+        public static void Clear()
+        {
+            Polygons.Clear();
+        }
+
         public static Polygon Get(Polygon p)
         {
             if (!Enabled)

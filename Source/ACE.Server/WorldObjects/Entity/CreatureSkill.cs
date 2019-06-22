@@ -99,7 +99,7 @@ namespace ACE.Server.WorldObjects.Entity
                 total += InitLevel + Ranks;
 
                 if (creature is Player player)
-                    total += GetAugBonus(player);
+                    total += GetAugBonus(player, false);
 
                 return total;
             }
@@ -116,9 +116,6 @@ namespace ACE.Server.WorldObjects.Entity
 
                 total += InitLevel + Ranks;
 
-                var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
-                total += (uint)skillMod;    // can be negative?
-
                 if (creature is Player player)
                 {
                     var vitae = player.Vitae;
@@ -127,18 +124,23 @@ namespace ACE.Server.WorldObjects.Entity
                         total = (uint)(total * vitae).Round();
 
                     // it seems this gets applied after vitae?
-                    total += GetAugBonus(player);
+                    total += GetAugBonus(player, true);
                 }
+
+                var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
+
+                total = (uint)Math.Max(0, total + skillMod);    // account for negatives, minimum skill 0
 
                 return total;
             }
         }
 
-        public uint GetAugBonus(Player player)
+        public uint GetAugBonus(Player player, bool current)
         {
+            // TODO: verify which of these are base, and which are current
             uint total = 0;
 
-            if (player.AugmentationJackOfAllTrades != 0)
+            if (current && player.AugmentationJackOfAllTrades != 0)
                 total += (uint)(player.AugmentationJackOfAllTrades * 5);
 
             if (player.LumAugAllSkills != 0)
@@ -171,19 +173,6 @@ namespace ACE.Server.WorldObjects.Entity
                 total += (uint)player.Enlightenment;
 
             return total;
-        }
-
-        public double GetPercentSuccess(uint difficulty)
-        {
-            return GetPercentSuccess(Current, difficulty);
-        }
-
-        public static double GetPercentSuccess(uint skillLevel, uint difficulty)
-        {
-            float delta = skillLevel - difficulty;
-            var scalar = 1d + Math.Pow(Math.E, 0.03 * delta);
-            var percentSuccess = 1d - (1d / scalar);
-            return percentSuccess;
         }
 
         /// <summary>

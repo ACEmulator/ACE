@@ -12,6 +12,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Fellowship Fellowship;
 
+        public bool FellowVitalUpdate;
+
         // todo: Figure out if this is the best place to do this, and whether there are concurrency issues associated with it.
         public void FellowshipCreate(string fellowshipName, bool shareXP)
         {
@@ -22,6 +24,12 @@ namespace ACE.Server.WorldObjects
         {
             if (Fellowship != null)
                 Fellowship.UpdateOpenness(openness);
+        }
+
+        public void HandleActionFellowshipChangeLock(bool lockState)
+        {
+            if (Fellowship != null)
+                Fellowship.UpdateLock(lockState);
         }
 
         public void FellowshipQuit(bool disband)

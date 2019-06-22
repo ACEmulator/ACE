@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null || !target.IsAlive)
             {
-                Sleep();
+                FindNextTarget();
                 return;
             }
 
@@ -116,7 +116,8 @@ namespace ACE.Server.WorldObjects
             }
 
             // reload animation
-            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload);
+            var animSpeed = GetAnimSpeed();
+            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);
             //Console.WriteLine("ReloadTime: " + reloadTime);
 
             // reset for next projectile
@@ -150,7 +151,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns missile base damage from a monster attack
         /// </summary>
-        public Range GetMissileDamage()
+        public BaseDamageMod GetMissileDamage()
         {
             // FIXME: use actual projectile, instead of currently equipped ammo
             var ammo = GetMissileAmmo();

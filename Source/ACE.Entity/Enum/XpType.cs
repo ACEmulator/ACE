@@ -11,6 +11,7 @@ namespace ACE.Entity.Enum
         Proficiency,
         Fellowship,
         Allegiance,
-        Admin
+        Admin,
+        Emote
     }
 }

@@ -54,6 +54,8 @@ namespace ACE.Server.WorldObjects
 
             var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
 
+            log.Info(nearbyMsg);
+
             var excludePlayers = new List<Player>();
             if (lastDamager is Player lastDamagerPlayer)
                 excludePlayers.Add(lastDamagerPlayer);
@@ -173,7 +175,7 @@ namespace ACE.Server.WorldObjects
         public void TeleportOnDeath()
         {
             // teleport to sanctuary or best location
-            var newPosition = Sanctuary ?? LastPortal ?? Location;
+            var newPosition = Sanctuary ?? Instantiation ?? Location;
 
             Teleport(newPosition);
 
@@ -434,7 +436,12 @@ namespace ACE.Server.WorldObjects
 
             // handle items with BondedStatus.Slippery: always drop on death
             var slipperyItems = GetSlipperyItems();
-            dropItems.AddRange(slipperyItems);
+
+            foreach (var item in slipperyItems)
+            {
+                if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.ToCorpseOnDeath) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.ToCorpseOnDeath))
+                    dropItems.Add(item);
+            }
 
             var destroyCoins = PropertyManager.GetBool("corpse_destroy_pyreals").Item;
 
@@ -461,7 +468,24 @@ namespace ACE.Server.WorldObjects
             var dropList = DropMessage(dropItems, numCoinsDropped);
             Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
 
+            DeathItemLog(dropItems);
+
             return dropItems;
+        }
+
+        public void DeathItemLog(List<WorldObject> dropItems)
+        {
+            if (dropItems.Count == 0)
+                return;
+
+            var msg = $"{Name} dropped items on corpse: ";
+
+            foreach (var dropItem in dropItems)
+                msg += $"{dropItem.Name} ({dropItem.Guid}), ";
+
+            msg = msg.Substring(0, msg.Length - 2);
+
+            log.Info(msg);
         }
 
         /// <summary>
@@ -803,9 +827,9 @@ namespace ACE.Server.WorldObjects
 
             var prevStatus = PlayerKillerStatus;
 
+            MinimumTimeSincePk = 0;
             PlayerKillerStatus &= ~PlayerKillerStatus.PK;
             PlayerKillerStatus |= PlayerKillerStatus.NPK;
-            MinimumTimeSincePk = 0;
 
             if ((prevStatus & PlayerKillerStatus.PK) != 0)
             {

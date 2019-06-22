@@ -93,14 +93,22 @@ namespace ACE.Server.Network.Managers
             {
                 if (messageHandlerInfo.Attribute.State == session.State)
                 {
-                    WorldManager.InboundClientMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
+                    NetworkManager.InboundMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
                     {
                         // It's possible that before this work is executed by WorldManager, and after it was enqueued here, the session.Player was set to null
                         // To avoid null reference exceptions, we make sure that the player is valid before the message handler is invoked.
                         if (messageHandlerInfo.Attribute.State == Enum.SessionState.WorldConnected && session.Player == null)
                             return;
 
-                        messageHandlerInfo.Handler.Invoke(message, session);
+                        try
+                        {
+                            messageHandlerInfo.Handler.Invoke(message, session);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error($"Received GameMessage packet that threw an exception from account: {session.AccountId}:{session.Account}, player: {session.Player?.Name}, opcode: 0x{((int)opcode):X4}:{opcode}");
+                            log.Error(ex);
+                        }
                     }));
                 }
             }
@@ -110,14 +118,29 @@ namespace ACE.Server.Network.Managers
             }
         }
 
+        /// <summary>
+        /// The call path for this function is as follows:
+        /// InboundMessageManager.HandleClientMessage() queues work into NetworkManager.InboundMessageQueue that is run in WorldManager.UpdateWorld()
+        /// That work invokes GameActionPacket.HandleGameAction() which calls this.
+        /// </summary>
         public static void HandleGameAction(GameActionType opcode, ClientMessage message, Session session)
         {
             if (actionHandlers.TryGetValue(opcode, out var actionHandlerInfo))
             {
-                session.InboundGameActionQueue.EnqueueAction(new ActionEventDelegate(() =>
+                // It's possible that before this work is executed by WorldManager, and after it was enqueued here, the session.Player was set to null
+                // To avoid null reference exceptions, we make sure that the player is valid before the message handler is invoked.
+                if (session.Player == null)
+                    return;
+
+                try
                 {
                     actionHandlerInfo.Handler.Invoke(message, session);
-                }));
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Received GameAction packet that threw an exception from account: {session.AccountId}:{session.Account}, player: {session.Player?.Name}, opcode: 0x{((int)opcode):X4}:{opcode}");
+                    log.Error(ex);
+                }
             }
             else
             {

@@ -1,11 +1,5 @@
-using System.Collections.Generic;
-using System;
-
-using log4net;
-
 using ACE.Database;
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
@@ -66,6 +60,19 @@ namespace ACE.Server.Factories
                 return wo;
             }
 
+            if (tier == 7)
+            {
+                // According to wiki, Tier 7 has a chance for level 8 spell components or level 7 spell scrolls
+                // No indication of weighting in either direction, so assuming a 50/50 split
+                int chance = ThreadSafeRandom.Next(1, 100);
+                if (chance > 50)
+                {
+                    int id = CreateLevel8SpellComp();
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
+                }
+            }
+
             if (tier < 1) tier = 1;
 
             int scrollLootMatrixIndex = tier - 1;
@@ -101,90 +108,10 @@ namespace ACE.Server.Factories
         {
             int casterWeenie = 0; //done
             double elementalDamageMod = 0;
-            int wield = 0; //done
             Skill wieldSkillType = Skill.None;
-            int chance = 0;
+            WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int subType = 0;
-
-            switch (tier)
-            {
-                case 1:
-                case 2:
-                    wield = 0;
-                    break;
-                case 3:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 80)
-                        wield = 0;
-                    else
-                        wield = 290;
-                    break;
-                case 4:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 60)
-                        wield = 0;
-                    else if (chance < 95)
-                        wield = 290;
-                    else
-                        wield = 310;
-                    break;
-                case 5:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 50)
-                        wield = 0;
-                    else if (chance < 70)
-                        wield = 290;
-                    else if (chance < 90)
-                        wield = 310;
-                    else
-                        wield = 330;
-                    break;
-                case 6:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 40)
-                        wield = 0;
-                    else if (chance < 60)
-                        wield = 290;
-                    else if (chance < 80)
-                        wield = 310;
-                    else if (chance < 90)
-                        wield = 330;
-                    else
-                        wield = 355;
-                    break;
-                case 7:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 30)
-                        wield = 0;
-                    else if (chance < 50)
-                        wield = 290;
-                    else if (chance < 60)
-                        wield = 310;
-                    else if (chance < 70)
-                        wield = 330;
-                    else if (chance < 90)
-                        wield = 355;
-                    else
-                        wield = 375;
-                    break;
-                default:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 25)
-                        wield = 0;
-                    else if (chance < 50)
-                        wield = 290;
-                    else if (chance < 60)
-                        wield = 310;
-                    else if (chance < 70)
-                        wield = 330;
-                    else if (chance < 80)
-                        wield = 355;
-                    else if (chance < 90)
-                        wield = 375;
-                    else
-                        wield = 385;
-                    break;
-            }
+            int wield = GetWield(tier, 2);
 
             ////Getting the caster Weenie needed.
             if (wield == 0)
@@ -192,6 +119,22 @@ namespace ACE.Server.Factories
                 // Determine plain caster type: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
                 subType = ThreadSafeRandom.Next(0, 3);
                 casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
+
+                if (tier > 6)
+                {
+                    wieldRequirement = WieldRequirement.Level;
+                    wieldSkillType = Skill.Axe;  // Set by examples from PCAP data
+
+                    switch (tier)
+                    {
+                        case 7:
+                            wield = 150; // In this instance, used for indicating player level, rather than skill level
+                            break;
+                        default:
+                            wield = 180; // In this instance, used for indicating player level, rather than skill level
+                            break;
+                    }
+                }
             }
             else
             {
@@ -205,30 +148,11 @@ namespace ACE.Server.Factories
                 int element = ThreadSafeRandom.Next(0, 7);
                 casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
 
+                // If element is Nether, Void Magic is required, else War Magic is required for all other elements
                 if (element == 7)
-                {
                     wieldSkillType = Skill.VoidMagic;
-                }
                 else
-                {
-                    // Determine skill of wield requirement
-                    chance = ThreadSafeRandom.Next(0, 3);
-                    switch (chance)
-                    {
-                        case 0:
-                            wieldSkillType = Skill.WarMagic;
-                            break;
-                        case 2:
-                            wieldSkillType = Skill.CreatureEnchantment;
-                            break;
-                        case 3:
-                            wieldSkillType = Skill.ItemEnchantment;
-                            break;
-                        default:
-                            wieldSkillType = Skill.LifeMagic;
-                            break;
-                    }
-                }
+                    wieldSkillType = Skill.WarMagic;
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
@@ -238,11 +162,19 @@ namespace ACE.Server.Factories
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(3, tier));
+            int materialType = GetMaterialType(wo, tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
+
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
+
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
 
             if (ThreadSafeRandom.Next(0, 100) > 95)
             {
@@ -264,11 +196,17 @@ namespace ACE.Server.Factories
             if (elementalDamageMod > 1.0f)
                 wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
 
-            if (wield > 0)
+            if (wield > 0 || wieldRequirement == WieldRequirement.Level)
             {
-                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
-                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirement);
                 wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
+            else
+            {
+                wo.RemoveProperty(PropertyInt.WieldRequirements);
+                wo.RemoveProperty(PropertyInt.WieldSkillType);
+                wo.RemoveProperty(PropertyInt.WieldDifficulty);
             }
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
@@ -367,6 +305,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
 
+            wo = RandomizeColor(wo);
             return wo;
         }
     }

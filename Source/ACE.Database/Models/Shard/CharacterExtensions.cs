@@ -206,18 +206,41 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static CharacterPropertiesShortcutBar AddShortcut(this Character character, uint index, uint objectId, ReaderWriterLockSlim rwLock)
+        public static bool TryAddOrUpdateShortcut(this Character character, uint index, uint objectId, ReaderWriterLockSlim rwLock)
         {
-            rwLock.EnterWriteLock();
+            rwLock.EnterUpgradeableReadLock();
             try
             {
-                var entity = new CharacterPropertiesShortcutBar { CharacterId = character.Id, ShortcutBarIndex = index, ShortcutObjectId = objectId, Character = character };
-                character.CharacterPropertiesShortcutBar.Add(entity);
-                return entity;
+                var entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index + 1);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        entity.ShortcutObjectId = objectId;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                    return true;
+                }
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    entity = new CharacterPropertiesShortcutBar { CharacterId = character.Id, ShortcutObjectId = objectId, ShortcutBarIndex = index + 1, Character = character };
+                    character.CharacterPropertiesShortcutBar.Add(entity);
+                    return true;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
             }
             finally
             {
-                rwLock.ExitWriteLock();
+                rwLock.ExitUpgradeableReadLock();
             }
         }
 
@@ -226,7 +249,7 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index);
+                entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index + 1);
                 if (entity != null)
                 {
                     rwLock.EnterWriteLock();

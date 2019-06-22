@@ -35,7 +35,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns TRUE if this object has any active enchantments in the registry
         /// </summary>
-        public bool HasEnchantments => WorldObject.Biota.HasEnchantments(WorldObject.BiotaDatabaseLock);
+        public virtual bool HasEnchantments => WorldObject.Biota.HasEnchantments(WorldObject.BiotaDatabaseLock);
 
         /// <summary>
         /// Returns TRUE If this object has a vitae penalty
@@ -272,7 +272,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Adds a cooldown spell to the enchantment registry
         /// </summary>
-        public bool StartCooldown(WorldObject item)
+        public virtual bool StartCooldown(WorldObject item)
         {
             var cooldownID = item.CooldownId;
             if (cooldownID == null)
@@ -530,7 +530,7 @@ namespace ACE.Server.Managers
             // dispel_school - the magic school to dispel, 0 if all
             // align - type of spells to dispel: positive, negative, or all
             // number - the maximum # of spells to dispel
-            // number_variance - number * number_variance = the minum # of spells to dispel
+            // number_variance - number * number_variance = the minimum # of spells to dispel
             var minPower = spell.MinPower;
             var maxPower = spell.MaxPower;
             var powerVariance = spell.PowerVariance;
@@ -539,12 +539,13 @@ namespace ACE.Server.Managers
             var number = spell.Number;
             var numberVariance = spell.NumberVariance;
 
-            var enchantments = GetEnchantments_TopLayer(WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock));
+            //var enchantments = GetEnchantments_TopLayer(WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock));
+            var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
 
             var filtered = enchantments.Where(e => e.PowerLevel <= maxPower);
 
             // no dispel for enchantments from item sources (and vitae)
-            filtered = enchantments.Where(e => e.Duration != -1);
+            filtered = filtered.Where(e => e.Duration != -1);
 
             // for dispelSchool and align,
             // we probably could do some calculations to figure out these values directly from the enchantments
@@ -950,9 +951,9 @@ namespace ACE.Server.Managers
 
 
         /// <summary>
-        /// Returns the weapon damage modifier, ie. Blood Drinker
+        /// Returns the weapon damage bonus, ie. Blood Drinker
         /// </summary>
-        public virtual int GetDamageMod()
+        public virtual int GetDamageBonus()
         {
             var damageMod = GetAdditiveMod(PropertyInt.Damage);
             var auraDamageMod = GetAdditiveMod(PropertyInt.WeaponAuraDamage);
@@ -971,7 +972,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the DamageMod for bow / crossbow
         /// </summary>
-        public virtual float GetDamageModifier()
+        public virtual float GetDamageMod()
         {
             return GetMultiplicativeMod(PropertyFloat.DamageMod);
         }
@@ -1103,6 +1104,15 @@ namespace ACE.Server.Managers
             return (int)Math.Round(GetAdditiveMod(enchantments));
         }
 
+        /// <summary>
+        /// Returns the ResistLockpick enchantment additives, ie. Strengthen/Weaken Lock
+        /// </summary>
+        /// <returns></returns>
+        public virtual int GetResistLockpick()
+        {
+            return GetAdditiveMod(PropertyInt.ResistLockpick);
+        }
+
 
         /// <summary>
         /// Returns a rating enchantment modifier
@@ -1188,8 +1198,11 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Called every ~5 seconds for active object
         /// </summary>
-        public void HeartBeat()
+        public void HeartBeat(double? heartbeatInterval = null)
         {
+            if (heartbeatInterval == null)
+                heartbeatInterval = WorldObject.HeartbeatInterval ?? 5;
+
             var expired = new List<BiotaPropertiesEnchantmentRegistry>();
 
             var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
@@ -1197,10 +1210,10 @@ namespace ACE.Server.Managers
 
             foreach (var enchantment in enchantments)
             {
-                enchantment.StartTime -= WorldObject.HeartbeatInterval ?? 5;
+                enchantment.StartTime -= heartbeatInterval.Value;
 
                 // StartTime ticks backwards to -Duration
-                if (enchantment.Duration > 0 && enchantment.StartTime <= -enchantment.Duration)
+                if (enchantment.Duration >= 0 && enchantment.StartTime <= -enchantment.Duration)
                     expired.Add(enchantment);
             }
 
@@ -1301,7 +1314,7 @@ namespace ACE.Server.Managers
                 var damager = kvp.Key;
                 var amount = kvp.Value;
 
-                if (creature.Invincible ?? false)
+                if (creature.Invincible)
                     amount = 0;
 
                 var damageSourcePlayer = damager as Player;

@@ -22,12 +22,14 @@ namespace ACE.Server.Factories
             if (gemLootMatrixIndex > 4) gemLootMatrixIndex = 4;
             int upperLimit = LootTables.GemsMatrix[gemLootMatrixIndex].Length - 1;
 
-            gemType = (uint)LootTables.GemsMatrix[gemLootMatrixIndex][ThreadSafeRandom.Next(0, upperLimit)];
+            uint gemWCID = (uint)LootTables.GemsWCIDsMatrix[gemLootMatrixIndex][ThreadSafeRandom.Next(0, upperLimit)];
 
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemType) as Gem;
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemWCID) as Gem;
 
             if (wo == null)
                 return null;
+
+            gemType = (uint)wo.MaterialType;
 
             workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
@@ -89,17 +91,39 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyDataId.Spell);
             }
 
+            wo = RandomizeColor(wo);
             return wo;
         }
 
         private static WorldObject CreateJewelry(int tier, bool isMagical)
         {
 
+            // 35% chance ring, 35% chance bracelet, 30% chance necklace
+            int ringPercent = 35;
+            int braceletPercent = 35;
+            int necklacePercent = 30;
+
+            int jewelrySlot = ThreadSafeRandom.Next(0, ringPercent + braceletPercent + necklacePercent);
+            int jewelType;
+
+            switch (jewelrySlot)
+            {
+                case int n when (n <= ringPercent):
+                    jewelType = LootTables.ringItems[ThreadSafeRandom.Next(0, LootTables.ringItems.Length - 1)];
+                    break;
+                case int n when (n <= ringPercent + braceletPercent && n > ringPercent):
+                    jewelType = LootTables.braceletItems[ThreadSafeRandom.Next(0, LootTables.braceletItems.Length - 1)];
+                    break;
+                case int n when (n <= ringPercent + braceletPercent + necklacePercent && n > ringPercent + braceletPercent):
+                    jewelType = LootTables.necklaceItems[ThreadSafeRandom.Next(0, LootTables.necklaceItems.Length - 1)];
+                    break;
+                default:
+                    return null;
+            }
+
             int[][] JewelrySpells = LootTables.JewelrySpells;
             int[][] JewelryCantrips = LootTables.JewelryCantrips;
-            int[] jewelryItems = { 621, 295, 297, 294, 623, 622 };
-            int jewelType = jewelryItems[ThreadSafeRandom.Next(0, jewelryItems.Length - 1)];
-
+                        
             //int rank = 0;
             //int skill_level_limit = 0;
 
@@ -110,17 +134,42 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-            int mT = GetMaterialType(1, tier);
-            wo.SetProperty(PropertyInt.MaterialType, mT);
+            int materialType = GetMaterialType(wo, tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             int workmanship = GetWorkmanship(tier);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship, LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.GemType)], LootTables.materialModifier[(int)wo.GetProperty(PropertyInt.MaterialType)]));
+
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
+            if (tier > 6)
+            {
+                int wield;
+
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
+
+                switch (tier)
+                {
+                    case 7:
+                        wield = 150; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                    default:
+                        wield = 180; // In this instance, used for indicating player level, rather than skill level
+                        break;
+                }
+
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
 
             if (isMagical)
             {

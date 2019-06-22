@@ -22,5 +22,10 @@ namespace ACE.Common
         {
             return GetUnixTime() + secondsInTheFuture;
         }
+
+        public static DateTime GetDateTimeFromTimestamp(double timestamp)
+        {
+            return unixEpoch.AddSeconds(timestamp);
+        }
     }
 }

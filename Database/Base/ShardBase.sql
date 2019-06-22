@@ -55,7 +55,7 @@ CREATE TABLE `biota_properties_anim_part` (
   `animation_Id` int(10) unsigned NOT NULL,
   `order` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `object_Id_index_uidx` (`object_Id`,`index`,`animation_Id`),
+  KEY `wcid_animpart_idx` (`object_Id`),
   CONSTRAINT `wcid_animpart` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Animation Part Changes (from PCAPs) of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -290,7 +290,7 @@ CREATE TABLE `biota_properties_emote_action` (
   `min_Dbl` double DEFAULT NULL,
   `max_Dbl` double DEFAULT NULL,
   `stat` int(10) DEFAULT NULL,
-  `display` int(10) DEFAULT NULL,
+  `display` bit(1) DEFAULT NULL,
   `amount` int(10) DEFAULT NULL,
   `amount_64` bigint(10) DEFAULT NULL,
   `hero_X_P_64` bigint(10) DEFAULT NULL,
@@ -329,7 +329,6 @@ DROP TABLE IF EXISTS `biota_properties_enchantment_registry`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
 CREATE TABLE `biota_properties_enchantment_registry` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `enchantment_Category` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Which PackableList this Enchantment goes in (enchantmentMask)',
   `spell_Id` int(10) NOT NULL DEFAULT '0' COMMENT 'Id of Spell',
@@ -347,7 +346,7 @@ CREATE TABLE `biota_properties_enchantment_registry` (
   `stat_Mod_Key` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'along with flags, indicates which attribute is affected by the spell',
   `stat_Mod_Value` float NOT NULL DEFAULT '0' COMMENT 'the effect value/amount',
   `spell_Set_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the Spell Set for this spell',
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`object_Id`,`spell_Id`,`caster_Object_Id`,`layer_Id`),
   UNIQUE KEY `wcid_enchantmentregistry_objectId_spellId_layerId_uidx` (`object_Id`,`spell_Id`,`layer_Id`),
   CONSTRAINT `wcid_enchantmentregistry` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Enchantment Registry Properties of Weenies';
@@ -490,7 +489,7 @@ CREATE TABLE `biota_properties_palette` (
   `offset` smallint(5) unsigned NOT NULL,
   `length` smallint(5) unsigned NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `object_Id_subPaletteId_offset_length_uidx` (`object_Id`,`sub_Palette_Id`,`offset`,`length`),
+  KEY `wcid_palette_idx` (`object_Id`),
   CONSTRAINT `wcid_palette` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Palette Changes (from PCAPs) of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -594,7 +593,7 @@ CREATE TABLE `biota_properties_texture_map` (
   `new_Id` int(10) unsigned NOT NULL,
   `order` tinyint(3) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `object_Id_index_oldId_uidx` (`object_Id`,`index`,`old_Id`,`new_Id`),
+  KEY `wcid_texturemap_idx` (`object_Id`),
   CONSTRAINT `wcid_texturemap` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Texture Map Changes (from PCAPs) of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -618,6 +617,7 @@ CREATE TABLE `character` (
   `character_Options_1` int(10) NOT NULL DEFAULT '0',
   `character_Options_2` int(10) NOT NULL DEFAULT '0',
   `gameplay_Options` blob,
+  `spellbook_Filters` int(10) unsigned NOT NULL DEFAULT '16383',
   `hair_Texture` int(10) unsigned NOT NULL DEFAULT '0',
   `default_Hair_Texture` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
@@ -711,12 +711,11 @@ DROP TABLE IF EXISTS `character_properties_shortcut_bar`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
 CREATE TABLE `character_properties_shortcut_bar` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `character_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the character this property belongs to',
   `shortcut_Bar_Index` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Position (Slot) on the Shortcut Bar for this Object',
   `shortcut_Object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Guid of the object at this Slot',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_shortcutbar_barIndex_ObjectId_uidx` (`character_Id`,`shortcut_Bar_Index`,`shortcut_Object_Id`),
+  PRIMARY KEY (`character_Id`,`shortcut_Bar_Index`),
+  KEY `wcid_shortcutbar_idx` (`character_Id`),
   CONSTRAINT `wcid_shortcutbar` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ShortcutBar Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -816,6 +815,25 @@ CREATE TABLE `config_properties_string` (
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `house_permission`
+--
+
+DROP TABLE IF EXISTS `house_permission`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `house_permission` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `house_Id` int(10) unsigned NOT NULL COMMENT 'GUID of House Biota Object',
+  `player_Guid` int(10) unsigned NOT NULL COMMENT 'GUID of Player Biota Object being granted permission to this house',
+  `storage` bit(1) NOT NULL COMMENT 'Permission includes access to House Storage',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `biota_Id_house_Id_player_Guid_uidx` (`house_Id`,`player_Guid`),
+  KEY `biota_Id_house_Id_idx` (`house_Id`),
+  CONSTRAINT `biota_Id_house_Id` FOREIGN KEY (`house_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -826,4 +844,4 @@ CREATE TABLE `config_properties_string` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-10-02 13:44:40
+-- Dump completed on 2019-04-29  2:19:16

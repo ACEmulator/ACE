@@ -18,7 +18,6 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
-using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
@@ -43,6 +42,10 @@ namespace ACE.Server.WorldObjects
         public bool IsJumping = false;
 
         public SquelchDB Squelches;
+
+        public ConfirmationManager ConfirmationManager;
+
+        public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -92,8 +95,6 @@ namespace ACE.Server.WorldObjects
 
             // set pink bubble state
             IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
-
-            PhysicsObj.SetPlayer();
         }
 
         private void SetEphemeralValues()
@@ -124,7 +125,7 @@ namespace ACE.Server.WorldObjects
                 //    character.IsAdvocate= true;
             }
 
-            ContainerCapacity = 7;
+            ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
 
             if (Session != null && AdvocateQuest && IsAdvocate) // Advocate permissions are per character regardless of override
             {
@@ -135,6 +136,8 @@ namespace ACE.Server.WorldObjects
             }
 
             QuestManager = new QuestManager(this);
+
+            ConfirmationManager = new ConfirmationManager(this);
 
             LastUseTracker = new Dictionary<int, DateTime>();
 
@@ -185,6 +188,9 @@ namespace ACE.Server.WorldObjects
             // IsAlive = true;
         }
 
+        public bool IsDeleted => Character.IsDeleted;
+        public bool IsPendingDeletion => Character.DeleteTime > 0 && !IsDeleted;
+
 
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
@@ -193,28 +199,11 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
-
-        /// <summary>
-        /// Enum used for the DoEatOrDrink() method
-        /// </summary>
-        public enum ConsumableBuffType : uint
-        {
-            Spell = 0,
-            Health = 2,
-            Stamina = 4,
-            Mana = 6
-        }
 
         /// <summary>
         /// This tracks the contract tracker objects
         /// </summary>
         public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
-
-
-        public void CompleteConfirmation(ConfirmationType confirmationType, uint contextId)
-        {
-            Session.Network.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
-        }
 
 
         public MotionStance stance = MotionStance.NonCombat;
@@ -235,8 +224,8 @@ namespace ACE.Server.WorldObjects
             var wo = FindObject(objectGuid, SearchLocations.Everywhere, out _, out _, out _);
             if (wo == null)
             {
-                log.Warn($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
-                SendUseDoneEvent();
+                log.Debug($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
+                Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, objectGuid));
                 return;
             }
 
@@ -260,13 +249,22 @@ namespace ACE.Server.WorldObjects
                 var currentSkill = (int)GetCreatureSkill(skill).Current;
                 int difficulty = (int)creature.GetCreatureSkill(Skill.Deception).Current;
 
+                if (PropertyManager.GetBool("assess_creature_mod").Item && skill == Skill.AssessCreature
+                        && Skills[Skill.AssessCreature].AdvancementClass < SkillAdvancementClass.Trained)
+                    currentSkill = (int)((Focus.Current + Self.Current) / 2);
+
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
-                if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this))
+                if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this
+                    || ((this is Admin || this is Sentinel) && CloakStatus.HasValue && CloakStatus.Value == ACE.Entity.Enum.CloakStatus.On)))
                     chance = 1.0f;
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
             }
+
+            if (creature is Pet || creature is CombatPet)
+                success = true;
+
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
             if (!success && player != null)
@@ -378,7 +376,9 @@ namespace ACE.Server.WorldObjects
             var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
             if (book == null) return;
 
-            book.ModifyPage(pageId, pageText);
+            var success = book.ModifyPage(pageId, pageText, this);
+
+            Session.Network.EnqueueSend(new GameEventBookModifyPageResponse(Session, bookGuid, pageId, true));
         }
 
         public void HandleActionBookDeletePage(uint bookGuid, uint pageId)
@@ -387,7 +387,7 @@ namespace ACE.Server.WorldObjects
             var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
             if (book == null) return;
 
-            var success = book.DeletePage(pageId);
+            var success = book.DeletePage(pageId, this);
 
             Session.Network.EnqueueSend(new GameEventBookDeletePageResponse(Session, bookGuid, pageId, success));
         }
@@ -427,10 +427,41 @@ namespace ACE.Server.WorldObjects
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
-        public void LogOut(bool clientSessionTerminatedAbruptly = false)
+        public bool LogOut(bool clientSessionTerminatedAbruptly = false)
+        {
+            if (PKLogoutActive)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(20.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    LogOut_Inner(clientSessionTerminatedAbruptly);
+                    Session.logOffRequestTime = DateTime.UtcNow;
+                });
+                actionChain.EnqueueChain();
+                return false;
+            }
+
+            LogOut_Inner(clientSessionTerminatedAbruptly);
+
+            return true;
+        }
+
+        public void LogOut_Inner(bool clientSessionTerminatedAbruptly = false)
         {
             if (Fellowship != null)
                 FellowshipQuit(false);
+
+            if (IsTrading && TradePartner != null)
+            {
+                var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
+
+                if (tradePartner != null)
+                    tradePartner.HandleActionCloseTradeNegotiations(tradePartner.Session);
+            }
 
             if (!clientSessionTerminatedAbruptly)
             {
@@ -469,13 +500,13 @@ namespace ACE.Server.WorldObjects
                     PlayerManager.SwitchPlayerFromOnlineToOffline(this);
                 });
 
-                // close any open chests
+                // close any open landblock containers (chests / corpses)
                 if (LastOpenedContainerId != ObjectGuid.Invalid)
                 {
-                    var chest = CurrentLandblock.GetObject(LastOpenedContainerId) as Chest;
+                    var container = CurrentLandblock.GetObject(LastOpenedContainerId) as Container;
 
-                    if (chest != null)
-                        chest.Close(this);
+                    if (container != null)
+                        container.Close(this);
                 }
 
                 logoutChain.EnqueueChain();
@@ -731,17 +762,44 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, true);
+            if (!IsGagged)
+                EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, true);
+            else
+                SendGagError();
+        }
+
+        public void SendGagError()
+        {
+            var msg = "You are unable to talk locally, globally, or send tells because you have been gagged.";
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg,ChatMessageType.WorldBroadcast));
+        }
+
+        public void SendGagNotice()
+        {
+            var msg = "Your chat privileges have been suspended.";
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+        }
+
+        public void SendUngagNotice()
+        {
+            var msg = "Your chat privileges have been restored.";
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
         }
 
         public void HandleActionEmote(string message)
         {
-            EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
+            if (!IsGagged)
+                EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
+            else
+                SendGagError();
         }
 
         public void HandleActionSoulEmote(string message)
         {
-            EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+            if (!IsGagged)
+                EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+            else
+                SendGagError();
         }
 
         public void HandleActionJump(JumpPack jump)
@@ -754,7 +812,7 @@ namespace ACE.Server.WorldObjects
 
             // calculate stamina cost for this jump
             var extent = Math.Clamp(jump.Extent, 0.0f, 1.0f);
-            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, false);
+            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, PKTimerActive);
 
             //Console.WriteLine($"Strength: {strength}, Capacity: {capacity}, Encumbrance: {EncumbranceVal ?? 0}, Burden: {burden}, StaminaCost: {staminaCost}");
 
@@ -820,100 +878,21 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Method used to perform the animation, sound, and vital update on consumption of food or potions
+        /// Returns a modifier for a player's Run, Jump, Melee Defense, and Missile Defense skills if they are overburdened
         /// </summary>
-        /// <param name="consumableName">Name of the consumable</param>
-        /// <param name="sound">Either Sound.Eat1 or Sound.Drink1</param>
-        /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
-        /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
-        /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
-        public void ApplyConsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
+        public override float GetBurdenMod()
         {
-            MotionCommand motionCommand;
+            var strength = Strength.Current;
 
-            if (sound == Sound.Eat1)
-                motionCommand = MotionCommand.Eat;
-            else
-                motionCommand = MotionCommand.Drink;
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
 
-            // start the eat/drink motion
-            var motion = new Motion(MotionStance.NonCombat, motionCommand);
-            EnqueueBroadcastMotion(motion);
+            var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var animTime = motionTable.GetAnimationLength(CurrentMotionState.Stance, motionCommand, MotionCommand.Ready);
+            var burdenMod = EncumbranceSystem.GetBurdenMod(burden);
 
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animTime);
+            //Console.WriteLine($"Burden mod: {burdenMod}");
 
-            actionChain.AddAction(this, () =>
-            {
-                GameMessageSystemChat buffMessage;
-
-                if (buffType == ConsumableBuffType.Spell)
-                {
-                    bool result = false;
-
-                    uint spellId = spellDID ?? 0;
-
-                    if (spellId != 0)
-                        result = CreateSingleSpell(spellId);
-
-                    if (result)
-                    {
-                        var spell = new Server.Entity.Spell(spellId);
-                        buffMessage = new GameMessageSystemChat($"{consumableName} casts {spell.Name} on you.", ChatMessageType.Magic);
-                    }
-                    else
-                        buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
-                }
-                else
-                {
-                    CreatureVital creatureVital;
-                    string vitalName;
-
-                    // Null check for safety
-                    if (boostAmount == null)
-                        boostAmount = 0;
-
-                    switch (buffType)
-                    {
-                        case ConsumableBuffType.Health:
-                            creatureVital = Health;
-                            vitalName = "Health";
-                            break;
-                        case ConsumableBuffType.Mana:
-                            creatureVital = Mana;
-                            vitalName = "Mana";
-                            break;
-                        default:
-                            creatureVital = Stamina;
-                            vitalName = "Stamina";
-                            break;
-                    }
-
-                    var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
-                    if (vitalName == "Health")
-                    {
-                        DamageHistory.OnHeal((uint)vitalChange);
-                        if (Fellowship != null)
-                            Fellowship.OnVitalUpdate(this);
-                    }
-
-                    buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
-                }
-
-                var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
-                EnqueueBroadcast(soundEvent);
-
-                Session.Network.EnqueueSend(buffMessage);
-
-                // return to original stance
-                var returnStance = new Motion(CurrentMotionState.Stance);
-                EnqueueBroadcastMotion(returnStance);
-            });
-
-           actionChain.EnqueueChain();
+            return burdenMod;
         }
 
         public bool Adminvision;
@@ -944,8 +923,12 @@ namespace ACE.Server.WorldObjects
             // send CO network messages for admin objects
             if (Adminvision && oldState != Adminvision)
             {
-                var adminObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject.Visibility);
+                var adminObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject != null && o.WeenieObj.WorldObject.Visibility);
                 PhysicsObj.enqueue_objs(adminObjs);
+
+                var nodrawObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject != null && ((o.WeenieObj.WorldObject.NoDraw ?? false) || (o.WeenieObj.WorldObject.UiHidden ?? false)));
+                foreach (var wo in nodrawObjs)
+                    Session.Network.EnqueueSend(new GameMessageUpdateObject(wo.WeenieObj.WorldObject, Adminvision, Adminvision ? true : false));
 
                 // sending DO network messages for /adminvision off here doesn't work in client unfortunately?
             }

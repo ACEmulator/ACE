@@ -30,7 +30,10 @@ namespace ACE.Server.WorldObjects
             var animLength = 0.0f;
             if (weapon.IsAmmoLauncher)
             {
-                animLength = EnqueueMotion(actionChain, MotionCommand.Reload);   // start pulling out next arrow
+                var animSpeed = GetAnimSpeed();
+                //Console.WriteLine($"AnimSpeed: {animSpeed}");
+
+                animLength = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);   // start pulling out next arrow
                 EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
             }
 
@@ -95,6 +98,8 @@ namespace ACE.Server.WorldObjects
             SetProjectilePhysicsState(proj, target);
 
             LandblockManager.AddObject(proj);
+            if (proj.PhysicsObj == null)
+                return null;
 
             var player = this as Player;
             var pkStatus = player?.PlayerKillerStatus ?? PlayerKillerStatus.Creature;

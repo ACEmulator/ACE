@@ -33,6 +33,9 @@ namespace ACE.Server.WorldObjects
 
             OnDeath_GrantXP();
 
+            if (IsGenerator)
+                OnGeneratorDeath();
+
             return GetDeathMessage(lastDamager, damageType, criticalHit);
         }
 
@@ -125,8 +128,8 @@ namespace ACE.Server.WorldObjects
 
             foreach (var kvp in DamageHistory.TotalDamage)
             {
-                var damager = kvp.Key;
-                var totalDamage = kvp.Value;
+                var damager = kvp.Value.TryGetWorldObject();
+                var totalDamage = kvp.Value.Value;
 
                 var playerDamager = damager as Player;
                 if (playerDamager == null)
@@ -156,7 +159,17 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected void CreateCorpse(WorldObject killer)
         {
-            if (NoCorpse) return;
+            if (NoCorpse)
+            {
+                var loot = GenerateTreasure(null);
+
+                foreach(var item in loot)
+                {
+                    item.Location = new Position(Location);
+                    LandblockManager.AddObject(item);
+                }
+                return;
+            }
 
             var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
             var prefix = "Corpse";
@@ -190,21 +203,19 @@ namespace ACE.Server.WorldObjects
                 //corpse.Translucency = Translucency;
 
 
-                if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
-                {
-                    var objDesc = CalculateObjDesc();
+                // Pull and save objdesc for correct corpse apperance at time of death
+                var objDesc = CalculateObjDesc();
 
-                    byte i = 0;
-                    foreach (var animPartChange in objDesc.AnimPartChanges)
-                        corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
+                byte i = 0;
+                foreach (var animPartChange in objDesc.AnimPartChanges)
+                    corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
 
-                    foreach (var subPalette in objDesc.SubPalettes)
-                        corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+                foreach (var subPalette in objDesc.SubPalettes)
+                    corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
 
-                    i = 0;
-                    foreach (var textureChange in objDesc.TextureChanges)
-                        corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
-                }
+                i = 0;
+                foreach (var textureChange in objDesc.TextureChanges)
+                    corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
             }
 
             corpse.Location = new Position(Location);
@@ -232,16 +243,16 @@ namespace ACE.Server.WorldObjects
                 var dropped = player.CalculateDeathItems(corpse);
                 corpse.RecalculateDecayTime(player);
 
+                if (dropped.Count > 0)
+                    saveCorpse = true;
+
                 if ((player.Location.Cell & 0xFFFF) < 0x100)
                 {
                     player.SetPosition(PositionType.LastOutsideDeath, new Position(corpse.Location));
                     player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
 
                     if (dropped.Count > 0)
-                    {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
-                        saveCorpse = true;
-                    }
                 }
             }
             else
@@ -259,7 +270,16 @@ namespace ACE.Server.WorldObjects
             if (CanGenerateRare && killer != null)
                 corpse.GenerateRare(killer);
 
+            corpse.MarkAsInventoryLoaded();
             corpse.EnterWorld();
+
+            if (this is Player p)
+            {
+                if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
+                    log.Info($"{Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {p.Location.ToLOCString()}");
+                else
+                    log.Info($"{Name}'s corpse (0x{corpse.Guid}) is located at {corpse.PhysicsObj.Position}");
+            }
 
             if (saveCorpse)
                 corpse.SaveBiotaToDatabase();
@@ -274,15 +294,20 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Transfers generated treasure from creature to corpse
         /// </summary>
-        private void GenerateTreasure(Corpse corpse)
+        private List<WorldObject> GenerateTreasure(Corpse corpse)
         {
+            var droppedItems = new List<WorldObject>();
+
             // create death treasure from loot generation factory
             if (DeathTreasure != null)
             {
                 List<WorldObject> items = LootGenerationFactory.CreateRandomLootObjects(DeathTreasure);
                 foreach (WorldObject wo in items)
                 {
-                    corpse.TryAddToInventory(wo);
+                    if (corpse != null)
+                        corpse.TryAddToInventory(wo);
+                    else
+                        droppedItems.Add(wo);
                 }
             }
 
@@ -297,7 +322,12 @@ namespace ACE.Server.WorldObjects
                 var wo = WorldObjectFactory.CreateNewWorldObject(item);
 
                 if (wo != null)
-                    corpse.TryAddToInventory(wo);
+                {
+                    if (corpse != null)
+                        corpse.TryAddToInventory(wo);
+                    else
+                        droppedItems.Add(wo);
+                }
             }
 
             // move wielded treasure over
@@ -310,8 +340,13 @@ namespace ACE.Server.WorldObjects
                 if (TryDequipObjectWithBroadcasting(item.Guid, out var wo, out var wieldedLocation))
                     TryAddToInventory(wo);
 
-                corpse.TryAddToInventory(item);
+                if (corpse != null)
+                    corpse.TryAddToInventory(item);
+                else
+                    droppedItems.Add(item);
             }
+
+            return droppedItems;
         }
     }
 }

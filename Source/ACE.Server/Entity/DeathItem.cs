@@ -155,6 +155,8 @@ namespace ACE.Server.Entity
                 Name = wo.Name;
                 Category = GetCategory(wo);
                 AdjustedValue = wo.Value ?? 0;  // stack size?
+                if ((wo.StackSize ?? 1) > 1)
+                    AdjustedValue /= wo.StackSize.Value;
             }
 
             public static DeathItemCategory GetCategory(WorldObject wo)

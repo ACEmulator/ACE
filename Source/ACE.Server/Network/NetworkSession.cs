@@ -7,9 +7,10 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 
-using ACE.Server.Managers;
+using ACE.Common.Cryptography;
+using ACE.Server.Entity;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
-using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
 
@@ -57,12 +58,21 @@ namespace ACE.Server.Network
         /// </summary>
         private readonly ConcurrentDictionary<uint /*seq*/, ServerPacket> cachedPackets = new ConcurrentDictionary<uint /*seq*/, ServerPacket>();
 
+        private static readonly TimeSpan cachedPacketPruneInterval = TimeSpan.FromSeconds(5);
+        private DateTime lastCachedPacketPruneTime;
         /// <summary>
-        /// This is referenced by one thread:<para />
-        /// WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick) <para />
-        /// Technically, it is referenced ONCE by EnqueueSend when the client first connects to the server, but there's no collision risk at that point.
+        /// Number of seconds to retain cachedPackets
         /// </summary>
-        private readonly Queue<ServerPacket> packetQueue = new Queue<ServerPacket>();
+        private const int cachedPacketRetentionTime = 120;
+
+        /// <summary>
+        /// This is referenced by multiple thread:<para />
+        /// [ConnectionListener Thread + 0] WorldManager.ProcessPacket()->SendLoginRequestReject()<para />
+        /// [ConnectionListener Thread + 0] WorldManager.ProcessPacket()->Session.ProcessPacket()->NetworkSession.ProcessPacket()->DoRequestForRetransmission()<para />
+        /// [ConnectionListener Thread + 1] WorldManager.ProcessPacket()->Session.ProcessPacket()->NetworkSession.ProcessPacket()-> ... AuthenticationHandler<para />
+        /// [World Manager Thread] WorldManager.UpdateWorld()->Session.Update(lastTick)->This.Update(lastTick)<para />
+        /// </summary>
+        private readonly ConcurrentQueue<ServerPacket> packetQueue = new ConcurrentQueue<ServerPacket>();
 
         public readonly SessionConnectionData ConnectionData = new SessionConnectionData();
 
@@ -90,7 +100,7 @@ namespace ACE.Server.Network
 
             ConnectionData.CryptoClient.OnCryptoSystemCatastrophicFailure += (sender, e) =>
             {
-                session.State = Enum.SessionState.ClientConnectionFailure;
+                session.Terminate(SessionTerminationReason.ClientConnectionFailure);
             };
         }
 
@@ -101,6 +111,9 @@ namespace ACE.Server.Network
         /// <param name="messages">One or more GameMessages to send</param>
         public void EnqueueSend(params GameMessage[] messages)
         {
+            if (isReleased) // Session has been removed
+                return;
+
             messages.GroupBy(k => k.Group).ToList().ForEach(k =>
             {
                 var grp = k.First().Group;
@@ -126,6 +139,9 @@ namespace ACE.Server.Network
         /// <param name="packets"></param>
         public void EnqueueSend(params ServerPacket[] packets)
         {
+            if (isReleased) // Session has been removed
+                return;
+
             foreach (var packet in packets)
             {
                 packetLog.DebugFormat("[{0}] Enqueuing Packet {1}", session.LoggingIdentifier, packet.GetHashCode());
@@ -134,10 +150,17 @@ namespace ACE.Server.Network
         }
 
         /// <summary>
+        /// Prunes the cachedPackets dictionary
         /// Checks if we should send the current bundle and then flushes all pending packets.
         /// </summary>
         public void Update()
         {
+            if (isReleased) // Session has been removed
+                return;
+
+            if (DateTime.UtcNow - lastCachedPacketPruneTime > cachedPacketPruneInterval)
+                PruneCachedPackets();
+
             for (int i = 0; i < currentBundles.Length; i++)
             {
                 NetworkBundle bundleToSend = null;
@@ -199,6 +222,25 @@ namespace ACE.Server.Network
             FlushPackets();
         }
 
+        private void PruneCachedPackets()
+        {
+            lastCachedPacketPruneTime = DateTime.UtcNow;
+
+            var currentTime = (ushort)Timers.PortalYearTicks;
+
+            // Make sure our comparison still works when ushort wraps every 18.2 hours.
+            var removalList = cachedPackets.Values.Where(x => (currentTime >= x.Header.Time ? currentTime : currentTime + ushort.MaxValue) - x.Header.Time > cachedPacketRetentionTime);
+
+            foreach (var packet in removalList)
+            {
+                if (cachedPackets.TryRemove(packet.Header.Sequence, out var removedPacket))
+                {
+                    if (removedPacket.Data != null)
+                        removedPacket.Data.Dispose();
+                }
+            }
+        }
+
         // This is called from ConnectionListener.OnDataReceieve()->Session.ProcessPacket()->This
         /// <summary>
         /// Processes and incoming packet from a client.
@@ -206,6 +248,9 @@ namespace ACE.Server.Network
         /// <param name="packet">The ClientPacket to process.</param>
         public void ProcessPacket(ClientPacket packet)
         {
+            if (isReleased) // Session has been removed
+                return;
+
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
             NetworkStatistics.C2S_Packets_Aggregate_Increment();
 
@@ -216,9 +261,15 @@ namespace ACE.Server.Network
 
             #region order-insensitive "half-processing"
 
+            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
+            {
+                session.Terminate(SessionTerminationReason.PacketHeaderDisconnect);
+                return;
+            }
+
             if (packet.Header.HasFlag(PacketHeaderFlags.NetErrorDisconnect))
             {
-                session.State = Enum.SessionState.ClientSentNetErrorDisconnect;
+                session.Terminate(SessionTerminationReason.ClientSentNetworkErrorDisconnect);
                 return;
             }
 
@@ -237,9 +288,9 @@ namespace ACE.Server.Network
             // Sessions that have gone past the AuthLoginRequest step will stay active for a longer period of time (exposed via configuration) 
             // Sessions that in the AuthLoginRequest will have a short timeout, as set in the AuthenticationHandler.DefaultAuthTimeout.
             // Example: Applications that check uptime will stay in the AuthLoginRequest state.
-            session.Network.TimeoutTick = (session.State == Enum.SessionState.AuthLoginRequest) ?
-                DateTime.UtcNow.AddSeconds(WorldManager.DefaultSessionTimeout).Ticks :
-                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
+            session.Network.TimeoutTick = (session.State == SessionState.AuthLoginRequest) ?
+                DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks : // Default is 15s
+                DateTime.UtcNow.AddSeconds(NetworkManager.DefaultSessionTimeout).Ticks; // Default is 60s
 
             #endregion
 
@@ -298,6 +349,11 @@ namespace ACE.Server.Network
             List<uint> needSeq = new List<uint>();
             needSeq.Add(desiredSeq);
             uint bottom = desiredSeq + 1;
+            if (rcvdSeq - bottom > CryptoSystem.MaximumEffortLevel)
+            {
+                session.Terminate(SessionTerminationReason.AbnormalSequenceReceived);
+                return;
+            }
             for (uint a = bottom; a < rcvdSeq; a++)
                 if (!outOfOrderPackets.ContainsKey(a))
                     needSeq.Add(a);
@@ -483,14 +539,15 @@ namespace ACE.Server.Network
             // if (!sendAck)
             //    sendAck = true;
 
-            var removalList = cachedPackets.Where(x => x.Key < sequence);
+            var removalList = cachedPackets.Keys.Where(x => x < sequence);
 
-            foreach (var item in removalList)
+            foreach (var key in removalList)
             {
-                ServerPacket removedPacket;
-                cachedPackets.TryRemove(item.Key, out removedPacket);
-                if (removedPacket.Data != null)
-                    removedPacket.Data.Dispose();
+                if (cachedPackets.TryRemove(key, out var removedPacket))
+                {
+                    if (removedPacket.Data != null)
+                        removedPacket.Data.Dispose();
+                }
             }
         }
 
@@ -513,11 +570,9 @@ namespace ACE.Server.Network
 
         private void FlushPackets()
         {
-            while (packetQueue.Count > 0)
+            while (packetQueue.TryDequeue(out var packet))
             {
                 packetLog.DebugFormat("[{0}] Flushing packets, count {1}", session.LoggingIdentifier, packetQueue.Count);
-
-                ServerPacket packet = packetQueue.Dequeue();
 
                 if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
                     ConnectionData.PacketSequence = new Sequence.UIntSequence(1);
@@ -529,7 +584,7 @@ namespace ACE.Server.Network
                     packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
                 packet.Header.Id = ServerId;
                 packet.Header.Iteration = 0x14;
-                packet.Header.Time = (ushort)ConnectionData.ServerTime;
+                packet.Header.Time = (ushort)Timers.PortalYearTicks;
 
                 if (packet.Header.Sequence >= 2u)
                     cachedPackets.TryAdd(packet.Header.Sequence, packet);
@@ -592,7 +647,7 @@ namespace ACE.Server.Network
                     sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
                     log.Error(sb.ToString());
 
-                    session.State = Enum.SessionState.NetworkTimeout; // This will force WorldManager to drop the session
+                    session.Terminate(SessionTerminationReason.SendToSocketException, null, null, ex.Message);
                 }
             }
             finally
@@ -726,9 +781,9 @@ namespace ACE.Server.Network
             if (bundle.TimeSync) // 0x1000000
             {
                 packetHeader.Flags |= PacketHeaderFlags.TimeSync;
-                packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, ConnectionData.ServerTime);
+                packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, Timers.PortalYearTicks);
                 packet.InitializeBodyWriter();
-                packet.BodyWriter.Write(ConnectionData.ServerTime);
+                packet.BodyWriter.Write(Timers.PortalYearTicks);
             }
 
             if (bundle.ClientTime != -1f) // 0x4000000
@@ -737,8 +792,31 @@ namespace ACE.Server.Network
                 packetLog.DebugFormat("[{0}] Outgoing EchoResponse: {1}", session.LoggingIdentifier, bundle.ClientTime);
                 packet.InitializeBodyWriter();
                 packet.BodyWriter.Write(bundle.ClientTime);
-                packet.BodyWriter.Write((float)ConnectionData.ServerTime - bundle.ClientTime);
+                packet.BodyWriter.Write((float)Timers.PortalYearTicks - bundle.ClientTime);
             }
+        }
+
+
+        private bool isReleased;
+
+        /// <summary>
+        /// This will empty out arrays, collections and dictionaries, and mark the object as released.
+        /// Any further work assigned to this object will be ignored.
+        /// </summary>
+        public void ReleaseResources()
+        {
+            isReleased = true;
+
+            for (int i = 0; i < currentBundles.Length; i++)
+                currentBundles[i] = null;
+
+            outOfOrderPackets.Clear();
+            partialFragments.Clear();
+            outOfOrderFragments.Clear();
+
+            cachedPackets.Clear();
+
+            packetQueue.Clear();
         }
     }
 }

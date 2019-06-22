@@ -31,9 +31,13 @@ namespace ACE.DatLoader.FileTypes
             if (PaletteList.Count == 0 || hue < 0 || hue > 1)
                 return 0;
 
+            // This was the original function - had an issue specifically with Aerfalle's Pallium, WCID 8133
+            // int palIndex = Convert.ToInt32(Convert.ToDouble(PaletteList.Count - 0.000001) * hue); // Taken from acclient.c (PalSet::GetPaletteID)
+
             // Hue is stored in DB as a percent of the total, so do some math to figure out the int position
-            int palIndex = Convert.ToInt32(Convert.ToDouble(PaletteList.Count - 0.000001) * hue); // Taken from acclient.c (PalSet::GetPaletteID)
-                                                                                                       // Since the hue numbers are a little odd, make sure we're in the bounds.
+            int palIndex = (int)((PaletteList.Count - 0.000001) * hue); // Taken from acclient.c (PalSet::GetPaletteID)
+
+            // Since the hue numbers are a little odd, make sure we're in the bounds.
             if (palIndex < 0)
                 palIndex = 0;
 

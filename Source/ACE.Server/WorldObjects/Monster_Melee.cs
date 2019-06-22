@@ -11,7 +11,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
-using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -45,7 +44,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null || !target.IsAlive)
             {
-                Sleep();
+                FindNextTarget();
                 return 0.0f;
             }
 
@@ -253,7 +252,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns base damage range for next monster attack
         /// </summary>
-        public Range GetBaseDamage(BiotaPropertiesBodyPart attackPart)
+        public BaseDamageMod GetBaseDamage(BiotaPropertiesBodyPart attackPart)
         {
             if (CurrentAttack == CombatType.Missile && GetMissileAmmo() != null)
                 return GetMissileDamage();
@@ -269,138 +268,16 @@ namespace ACE.Server.WorldObjects
 
             var maxDamage = attackPart.DVal;
             var variance = attackPart.DVar;
-            var minDamage = maxDamage - maxDamage * variance;
 
-            var baseDamage = new Range(minDamage, maxDamage);
-            //Console.WriteLine($"{Name} using base damage: {baseDamage}");
-            return baseDamage;
-        }
-
-        /// <summary>
-        /// Returns the chance for creature to avoid monster attack
-        /// </summary>
-        public float GetEvadeChance()
-        {
-            // get monster attack skill
-            var target = AttackTarget as Creature;
-            var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
-            var offenseMod = GetWeaponOffenseModifier(this);
-            attackSkill = (uint)Math.Round(attackSkill * offenseMod);
-
-            //if (IsExhausted)
-                //attackSkill = GetExhaustedSkill(attackSkill);
-
-            // get creature defense skill
-            var defenseSkill = CurrentAttack == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(AttackTarget as Creature) : 1.0f;
-            var difficulty = (uint)Math.Round(target.GetCreatureSkill(defenseSkill).Current * defenseMod);
-
-            if (target.IsExhausted) difficulty = 0;
-
-            /*var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentAttackSkill()).Current})" : "";
-            Console.WriteLine("Attack skill: " + attackSkill + baseStr);
-
-            baseStr = defenseMod != 1.0f ? $" (base: {player.GetCreatureSkill(defenseSkill).Current})" : "";
-            Console.WriteLine("Defense skill: " + difficulty + baseStr);*/
-
-            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
-            return (float)evadeChance;
-        }
-
-        /// <summary>
-        /// Calculates the creature damage for a physical monster attack
-        /// </summary>
-        /// <param name="bodyPart">The creature body part the monster is targeting</param>
-        /// <param name="criticalHit">Is TRUE if monster rolls a critical hit</param>
-        public float? CalculateDamage(ref DamageType damageType, CombatManeuver maneuver, BodyPart bodyPart, ref bool criticalHit, ref float shieldMod)
-        {
-            // check lifestone protection
-            var player = AttackTarget as Player;
-            if (player != null && player.UnderLifestoneProtection)
-            {
-                player.HandleLifestoneProtection();
-                return null;
-            }
-
-            // evasion chance
-            var evadeChance = GetEvadeChance();
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < evadeChance)
-                return null;
-
-            // get base damage
-            var attackPart = GetAttackPart(maneuver);
-            if (attackPart == null)
-                return 0.0f;
-
-            damageType = GetDamageType(attackPart);
-            var damageRange = GetBaseDamage(attackPart);
-            var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
-
-            var damageRatingMod = GetPositiveRatingMod(GetDamageRating());
-            //Console.WriteLine("Damage Rating: " + damageRatingMod);
-
-            var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
-            var target = AttackTarget as Creature;
-            var targetPet = AttackTarget as CombatPet;
-
-            // handle pet damage type
-            var pet = this as CombatPet;
-            if (pet != null)
-                damageType = pet.DamageType;
-
-            // monster weapon / attributes
-            var weapon = GetEquippedWeapon();
-
-            // critical hit
-            var critical = 0.1f;
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
-            {
-                if (player != null && player.AugmentationCriticalDefense > 0)
-                {
-                    var protChance = player.AugmentationCriticalDefense * 0.25f;
-                    if (ThreadSafeRandom.Next(0.0f, 1.0f) > protChance)
-                        criticalHit = true;
-                }
-                else
-                    criticalHit = true;
-            }
-
-            // attribute damage modifier (verify)
-            var attributeMod = GetAttributeMod(weapon);
-
-            // get armor piece
-            var armorLayers = GetArmorLayers(bodyPart);
-
-            // get armor modifiers
-            var armorMod = GetArmorMod(damageType, armorLayers, weapon);
-
-            // get resistance modifiers (protect/vuln)
-            var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
-
-            var attackTarget = AttackTarget as Creature;
-            var damageResistRatingMod = GetNegativeRatingMod(attackTarget.GetDamageResistRating());
-
-            // get shield modifier
-            shieldMod = attackTarget.GetShieldMod(this, damageType);
-
-            // scale damage by modifiers
-            var damage = baseDamage * damageRatingMod * attributeMod * armorMod * shieldMod * resistanceMod * damageResistRatingMod;
-
-            if (!criticalHit)
-                damage *= recklessnessMod;
-            else
-                damage *= 2;    // fixme: target recklessness mod still in effect?
-
-            return damage;
+            var baseDamage = new BaseDamage(maxDamage, variance);
+            return new BaseDamageMod(baseDamage);
         }
 
         /// <summary>
         /// Returns the creature armor for a body part
         /// </summary>
-        public List<WorldObject> GetArmorLayers(BodyPart bodyPart)
+        public List<WorldObject> GetArmorLayers(Player target, BodyPart bodyPart)
         {
-            var target = AttackTarget as Creature;
-
             //Console.WriteLine("BodyPart: " + bodyPart);
             //Console.WriteLine("===");
 
@@ -415,16 +292,19 @@ namespace ACE.Server.WorldObjects
         /// Returns the percent of damage absorbed by layered armor + clothing
         /// </summary>
         /// <param name="armors">The list of armor/clothing covering the targeted body part</param>
-        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject damageSource, float armorRendingMod = 1.0f)
+        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject weapon, float armorRendingMod = 1.0f)
         {
+            var ignoreMagicArmor  = weapon != null ? weapon.IgnoreMagicArmor : false;
+            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
+
             var effectiveAL = 0.0f;
 
             foreach (var armor in armors)
-                effectiveAL += GetArmorMod(armor, damageSource, damageType);
+                effectiveAL += GetArmorMod(armor, damageType, ignoreMagicArmor);
 
             // life spells
             // additive: armor/imperil
-            var bodyArmorMod = damageSource != null && damageSource.IgnoreMagicResist ? 0.0f : AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            var bodyArmorMod = ignoreMagicResist ? 0.0f : AttackTarget.EnchantmentManager.GetBodyArmorMod();
 
             // handle armor rending mod here?
             //if (bodyArmorMod > 0)
@@ -450,7 +330,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the effective AL for 1 piece of armor/clothing
         /// </summary>
         /// <param name="armor">A piece of armor or clothing</param>
-        public float GetArmorMod(WorldObject armor, WorldObject damageSource, DamageType damageType)
+        public float GetArmorMod(WorldObject armor, DamageType damageType, bool ignoreMagicArmor)
         {
             // get base armor/resistance level
             var baseArmor = armor.GetProperty(PropertyInt.ArmorLevel) ?? 0;
@@ -464,12 +344,12 @@ namespace ACE.Server.WorldObjects
 
             // armor level additives
             var target = AttackTarget as Creature;
-            var armorMod = damageSource != null && damageSource.IgnoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
+            var armorMod = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
             // Console.WriteLine("Impen: " + armorMod);
             var effectiveAL = baseArmor + armorMod;
 
             // resistance additives
-            var armorBane = damageSource != null && damageSource.IgnoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorModVsType(damageType);
+            var armorBane = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorModVsType(damageType);
             // Console.WriteLine("Bane: " + armorBane);
             var effectiveRL = (float)(resistance + armorBane);
 

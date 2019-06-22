@@ -24,20 +24,20 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject 
     {
-        public virtual void SerializeUpdateObject(BinaryWriter writer)
+        public virtual void SerializeUpdateObject(BinaryWriter writer, bool adminvision = false, bool changenodraw = false)
         {
             // content of these 2 is the same? TODO: Validate that?
-            SerializeCreateObject(writer);
+            SerializeCreateObject(writer, false, adminvision, changenodraw);
         }
 
-        public virtual void SerializeCreateObject(BinaryWriter writer)
+        public virtual void SerializeCreateObject(BinaryWriter writer, bool adminvision = false, bool changenodraw = false)
         {
-            SerializeCreateObject(writer, false);
+            SerializeCreateObject(writer, false, adminvision, changenodraw);
         }
 
-        public virtual void SerializeGameDataOnly(BinaryWriter writer)
+        public virtual void SerializeGameDataOnly(BinaryWriter writer, bool adminvision = false)
         {
-            SerializeCreateObject(writer, true);
+            SerializeCreateObject(writer, true, adminvision, false);
         }
 
         /// <summary>
@@ -52,19 +52,24 @@ namespace ACE.Server.WorldObjects
             writer.Write(Sequences.GetNextSequence(SequenceType.ObjectVisualDesc));
         }
 
-        private void SerializeCreateObject(BinaryWriter writer, bool gamedataonly)
+        private void SerializeCreateObject(BinaryWriter writer, bool gamedataonly, bool adminvision = false, bool changenodraw = false)
         {
             writer.WriteGuid(Guid);
 
             if (!gamedataonly)
             {
                 SerializeModelData(writer);
-                SerializePhysicsData(writer);
+                SerializePhysicsData(writer, adminvision, changenodraw);
             }
 
             var weenieFlags = CalculatedWeenieHeaderFlag();
             var weenieFlags2 = CalculatedWeenieHeaderFlag2();
             var descriptionFlags = CalculatedDescriptionFlag();
+
+            if (adminvision)
+            {
+                descriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
+            }
 
             writer.Write((uint)weenieFlags);
             writer.WriteString16L(Name ?? String.Empty);
@@ -99,7 +104,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(UseRadius ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.TargetType) != 0)
-                writer.Write(TargetType ?? 0);
+                writer.Write((uint?)TargetType ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.UiEffects) != 0)
                 writer.Write((uint?)UiEffects ?? 0u);
@@ -272,13 +277,24 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sent as part of the CreateObject message, PhysicsDesc in protocol docs
         /// </summary>
-        private void SerializePhysicsData(BinaryWriter writer)
+        private void SerializePhysicsData(BinaryWriter writer, bool adminvision = false, bool changenodraw = false)
         {
             var physicsDescriptionFlag = CalculatedPhysicsDescriptionFlag();
+
+            if (adminvision && this is Player && CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+            {
+                physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
+            }
 
             writer.Write((uint)physicsDescriptionFlag);
 
             var physicsState = GetPhysicsStateOrDefault();
+
+            if (changenodraw)
+            {
+                physicsState &= ~PhysicsState.NoDraw;
+                physicsState &= ~PhysicsState.Cloaked;
+            }
 
             writer.Write((uint)physicsState);
 
@@ -329,16 +345,19 @@ namespace ACE.Server.WorldObjects
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.ObjScale) != 0)
-                writer.Write(ObjScale ?? 0u);
+                writer.Write(ObjScale ?? 0f);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Friction) != 0)
-                writer.Write(Friction ?? 0u);
+                writer.Write(Friction ?? 0f);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Elasticity) != 0)
-                writer.Write(Elasticity ?? 0u);
+                writer.Write(Elasticity ?? 0f);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
-                writer.Write(Translucency ?? 0u);
+                if (adminvision && this is Player && CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+                    writer.Write(0.5f);
+                else
+                    writer.Write(Translucency ?? 0f);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
@@ -359,7 +378,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(DefaultScriptId ?? 0);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
-                writer.Write(DefaultScriptIntensity ?? 0);
+                writer.Write(DefaultScriptIntensity ?? 0f);
 
             // timestamps
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectPosition));        // 0
@@ -834,7 +853,7 @@ namespace ACE.Server.WorldObjects
             ////Openable               = 0x00000001,
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
             {
-                if ((!IsLocked && !IsOpen) || (WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage))
+                if (CurrentLandblock == null || !IsLocked && !IsOpen || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
                     flag |= ObjectDescriptionFlag.Openable;
                 else
                     flag &= ~ObjectDescriptionFlag.Openable;
@@ -1039,7 +1058,7 @@ namespace ACE.Server.WorldObjects
                         itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
                     }
 
-                    if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false))
+                    if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false) && (Shade.HasValue || PaletteTemplate.HasValue))
                         IconId = itemSubPal.Icon;
 
                     float shade = 0;
@@ -1136,7 +1155,7 @@ namespace ACE.Server.WorldObjects
             if (!excludeSelf && this is Player self)
                 self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (Visibility && !player.Adminvision)
                     continue;
@@ -1165,20 +1184,36 @@ namespace ACE.Server.WorldObjects
             return iterator.CurrentLandblock == null ? null : iterator;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, MotionStance? _stance = null)
         {
-            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+            var stance = MotionStance.NonCombat;
+            if (_stance != null)
+                stance = _stance.Value;
+            else if (CurrentMotionState != null)
+                stance = CurrentMotionState.Stance;
+
+            if (CurrentMotionState == null)
+                log.Warn($"{Name} ({Guid}).EnqueueMotion({motionCommand}, {speed}, {stance}): CurrentMotionState == null");
 
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
-            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand);
+            var animLength = 0.0f;
+
+            if (CurrentMotionState == null || CurrentMotionState.Stance == stance)
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            else
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand, (MotionCommand)stance, speed);
 
             actionChain.AddAction(this, () =>
             {
                 CurrentMotionState = motion;
+
                 EnqueueBroadcastMotion(motion);
             });
+
+            if (CurrentMotionState != null && stance != CurrentMotionState.Stance)
+                CurrentMotionState.Stance = stance;
 
             actionChain.AddDelaySeconds(animLength);
             return animLength;
@@ -1193,7 +1228,7 @@ namespace ACE.Server.WorldObjects
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
@@ -1229,7 +1264,7 @@ namespace ACE.Server.WorldObjects
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (self != null && useSquelch && player.Squelches.Contains(self))
                     continue;
@@ -1266,7 +1301,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
             {
                 if (Visibility && !player.Adminvision)
@@ -1287,7 +1322,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers.Except(excludePlayers))
             {
                 if (Visibility && !player.Adminvision)
@@ -1309,7 +1344,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}: NotifyPlayers - found {PhysicsObj.ObjMaint.VoyeurTable.Count} players");
 
             // add to player tracking / send create object network messages to these players
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
                 player.AddTrackedObject(this);
 
             if (this is Creature creature && !(this is Player))

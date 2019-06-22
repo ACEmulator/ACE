@@ -51,7 +51,7 @@ namespace ACE.Server.WorldObjects
 
             // get world object of target guid
             var target = CurrentLandblock?.GetObject(targetGuid);
-            if (target == null)
+            if (target == null || target.Teleporting)
             {
                 log.Warn("Unknown target guid " + targetGuid.ToString("X8"));
                 return;
@@ -130,7 +130,8 @@ namespace ACE.Server.WorldObjects
             }
 
             // reload animation
-            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload);
+            var animSpeed = GetAnimSpeed();
+            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);
 
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
@@ -146,7 +147,7 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventAttackDone(Session));
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && !IsBusy)
                 {
                     Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));

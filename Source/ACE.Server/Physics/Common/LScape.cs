@@ -2,11 +2,17 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Entity;
+using ACE.Server.Managers;
+using ACE.Server.Physics.Util;
+using log4net;
 
 namespace ACE.Server.Physics.Common
 {
     public static class LScape
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static int MidRadius = 5;
         public static int MidWidth = 11;
 
@@ -36,6 +42,8 @@ namespace ACE.Server.Physics.Common
             MidWidth = 2 * radius + 1;
             return true;
         }
+
+        public static int LandblocksCount => Landblocks.Count;
 
         /// <summary>
         /// Loads the backing store landblock structure<para />
@@ -77,7 +85,18 @@ namespace ACE.Server.Physics.Common
                 // if not, load into cache
                 landblock = new Landblock(DBObj.GetCellLandblock(landblockID));
                 if (Landblocks.TryAdd(landblockID, landblock))
+                {
                     landblock.PostInit();
+
+                    // ensure landblock manager loaded
+                    var lbid = new LandblockId(landblockID);
+                    if (!LandblockManager.IsLoaded(lbid))
+                    {
+                        // this can happen from encounter spawns sliding down walkable slopes...
+                        //log.Debug($"{landblockID:X8} requested from LScape, but not loaded from LandblockManager, adding");
+                        LandblockManager.GetLandblock(lbid, false, false);
+                    }
+                }
                 else
                     Landblocks.TryGetValue(landblockID, out landblock);
 
@@ -87,7 +106,9 @@ namespace ACE.Server.Physics.Common
 
         public static bool unload_landblock(uint landblockID)
         {
-            return Landblocks.TryRemove(landblockID, out _);
+            var result = Landblocks.TryRemove(landblockID, out _);
+            AdjustCell.AdjustCells.Remove(landblockID >> 16);
+            return result;
         }
 
         /// <summary>

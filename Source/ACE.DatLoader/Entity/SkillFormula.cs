@@ -1,4 +1,5 @@
 using System.IO;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.DatLoader.Entity
 {
@@ -20,6 +21,16 @@ namespace ACE.DatLoader.Entity
 
             Attr1 = reader.ReadUInt32();
             Attr2 = reader.ReadUInt32();
+        }
+
+        public SkillFormula() { }
+
+        public SkillFormula(PropertyAttribute attr1, PropertyAttribute attr2, uint divisor)
+        {
+            Attr1 = (uint)attr1;
+            Attr2 = (uint)attr2;
+            Z = divisor;
+            X = 1;
         }
     }
 }

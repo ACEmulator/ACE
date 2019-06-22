@@ -33,7 +33,10 @@ namespace ACE.Server.WorldObjects
 
             if (position != null)
             {
-                Teleport(position);
+                var teleportDest = new Position(position);
+                AdjustDungeon(teleportDest);
+
+                Teleport(teleportDest);
                 return true;
             }
 
@@ -49,6 +52,18 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTeleToHouse()
         {
+            if (PKTimerActive)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
+
+            if (RecallsDisabled)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                return;
+            }
+
             if (House == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
@@ -63,7 +78,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(updateCombatMode);
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall), 96.0f);
             EnqueueBroadcastMotion(motionHouseRecall);
 
             var startPos = new Position(Location);
@@ -83,7 +98,8 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Teleport(House.SlumLord.Location);
+                if (House != null)
+                    Teleport(House.SlumLord.Location);
             });
 
             actionChain.EnqueueChain();
@@ -94,56 +110,79 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionTeleToLifestone()
         {
-            if (Sanctuary != null)
+            if (PKTimerActive)
             {
-                // FIXME(ddevec): I should probably make a better interface for this
-                UpdateVital(Mana, Mana.Current / 2);
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
 
-                if (CombatMode != CombatMode.NonCombat)
+            if (RecallsDisabled)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                return;
+            }
+
+            if (Sanctuary == null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your spirit has not been attuned to a sanctuary location.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // FIXME(ddevec): I should probably make a better interface for this
+            UpdateVital(Mana, Mana.Current / 2);
+
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                // this should be handled by a different thing, probably a function that forces player into peacemode
+                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                SetCombatMode(CombatMode.NonCombat);
+                Session.Network.EnqueueSend(updateCombatMode);
+            }
+
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall), 96.0f);
+            EnqueueBroadcastMotion(motionLifestoneRecall);
+
+            var startPos = new Position(Location);
+
+            // Wait for animation
+            ActionChain lifestoneChain = new ActionChain();
+
+            // Then do teleport
+            lifestoneChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.LifestoneRecall));
+            lifestoneChain.AddAction(this, () =>
+            {
+                var endPos = new Position(Location);
+                if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
-                    // this should be handled by a different thing, probably a function that forces player into peacemode
-                    var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
-                    SetCombatMode(CombatMode.NonCombat);
-                    Session.Network.EnqueueSend(updateCombatMode);
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    return;
                 }
 
-                EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall));
-                EnqueueBroadcastMotion(motionLifestoneRecall);
+                Teleport(Sanctuary);
+            });
 
-                var startPos = new Position(Location);
-
-                // Wait for animation
-                ActionChain lifestoneChain = new ActionChain();
-
-                // Then do teleport
-                lifestoneChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.LifestoneRecall));
-                lifestoneChain.AddAction(this, () =>
-                {
-                    var endPos = new Position(Location);
-                    if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
-                    {
-                        Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
-                        return;
-                    }
-
-                    Teleport(Sanctuary);
-                });
-
-                lifestoneChain.EnqueueChain();
-            }
-            else
-            {
-                ChatPacket.SendServerMessage(Session, "Your spirit has not been attuned to a sanctuary location.", ChatMessageType.Broadcast);
-            }
+            lifestoneChain.EnqueueChain();
         }
 
         private static readonly Motion motionMarketplaceRecall = new Motion(MotionStance.NonCombat, MotionCommand.MarketplaceRecall);
 
         public void HandleActionTeleToMarketPlace()
         {
+            if (PKTimerActive)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
+
+            if (RecallsDisabled)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                return;
+            }
+
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall), 96.0f);
             Session.Network.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
             EnqueueBroadcastMotion(motionMarketplaceRecall);
 
@@ -178,6 +217,18 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleActionRecallAllegianceHometown()");
 
+            if (PKTimerActive)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
+
+            if (RecallsDisabled)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                return;
+            }
+
             // check if player is in an allegiance
             if (Allegiance == null)
             {
@@ -199,7 +250,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(updateCombatMode);
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the Allegiance hometown.", ChatMessageType.Recall));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the Allegiance hometown.", ChatMessageType.Recall), 96.0f);
             EnqueueBroadcastMotion(motionAllegianceHometownRecall);
 
             var startPos = new Position(Location);
@@ -219,7 +270,8 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Teleport(Allegiance.Sanctuary);
+                if (Allegiance != null)
+                    Teleport(Allegiance.Sanctuary);
             });
 
             actionChain.EnqueueChain();
@@ -231,6 +283,18 @@ namespace ACE.Server.WorldObjects
         public void HandleActionTeleToMansion()
         {
             //Console.WriteLine($"{Name}.HandleActionTeleToMansion()");
+
+            if (PKTimerActive)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
+
+            if (RecallsDisabled)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                return;
+            }
 
             // check if player is in an allegiance
             if (Allegiance == null)
@@ -268,7 +332,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(updateCombatMode);
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the Allegiance housing.", ChatMessageType.Recall));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the Allegiance housing.", ChatMessageType.Recall), 96.0f);
             EnqueueBroadcastMotion(motionHouseRecall);
 
             var startPos = new Position(Location);
@@ -294,8 +358,12 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        public void Teleport(Position newPosition)
+        public void Teleport(Position _newPosition)
         {
+            var newPosition = new Position(_newPosition);
+            //newPosition.PositionZ += 0.005f;
+            newPosition.PositionZ += 0.005f * (ObjScale ?? 1.0f);
+
             //Console.WriteLine($"{Name}.Teleport() - Sending to {newPosition.ToLOCString()}");
 
             Teleporting = true;
@@ -324,6 +392,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoPreTeleportHide()
         {
+            if (Teleporting) return;
             PlayParticleEffect(ACE.Entity.Enum.PlayScript.Hide, Guid);
         }
 

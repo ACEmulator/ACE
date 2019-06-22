@@ -103,15 +103,9 @@ namespace ACE.Server.Physics
 
         public CellArray CellArray;
         public ObjectMaint ObjMaint;
-        public static List<PhysicsObj> Players;
-        public bool IsPlayer;
+        public bool IsPlayer => ID >= 0x50000001 && ID <= 0x5FFFFFFF;
 
         public static readonly int UpdateTimeLength = 9;
-
-        static PhysicsObj()
-        {
-            Players = new List<PhysicsObj>();
-        }
 
         public PhysicsObj()
         {
@@ -479,7 +473,7 @@ namespace ACE.Server.Physics
         {
             if ((Position.ObjCellID & 0xFFFF) < 0x100) return 100.0f;
 
-            return Players.Contains(this) ? 25.0f : 20.0f;
+            return IsPlayer ? 25.0f : 20.0f;
         }
 
         public BBox GetBoundingBox()
@@ -1082,14 +1076,6 @@ namespace ACE.Server.Physics
             return result;
         }
 
-        public void SetPlayer()
-        {
-            if (Players.Contains(this))
-                Players.Add(this);
-
-            IsPlayer = true;
-        }
-
         public SetPositionError SetPosition(SetPosition setPos)
         {
             var transition = Transition.MakeTransition();
@@ -1247,12 +1233,17 @@ namespace ACE.Server.Physics
 
         public SetPositionError SetPositionInternal(SetPosition setPos, Transition transition)
         {
+            var wo = WeenieObj.WorldObject;
+
+            if (wo == null)
+                return SetPositionError.GeneralFailure;
+
             //if (setPos.Flags.HasFlag(SetPositionFlags.RandomScatter))
             //return SetScatterPositionInternal(setPos, transition);
-            if (WeenieObj.WorldObject.ScatterPos != null)
+            if (wo.ScatterPos != null)
             {
-                WeenieObj.WorldObject.ScatterPos.Flags |= setPos.Flags;
-                return SetScatterPositionInternal(WeenieObj.WorldObject.ScatterPos, transition);
+                wo.ScatterPos.Flags |= setPos.Flags;
+                return SetScatterPositionInternal(wo.ScatterPos, transition);
             }
 
             // frame ref?
@@ -1577,6 +1568,12 @@ namespace ACE.Server.Physics
                         newPos.Frame.set_vector_heading(Vector3.Normalize(Velocity));
                 }
 
+                if (GetBlockDist(Position, newPos) > 1)
+                {
+                    Console.WriteLine($"WARNING: failed transition for {Name} from {Position} to {newPos}\n");
+                    return;
+                }
+
                 var transit = transition(Position, newPos, false);
 
                 if (transit != null)
@@ -1618,10 +1615,38 @@ namespace ACE.Server.Physics
             if (ScriptManager != null) ScriptManager.UpdateScripts();
         }
 
+        public static int GetBlockDist(Position a, Position b)
+        {
+            // protection, figure out FastTeleport state
+            if (a == null || b == null)
+                return 0;
+
+            return GetBlockDist(a.ObjCellID, b.ObjCellID);
+        }
+
+        public static int GetBlockDist(uint a, uint b)
+        {
+            var lbx_a = a >> 24;
+            var lby_a = (a >> 16) & 0xFF;
+
+            var lbx_b = b >> 24;
+            var lby_b = (b >> 16) & 0xFF;
+
+            var dx = (int)Math.Abs(lbx_a - lbx_b);
+            var dy = (int)Math.Abs(lby_a - lby_b);
+
+            return Math.Max(dx, dy);
+        }
+
         public void UpdateObjectInternalServer(double quantum)
         {
             //var offsetFrame = new AFrame();
             //UpdatePhysicsInternal((float)quantum, ref offsetFrame);
+            if (GetBlockDist(Position, RequestPos) > 1)
+            {
+                Console.WriteLine($"WARNING: failed transition for {Name} from {Position} to {RequestPos}\n");
+                return;
+            }
 
             var transit = transition(Position, RequestPos, false);
             if (transit != null)
@@ -2157,7 +2182,11 @@ namespace ACE.Server.Physics
             if (player == null) return;
 
             foreach (var obj in newlyVisible)
-                player.TrackObject(obj.WeenieObj.WorldObject);
+            {
+                var wo = obj.WeenieObj.WorldObject;
+                if (wo != null)
+                    player.TrackObject(wo);
+            }
         }
 
         public void enter_cell(ObjCell newCell)
@@ -3910,7 +3939,8 @@ namespace ACE.Server.Physics
         {
             var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
 
-            if (!WeenieObj.WorldObject.Teleporting)
+            var wo = WeenieObj.WorldObject;
+            if (wo != null && !wo.Teleporting)
                 UpdateObjectInternalServer(deltaTime);
 
             if (forcePos)
