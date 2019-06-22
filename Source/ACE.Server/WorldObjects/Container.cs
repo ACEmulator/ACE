@@ -787,5 +787,7 @@ namespace ACE.Server.WorldObjects
         {
             InventoryLoaded = true;
         }
+
+        public override bool IsAttunedOrContainsAttuned => base.IsAttunedOrContainsAttuned || Inventory.Values.Any(i => i.IsAttunedOrContainsAttuned);
     }
 }
