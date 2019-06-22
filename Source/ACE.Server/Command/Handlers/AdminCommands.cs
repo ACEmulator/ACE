@@ -1844,7 +1844,12 @@ namespace ACE.Server.Command.Handlers
         }
 
         // qst
-        [CommandHandler("qst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("qst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Query, stamp, and erase quests on the targeted player",
+            "[list | bestow | erase]\n"
+            + "qst list - List the quest flags for the targeted player\n"
+            + "qst bestow - Stamps the specific quest flag on the targeted player. If this fails, it's probably because you spelled the quest flag wrong.\n"
+            + "qst erase - Erase the specific quest flag from the targeted player.If no quest flag is given, it erases the entire quest table for the targeted player.\n")]
         public static void Handleqst(Session session, params string[] parameters)
         {
             // fellow bestow  stamp erase
@@ -1859,27 +1864,107 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (parameters[0].Equals("erase"))
-            {
-                if (parameters.Length < 2)
-                {
-                    // delete all quests?
-                    // seems unsafe, maybe a confirmation?
-                    return;
-                }
-                var questName = parameters[1];
-                var player = session.Player;
-                if (!player.QuestManager.HasQuest(questName))
-                {
-                    player.SendMessage($"{questName} not found");
-                    return;
-                }
-                player.QuestManager.Erase(questName);
-                player.SendMessage($"{questName} erased");
-                return;
-            }
+            var objectId = new ObjectGuid();
 
-            // TODO: output
+            if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+            else if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+            else if (session.Player.CurrentAppraisalTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+            var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+            if (wo != null && wo is Player player)
+            {
+                if (parameters[0].Equals("list"))
+                {
+                    var questsHdr = $"Quest Registry for {player.Name} (0x{player.Guid}):\n";
+                    questsHdr += "================================================\n";
+                    var quests = "";
+                    foreach (var quest in player.QuestManager.Quests)
+                    {
+                        quests += $"Quest Name: {quest.QuestName}\nComletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+                        var nextSolve = player.QuestManager.GetNextSolveTime(quest.QuestName);
+
+                        if (nextSolve == TimeSpan.MinValue)
+                            quests += "Can Solve: Immediately\n";
+                        else if (nextSolve == TimeSpan.MaxValue)
+                            quests += "Can Solve: Never again\n";
+                        else
+                            quests += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+
+                        quests += "--====--\n";
+                    }
+
+                    session.Player.SendMessage($"{questsHdr}{(quests != "" ? quests : "No quests found.")}");
+                    return;
+                }
+
+                if (parameters[0].Equals("bestow"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        // delete all quests?
+                        // seems unsafe, maybe a confirmation?
+                        return;
+                    }
+                    var questName = parameters[1];
+                    if (player.QuestManager.HasQuest(questName))
+                    {
+                        session.Player.SendMessage($"{player.Name} already has {questName}");
+                        return;
+                    }
+
+                    var canSolve = player.QuestManager.CanSolve(questName);
+                    if (canSolve)
+                    {
+                        player.QuestManager.Update(questName);
+                        session.Player.SendMessage($"{questName} bestowed on {player.Name}");
+                        return;
+                    }
+                    else
+                    {
+                        session.Player.SendMessage($"Couldn't bestow {questName} on {player.Name}");
+                        return;
+                    }
+                }
+
+                if (parameters[0].Equals("erase"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        // delete all quests?
+                        // seems unsafe, maybe a confirmation?
+                        session.Player.SendMessage($"You must specify a quest to erase, if you want to erase all quests use the following command: /qst erase *");
+                        return;
+                    }
+                    var questName = parameters[1];
+
+                    if (questName == "*")
+                    {
+                        player.QuestManager.EraseAll();
+                        session.Player.SendMessage($"All quests erased.");
+                        return;
+                    }
+
+                    if (!player.QuestManager.HasQuest(questName))
+                    {
+                        session.Player.SendMessage($"{questName} not found.");
+                        return;
+                    }
+                    player.QuestManager.Erase(questName);
+                    session.Player.SendMessage($"{questName} erased.");
+                    return;
+                }
+            }
+            else
+            {
+                if (wo == null)
+                    session.Player.SendMessage($"Selected object (0x{objectId}) not found.");
+                else
+                    session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a player.");
+            }
         }
 
         // raise
