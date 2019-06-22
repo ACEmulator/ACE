@@ -40,7 +40,6 @@ namespace ACE.Server.WorldObjects
 
         public bool LastContact = true;
         public bool IsJumping = false;
-        //public bool DoNotSave = false;
 
         public SquelchDB Squelches;
 

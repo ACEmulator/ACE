@@ -71,7 +71,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!DoNotSave) { ChangesDetected = true; }
+            ChangesDetected = true;
 
             GameEventMagicRemoveSpell removeSpellEvent = new GameEventMagicRemoveSpell(Session, (ushort)spellId);
             Session.Network.EnqueueSend(removeSpellEvent);
