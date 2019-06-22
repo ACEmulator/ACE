@@ -2,6 +2,8 @@
 
 ### 2019-06-22
 [Ripley]
+* Expand `qst` command.
+* Code fix for out of order emote sets.
 * Fix issue with food consumables ObjectDescriptionFlag.
 
 ### 2019-06-21
