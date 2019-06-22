@@ -4,16 +4,16 @@ namespace ACE.Server.Entity.Actions
 {
     public class ActionEventDelegate : ActionEventBase
     {
-        private readonly Action action;
+        public readonly Action Action;
 
         public ActionEventDelegate(Action action)
         {
-            this.action = action;
+            Action = action;
         }
 
         public override Tuple<IActor, IAction> Act()
         {
-            action();
+            Action();
 
             return base.Act();
         }

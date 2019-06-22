@@ -441,37 +441,43 @@ namespace ACE.Server.Managers
             DictOf(
                 ("advanced_combat_pets", false),    // (non-retail function) If enabled, Combat Pets can cast spells
                 ("assess_creature_mod", false),     // (non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed.
+                ("fellow_kt_killer", true),         // if FALSE, fellowship kill tasks will share with the fellowship, even if the killer doesn't have the quest
+                ("fellow_kt_landblock", false),     // if TRUE, fellowship kill tasks will share with landblock range (192 distance radius, or entire dungeon)
+                ("fellow_quest_bonus", false),      // if TRUE, applies EvenShare formula to fellowship quest reward XP (300% max bonus, defaults to false in retail)
                 ("iou_trades", false),              // (non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on.
                 ("chess_enabled", true),
-                ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
-                ("gateway_ties_summonable", true),        // if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail
+                ("corpse_decay_tick_logging", false),   // log decaying player corpse ticks.
+                ("corpse_destroy_pyreals", true),       // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
+                ("gateway_ties_summonable", true),      // if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
-                ("log_audit", true),                    // if disabled, audit channel is not logged.
+                ("log_audit", true),                        // if disabled, audit channel is not logged.
                 ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
-                ("pk_server", false),
+                ("pk_server", false),               // set this to TRUE for darktide servers
                 ("quest_info_enabled", false),      // toggles the /myquests player command
-                ("salvage_handle_overages", false),   // in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost
-                ("show_dot_messages", false),        // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
-                ("use_wield_requirements", true),    // disable this to bypass wield requirements. mostly for dev debugging
+                ("salvage_handle_overages", false), // in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost
+                ("show_dot_messages", false),       // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
+                ("use_wield_requirements", true),   // disable this to bypass wield requirements. mostly for dev debugging
                 ("world_closed", false)             // enable this to startup world as a closed to players world.
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
             DictOf<string, long>(
-                ("char_delete_time", 3600),     // the amount of time in seconds a deleted character can be restored
-                ("mansion_min_rank", 6),        // overrides the default allegiance rank required to own a mansion
-                ("max_chars_per_account", 11)   // retail defaults to 11, client supports up to 20
+                ("char_delete_time", 3600),         // the amount of time in seconds a deleted character can be restored
+                ("mansion_min_rank", 6),            // overrides the default allegiance rank required to own a mansion
+                ("max_chars_per_account", 11),      // retail defaults to 11, client supports up to 20
+                ("pk_timer", 20)                    // the number of seconds where a player cannot perform certain actions (ie. teleporting)
+                                                    // after becoming involved in a PK battle
                 );
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
-                ("chess_ai_start_time", -1.0),  // the number of seconds for the chess ai to start. defaults to -1 (disabled)
-                ("luminance_modifier", 1.0),
-                ("vitae_penalty", 0.05),
-                ("vitae_penalty_max", 0.40),
-                ("xp_modifier", 1.0),
-                ("vendor_unique_rot_time", 300)
+                ("chess_ai_start_time", -1.0),      // the number of seconds for the chess ai to start. defaults to -1 (disabled)
+                ("luminance_modifier", 1.0),        // scales the amount of luminance received by players
+                ("vendor_unique_rot_time", 300),    // the number of seconds before unique items sold to vendors disappear
+                ("vitae_penalty", 0.05),            // the amount of vitae penalty a player gets per death
+                ("vitae_penalty_max", 0.40),        // the maximum vitae penalty a player can have
+                ("xp_modifier", 1.0)                // scales the amount of xp received by players
                 );
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =

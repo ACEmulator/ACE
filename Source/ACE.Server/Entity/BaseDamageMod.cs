@@ -1,3 +1,5 @@
+using System;
+
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
 
@@ -13,7 +15,7 @@ namespace ACE.Server.Entity
 
         public int ElementalBonus = 0;
 
-        public float MaxDamage => (BaseDamage.MaxDamage + DamageBonus + ElementalBonus) * DamageMod;
+        public float MaxDamage => Math.Max(0, (BaseDamage.MaxDamage + DamageBonus + ElementalBonus) * DamageMod);
 
         public float MinDamage => MaxDamage * (1.0f - BaseDamage.Variance * VarianceMod);
 

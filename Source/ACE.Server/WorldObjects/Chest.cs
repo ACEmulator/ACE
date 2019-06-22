@@ -6,6 +6,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
+using System.Collections.Generic;
 
 namespace ACE.Server.WorldObjects
 {
@@ -35,7 +36,7 @@ namespace ACE.Server.WorldObjects
             {
                 var chestResetInterval = ResetInterval ?? Default_ChestResetInterval;
 
-                if (chestResetInterval == 0)
+                if (chestResetInterval < 15)
                     chestResetInterval = Default_ChestResetInterval;
 
                 return chestResetInterval;
@@ -43,14 +44,6 @@ namespace ACE.Server.WorldObjects
         }
 
         public double Default_ChestResetInterval = 120;
-
-        public bool ResetMessagePending
-        {
-            get => GetProperty(PropertyBool.ResetMessagePending) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.ResetMessagePending); else SetProperty(PropertyBool.ResetMessagePending, value); }
-        }
-
-        public bool ResetGenerator;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -80,7 +73,8 @@ namespace ACE.Server.WorldObjects
             if (IsLocked)
                 DefaultLocked = true;
 
-            ResetGenerator = true;
+            if (DefaultLocked) // ignore regen interval, only regen on relock
+                NextGeneratorRegenerationTime = double.MaxValue;
         }
 
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
@@ -161,32 +155,14 @@ namespace ACE.Server.WorldObjects
         {
             base.Open(player);
 
-            // chests can have a couple of different profiles
-            // by default, most chests use the 'ResetInterval' setup
-            // some things like Mana Forge chests use the 'RegenOnClose' variant
-
-            // ResetInterval (default):
-
-            // if no ResetInterval is defined, the DefaultResetInterval of 2 mins is used.
-            // when a player opens this chest, a timer starts, and the chest will automatically close/reset in ResetInterval
-
-            // RegenOnClose (Mana Forge Chest etc.):
-
-            // this chest resets whenever it is closed
-
-            if (!ChestRegenOnClose && !ResetMessagePending)
+            if (!ResetMessagePending)
             {
-                //Console.WriteLine($"{player.Name}.Open({Name}) - enqueueing reset in {ChestResetInterval}s");
-
-                // uses the ResetInterval setup
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(ChestResetInterval);
                 actionChain.AddAction(this, Reset);
                 actionChain.EnqueueChain();
 
                 ResetMessagePending = true;
-
-                //UseTimestamp++;
             }
         }
 
@@ -223,11 +199,56 @@ namespace ACE.Server.WorldObjects
 
             if (IsGenerator)
             {
-                ResetGenerator = true;
-                Generator_HeartBeat();
+                ResetGenerator();
+                if (InitCreate > 0)
+                    Generator_Regeneration();
             }
 
             ResetMessagePending = false;
+        }
+
+        public override void ResetGenerator()
+        {
+            foreach (var generator in GeneratorProfiles)
+            {
+                var profileReset = false;
+
+                foreach (var rNode in generator.Spawned.Values)
+                {
+                    var wo = rNode.TryGetWorldObject();
+
+                    if (wo != null)
+                    {
+                        if (TryRemoveFromInventory(wo.Guid)) // only affect contained items.
+                        {
+                            wo.Destroy();
+                        }
+
+                        if (!(wo is Creature))
+                            profileReset = true;
+                    }
+                }
+
+                if (profileReset)
+                {
+                    generator.Spawned.Clear();
+                    generator.SpawnQueue.Clear();
+                    CurrentCreate--;
+                }
+            }
+
+            if (GeneratedTreasureItem)
+            {
+                var items = new List<WorldObject>();
+                foreach (var item in Inventory.Values)
+                    items.Add(item);
+                foreach (var item in items)
+                {
+                    if (TryRemoveFromInventory(item.Guid))
+                        item.Destroy();
+                }
+                GeneratedTreasureItem = false;
+            }
         }
 
         protected override float DoOnOpenMotionChanges()

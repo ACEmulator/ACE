@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetKnownObjects()
         {
-            return ObjMaint.ObjectTable.Values.Select(o => o.WeenieObj.WorldObject).ToList();
+            return ObjMaint.ObjectTable.Values.Select(o => o.WeenieObj.WorldObject).Where(wo => wo != null).ToList();
         }
 
         /// <summary>

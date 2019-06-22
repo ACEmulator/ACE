@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 using log4net;
 
 using ACE.Database.Models.World;
@@ -9,7 +8,6 @@ using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
 using ACE.Database.Models.Shard;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Entity;
@@ -194,6 +192,11 @@ namespace ACE.Server.WorldObjects
                 EyesPaletteDID = sex.EyeColorList[Convert.ToInt32(appearance.EyeColor)];
         }
 
+        public virtual float GetBurdenMod()
+        {
+            return 1.0f;    // override for players
+        }
+
         /// <summary>
         /// This will be false when creature is dead and waits for respawn
         /// </summary>
@@ -202,9 +205,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends the network commands to move a player towards an object
         /// </summary>
-        public void MoveToObject(WorldObject target)
+        public void MoveToObject(WorldObject target, float? useRadius)
         {
-            var distanceToObject = target.UseRadius ?? 0.6f;
+            var distanceToObject = useRadius ?? target.UseRadius ?? 0.6f;
 
             var moveToObject = new Motion(this, target, MovementType.MoveToObject);
             moveToObject.MoveToParameters.DistanceToObject = distanceToObject;

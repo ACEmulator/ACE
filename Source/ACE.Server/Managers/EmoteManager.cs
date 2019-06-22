@@ -126,7 +126,7 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        player.EarnXP((long)emote.Amount64, XpType.Quest, false);
+                        player.EarnXP((long)emote.Amount64, XpType.Quest, ShareType.None);
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                     }
                     break;
@@ -156,7 +156,7 @@ namespace ACE.Server.Managers
                         var amt = (long)emote.Amount64;
                         if (amt >= 1)
                         {
-                            player.EarnXP(amt, XpType.Quest, true);
+                            player.EarnXP(amt, XpType.Quest, ShareType.All);
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                         }
                         else if (amt < 0)
@@ -324,7 +324,7 @@ namespace ACE.Server.Managers
                 case EmoteType.Generate:
 
                     if (WorldObject.IsGenerator)
-                        WorldObject.Generator_HeartBeat();
+                        WorldObject.Generator_Regeneration();
                     break;
 
                 case EmoteType.Give:
@@ -354,7 +354,10 @@ namespace ACE.Server.Managers
                         {
                             var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
                             var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
-                            player.Session.Network.EnqueueSend(msg, sound);
+                            if (!(WorldObject.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
+                                player.Session.Network.EnqueueSend(msg, sound);
+                            else
+                                player.Session.Network.EnqueueSend(sound);
 
                             if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                 player.RushNextPlayerSave(5);
@@ -649,10 +652,7 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        var confirm = new Confirmation(ConfirmationType.Yes_No, emote.TestString, WorldObject, null, player, emote.Message);
-                        ConfirmationManager.AddConfirmation(confirm);
-
-                        player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Yes_No, confirm.ConfirmationID, emote.TestString));
+                        player.ConfirmationManager.EnqueueSend(new Confirmation_YesNo(WorldObject.Guid, player.Guid, emote.Message), emote.TestString);
                     }
                     break;
 
@@ -875,17 +875,9 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.PopUp:
+
                     if (player != null)
-                    {
-                        if ((emote.Stat == null) || ((ConfirmationType)emote.Stat == ConfirmationType.Undefined))
-                            player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, emote.Message));
-                        else
-                        {
-                            Confirmation confirm = new Confirmation((ConfirmationType)emote.Stat, emote.Message, WorldObject, targetObject);
-                            ConfirmationManager.AddConfirmation(confirm);
-                            player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, (ConfirmationType)emote.Stat, confirm.ConfirmationID, confirm.Message));
-                        }
-                    }
+                        player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, emote.Message));
                     break;
 
                 case EmoteType.RemoveContract:
@@ -1043,7 +1035,7 @@ namespace ACE.Server.Managers
 
                         if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                         {
-                            player.QuestManager.HandleKillTask(questName, WorldObject);
+                            player.QuestManager.HandleKillTask(questName, WorldObject, player.CurrentRadarRange);
                         }
                         else
                             player.QuestManager.Stamp(emote.Message);

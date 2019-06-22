@@ -73,7 +73,8 @@ namespace ACE.Server.Entity
         private readonly List<Player> players = new List<Player>();
         private readonly LinkedList<Creature> sortedCreaturesByNextTick = new LinkedList<Creature>();
         private readonly LinkedList<WorldObject> sortedWorldObjectsByNextHeartbeat = new LinkedList<WorldObject>();
-        private readonly LinkedList<WorldObject> sortedGeneratorsByNextGeneratorHeartbeat = new LinkedList<WorldObject>();
+        private readonly LinkedList<WorldObject> sortedGeneratorsByNextGeneratorUpdate = new LinkedList<WorldObject>();
+        private readonly LinkedList<WorldObject> sortedGeneratorsByNextRegeneration = new LinkedList<WorldObject>();
 
         public List<Landblock> Adjacents = new List<Landblock>();
 
@@ -376,24 +377,46 @@ namespace ACE.Server.Entity
             }
             ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_WorldObject_Heartbeat);
 
-            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
-            while (sortedGeneratorsByNextGeneratorHeartbeat.Count > 0) // GeneratorHeartbeat()
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorUpdate);
+            while (sortedGeneratorsByNextGeneratorUpdate.Count > 0)
             {
-                var first = sortedGeneratorsByNextGeneratorHeartbeat.First.Value;
+                var first = sortedGeneratorsByNextGeneratorUpdate.First.Value;
 
                 // If they wanted to run before or at now
-                if (first.NextGeneratorHeartbeatTime <= currentUnixTime)
+                if (first.NextGeneratorUpdateTime <= currentUnixTime)
                 {
-                    sortedGeneratorsByNextGeneratorHeartbeat.RemoveFirst();
-                    first.GeneratorHeartbeat(currentUnixTime);
-                    InsertWorldObjectIntoSortedGeneratorHeartbeatList(first); // Generators can have heartbeats at different intervals
+                    sortedGeneratorsByNextGeneratorUpdate.RemoveFirst();
+                    first.GeneratorUpdate(currentUnixTime);
+                    //InsertWorldObjectIntoSortedGeneratorUpdateList(first);
+                    sortedGeneratorsByNextGeneratorUpdate.AddLast(first);
                 }
                 else
                 {
                     break;
                 }
             }
-            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorHeartbeat);
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorUpdate);
+
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorRegeneration);
+            while (sortedGeneratorsByNextRegeneration.Count > 0) // GeneratorRegeneration()
+            {
+                var first = sortedGeneratorsByNextRegeneration.First.Value;
+
+                //Console.WriteLine($"{first.Name}.Landblock_Tick_GeneratorRegeneration({currentUnixTime})");
+
+                // If they wanted to run before or at now
+                if (first.NextGeneratorRegenerationTime <= currentUnixTime)
+                {
+                    sortedGeneratorsByNextRegeneration.RemoveFirst();
+                    first.GeneratorRegeneration(currentUnixTime);
+                    InsertWorldObjectIntoSortedGeneratorRegenerationList(first); // Generators can have regnerations at different intervals
+                }
+                else
+                {
+                    break;
+                }
+            }
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_GeneratorRegeneration);
 
             // Heartbeat
             ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Heartbeat);
@@ -404,12 +427,13 @@ namespace ACE.Server.Entity
                 ProcessPendingWorldObjectAdditionsAndRemovals();
 
                 // Decay world objects
-                foreach (var wo in worldObjects.Values)
+                if (lastHeartBeat != DateTime.MinValue)
                 {
-                    if (wo.IsDecayable() && lastHeartBeat != DateTime.MinValue)
-                        wo.Decay(thisHeartBeat - lastHeartBeat);
-                    else if (wo.IsDecayable() && lastHeartBeat == DateTime.MinValue)
-                        log.Warn($"Landblock {Id.ToString()}.Tick({currentUnixTime}).Landblock_Tick_Heartbeat: Skipping {wo.Name}.Decay({(thisHeartBeat - lastHeartBeat).ToString()}) | thisHeartBeat: {thisHeartBeat.ToString()} | lastHeartBeat: {lastHeartBeat.ToString()} | worldObjects.Count: {worldObjects.Count()}");
+                    foreach (var wo in worldObjects.Values)
+                    {
+                        if (wo.IsDecayable())
+                            wo.Decay(thisHeartBeat - lastHeartBeat);
+                    }
                 }
 
                 if (!Permaload)
@@ -459,7 +483,8 @@ namespace ACE.Server.Entity
                         sortedCreaturesByNextTick.AddLast(creature);
 
                     InsertWorldObjectIntoSortedHeartbeatList(kvp.Value);
-                    InsertWorldObjectIntoSortedGeneratorHeartbeatList(kvp.Value);
+                    InsertWorldObjectIntoSortedGeneratorUpdateList(kvp.Value);
+                    InsertWorldObjectIntoSortedGeneratorRegenerationList(kvp.Value);
                 }
 
                 pendingAdditions.Clear();
@@ -477,7 +502,8 @@ namespace ACE.Server.Entity
                             sortedCreaturesByNextTick.Remove(creature);
 
                         sortedWorldObjectsByNextHeartbeat.Remove(wo);
-                        sortedGeneratorsByNextGeneratorHeartbeat.Remove(wo);
+                        sortedGeneratorsByNextGeneratorUpdate.Remove(wo);
+                        sortedGeneratorsByNextRegeneration.Remove(wo);
                     }
                 }
 
@@ -519,38 +545,81 @@ namespace ACE.Server.Entity
             sortedWorldObjectsByNextHeartbeat.AddLast(worldObject); // This line really shouldn't be hit
         }
 
-        private void InsertWorldObjectIntoSortedGeneratorHeartbeatList(WorldObject worldObject)
+        private void InsertWorldObjectIntoSortedGeneratorUpdateList(WorldObject worldObject)
         {
             // If you want to add checks to exclude certain object types from heartbeating, you would do it here
-            if (worldObject.NextGeneratorHeartbeatTime == double.MaxValue)
+            if (worldObject.NextGeneratorUpdateTime == double.MaxValue)
                 return;
 
-            if (sortedGeneratorsByNextGeneratorHeartbeat.Count == 0)
+            if (sortedGeneratorsByNextGeneratorUpdate.Count == 0)
             {
-                sortedGeneratorsByNextGeneratorHeartbeat.AddFirst(worldObject);
+                sortedGeneratorsByNextGeneratorUpdate.AddFirst(worldObject);
                 return;
             }
 
-            if (sortedGeneratorsByNextGeneratorHeartbeat.Last.Value.NextGeneratorHeartbeatTime <= worldObject.NextGeneratorHeartbeatTime)
+            if (sortedGeneratorsByNextGeneratorUpdate.Last.Value.NextGeneratorUpdateTime <= worldObject.NextGeneratorUpdateTime)
             {
-                sortedGeneratorsByNextGeneratorHeartbeat.AddLast(worldObject);
+                sortedGeneratorsByNextGeneratorUpdate.AddLast(worldObject);
                 return;
             }
 
-            var currentNode = sortedGeneratorsByNextGeneratorHeartbeat.First;
+            var currentNode = sortedGeneratorsByNextGeneratorUpdate.First;
 
             while (currentNode != null)
             {
-                if (worldObject.NextGeneratorHeartbeatTime <= currentNode.Value.NextGeneratorHeartbeatTime)
+                if (worldObject.NextGeneratorUpdateTime <= currentNode.Value.NextGeneratorUpdateTime)
                 {
-                    sortedGeneratorsByNextGeneratorHeartbeat.AddBefore(currentNode, worldObject);
+                    sortedGeneratorsByNextGeneratorUpdate.AddBefore(currentNode, worldObject);
                     return;
                 }
 
                 currentNode = currentNode.Next;
             }
 
-            sortedGeneratorsByNextGeneratorHeartbeat.AddLast(worldObject); // This line really shouldn't be hit
+            sortedGeneratorsByNextGeneratorUpdate.AddLast(worldObject); // This line really shouldn't be hit
+        }
+
+        private void InsertWorldObjectIntoSortedGeneratorRegenerationList(WorldObject worldObject)
+        {
+            // If you want to add checks to exclude certain object types from heartbeating, you would do it here
+            if (worldObject.NextGeneratorRegenerationTime == double.MaxValue)
+                return;
+
+            if (sortedGeneratorsByNextRegeneration.Count == 0)
+            {
+                sortedGeneratorsByNextRegeneration.AddFirst(worldObject);
+                return;
+            }
+
+            if (sortedGeneratorsByNextRegeneration.Last.Value.NextGeneratorRegenerationTime <= worldObject.NextGeneratorRegenerationTime)
+            {
+                sortedGeneratorsByNextRegeneration.AddLast(worldObject);
+                return;
+            }
+
+            var currentNode = sortedGeneratorsByNextRegeneration.First;
+
+            while (currentNode != null)
+            {
+                if (worldObject.NextGeneratorRegenerationTime <= currentNode.Value.NextGeneratorRegenerationTime)
+                {
+                    sortedGeneratorsByNextRegeneration.AddBefore(currentNode, worldObject);
+                    return;
+                }
+
+                currentNode = currentNode.Next;
+            }
+
+            sortedGeneratorsByNextRegeneration.AddLast(worldObject); // This line really shouldn't be hit
+        }
+
+        public void ResortWorldObjectIntoSortedGeneratorRegenerationList(WorldObject worldObject)
+        {
+            if (sortedGeneratorsByNextRegeneration.Contains(worldObject))
+            {
+                sortedGeneratorsByNextRegeneration.Remove(worldObject);
+                InsertWorldObjectIntoSortedGeneratorRegenerationList(worldObject);
+            }
         }
 
         public void EnqueueAction(IAction action)
@@ -597,9 +666,9 @@ namespace ACE.Server.Entity
                 {
                     wo.CurrentLandblock = null;
                     if (wo.Generator != null)
-                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid.Full:X8}:{wo.Generator.Name}");
+                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}");
                     else
-                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid.Full:X8}:{wo.Name}");
+                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name}");
                     return false;
                 }
             }

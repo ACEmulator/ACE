@@ -19,5 +19,10 @@ namespace ACE.DatLoader.Entity
             HighFrame   = reader.ReadInt32();
             Framerate   = reader.ReadSingle();
         }
+
+        public override string ToString()
+        {
+            return $"AnimId: {AnimId:X8}, LowFrame: {LowFrame}, HighFrame: {HighFrame}, FrameRate: {Framerate}";
+        }
     }
 }

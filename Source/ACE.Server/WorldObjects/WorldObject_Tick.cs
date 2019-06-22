@@ -24,7 +24,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A value of Double.MaxValue indicates that there is no NextGeneratorHeartbeat
         /// </summary>
-        public double NextGeneratorHeartbeatTime;
+        public double NextGeneratorUpdateTime;
+        /// <summary>
+        /// A value of Double.MaxValue indicates that there is no NextGeneratorRegeneration
+        /// </summary>
+        public double NextGeneratorRegenerationTime;
 
         private void InitializeHeartbeats()
         {
@@ -50,9 +54,16 @@ namespace ACE.Server.WorldObjects
             cachedRegenerationInterval = RegenerationInterval;
 
             if (IsGenerator)
-                NextGeneratorHeartbeatTime = currentUnixTime; // Generators start right away
+            {
+                NextGeneratorUpdateTime = currentUnixTime; // Generators start right away
+                if (cachedRegenerationInterval == 0)
+                    NextGeneratorRegenerationTime = double.MaxValue;
+            }
             else
-                NextGeneratorHeartbeatTime = double.MaxValue; // Disable future GeneratorHeartBeats
+            {
+                NextGeneratorUpdateTime = double.MaxValue; // Disable future GeneratorHeartBeats
+                NextGeneratorRegenerationTime = double.MaxValue;
+            }
         }
 
         /// <summary>
@@ -68,16 +79,32 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Called every 5 seconds for WorldObject base
+        /// </summary>
+        public void GeneratorUpdate(double currentUnixTime)
+        {
+            Generator_Update();
+
+            SetProperty(PropertyFloat.GeneratorUpdateTimestamp, currentUnixTime);
+
+            NextGeneratorUpdateTime = currentUnixTime + 5;
+        }
+
+        /// <summary>
         /// Called every [RegenerationInterval] seconds for WorldObject base
         /// </summary>
-        public void GeneratorHeartbeat(double currentUnixTime)
+        public void GeneratorRegeneration(double currentUnixTime)
         {
-            Generator_HeartBeat();
+            //Console.WriteLine($"{Name}.GeneratorRegeneration({currentUnixTime})");
+
+            Generator_Regeneration();
+
+            SetProperty(PropertyFloat.RegenerationTimestamp, currentUnixTime);
 
             if (cachedRegenerationInterval > 0)
-                NextGeneratorHeartbeatTime = currentUnixTime + cachedRegenerationInterval;
-            else
-                NextGeneratorHeartbeatTime = double.MaxValue;
+                NextGeneratorRegenerationTime = currentUnixTime + cachedRegenerationInterval;
+
+            //Console.WriteLine($"{Name}.NextGeneratorRegenerationTime({NextGeneratorRegenerationTime})");
         }
 
         /// <summary>

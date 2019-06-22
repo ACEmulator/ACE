@@ -27,7 +27,19 @@ namespace ACE.Server.WorldObjects
             //StackSize = null;
             //StackUnitEncumbrance = null;
             //StackUnitValue = null;
-            //MaxStackSize = null;            
+            //MaxStackSize = null;
+
+            // Linkable Item Generator (linkitemgen2minutes) fix
+            if (WeenieClassId == 4142)
+            {
+                MaxGeneratedObjects = 0;
+                InitGeneratedObjects = 0;
+            }
+        }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            // Do nothing
         }
     }
 }

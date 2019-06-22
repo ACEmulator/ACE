@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -35,7 +36,14 @@ namespace ACE.Server.WorldObjects
         };
 
         public DebugDamageType DebugDamage;
+
         public ObjectGuid DebugDamageTarget;
+
+        public double LastPkAttackTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastPkAttackTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.LastPkAttackTimestamp); else SetProperty(PropertyFloat.LastPkAttackTimestamp, value); }
+        }
 
         /// <summary>
         /// Returns the current attack skill for the player
@@ -468,9 +476,7 @@ namespace ACE.Server.WorldObjects
             var damageLocation = (DamageLocation)iDamageLocation;
 
             // send network messages
-            var creature = source as Creature;
-            var hotspot = source as Hotspot;
-            if (creature != null)
+            if (source is Creature creature)
             {
                 var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
                 Session.Network.EnqueueSend(text);
@@ -482,6 +488,10 @@ namespace ACE.Server.WorldObjects
 
             if (percent >= 0.1f)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
+
+            // if player attacker, update PK timer
+            if (source is Player attacker)
+                UpdatePKTimers(attacker, this);
         }
 
         public string GetArmorType(BodyPart bodyPart)
@@ -767,5 +777,39 @@ namespace ACE.Server.WorldObjects
             else
                 return "None";
         }
+
+        /// <summary>
+        /// If a player has been involved in a PK battle this recently,
+        /// logging off leaves their character in a frozen state for 20 seconds
+        /// </summary>
+        public static TimeSpan PKLogoffTimer = TimeSpan.FromMinutes(2);
+
+        public void UpdatePKTimer()
+        {
+            //log.Info($"Updating PK timer for {Name}");
+
+            LastPkAttackTimestamp = Time.GetUnixTime();
+        }
+
+        /// <summary>
+        /// Called when a successful attack is landed in PVP
+        /// The timestamp for both PKs are updated
+        /// 
+        /// If a physical attack is evaded, or a magic spell is resisted,
+        /// this function should NOT be called.
+        /// </summary>
+        public static void UpdatePKTimers(Player attacker, Player defender)
+        {
+            if (attacker == defender) return;
+
+            attacker.UpdatePKTimer();
+            defender.UpdatePKTimer();
+        }
+
+        public bool PKTimerActive => IsPKType && Time.GetUnixTime() - LastPkAttackTimestamp < PropertyManager.GetLong("pk_timer").Item;
+
+        public bool PKLogoutActive => IsPKType && Time.GetUnixTime() - LastPkAttackTimestamp < PKLogoffTimer.TotalSeconds;
+
+        public bool IsPKType => PlayerKillerStatus == PlayerKillerStatus.PK || PlayerKillerStatus == PlayerKillerStatus.PKLite;
     }
 }

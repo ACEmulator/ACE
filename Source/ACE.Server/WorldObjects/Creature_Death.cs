@@ -33,6 +33,9 @@ namespace ACE.Server.WorldObjects
 
             OnDeath_GrantXP();
 
+            if (IsGenerator)
+                OnGeneratorDeath();
+
             return GetDeathMessage(lastDamager, damageType, criticalHit);
         }
 
@@ -273,9 +276,9 @@ namespace ACE.Server.WorldObjects
             if (this is Player p)
             {
                 if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
-                    log.Info($"{Name}'s corpse (0x{corpse.Guid.Full:X8}) failed to spawn! Tried at {p.Location.ToLOCString()}");
+                    log.Info($"{Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {p.Location.ToLOCString()}");
                 else
-                    log.Info($"{Name}'s corpse (0x{corpse.Guid.Full:X8}) is located at {corpse.PhysicsObj.Position}");
+                    log.Info($"{Name}'s corpse (0x{corpse.Guid}) is located at {corpse.PhysicsObj.Position}");
             }
 
             if (saveCorpse)

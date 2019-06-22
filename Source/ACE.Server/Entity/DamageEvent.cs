@@ -96,9 +96,9 @@ namespace ACE.Server.Entity
         public CombatManeuver CombatManeuver;
         public BiotaPropertiesBodyPart AttackPart;      // the body part this monster is attacking with
 
-        public bool IgnoreMagicArmor  => GetWeaponProperty(PropertyBool.IgnoreMagicArmor);      // ignores impen / banes
+        public bool IgnoreMagicArmor  => Weapon != null ? Weapon.IgnoreMagicArmor : false;      // ignores impen / banes
 
-        public bool IgnoreMagicResist => GetWeaponProperty(PropertyBool.IgnoreMagicResist);     // ignores life armor / prots
+        public bool IgnoreMagicResist => Weapon != null ? Weapon.IgnoreMagicResist : false;     // ignores life armor / prots
 
 
         // player defender
@@ -217,7 +217,7 @@ namespace ACE.Server.Entity
                 }
             }
 
-            // get armor rending mod here?
+            // Armor Rending reduces physical armor too?
             var armorRendingMod = 1.0f;
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
                 armorRendingMod = WorldObject.GetArmorRendingMod(attackSkill);
@@ -232,7 +232,7 @@ namespace ACE.Server.Entity
                 Armor = attacker.GetArmorLayers(playerDefender, BodyPart);
 
                 // get armor modifiers
-                ArmorMod = attacker.GetArmorMod(DamageType, Armor, DamageSource, IgnoreMagicResist, IgnoreMagicArmor, armorRendingMod);
+                ArmorMod = attacker.GetArmorMod(DamageType, Armor, Weapon, armorRendingMod);
             }
             else
             {
@@ -244,27 +244,30 @@ namespace ACE.Server.Entity
                 Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
 
                 // get target armor
-                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, DamageSource, armorRendingMod);
+                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Weapon, armorRendingMod);
             }
+
+            if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
+                ArmorMod = 1.0f;
 
             // get resistance modifiers
             WeaponResistanceMod = WorldObject.GetWeaponResistanceModifier(attacker, attackSkill, DamageType);
 
             if (playerDefender != null)
             {
-                ResistanceMod = playerDefender.GetResistanceMod(DamageType, DamageSource, IgnoreMagicResist, WeaponResistanceMod);
+                ResistanceMod = playerDefender.GetResistanceMod(DamageType, Weapon, WeaponResistanceMod);
             }
             else
             {
                 var resistanceType = Creature.GetResistanceType(DamageType);
-                ResistanceMod = (float)defender.GetResistanceMod(resistanceType, DamageSource, IgnoreMagicResist, WeaponResistanceMod);
+                ResistanceMod = (float)defender.GetResistanceMod(resistanceType, Weapon, WeaponResistanceMod);
             }
 
             // damage resistance rating
             DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetDamageResistRating());
 
             // get shield modifier
-            ShieldMod = defender.GetShieldMod(attacker, DamageType, IgnoreMagicArmor);
+            ShieldMod = defender.GetShieldMod(attacker, DamageType, Weapon);
 
             // calculate final output damage
             Damage = DamageBeforeMitigation * ArmorMod * ShieldMod * ResistanceMod * DamageResistanceRatingMod;
@@ -361,7 +364,7 @@ namespace ACE.Server.Entity
                 Evaded = true;
                 return;
             }
-            CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart, IgnoreMagicArmor, IgnoreMagicResist);
+            CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart);
         }
 
         public void ShowInfo(Player player)
@@ -408,6 +411,8 @@ namespace ACE.Server.Entity
             // base damage
             if (BaseDamageMod != null)
                 info += $"BaseDamageRange: {BaseDamageMod.Range}\n";
+
+
             info += $"BaseDamage: {BaseDamage}\n";
 
             // damage modifiers
@@ -416,9 +421,11 @@ namespace ACE.Server.Entity
             info += $"SlayerMod: {SlayerMod}\n";
 
             if (BaseDamageMod != null)
+            {
                 info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
-            if (BaseDamageMod != null)
                 info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
+                info += $"BloodDrinker/ThirstTotal: {BaseDamageMod.DamageBonus}\n";
+            }
 
             // damage ratings
             if (!(Defender is Player))
@@ -448,7 +455,7 @@ namespace ACE.Server.Entity
             {
                 // creature body part
                 info += $"BodyPart: {(CombatBodyPart)BiotaPropertiesBodyPart.Key}\n";
-                info += $"BaseArmorMod: {CreaturePart.BaseArmorMod}\n";
+                info += $"BaseArmor: {CreaturePart.Biota.BaseArmor}\n";
             }
 
             // damage mitigation
@@ -486,23 +493,6 @@ namespace ACE.Server.Entity
                 ShowInfo(defender);
                 return;
             }
-        }
-
-        public bool GetWeaponProperty(PropertyBool property)
-        {
-            if (DamageSource == null)
-                return false;
-
-            // melee weapons
-            var result = DamageSource.GetProperty(property) ?? false;
-
-            if (result || DamageSource.ItemType != ItemType.MissileWeapon)
-                return result;
-
-            // missile weapons
-            var weapon = Attacker.GetEquippedWeapon();
-
-            return weapon != null && (weapon.GetProperty(property) ?? false);
         }
     }
 }

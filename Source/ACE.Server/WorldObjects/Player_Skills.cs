@@ -80,6 +80,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the skill to specialized status
         /// </summary>
+        /// <param name="resetSkill">only set to TRUE during character creation. set to FALSE during temple / asheron's castle</param>
         public bool SpecializeSkill(Skill skill, int creditsSpent, bool resetSkill = true)
         {
             var cs = GetCreatureSkill(skill);
@@ -211,7 +212,7 @@ namespace ACE.Server.WorldObjects
 
             if (!IsSkillMaxRank(playerSkill.Ranks, playerSkill.AdvancementClass))
             {
-                GrantXP(amount, XpType.Emote, false);
+                GrantXP(amount, XpType.Emote, ShareType.None);
                 RaiseSkillGameAction(skill, amount);
             }
         }

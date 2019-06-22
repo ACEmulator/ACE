@@ -15,6 +15,7 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -307,6 +308,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if there are enough free inventory slots and burden available to add items
+        /// </summary>
+        public bool CanAddToInventory(int totalContainerObjectsToAdd, int totalInventoryObjectsToAdd, int totalBurdenToAdd)
+        {
+            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(totalBurdenToAdd))
+                return false;
+
+            return (GetFreeContainerSlots() >= totalContainerObjectsToAdd) && (GetFreeInventorySlots() >= totalInventoryObjectsToAdd);
+        }
+
+        /// <summary>
         /// Returns TRUE if there are enough free inventory slots and burden available to add item
         /// </summary>
         public bool CanAddToInventory(WorldObject worldObject)
@@ -544,6 +556,9 @@ namespace ACE.Server.WorldObjects
                     lastOpenedContainer.Close(player);
             }
 
+            if ((OwnerId.HasValue && OwnerId.Value > 0) || (ContainerId.HasValue && ContainerId.Value > 0))
+                return; // Do nothing else if container is owned by something.
+
             if (!IsOpen)
             {
                 Open(player);
@@ -572,6 +587,23 @@ namespace ACE.Server.WorldObjects
             DoOnOpenMotionChanges();
 
             SendInventory(player);
+
+            if (!(this is Chest) && !ResetMessagePending && ResetInterval.HasValue)
+            {
+                var actionChain = new ActionChain();
+                if (ResetInterval.Value < 15)
+                    actionChain.AddDelaySeconds(15);
+                else
+                    actionChain.AddDelaySeconds(ResetInterval.Value);
+                actionChain.AddAction(this, Reset);
+                //actionChain.AddAction(this, () =>
+                //{
+                //    Close(player);
+                //});
+                actionChain.EnqueueChain();
+
+                ResetMessagePending = true;
+            }
         }
 
         protected virtual float DoOnOpenMotionChanges()
@@ -648,11 +680,24 @@ namespace ACE.Server.WorldObjects
 
                 player.Session.Network.EnqueueSend(itemsToSend.ToArray());*/
             }
+
         }
 
         public virtual void Reset()
         {
-            // do reset stuff here
+            var player = CurrentLandblock.GetObject(Viewer) as Player;
+
+            if (IsOpen)
+                Close(player);
+
+            //if (IsGenerator)
+            //{
+            //    ResetGenerator();
+            //    if (InitCreate > 0)
+            //        Generator_Regeneration();
+            //}
+
+            ResetMessagePending = false;
         }
 
         private void GenerateContainList()
