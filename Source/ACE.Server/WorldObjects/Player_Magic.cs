@@ -726,22 +726,25 @@ namespace ACE.Server.WorldObjects
                             else
                             {
                                 // targeting another player or monster
-                                var item = creatureTarget.EquippedObjects.Values.FirstOrDefault(i => i.IsShield && i.IsEnchantable);
+                                var items = creatureTarget.EquippedObjects.Values.Where(i => (i.WeenieType == WeenieType.Clothing || i.IsShield) && i.IsEnchantable);
 
-                                if (item != null)
+                                foreach (var item in items)
                                 {
-                                    enchantmentStatus = ItemMagic(item, spell);
-                                    EnqueueBroadcast(new GameMessageScript(item.Guid, spell.TargetEffect, spell.Formula.Scale));
-                                    if (enchantmentStatus.Message != null)
-                                        player.Session.Network.EnqueueSend(enchantmentStatus.Message);
-                                }
-                                else
-                                {
-                                    // 'fails to affect'?
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {creatureTarget.Name} with {spell.Name}", ChatMessageType.Magic));
+                                    if (item != null)
+                                    {
+                                        enchantmentStatus = ItemMagic(item, spell);
+                                        EnqueueBroadcast(new GameMessageScript(item.Guid, spell.TargetEffect, spell.Formula.Scale));
+                                        if (enchantmentStatus.Message != null)
+                                            player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                                    }
+                                    else
+                                    {
+                                        // 'fails to affect'?
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {creatureTarget.Name} with {spell.Name}", ChatMessageType.Magic));
 
-                                    if (targetPlayer != null)
-                                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} fails to affect you with {spell.Name}", ChatMessageType.Magic));
+                                        if (targetPlayer != null)
+                                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} fails to affect you with {spell.Name}", ChatMessageType.Magic));
+                                    }
                                 }
                             }
                         }
