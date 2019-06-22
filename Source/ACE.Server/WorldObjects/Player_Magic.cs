@@ -420,8 +420,10 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // do second rotate, if applicable
-                //var angle = GetAngle_Physics(target);
-                var angle = Math.Abs(GetAngle_Physics2(target));
+                // TODO: investigate this more, difference for GetAngle() between ACE and ac physics engine
+                var angle = 0.0f;
+                if (target != this)
+                    angle = Math.Abs(GetAngle_Physics2(target));
 
                 if (angle > MaxAngle)
                 {
