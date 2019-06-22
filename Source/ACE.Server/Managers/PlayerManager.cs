@@ -8,6 +8,7 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
@@ -303,8 +304,22 @@ namespace ACE.Server.Managers
 
                 if (player.DoNotSave)
                 {
-                    //reload player biota from database, only Admin should get here via the /god command
+                    // reload player biota from database, and send to lifestone
+                    // only Admin should get here via the /god command
                     var restoreBiota = DatabaseManager.Shard.GetBiota(player.Guid.Full);
+
+                    var location = restoreBiota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
+                    var lifestone = restoreBiota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Sanctuary);
+
+                    location.ObjCellId = lifestone.ObjCellId;
+                    location.OriginX = lifestone.OriginX;
+                    location.OriginY = lifestone.OriginY;
+                    location.OriginZ = lifestone.OriginZ;
+                    location.AnglesX = lifestone.AnglesX;
+                    location.AnglesY = lifestone.AnglesY;
+                    location.AnglesZ = lifestone.AnglesZ;
+                    location.AnglesW = lifestone.AnglesW;
+
                     offlinePlayer = new OfflinePlayer(restoreBiota);
                 }
                 else

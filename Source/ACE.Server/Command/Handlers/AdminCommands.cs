@@ -1482,55 +1482,67 @@ namespace ACE.Server.Command.Handlers
         }
 
         // god
-        [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0, "Specalizes all skills and then sets attributes and skills to higher than max levels.")]
+        [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+            "Turns current character into a god!",
+            "Specalizes all skills. Sets attributes and skills to higher than max levels.\n"
+            + "This status will last until you log out. While you are a god no items you obtain will be retained after relogging.\n"
+            + "Items you already had in inventory will be maintained, provided you do not drop or otherwise lose them as a god.\n"
+            + "Use this command with caution. There is no guarantee your character will return to normal.")]
         public static void HandleGod(Session session, params string[] parameters)
         {
             // @god - Sets your own stats to a godly level.
+            // need to save before altering stats and entering 'do not save' mode
+            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            biotas.Add((session.Player.Biota, session.Player.BiotaDatabaseLock));
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
+        }
+            
+        private static void DoGodMode(bool playerSaved, Session session) {
 
-            session.Player.DoNotSave = true;
+            var currentPlayer = session.Player;
+            currentPlayer.DoNotSave = true;
+            currentPlayer.TotalExperience = 191226310247;
+            currentPlayer.Level = 999;
 
-            session.Player.TotalExperience = 191226310247;
-            session.Player.Level = 999;
+            currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, 999));
+            currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, 191226310247));
 
-            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Level, 999));
-            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(session.Player, PropertyInt64.TotalExperience, 191226310247));
-
-            foreach (var s in session.Player.Skills)
+            foreach (var s in currentPlayer.Skills)
             {
-                session.Player.TrainSkill(s.Key, 0);
-                session.Player.SpecializeSkill(s.Key, 0);
-                var playerSkill = session.Player.Skills[s.Key];
+                currentPlayer.TrainSkill(s.Key, 0);
+                currentPlayer.SpecializeSkill(s.Key, 0);
+                var playerSkill = currentPlayer.Skills[s.Key];
                 playerSkill.Ranks = 226;
                 playerSkill.ExperienceSpent = 4100490438u;
                 playerSkill.InitLevel = 5000;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
             }
 
-            foreach (var a in session.Player.Attributes)
+            foreach (var a in currentPlayer.Attributes)
             {
-                var playerAttr = session.Player.Attributes[a.Key];
+                var playerAttr = currentPlayer.Attributes[a.Key];
                 playerAttr.StartingValue = 9809u;
                 playerAttr.Ranks = 190u;
                 playerAttr.ExperienceSpent = 4019438644u;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, a.Key, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(currentPlayer, a.Key, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
             }
 
-            session.Player.SetMaxVitals();
+            currentPlayer.SetMaxVitals();
 
-            foreach (var v in session.Player.Vitals)
+            foreach (var v in currentPlayer.Vitals)
             {
-                var playerVital = session.Player.Vitals[v.Key];
+                var playerVital = currentPlayer.Vitals[v.Key];
                 playerVital.Ranks = 196u;
                 playerVital.ExperienceSpent = 4285430197u;
                 // my OCD will not let health/stam not be equal due to the endurance calc
                 playerVital.StartingValue = (v.Key == PropertyAttribute2nd.MaxHealth) ? 94803u : 89804u;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
             }
 
-            session.Player.SetMaxVitals();
+            currentPlayer.SetMaxVitals();
 
-            session.Player.PlayParticleEffect(PlayScript.LevelUp, session.Player.Guid);
-            session.Player.PlayParticleEffect(PlayScript.BaelZharonSmite, session.Player.Guid);
+            currentPlayer.PlayParticleEffect(PlayScript.LevelUp, currentPlayer.Guid);
+            currentPlayer.PlayParticleEffect(PlayScript.BaelZharonSmite, currentPlayer.Guid);
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
         }
