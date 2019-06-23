@@ -62,6 +62,8 @@ namespace ACE.Server.WorldObjects
             // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
             if (IsLocked)
                 DefaultLocked = true;
+
+            ActivationResponse |= ActivationResponse.Use;
         }
 
         private double? useLockTimestamp;
@@ -75,6 +77,17 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyString.LockCode);
             set { if (value == null) RemoveProperty(PropertyString.LockCode); else SetProperty(PropertyString.LockCode, value); }
+        }
+
+        public override void OnTalk(WorldObject activator)
+        {
+            if (activator is Player player)
+            {
+                var behind = player != null && player.GetSplatterDir(this).Contains("Back");
+
+                if (IsOpen && !behind) // not sure if retail made this distinction, but for the doors tested, it seemed more logical given the text shown
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
+            }
         }
 
         public override void ActOnUse(WorldObject worldObject)
@@ -148,8 +161,7 @@ namespace ACE.Server.WorldObjects
                 {
                     IsLocked = true;
                     var updateProperty = new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked);
-                    var sound = new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
-                    EnqueueBroadcast(updateProperty, sound);
+                    EnqueueBroadcast(updateProperty);
                 }
             }
             else
