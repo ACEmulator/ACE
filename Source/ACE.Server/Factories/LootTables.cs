@@ -935,7 +935,7 @@ namespace ACE.Factories
             ////Weaken Lock
             new int[] { 1581, 1582, 1583, 1584, 1585, 1586, 2119 },
             ////Dispells
-            new int[] { 1919, 1925, 1931, 1937, 1943, 1950, 3190 },
+            new int[] { 1919, 1925, 1931, 1937, 1943, 1949, 3190 },
             ////Portal Spells - Dont typically find these in loot.
 
             /* WAR SPELLS */
