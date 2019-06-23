@@ -2,6 +2,8 @@
 
 ### 2019-06-23
 [Ripley]
+* Fix issue of weenie cache corruption, setting the weenie's weenietype instead of biota's weenietype
+* Ensure subbed combatpets are always melee-ing by not spawning any inventory/weapons.
 * Generator system tweaks
   - Carry over Delay from profile template correctly.
   - Update RemoveQueue info in GeneratorDump.
