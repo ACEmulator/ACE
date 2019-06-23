@@ -62,6 +62,8 @@ namespace ACE.Server.WorldObjects
             // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
             if (IsLocked)
                 DefaultLocked = true;
+
+            ActivationResponse |= ActivationResponse.Use;
         }
 
         private double? useLockTimestamp;
@@ -77,24 +79,13 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.LockCode); else SetProperty(PropertyString.LockCode, value); }
         }
 
-        public override void OnActivate(WorldObject activator)
+        public override void OnTalk(WorldObject activator)
         {
-            // PropertyInt.Active indicates if this object can be activated, default is true
-            if (!Active) return;
-
-            // verify use requirements
-            var result = CheckUseRequirements(activator);
-
-            var player = activator as Player;
-            if (!result.Success)
+            if (activator is Player player)
             {
-                if (result.Message != null && player != null)
-                    player.Session.Network.EnqueueSend(result.Message);
-
-                return;
+                if (IsOpen)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
             }
-
-            ActOnUse(activator);
         }
 
         public override void ActOnUse(WorldObject worldObject)
@@ -105,21 +96,7 @@ namespace ACE.Server.WorldObjects
             if (!IsLocked || behind)
             {
                 if (!IsOpen)
-                {
                     Open(worldObject.Guid);
-
-                    if (player != null)
-                    {
-                        if (ActivationResponse.HasFlag(ActivationResponse.Talk))
-                            OnTalk(player);
-
-                        // no door has emotes on it yet, but maybe in the future we might want to do that?
-                        //if (ActivationResponse.HasFlag(ActivationResponse.Emote))
-                        //    OnEmote(player);
-
-                        EmoteManager.OnUse(player);
-                    }
-                }
                 else if (!(worldObject is Switch) && !(worldObject is PressurePlate))
                     Close(worldObject.Guid);
 

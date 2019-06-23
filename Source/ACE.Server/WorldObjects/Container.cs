@@ -789,5 +789,14 @@ namespace ACE.Server.WorldObjects
         }
 
         public override bool IsAttunedOrContainsAttuned => base.IsAttunedOrContainsAttuned || Inventory.Values.Any(i => i.IsAttunedOrContainsAttuned);
+
+        public override void OnTalk(WorldObject activator)
+        {
+            if (activator is Player player)
+            {
+                if (IsOpen)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
+            }
+        }
     }
 }
