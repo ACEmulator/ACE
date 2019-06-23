@@ -55,7 +55,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            UpdateXpAndLevel(amount);
+            UpdateXpAndLevel(amount, xpType);
 
             // for passing XP up the allegiance chain,
             // this function is only called at the very beginning, to start the process.
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Adds XP to a player's total XP, handles triggers (vitae, level up)
         /// </summary>
-        private void UpdateXpAndLevel(long amount)
+        private void UpdateXpAndLevel(long amount, XpType xpType)
         {
             // until we are max level we must make sure that we send
             var xpTable = DatManager.PortalDat.XpTable;
@@ -96,7 +96,7 @@ namespace ACE.Server.WorldObjects
                 CheckForLevelup();
             }
 
-            if (HasVitae)
+            if (HasVitae && xpType != XpType.Allegiance)
                 UpdateXpVitae(amount);
         }
 
@@ -149,7 +149,7 @@ namespace ACE.Server.WorldObjects
                     if (vitae != null)
                     {
                         var curPenalty = vitae.StatModValue;
-                        if (curPenalty.EpsilonEquals(1.0f) || vitaePenalty > 1.0f)
+                        if (curPenalty.EpsilonEquals(1.0f) || curPenalty > 1.0f)
                             EnchantmentManager.RemoveVitae();
                     }
                 });

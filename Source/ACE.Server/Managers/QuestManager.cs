@@ -268,6 +268,22 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Removes an all quests from registry
+        /// </summary>
+        public void EraseAll()
+        {
+            if (Debug)
+                Console.WriteLine($"{Player.Name}.QuestManager.EraseAll");
+
+            var quests = Quests.ToList();
+            foreach (var quest in quests)
+            {
+                Quests.Remove(quest);
+                if (Player != null) Player.CharacterChangesDetected = true;
+            }
+        }
+
+        /// <summary>
         /// Shows the current quests in progress for a Player
         /// </summary>
         public void ShowQuests(Player player)

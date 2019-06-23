@@ -246,5 +246,21 @@ namespace ACE.Server.WorldObjects
 
             return vitalUpdate;
         }
+
+        public CreatureVital GetCreatureVital(PropertyAttribute2nd vital)
+        {
+            switch (vital)
+            {
+                case PropertyAttribute2nd.Health:
+                    return Health;
+                case PropertyAttribute2nd.Stamina:
+                    return Stamina;
+                case PropertyAttribute2nd.Mana:
+                    return Mana;
+                default:
+                    log.Error($"{Name}.GetCreatureVital({vital}): unexpected vital");
+                    return null;
+            }
+        }
     }
 }
