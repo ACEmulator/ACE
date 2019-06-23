@@ -77,6 +77,26 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.LockCode); else SetProperty(PropertyString.LockCode, value); }
         }
 
+        public override void OnActivate(WorldObject activator)
+        {
+            // PropertyInt.Active indicates if this object can be activated, default is true
+            if (!Active) return;
+
+            // verify use requirements
+            var result = CheckUseRequirements(activator);
+
+            var player = activator as Player;
+            if (!result.Success)
+            {
+                if (result.Message != null && player != null)
+                    player.Session.Network.EnqueueSend(result.Message);
+
+                return;
+            }
+
+            ActOnUse(activator);
+        }
+
         public override void ActOnUse(WorldObject worldObject)
         {
             var player = worldObject as Player;
@@ -85,7 +105,19 @@ namespace ACE.Server.WorldObjects
             if (!IsLocked || behind)
             {
                 if (!IsOpen)
+                {
                     Open(worldObject.Guid);
+
+                    if (player != null)
+                    {
+                        if (ActivationResponse.HasFlag(ActivationResponse.Talk))
+                            OnTalk(player);
+
+                        // no door has emotes on it yet, but maybe in the future we might want to do that?
+                        //if (ActivationResponse.HasFlag(ActivationResponse.Emote))
+                        //    OnEmote(player);
+                    }
+                }
                 else if (!(worldObject is Switch) && !(worldObject is PressurePlate))
                     Close(worldObject.Guid);
 
@@ -148,8 +180,9 @@ namespace ACE.Server.WorldObjects
                 {
                     IsLocked = true;
                     var updateProperty = new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked);
-                    var sound = new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
-                    EnqueueBroadcast(updateProperty, sound);
+                    //var sound = new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
+                    //EnqueueBroadcast(updateProperty, sound);
+                    EnqueueBroadcast(updateProperty);
                 }
             }
             else
