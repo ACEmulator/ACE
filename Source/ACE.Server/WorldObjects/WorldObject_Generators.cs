@@ -68,8 +68,7 @@ namespace ACE.Server.WorldObjects
         /// The number of currently spawned objects +
         /// the number of objects currently in the spawn queue
         /// </summary>
-        //public int CurrentCreate { get => GeneratorProfiles.Select(i => i.CurrentCreate).Sum(); }
-        public int CurrentCreate;   // maintained directly
+        public int CurrentCreate { get => GeneratorProfiles.Select(i => i.CurrentCreate).Sum(); }
 
         /// <summary>
         /// A list of indices into GeneratorProfiles where CurrentCreate > 0
@@ -108,7 +107,6 @@ namespace ACE.Server.WorldObjects
             //History.Add($"[{DateTime.UtcNow}] - SelectProfilesInit()");
 
             bool rng_selected = false;
-            //bool campSpawned = false;
 
             while (true)
             {
@@ -133,44 +131,8 @@ namespace ACE.Server.WorldObjects
 
                     if (rng < probability || probability == -1)
                     {
-                        //if (!profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
-                        //{
-                        //    if (profile.Biota.WeenieClassId > 0)
-                        //    {
-                        //        //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId}");
-                        //        var profileSpawn = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(profile.Biota.WeenieClassId), new ACE.Entity.ObjectGuid(0));
-                        //        if (profileSpawn != null)
-                        //        {
-                        //            //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profileSpawn.Name: {profileSpawn.Name} | profileSpawn.IsGenerator: {profileSpawn.IsGenerator}");
-                        //            if (profileSpawn.IsGenerator && !(profileSpawn.WeenieType == WeenieType.Container || profileSpawn.WeenieType == WeenieType.Chest) && probability != -1 && profileSpawn.InitCreate > 1)
-                        //            {
-                        //                if (!campSpawned)
-                        //                {
-                        //                    profile.Enqueue(1);
-                        //                    CurrentCreate = MaxCreate;
-                        //                    campSpawned = true;
-                        //                    //return;
-                        //                }
-                        //                else
-                        //                    continue;
-                        //            }
-                        //            else
-                        //            {
-                        //                //var numObjects = GetMaxObjects(profile);
-                        //                var numObjects = GetRNGInitToMaxObjects(profile);
-                        //                profile.Enqueue(numObjects);
-                        //            }
-                        //        }
-                        //    }
-                        //}
-                        //else
-                        //{
-                        //    //Console.WriteLine($"{Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.WeenieClassId = {profile.Biota.WeenieClassId} | profile.RegenLocationType = {profile.RegenLocationType.ToString()}");
-                        //    //var numObjects = GetInitObjects(profile);
-                              //var numObjects = GetRNGInitToMaxObjects(profile);
                         var numObjects = GetInitObjects(profile);
                         profile.Enqueue(numObjects);
-                        //}
 
                         //var rng_str = probability == -1 ? "" : "RNG ";
                         //History.Add($"[{DateTime.UtcNow}] - SelectProfilesInit() - {rng_str}selected slot {i} to spawn, adding {numObjects} objects ({profile.CurrentCreate}/{profile.MaxCreate})");
@@ -647,7 +609,6 @@ namespace ACE.Server.WorldObjects
 
                         generator.Spawned.Clear();
                         generator.SpawnQueue.Clear();
-                        CurrentCreate = 0;
                     }
                     break;
                 case GeneratorDestruct.Destroy:
@@ -665,7 +626,6 @@ namespace ACE.Server.WorldObjects
 
                         generator.Spawned.Clear();
                         generator.SpawnQueue.Clear();
-                        CurrentCreate = 0;
                     }
                     break;
                 case GeneratorDestruct.Nothing:
@@ -807,7 +767,6 @@ namespace ACE.Server.WorldObjects
 
                 generator.Spawned.Clear();
                 generator.SpawnQueue.Clear();
-                CurrentCreate = 0;
             }
         }
     }

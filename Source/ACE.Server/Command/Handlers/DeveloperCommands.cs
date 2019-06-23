@@ -2265,6 +2265,7 @@ namespace ACE.Server.Command.Handlers
                         msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
                         msg += $"StackSize: {profile.Biota.StackSize} | PaletteId: {profile.Biota.PaletteId} | Shade: {profile.Biota.Shade}\n";
                         msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
+                        msg += $"GeneratedTreasureItem: {profile.GeneratedTreasureItem}\n";
                         msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)
                         {
