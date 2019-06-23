@@ -52,7 +52,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// TRUE if this Profile generated treasure using TreasureGenerator
         /// </summary>
-        public bool GeneratedTreasureItem { get; private set; } = false;
+        public bool GeneratedTreasureItem { get; private set; }
 
         /// <summary>
         /// The total # of active spawned objects + awaiting spawning
