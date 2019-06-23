@@ -116,6 +116,8 @@ namespace ACE.Server.WorldObjects
                         // no door has emotes on it yet, but maybe in the future we might want to do that?
                         //if (ActivationResponse.HasFlag(ActivationResponse.Emote))
                         //    OnEmote(player);
+
+                        EmoteManager.OnUse(player);
                     }
                 }
                 else if (!(worldObject is Switch) && !(worldObject is PressurePlate))
