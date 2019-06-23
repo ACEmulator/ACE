@@ -717,6 +717,7 @@ namespace ACE.Server.WorldObjects
                 profile.AnglesX = link.AnglesX;
                 profile.AnglesY = link.AnglesY;
                 profile.AnglesZ = link.AnglesZ;
+                profile.Delay = profileTemplate.Biota.Delay;
                 profile.Probability = profileTemplate.Biota.Probability;
                 profile.InitCreate = profileTemplate.Biota.InitCreate;
                 profile.MaxCreate = profileTemplate.Biota.MaxCreate;
