@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-06-23
+[Ripley]
+* Fix issue of weenie cache corruption, setting the weenie's weenietype instead of biota's weenietype
+* Ensure subbed combatpets are always melee-ing by not spawning any inventory/weapons.
+
 ### 2019-06-22
 [Ripley]
 * Expand `qst` command.
