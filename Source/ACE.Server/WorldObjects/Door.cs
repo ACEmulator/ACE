@@ -83,7 +83,9 @@ namespace ACE.Server.WorldObjects
         {
             if (activator is Player player)
             {
-                if (IsOpen)
+                var behind = player != null && player.GetSplatterDir(this).Contains("Back");
+
+                if (IsOpen && !behind)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
             }
         }
