@@ -16,7 +16,7 @@ namespace ACE.Server.Network
 
         public Socket Socket { get; private set; }
 
-        private IPEndPoint listenerEndpoint;
+        public IPEndPoint ListenerEndpoint { get; private set; }
 
         private readonly uint listeningPort;
 
@@ -36,10 +36,10 @@ namespace ACE.Server.Network
             log.DebugFormat("Starting ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
             try
             {
-                listenerEndpoint = new IPEndPoint(listeningHost, (int)listeningPort);
+                ListenerEndpoint = new IPEndPoint(listeningHost, (int)listeningPort);
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                Socket.Bind(listenerEndpoint);
+                Socket.Bind(ListenerEndpoint);
                 Listen();
             }
             catch (Exception exception)
@@ -91,14 +91,14 @@ namespace ACE.Server.Network
                 if (packetLog.IsDebugEnabled)
                 {
                     StringBuilder sb = new StringBuilder();
-                    sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{listenerEndpoint.Address}:{listenerEndpoint.Port}]");
+                    sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{ListenerEndpoint.Address}:{ListenerEndpoint.Port}]");
                     sb.AppendLine(data.BuildPacketString());
                     packetLog.Debug(sb.ToString());
                 }
 
                 var packet = new ClientPacket(data);
                 if (packet.IsValid)
-                    NetworkManager.ProcessPacket(packet, ipEndpoint, listenerEndpoint);
+                    NetworkManager.ProcessPacket(this, packet, ipEndpoint);
             }
             catch (SocketException socketException)
             {
