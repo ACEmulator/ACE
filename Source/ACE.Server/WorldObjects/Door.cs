@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
             {
                 var behind = player != null && player.GetSplatterDir(this).Contains("Back");
 
-                if (IsOpen && !behind)
+                if (IsOpen && !behind) // not sure if retail made this distinction, but for the doors tested, it seemed more logical given the text shown
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
             }
         }
