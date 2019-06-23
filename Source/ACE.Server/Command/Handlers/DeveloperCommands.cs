@@ -2246,9 +2246,9 @@ namespace ACE.Server.Command.Handlers
                     msg += $"GeneratorInitialDelay: {wo.GeneratorInitialDelay}\n";
                     msg += $"RegenerationInterval: {wo.RegenerationInterval}\n";
                     msg += $"GeneratorUpdateTimestamp: {wo.GeneratorUpdateTimestamp} ({Time.GetDateTimeFromTimestamp(wo.GeneratorUpdateTimestamp).ToLocalTime()})\n";
-                    msg += $"NextGeneratorUpdateTime: {wo.NextGeneratorUpdateTime} ({Time.GetDateTimeFromTimestamp(wo.NextGeneratorUpdateTime).ToLocalTime()})\n";
+                    msg += $"NextGeneratorUpdateTime: {wo.NextGeneratorUpdateTime} ({((wo.NextGeneratorUpdateTime == double.MaxValue) ? "Disabled" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorUpdateTime).ToLocalTime().ToString())})\n";
                     msg += $"RegenerationTimestamp: {wo.RegenerationTimestamp} ({Time.GetDateTimeFromTimestamp(wo.RegenerationTimestamp).ToLocalTime()})\n";
-                    msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime} ({Time.GetDateTimeFromTimestamp(wo.NextGeneratorRegenerationTime).ToLocalTime()})\n";
+                    msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime} ({((wo.NextGeneratorRegenerationTime == double.MaxValue) ? "On Demand" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorRegenerationTime).ToLocalTime().ToString())})\n";
 
                     msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count}\n";
                     msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
