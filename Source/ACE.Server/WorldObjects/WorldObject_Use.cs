@@ -118,12 +118,7 @@ namespace ACE.Server.WorldObjects
             // default use action
             if (ActivationResponse.HasFlag(ActivationResponse.Use))
             {
-                if (player != null)
-                {
-                    //target.EmoteManager.OnActivation(player); // found a few things with Activation on them but not ActivationResponse.Emote...
-                    target.EmoteManager.OnUse(player);
-                }
-                else if (activator is Creature creature)
+                if (activator is Creature creature)
                 {
                     //target.EmoteManager.OnActivation(creature); // found a few things with Activation on them but not ActivationResponse.Emote...
                     target.EmoteManager.OnUse(creature);

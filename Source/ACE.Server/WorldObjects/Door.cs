@@ -161,8 +161,6 @@ namespace ACE.Server.WorldObjects
                 {
                     IsLocked = true;
                     var updateProperty = new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked);
-                    //var sound = new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
-                    //EnqueueBroadcast(updateProperty, sound);
                     EnqueueBroadcast(updateProperty);
                 }
             }
