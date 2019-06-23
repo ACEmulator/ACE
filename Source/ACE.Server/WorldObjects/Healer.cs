@@ -57,7 +57,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (targetPlayer.Health.Current == targetPlayer.Health.MaxValue)
+            // Validate healing attribute against maxValue
+            CreatureVital vital = GetVitalsByKitType(BoosterEnum, targetPlayer).Item2;
+            if (vital.Current == vital.MaxValue)
             {
                 healer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(healer.Session, WeenieErrorWithString._IsAtFullHealth, target.Name));
                 healer.SendUseDoneEvent();
@@ -120,26 +122,10 @@ namespace ACE.Server.WorldObjects
             var remainingMsg = $"Your {Name} has {--UsesLeft} uses left.";
             var stackSize = new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, UsesLeft.Value);
             var targetName = healer == target ? "yourself" : target.Name;
+            var vitals = GetVitalsByKitType(BoosterEnum, target);
 
-            Vital vital = Vital.Undefined;
-            CreatureVital creatureVital = null;
-            switch (BoosterEnum)
-            {
-                case PropertyAttribute2nd.Health:
-                    goto default;
-                case PropertyAttribute2nd.Stamina:
-                    vital = Vital.Stamina;
-                    creatureVital = target.Stamina;
-                    break;
-                case PropertyAttribute2nd.Mana:
-                    vital = Vital.Mana;
-                    creatureVital = target.Mana;
-                    break;
-                default:
-                    vital = Vital.Health;
-                    creatureVital = target.Health;
-                    break;
-            }
+            Vital vital = vitals.Item1;
+            CreatureVital creatureVital = vitals.Item2;
 
             // skill check
             var difficulty = 0;
@@ -255,6 +241,33 @@ namespace ACE.Server.WorldObjects
         {
             get => (PropertyAttribute2nd)(GetProperty(PropertyInt.BoosterEnum) ?? (int)PropertyAttribute2nd.Undef);
             set { if (value == 0) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, (int)value); }
+        }
+
+        /// <summary>
+        /// Returns the appropriate Vital and CreatureVital for a given healing kit type
+        /// </summary>
+        private Tuple<Vital, CreatureVital> GetVitalsByKitType(PropertyAttribute2nd type, Player target)
+        {
+            Vital vital = Vital.Undefined;
+            CreatureVital creatureVital = null;
+            switch (BoosterEnum)
+            {
+                case PropertyAttribute2nd.Health:
+                    goto default;
+                case PropertyAttribute2nd.Stamina:
+                    vital = Vital.Stamina;
+                    creatureVital = target.Stamina;
+                    break;
+                case PropertyAttribute2nd.Mana:
+                    vital = Vital.Mana;
+                    creatureVital = target.Mana;
+                    break;
+                default:
+                    vital = Vital.Health;
+                    creatureVital = target.Health;
+                    break;
+            }
+            return Tuple.Create(vital, creatureVital);
         }
     }
 }
