@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2019-06-23
+[Ripley]
+* Generator system tweaks
+  - Carry over Delay from profile template correctly.
+  - Update RemoveQueue info in GeneratorDump.
+  - Adjust CurrentCreate to be calculated to prevent out-of-sync issues.
+
 ### 2019-06-22
 [Ripley]
 * Expand `qst` command.
