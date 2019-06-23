@@ -1855,10 +1855,22 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.Use); else SetProperty(PropertyString.Use, value); }
         }
 
-        public int? Boost
+        public int BoostValue
         {
-            get => GetProperty(PropertyInt.BoostValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoostValue); else SetProperty(PropertyInt.BoostValue, value.Value); }
+            get => GetProperty(PropertyInt.BoostValue) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.BoostValue); else SetProperty(PropertyInt.BoostValue, value); }
+        }
+
+        public PropertyAttribute2nd BoosterEnum
+        {
+            get => (PropertyAttribute2nd)(GetProperty(PropertyInt.BoosterEnum) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, (int)value); }
+        }
+
+        public bool UnlimitedUse
+        {
+            get => GetProperty(PropertyBool.UnlimitedUse) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.UnlimitedUse); else SetProperty(PropertyBool.UnlimitedUse, value); }
         }
 
         public uint? SpellDID
