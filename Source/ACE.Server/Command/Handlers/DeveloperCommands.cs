@@ -2291,7 +2291,25 @@ namespace ACE.Server.Command.Handlers
                             msg += "Pending Removed Objects:\n";
                             foreach (var spawn in profile.RemoveQueue)
                             {
-                                msg += $"0x{spawn.objectGuid:X8} removed at {spawn.time.ToLocalTime()}\n";
+                                var action = "";
+                                switch((RegenerationType)profile.Biota.WhenCreate)
+                                {
+                                    case RegenerationType.Death:
+                                        action = "died";
+                                        break;
+                                    case RegenerationType.Destruction:
+                                        action = "destroyed";
+                                        break;
+                                    case RegenerationType.PickUp:
+                                        action = "picked up";
+                                        break;
+                                    case RegenerationType.Undef:
+                                    default:
+                                        action = "despawned";
+                                        break;
+                                }
+
+                                msg += $"0x{spawn.objectGuid:X8} {action} at {spawn.time.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.time.ToLocalTime()}\n";
                             }
                             msg += $"--====--\n";
                         }
