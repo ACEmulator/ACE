@@ -66,21 +66,21 @@ namespace ACE.Server.WorldObjects
             var prevStance = player.CurrentMotionState.Stance;
 
             if (prevStance != MotionStance.NonCombat)
-                player.EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, MotionStance.NonCombat);
+                player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
 
             // start the eat/drink motion
             var motionCommand = GetUseSound() == Sound.Eat1 ? MotionCommand.Eat : MotionCommand.Drink;
 
-            player.EnqueueMotion(actionChain, motionCommand, 1.0f, MotionStance.NonCombat);
+            player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, motionCommand);
 
             // apply consumable
             actionChain.AddAction(player, () => ApplyConsumable(player));
 
             // return to ready stance
-            player.EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, MotionStance.NonCombat);
+            player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, motionCommand);
 
             if (prevStance != MotionStance.NonCombat)
-                player.EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, prevStance);
+                player.EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
 
             actionChain.AddAction(player, () => { player.IsBusy = false; });
 
