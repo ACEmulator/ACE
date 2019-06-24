@@ -1855,10 +1855,22 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.Use); else SetProperty(PropertyString.Use, value); }
         }
 
-        public int? Boost
+        public int BoostValue
         {
-            get => GetProperty(PropertyInt.BoostValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.BoostValue); else SetProperty(PropertyInt.BoostValue, value.Value); }
+            get => GetProperty(PropertyInt.BoostValue) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.BoostValue); else SetProperty(PropertyInt.BoostValue, value); }
+        }
+
+        public PropertyAttribute2nd BoosterEnum
+        {
+            get => (PropertyAttribute2nd)(GetProperty(PropertyInt.BoosterEnum) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, (int)value); }
+        }
+
+        public bool UnlimitedUse
+        {
+            get => GetProperty(PropertyBool.UnlimitedUse) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.UnlimitedUse); else SetProperty(PropertyBool.UnlimitedUse, value); }
         }
 
         public uint? SpellDID
@@ -1987,10 +1999,28 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyFloat.RegenerationInterval); else SetProperty(PropertyFloat.RegenerationInterval, value); }
         }
 
+        public double RegenerationTimestamp
+        {
+            get => GetProperty(PropertyFloat.RegenerationTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.RegenerationTimestamp); else SetProperty(PropertyFloat.RegenerationTimestamp, value); }
+        }
+
+        public double GeneratorUpdateTimestamp
+        {
+            get => GetProperty(PropertyFloat.GeneratorUpdateTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.GeneratorUpdateTimestamp); else SetProperty(PropertyFloat.GeneratorUpdateTimestamp, value); }
+        }
+
         public bool GeneratorEnteredWorld
         {
             get => GetProperty(PropertyBool.GeneratorEnteredWorld) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value); }
+        }
+
+        public bool GeneratedTreasureItem
+        {
+            get => GetProperty(PropertyBool.GeneratedTreasureItem) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.GeneratedTreasureItem); else SetProperty(PropertyBool.GeneratedTreasureItem, value); }
         }
 
         public int? TsysMutationData

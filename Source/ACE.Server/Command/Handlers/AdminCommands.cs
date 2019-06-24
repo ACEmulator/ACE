@@ -261,6 +261,9 @@ namespace ACE.Server.Command.Handlers
                 }
             }
 
+            if (wo.IsGenerator)
+                wo.ResetGenerator();
+
             wo.Destroy();
 
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted 0x{wo.Guid}:{wo.Name}");
@@ -660,12 +663,35 @@ namespace ACE.Server.Command.Handlers
         }
 
         // regen
-        [CommandHandler("regen", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 2)]
+        [CommandHandler("regen", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+            "Sends the selected generator a regeneration message.",
+            "")]
         public static void HandleRegen(Session session, params string[] parameters)
         {
             // @regen - Sends the selected generator a regeneration message.
 
-            // TODO: output
+            var objectId = new ObjectGuid();
+
+            if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+            {
+                if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                else if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+                else
+                    objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+                if (objectId.IsPlayer())
+                    return;
+
+                if (wo != null & wo.IsGenerator)
+                {
+                    wo.ResetGenerator();
+                    wo.GeneratorEnteredWorld = false;
+                }
+            }
         }
 
         // reportbug < code | content > < description >
@@ -1063,12 +1089,70 @@ namespace ACE.Server.Command.Handlers
         }
 
         // trophies
-        [CommandHandler("trophies", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("trophies", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+            "Shows a list of the trophies dropped by the target creature, and the percentage chance of dropping.",
+            "")]
         public static void HandleTrophies(Session session, params string[] parameters)
         {
             // @trophies - Shows a list of the trophies dropped by the target creature, and the percentage chance of dropping.
 
-            // TODO: output
+            var objectId = new ObjectGuid();
+
+            if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+            {
+                if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                else if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+                else
+                    objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+                if (objectId.IsPlayer())
+                    return;
+
+                var msg = "";
+                if (wo is Creature creature && wo.Biota.BiotaPropertiesCreateList.Count > 0)
+                {
+                    var createList = creature.Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
+                        (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
+
+                    var wieldedTreasure = creature.Inventory.Values.Concat(creature.EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Treasure)).ToList();
+
+                    msg = $"Trophy Dump for {creature.Name} (0x{creature.Guid})\n";
+                    msg += $"WCID: {creature.WeenieClassId}\n";
+                    msg += $"WeenieClassName: {creature.WeenieClassName}\n";
+
+                    if (createList.Count > 0)
+                    {
+                        foreach (var item in createList)
+                        {
+                            if (item.WeenieClassId == 0)
+                            {
+                                msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,6:P2} - {item.WeenieClassId,5} - Nothing\n";
+                                continue;
+                            }
+
+                            var weenie = DatabaseManager.World.GetCachedWeenie(item.WeenieClassId);
+                            msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,6:P2} - {item.WeenieClassId,5} - {weenie.ClassName} - {weenie.GetProperty(PropertyString.Name)}\n";
+                        }
+                    }
+                    else
+                        msg += "Creature has no trophies to drop.\n";
+
+                    if (wieldedTreasure.Count > 0)
+                    {
+                        foreach (var item in wieldedTreasure)
+                        {
+                            msg += $"{item.DestinationType.ToString()}: 100.00% - {item.WeenieClassId,5} - {item.WeenieClassName} - {item.Name}\n";
+                        }
+                    }
+                    else
+                        msg += "Creature has no wielded items to drop.\n";
+                }
+                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.System));
+            }
         }
 
         // unlock {-all | IID}
@@ -1174,20 +1258,30 @@ namespace ACE.Server.Command.Handlers
                 }
             }
             int palette = 0;
+            bool hasPalette = false;
             float shade = 0;
+            bool hasShade = false;
             int stackSize = 1;
             if (parameters.Length > 1)
+            {
                 if (!int.TryParse(parameters[1], out palette))
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
+                else
+                    hasPalette = true;
+            }
             if (parameters.Length > 2)
+            {
                 if (!float.TryParse(parameters[2], out shade))
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
+                else
+                    hasShade = true;
+            }
             if (parameters.Length > 3)
                 if (!int.TryParse(parameters[3], out stackSize))
                 {
@@ -1201,13 +1295,18 @@ namespace ACE.Server.Command.Handlers
             else
                 loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
 
-            // todo: set the palette, shade, stackSize here
+            // todo: set the stackSize here
 
             if (loot == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
                 return;
             }
+
+            if (hasPalette)
+                loot.PaletteTemplate = palette;
+            if (hasShade)
+                loot.Shade = shade;
 
             if (!loot.TimeToRot.HasValue)
                 loot.TimeToRot = Double.MaxValue;
@@ -1745,7 +1844,12 @@ namespace ACE.Server.Command.Handlers
         }
 
         // qst
-        [CommandHandler("qst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("qst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Query, stamp, and erase quests on the targeted player",
+            "[list | bestow | erase]\n"
+            + "qst list - List the quest flags for the targeted player\n"
+            + "qst bestow - Stamps the specific quest flag on the targeted player. If this fails, it's probably because you spelled the quest flag wrong.\n"
+            + "qst erase - Erase the specific quest flag from the targeted player.If no quest flag is given, it erases the entire quest table for the targeted player.\n")]
         public static void Handleqst(Session session, params string[] parameters)
         {
             // fellow bestow  stamp erase
@@ -1760,27 +1864,107 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (parameters[0].Equals("erase"))
-            {
-                if (parameters.Length < 2)
-                {
-                    // delete all quests?
-                    // seems unsafe, maybe a confirmation?
-                    return;
-                }
-                var questName = parameters[1];
-                var player = session.Player;
-                if (!player.QuestManager.HasQuest(questName))
-                {
-                    player.SendMessage($"{questName} not found");
-                    return;
-                }
-                player.QuestManager.Erase(questName);
-                player.SendMessage($"{questName} erased");
-                return;
-            }
+            var objectId = new ObjectGuid();
 
-            // TODO: output
+            if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+            else if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+            else if (session.Player.CurrentAppraisalTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+            var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+            if (wo != null && wo is Player player)
+            {
+                if (parameters[0].Equals("list"))
+                {
+                    var questsHdr = $"Quest Registry for {player.Name} (0x{player.Guid}):\n";
+                    questsHdr += "================================================\n";
+                    var quests = "";
+                    foreach (var quest in player.QuestManager.Quests)
+                    {
+                        quests += $"Quest Name: {quest.QuestName}\nComletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+                        var nextSolve = player.QuestManager.GetNextSolveTime(quest.QuestName);
+
+                        if (nextSolve == TimeSpan.MinValue)
+                            quests += "Can Solve: Immediately\n";
+                        else if (nextSolve == TimeSpan.MaxValue)
+                            quests += "Can Solve: Never again\n";
+                        else
+                            quests += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+
+                        quests += "--====--\n";
+                    }
+
+                    session.Player.SendMessage($"{questsHdr}{(quests != "" ? quests : "No quests found.")}");
+                    return;
+                }
+
+                if (parameters[0].Equals("bestow"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        // delete all quests?
+                        // seems unsafe, maybe a confirmation?
+                        return;
+                    }
+                    var questName = parameters[1];
+                    if (player.QuestManager.HasQuest(questName))
+                    {
+                        session.Player.SendMessage($"{player.Name} already has {questName}");
+                        return;
+                    }
+
+                    var canSolve = player.QuestManager.CanSolve(questName);
+                    if (canSolve)
+                    {
+                        player.QuestManager.Update(questName);
+                        session.Player.SendMessage($"{questName} bestowed on {player.Name}");
+                        return;
+                    }
+                    else
+                    {
+                        session.Player.SendMessage($"Couldn't bestow {questName} on {player.Name}");
+                        return;
+                    }
+                }
+
+                if (parameters[0].Equals("erase"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        // delete all quests?
+                        // seems unsafe, maybe a confirmation?
+                        session.Player.SendMessage($"You must specify a quest to erase, if you want to erase all quests use the following command: /qst erase *");
+                        return;
+                    }
+                    var questName = parameters[1];
+
+                    if (questName == "*")
+                    {
+                        player.QuestManager.EraseAll();
+                        session.Player.SendMessage($"All quests erased.");
+                        return;
+                    }
+
+                    if (!player.QuestManager.HasQuest(questName))
+                    {
+                        session.Player.SendMessage($"{questName} not found.");
+                        return;
+                    }
+                    player.QuestManager.Erase(questName);
+                    session.Player.SendMessage($"{questName} erased.");
+                    return;
+                }
+            }
+            else
+            {
+                if (wo == null)
+                    session.Player.SendMessage($"Selected object (0x{objectId}) not found.");
+                else
+                    session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a player.");
+            }
         }
 
         // raise

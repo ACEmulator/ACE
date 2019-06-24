@@ -150,6 +150,9 @@ namespace ACE.Server.WorldObjects
             if (WeenieType == WeenieType.Corpse && this is Corpse corpse && corpse.IsMonster)
                 return false;
 
+            if (WeenieType == WeenieType.Portal && this is Portal portal && portal.IsGateway)
+                return false;
+
             // Missiles are unique. The only missiles that are persistable are ones that already exist in the database.
             // TODO: See if we can remove this check by catching the WeenieType above.
             var missile = Missile;
