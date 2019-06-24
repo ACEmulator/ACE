@@ -167,11 +167,11 @@ namespace ACE.Server.WorldObjects
                 case ResistanceType.Nether:
                     return (ResistNether ?? 1.0) * GetResistanceMod(DamageType.Nether, weapon, weaponResistanceMod);
                 case ResistanceType.HealthBoost:
-                    return (ResistHealthBoost ?? 1.0) * GetHealingRatingMod();  // enchantments for any of these?
+                    return (ResistHealthBoost ?? 1.0) * GetHealingRatingMod();
                 case ResistanceType.HealthDrain:
-                    return (ResistHealthDrain ?? 1.0) * GetNaturalResistance();
+                    return (ResistHealthDrain ?? 1.0) * GetNaturalResistance() * GetLifeResistRatingMod();
                 case ResistanceType.StaminaBoost:
-                    return (ResistStaminaBoost ?? 1.0) * GetHealingRatingMod();
+                    return (ResistStaminaBoost ?? 1.0) * GetHealingRatingMod();     // does healing rating affect these?
                 case ResistanceType.StaminaDrain:
                     return (ResistStaminaDrain ?? 1.0) * GetNaturalResistance();
                 case ResistanceType.ManaBoost:
