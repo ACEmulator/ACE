@@ -327,6 +327,14 @@ namespace ACE.Server.WorldObjects
             return healResistRating + enchantments;
         }
 
+        public float GetHealingRatingMod()
+        {
+            var boostMod = GetPositiveRatingMod(GetHealingBoostRating());
+            var resistMod = GetNegativeRatingMod(GetHealingResistRating());
+
+            return boostMod * resistMod;
+        }
+
         public int GetLifeResistRating()
         {
             // drain resistance?
