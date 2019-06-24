@@ -18,25 +18,7 @@ namespace ACE.Server.WorldObjects
         /// This variable is set to true when a change is made, and set to false before a save is requested.<para />
         /// The primary use for this is to trigger save on add/modify/remove of properties.
         /// </summary>
-        private bool characterChangesDetected;
-        public bool CharacterChangesDetected
-        {
-            get
-            {
-                return characterChangesDetected;
-            }
-            set
-            {
-                if(DoNotSave)
-                {
-                    characterChangesDetected = false;
-                }
-                else
-                {
-                    characterChangesDetected = value;
-                }
-            }
-        }
+        public bool CharacterChangesDetected;
 
         /// <summary>
         /// Best practice says you should use this lock any time you read/write the Character.<para />
@@ -76,7 +58,7 @@ namespace ACE.Server.WorldObjects
         {
             if (DoNotSave) { return; }
 
-            if (characterChangesDetected)
+            if (CharacterChangesDetected)
                 SaveCharacterToDatabase();
 
             var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();

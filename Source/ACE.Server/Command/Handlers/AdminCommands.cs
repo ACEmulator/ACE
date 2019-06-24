@@ -1484,10 +1484,10 @@ namespace ACE.Server.Command.Handlers
         // god
         [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Turns current character into a god!",
-            "Specalizes all skills. Sets attributes and skills to higher than max levels.\n"
-            + "This status will last until you log out. While you are a god no items you obtain will be retained after relogging.\n"
+            "Sets attributes and skills to higher than max levels.\n"
+            + "This status will last until you log out. While you are a god items you obtain will not be retained after relogging.\n"
             + "Items you already had in inventory will be maintained, provided you do not drop or otherwise lose them as a god.\n"
-            + "Use this command with caution. There is no guarantee your character will return to normal.")]
+            + "Use this command with caution. There is no guarantee your character or items will return to normal.")]
         public static void HandleGod(Session session, params string[] parameters)
         {
             // @god - Sets your own stats to a godly level.

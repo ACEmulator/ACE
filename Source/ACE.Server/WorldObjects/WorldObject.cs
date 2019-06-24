@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
         public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;
 
         /// <summary>
-        /// This should prevent ChangesDetected and CharacterChangesDetected from ever going true.
+        /// Currently this prevents SavePlayerToDatabase and SaveCharacterToDatabase from running.
         /// </summary>
         public bool DoNotSave = false;
 
