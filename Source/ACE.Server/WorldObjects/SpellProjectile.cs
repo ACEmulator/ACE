@@ -526,7 +526,7 @@ namespace ACE.Server.WorldObjects
                 var creatureSource = ProjectileSource as Creature;
                 var damageRating = creatureSource != null ? creatureSource.GetDamageRating() : 0;
                 var damageRatingMod = Creature.AdditiveCombine(Creature.GetPositiveRatingMod(damageRating), heritageMod, sneakAttackMod);
-                var damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating());
+                var damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating(CombatType.Magic));
                 damage *= damageRatingMod * damageResistRatingMod;
 
                 //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));

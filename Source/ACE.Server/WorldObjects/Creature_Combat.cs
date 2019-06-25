@@ -984,5 +984,20 @@ namespace ACE.Server.WorldObjects
             foreach (var tryProcItem in tryProcItems)
                 tryProcItem.TryProcItem(this, target);
         }
+
+        public static Skill GetDefenseSkill(CombatType combatType)
+        {
+            switch (combatType)
+            {
+                case CombatType.Melee:
+                    return Skill.MeleeDefense;
+                case CombatType.Missile:
+                    return Skill.MissileDefense;
+                case CombatType.Magic:
+                    return Skill.MagicDefense;
+                default:
+                    return Skill.None;
+            }
+        }
     }
 }
