@@ -1092,6 +1092,9 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
+            // the client handles dequipping a lot of conflicting items automatically,
+            // but there are some cases it misses that must be handled specifically here:
+
             // Unwield wand/missile launcher if dual wielding
             if (wieldedLocation == EquipMask.Shield && !item.IsShield)
             {
@@ -1099,6 +1102,32 @@ namespace ACE.Server.WorldObjects
                 if (mainWeapon != null)
                 {
                     if (!TryDequipObjectWithNetworking(mainWeapon.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                        return false;
+                    }
+
+                    if (!TryCreateInInventoryWithNetworking(dequippedItem))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to add dequip back into inventory!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+
+                        // todo: if this happens, we should just put back the dequipped item to where it was
+
+                        return false;
+                    }
+                }
+            }
+
+            // Unwield dual weapon if equipping thrown weapon
+            if (wieldedLocation == EquipMask.MissileWeapon)
+            {
+                var dualWield = GetDualWieldWeapon();
+
+                if (dualWield != null)
+                {
+                    if (!TryDequipObjectWithNetworking(dualWield.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
                     {
                         Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
