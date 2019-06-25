@@ -210,7 +210,6 @@ namespace ACE.Server.WorldObjects
             return caster.SpellDID == spellId;
         }
 
-
         public enum CastingPreCheckStatus
         {
             CastFailed,
@@ -790,11 +789,11 @@ namespace ACE.Server.WorldObjects
                                 foreach (var item in items)
                                 {
                                     enchantmentStatus = ItemMagic(item, spell);
-                                    //EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
-
                                     if (enchantmentStatus.Message != null)
                                         Session.Network.EnqueueSend(enchantmentStatus.Message);
                                 }
+                                if (items.Count() > 0)
+                                    EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
                             }
                             else
                             {
@@ -961,7 +960,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Handles an item casting a spell on a player
+        /// Handles equipping an item casting a spell on a player
         /// </summary>
         public override EnchantmentStatus CreateItemSpell(WorldObject item, uint spellID)
         {

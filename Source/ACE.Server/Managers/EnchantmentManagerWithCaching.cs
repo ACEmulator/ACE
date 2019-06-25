@@ -36,9 +36,9 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public override AddEnchantmentResult Add(Spell spell, WorldObject caster)
+        public override AddEnchantmentResult Add(Spell spell, WorldObject caster, bool equip = false)
         {
-            var result = base.Add(spell, caster);
+            var result = base.Add(spell, caster, equip);
 
             ClearCache();
 
