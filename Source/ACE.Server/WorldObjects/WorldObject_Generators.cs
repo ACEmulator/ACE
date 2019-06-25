@@ -108,6 +108,8 @@ namespace ACE.Server.WorldObjects
 
             bool rng_selected = false;
 
+            var loopcount = 0;
+
             while (true)
             {
                 if (StopConditionsInit) return;
@@ -147,6 +149,14 @@ namespace ACE.Server.WorldObjects
                         // stop conditions
                         if (StopConditionsInit) return;
                     }
+                }
+
+                loopcount++;
+
+                if (loopcount > 1000)
+                {
+                    log.Warn($"0x{Guid} {Name}.SelectProfilesInit(): loopcount > 1000, aborted. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                    return;
                 }
             }
         }
