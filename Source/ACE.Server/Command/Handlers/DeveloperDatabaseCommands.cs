@@ -163,8 +163,8 @@ namespace ACE.Server.Command.Handlers
             var di = new DirectoryInfo(content_folder);
             if (!di.Exists)
             {
-                SendMessage(session, $"Couldn't find content folder: {di.FullName}");
-                SendMessage(session, "To set your content folder, /modifystring content_folder <path>");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find content folder: {di.FullName}");
+                CommandHandlerHelper.WriteOutputInfo(session, "To set your content folder, /modifystring content_folder <path>");
                 return;
             }
 
@@ -179,7 +179,7 @@ namespace ACE.Server.Command.Handlers
 
             if (files == null || files.Length == 0)
             {
-                SendMessage(session, $"Couldn't find {json_folder}{prefix}*.json");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find {json_folder}{prefix}*.json");
                 return;
             }
 
@@ -192,7 +192,7 @@ namespace ACE.Server.Command.Handlers
 
             // import sql to db
             ImportSQL(sqlFile);
-            SendMessage(session, $"Imported {sqlFile}");
+            CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sqlFile}");
 
             // clear this weenie out of the cache
             if (uint.TryParse(wcid, out var weenieClassId))
@@ -210,7 +210,7 @@ namespace ACE.Server.Command.Handlers
 
             if (!success)
             {
-                SendMessage(session, $"Failed to load {json_file}");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to load {json_file}");
                 return null;
             }
 
@@ -219,7 +219,7 @@ namespace ACE.Server.Command.Handlers
 
             if (!success)
             {
-                SendMessage(session, $"Failed to convert {json_file}");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {json_file}");
                 return null;
             }
 
@@ -239,7 +239,7 @@ namespace ACE.Server.Command.Handlers
             converter.CreateSQLINSERTStatement(output, sqlFile);
             sqlFile.Close();
 
-            SendMessage(session, $"Converted {json_filename} to {sqlFilename}");
+            CommandHandlerHelper.WriteOutputInfo(session, $"Converted {json_filename} to {sqlFilename}");
 
             return sqlFilename;
         }
@@ -250,14 +250,6 @@ namespace ACE.Server.Command.Handlers
 
             using (var ctx = new WorldDbContext())
                 ctx.Database.ExecuteSqlCommand(sqlCommands);
-        }
-
-        public static void SendMessage(Session session, string msg)
-        {
-            if (session != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
-            else
-                Console.WriteLine(msg);
         }
     }
 }
