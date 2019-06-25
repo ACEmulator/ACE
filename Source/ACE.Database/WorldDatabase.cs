@@ -181,6 +181,11 @@ namespace ACE.Database
             return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
+        public bool ClearCachedWeenie(uint weenieClassId)
+        {
+            return weenieCache.TryRemove(weenieClassId, out _);
+        }
+
         /// <summary>
         /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>

@@ -482,6 +482,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
             DictOf(
+                ("content_folder", ".\\Content"),   // for content creators to live edit weenies. defaults to Content in the netcoreapp2.1 folder
                 ("popup_header", "Welcome to Asheron's Call!"),
                 ("popup_welcome", "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation."),
                 ("popup_motd", ""),

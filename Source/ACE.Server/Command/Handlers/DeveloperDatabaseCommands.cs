@@ -1,15 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
 
+using ACE.Adapter.Lifestoned;
 using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
+using ACE.Database.SQLFormatters.World;
 using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers.Processors;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -138,6 +144,120 @@ namespace ACE.Server.Command.Handlers
                 strings.Add($"INSERT INTO `character_properties_shortcut_bar` SET `character_Id`={characterID}, `shortcut_Bar_Index`={shortcut.Key}, `shortcut_Object_Id`={shortcut.Value};");
 
             return strings;
+        }
+
+        [CommandHandler("import", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports a weenie from the Content folder", "<wcid>")]
+        public static void HandleImport(Session session, params string[] parameters)
+        {
+            var content_folder = PropertyManager.GetString("content_folder").Item;
+
+            var sep = Path.DirectorySeparatorChar;
+
+            // handle relative path
+            if (content_folder.StartsWith("."))
+            {
+                var cwd = Directory.GetCurrentDirectory() + sep;
+                content_folder = cwd + content_folder;
+            }
+
+            var di = new DirectoryInfo(content_folder);
+            if (!di.Exists)
+            {
+                SendMessage(session, $"Couldn't find content folder: {di.FullName}");
+                SendMessage(session, "To set your content folder, /modifystring content_folder <path>");
+                return;
+            }
+
+            var json_folder = $"{di.FullName}{sep}json{sep}weenies{sep}";
+
+            var wcid = parameters[0];
+            var prefix = wcid + " - ";
+
+            di = new DirectoryInfo(json_folder);
+
+            var files = di.Exists ? di.GetFiles($"{prefix}*.json") : null;
+
+            if (files == null || files.Length == 0)
+            {
+                SendMessage(session, $"Couldn't find {json_folder}{prefix}*.json");
+                return;
+            }
+
+            var fi = files[0];
+
+            // convert json -> sql
+            var sqlFile = json2sql(session, json_folder, fi.Name);
+            if (sqlFile == null)
+                return;
+
+            // import sql to db
+            ImportSQL(sqlFile);
+            SendMessage(session, $"Imported {sqlFile}");
+
+            // clear this weenie out of the cache
+            if (uint.TryParse(wcid, out var weenieClassId))
+            {
+                DatabaseManager.World.ClearCachedWeenie(weenieClassId);
+                //var wo = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+            }
+        }
+
+        public static string json2sql(Session session, string folder, string json_filename)
+        {
+            var json_file = folder + json_filename;
+
+            var success = LifestonedLoader.TryLoadWeenie(json_file, out var weenie);
+
+            if (!success)
+            {
+                SendMessage(session, $"Failed to load {json_file}");
+                return null;
+            }
+
+            // output to sql
+            success = LifestonedConverter.TryConvert(weenie, out var output);
+
+            if (!success)
+            {
+                SendMessage(session, $"Failed to convert {json_file}");
+                return null;
+            }
+
+            var sqlFolder = folder.Replace("json", "sql");
+
+            var di = new DirectoryInfo(sqlFolder);
+
+            if (!di.Exists)
+                di.Create();
+
+            var sqlFilename = json_filename.Replace(".json", ".sql");
+
+            var sqlFile = new StreamWriter(sqlFilename);
+            var converter = new WeenieSQLWriter();
+            converter.CreateSQLDELETEStatement(output, sqlFile);
+            sqlFile.WriteLine();
+            converter.CreateSQLINSERTStatement(output, sqlFile);
+            sqlFile.Close();
+
+            SendMessage(session, $"Converted {json_filename} to {sqlFilename}");
+
+            return sqlFilename;
+        }
+
+        public static void ImportSQL(string sqlFile)
+        {
+            var sqlCommands = File.ReadAllText(sqlFile);
+
+            using (var ctx = new WorldDbContext())
+                ctx.Database.ExecuteSqlCommand(sqlCommands);
+        }
+
+        public static void SendMessage(Session session, string msg)
+        {
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            else
+                Console.WriteLine(msg);
         }
     }
 }
