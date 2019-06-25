@@ -40,9 +40,9 @@ namespace ACE.Server.Network.Managers
         /// </summary>
         public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
 
-        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint, IPEndPoint listenerEndpoint)
+        public static void ProcessPacket(ConnectionListener connectionListener, ClientPacket packet, IPEndPoint endPoint)
         {
-            if (listenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
+            if (connectionListener.ListenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
             {
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
                 if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
@@ -96,17 +96,17 @@ namespace ACE.Server.Network.Managers
                     if (GetSessionCount() >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                     {
                         log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
-                        SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
+                        SendLoginRequestReject(connectionListener, endPoint, CharacterError.LogonServerFull);
                     }
                     else if (ServerManager.ShutdownInitiated && (ServerManager.ShutdownTime - DateTime.UtcNow).TotalMinutes < 2)
                     {
                         log.InfoFormat("Login Request from {0} rejected. Server shutting down in less than 2 minutes.", endPoint);
-                        SendLoginRequestReject(endPoint, CharacterError.ServerCrash1);
+                        SendLoginRequestReject(connectionListener, endPoint, CharacterError.ServerCrash1);
                     }
                     else
                     {
                         log.DebugFormat("Login Request from {0}", endPoint);
-                        var session = FindOrCreateSession(endPoint);
+                        var session = FindOrCreateSession(connectionListener, endPoint);
                         if (session != null)
                         {
                             if (session.State == SessionState.AuthConnectResponse)
@@ -122,7 +122,7 @@ namespace ACE.Server.Network.Managers
                         else
                         {
                             log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
-                            SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
+                            SendLoginRequestReject(connectionListener, endPoint, CharacterError.LogonServerFull);
                         }
                     }
                 }
@@ -149,9 +149,9 @@ namespace ACE.Server.Network.Managers
             }
         }
 
-        private static void SendLoginRequestReject(IPEndPoint endPoint, CharacterError error)
+        private static void SendLoginRequestReject(ConnectionListener connectionListener, IPEndPoint endPoint, CharacterError error)
         {
-            var tempSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
+            var tempSession = new Session(connectionListener, endPoint, (ushort)(sessionMap.Length + 1), ServerId);
 
             // First we must send the connect request response
             var connectRequest = new PacketOutboundConnectRequest(
@@ -182,7 +182,7 @@ namespace ACE.Server.Network.Managers
             }
         }
 
-        public static Session FindOrCreateSession(IPEndPoint endPoint)
+        public static Session FindOrCreateSession(ConnectionListener connectionListener, IPEndPoint endPoint)
         {
             Session session;
 
@@ -200,7 +200,7 @@ namespace ACE.Server.Network.Managers
                             if (sessionMap[i] == null)
                             {
                                 log.DebugFormat("Creating new session for {0} with id {1}", endPoint, i);
-                                session = new Session(endPoint, i, ServerId);
+                                session = new Session(connectionListener, endPoint, i, ServerId);
                                 sessionMap[i] = session;
                                 break;
                             }
