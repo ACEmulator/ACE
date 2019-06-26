@@ -196,7 +196,7 @@ namespace ACE.Database
 
         private static readonly ConditionalWeakTable<Biota, ShardDbContext> BiotaContexts = new ConditionalWeakTable<Biota, ShardDbContext>();
 
-        private static Biota GetBiota(ShardDbContext context, uint id)
+        public static Biota GetBiota(ShardDbContext context, uint id)
         {
             var biota = context.Biota
                 .FirstOrDefault(r => r.Id == id);
