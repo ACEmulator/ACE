@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-27
+[OptimShi]
+* Fixed issue with Recipe Manager "CopyFromSourceToResult" not using the player as the source.
+
 ### 2019-06-23
 [Ripley]
 * Fix issue of weenie cache corruption, setting the weenie's weenietype instead of biota's weenietype
