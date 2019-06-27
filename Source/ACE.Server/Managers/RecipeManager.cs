@@ -1051,7 +1051,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);     // ??
+                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);     // ??
                     break;
                 case ModificationOperation.AddSpell:
                     if (value != -1)
@@ -1088,7 +1088,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyFloat({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1114,7 +1114,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
+                    result.SetProperty(prop, player.GetProperty(prop) ?? player.Name);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyString({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1140,7 +1140,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));     // ??
+                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, player, targetMod));     // ??
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInstanceID({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1180,7 +1180,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
