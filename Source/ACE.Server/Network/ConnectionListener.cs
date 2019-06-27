@@ -105,7 +105,8 @@ namespace ACE.Server.Network
                 // If we get "Connection has been forcibly closed..." error, just eat the exception and continue on
                 // This gets sent when the remote host terminates the connection (on UDP? interesting...)
                 // TODO: There might be more, should keep an eye out. Logged message will help here.
-                if (socketException.SocketErrorCode == SocketError.NetworkReset ||
+                if (socketException.SocketErrorCode == SocketError.MessageSize ||
+                    socketException.SocketErrorCode == SocketError.NetworkReset ||
                     socketException.SocketErrorCode == SocketError.ConnectionReset)
                 {
                     log.DebugFormat("ConnectionListener.OnDataReceieve() has thrown {0}: {1} from client {2}", socketException.SocketErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown");

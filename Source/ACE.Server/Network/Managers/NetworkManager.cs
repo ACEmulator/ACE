@@ -153,20 +153,25 @@ namespace ACE.Server.Network.Managers
         {
             var tempSession = new Session(connectionListener, endPoint, (ushort)(sessionMap.Length + 1), ServerId);
 
+            SendLoginRequestReject(tempSession, error);
+        }
+
+        public static void SendLoginRequestReject(Session session, CharacterError error)
+        {
             // First we must send the connect request response
             var connectRequest = new PacketOutboundConnectRequest(
                 Timers.PortalYearTicks,
-                tempSession.Network.ConnectionData.ConnectionCookie,
-                tempSession.Network.ClientId,
-                tempSession.Network.ConnectionData.ServerSeed,
-                tempSession.Network.ConnectionData.ClientSeed);
-            tempSession.Network.ConnectionData.DiscardSeeds();
-            tempSession.Network.EnqueueSend(connectRequest);
+                session.Network.ConnectionData.ConnectionCookie,
+                session.Network.ClientId,
+                session.Network.ConnectionData.ServerSeed,
+                session.Network.ConnectionData.ClientSeed);
+            session.Network.ConnectionData.DiscardSeeds();
+            session.Network.EnqueueSend(connectRequest);
 
             // Then we send the error
-            tempSession.SendCharacterError(error);
+            session.SendCharacterError(error);
 
-            tempSession.Network.Update();
+            session.Network.Update();
         }
 
         public static int GetSessionCount()
