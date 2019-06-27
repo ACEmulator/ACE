@@ -155,7 +155,8 @@ namespace ACE.DatLoader.FileTypes
 
             if (highFrame > animation.NumFrames)
             {
-                Console.WriteLine($"MotionTable.GetAnimationLength({anim}): highFrame({highFrame}) > animation.NumFrames({animation.NumFrames})");
+                // magic windup for level 6 spells appears to be the only animation w/ bugged data
+                //Console.WriteLine($"MotionTable.GetAnimationLength({anim}): highFrame({highFrame}) > animation.NumFrames({animation.NumFrames})");
                 highFrame = (int)animation.NumFrames;
             }
 
