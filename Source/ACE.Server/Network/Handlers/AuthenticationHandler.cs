@@ -34,6 +34,14 @@ namespace ACE.Server.Network.Handlers
             try
             {
                 PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
+
+                if (loginRequest.Account.Length > 50)
+                {
+                    NetworkManager.SendLoginRequestReject(session, CharacterError.AccountInvalid);
+                    session.Terminate(SessionTerminationReason.AccountInformationInvalid);
+                    return;
+                }
+
                 Task t = new Task(() => DoLogin(session, loginRequest));
                 t.Start();
             }
