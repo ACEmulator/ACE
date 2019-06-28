@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
             if (!IsPKLiteDeath())
                 InflictVitaePenalty();
 
-            if (AugmentationSpellsRemainPastDeath == 0 || IsPKDeath())
+            if (IsPKDeath() || AugmentationSpellsRemainPastDeath == 0)
             {
                 var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
                 EnchantmentManager.RemoveAllEnchantments();
