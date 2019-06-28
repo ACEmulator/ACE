@@ -2526,6 +2526,10 @@ namespace ACE.Server.Physics
             return retval;
         }
 
+        public DateTime LastUpdateVisibleCells;
+
+        public static TimeSpan UpdateVisibleCells_MaxInterval = TimeSpan.FromSeconds(5);
+
         /// <summary>
         /// Maintains the list of visible objects for a player
         /// </summary>
@@ -2573,6 +2577,8 @@ namespace ACE.Server.Physics
 
             // add newly occluded objects to the destruction queue
             ObjMaint.AddObjectsToBeDestroyed(newlyOccluded);
+
+            LastUpdateVisibleCells = DateTime.UtcNow;
 
             return createObjs;
         }

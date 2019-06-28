@@ -62,6 +62,9 @@ namespace ACE.Server.WorldObjects
 
             GagsTick();
 
+            if (DateTime.UtcNow - PhysicsObj.LastUpdateVisibleCells > Physics.PhysicsObj.UpdateVisibleCells_MaxInterval)
+                PhysicsObj.handle_visible_cells();
+
             // Check if we're due for our periodic SavePlayer
             if (LastRequestedDatabaseSave == DateTime.MinValue)
                 LastRequestedDatabaseSave = DateTime.UtcNow;
