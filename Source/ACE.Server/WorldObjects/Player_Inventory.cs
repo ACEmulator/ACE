@@ -1714,6 +1714,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!CanAddToInventory(sourceStack))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
+                return;
+            }
+
             if ((sourceStackRootOwner == this && targetStackRootOwner != this)  || (sourceStackRootOwner != this && targetStackRootOwner == this)) // Movement is between the player and the world
             {
                 if (sourceStackRootOwner is Vendor)
@@ -1818,7 +1824,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else if (sourceStackRootOwner != null)
                 {
-                    if (!sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _))
+                    if (!sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _) && (!(sourceStackRootOwner is Player playerContainer) || !playerContainer.TryDequipObjectWithNetworking(sourceStack.Guid, out _, DequipObjectAction.DequipToPack)))
                     {
                         Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
