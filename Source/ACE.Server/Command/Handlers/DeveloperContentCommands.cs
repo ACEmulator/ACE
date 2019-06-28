@@ -55,6 +55,12 @@ namespace ACE.Server.Command.Handlers.Processors
         [CommandHandler("import-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports SQL weenie from the Content folder", "<wcid>")]
         public static void HandleImportSQL(Session session, params string[] parameters)
         {
+            if (!uint.TryParse(parameters[0], out var wcid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid wcid {parameters[0]}");
+                return;
+            }
+
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
 
@@ -62,16 +68,13 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sql_folder = $"{di.FullName}{sep}sql{sep}weenies{sep}";
 
-            var wcid = parameters[0];
-            var prefix = wcid + " - ";
-
             di = new DirectoryInfo(sql_folder);
 
-            var files = di.Exists ? di.GetFiles($"{prefix}*.sql") : null;
+            var files = di.Exists ? di.GetFiles($"{wcid} - *.sql") : null;
 
             if (files == null || files.Length == 0)
             {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find {sql_folder}{prefix}*.sql");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find {sql_folder}{wcid} - *.sql");
                 return;
             }
 
@@ -82,8 +85,18 @@ namespace ACE.Server.Command.Handlers.Processors
             CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sqlFile}");
 
             // clear this weenie out of the cache
-            if (uint.TryParse(wcid, out var weenieClassId))
-                DatabaseManager.World.ClearCachedWeenie(weenieClassId);
+            DatabaseManager.World.ClearCachedWeenie(wcid);
+
+            // load weenie from database
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+
+            if (weenie == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't load weenie {wcid} from db");
+                return;
+            }
+
+            sql2json(session, weenie, sql_folder, sqlFile);
         }
 
         private static DirectoryInfo VerifyContentFolder(Session session)
@@ -149,6 +162,24 @@ namespace ACE.Server.Command.Handlers.Processors
             CommandHandlerHelper.WriteOutputInfo(session, $"Converted {json_filename} to {sqlFilename}");
 
             return sqlFilename;
+        }
+
+        public static bool sql2json(Session session, Weenie weenie, string sql_folder, string sql_filename)
+        {
+            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {sql_filename} to json");
+                return false;
+            }
+
+            var json_folder = sql_folder.Replace("sql", "json");
+            var json_filename = sql_filename.Replace(".sql", ".json");
+
+            File.WriteAllText(json_folder + json_filename, json);
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Converted {sql_filename} to {json_filename}");
+
+            return true;
         }
 
         public static void ImportSQL(string sqlFile)
