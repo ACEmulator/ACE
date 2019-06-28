@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+
 using Microsoft.EntityFrameworkCore;
 
 using ACE.Adapter.Lifestoned;
@@ -152,12 +154,21 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sqlFilename = json_filename.Replace(".json", ".sql");
 
-            var sqlFile = new StreamWriter(sqlFilename);
-            var converter = new WeenieSQLWriter();
-            converter.CreateSQLDELETEStatement(output, sqlFile);
-            sqlFile.WriteLine();
-            converter.CreateSQLINSERTStatement(output, sqlFile);
-            sqlFile.Close();
+            try
+            {
+                var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
+                var converter = new WeenieSQLWriter();
+                converter.CreateSQLDELETEStatement(output, sqlFile);
+                sqlFile.WriteLine();
+                converter.CreateSQLINSERTStatement(output, sqlFile);
+                sqlFile.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {json_file}");
+                return null;
+            }
 
             CommandHandlerHelper.WriteOutputInfo(session, $"Converted {json_filename} to {sqlFilename}");
 
