@@ -615,10 +615,18 @@ namespace ACE.Server.WorldObjects
             return recklessnessMod;
         }
 
-        public Player GetKiller_PKLite()
+        /// <summary>
+        /// Returns TRUE if this player is PKLite and died to another player
+        /// </summary>
+        public bool IsPKLiteDeath()
+        {
+            return PlayerKillerStatus == PlayerKillerStatus.PKLite && new ObjectGuid(KillerId ?? 0).IsPlayer();
+        }
+
+        public IPlayer GetKiller_PKLite()
         {
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-                return CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0)) as Player;
+                return PlayerManager.FindByGuid(KillerId ?? 0);
             else
                 return null;
         }

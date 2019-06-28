@@ -140,11 +140,8 @@ namespace ACE.Server.WorldObjects
 
             // update vitae
             // players who died in a PKLite fight do not accrue vitae
-            var pkLiteKiller = GetKiller_PKLite();
-            if (pkLiteKiller == null)
-            {
+            if (IsPKLiteDeath())
                 InflictVitaePenalty();
-            }
 
             if (AugmentationSpellsRemainPastDeath == 0 || topDamager is Player && topDamager.PlayerKillerStatus == PlayerKillerStatus.PK)
             {
