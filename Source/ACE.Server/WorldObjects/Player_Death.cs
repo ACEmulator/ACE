@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
             if (!IsPKLiteDeath())
                 InflictVitaePenalty();
 
-            if (AugmentationSpellsRemainPastDeath == 0 || topDamager is Player && topDamager.PlayerKillerStatus == PlayerKillerStatus.PK)
+            if (AugmentationSpellsRemainPastDeath == 0 || IsPKDeath())
             {
                 var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
                 EnchantmentManager.RemoveAllEnchantments();
@@ -526,7 +526,8 @@ namespace ACE.Server.WorldObjects
             // The number of items you drop can be reduced with the Clutch of the Miser augmentation. If you get the
             // augmentation three times you will no longer drop any items (except half of your Pyreals and all Rares except if you're a PK).
             // If you drop no items, you will not leave a corpse.
-            if (AugmentationLessDeathItemLoss > 0 && !new ObjectGuid(KillerId ?? 0).IsPlayer())
+
+            if (!IsPKDeath() && AugmentationLessDeathItemLoss > 0)
             {
                 numItemsDropped = Math.Max(0, numItemsDropped - AugmentationLessDeathItemLoss * 5);
             }

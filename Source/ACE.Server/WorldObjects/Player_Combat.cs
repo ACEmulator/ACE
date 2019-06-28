@@ -616,19 +616,19 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if this player is PK and died to another player
+        /// </summary>
+        public bool IsPKDeath()
+        {
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PK) && new ObjectGuid(KillerId ?? 0).IsPlayer();
+        }
+
+        /// <summary>
         /// Returns TRUE if this player is PKLite and died to another player
         /// </summary>
         public bool IsPKLiteDeath()
         {
-            return PlayerKillerStatus == PlayerKillerStatus.PKLite && new ObjectGuid(KillerId ?? 0).IsPlayer();
-        }
-
-        public IPlayer GetKiller_PKLite()
-        {
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-                return PlayerManager.FindByGuid(KillerId ?? 0);
-            else
-                return null;
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PKLite) && new ObjectGuid(KillerId ?? 0).IsPlayer();
         }
 
         /// <summary>
