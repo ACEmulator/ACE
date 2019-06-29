@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-06-29
+[Ripley]
+* Clean up issue with Weenie Cache corruption via admin commands/player creation.
+
 ### 2019-06-27
 [OptimShi]
 * Fixed issue with Recipe Manager "CopyFromSourceToResult" not using the player as the source.
