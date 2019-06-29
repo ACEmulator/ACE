@@ -654,8 +654,19 @@ namespace ACE.Server.WorldObjects
 
             if (!Generator.GeneratorDisabled)
             {
+                var removeQueueTotal = 0;
+
                 foreach (var generator in Generator.GeneratorProfiles)
+                {
                     generator.NotifyGenerator(Guid, regenerationType);
+                    removeQueueTotal += generator.RemoveQueue.Count;
+                }
+
+                if (Generator.GeneratorId.HasValue && Generator.GeneratorId > 0) // Generator is controlled by another generator.
+                {
+                    if (Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Generator's complete spawn count has been wiped out
+                        Generator.Destroy();
+                }
             }
 
             Generator = null;
