@@ -30,6 +30,14 @@ namespace ACE.Server.WorldObjects
         {
             Console.WriteLine($"\n{Name}.HandleActionBuyHouse()");
 
+            // verify player doesn't already own a house
+            if (HouseInstance != null)
+            {
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseAlreadyOwned));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("You already own a house!", ChatMessageType.Broadcast));
+                return;
+            }
+
             var slumlord = (SlumLord)CurrentLandblock.GetObject(slumlord_id);
             if (slumlord == null)
             {
