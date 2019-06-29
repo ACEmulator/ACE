@@ -420,5 +420,40 @@ namespace ACE.Server.Physics.Common
                 }
             }
         }
+
+        public bool IsVisible(ObjCell cell)
+        {
+            if (ID == cell.ID) return true;
+
+            if ((ID & 0xFFFF) >= 0x100)
+            {
+                if (!(this is EnvCell envCell))
+                {
+                    Console.WriteLine($"{ID:X8}.IsVisible({cell.ID:X8}): {ID:X8} not detected as EnvCell");
+                    return false;
+                }
+                return envCell.IsVisibleIndoors(cell);
+            }
+            else if ((cell.ID & 0xFFFF) >= 0x100)
+            {
+                if (!(cell is EnvCell envCell))
+                {
+                    Console.WriteLine($"{ID:X8}.IsVisible({cell.ID:X8}): {cell.ID:X8} not detected as EnvCell");
+                    return false;
+                }
+                return envCell.IsVisibleIndoors(this);
+            }
+            else
+            {
+                // outdoors
+                return IsVisibleOutdoors(cell);
+            }
+        }
+
+        public bool IsVisibleOutdoors(ObjCell cell)
+        {
+            var blockDist = PhysicsObj.GetBlockDist(ID, cell.ID);
+            return blockDist <= 1;
+        }
     }
 }
