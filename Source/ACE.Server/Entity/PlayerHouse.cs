@@ -6,6 +6,7 @@ namespace ACE.Server.Entity
 {
     public class PlayerHouse: IComparable<PlayerHouse>
     {
+        public uint AccountId;
         public uint PlayerGuid;
         public string PlayerName;
         public House House;
@@ -13,6 +14,11 @@ namespace ACE.Server.Entity
 
         public PlayerHouse(IPlayer player, House house)
         {
+            if (player.Account != null)
+                AccountId = player.Account.AccountId;
+            else
+                Console.WriteLine($"PlayerHouse({player.Name}, {house.Name} ({house.Guid})) - couldn't find account id");
+
             PlayerGuid = player.Guid.Full;
             PlayerName = player.Name;
 

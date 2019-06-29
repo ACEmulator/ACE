@@ -219,6 +219,8 @@ namespace ACE.Server.WorldObjects
                     var rankStr = AllegianceNode != null ? $"{AllegianceNode.Rank}" : "";
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  Your allegiance rank {rankStr} is now below the requirements for owning a mansion.  Please raise your allegiance rank to {House.SlumLord.GetAllegianceMinLevel()} before the end of the maintenance period or you will lose your mansion, and all your items within it.", ChatMessageType.System));
                 }
+
+                IsMultiHouseOwner();
             });
             actionChain.EnqueueChain();
         }
@@ -1316,6 +1318,16 @@ namespace ACE.Server.WorldObjects
 
             // load an offline copy
             return House.Load(houseGuid);
+        }
+
+        public bool IsMultiHouseOwner()
+        {
+            var characterHouses = HouseManager.GetCharacterHouses(Guid.Full);
+            var accountHouses = HouseManager.GetAccountHouses(Account.AccountId);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"AccountHouses: {accountHouses.Count}, CharacterHouses: {characterHouses.Count}", ChatMessageType.Broadcast));
+
+            return accountHouses.Count > 1;
         }
     }
 }

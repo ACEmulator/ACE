@@ -442,5 +442,15 @@ namespace ACE.Server.Managers
         {
             return RentQueue.FirstOrDefault(i => i.PlayerGuid == playerGuid);
         }
+
+        public static List<House> GetAccountHouses(uint accountId)
+        {
+            return RentQueue.Where(i => i.AccountId == accountId).Select(i => i.House).ToList();
+        }
+
+        public static List<House> GetCharacterHouses(uint playerGuid)
+        {
+            return RentQueue.Where(i => i.PlayerGuid == playerGuid).Select(i => i.House).ToList();
+        }
     }
 }
