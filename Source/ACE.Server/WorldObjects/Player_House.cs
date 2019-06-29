@@ -1263,5 +1263,51 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked your monarchy's access to the allegiance housing storage.", ChatMessageType.Broadcast));
         }
+
+        public static List<IPlayer> GetAccountPlayers(uint accountID)
+        {
+            return PlayerManager.GetAllPlayers().Where(i => i.Account != null && i.Account.AccountId == accountID).ToList();
+        }
+
+        public House GetAccountHouse()
+        {
+            if (HouseInstance != null)
+                return GetHouse();
+
+            var accountPlayers = GetAccountPlayers(Account.AccountId);
+
+            var accountHouseOwners = accountPlayers.Where(i => i.HouseInstance != null);
+
+            var firstHouseOwner = accountHouseOwners.OrderBy(i => i.HousePurchaseTimestamp).FirstOrDefault();
+
+            if (firstHouseOwner == null)
+                return null;
+
+            //Console.WriteLine($"First House Owner: {firstHouseOwner.Name}");
+
+            return GetHouse(firstHouseOwner);
+        }
+
+        public House GetHouse(IPlayer player)
+        {
+            if (player.HouseInstance == null)
+                return null;
+
+            // is landblock loaded?
+            var houseGuid = player.HouseInstance.Value;
+            var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
+
+            var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
+            var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+            if (isLoaded)
+            {
+                var loaded = LandblockManager.GetLandblock(landblockId, false);
+                return loaded.GetObject(new ObjectGuid(houseGuid)) as House;
+            }
+
+            // load an offline copy
+            return House.Load(houseGuid);
+        }
     }
 }

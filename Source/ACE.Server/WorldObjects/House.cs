@@ -246,7 +246,7 @@ namespace ACE.Server.WorldObjects
             SetLinkProperties(wo);
         }
 
-        public bool IsApartment => HouseType != null && (HouseType)HouseType.Value == ACE.Entity.Enum.HouseType.Apartment;
+        public bool IsApartment => HouseType != null && HouseType.Value == ACE.Entity.Enum.HouseType.Apartment;
 
         /// <summary>
         /// Returns TRUE if this player has guest or storage access
@@ -257,6 +257,11 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             if (player.Guid.Full == HouseOwner.Value)
+                return true;
+
+            var owner = PlayerManager.FindByGuid(HouseOwner.Value);
+
+            if (owner != null && owner.Account.AccountId == player.Account.AccountId)
                 return true;
 
             // handle allegiance permissions
