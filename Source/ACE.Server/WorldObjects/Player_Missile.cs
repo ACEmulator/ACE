@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
             if (ammo == null) return;
 
             var creature = target as Creature;
-            if (!IsAlive || MissileTarget == null || !creature.IsAlive)
+            if (!IsAlive || MissileTarget == null || creature == null || !creature.IsAlive)
             {
                 MissileTarget = null;
                 return;
