@@ -26,6 +26,12 @@ namespace ACE.Server.WorldObjects
                 Fellowship.UpdateOpenness(openness);
         }
 
+        public void HandleActionFellowshipChangeLock(bool lockState)
+        {
+            if (Fellowship != null)
+                Fellowship.UpdateLock(lockState);
+        }
+
         public void FellowshipQuit(bool disband)
         {
             if (Fellowship != null)

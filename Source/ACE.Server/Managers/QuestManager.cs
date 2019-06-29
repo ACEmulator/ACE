@@ -10,6 +10,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using ACE.Server.Entity;
 
 namespace ACE.Server.Managers
 {
@@ -18,7 +19,20 @@ namespace ACE.Server.Managers
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public Player Player { get; }
-        public ICollection<CharacterPropertiesQuestRegistry> Quests { get => Player.Character.CharacterPropertiesQuestRegistry; }
+
+        public Fellowship Fellowship { get; }
+        private ICollection<CharacterPropertiesQuestRegistry> fellowQuests { get; set; } = new HashSet<CharacterPropertiesQuestRegistry>();
+
+        public ICollection<CharacterPropertiesQuestRegistry> Quests
+        {
+            get
+            {
+                if (Player != null)
+                    return Player.Character.CharacterPropertiesQuestRegistry;
+                else
+                    return fellowQuests;
+            }
+        }
 
         public static bool Debug = false;
 
@@ -31,6 +45,14 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Constructs a new QuestManager for a Player
+        /// </summary>
+        public QuestManager(Fellowship fellowship)
+        {
+            Fellowship = fellowship;
+        }
+
+        /// <summary>
         /// Returns TRUE if a player has started a particular quest
         /// </summary>
         public bool HasQuest(string questFormat)
@@ -39,14 +61,14 @@ namespace ACE.Server.Managers
             var hasQuest = GetQuest(questName) != null;
 
             if (Debug)
-                Console.WriteLine($"{Player.Name}.HasQuest({questFormat}): {hasQuest}");
+                Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HasQuest({questFormat}): {hasQuest}");
 
             return hasQuest;
         }
 
         public bool HasQuestCompletes(string questName)
         {
-            if (Debug) Console.WriteLine($"{Player.Name}.HasQuestCompletes({questName})");
+            if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HasQuestCompletes({questName})");
 
             if (!questName.Contains("@"))
                 return HasQuest(questName);
@@ -54,13 +76,13 @@ namespace ACE.Server.Managers
             var pieces = questName.Split('@');
             if (pieces.Length != 2)
             {
-                Console.WriteLine($"{Player.Name}.QuestManager.HasQuestCompletes({questName}): error parsing quest name");
+                Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.HasQuestCompletes({questName}): error parsing quest name");
                 return false;
             }
             var name = pieces[0];
             if (!Int32.TryParse(pieces[1], out var numCompletes))
             {
-                Console.WriteLine($"{Player.Name}.QuestManager.HasQuestCompletes({questName}): unknown quest format");
+                Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.HasQuestCompletes({questName}): unknown quest format");
                 return HasQuest(questName);
             }
             var quest = GetQuest(name);
@@ -95,21 +117,25 @@ namespace ACE.Server.Managers
                 var info = new CharacterPropertiesQuestRegistry
                 {
                     QuestName = questName,
-                    CharacterId = Player.Guid.Full,
+                    //CharacterId = Player.Guid.Full,
                     LastTimeCompleted = (uint)Time.GetUnixTime(),
                     NumTimesCompleted = 1   // initial add / first solve
                 };
-                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({quest}): added quest");
+                if (Player != null)
+                    info.CharacterId = Player.Guid.Full;
+                else
+                    info.CharacterId = Fellowship.FellowshipLeaderGuid;
+                if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): added quest");
                 Quests.Add(info);
-                Player.CharacterChangesDetected = true;
+                if (Player != null) Player.CharacterChangesDetected = true;
             }
             else
             {
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted++;
-                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
-                Player.CharacterChangesDetected = true;
+                if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
+                if (Player != null) Player.CharacterChangesDetected = true;
             }
         }
 
@@ -128,21 +154,25 @@ namespace ACE.Server.Managers
                 var info = new CharacterPropertiesQuestRegistry
                 {
                     QuestName = questName,
-                    CharacterId = Player.Guid.Full,
+                    //CharacterId = Player.Guid.Full,
                     LastTimeCompleted = (uint)Time.GetUnixTime(),
                     NumTimesCompleted = questCompletions   // initialize the quest to the given completions
                 };
-                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questFormat}): initialized quest to {info.NumTimesCompleted}");
+                if (Player != null)
+                    info.CharacterId = Player.Guid.Full;
+                else
+                    info.CharacterId = Fellowship.FellowshipLeaderGuid;
+                if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({questFormat}): initialized quest to {info.NumTimesCompleted}");
                 Quests.Add(info);
-                Player.CharacterChangesDetected = true;
+                if (Player != null) Player.CharacterChangesDetected = true;
             }
             else
             {
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted = questCompletions;
-                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
-                Player.CharacterChangesDetected = true;
+                if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
+                if (Player != null) Player.CharacterChangesDetected = true;
             }
         }
 
@@ -163,7 +193,7 @@ namespace ACE.Server.Managers
             var nextSolveTime = GetNextSolveTime(questName);
 
             var canSolve = nextSolveTime == TimeSpan.MinValue;
-            if (Debug) Console.WriteLine($"{Player.Name}.CanSolve({questName}): {canSolve}");
+            if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.CanSolve({questName}): {canSolve}");
             return canSolve;
         }
 
@@ -233,7 +263,23 @@ namespace ACE.Server.Managers
             foreach (var quest in quests)
             {
                 Quests.Remove(quest);
-                Player.CharacterChangesDetected = true;
+                if (Player != null) Player.CharacterChangesDetected = true;
+            }
+        }
+
+        /// <summary>
+        /// Removes an all quests from registry
+        /// </summary>
+        public void EraseAll()
+        {
+            if (Debug)
+                Console.WriteLine($"{Player.Name}.QuestManager.EraseAll");
+
+            var quests = Quests.ToList();
+            foreach (var quest in quests)
+            {
+                Quests.Remove(quest);
+                if (Player != null) Player.CharacterChangesDetected = true;
             }
         }
 
@@ -295,7 +341,7 @@ namespace ACE.Server.Managers
 
             var hasQuestSolves = numSolves >= min && numSolves <= max;    // verify: can either of these be -1?
             if (Debug)
-                Console.WriteLine($"{Player.Name}.HasQuestSolves({questFormat}, {_min}, {_max}): {hasQuestSolves}");
+                Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HasQuestSolves({questFormat}, {_min}, {_max}): {hasQuestSolves}");
 
             return hasQuestSolves;
         }
@@ -342,55 +388,71 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Increments the counter for a kill task, and optionally shares with fellowship
         /// </summary>
-        public void HandleKillTask(string _questName, WorldObject obj, bool shareable = true)
+        public void HandleKillTask(string _questName, WorldObject obj, float shareableRange)
         {
-            if (!HasQuest(_questName))
-                return;
+            // http://acpedia.org/wiki/Announcements_-_2012/12_-_A_Growing_Twilight#Release_Notes
 
-            Stamp(_questName);
-
-            var questName = GetQuestName(_questName);
-            var quest = DatabaseManager.World.GetCachedQuest(questName);
-
-            if (quest == null)
+            if (HasQuest(_questName))
             {
-                log.Error($"{Player.Name}.HandleKillTask({_questName}): couldn't find kill task {questName} in database");
+                Stamp(_questName);
+
+                var questName = GetQuestName(_questName);
+                var quest = DatabaseManager.World.GetCachedQuest(questName);
+
+                if (quest == null)
+                {
+                    log.Error($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HandleKillTask({_questName}): couldn't find kill task {questName} in database");
+                    return;
+                }
+
+                var playerQuest = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+                if (playerQuest == null)
+                {
+                    log.Error($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HandleKillTask({_questName}): couldn't find kill task {questName} in player quests");
+                    return;
+                }
+
+                if (obj == null)
+                {
+                    log.Error($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.HandleKillTask({_questName}): input object is null!");
+                    return;
+                }
+
+                var msg = "";
+
+                if (IsMaxSolves(questName))
+                    msg = $"You have killed {quest.MaxSolves} {obj.GetPluralName()}. Your task is complete!";
+                else
+                    msg = $"You have killed {playerQuest.NumTimesCompleted} {obj.GetPluralName()}. You must kill {quest.MaxSolves} to complete your task!";
+
+                Player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            }
+            else if (PropertyManager.GetBool("fellow_kt_killer").Item)
+            {
+                // if this option is enabled (retail default), the killer is required to have kill task
+                // for it to share with fellowship
                 return;
             }
-
-            var playerQuest = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-
-            if (playerQuest == null)
-            {
-                log.Error($"{Player.Name}.HandleKillTask({_questName}): couldn't find kill task {questName} in player quests");
-                return;
-            }
-
-            if (obj == null)
-            {
-                log.Error($"{Player.Name}.HandleKillTask({_questName}): input object is null!");
-                return;
-            }
-
-            var msg = "";
-            
-            if (IsMaxSolves(questName))
-                msg = $"You have killed {quest.MaxSolves} {obj.GetPluralName()}. Your task is complete!";
-            else
-                msg = $"You have killed {playerQuest.NumTimesCompleted} {obj.GetPluralName()}. You must kill {quest.MaxSolves} to complete your task!";
-
-            Player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
             // are we in a fellowship? if so, share with fellowship
-            if (shareable && Player.Fellowship != null)
+            if (shareableRange > 0.0f && Player.Fellowship != null)
             {
-                var shareableMembers = Player.Fellowship.GetShareableMembers();
+                var landblockRange = PropertyManager.GetBool("fellow_kt_landblock").Item;
 
-                foreach (var fellow in shareableMembers.Values)
+                // killtasks can be shared with all members of a fellowship,
+                // they do not use the same "ShareableMembers" as XP sharing
+                var fellows = Player.Fellowship.GetFellowshipMembers();
+
+                foreach (var fellow in fellows.Values.Where(f => f != Player))
                 {
-                    // ensure within landblock distance
-                    if (fellow != Player && Player.Location.DistanceTo(fellow.Location) <= 192.0f)
-                        fellow.QuestManager.HandleKillTask(_questName, obj, false);
+                    // ensure within shareable distance
+                    var shareable = landblockRange ?
+                        Player.CurrentLandblock == fellow.CurrentLandblock || Player.Location.DistanceTo(fellow.Location) <= 192.0f :
+                        Player.Location.DistanceTo(fellow.Location) <= shareableRange;      // 2d or 3d distance here?
+
+                    if (shareable)
+                        fellow.QuestManager.HandleKillTask(_questName, obj, 0.0f);
                 }
             }
         }

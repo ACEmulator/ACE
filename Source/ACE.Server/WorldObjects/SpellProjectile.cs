@@ -365,6 +365,9 @@ namespace ACE.Server.WorldObjects
 
             bool isPVP = sourcePlayer != null && targetPlayer != null;
 
+            if (isPVP && Spell.IsHarmful)
+                Player.UpdatePKTimers(sourcePlayer, targetPlayer);
+
             var elementalDmgBonus = GetCasterElementalDamageModifier(source, target, Spell.DamageType);
 
             // Possible 2x + damage bonus for the slayer property
@@ -416,7 +419,7 @@ namespace ACE.Server.WorldObjects
                 var weaponResistanceMod = GetWeaponResistanceModifier(source, attackSkill, Spell.DamageType);
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
-                finalDamage *= target.GetResistanceMod(resistanceType, source, weaponResistanceMod)
+                finalDamage *= target.GetResistanceMod(resistanceType, null, weaponResistanceMod)
                     * elementalDmgBonus * slayerBonus * shieldMod;
 
                 return finalDamage;
@@ -523,7 +526,7 @@ namespace ACE.Server.WorldObjects
                 var creatureSource = ProjectileSource as Creature;
                 var damageRating = creatureSource != null ? creatureSource.GetDamageRating() : 0;
                 var damageRatingMod = Creature.AdditiveCombine(Creature.GetPositiveRatingMod(damageRating), heritageMod, sneakAttackMod);
-                var damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating());
+                var damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating(CombatType.Magic));
                 damage *= damageRatingMod * damageResistRatingMod;
 
                 //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));

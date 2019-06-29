@@ -18,7 +18,6 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
-using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
@@ -43,6 +42,10 @@ namespace ACE.Server.WorldObjects
         public bool IsJumping = false;
 
         public SquelchDB Squelches;
+
+        public ConfirmationManager ConfirmationManager;
+
+        public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -134,6 +137,8 @@ namespace ACE.Server.WorldObjects
 
             QuestManager = new QuestManager(this);
 
+            ConfirmationManager = new ConfirmationManager(this);
+
             LastUseTracker = new Dictionary<int, DateTime>();
 
             LootPermission = new Dictionary<ObjectGuid, DateTime>();
@@ -183,6 +188,9 @@ namespace ACE.Server.WorldObjects
             // IsAlive = true;
         }
 
+        public bool IsDeleted => Character.IsDeleted;
+        public bool IsPendingDeletion => Character.DeleteTime > 0 && !IsDeleted;
+
 
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
@@ -191,28 +199,11 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
-
-        /// <summary>
-        /// Enum used for the DoEatOrDrink() method
-        /// </summary>
-        public enum ConsumableBuffType : uint
-        {
-            Spell = 0,
-            Health = 2,
-            Stamina = 4,
-            Mana = 6
-        }
 
         /// <summary>
         /// This tracks the contract tracker objects
         /// </summary>
         public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
-
-
-        public void CompleteConfirmation(ConfirmationType confirmationType, uint contextId)
-        {
-            Session.Network.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
-        }
 
 
         public MotionStance stance = MotionStance.NonCombat;
@@ -257,6 +248,10 @@ namespace ACE.Server.WorldObjects
 
                 var currentSkill = (int)GetCreatureSkill(skill).Current;
                 int difficulty = (int)creature.GetCreatureSkill(Skill.Deception).Current;
+
+                if (PropertyManager.GetBool("assess_creature_mod").Item && skill == Skill.AssessCreature
+                        && Skills[Skill.AssessCreature].AdvancementClass < SkillAdvancementClass.Trained)
+                    currentSkill = (int)((Focus.Current + Self.Current) / 2);
 
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
@@ -432,7 +427,30 @@ namespace ACE.Server.WorldObjects
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
-        public void LogOut(bool clientSessionTerminatedAbruptly = false)
+        public bool LogOut(bool clientSessionTerminatedAbruptly = false)
+        {
+            if (PKLogoutActive)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(20.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    LogOut_Inner(clientSessionTerminatedAbruptly);
+                    Session.logOffRequestTime = DateTime.UtcNow;
+                });
+                actionChain.EnqueueChain();
+                return false;
+            }
+
+            LogOut_Inner(clientSessionTerminatedAbruptly);
+
+            return true;
+        }
+
+        public void LogOut_Inner(bool clientSessionTerminatedAbruptly = false)
         {
             if (Fellowship != null)
                 FellowshipQuit(false);
@@ -442,7 +460,7 @@ namespace ACE.Server.WorldObjects
                 var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
 
                 if (tradePartner != null)
-                    tradePartner.HandleActionCloseTradeNegotiations(tradePartner.Session);                
+                    tradePartner.HandleActionCloseTradeNegotiations(tradePartner.Session);
             }
 
             if (!clientSessionTerminatedAbruptly)
@@ -794,7 +812,7 @@ namespace ACE.Server.WorldObjects
 
             // calculate stamina cost for this jump
             var extent = Math.Clamp(jump.Extent, 0.0f, 1.0f);
-            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, false);
+            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, PKTimerActive);
 
             //Console.WriteLine($"Strength: {strength}, Capacity: {capacity}, Encumbrance: {EncumbranceVal ?? 0}, Burden: {burden}, StaminaCost: {staminaCost}");
 
@@ -860,106 +878,21 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Method used to perform the animation, sound, and vital update on consumption of food or potions
+        /// Returns a modifier for a player's Run, Jump, Melee Defense, and Missile Defense skills if they are overburdened
         /// </summary>
-        /// <param name="consumableName">Name of the consumable</param>
-        /// <param name="sound">Either Sound.Eat1 or Sound.Drink1</param>
-        /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
-        /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
-        /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
-        public void ApplyConsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
+        public override float GetBurdenMod()
         {
-            if (IsBusy) return;
+            var strength = Strength.Current;
 
-            IsBusy = true;
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
 
-            MotionCommand motionCommand;
+            var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
-            if (sound == Sound.Eat1)
-                motionCommand = MotionCommand.Eat;
-            else
-                motionCommand = MotionCommand.Drink;
+            var burdenMod = EncumbranceSystem.GetBurdenMod(burden);
 
-            // start the eat/drink motion
-            var motion = new Motion(MotionStance.NonCombat, motionCommand);
-            EnqueueBroadcastMotion(motion);
+            //Console.WriteLine($"Burden mod: {burdenMod}");
 
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var animTime = motionTable.GetAnimationLength(CurrentMotionState.Stance, motionCommand, MotionCommand.Ready);
-
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animTime);
-
-            actionChain.AddAction(this, () =>
-            {
-                GameMessageSystemChat buffMessage;
-
-                if (buffType == ConsumableBuffType.Spell)
-                {
-                    bool result = false;
-
-                    uint spellId = spellDID ?? 0;
-
-                    if (spellId != 0)
-                        result = CreateSingleSpell(spellId);
-
-                    if (result)
-                    {
-                        var spell = new Server.Entity.Spell(spellId);
-                        buffMessage = new GameMessageSystemChat($"{consumableName} casts {spell.Name} on you.", ChatMessageType.Magic);
-                    }
-                    else
-                        buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
-                }
-                else
-                {
-                    CreatureVital creatureVital;
-                    string vitalName;
-
-                    // Null check for safety
-                    if (boostAmount == null)
-                        boostAmount = 0;
-
-                    switch (buffType)
-                    {
-                        case ConsumableBuffType.Health:
-                            creatureVital = Health;
-                            vitalName = "Health";
-                            break;
-                        case ConsumableBuffType.Mana:
-                            creatureVital = Mana;
-                            vitalName = "Mana";
-                            break;
-                        default:
-                            creatureVital = Stamina;
-                            vitalName = "Stamina";
-                            break;
-                    }
-
-                    var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
-                    if (vitalName == "Health")
-                    {
-                        DamageHistory.OnHeal((uint)vitalChange);
-                        //if (Fellowship != null)
-                            //Fellowship.OnVitalUpdate(this);
-                    }
-
-                    buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
-                }
-
-                var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
-                EnqueueBroadcast(soundEvent);
-
-                Session.Network.EnqueueSend(buffMessage);
-
-                // return to original stance
-                var returnStance = new Motion(CurrentMotionState.Stance);
-                EnqueueBroadcastMotion(returnStance);
-
-                IsBusy = false;
-            });
-
-           actionChain.EnqueueChain();
+            return burdenMod;
         }
 
         public bool Adminvision;
@@ -990,10 +923,10 @@ namespace ACE.Server.WorldObjects
             // send CO network messages for admin objects
             if (Adminvision && oldState != Adminvision)
             {
-                var adminObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject.Visibility);
+                var adminObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject != null && o.WeenieObj.WorldObject.Visibility);
                 PhysicsObj.enqueue_objs(adminObjs);
 
-                var nodrawObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => (o.WeenieObj.WorldObject.NoDraw ?? false) || (o.WeenieObj.WorldObject.UiHidden ?? false));
+                var nodrawObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject != null && ((o.WeenieObj.WorldObject.NoDraw ?? false) || (o.WeenieObj.WorldObject.UiHidden ?? false)));
                 foreach (var wo in nodrawObjs)
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(wo.WeenieObj.WorldObject, Adminvision, Adminvision ? true : false));
 
@@ -1036,7 +969,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(this, () =>
             {
-                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite);
+                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
             });

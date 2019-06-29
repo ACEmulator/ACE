@@ -74,6 +74,9 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota");
 
+                entity.HasIndex(e => e.WeenieClassId)
+                    .HasName("biota_wcid_idx");
+
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.PopulatedCollectionFlags)
@@ -920,6 +923,9 @@ namespace ACE.Database.Models.Shard
                     .HasName("wcid_iid_type_uidx")
                     .IsUnique();
 
+                entity.HasIndex(e => new { e.Type, e.Value })
+                    .HasName("type_value_idx");
+
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
@@ -1030,6 +1036,9 @@ namespace ACE.Database.Models.Shard
                 entity.HasIndex(e => new { e.ObjectId, e.PositionType })
                     .HasName("wcid_position_type_uidx")
                     .IsUnique();
+
+                entity.HasIndex(e => new { e.PositionType, e.ObjCellId })
+                    .HasName("type_cell_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 

@@ -30,6 +30,9 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
+    /// <summary>
+    /// Base Object for Game World
+    /// </summary>
     public abstract partial class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -90,6 +93,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeGenerator();
             InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
@@ -108,6 +112,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeGenerator();
             InitializeHeartbeats();
         }
 
@@ -162,7 +167,12 @@ namespace ACE.Server.WorldObjects
             if (WeenieClassId == 10762) return true;
 
             var cell = LScape.get_landcell(Location.Cell);
-            if (cell == null) return false;
+            if (cell == null)
+            {
+                PhysicsObj.DestroyObject();
+                PhysicsObj = null;
+                return false;
+            }
 
             PhysicsObj.Position.ObjCellID = cell.ID;
 
@@ -248,9 +258,7 @@ namespace ACE.Server.WorldObjects
                 ephemeralPositions.TryAdd((PositionType)x, null);
 
             foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
-                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
-
-            AddGeneratorProfiles();
+                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);            
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
@@ -260,7 +268,9 @@ namespace ACE.Server.WorldObjects
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
-            //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            if (MotionTableId != 0)
+                CurrentMotionState = new Motion(MotionStance.Invalid);
+
             if (WeenieType == WeenieType.Corpse)
                 HeartbeatInterval = 5;
         }
@@ -348,7 +358,7 @@ namespace ACE.Server.WorldObjects
             return isVisible;
         }
 
-        public bool IsDirectVisible(WorldObject wo, Position pos)
+        public bool IsDirectVisible(Position pos)
         {
             if (PhysicsObj == null)
                 return false;
@@ -730,6 +740,11 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSound(targetId, soundId, volume));
         }
 
+        public virtual void OnGeneration(WorldObject generator)
+        {
+            EmoteManager.OnGeneration();
+        }
+
         public virtual void EnterWorld()
         {
             if (Location != null)
@@ -738,6 +753,9 @@ namespace ACE.Server.WorldObjects
 
                 if (SuppressGenerateEffect != true)
                     ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
+
+                if (Generator != null)
+                    OnGeneration(Generator);
             }
         }
 
@@ -875,7 +893,7 @@ namespace ACE.Server.WorldObjects
             return damageTypes;
         }
 
-        private bool isDestroyed;
+        public bool IsDestroyed { get; private set; }
 
         /// <summary>
         /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.<para />
@@ -883,13 +901,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
         {
-            if (isDestroyed)
+            if (IsDestroyed)
             {
                 log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
                 return;
             }
 
-            isDestroyed = true;
+            IsDestroyed = true;
 
             if (this is Container container)
             {
@@ -958,11 +976,11 @@ namespace ACE.Server.WorldObjects
         {
             var motionCommand = motion.MotionState.ForwardCommand;
 
-            if (motionCommand == MotionCommand.Invalid)
+            if (motionCommand == MotionCommand.Ready)
                 motionCommand = (MotionCommand)motion.Stance;
 
             // run motion command on server through physics animation system
-            if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
+            if (PhysicsObj != null && motionCommand != MotionCommand.Ready)
             {
                 var motionInterp = PhysicsObj.get_minterp();
 
@@ -1020,5 +1038,21 @@ namespace ACE.Server.WorldObjects
 
             return skill;
         }
+
+        public void GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion)
+        {
+            currentStance = MotionStance.Invalid;
+            currentMotion = MotionCommand.Ready;
+
+            if (CurrentMotionState != null)
+            {
+                currentStance = CurrentMotionState.Stance;
+
+                if (CurrentMotionState.MotionState != null)
+                    currentMotion = CurrentMotionState.MotionState.ForwardCommand;
+            }
+        }
+
+        public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
     }
 }

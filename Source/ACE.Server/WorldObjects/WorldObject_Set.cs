@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
                 return spells;
 
             // apply maximum level cap here?
-            var level = (uint)setItems.Sum(i => i.ItemLevel.Value);
+            var level = (uint)setItems.Sum(i => i.ItemLevel ?? 0);
             var highestTier = spellSet.SpellSetTiers.Last().Key;
 
             //Console.WriteLine($"Total level: {level}");

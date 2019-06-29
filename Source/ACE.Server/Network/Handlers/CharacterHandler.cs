@@ -110,17 +110,19 @@ namespace ACE.Server.Network.Handlers
 
             var guid = GuidManager.NewPlayerGuid();
 
+            var weenieType = (WeenieType)weenie.Type;
+
             // If Database didn't have Sentinel/Admin weenies, alter the weenietype coming in.
             if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
-                if (session.AccessLevel >= AccessLevel.Developer && session.AccessLevel <= AccessLevel.Admin && weenie.Type != (int)WeenieType.Admin)
-                    weenie.Type = (int)WeenieType.Admin;
-                else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy && weenie.Type != (int)WeenieType.Sentinel)
-                    weenie.Type = (int)WeenieType.Sentinel;
+                if (session.AccessLevel >= AccessLevel.Developer && session.AccessLevel <= AccessLevel.Admin && weenieType != WeenieType.Admin)
+                    weenieType = WeenieType.Admin;
+                else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy && weenieType != WeenieType.Sentinel)
+                    weenieType = WeenieType.Sentinel;
             }
 
 
-            var result = PlayerFactory.Create(characterCreateInfo, weenie, guid, session.AccountId, out var player);
+            var result = PlayerFactory.Create(characterCreateInfo, weenie, guid, session.AccountId, weenieType, out var player);
 
             if (result != PlayerFactory.CreateResult.Success || player == null)
             {

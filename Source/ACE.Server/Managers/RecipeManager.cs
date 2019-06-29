@@ -102,19 +102,12 @@ namespace ACE.Server.Managers
 
                     if (skill == null)
                     {
-                        log.Warn("Unexpectedly missing skill in Recipe usage");
+                        log.Warn($"RecipeManager.UseObjectOnTarget({player.Name}, {source.Name}, {target.Name}): recipe {recipe.Id} missing skill");
                         player.SendUseDoneEvent();
                         player.IsBusy = false;
                         return;
                     }
 
-                    //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
-
-                    percentSuccess = SkillCheck.GetSkillChance(skill.Current, recipe.Difficulty);
-                }
-
-                if (skill != null)
-                {
                     // check for pre-MoA skill
                     // convert into appropriate post-MoA skill
                     // pre-MoA melee weapons: get highest melee weapons skill
@@ -131,11 +124,13 @@ namespace ACE.Server.Managers
                         player.IsBusy = false;
                         return;
                     }
-                }
 
-                // perform skill check, if applicable
-                if (skill != null)
+                    //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
+
+                    percentSuccess = SkillCheck.GetSkillChance(skill.Current, recipe.Difficulty);
+
                     success = ThreadSafeRandom.Next(0.0f, 1.0f) <= percentSuccess;
+                }
 
                 CreateDestroyItems(player, recipe, source, target, success);
 
@@ -186,7 +181,6 @@ namespace ACE.Server.Managers
             var itemWorkmanship = target.Workmanship ?? 0;
 
             var tinkeredCount = target.NumTimesTinkered;
-            var attemptMod = TinkeringDifficulty[tinkeredCount];
 
             var materialType = tool.MaterialType.Value;
             var salvageMod = GetMaterialMod(materialType);
@@ -199,8 +193,8 @@ namespace ACE.Server.Managers
             var recipeSkill = (Skill)recipe.Skill;
             var skill = player.GetCreatureSkill(recipeSkill);
 
-            // Tinkering skill not required to apply Ivory or Leather
-            if (materialType != MaterialType.Ivory && materialType != MaterialType.Leather)
+            // require skill check for everything except ivory / leather / sandstone
+            if (UseSkillCheck(materialType))
             {
                 // tinkering skill must be trained
                 if (skill.AdvancementClass < SkillAdvancementClass.Trained)
@@ -211,6 +205,8 @@ namespace ACE.Server.Managers
                 }
 
                 // thanks to Endy's Tinkering Calculator for this formula!
+                var attemptMod = TinkeringDifficulty[tinkeredCount];
+
                 var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
 
                 successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
@@ -235,15 +231,21 @@ namespace ACE.Server.Managers
                     var decimalPlaces = 2;
                     var truncated = percent.Truncate(decimalPlaces);
 
-                    var templateMsg = $"You have a % chance of using {tool.Name} on {target.Name}.";
+                    var toolMaterial = GetMaterialName(tool.MaterialType ?? 0);
+                    var targetMaterial = GetMaterialName(target.MaterialType ?? 0);
+
+                    // TODO: retail messages
+                    // You determine that you have a 100 percent chance to succeed.
+                    // You determine that you have a 99 percent chance to succeed.
+                    // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
+
+                    var templateMsg = $"You have a % chance of using {toolMaterial} {tool.Name} on {targetMaterial} {target.Name}.";
                     var floorMsg = templateMsg.Replace("%", (int)percent + "%");
                     var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
                     var exactMsg = templateMsg.Replace("%", percent + "%");
 
-                    var confirm = new Confirmation(ConfirmationType.CraftInteraction, floorMsg, tool, target, player);
-                    ConfirmationManager.AddConfirmation(confirm);
+                    player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, tool.Guid, target.Guid), floorMsg);
 
-                    player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.CraftInteraction, confirm.ConfirmationID, floorMsg));
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
 
                     player.SendUseDoneEvent();
@@ -252,7 +254,7 @@ namespace ACE.Server.Managers
             }
             else
             {
-                // Applying Ivory and Leather is always successful and doesn't consume one of the ten tinking slots
+                // ivory / leather / sandstone always succeeds, and doesn't consume one of the ten tinking slots
                 successChance = 1.0f;
                 incItemTinkered = false;
             }
@@ -261,32 +263,31 @@ namespace ACE.Server.Managers
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(player, () => DoTinkering(player, tool, target, (float)successChance, incItemTinkered));
+            actionChain.AddAction(player, () => DoTinkering(player, tool, target, recipe, (float)successChance, incItemTinkered));
             actionChain.AddAction(player, () => DoMotion(player, MotionCommand.Ready));
             actionChain.EnqueueChain();
         }
 
-        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance, bool incItemTinkered)
+        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, Recipe recipe, float chance, bool incItemTinkered)
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
-            var materialName = GetMaterialName(tool.MaterialType ?? 0);
+            var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
+            var itemMaterial = GetMaterialName(target.MaterialType ?? 0);
 
             if (success)
             {
                 Tinkering_ModifyItem(player, tool, target, incItemTinkered);
 
                 // send local broadcast
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}.", ChatMessageType.Craft), 96.0f);
+                if (incItemTinkered)
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}.", ChatMessageType.Craft), 96.0f);
             }
-            else
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {materialName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
+            else if (incItemTinkered)
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
 
-            var recipe = GetRecipe(player, tool, target);
-            CreateDestroyItems(player, recipe, tool, target, success);
+            CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
-            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog)
-                    || (tool.MaterialType ?? 0) == MaterialType.Ivory
-                    || (tool.MaterialType ?? 0) == MaterialType.Leather)
+            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
         }
 
@@ -344,11 +345,14 @@ namespace ACE.Server.Managers
                     target.EncumbranceVal = (int)Math.Round((target.EncumbranceVal ?? 1) * 0.75f);
                     break;
                 case MaterialType.Ivory:
-                    target.SetProperty(PropertyInt.Attuned, 0);
-                    target.SetProperty(PropertyBool.AppraisalHasAllowedWielder, true);
+                    // Recipe already handles this correctly
+                    //target.SetProperty(PropertyInt.Attuned, 0);
                     break;
                 case MaterialType.Leather:
                     target.SetProperty(PropertyBool.Retained, true);
+                    break;
+                case MaterialType.Sandstone:
+                    target.SetProperty(PropertyBool.Retained, false);
                     break;
                 case MaterialType.Moonstone:
                     target.ItemMaxMana += 500;
@@ -572,8 +576,8 @@ namespace ACE.Server.Managers
             { ImbuedEffectType.CripplingBlow,   0x06003357 },
             { ImbuedEffectType.FireRending,     0x06003359 },
             { ImbuedEffectType.BludgeonRending, 0x0600335a },
-            { ImbuedEffectType.SlashRending,    0x0600335b },
-            { ImbuedEffectType.PierceRending,   0x0600335c },
+            { ImbuedEffectType.PierceRending,   0x0600335b },
+            { ImbuedEffectType.SlashRending,    0x0600335c },
         };
 
         public static ImbuedEffectType GetImbuedEffects(WorldObject target)
@@ -857,7 +861,7 @@ namespace ACE.Server.Managers
             return success;
         }
 
-        public static void CreateDestroyItems(Player player, Recipe recipe, WorldObject source, WorldObject target, bool success)
+        public static void CreateDestroyItems(Player player, Recipe recipe, WorldObject source, WorldObject target, bool success, bool sendMsg = true)
         {
             var destroyTargetChance = success ? recipe.SuccessDestroyTargetChance : recipe.FailDestroyTargetChance;
             var destroySourceChance = success ? recipe.SuccessDestroySourceChance : recipe.FailDestroySourceChance;
@@ -891,9 +895,17 @@ namespace ACE.Server.Managers
 
             ModifyItem(player, recipe, source, target, result, success);
 
-            var message = success ? recipe.SuccessMessage : recipe.FailMessage;
+            if (sendMsg)
+            {
+                // TODO: remove this in data for imbues
 
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
+                // suppress message for imbues w/ a chance of failure here,
+                // handled previously in local broadcast
+
+                var message = success ? recipe.SuccessMessage : recipe.FailMessage;
+
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
+            }
         }
 
         public static WorldObject CreateItem(Player player, uint wcid, uint amount)
@@ -1039,7 +1051,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);     // ??
+                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);     // ??
                     break;
                 case ModificationOperation.AddSpell:
                     if (value != -1)
@@ -1076,7 +1088,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyFloat({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1102,7 +1114,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
+                    result.SetProperty(prop, player.GetProperty(prop) ?? player.Name);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyString({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1128,7 +1140,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));     // ??
+                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, player, targetMod));     // ??
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInstanceID({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1168,7 +1180,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1188,6 +1200,14 @@ namespace ACE.Server.Managers
                 return materialType.ToString();
             }
             return materialName.Replace("_", " ");
+        }
+
+        /// <summary>
+        /// Returns TRUE if this material requies a skill check
+        /// </summary>
+        public static bool UseSkillCheck(MaterialType material)
+        {
+            return material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
         }
     }
 }

@@ -395,12 +395,16 @@ namespace ACE.Server.WorldObjects
             {
                 if (_dungeonLandblockID == null)
                 {
-                    var housePortal = GetHousePortals();
+                    var rootHouseBlock = RootHouse.Location.LandblockId.Raw | 0xFFFF;
 
-                    if (housePortal.Count == 0)
+                    var housePortals = GetHousePortals();
+
+                    var dungeonPortal = housePortals.FirstOrDefault(i => (i.ObjCellId | 0xFFFF) != rootHouseBlock);
+
+                    if (dungeonPortal == null)
                         return 0;
 
-                    _dungeonLandblockID = housePortal[0].ObjCellId | 0xFFFF;
+                    _dungeonLandblockID = dungeonPortal.ObjCellId | 0xFFFF;
                 }
                 return _dungeonLandblockID.Value;
             }
@@ -475,7 +479,11 @@ namespace ACE.Server.WorldObjects
                 if (_rootGuid != null)
                     return _rootGuid.Value;
 
-                if (!CurrentLandblock.IsDungeon)
+                // CurrentLandblock == null should only happen when the player is in a villa/mansion dungeon basement,
+                // and the outdoor house landblock is still unloaded. the reference to the outdoor House will be a shallow reference at that point,
+                // and this should only happen for outdoor landblocks
+
+                if (CurrentLandblock == null || !CurrentLandblock.IsDungeon)
                 {
                     _rootGuid = Guid;
                     return Guid;
@@ -597,7 +605,10 @@ namespace ACE.Server.WorldObjects
                 linkedHouse.UpdateRestrictionDB(restrictions);
 
             // update house dungeon
-            if (HasDungeon)
+
+            // TODO: handle this more gracefully: player in house dungeon,
+            // but outdoor house landblock is unloaded, and player is evicted
+            if (CurrentLandblock != null && HasDungeon)
             {
                 var dungeonHouse = GetDungeonHouse();
                 if (dungeonHouse == null || dungeonHouse.PhysicsObj == null) return;
@@ -611,7 +622,7 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj == null)
                 return;
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
                 player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictions));
         }
@@ -622,7 +633,7 @@ namespace ACE.Server.WorldObjects
 
             var restrictionDB = new RestrictionDB();
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
             {
                 // clear house owner

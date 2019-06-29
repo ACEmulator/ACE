@@ -10,9 +10,11 @@ using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Managers;
 using ACE.Server.Network.Packets;
 
 namespace ACE.Server.Network.Handlers
@@ -29,9 +31,25 @@ namespace ACE.Server.Network.Handlers
 
         public static void HandleLoginRequest(ClientPacket packet, Session session)
         {
-            PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
-            Task t = new Task(() => DoLogin(session, loginRequest));
-            t.Start();
+            try
+            {
+                PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
+
+                if (loginRequest.Account.Length > 50)
+                {
+                    NetworkManager.SendLoginRequestReject(session, CharacterError.AccountInvalid);
+                    session.Terminate(SessionTerminationReason.AccountInformationInvalid);
+                    return;
+                }
+
+                Task t = new Task(() => DoLogin(session, loginRequest));
+                t.Start();
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Received LoginRequest from {0} that threw an exception.", session.EndPoint);
+                log.Error(ex);
+            }
         }
 
         private static void DoLogin(Session session, PacketInboundLoginRequest loginRequest)
@@ -75,7 +93,7 @@ namespace ACE.Server.Network.Handlers
 
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
-            packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
+            packetLog.DebugFormat("ConnectRequest TS: {0}", Timers.PortalYearTicks);
 
             if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
             {
@@ -85,7 +103,7 @@ namespace ACE.Server.Network.Handlers
             }
 
             var connectRequest = new PacketOutboundConnectRequest(
-                session.Network.ConnectionData.ServerTime,
+                Timers.PortalYearTicks,
                 session.Network.ConnectionData.ConnectionCookie,
                 session.Network.ClientId,
                 session.Network.ConnectionData.ServerSeed,
@@ -122,7 +140,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (WorldManager.Find(account.AccountName) != null)
+            if (NetworkManager.Find(account.AccountName) != null)
             {
                 session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.ServerCrash1));
                 return;
@@ -133,9 +151,9 @@ namespace ACE.Server.Network.Handlers
                 if (!account.PasswordMatches(loginRequest.Password))
                 {
                     if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
-                        log.Info($"client {loginRequest.Account} connected with non matching password does so booting");
+                        log.Info($"client {loginRequest.Account} connected with non matching password so booting");
                     else
-                        log.Debug($"client {loginRequest.Account} connected with non matching password does so booting");
+                        log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
                     session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
 
@@ -174,9 +192,9 @@ namespace ACE.Server.Network.Handlers
             {
                 DatabaseManager.Shard.GetCharacters(session.AccountId, false, result =>
                 {
-                // If you want to create default characters for accounts that have none, here is where you would do it.
+                    // If you want to create default characters for accounts that have none, here is where you would do it.
 
-                SendConnectResponse(session, result);
+                    SendConnectResponse(session, result);
                 });
             }
             else

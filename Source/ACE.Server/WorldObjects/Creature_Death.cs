@@ -33,6 +33,9 @@ namespace ACE.Server.WorldObjects
 
             OnDeath_GrantXP();
 
+            if (IsGenerator)
+                OnGeneratorDeath();
+
             return GetDeathMessage(lastDamager, damageType, criticalHit);
         }
 
@@ -240,16 +243,16 @@ namespace ACE.Server.WorldObjects
                 var dropped = player.CalculateDeathItems(corpse);
                 corpse.RecalculateDecayTime(player);
 
+                if (dropped.Count > 0)
+                    saveCorpse = true;
+
                 if ((player.Location.Cell & 0xFFFF) < 0x100)
                 {
                     player.SetPosition(PositionType.LastOutsideDeath, new Position(corpse.Location));
                     player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
 
                     if (dropped.Count > 0)
-                    {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
-                        saveCorpse = true;
-                    }
                 }
             }
             else
@@ -273,9 +276,9 @@ namespace ACE.Server.WorldObjects
             if (this is Player p)
             {
                 if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
-                    log.Info($"{Name}'s corpse failed to spawn! Tried at {p.Location.ToLOCString()}");
+                    log.Info($"{Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {p.Location.ToLOCString()}");
                 else
-                    log.Info($"{Name}'s corpse is located at {corpse.PhysicsObj.Position}");
+                    log.Info($"{Name}'s corpse (0x{corpse.Guid}) is located at {corpse.PhysicsObj.Position}");
             }
 
             if (saveCorpse)

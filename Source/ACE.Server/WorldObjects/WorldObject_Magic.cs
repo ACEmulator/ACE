@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
                 return;*/
 
             // perform resistance check, if applicable
-            var resisted = tryResist ? TryResistSpell(spell, target) : false;
+            var resisted = tryResist ? TryResistSpell(spell, target, caster) : false;
             if (resisted)
                 return;
 
@@ -93,9 +93,9 @@ namespace ACE.Server.WorldObjects
         /// If this spell has a chance to be resisted, rolls for a chance
         /// Returns TRUE if spell is resistable and was resisted for this attempt
         /// </summary>
-        public bool TryResistSpell(Spell spell, WorldObject target)
+        public bool TryResistSpell(Spell spell, WorldObject target, WorldObject caster = null)
         {
-            if (spell.IsBeneficial)
+            if (spell.IsBeneficial || !spell.IsResistable)
                 return false;
 
             // todo: verify this flag exists for all resistable spells
@@ -114,18 +114,22 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.CreatureEnchantment:
                     if (spell.NumProjectiles == 0)  // life magic projectiles
                     {
-                        bool? resisted = ResistSpell(target, spell);
+                        bool? resisted = ResistSpell(target, spell, caster);
                         if (resisted != null && resisted == true)
                             return true;
                     }
                     break;
                 case MagicSchool.ItemEnchantment:
-                    // ??
+                    {
+                        bool? resisted = ResistSpell(target, spell, caster);
+                        if (resisted != null && resisted == true)
+                            return true;
+                    }
                     break;
                 case MagicSchool.VoidMagic:
                     if (spell.NumProjectiles == 0)  // void magic projectiles
                     {
-                        bool? resisted = ResistSpell(target, spell);
+                        bool? resisted = ResistSpell(target, spell, caster);
                         if (resisted != null && resisted == true)
                             return true;
                     }
@@ -181,7 +185,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines whether the target for the spell being cast is invalid
         /// </summary>
-        protected bool IsInvalidTarget(Spell spell, WorldObject target)
+        protected bool IsInvalidTarget(Player caster, Spell spell, WorldObject target)
         {
             var targetPlayer = target as Player;
             var targetCreature = target as Creature;
@@ -216,11 +220,18 @@ namespace ACE.Server.WorldObjects
             }
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
-            if ((spell.Name.Contains("Aura of")) && (spell.School == MagicSchool.ItemEnchantment))
+            if (spell.Name.Contains("Aura of") && spell.School == MagicSchool.ItemEnchantment)
             {
                 if (targetCreature == null)
                     return true;
             }
+
+            // brittlemail / lure / other negative item spells cannot be cast with player as target
+
+            // TODO: by end of retail, players couldn't cast any negative spells on themselves
+            // this feature is currently in ace for dev testing...
+            if (caster == target && spell.IsNegativeRedirectable)
+                return true;
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
@@ -234,7 +245,7 @@ namespace ACE.Server.WorldObjects
                     || (target.WeenieType == WeenieType.Missile)
                     || (target.WeenieType == WeenieType.Door)
                     || (target.WeenieType == WeenieType.Chest)
-                    || (target.CombatUse != null && target.CombatUse == ACE.Entity.Enum.CombatUse.Shield))
+                    || target.IsShield)
                     return false;
 
                 return true;
@@ -260,29 +271,42 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Performs the magic defense checks for spell attacks
         /// </summary>
-        public bool? ResistSpell(WorldObject target, Spell spell)
+        public bool? ResistSpell(WorldObject target, Spell spell, WorldObject caster = null)
         {
             uint magicSkill = 0;
-            var caster = this as Creature;
-            if (caster != null)
-                // Retrieve caster's skill level in the Magic School
-                magicSkill = caster.GetCreatureSkill(spell.School).Current;
-            else
-                // Retrieve casting item's spellcraft
-                magicSkill = (uint)(ItemSpellcraft ?? 0);
 
-            var player = caster as Player;
-            var targetPlayer = target as Player;
+            if (caster == null)
+                caster = this;
+
+            if (caster is Creature casterCreature)
+            {
+                // Retrieve caster's skill level in the Magic School
+                magicSkill = casterCreature.GetCreatureSkill(spell.School).Current;
+
+            }
+            else if (caster.ItemSpellcraft != null)
+            {
+                // Retrieve casting item's spellcraft
+                magicSkill = (uint)caster.ItemSpellcraft;
+            }
+            else if (caster.Wielder is Creature wielder)
+            {
+                // Receive wielder's skill level in the Magic School?
+                magicSkill = wielder.GetCreatureSkill(spell.School).Current;
+            }
 
             // only creatures can resist spells?
-            var creature = target as Creature;
-            if (creature == null) return null;
+            if (!(target is Creature targetCreature))
+                return null;
 
             // Retrieve target's Magic Defense Skill
-            var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
+            var difficulty = targetCreature.GetCreatureSkill(Skill.MagicDefense).Current;
 
-            //Console.WriteLine($"{target.Name}.ResistSpell({Name}, {spell.Name}): magicSkill: {magicSkill}, difficulty: {targetMagicDefenseSkill}");
-            bool resisted = MagicDefenseCheck(magicSkill, targetMagicDefenseSkill);
+            //Console.WriteLine($"{target.Name}.ResistSpell({Name}, {spell.Name}): magicSkill: {magicSkill}, difficulty: {difficulty}");
+            bool resisted = MagicDefenseCheck(magicSkill, difficulty);
+
+            var player = this as Player;
+            var targetPlayer = target as Player;
 
             if (targetPlayer != null)
             {
@@ -295,16 +319,18 @@ namespace ACE.Server.WorldObjects
                     resisted = true;
                 }
             }
-            if (target == this)
+
+            if (caster == target)
                 resisted = false;
 
             if (resisted)
             {
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists your spell", ChatMessageType.Magic));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetCreature.Name} resists your spell", ChatMessageType.Magic));
                     player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
                 }
+
                 if (targetPlayer != null)
                 {
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {Name}", ChatMessageType.Magic));
@@ -312,7 +338,6 @@ namespace ACE.Server.WorldObjects
 
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
-                return resisted;
             }
             return resisted;
         }
@@ -320,7 +345,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a Life Magic spell
         /// </summary>
-        protected bool LifeMagic(WorldObject target, Spell spell, out uint damage, out bool critical, out EnchantmentStatus enchantmentStatus, WorldObject itemCaster = null)
+        protected bool LifeMagic(WorldObject target, Spell spell, out uint damage, out bool critical, out EnchantmentStatus enchantmentStatus, WorldObject itemCaster = null, bool equip = false)
         {
             critical = false;
             string srcVital, destVital;
@@ -353,7 +378,7 @@ namespace ACE.Server.WorldObjects
                     var resistanceType = minBoostValue > 0 ? GetBoostResistanceType(spell.VitalDamageType) : GetDrainResistanceType(spell.VitalDamageType);
 
                     int tryBoost = ThreadSafeRandom.Next(minBoostValue, maxBoostValue);
-                    tryBoost = (int)Math.Round(tryBoost * spellTarget.GetResistanceMod(resistanceType, this));
+                    tryBoost = (int)Math.Round(tryBoost * spellTarget.GetResistanceMod(resistanceType));
 
                     int boost = tryBoost;
                     damage = tryBoost < 0 ? (uint)Math.Abs(tryBoost) : 0;
@@ -438,7 +463,7 @@ namespace ACE.Server.WorldObjects
 
                     // Drain Resistances - allows one to partially resist drain health/stamina/mana and harm attacks (not including other life transfer spells).
                     var isDrain = spell.TransferFlags.HasFlag(TransferFlags.TargetSource | TransferFlags.CasterDestination);
-                    var drainMod = isDrain ? (float)source.GetResistanceMod(GetDrainResistanceType(spell.Source), caster) : 1.0f;
+                    var drainMod = isDrain ? (float)source.GetResistanceMod(GetDrainResistanceType(spell.Source)) : 1.0f;
 
                     srcVitalChange = (uint)Math.Round(source.GetCurrentCreatureVital(spell.Source) * spell.Proportion * drainMod);
 
@@ -447,7 +472,7 @@ namespace ACE.Server.WorldObjects
                         if (srcVitalChange > spell.TransferCap)
                             srcVitalChange = (uint)spell.TransferCap;
                     }
-                    var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination), caster) : 1.0f;
+                    var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination)) : 1.0f;
 
                     destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
 
@@ -614,9 +639,9 @@ namespace ACE.Server.WorldObjects
                 case SpellType.Enchantment:
                     damage = 0;
                     if (itemCaster != null)
-                        enchantmentStatus = CreateEnchantment(target, itemCaster, spell);
+                        enchantmentStatus = CreateEnchantment(target, itemCaster, spell, equip);
                     else
-                        enchantmentStatus = CreateEnchantment(target, this, spell);
+                        enchantmentStatus = CreateEnchantment(target, this, spell, equip);
                     break;
 
                 default:
@@ -659,7 +684,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Wrapper around CreateEnchantment for Creature Magic
         /// </summary>
-        protected EnchantmentStatus CreatureMagic(WorldObject target, Spell spell, WorldObject itemCaster = null)
+        protected EnchantmentStatus CreatureMagic(WorldObject target, Spell spell, WorldObject itemCaster = null, bool equip = false)
         {
             // redirect creature dispels to life magic
             if (spell.MetaSpellType == SpellType.Dispel)
@@ -667,20 +692,20 @@ namespace ACE.Server.WorldObjects
                 LifeMagic(target, spell, out uint damage, out bool critical, out var enchantmentStatus);
                 return enchantmentStatus;
             }
-            return CreateEnchantment(target, itemCaster ?? this, spell);
+            return CreateEnchantment(target, itemCaster ?? this, spell, equip);
         }
 
         /// <summary>
         /// Handles casting Item Magic spells
         /// </summary>
-        protected EnchantmentStatus ItemMagic(WorldObject target, Spell spell, WorldObject itemCaster = null)
+        protected EnchantmentStatus ItemMagic(WorldObject target, Spell spell, WorldObject itemCaster = null, bool equip = false)
         {
             var enchantmentStatus = new EnchantmentStatus(spell);
 
             // redirect item dispels to life magic
             if (spell.MetaSpellType == SpellType.Dispel)
             {
-                LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus);
+                LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus, itemCaster, equip);
                 return enchantmentStatus;
             }
 
@@ -695,6 +720,12 @@ namespace ACE.Server.WorldObjects
                 {
                     case SpellType.PortalRecall:
 
+                        if (player != null && player.PKTimerActive)
+                        {
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                            break;
+                        }
+
                         PositionType recall = PositionType.Undef;
                         uint? recallDID = null;
 
@@ -704,24 +735,24 @@ namespace ACE.Server.WorldObjects
                         {
                             case SpellId.PortalRecall:       // portal recall
 
-                                if (player.LastPortalDID == null)
+                                if (targetPlayer.LastPortalDID == null)
                                 {
                                     // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
                                 {
                                     recall = PositionType.LastPortal;
-                                    recallDID = player.LastPortalDID;
+                                    recallDID = targetPlayer.LastPortalDID;
                                 }
                                 break;
 
                             case SpellId.LifestoneRecall1:   // lifestone recall
 
-                                if (player.GetPosition(PositionType.LinkedLifestone) == null)
+                                if (targetPlayer.GetPosition(PositionType.LinkedLifestone) == null)
                                 {
                                     // You must link to a lifestone to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToLifestoneToRecall));
                                 }
                                 else
                                     recall = PositionType.LinkedLifestone;
@@ -738,29 +769,29 @@ namespace ACE.Server.WorldObjects
 
                             case SpellId.PortalTieRecall1:   // primary portal tie recall
 
-                                if (player.LinkedPortalOneDID == null)
+                                if (targetPlayer.LinkedPortalOneDID == null)
                                 {
                                     // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
                                 {
                                     recall = PositionType.LinkedPortalOne;
-                                    recallDID = player.LinkedPortalOneDID;
+                                    recallDID = targetPlayer.LinkedPortalOneDID;
                                 }
                                 break;
 
                             case SpellId.PortalTieRecall2:   // secondary portal tie recall
 
-                                if (player.LinkedPortalTwoDID == null)
+                                if (targetPlayer.LinkedPortalTwoDID == null)
                                 {
                                     // You must link to a portal to recall it!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
                                 }
                                 else
                                 {
                                     recall = PositionType.LinkedPortalTwo;
-                                    recallDID = player.LinkedPortalTwoDID;
+                                    recallDID = targetPlayer.LinkedPortalTwoDID;
                                 }
                                 break;
                         }
@@ -782,11 +813,11 @@ namespace ACE.Server.WorldObjects
                                 var portal = GetPortal(recallDID.Value);
                                 if (portal == null) break;
 
-                                var result = portal.CheckUseRequirements(player);
+                                var result = portal.CheckUseRequirements(targetPlayer);
                                 if (!result.Success)
                                 {
                                     if (result.Message != null)
-                                        player.Session.Network.EnqueueSend(result.Message);
+                                        targetPlayer.Session.Network.EnqueueSend(result.Message);
 
                                     break;
                                 }
@@ -794,7 +825,13 @@ namespace ACE.Server.WorldObjects
                                 ActionChain portalRecall = new ActionChain();
                                 portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                                 portalRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                                portalRecall.AddAction(targetPlayer, () => targetPlayer.Teleport(portal.Destination));
+                                portalRecall.AddAction(targetPlayer, () =>
+                                {
+                                    var teleportDest = new Position(portal.Destination);
+                                    targetPlayer.AdjustDungeon(teleportDest);
+
+                                    targetPlayer.Teleport(teleportDest);
+                                });
                                 portalRecall.EnqueueChain();
                             }
                         }
@@ -804,10 +841,22 @@ namespace ACE.Server.WorldObjects
 
                         if (targetPlayer != null)
                         {
+                            if (targetPlayer.PKTimerActive)
+                            {
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                break;
+                            }
+
                             ActionChain portalSendingChain = new ActionChain();
                             //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
                             portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
-                            portalSendingChain.AddAction(targetPlayer, () => targetPlayer.Teleport(spell.Position));
+                            portalSendingChain.AddAction(targetPlayer, () =>
+                            {
+                                var teleportDest = new Position(spell.Position);
+                                targetPlayer.AdjustDungeon(teleportDest);
+
+                                targetPlayer.Teleport(teleportDest);
+                            });
                             portalSendingChain.EnqueueChain();
                         }
                         break;
@@ -816,6 +865,12 @@ namespace ACE.Server.WorldObjects
 
                         if (targetPlayer != null && targetPlayer.Fellowship != null)
                         {
+                            if (targetPlayer.PKTimerActive)
+                            {
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                break;
+                            }
+
                             ActionChain portalSendingChain = new ActionChain();
                             //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
                             var fellows = targetPlayer.Fellowship.GetFellowshipMembers().Values;
@@ -824,7 +879,13 @@ namespace ACE.Server.WorldObjects
                                 if (fellow.Guid != targetPlayer.Guid)
                                     portalSendingChain.AddAction(fellow, () => fellow.EnqueueBroadcast(new GameMessageScript(fellow.Guid, spell.TargetEffect, spell.Formula.Scale)));
                                 portalSendingChain.AddAction(fellow, () => fellow.DoPreTeleportHide());
-                                portalSendingChain.AddAction(fellow, () => fellow.Teleport(spell.Position));
+                                portalSendingChain.AddAction(fellow, () =>
+                                {
+                                    var teleportDest = new Position(spell.Position);
+                                    fellow.AdjustDungeon(teleportDest);
+
+                                    fellow.Teleport(teleportDest);
+                                });
                             }
                             portalSendingChain.EnqueueChain();
                         }
@@ -887,12 +948,21 @@ namespace ACE.Server.WorldObjects
 
                     case SpellType.PortalSummon:
 
+                        if (player != null && player.PKTimerActive)
+                        {
+                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                            break;
+                        }
+
                         var source = player != null ? player : itemCaster;
 
                         uint portalId = 0;
                         bool linkSummoned;
 
-                        if (spell.Name.Contains("Primary"))
+                        // spell.link = 1 = LinkedPortalOneDID
+                        // spell.link = 2 = LinkedPortalTwoDID
+
+                        if (spell.Link <= 1)
                         {
                             portalId = source.LinkedPortalOneDID ?? 0;
                             linkSummoned = source.GetProperty(PropertyBool.LinkedPortalOneSummon) ?? false;
@@ -949,9 +1019,9 @@ namespace ACE.Server.WorldObjects
             else if (spell.MetaSpellType == SpellType.Enchantment)
             {
                 if (itemCaster != null)
-                    return CreateEnchantment(target, itemCaster, spell);
+                    return CreateEnchantment(target, itemCaster, spell, equip);
 
-                return CreateEnchantment(target, this, spell);
+                return CreateEnchantment(target, this, spell, equip);
             }
 
             enchantmentStatus.Success = true;
@@ -1164,16 +1234,14 @@ namespace ACE.Server.WorldObjects
         /// Creates an enchantment and interacts with the Enchantment registry.
         /// Used by Life, Creature, Item, and Void magic
         /// </summary>
-        public EnchantmentStatus CreateEnchantment(WorldObject target, WorldObject caster, Spell spell)
+        public EnchantmentStatus CreateEnchantment(WorldObject target, WorldObject caster, Spell spell, bool equip = false)
         {
             var enchantmentStatus = new EnchantmentStatus(spell);
 
             // create enchantment
-            var addResult = target.EnchantmentManager.Add(spell, caster);
+            var addResult = target.EnchantmentManager.Add(spell, caster, equip);
 
-            var player = this as Player;
             var playerTarget = target as Player;
-            var creatureTarget = target as Creature;
 
             // build message
             var suffix = "";
@@ -1209,14 +1277,18 @@ namespace ACE.Server.WorldObjects
                     message = null;
             }
 
-            if (target is Player)
+            if (playerTarget != null)
             {
                 playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
                 playerTarget.HandleMaxVitalUpdate(spell);
 
                 if (playerTarget != this)
-                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
+            }
+            else if (caster != this && caster is Creature && target.Wielder is Player wielder)
+            {
+                wielder.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic));
             }
 
             if (message != null)

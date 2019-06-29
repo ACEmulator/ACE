@@ -19,7 +19,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount">The amount of XP being added</param>
         /// <param name="xpType">The source of XP being added</param>
         /// <param name="shareable">True if this XP can be shared with Fellowship</param>
-        public void EarnXP(long amount, XpType xpType, bool shareable = true)
+        public void EarnXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
             //Console.WriteLine($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
 
@@ -31,35 +31,35 @@ namespace ACE.Server.WorldObjects
 
             if (m_amount < 0)
             {
-                log.Warn($"{Name}.EarnXP({amount}, {shareable})");
+                log.Warn($"{Name}.EarnXP({amount}, {shareType})");
                 log.Warn($"modifier: {modifier}, enchantment: {enchantment}, m_amount: {m_amount}");
                 return;
             }
 
-            GrantXP(m_amount, xpType, shareable);
+            GrantXP(m_amount, xpType, shareType);
         }
 
         /// <summary>
         /// Directly grants XP to the player, without the XP modifier
         /// </summary>
         /// <param name="amount">The amount of XP to grant to the player</param>
-        /// <param name="passup">The source of the XP being granted</param>
+        /// <param name="xpType">The source of the XP being granted</param>
         /// <param name="shareable">If TRUE, this XP can be shared with fellowship members</param>
-        public void GrantXP(long amount, XpType xpType, bool shareable = true)
+        public void GrantXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
-            if (shareable && Fellowship != null && Fellowship.ShareXP && Fellowship.ShareableMembers.ContainsKey(Guid.Full))
+            if (Fellowship != null && Fellowship.ShareXP && shareType.HasFlag(ShareType.Fellowship))
             {
                 // this will divy up the XP, and re-call this function
                 // with shareable = false
-                Fellowship.SplitXp((ulong)amount, xpType, this);
+                Fellowship.SplitXp((ulong)amount, xpType, shareType, this);
                 return;
             }
 
-            UpdateXpAndLevel(amount);
+            UpdateXpAndLevel(amount, xpType);
 
             // for passing XP up the allegiance chain,
             // this function is only called at the very beginning, to start the process.
-            if (xpType != XpType.Allegiance)
+            if (shareType.HasFlag(ShareType.Allegiance))
                 UpdateXpAllegiance(amount);
 
             // only certain types of XP are granted to items
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Adds XP to a player's total XP, handles triggers (vitae, level up)
         /// </summary>
-        private void UpdateXpAndLevel(long amount)
+        private void UpdateXpAndLevel(long amount, XpType xpType)
         {
             // until we are max level we must make sure that we send
             var xpTable = DatManager.PortalDat.XpTable;
@@ -96,7 +96,7 @@ namespace ACE.Server.WorldObjects
                 CheckForLevelup();
             }
 
-            if (HasVitae)
+            if (HasVitae && xpType != XpType.Allegiance)
                 UpdateXpVitae(amount);
         }
 
@@ -149,7 +149,7 @@ namespace ACE.Server.WorldObjects
                     if (vitae != null)
                     {
                         var curPenalty = vitae.StatModValue;
-                        if (curPenalty.EpsilonEquals(1.0f) || vitaePenalty > 1.0f)
+                        if (curPenalty.EpsilonEquals(1.0f) || curPenalty > 1.0f)
                             EnchantmentManager.RemoveVitae();
                     }
                 });
@@ -195,10 +195,21 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public ulong GetXPBetweenLevels(int levelA, int levelB)
         {
-            var levelA_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelA + 1];
-            var levelB_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelB + 1];
+            // special case for max level
+            var maxLevel = (int)GetMaxLevel();
+
+            levelA = Math.Clamp(levelA, 1, maxLevel - 1);
+            levelB = Math.Clamp(levelB, 1, maxLevel);
+
+            var levelA_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelA];
+            var levelB_totalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[levelB];
 
             return levelB_totalXP - levelA_totalXP;
+        }
+
+        public ulong GetXPToNextLevel(int level)
+        {
+            return GetXPBetweenLevels(level, level + 1);
         }
 
         /// <summary>
@@ -262,6 +273,9 @@ namespace ACE.Server.WorldObjects
 
                 if (Fellowship != null)
                     Fellowship.OnFellowLevelUp(this);
+
+                if (AllegianceNode != null)
+                    AllegianceNode.OnLevelUp();
 
                 Session.Network.EnqueueSend(levelUp);
 
@@ -347,7 +361,9 @@ namespace ACE.Server.WorldObjects
             var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
             var scaledXP = (long)Math.Min(nextLevelXP * percent, max);
 
-            GrantXP(scaledXP, XpType.Quest, shareable);
+            var shareType = shareable ? ShareType.All : ShareType.None;
+
+            GrantXP(scaledXP, XpType.Quest, shareType);
         }
 
         /// <summary>

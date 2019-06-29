@@ -14,6 +14,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.Managers;
 
 
 namespace ACE.Server.Network
@@ -45,17 +46,17 @@ namespace ACE.Server.Network
         public Player Player { get; private set; }
 
 
-        private DateTime logOffRequestTime;
+        public DateTime logOffRequestTime;
 
         public SessionTerminationDetails PendingTermination { get; set; } = null;
 
         public string BootSessionReason { get; private set; }
 
 
-        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
+        public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
-            Network = new NetworkSession(this, clientId, serverId);
+            Network = new NetworkSession(this, connectionListener, clientId, serverId);
         }
 
 
@@ -176,9 +177,10 @@ namespace ACE.Server.Network
         {
             if (logOffRequestTime == DateTime.MinValue)
             {
-                Player.LogOut();
+                var result = Player.LogOut();
 
-                logOffRequestTime = DateTime.UtcNow;
+                if (result)
+                    logOffRequestTime = DateTime.UtcNow;
             }
         }
 
@@ -258,7 +260,7 @@ namespace ACE.Server.Network
                 // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
             }
 
-            WorldManager.RemoveSession(this);
+            NetworkManager.RemoveSession(this);
 
             // This is a temp fix to mark the Session.Network portion of the Session as released
             // What this means is that we will release any network related resources, as well as avoid taking on additional resources
