@@ -4019,11 +4019,6 @@ namespace ACE.Server.Physics
                 UpdateTime = PhysicsTimer.CurrentTime;
         }
 
-        public void get_voyeurs()
-        {
-            ObjMaint.get_voyeurs();
-        }
-
         public void add_moveto_listener(Action<WeenieError> listener)
         {
             MovementManager.MoveToManager.add_listener(listener);
