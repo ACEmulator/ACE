@@ -5,6 +5,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -42,12 +43,18 @@ namespace ACE.Server.WorldObjects
             RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
             Usable = ACE.Entity.Enum.Usable.No;
 
-            Biota.BiotaPropertiesSpellBook.Clear();
+            if (!PropertyManager.GetBool("advanced_combat_pets").Item)
+                Biota.BiotaPropertiesSpellBook.Clear();
+
             Biota.BiotaPropertiesCreateList.Clear();
             Biota.BiotaPropertiesEmote.Clear();
             GeneratorProfiles.Clear();            
 
             DeathTreasureType = null;
+            WieldedTreasureType = null;
+
+            if (Biota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                Biota.WeenieType = (int)WeenieType.CombatPet;
         }
 
         public void Init(Player player, DamageType damageType, PetDevice petDevice)
@@ -130,13 +137,12 @@ namespace ACE.Server.WorldObjects
 
                 // exclude players
                 var wo = obj.WeenieObj.WorldObject;
-                var player = wo as Player;
-                if (player != null) continue;
+                if (wo == null) continue;
+                if (wo is Player) continue;
 
                 // ensure creature / not combat pet
                 var creature = wo as Creature;
-                var combatPet = wo as CombatPet;
-                if (creature == null || combatPet != null || creature.IsDead) continue;
+                if (creature == null || wo is CombatPet || creature.IsDead) continue;
 
                 // ensure attackable
                 var attackable = creature.GetProperty(PropertyBool.Attackable) ?? false;

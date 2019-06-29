@@ -113,9 +113,14 @@ namespace ACE.Server.Entity
         public bool IsBeneficial => Flags.HasFlag(SpellFlags.Beneficial);
 
         /// <summary>
-        /// Returns TRUE if this is a hamrful spell
+        /// Returns TRUE if this is a harmful spell
         /// </summary>
         public bool IsHarmful { get => !IsBeneficial; }
+
+        /// <summary>
+        /// Returns TRUE if this spell is resistable
+        /// </summary>
+        public bool IsResistable => Flags.HasFlag(SpellFlags.Resistable);
 
         public bool IsProjectile => NumProjectiles > 0;
 
@@ -213,6 +218,25 @@ namespace ACE.Server.Entity
                 case MagicSchool.VoidMagic:           return Skill.VoidMagic;
             }
             return Skill.None;
+        }
+
+        /// <summary>
+        /// Returns TRUE if spell category matches impen / bane / brittlemail / lure
+        /// </summary>
+        public bool IsImpenBaneType => Category >= SpellCategory.ArmorValueRaising && Category <= SpellCategory.AcidicResistanceLowering;
+
+        public bool IsNegativeRedirectable => IsHarmful && (IsImpenBaneType || IsOtherNegativeRedirectable);
+
+        public bool IsOtherNegativeRedirectable
+        {
+            get
+            {
+                return Category == SpellCategory.DamageLowering     // encompasses both blood and spirit loather, inconsistent with spirit drinker in dat
+                    || Category == SpellCategory.DefenseModLowering
+                    || Category == SpellCategory.AttackModLowering
+                    || Category == SpellCategory.WeaponTimeLowering
+                    || Category == SpellCategory.AppraisalResistanceRaising;    // hermetic void, replaced hide value, unchanged category in dat
+            }
         }
 
         public bool IsPortalSpell

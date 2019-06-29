@@ -9,6 +9,7 @@ using ACE.Entity.Enum;
 using ACE.Factories;
 using ACE.Server.WorldObjects;
 using System.Linq;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Factories
 {
@@ -189,6 +190,9 @@ namespace ACE.Server.Factories
                 case LootBias.Weapons:
                     type = 3;
                     break;
+                case LootBias.Jewelry:
+                    type = 4;
+                    break;
                 default:
                     type = ThreadSafeRandom.Next(1, 4);
                     break;
@@ -208,6 +212,7 @@ namespace ACE.Server.Factories
                     //weapons
                     wo = CreateWeapon(tier, isMagical);
                     return wo;
+                case 4:
                 default:
                     //jewelry
                     wo = CreateJewelry(tier, isMagical);
@@ -1636,6 +1641,19 @@ namespace ACE.Server.Factories
             return value;
         }
 
+        private static WorldObject AssignValue(WorldObject wo)
+        {
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+
+            var baseValue = ThreadSafeRandom.Next(300, 600);
+
+            var value = (int)(baseValue * gemMaterialMod * materialMod * Math.Ceiling((double)(wo.GetProperty(PropertyInt.ItemWorkmanship) ?? 1)));
+            wo.SetProperty(PropertyInt.Value, value);
+
+            return wo;
+        }
+
         private static int GetWorkmanship(int tier)
         {
             int workmanship = 0;
@@ -1805,28 +1823,28 @@ namespace ACE.Server.Factories
             switch (tier)
             {
                 case 1:
-                    maxmana = (ThreadSafeRandom.Next(100, 500) + spellAmount * ThreadSafeRandom.Next(1, 4)) * ThreadSafeRandom.Next(3, 9); //1-50
+                    maxmana = ThreadSafeRandom.Next(200, 400) * spellAmount;
                     break;
                 case 2:
-                    maxmana = (ThreadSafeRandom.Next(400, 700) + spellAmount * ThreadSafeRandom.Next(1, 5)) * ThreadSafeRandom.Next(3, 9); //40-90
+                    maxmana = ThreadSafeRandom.Next(400, 600) * spellAmount;
                     break;
                 case 3:
-                    maxmana = (ThreadSafeRandom.Next(700, 900) + spellAmount * ThreadSafeRandom.Next(1, 6)) * ThreadSafeRandom.Next(3, 9); //80 - 130
+                    maxmana = ThreadSafeRandom.Next(600, 800) * spellAmount;
                     break;
                 case 4:
-                    maxmana = (ThreadSafeRandom.Next(1000, 1200) + spellAmount * ThreadSafeRandom.Next(1, 7)) * ThreadSafeRandom.Next(3, 9); /// 120 - 160
+                    maxmana = ThreadSafeRandom.Next(800, 1000) * spellAmount;
                     break;
                 case 5:
-                    maxmana = (ThreadSafeRandom.Next(1300, 1500) + spellAmount * ThreadSafeRandom.Next(1, 8)) * ThreadSafeRandom.Next(3, 9); ///150 - 210
+                    maxmana = ThreadSafeRandom.Next(1000, 1200) * spellAmount;
                     break;
                 case 6:
-                    maxmana = (ThreadSafeRandom.Next(1600, 1800) + spellAmount * ThreadSafeRandom.Next(1, 9)) * ThreadSafeRandom.Next(3, 9); /// 200-260
+                    maxmana = ThreadSafeRandom.Next(1200, 1400) * spellAmount;
                     break;
                 case 7:
-                    maxmana = (ThreadSafeRandom.Next(2300, 2600) + spellAmount * ThreadSafeRandom.Next(1, 10)) * ThreadSafeRandom.Next(3, 9); /// 250 - 310
+                    maxmana = ThreadSafeRandom.Next(1400, 1600) * spellAmount;
                     break;
                 case 8:
-                    maxmana = (ThreadSafeRandom.Next(2800, 3000) + spellAmount * ThreadSafeRandom.Next(1, 11)) * ThreadSafeRandom.Next(3, 9); //300-450
+                    maxmana = ThreadSafeRandom.Next(1600, 1800) * spellAmount;
                     break;
                 default:
                     break;
@@ -1873,10 +1891,10 @@ namespace ACE.Server.Factories
                 if (rng >= probability || probability == totalProbability)
                 {
                     // Ivory is unique... It doesn't have a group
-                    if (m.MaterialID == (uint)MaterialType.Ivory)
-                        return (int)m.MaterialID;
+                    if (m.MaterialId == (uint)MaterialType.Ivory)
+                        return (int)m.MaterialId;
 
-                    var materialGroup = DatabaseManager.World.GetCachedTreasureMaterialGroup(m.MaterialID, tier);
+                    var materialGroup = DatabaseManager.World.GetCachedTreasureMaterialGroup((int)m.MaterialId, tier);
                     float totalGroupProbability = GetTotalProbability(materialGroup);
                     // If there's zero chance, no point in continuing...
                     if (totalGroupProbability == 0) return defaultMaterialType;
@@ -1887,7 +1905,7 @@ namespace ACE.Server.Factories
                     {
                         groupProbability += g.Probability;
                         if (groupProbability > groupRng || groupProbability == totalGroupProbability)
-                            return (int)g.MaterialID;
+                            return (int)g.MaterialId;
                     }
 
                     break;
@@ -2222,6 +2240,32 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
+        /// Set the AppraisalLongDescDecoration of the item, which controls the full descriptive text shown in the client on appraisal
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <returns></returns>
+        private static WorldObject SetAppraisalLongDescDecoration(WorldObject wo)
+        {
+            // LDDecoration_PrependWorkmanship = 0x1,
+            // LDDecoration_PrependMaterial = 0x2,
+            // LDDecoration_AppendGemInfo = 0x4,
+            int appraisalLongDescDecoration = 0;
+            if (wo.ItemWorkmanship > 0)
+                appraisalLongDescDecoration |= 1;
+            if (wo.MaterialType > 0)
+                appraisalLongDescDecoration |= 2;
+            if (wo.GemType > 0 && wo.GemCount > 0)
+                appraisalLongDescDecoration |= 4;
+
+            if (appraisalLongDescDecoration > 0)
+                wo.AppraisalLongDescDecoration = appraisalLongDescDecoration;
+            else
+                wo.AppraisalLongDescDecoration = null;
+
+            return wo;
+        }
+
+        /// <summary>
         /// This will assign a completely random, valid color to the item in question. It will also randomize the shade and set the appropriate icon.
         ///
         /// This was a temporary function to give some color to loot until further work was put in for "proper" color handling. Leave it here as an option for future potential use (perhaps config option?)
@@ -2278,7 +2322,7 @@ namespace ACE.Server.Factories
                 if (colorCode == 0 && (uint)wo.MaterialType > 0)
                 {
                     colors = new List<TreasureMaterialColor>();
-                    for (int i = 1; i < 19; i++)
+                    for (uint i = 1; i < 19; i++)
                     {
                         TreasureMaterialColor tmc = new TreasureMaterialColor
                         {
@@ -2310,7 +2354,7 @@ namespace ACE.Server.Factories
 
                 var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
 
-                int paletteTemplate = 0;
+                uint paletteTemplate = 0;
                 float probability = 0.0f;
                 // Loop through the colors until we've reach our target value
                 foreach (var color in colors)

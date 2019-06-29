@@ -36,9 +36,9 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public override AddEnchantmentResult Add(Spell spell, WorldObject caster)
+        public override AddEnchantmentResult Add(Spell spell, WorldObject caster, bool equip = false)
         {
-            var result = base.Add(spell, caster);
+            var result = base.Add(spell, caster, equip);
 
             ClearCache();
 
@@ -142,6 +142,7 @@ namespace ACE.Server.Managers
             armorModVsTypeModCache.Clear();
             ratingCache.Clear();
             xpModCache = null;
+            resistLockpickCache = null;
         }
 
 
@@ -449,6 +450,18 @@ namespace ACE.Server.Managers
             armorModVsTypeModCache[damageType] = value;
 
             return value;
+        }
+
+        private int? resistLockpickCache;
+
+        public override int GetResistLockpick()
+        {
+            if (resistLockpickCache.HasValue)
+                return resistLockpickCache.Value;
+
+            resistLockpickCache = base.GetResistLockpick();
+
+            return resistLockpickCache.Value;
         }
 
         private readonly Dictionary<PropertyInt, int> ratingCache = new Dictionary<PropertyInt, int>();

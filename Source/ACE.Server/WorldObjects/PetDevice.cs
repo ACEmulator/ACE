@@ -143,9 +143,6 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            if (weenie.Type != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
-                weenie.Type = (int)WeenieType.CombatPet;
-
             var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
             if (combatPet == null)
             {
@@ -165,13 +162,13 @@ namespace ACE.Server.WorldObjects
 
             // ============ Golems ============
 
-            { 48886, new Tuple<uint, DamageType>(200, DamageType.Bludgeon) }, // mud golem (15)
-            { 48890, new Tuple<uint, DamageType>(202, DamageType.Bludgeon) }, // sandstone golem (30)
-            { 48878, new Tuple<uint, DamageType>(194, DamageType.Bludgeon) }, // copper golem (50)
-            { 48888, new Tuple<uint, DamageType>(14559, DamageType.Bludgeon) }, // oak golem (80)
-            { 48882, new Tuple<uint, DamageType>(7096, DamageType.Bludgeon) }, // gold golem (100)
-            { 48880, new Tuple<uint, DamageType>(7507, DamageType.Bludgeon) }, // coral golem (125)
-            { 48884, new Tuple<uint, DamageType>(197, DamageType.Bludgeon) }, // iron golem (150)
+            { 48886, new Tuple<uint, DamageType>(48887, DamageType.Bludgeon) }, // mud golem (15)
+            { 48890, new Tuple<uint, DamageType>(48891, DamageType.Bludgeon) }, // sandstone golem (30)
+            { 48878, new Tuple<uint, DamageType>(48879, DamageType.Bludgeon) }, // copper golem (50)
+            { 48888, new Tuple<uint, DamageType>(48889, DamageType.Bludgeon) }, // oak golem (80)
+            { 48882, new Tuple<uint, DamageType>(48883, DamageType.Bludgeon) }, // gold golem (100)
+            { 48880, new Tuple<uint, DamageType>(48881, DamageType.Bludgeon) }, // coral golem (125)
+            { 48884, new Tuple<uint, DamageType>(48885, DamageType.Bludgeon) }, // iron golem (150)
 
             // ============================ Naturalist ============================
 

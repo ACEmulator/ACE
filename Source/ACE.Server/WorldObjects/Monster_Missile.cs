@@ -116,7 +116,8 @@ namespace ACE.Server.WorldObjects
             }
 
             // reload animation
-            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload);
+            var animSpeed = GetAnimSpeed();
+            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);
             //Console.WriteLine("ReloadTime: " + reloadTime);
 
             // reset for next projectile

@@ -89,9 +89,9 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistNether); else SetProperty(PropertyFloat.ResistNether, value.Value); }
         }
 
-        public float GetResistanceMod(DamageType damageType, WorldObject damageSource, float weaponResistanceMod = 1.0f)
+        public float GetResistanceMod(DamageType damageType, WorldObject weapon, float weaponResistanceMod = 1.0f)
         {
-            var ignoreMagicResist = damageSource != null && damageSource.IgnoreMagicResist;
+            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
 
             // hollow weapons also ignore player natural resistances
             if (ignoreMagicResist)
@@ -146,38 +146,38 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public double GetResistanceMod(ResistanceType resistance, WorldObject damageSource, float weaponResistanceMod = 1.0f)
+        public double GetResistanceMod(ResistanceType resistance, WorldObject weapon = null, float weaponResistanceMod = 1.0f)
         {
             switch (resistance)
             {
                 case ResistanceType.Slash:
-                    return (ResistSlash ?? 1.0) * GetResistanceMod(DamageType.Slash, damageSource, weaponResistanceMod);
+                    return (ResistSlash ?? 1.0) * GetResistanceMod(DamageType.Slash, weapon, weaponResistanceMod);
                 case ResistanceType.Pierce:
-                    return (ResistPierce ?? 1.0) * GetResistanceMod(DamageType.Pierce, damageSource, weaponResistanceMod);
+                    return (ResistPierce ?? 1.0) * GetResistanceMod(DamageType.Pierce, weapon, weaponResistanceMod);
                 case ResistanceType.Bludgeon:
-                    return (ResistBludgeon ?? 1.0) * GetResistanceMod(DamageType.Bludgeon, damageSource, weaponResistanceMod);
+                    return (ResistBludgeon ?? 1.0) * GetResistanceMod(DamageType.Bludgeon, weapon, weaponResistanceMod);
                 case ResistanceType.Fire:
-                    return (ResistFire ?? 1.0) * GetResistanceMod(DamageType.Fire, damageSource, weaponResistanceMod);
+                    return (ResistFire ?? 1.0) * GetResistanceMod(DamageType.Fire, weapon, weaponResistanceMod);
                 case ResistanceType.Cold:
-                    return (ResistCold ?? 1.0) * GetResistanceMod(DamageType.Cold, damageSource, weaponResistanceMod);
+                    return (ResistCold ?? 1.0) * GetResistanceMod(DamageType.Cold, weapon, weaponResistanceMod);
                 case ResistanceType.Acid:
-                    return (ResistAcid ?? 1.0) * GetResistanceMod(DamageType.Acid, damageSource, weaponResistanceMod);
+                    return (ResistAcid ?? 1.0) * GetResistanceMod(DamageType.Acid, weapon, weaponResistanceMod);
                 case ResistanceType.Electric:
-                    return (ResistElectric ?? 1.0) * GetResistanceMod(DamageType.Electric, damageSource, weaponResistanceMod);
+                    return (ResistElectric ?? 1.0) * GetResistanceMod(DamageType.Electric, weapon, weaponResistanceMod);
                 case ResistanceType.Nether:
-                    return (ResistNether ?? 1.0) * GetResistanceMod(DamageType.Nether, damageSource, weaponResistanceMod);
+                    return (ResistNether ?? 1.0) * GetResistanceMod(DamageType.Nether, weapon, weaponResistanceMod);
                 case ResistanceType.HealthBoost:
                     return ResistHealthBoostMod;    // probably some other boost modifiers that should be factored in here...
                 case ResistanceType.HealthDrain:
-                    return (ResistHealthDrain ?? 1.0) * GetResistanceMod(DamageType.Health, damageSource, weaponResistanceMod);
+                    return (ResistHealthDrain ?? 1.0) * GetResistanceMod(DamageType.Health, weapon, weaponResistanceMod);
                 case ResistanceType.StaminaBoost:
                     return ResistStaminaBoostMod;
                 case ResistanceType.StaminaDrain:
-                    return (ResistStaminaDrain ?? 1.0) * GetResistanceMod(DamageType.Stamina, damageSource, weaponResistanceMod);
+                    return (ResistStaminaDrain ?? 1.0) * GetResistanceMod(DamageType.Stamina, weapon, weaponResistanceMod);
                 case ResistanceType.ManaBoost:
                     return ResistManaBoostMod;
                 case ResistanceType.ManaDrain:
-                    return (ResistManaDrain ?? 1.0) * GetResistanceMod(DamageType.Mana, damageSource, weaponResistanceMod);
+                    return (ResistManaDrain ?? 1.0) * GetResistanceMod(DamageType.Mana, weapon, weaponResistanceMod);
                 default:
                     return 1.0;
             }

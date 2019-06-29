@@ -292,16 +292,19 @@ namespace ACE.Server.WorldObjects
         /// Returns the percent of damage absorbed by layered armor + clothing
         /// </summary>
         /// <param name="armors">The list of armor/clothing covering the targeted body part</param>
-        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject damageSource, float armorRendingMod = 1.0f)
+        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject weapon, float armorRendingMod = 1.0f)
         {
+            var ignoreMagicArmor  = weapon != null ? weapon.IgnoreMagicArmor : false;
+            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
+
             var effectiveAL = 0.0f;
 
             foreach (var armor in armors)
-                effectiveAL += GetArmorMod(armor, damageSource, damageType);
+                effectiveAL += GetArmorMod(armor, damageType, ignoreMagicArmor);
 
             // life spells
             // additive: armor/imperil
-            var bodyArmorMod = damageSource != null && damageSource.IgnoreMagicResist ? 0.0f : AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            var bodyArmorMod = ignoreMagicResist ? 0.0f : AttackTarget.EnchantmentManager.GetBodyArmorMod();
 
             // handle armor rending mod here?
             //if (bodyArmorMod > 0)
@@ -327,7 +330,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the effective AL for 1 piece of armor/clothing
         /// </summary>
         /// <param name="armor">A piece of armor or clothing</param>
-        public float GetArmorMod(WorldObject armor, WorldObject damageSource, DamageType damageType)
+        public float GetArmorMod(WorldObject armor, DamageType damageType, bool ignoreMagicArmor)
         {
             // get base armor/resistance level
             var baseArmor = armor.GetProperty(PropertyInt.ArmorLevel) ?? 0;
@@ -341,12 +344,12 @@ namespace ACE.Server.WorldObjects
 
             // armor level additives
             var target = AttackTarget as Creature;
-            var armorMod = damageSource != null && damageSource.IgnoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
+            var armorMod = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
             // Console.WriteLine("Impen: " + armorMod);
             var effectiveAL = baseArmor + armorMod;
 
             // resistance additives
-            var armorBane = damageSource != null && damageSource.IgnoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorModVsType(damageType);
+            var armorBane = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorModVsType(damageType);
             // Console.WriteLine("Bane: " + armorBane);
             var effectiveRL = (float)(resistance + armorBane);
 

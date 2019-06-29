@@ -37,7 +37,7 @@ namespace ACE.Server.Entity
 
             InitializePropertyDictionaries();
 
-            var character = DatabaseManager.Shard.GetCharacterByName(Name);
+            var character = DatabaseManager.Shard.GetCharacterByGuid(Guid.Full);
 
             if (character != null)
                 Account = DatabaseManager.Authentication.GetAccountById(character.AccountId);
@@ -61,6 +61,8 @@ namespace ACE.Server.Entity
                 biotaPropertyStrings[(PropertyString)x.Type] = x;
         }
 
+        public bool IsDeleted => DatabaseManager.Shard.GetCharacterByGuid(Guid.Full).IsDeleted;
+        public bool IsPendingDeletion => DatabaseManager.Shard.GetCharacterByGuid(Guid.Full).DeleteTime > 0 && !IsDeleted;
 
         public DateTime LastRequestedDatabaseSave { get; protected set; }
 
@@ -323,6 +325,15 @@ namespace ACE.Server.Entity
         {
             get => GetProperty(PropertyInt.AllegianceOfficerRank);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceOfficerRank); else SetProperty(PropertyInt.AllegianceOfficerRank, value.Value); }
+        }
+
+        /// <summary>
+        /// This flag indicates if a player can pass up allegiance XP
+        /// </summary>
+        public bool ExistedBeforeAllegianceXpChanges
+        {
+            get => GetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges) ?? true;
+            set { if (value) RemoveProperty(PropertyBool.ExistedBeforeAllegianceXpChanges); else SetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges, value); }
         }
 
         /// <summary>

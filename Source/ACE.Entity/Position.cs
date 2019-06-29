@@ -229,7 +229,7 @@ namespace ACE.Entity
 
         public Position()
         {
-            Pos = Vector3.Zero;
+            //Pos = Vector3.Zero;
             Rotation = Quaternion.Identity;
         }
 

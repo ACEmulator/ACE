@@ -58,6 +58,7 @@ namespace ACE.Server.WorldObjects
                 SetPosition(PositionType.Destination, new Position(wo.Location));
         }
 
+        public bool IsGateway { get => WeenieClassId == 1955; }
 
         public virtual void OnCollideObject(Player player)
         {
@@ -86,12 +87,13 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(false);
             }
 
+            if (player.PKTimerActive)
+            {
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+            }
+
             if (!player.IgnorePortalRestrictions)
             {
-#if DEBUG
-                // player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Checking requirements for {Name}", ChatMessageType.System));
-#endif
-
                 if (player.Level < MinLevel)
                 {
                     // You are not powerful enough to interact with that portal!
@@ -105,22 +107,10 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // handle quest requirements
-            if (Quest != null)
+            // handle quest initial flagging
+            if (Quest != null && !player.QuestManager.HasQuest(Quest))
             {
-                /*if (player.QuestManager.CanSolve(Quest))
-                {
-                    player.QuestManager.Update(Quest);
-                }
-                else
-                {
-                    player.QuestManager.HandleSolveError(Quest);
-                    return;
-                }*/
-
-                // only for initial flagging?
-                if (!player.QuestManager.HasQuest(Quest))
-                    player.QuestManager.Update(Quest);
+                player.QuestManager.Update(Quest);
             }
 
             if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction) && !player.IgnorePortalRestrictions)

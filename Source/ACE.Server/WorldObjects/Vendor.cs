@@ -14,6 +14,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
+using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
@@ -32,7 +33,26 @@ namespace ACE.Server.WorldObjects
         // unique items purchased from other players
         public readonly Dictionary<ObjectGuid, WorldObject> UniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
-        public Dictionary<ObjectGuid, WorldObject> AllItemsForSale => DefaultItemsForSale.Concat(UniqueItemsForSale).ToDictionary(i => i.Key, i => i.Value);
+        //public Dictionary<ObjectGuid, WorldObject> AllItemsForSale => DefaultItemsForSale.Concat(UniqueItemsForSale).ToDictionary(i => i.Key, i => i.Value);
+
+        public Dictionary<ObjectGuid, WorldObject> AllItemsForSale
+        {
+            get
+            {
+                var allItems = new Dictionary<ObjectGuid, WorldObject>();
+
+                foreach (var item in DefaultItemsForSale)
+                    allItems.TryAdd(item.Key, item.Value);
+
+                foreach (var item in UniqueItemsForSale)
+                {
+                    if (!allItems.TryAdd(item.Key, item.Value))
+                        log.Error($"{Name} ({Guid}) AllItemsForSale: has duplicate item {item.Value.Name} ({item.Value.Guid})");
+                }
+
+                return allItems;
+            }
+        }
 
         private bool inventoryloaded;
 
@@ -345,11 +365,67 @@ namespace ACE.Server.WorldObjects
                 {
                     if (UniqueItemsForSale.TryGetValue(new ObjectGuid(item.ObjectGuid), out var wo))
                     {
-                        wo.RemoveProperty(PropertyFloat.SoldTimestamp);
+                        //wo.RemoveProperty(PropertyFloat.SoldTimestamp);
                         uqlist.Add(wo);
                         UniqueItemsForSale.Remove(new ObjectGuid(item.ObjectGuid));
                     }
                 }
+            }
+
+            var playerFreeInventorySlots = player.GetFreeInventorySlots();
+            var playerFreeContainerSlots = player.GetFreeContainerSlots();
+            var playerAvailableBurden = player.GetAvailableBurden();
+
+            var playerOutOfInventorySlots = false;
+            var playerOutOfContainerSlots = false;
+            var playerExceedsAvailableBurden = false;
+
+            foreach (ItemProfile item in filteredlist)
+            {
+                var itemAmount = player.PreCheckItem(item.WeenieClassId, (int)item.Amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemIsContainer);
+
+                if (itemIsContainer)
+                {
+                    playerFreeContainerSlots -= itemAmount;
+                    playerAvailableBurden -= itemEncumberance;
+
+                    playerOutOfContainerSlots = playerFreeContainerSlots < 0;
+                }
+                else
+                {
+                    playerFreeInventorySlots -= itemAmount;
+                    playerAvailableBurden -= itemEncumberance;
+
+                    playerOutOfInventorySlots = playerFreeInventorySlots < 0;
+                }
+                               
+                playerExceedsAvailableBurden = playerAvailableBurden < 0;
+
+                if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
+                    break;
+            }
+
+            if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
+            {
+                if (playerExceedsAvailableBurden)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to buy that!"));
+                else if (playerOutOfInventorySlots)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to buy that!"));
+                else //if (playerOutOfContainerSlots)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to buy that!"));
+
+                player.Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(player.Session, player.Guid.Full));
+
+                if (uqlist.Count > 0)
+                {
+                    foreach (var item in uqlist)
+                    {
+                        //item.SetProperty(PropertyFloat.SoldTimestamp, Common.Time.GetUnixTime());
+                        UniqueItemsForSale.Add(item.Guid, item);
+                    }
+                }
+
+                return;
             }
 
             // convert profile to world objects / stack logic does not include unique items.
@@ -448,9 +524,14 @@ namespace ACE.Server.WorldObjects
                 {
                     item.ContainerId = Guid.Full;
 
-                    item.SetProperty(PropertyFloat.SoldTimestamp, Common.Time.GetUnixTime());
+                    if (!UniqueItemsForSale.TryAdd(item.Guid, item))
+                    {
+                        log.Error($"{Name}.ProcessItemsForPurchase({player.Name}): duplicate item found");
+                        foreach (var i in items)
+                            log.Error($"{i.Name} ({i.Guid})");
+                    }
 
-                    UniqueItemsForSale.Add(item.Guid, item);
+                    item.SetProperty(PropertyFloat.SoldTimestamp, Common.Time.GetUnixTime());
 
                     // remove object from shard db, but keep a reference to it in memory
                     // for DestroyOnSell items, these will effectively be destroyed immediately

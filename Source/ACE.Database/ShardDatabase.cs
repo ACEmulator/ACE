@@ -196,7 +196,7 @@ namespace ACE.Database
 
         private static readonly ConditionalWeakTable<Biota, ShardDbContext> BiotaContexts = new ConditionalWeakTable<Biota, ShardDbContext>();
 
-        private static Biota GetBiota(ShardDbContext context, uint id)
+        public static Biota GetBiota(ShardDbContext context, uint id)
         {
             var biota = context.Biota
                 .FirstOrDefault(r => r.Id == id);
@@ -1204,13 +1204,16 @@ namespace ACE.Database
         {
             var staticObjects = new List<Biota>();
 
-            var staticLandblockId = 0x70000 | landblockId;
+            var staticLandblockId = (uint)(0x70000 | landblockId);
+
+            var min = staticLandblockId << 12;
+            var max = min | 0xFFF;
 
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
+                var results = context.Biota.Where(b => b.Id >= min && b.Id <= max).ToList();
 
                 foreach (var result in results)
                 {
@@ -1226,13 +1229,16 @@ namespace ACE.Database
         {
             var staticObjects = new ConcurrentBag<Biota>();
 
-            var staticLandblockId = 0x70000 | landblockId;
+            var staticLandblockId = (uint)(0x70000 | landblockId);
+
+            var min = staticLandblockId << 12;
+            var max = min | 0xFFF;
 
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
+                var results = context.Biota.Where(b => b.Id >= min && b.Id <= max).ToList();
 
                 Parallel.ForEach(results, result =>
                 {
@@ -1248,12 +1254,15 @@ namespace ACE.Database
         {
             var dynamics = new List<Biota>();
 
+            var min = (uint)(landblockId << 16);
+            var max = min | 0xFFFF;
+
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
                 var results = context.BiotaPropertiesPosition
-                    .Where(p => p.PositionType == 1 && p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
+                    .Where(p => p.PositionType == 1 && p.ObjCellId >= min && p.ObjCellId <= max && p.ObjectId >= 0x80000000)
                     .ToList();
 
                 foreach (var result in results)
@@ -1279,12 +1288,15 @@ namespace ACE.Database
         {
             var dynamics = new ConcurrentBag<Biota>();
 
+            var min = (uint)(landblockId << 16);
+            var max = min | 0xFFFF;
+
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
                 var results = context.BiotaPropertiesPosition
-                    .Where(p => p.PositionType == 1 && p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
+                    .Where(p => p.PositionType == 1 && p.ObjCellId >= min && p.ObjCellId <= max && p.ObjectId >= 0x80000000)
                     .ToList();
 
                 Parallel.ForEach(results, result =>
@@ -1335,6 +1347,28 @@ namespace ACE.Database
 
         private static readonly ConditionalWeakTable<Character, ShardDbContext> CharacterContexts = new ConditionalWeakTable<Character, ShardDbContext>();
 
+        public Character GetFullCharacter(string name)
+        {
+            var context = new ShardDbContext();
+
+            var result = context.Character
+                .Include(r => r.CharacterPropertiesContract)
+                .Include(r => r.CharacterPropertiesFillCompBook)
+                .Include(r => r.CharacterPropertiesFriendList)
+                .Include(r => r.CharacterPropertiesQuestRegistry)
+                .Include(r => r.CharacterPropertiesShortcutBar)
+                .Include(r => r.CharacterPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesTitleBook)
+                .FirstOrDefault(r => r.Name == name && !r.IsDeleted);
+
+            if (result == null)
+                Console.WriteLine($"ShardDatabase.GetFullCharacter({name}): couldn't find character");
+            else
+                CharacterContexts.Add(result, context);
+
+            return result;
+        }
+
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
             var context = new ShardDbContext();
@@ -1369,6 +1403,26 @@ namespace ACE.Database
                 //.Include(r => r.CharacterPropertiesSpellBar)
                 //.Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Name == name.ToLower() && !r.IsDeleted);
+
+            if (result != null)
+                CharacterContexts.Add(result, context);
+
+            return result;
+        }
+
+        public Character GetCharacterByGuid(uint guid)
+        {
+            var context = new ShardDbContext();
+
+            var result = context.Character
+                //.Include(r => r.CharacterPropertiesContract)
+                //.Include(r => r.CharacterPropertiesFillCompBook)
+                //.Include(r => r.CharacterPropertiesFriendList)
+                //.Include(r => r.CharacterPropertiesQuestRegistry)
+                //.Include(r => r.CharacterPropertiesShortcutBar)
+                //.Include(r => r.CharacterPropertiesSpellBar)
+                //.Include(r => r.CharacterPropertiesTitleBook)
+                .FirstOrDefault(r => r.Id == guid);
 
             if (result != null)
                 CharacterContexts.Add(result, context);

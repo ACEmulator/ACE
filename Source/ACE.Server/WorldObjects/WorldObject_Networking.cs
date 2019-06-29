@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(UseRadius ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.TargetType) != 0)
-                writer.Write(TargetType ?? 0);
+                writer.Write((uint?)TargetType ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.UiEffects) != 0)
                 writer.Write((uint?)UiEffects ?? 0u);
@@ -1058,7 +1058,7 @@ namespace ACE.Server.WorldObjects
                         itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
                     }
 
-                    if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false))
+                    if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false) && (Shade.HasValue || PaletteTemplate.HasValue))
                         IconId = itemSubPal.Icon;
 
                     float shade = 0;
@@ -1155,7 +1155,7 @@ namespace ACE.Server.WorldObjects
             if (!excludeSelf && this is Player self)
                 self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (Visibility && !player.Adminvision)
                     continue;
@@ -1184,14 +1184,21 @@ namespace ACE.Server.WorldObjects
             return iterator.CurrentLandblock == null ? null : iterator;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
-            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand);
+            var animLength = 0.0f;
+            if (usePrevCommand)
+            {
+                var prevCommand = CurrentMotionState.MotionState.ForwardCommand;
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
+            }
+            else
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
 
             actionChain.AddAction(this, () =>
             {
@@ -1200,8 +1207,39 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.AddDelaySeconds(animLength);
+
             return animLength;
         }
+
+        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f)
+        {
+            var motion = new Motion(stance, motionCommand, speed);
+
+            var animLength = 0.0f;
+
+            if (prevCommand == null)
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            else
+            {
+                var isStance = Enum.IsDefined(typeof(MotionStance), (uint)prevCommand);
+
+                if (isStance)
+                    animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, (MotionStance)prevCommand, motionCommand, (MotionCommand)stance, speed);
+                else
+                    animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand.Value, motionCommand, speed);
+            }
+
+            actionChain.AddAction(this, () =>
+            {
+                CurrentMotionState = motion;
+
+                EnqueueBroadcastMotion(motion);
+            });
+
+            actionChain.AddDelaySeconds(animLength);
+            return animLength;
+        }
+
 
         /// <summary>
         /// Returns TRUE if there are any players within range of this object
@@ -1212,7 +1250,7 @@ namespace ACE.Server.WorldObjects
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
@@ -1248,7 +1286,7 @@ namespace ACE.Server.WorldObjects
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (self != null && useSquelch && player.Squelches.Contains(self))
                     continue;
@@ -1285,7 +1323,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
             {
                 if (Visibility && !player.Adminvision)
@@ -1306,7 +1344,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers.Except(excludePlayers))
             {
                 if (Visibility && !player.Adminvision)
@@ -1328,7 +1366,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}: NotifyPlayers - found {PhysicsObj.ObjMaint.VoyeurTable.Count} players");
 
             // add to player tracking / send create object network messages to these players
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
                 player.AddTrackedObject(this);
 
             if (this is Creature creature && !(this is Player))

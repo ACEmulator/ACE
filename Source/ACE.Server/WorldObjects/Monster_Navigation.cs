@@ -256,7 +256,9 @@ namespace ACE.Server.WorldObjects
 
         public void UpdatePosition()
         {
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Monster_Navigation_UpdatePosition_PUO);
             PhysicsObj.update_object();
+            ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Monster_Navigation_UpdatePosition_PUO);
             UpdatePosition_SyncLocation();
 
             //SendUpdatePosition(ForcePos);

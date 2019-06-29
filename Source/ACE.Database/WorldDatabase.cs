@@ -411,23 +411,26 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
+        /// Returns statics spawn map and their links for the landblock
         /// </summary>
         public List<LandblockInstance> GetCachedInstancesByLandblock(ushort landblock)
+        {
+            using (var context = new WorldDbContext())
+                return GetCachedInstancesByLandblock(context, landblock);
+        }
+
+        public List<LandblockInstance> GetCachedInstancesByLandblock(WorldDbContext context, ushort landblock)
         {
             if (cachedLandblockInstances.TryGetValue(landblock, out var value))
                 return value;
 
-            using (var context = new WorldDbContext())
-            {
-                var results = context.LandblockInstance
-                    .Include(r => r.LandblockInstanceLink)
-                    .AsNoTracking()
-                    .Where(r => r.Landblock == landblock)
-                    .ToList();
+            var results = context.LandblockInstance
+                .Include(r => r.LandblockInstanceLink)
+                .AsNoTracking()
+                .Where(r => r.Landblock == landblock)
+                .ToList();
 
-                cachedLandblockInstances.TryAdd(landblock, results.ToList());
-            }
+            cachedLandblockInstances.TryAdd(landblock, results.ToList());
 
             return cachedLandblockInstances[landblock];
         }
@@ -945,7 +948,7 @@ namespace ACE.Database
                     .ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialColor[result.Key] = result.ToList();
+                    cachedTreasureMaterialColor[(int)result.Key] = result.ToList();
             }
         }
 
@@ -979,7 +982,7 @@ namespace ACE.Database
                     .ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialBase[result.Key] = result.ToList();
+                    cachedTreasureMaterialBase[(int)result.Key] = result.ToList();
             }
         }
 
@@ -1025,7 +1028,7 @@ namespace ACE.Database
                     .ToList();
 
                 foreach (var result in results)
-                cachedTreasureMaterialGroups[result.Key] = result.ToList();
+                cachedTreasureMaterialGroups[(int)result.Key] = result.ToList();
             }
         }
 

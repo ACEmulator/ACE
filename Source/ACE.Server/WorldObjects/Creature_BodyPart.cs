@@ -15,89 +15,28 @@ namespace ACE.Server.WorldObjects
         public Creature Creature;
         public BiotaPropertiesBodyPart Biota;
 
-        public float WeaponArmorMod = 1.0f;
-        public float WeaponResistanceMod = 1.0f;        // resistance cleaving, rends
-
-        public bool IgnoreMagicArmor;   // impen, bane
-        public bool IgnoreMagicResist;  // armor, protection
-
         public EnchantmentManager EnchantmentManager => Creature.EnchantmentManager;
 
-        public Creature_BodyPart(Creature creature, BiotaPropertiesBodyPart biota, bool ignoreMagicArmor = false, bool ignoreMagicResist = false)
+        public Creature_BodyPart(Creature creature, BiotaPropertiesBodyPart biota)
         {
             Creature = creature;
             Biota = biota;
-
-            IgnoreMagicArmor = ignoreMagicArmor;
-            IgnoreMagicResist = ignoreMagicResist;
-        }
-
-        public int BaseArmorMod
-        {
-            get
-            {
-                var armorMod = IgnoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
-
-                return (int)Math.Round((Biota.BaseArmor + armorMod) * WeaponArmorMod);
-            }
-        }
-        
-        public int ArmorVsSlash => GetArmorVsType(DamageType.Slash, Biota.ArmorVsSlash);
-        public int ArmorVsPierce => GetArmorVsType(DamageType.Pierce, Biota.ArmorVsPierce);
-        public int ArmorVsBludgeon => GetArmorVsType(DamageType.Bludgeon, Biota.ArmorVsBludgeon);
-        public int ArmorVsFire => GetArmorVsType(DamageType.Fire, Biota.ArmorVsFire);
-        public int ArmorVsCold => GetArmorVsType(DamageType.Cold, Biota.ArmorVsCold);
-        public int ArmorVsAcid => GetArmorVsType(DamageType.Acid, Biota.ArmorVsAcid);
-        public int ArmorVsElectric => GetArmorVsType(DamageType.Electric, Biota.ArmorVsElectric);
-        public int ArmorVsNether => GetArmorVsType(DamageType.Nether, Biota.ArmorVsNether);
-
-        public int GetArmorVsType(DamageType damageType, int armorVsType)
-        {
-            // TODO: refactor this class
-            var preScaled = (float)BaseArmorMod / Biota.BaseArmor;
-
-            //var resistance = (float)armorVsType / Biota.BaseArmor;
-            var resistance = (float)armorVsType / Biota.BaseArmor * preScaled;
-            if (double.IsNaN(resistance))
-                resistance = 1.0f;
-
-            float mod;
-            var spellVuln = IgnoreMagicResist ? 1.0f : EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
-            var spellProt = IgnoreMagicResist ? 1.0f : EnchantmentManager.GetProtectionResistanceMod(damageType);
-
-            if (WeaponResistanceMod > spellVuln)
-                mod = WeaponResistanceMod * spellProt;
-            else
-                mod = spellVuln * spellProt;
-
-            var baseArmorMod = BaseArmorMod;
-
-            var resistanceMod = resistance / mod;
-            if (baseArmorMod < 0)
-                resistanceMod = 1.0f + (1.0f - resistanceMod);
-
-            /*Console.WriteLine("BaseArmor: " + Biota.BaseArmor);
-            Console.WriteLine("BaseArmorMod: " + baseArmorMod);
-            Console.WriteLine("Resistance: " + resistance);
-            Console.WriteLine("ResistanceMod: " + resistanceMod);*/
-
-            return (int)Math.Round(baseArmorMod * resistanceMod);
         }
 
         /// <summary>
         /// Main entry point for getting the armor mod
         /// </summary>
-        public float GetArmorMod(DamageType damageType, List<WorldObject> armorLayers, WorldObject damageSource, float armorRendingMod = 1.0f)
+        public float GetArmorMod(DamageType damageType, List<WorldObject> armorLayers, WorldObject weapon, float armorRendingMod = 1.0f)
         {
-            var effectiveArmorVsType = GetEffectiveArmorVsType(damageType, armorLayers, damageSource, armorRendingMod);
+            var effectiveArmorVsType = GetEffectiveArmorVsType(damageType, armorLayers, weapon, armorRendingMod);
 
             return SkillFormula.CalcArmorMod(effectiveArmorVsType);
         }
 
-        public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, WorldObject damageSource, float armorRendingMod = 1.0f)
+        public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, WorldObject weapon, float armorRendingMod = 1.0f)
         {
-            var ignoreMagicArmor  = damageSource != null ? damageSource.IgnoreMagicArmor : false;
-            var ignoreMagicResist = damageSource != null ? damageSource.IgnoreMagicResist : false;
+            var ignoreMagicArmor  = weapon != null ? weapon.IgnoreMagicArmor : false;
+            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
 
             // get base AL / RL
             var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
@@ -119,7 +58,7 @@ namespace ACE.Server.WorldObjects
 
             // handle monsters w/ multiple layers of armor
             foreach (var armorLayer in armorLayers)
-                effectiveAL += GetArmorMod(armorLayer, damageSource, damageType);
+                effectiveAL += GetArmorMod(armorLayer, damageType, ignoreMagicArmor);
 
             // Armor Rending reduces physical armor too?
             if (effectiveAL > 0)
@@ -128,20 +67,11 @@ namespace ACE.Server.WorldObjects
             return effectiveAL;
         }
 
-        public List<WorldObject> GetArmorLayers(CombatBodyPart bodyPart)
-        {
-            var coverageMask = BodyParts.GetCoverageMask(bodyPart);
-
-            var equipped = Creature.EquippedObjects.Values.Where(e => e is Clothing && (e.ClothingPriority & coverageMask) != 0).ToList();
-
-            return equipped;
-        }
-
         /// <summary>
         /// Returns the effective AL for 1 piece of armor/clothing
         /// </summary>
         /// <param name="armor">A piece of armor or clothing</param>
-        public float GetArmorMod(WorldObject armor, WorldObject weapon, DamageType damageType)
+        public float GetArmorMod(WorldObject armor, DamageType damageType, bool ignoreMagicArmor)
         {
             // get base armor/resistance level
             var baseArmor = armor.GetProperty(PropertyInt.ArmorLevel) ?? 0;
@@ -152,8 +82,6 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine("--");
             Console.WriteLine("Base AL: " + baseArmor);
             Console.WriteLine("Base RL: " + resistance);*/
-
-            var ignoreMagicArmor = weapon != null && weapon.IgnoreMagicArmor;
 
             // armor level additives
             var armorMod = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
@@ -177,6 +105,15 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine();*/
 
             return effectiveAL * effectiveRL;
+        }
+
+        public List<WorldObject> GetArmorLayers(CombatBodyPart bodyPart)
+        {
+            var coverageMask = BodyParts.GetCoverageMask(bodyPart);
+
+            var equipped = Creature.EquippedObjects.Values.Where(e => e is Clothing && (e.ClothingPriority & coverageMask) != 0).ToList();
+
+            return equipped;
         }
     }
 }

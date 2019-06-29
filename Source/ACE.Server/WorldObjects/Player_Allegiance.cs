@@ -51,19 +51,52 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// This flag indicates if a player can pass up allegiance XP
+        /// </summary>
+        public bool ExistedBeforeAllegianceXpChanges
+        {
+            get => GetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges) ?? true;
+            set { if (value) RemoveProperty(PropertyBool.ExistedBeforeAllegianceXpChanges); else SetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges, value); }
+        }
+
+        /// <summary>
         /// Called when a player tries to Swear Allegiance to a target
         /// </summary>
         /// <param name="targetGuid">The target this player is attempting to swear allegiance to</param>
         public void HandleActionSwearAllegiance(uint targetGuid)
         {
-            if (!IsPledgable(targetGuid)) return;
+            var patron = PlayerManager.GetOnlinePlayer(targetGuid);
+
+            if (patron == null) return;
+
+            if (!IsPledgable(patron)) return;
+
+            // perform moveto / turnto
+            CreateMoveToChain(patron, (success) => SwearAllegiance(patron.Guid.Full, success), Allegiance_MaxSwearDistance);
+        }
+
+        public void SwearAllegiance(uint targetGuid, bool success, bool confirmed = false)
+        {
+            if (!success) return;
 
             var patron = PlayerManager.GetOnlinePlayer(targetGuid);
+            if (patron == null)
+                return;
+
+            if (!IsPledgable(patron)) return;
+
+            if (!confirmed)
+            {
+                patron.ConfirmationManager.EnqueueSend(new Confirmation_SwearAllegiance(patron.Guid, Guid), Name);
+                return;
+            }
 
             log.Info($"{Name} swearing allegiance to {patron.Name}");
 
             PatronId = targetGuid;
             MonarchId = AllegianceManager.GetMonarch(patron).Guid.Full;
+
+            ExistedBeforeAllegianceXpChanges = (patron.Level ?? 1) >= (Level ?? 1);
 
             // handle special case: monarch swearing into another allegiance
             if (Allegiance != null && Allegiance.MonarchId == Guid.Full)
@@ -96,7 +129,6 @@ namespace ACE.Server.WorldObjects
 
             UpdateChatChannels();
         }
-
 
         /// <summary>
         /// Handle monarch swearing into another allegiance
@@ -193,26 +225,26 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
 
             // TODO: update chat channel for orphaned players in OnBreakAllegiance()
-            UpdateChatChannels();
+            if (isVassal && targetIsOnline)
+            {
+                var targetPlayer = PlayerManager.GetOnlinePlayer(targetGuid);
+                if (targetPlayer != null)
+                    targetPlayer.UpdateChatChannels();
+            }
+            else
+                UpdateChatChannels();
         }
 
-        public static float Allegiance_MaxSwearDistance = 4.0f;
+        //public static float Allegiance_MaxSwearDistance = 4.0f;
+        public static float Allegiance_MaxSwearDistance = 2.0f;
 
         /// <summary>
         /// Returns TRUE if this player can swear to the target guid
         /// </summary>
-        public bool IsPledgable(uint targetGuid)
+        public bool IsPledgable(Player target)
         {
             // the client doesn't seem to display most of these werrors,
             // so we also send similar messages as text
-
-            // ensure target player is online, and within range
-            var target = PlayerManager.GetOnlinePlayer(targetGuid);
-            if (target == null)
-            {
-                //Console.WriteLine(Name + " tried to swear to an unknown player guid: " + targetGuid.Full.ToString("X8"));
-                return false;
-            }
 
             // check ignore allegiance requests
             if (target.GetCharacterOption(CharacterOption.IgnoreAllegianceRequests))
@@ -232,7 +264,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // player can't swear to themselves
-            if (targetGuid == Guid.Full)
+            if (target.Guid == Guid)
             {
                 //Console.WriteLine(Name + " tried to swear to themselves");
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear allegiance to yourself.", ChatMessageType.Broadcast));
@@ -240,28 +272,13 @@ namespace ACE.Server.WorldObjects
             }
 
             // patron must currently be greater or equal level
-            if (target.Level < Level)
+            /*if (target.Level < Level)
             {
                 //Console.WriteLine(Name + " tried to swear to a lower level character");
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear to a lower level character.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.AllegianceIllegalLevel));
                 return false;
-            }
-
-            // verify max distance
-            if (GetCylinderDistance(target) > Allegiance_MaxSwearDistance)
-            {
-                CreateMoveToChain(target, (success) =>
-                {
-                    if (success)
-                        HandleActionSwearAllegiance(target.Guid.Full);
-                    else
-                        Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.AllegianceMaxDistanceExceeded));
-
-                }, Allegiance_MaxSwearDistance);
-                
-                return false;
-            }
+            }*/
 
             var selfNode = AllegianceNode;
             var targetNode = target.AllegianceNode;
@@ -368,13 +385,7 @@ namespace ACE.Server.WorldObjects
                 foreach (var member in Allegiance.OnlinePlayers)
                 {
                     if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
-                    {
-                        var prefix = member.GetPrefix(this);
-                        if (prefix == "")
-                            continue;
-
-                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{prefix}{Name} is online.", ChatMessageType.Broadcast));
-                    }
+                        member.Session.Network.EnqueueSend(new GameEventAllegianceLoginNotification(member.Session, Guid.Full, isLoggedIn: true));
                 }
             }
         }
@@ -386,13 +397,7 @@ namespace ACE.Server.WorldObjects
                 foreach (var member in Allegiance.OnlinePlayers)
                 {
                     if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
-                    {
-                        var prefix = member.GetPrefix(this);
-                        if (prefix == "")
-                            continue;
-
-                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{prefix}{Name} is offline.", ChatMessageType.Broadcast));
-                    }
+                        member.Session.Network.EnqueueSend(new GameEventAllegianceLoginNotification(member.Session, Guid.Full, isLoggedIn: false));
                 }
             }
         }
@@ -420,7 +425,7 @@ namespace ACE.Server.WorldObjects
             if (AllegianceXPCached == 0) return;
 
             // TODO: handle ulong -> long?
-            EarnXP((long)AllegianceXPCached, XpType.Allegiance, false);
+            EarnXP((long)AllegianceXPCached, XpType.Allegiance, ShareType.None);
 
             AllegianceXPReceived += AllegianceXPCached;
 
