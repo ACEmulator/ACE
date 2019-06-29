@@ -137,13 +137,8 @@ namespace ACE.Server.Physics.Common
             {
                 if (InitialClamp && !ObjectTable.ContainsKey(obj.ID))
                 {
-                    var wo = PhysicsObj.WeenieObj.WorldObject;
-                    var objWo = obj.WeenieObj.WorldObject;
+                    var distSq = PhysicsObj.Position.Distance2DSquared(obj.Position);
 
-                    if (wo == null || objWo == null)
-                        return false;
-
-                    var distSq = wo.Location.Distance2DSquared(objWo.Location);
                     if (distSq > InitialClamp_DistSq)
                         return false;
                 }
@@ -269,26 +264,6 @@ namespace ACE.Server.Physics.Common
                 }
             }
             return cells;
-        }
-
-        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell)
-        {
-            var visibleObjs = GetVisibleObjects(cell);
-
-            var dist = new List<PhysicsObj>();
-            foreach (var obj in visibleObjs)
-            {
-                var wo = PhysicsObj.WeenieObj.WorldObject;
-                var objWo = obj.WeenieObj.WorldObject;
-
-                if (wo == null || objWo == null)
-                    continue;
-
-                var distSq = wo.Location.Distance2DSquared(objWo.Location);
-                if (distSq <= InitialClamp_DistSq)
-                    dist.Add(obj);
-            }
-            return dist;
         }
 
         /// <summary>
@@ -477,19 +452,6 @@ namespace ACE.Server.Physics.Common
         public bool RemoveVoyeur(PhysicsObj obj)
         {
             return VoyeurTable.Remove(obj.ID);
-        }
-
-        /// <summary>
-        /// Called when a new PhysicsObj is first instantiated
-        /// Gets the list of visible players to this PhysicsObj,
-        /// and adds them to the voyeurs list
-        /// </summary>
-        public void get_voyeurs()
-        {
-            if (PhysicsObj.DatObject) return;
-
-            var visiblePlayers = InitialClamp ? GetVisibleObjectsDist(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList() : GetVisibleObjects(PhysicsObj.CurCell);
-            AddVoyeurs(visiblePlayers);
         }
 
         /// <summary>

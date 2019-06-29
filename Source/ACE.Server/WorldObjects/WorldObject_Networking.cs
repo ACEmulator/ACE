@@ -1354,23 +1354,5 @@ namespace ACE.Server.WorldObjects
             }
             return nearbyPlayers;
         }
-
-        /// <summary>
-        /// Called when a new PhysicsObj enters the world
-        /// </summary>
-        public void NotifyPlayers()
-        {
-            // build a list of all players within visible range
-            PhysicsObj.get_voyeurs();
-
-            //Console.WriteLine($"{Name}: NotifyPlayers - found {PhysicsObj.ObjMaint.VoyeurTable.Count} players");
-
-            // add to player tracking / send create object network messages to these players
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
-                player.AddTrackedObject(this);
-
-            if (this is Creature creature && !(this is Player))
-                creature.CheckPlayers();
-        }
     }
 }
