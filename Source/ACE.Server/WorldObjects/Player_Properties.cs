@@ -897,57 +897,82 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public void UpdateProperty(WorldObject obj, PropertyInt prop, int? value)
+        public void UpdateProperty(WorldObject obj, PropertyInt prop, int? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0));
+            var msg = new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0);
+
+            if (broadcast)
+                EnqueueBroadcast(msg);
+            else
+                Session.Network.EnqueueSend(msg);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyBool prop, bool? value)
+        public void UpdateProperty(WorldObject obj, PropertyBool prop, bool? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false));
+            var msg = new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false);
+
+            if (broadcast)
+                EnqueueBroadcast(msg);
+            else
+                Session.Network.EnqueueSend(msg);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyFloat prop, double? value)
+        public void UpdateProperty(WorldObject obj, PropertyFloat prop, double? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0));
+            var msg = new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0);
+
+            if (broadcast)
+                EnqueueBroadcast(msg);
+            else
+                Session.Network.EnqueueSend(msg);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyDataId prop, uint? value)
+        public void UpdateProperty(WorldObject obj, PropertyDataId prop, uint? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0));
+            var msg = new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0);
+
+            if (broadcast)
+                EnqueueBroadcast(msg);
+            else
+                Session.Network.EnqueueSend(msg);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyInstanceId prop, uint? value)
+        public void UpdateProperty(WorldObject obj, PropertyInstanceId prop, uint? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0)));
+            var msg = new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0));
+
+            if (broadcast)
+                EnqueueBroadcast(msg);
+            else
+                Session.Network.EnqueueSend(msg);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyString prop, string value)
+        public void UpdateProperty(WorldObject obj, PropertyString prop, string value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value);
@@ -956,17 +981,27 @@ namespace ACE.Server.WorldObjects
 
             // the client seems to cache these values somewhere,
             // and the object will not update until relogging or CO
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyString(obj, prop, value));
+            var msg = new GameMessagePublicUpdatePropertyString(obj, prop, value);
+
+            if (broadcast)
+                EnqueueBroadcast(msg);
+            else
+                Session.Network.EnqueueSend(msg);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyInt64 prop, long? value)
+        public void UpdateProperty(WorldObject obj, PropertyInt64 prop, long? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0));
+            var msg = new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0);
+
+            if (broadcast)
+                EnqueueBroadcast(msg);
+            else
+                Session.Network.EnqueueSend(msg);
         }
 
         // ========================================

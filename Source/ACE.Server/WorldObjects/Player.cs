@@ -969,7 +969,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(this, () =>
             {
-                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite);
+                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
             });
