@@ -1758,9 +1758,9 @@ namespace ACE.Server.Command.Handlers
 
             var guid = GuidManager.NewPlayerGuid();
 
-            weenie.Type = (int)session.Player.WeenieType;
-
             var player = new Player(weenie, guid, session.AccountId);
+
+            player.Biota.WeenieType = (int)session.Player.WeenieType;
 
             var name = string.Join(' ', parameters.Skip(1));
             if (parameters.Length > 1)
