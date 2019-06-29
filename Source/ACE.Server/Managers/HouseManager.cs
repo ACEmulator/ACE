@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using log4net;
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -38,24 +39,129 @@ namespace ACE.Server.Managers
 
             IsBuilding = true;
 
-            var allPlayers = PlayerManager.GetAllPlayers();
-            var houseOwners = allPlayers.Where(i => i.HouseInstance != null);
-
             RentQueue = new SortedSet<PlayerHouse>();
 
-            foreach (var houseOwner in houseOwners)
-                AddRentQueue(houseOwner);
+            //var allPlayers = PlayerManager.GetAllPlayers();
+            //var houseOwners = allPlayers.Where(i => i.HouseInstance != null);
+
+            //foreach (var houseOwner in houseOwners)
+                //AddRentQueue(houseOwner);
+
+            var ownedHouses = DatabaseManager.Shard.GetBiotasByType(WeenieType.House);
+
+            foreach (var ownedHouse in ownedHouses)
+                AddRentQueue(ownedHouse);
 
             IsBuilding = false;
 
             //log.Info($"Loaded {RentQueue.Count} active houses.");
+            QueryMultiHouse();
         }
 
-        public static void AddRentQueue(IPlayer player)
+        public static bool RentQueueContainsHouse(uint houseId)
         {
-            var houseGuid = player.HouseInstance.Value;
+            return RentQueue.Any(i => i.House.HouseId == houseId);
+        }
+
+        public static void QueryMultiHouse()
+        {
+            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
+
+            var playerHouses = new Dictionary<IPlayer, List<Biota>>();
+            var accountHouses = new Dictionary<string, List<Biota>>();
+
+            foreach (var slumlord in slumlordBiotas)
+            {
+                var biotaOwner = slumlord.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (ushort)PropertyInstanceId.HouseOwner);
+                if (biotaOwner == null)
+                {
+                    Console.WriteLine($"HouseManager.QueryMultiHouse(): couldn't find owner for house {slumlord.Id:X8}");
+                    continue;
+                }
+                var owner = PlayerManager.FindByGuid(biotaOwner.Value);
+                if (owner == null)
+                {
+                    Console.WriteLine($"HouseManager.QueryMultiHouse(): couldn't find owner {biotaOwner.Value:X8}");
+                    continue;
+                }
+
+                if (!playerHouses.TryGetValue(owner, out var houses))
+                {
+                    houses = new List<Biota>();
+                    playerHouses.Add(owner, houses);
+                }
+                houses.Add(slumlord);
+
+                var accountName = owner.Account != null ? owner.Account.AccountName : "NULL";
+
+                if (!accountHouses.TryGetValue(accountName, out var aHouses))
+                {
+                    aHouses = new List<Biota>();
+                    accountHouses.Add(accountName, aHouses);
+                }
+                aHouses.Add(slumlord);
+
+                Console.Write(".");
+            }
+
+            foreach (var playerHouse in playerHouses.OrderByDescending(i => i.Value.Count()))
+                Console.WriteLine($"{playerHouse.Key.Name}: {playerHouse.Value.Count} ({string.Join(" | ", GetCoords(playerHouse.Value))})");
+
+            //foreach (var accountHouse in accountHouses.OrderByDescending(i => i.Value.Count()))
+                //Console.WriteLine($"{accountHouse.Key}: {accountHouse.Value.Count}");
+        }
+
+        public static List<string> GetCoords(List<Biota> biotas)
+        {
+            var coords = new List<string>();
+            foreach (var biota in biotas)
+            {
+                var p = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
+                var pos = new Position(p.ObjCellId, p.OriginX, p.OriginY, p.OriginZ, p.AnglesX, p.AnglesY, p.AnglesZ, p.AnglesW);
+                var str = pos.GetMapCoordStr();
+                if (str == null)
+                    str = pos.ToLOCString();
+                coords.Add(str);
+            }
+            return coords;
+        }
+
+        public static void AddRentQueue(Biota ownedHouse)
+        {
+            var biotaOwner = ownedHouse.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (ushort)PropertyInstanceId.HouseOwner);
+            if (biotaOwner == null)
+            {
+                Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find owner for house {ownedHouse.Id:X8}");
+                return;
+            }
+            var owner = PlayerManager.FindByGuid(biotaOwner.Value);
+            if (owner == null)
+            {
+                Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find owner {biotaOwner.Value:X8}");
+                return;
+            }
+            var houseId = ownedHouse.BiotaPropertiesDID.FirstOrDefault(i => i.Type == (ushort)PropertyDataId.HouseId);
+            if (houseId == null)
+            {
+                Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find id for house {ownedHouse.Id:X8}");
+                return;
+            }
+            if (RentQueueContainsHouse(houseId.Value))
+            {
+                Console.WriteLine($"HouseManager.AddRentQueue(): rent queue already contains house {houseId.Value}");
+                return;
+            }
+            AddRentQueue(owner, ownedHouse.Id);
+        }
+
+        public static void AddRentQueue(IPlayer player, uint houseGuid)
+        {
+            Console.WriteLine($"AddRentQueue({player.Name}, {houseGuid:X8})");
 
             var house = House.Load(houseGuid);
+            if (house == null)      // this can happen for basement dungeons
+                return;
+
             var purchaseTime = (uint)(player.HousePurchaseTimestamp ?? 0);
 
             if (player.HouseRentTimestamp == null)

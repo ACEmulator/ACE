@@ -128,6 +128,13 @@ namespace ACE.Server.WorldObjects
             var house = (House)linkedHouses[0];
 
             // load slumlord biota for rent
+            if (house.SlumLord == null)
+            {
+                // this can happen for basement dungeons
+                //Console.WriteLine($"House.Load({houseGuid:X8}): couldn't find slumlord!");
+                return null;
+            }
+
             var slumlordGuid = house.SlumLord.Guid.Full;
             var slumlordBiota = DatabaseManager.Shard.GetBiota(slumlordGuid);
             if (slumlordBiota != null)

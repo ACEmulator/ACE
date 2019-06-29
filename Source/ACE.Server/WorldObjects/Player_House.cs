@@ -267,7 +267,7 @@ namespace ACE.Server.WorldObjects
                 // boot anyone who may have been wandering around inside...
                 HandleActionBootAll(false);
 
-                HouseManager.AddRentQueue(this);
+                HouseManager.AddRentQueue(this, house.Guid.Full);
 
             });
             actionChain.EnqueueChain();
