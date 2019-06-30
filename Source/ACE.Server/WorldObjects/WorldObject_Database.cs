@@ -46,8 +46,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void SaveBiotaToDatabase(bool enqueueSave = true)
         {
-            if(DoNotSave) { return; }
-
             // Make sure all of our positions in the biota are up to date with our current cached values.
             foreach (var kvp in positionCache)
                 Biota.SetPosition(kvp.Key, kvp.Value, BiotaDatabaseLock, out _);

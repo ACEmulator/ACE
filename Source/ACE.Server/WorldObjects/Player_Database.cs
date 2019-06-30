@@ -56,8 +56,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SavePlayerToDatabase()
         {
-            if (DoNotSave) { return; }
-
             if (CharacterChangesDetected)
                 SaveCharacterToDatabase();
 
@@ -84,8 +82,6 @@ namespace ACE.Server.WorldObjects
 
         public void SaveCharacterToDatabase()
         {
-            if (DoNotSave) { return; }
-
             CharacterLastRequestedDatabaseSave = DateTime.UtcNow;
             CharacterChangesDetected = false;
 

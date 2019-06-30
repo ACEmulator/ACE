@@ -69,6 +69,8 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
 
             SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
+
+            SetProperty(PropertyString.GodState, $"0={DateTime.UtcNow}");
         }
 
         /// <summary>

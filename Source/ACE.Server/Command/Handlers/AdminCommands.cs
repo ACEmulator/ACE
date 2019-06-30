@@ -1485,27 +1485,111 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Turns current character into a god!",
             "Sets attributes and skills to higher than max levels.\n"
-            + "This status will last until you log out. While you are a god items you obtain will not be retained after relogging.\n"
-            + "Items you already had in inventory will be maintained, provided you do not drop or otherwise lose them as a god.\n"
-            + "Use this command with caution. There is no guarantee your character or items will return to normal.")]
+            + "To return to your mortal state, use the /ungod command.")]
         public static void HandleGod(Session session, params string[] parameters)
         {
             // @god - Sets your own stats to a godly level.
-            // need to save before altering stats and entering 'do not save' mode
+            // need to save stats so that we can return with /ungod
             var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
             biotas.Add((session.Player.Biota, session.Player.BiotaDatabaseLock));
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
         }
             
-        private static void DoGodMode(bool playerSaved, Session session) {
+        private static void DoGodMode(bool playerSaved, Session session)
+        {
+            if (!playerSaved)
+            {
+                ChatPacket.SendServerMessage(session, "Error saving player. Godmode not available.", ChatMessageType.Broadcast);
+                Console.WriteLine("Error saving player. Godmode not available.");
+                return;
+            }
+
+            Biota biota = DatabaseManager.Shard.GetBiota(session.Player.Guid.Full);
+
+            var godString = biota.BiotaPropertiesString.FirstOrDefault(s => s.Type == (ushort)PropertyString.GodState);
+
+            if (godString.Value.StartsWith("1"))
+            {
+                ChatPacket.SendServerMessage(session, "You are already a god.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            // if godstate starts with 1, you are in godmode
+            string returnState = "1=";
+            returnState += $"{DateTime.UtcNow}=";
+
+            // need level, available skill credits, augs?
+            foreach (var i in biota.BiotaPropertiesInt)
+            {
+                // 24, 25, augs?
+                switch (i.Type)
+                {
+                    case 24:
+                        returnState += $"{i.Type}=";
+                        returnState += $"{i.Value}=";
+                        break;
+                    case 25:
+                        returnState += $"{i.Type}=";
+                        returnState += $"{i.Value}=";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // need total xp, unassigned xp
+            foreach (var iSixFour in biota.BiotaPropertiesInt64)
+            {
+                returnState += $"{iSixFour.Type}=";
+                returnState += $"{iSixFour.Value}=";
+            }
+
+            // need all attributes
+            foreach (var att in biota.BiotaPropertiesAttribute)
+            {
+                returnState += $"{att.Type}=";
+                returnState += $"{att.InitLevel}=";
+                returnState += $"{att.LevelFromCP}=";
+                returnState += $"{att.CPSpent}=";
+            }
+
+            // need all vitals
+            foreach (var attSec in biota.BiotaPropertiesAttribute2nd)
+            {
+                returnState += $"{attSec.Type}=";
+                returnState += $"{attSec.InitLevel}=";
+                returnState += $"{attSec.LevelFromCP}=";
+                returnState += $"{attSec.CPSpent}=";
+                returnState += $"{attSec.CurrentLevel}=";
+            }
+
+            // need all skills
+            foreach (var sk in biota.BiotaPropertiesSkill)
+            {
+                returnState += $"{sk.Type}=";
+                returnState += $"{sk.LevelFromPP}=";
+                returnState += $"{sk.SAC}=";
+                returnState += $"{sk.PP}=";
+                returnState += $"{sk.InitLevel}=";
+                returnState += $"{sk.ResistanceAtLastCheck}=";
+                returnState += $"{sk.LastUsedTime}=";
+            }
+
+            // save return state to db in property string
+            Console.WriteLine($"\n Saving godState: \n {returnState}\n\n");
+            session.Player.SetProperty(PropertyString.GodState, returnState);
+
+            // Begin Godly Stats Increase
 
             var currentPlayer = session.Player;
-            currentPlayer.DoNotSave = true;
             currentPlayer.TotalExperience = 191226310247;
             currentPlayer.Level = 999;
 
-            currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, 999));
-            currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, 191226310247));
+            // List<IGameMessage> ??
+            GameMessagePrivateUpdatePropertyInt levelMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, 999);
+            GameMessagePrivateUpdatePropertyInt64 totalExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, 191226310247);
+
+            currentPlayer.Session.Network.EnqueueSend(levelMsg, totalExpMsg);
 
             foreach (var s in currentPlayer.Skills)
             {
@@ -1545,6 +1629,140 @@ namespace ACE.Server.Command.Handlers
             currentPlayer.PlayParticleEffect(PlayScript.BaelZharonSmite, currentPlayer.Guid);
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
+        }
+
+        // ungod
+        [CommandHandler("ungod", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void HandleUngod(Session session, params string[] parameters)
+        {
+            // @ungod - Returns skills and attributues to pre-god levels.
+
+            Player currentPlayer = session.Player;
+            Biota biota = DatabaseManager.Shard.GetBiota(currentPlayer.Guid.Full);
+
+            // should look this up by type = 9006 (godState prop)
+            var returnString = biota.BiotaPropertiesString.FirstOrDefault(s => s.Type == (ushort)PropertyString.GodState);
+            
+            if (returnString.Value.StartsWith("0"))
+            {
+                ChatPacket.SendServerMessage(session, "Can't get any more ungodly than you already are...", ChatMessageType.Broadcast);
+                return;
+            }
+            else
+            {
+                Console.WriteLine($"\n\n Returning to normal state. \n");
+
+                string[] returnStringArr = returnString.Value.Split("=");
+
+                //return all skills to untrained
+                foreach (var s in currentPlayer.Skills)
+                {
+                    currentPlayer.UnspecializeSkill(s.Key, 0);
+                    currentPlayer.UntrainSkill(s.Key, 0);
+                    var playerSkill = currentPlayer.Skills[s.Key];
+                    playerSkill.Ranks = 0;
+                    playerSkill.ExperienceSpent = 0;
+                    playerSkill.InitLevel = 0;
+                    currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 0, playerSkill.ExperienceSpent));
+                }
+
+                int arrLen = returnStringArr.Length;
+                // int, int64, att, att2, skills
+                for (int i = 2; i < arrLen;)
+                {
+                    switch (i)
+                    {
+                        case int n when (n <= 5):
+                            currentPlayer.SetProperty((PropertyInt)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                            i += 2;
+                            break;
+                        case int n when (n <= 9):
+                            currentPlayer.SetProperty((PropertyInt64)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                            i += 2;
+                            break;
+                        case int n when (n <= 33):
+                            var playerAttr = currentPlayer.Attributes[(PropertyAttribute)int.Parse(returnStringArr[i])];
+                            playerAttr.StartingValue = uint.Parse(returnStringArr[i + 1]);
+                            playerAttr.Ranks = uint.Parse(returnStringArr[i + 2]);
+                            playerAttr.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                            i += 4;
+                            break;
+                        case int n when (n <= 48):
+                            var playerVital = currentPlayer.Vitals[(PropertyAttribute2nd)int.Parse(returnStringArr[i])];
+                            playerVital.StartingValue = uint.Parse(returnStringArr[i + 1]);
+                            playerVital.Ranks = uint.Parse(returnStringArr[i + 2]);
+                            playerVital.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                            playerVital.Current = uint.Parse(returnStringArr[i + 4]);
+                            i += 5;
+                            break;
+                        case int n when (n <= 314):
+                            /*
+                            returnState += $"{sk.Type}=";
+                            returnState += $"{sk.LevelFromPP}=";    +1
+                            returnState += $"{sk.SAC}=";            +2
+                            returnState += $"{sk.PP}=";             +3
+                            returnState += $"{sk.InitLevel}=";      +4
+                            returnState += $"{sk.ResistanceAtLastCheck}=";  +5
+                            returnState += $"{sk.LastUsedTime}=";   +6
+                            */
+                            if (returnStringArr[i + 2] == "1")
+                            {
+                                var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
+                                playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
+                                playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                                playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
+                                i += 7;
+                                break;
+                            }
+                            else if (returnStringArr[i + 2] == "2")
+                            {
+                                var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
+                                //currentPlayer.TrainSkill(playerSkill.Skill, 0);
+                                playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
+                                playerSkill.AdvancementClass = (SkillAdvancementClass)int.Parse(returnStringArr[i + 2]);
+                                playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                                playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
+                                // resistance at last check?
+                                // last used time?
+                                i += 7;
+                                break;
+                            }
+                            else if (returnStringArr[i + 2] == "3")
+                            {
+                                var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
+                                //currentPlayer.SpecializeSkill(playerSkill.Skill, 0);
+                                playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
+                                playerSkill.AdvancementClass = (SkillAdvancementClass)int.Parse(returnStringArr[i + 2]);
+                                playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                                playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
+                                // resistance at last check?
+                                // last used time?
+                                i += 7;
+                                break;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Unknown skill specialization level detected for skill type #: {i}.");
+                                i += 7;
+                                break;
+                            }
+                        case 315:
+                            Console.WriteLine($"Reached end of returnString.");
+                            i++;
+                            break;
+                        default:
+                            Console.WriteLine($"Hit default case with i = {i}");
+                            i++;
+                            break;
+                    }
+                }
+
+                currentPlayer.SetMaxVitals();
+
+                currentPlayer.SetProperty(PropertyString.GodState, $"0={DateTime.UtcNow}");
+
+                ChatPacket.SendServerMessage(session, "You have returned from your godly state.", ChatMessageType.Broadcast);
+            }
         }
 
         // magic god
