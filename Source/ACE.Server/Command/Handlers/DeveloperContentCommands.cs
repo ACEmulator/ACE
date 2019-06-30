@@ -152,12 +152,18 @@ namespace ACE.Server.Command.Handlers.Processors
             if (!di.Exists)
                 di.Create();
 
-            var sqlFilename = json_filename.Replace(".json", ".sql");
+            var sqlFilename = "";
 
             try
             {
-                var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
                 var converter = new WeenieSQLWriter();
+                converter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+                converter.SpellNames = DatabaseManager.World.GetAllSpellNames();
+                converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
+                converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
+                sqlFilename = converter.GetDefaultFileName(output);
+                var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
+                
                 converter.CreateSQLDELETEStatement(output, sqlFile);
                 sqlFile.WriteLine();
                 converter.CreateSQLINSERTStatement(output, sqlFile);
