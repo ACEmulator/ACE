@@ -72,7 +72,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             di = new DirectoryInfo(sql_folder);
 
-            var files = di.Exists ? di.GetFiles($"{wcid} - *.sql") : null;
+            var files = di.Exists ? di.GetFiles($"{wcid} *.sql") : null;
 
             if (files == null || files.Length == 0)
             {
