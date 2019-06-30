@@ -664,8 +664,8 @@ namespace ACE.Server.WorldObjects
 
                 if (Generator.GeneratorId.HasValue && Generator.GeneratorId > 0) // Generator is controlled by another generator.
                 {
-                    if (Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Generator's complete spawn count has been wiped out
-                        Generator.Destroy();
+                    if (Generator is GenericObject && Generator.Visibility && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is basic generator, not visible to players
+                        Generator.Destroy(); // Generator's complete spawn count has been wiped out
                 }
             }
 
