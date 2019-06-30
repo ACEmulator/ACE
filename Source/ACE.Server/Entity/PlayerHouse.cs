@@ -29,7 +29,12 @@ namespace ACE.Server.Entity
 
         public int CompareTo(PlayerHouse playerHouse)
         {
-            return RentDue.CompareTo(playerHouse.RentDue);
+            var result = RentDue.CompareTo(playerHouse.RentDue);
+
+            if (result != 0)
+                return result;
+            else
+                return 1;
         }
     }
 }

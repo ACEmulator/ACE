@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -23,14 +25,62 @@ namespace ACE.Server.Managers
 
         public static SortedSet<PlayerHouse> RentQueue;
 
+        /// <summary>
+        /// A lookup table of HouseId => HouseGuid
+        /// </summary>
+        public static Dictionary<uint, List<uint>> HouseIdToGuid;
+
         private static readonly RateLimiter updateHouseManagerRateLimiter = new RateLimiter(1, TimeSpan.FromMinutes(1));
 
         public static void Initialize()
         {
+            BuildHouseIdToGuid();
             BuildRentQueue();
         }
 
         public static bool IsBuilding;
+
+        /// <summary>
+        /// Builds the lookup table for HouseId => HouseGuid
+        /// </summary>
+        public static void BuildHouseIdToGuid()
+        {
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join inst in ctx.LandblockInstance on weenie.ClassId equals inst.WeenieClassId
+                            where weenie.Type == (int)WeenieType.House
+                            select new
+                            {
+                                Weenie = weenie,
+                                Instance = inst
+                            };
+
+                var results = query.ToList();
+
+                HouseIdToGuid = new Dictionary<uint, List<uint>>();
+
+                foreach (var result in results)
+                {
+                    var classname = result.Weenie.ClassName;
+                    var guid = result.Instance.Guid;
+
+                    if (!uint.TryParse(Regex.Match(classname, @"\d+").Value, out var houseId))
+                    {
+                        Console.WriteLine($"HouseManager.BuildHouseIdToGuid(): couldn't parse {classname}");
+                        continue;
+                    }
+
+                    if (!HouseIdToGuid.TryGetValue(houseId, out var houseGuids))
+                    {
+                        houseGuids = new List<uint>();
+                        HouseIdToGuid.Add(houseId, houseGuids);
+                    }
+                    houseGuids.Add(guid);
+                }
+                //Console.WriteLine($"BuildHouseIdToGuid: {HouseIdToGuid.Count}");
+            }
+        }
 
         public static void BuildRentQueue()
         {
@@ -47,10 +97,10 @@ namespace ACE.Server.Managers
             //foreach (var houseOwner in houseOwners)
                 //AddRentQueue(houseOwner);
 
-            var ownedHouses = DatabaseManager.Shard.GetBiotasByType(WeenieType.House);
+            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
 
-            foreach (var ownedHouse in ownedHouses)
-                AddRentQueue(ownedHouse);
+            foreach (var slumlord in slumlordBiotas)
+                AddRentQueue(slumlord);
 
             IsBuilding = false;
 
@@ -58,9 +108,9 @@ namespace ACE.Server.Managers
             QueryMultiHouse();
         }
 
-        public static bool RentQueueContainsHouse(uint houseId)
+        public static bool RentQueueContainsHouse(uint houseInstance)
         {
-            return RentQueue.Any(i => i.House.HouseId == houseId);
+            return RentQueue.Any(i => i.House.HouseInstance == houseInstance);
         }
 
         public static void QueryMultiHouse()
@@ -75,7 +125,8 @@ namespace ACE.Server.Managers
                 var biotaOwner = slumlord.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (ushort)PropertyInstanceId.HouseOwner);
                 if (biotaOwner == null)
                 {
-                    Console.WriteLine($"HouseManager.QueryMultiHouse(): couldn't find owner for house {slumlord.Id:X8}");
+                    // this is fine. this is just a house that was purchased, and then later abandoned
+                    //Console.WriteLine($"HouseManager.QueryMultiHouse(): couldn't find owner for house {slumlord.Id:X8}");
                     continue;
                 }
                 var owner = PlayerManager.FindByGuid(biotaOwner.Value);
@@ -103,6 +154,7 @@ namespace ACE.Server.Managers
 
                 Console.Write(".");
             }
+            Console.WriteLine();
 
             foreach (var playerHouse in playerHouses.OrderByDescending(i => i.Value.Count()))
                 Console.WriteLine($"{playerHouse.Key.Name}: {playerHouse.Value.Count} ({string.Join(" | ", GetCoords(playerHouse.Value))})");
@@ -126,12 +178,13 @@ namespace ACE.Server.Managers
             return coords;
         }
 
-        public static void AddRentQueue(Biota ownedHouse)
+        public static void AddRentQueue(Biota slumlord)
         {
-            var biotaOwner = ownedHouse.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (ushort)PropertyInstanceId.HouseOwner);
+            var biotaOwner = slumlord.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (ushort)PropertyInstanceId.HouseOwner);
             if (biotaOwner == null)
             {
-                Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find owner for house {ownedHouse.Id:X8}");
+                // this is fine. this is just a house that was purchased, and then later abandoned
+                //Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find owner for house {slumlord.Id:X8}");
                 return;
             }
             var owner = PlayerManager.FindByGuid(biotaOwner.Value);
@@ -140,18 +193,29 @@ namespace ACE.Server.Managers
                 Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find owner {biotaOwner.Value:X8}");
                 return;
             }
-            var houseId = ownedHouse.BiotaPropertiesDID.FirstOrDefault(i => i.Type == (ushort)PropertyDataId.HouseId);
+            var houseId = slumlord.BiotaPropertiesDID.FirstOrDefault(i => i.Type == (ushort)PropertyDataId.HouseId);
             if (houseId == null)
             {
-                Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find id for house {ownedHouse.Id:X8}");
+                Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find house id for {slumlord.Id:X8}");
                 return;
             }
-            if (RentQueueContainsHouse(houseId.Value))
+            if (!HouseIdToGuid.TryGetValue(houseId.Value, out var houseGuids))
             {
-                Console.WriteLine($"HouseManager.AddRentQueue(): rent queue already contains house {houseId.Value}");
+                Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find house instance for {slumlord.Id:X8}");
                 return;
             }
-            AddRentQueue(owner, ownedHouse.Id);
+            var houseInstance = GetHouseGuid(slumlord.Id, houseGuids);
+            if (houseInstance == 0)
+            {
+                Console.WriteLine($"HouseManager.AddRentQueue(): couldn't find house guid for {slumlord.Id:X8}");
+                return;
+            }
+            if (RentQueueContainsHouse(houseInstance))
+            {
+                Console.WriteLine($"HouseManager.AddRentQueue(): rent queue already contains house {houseInstance}");
+                return;
+            }
+            AddRentQueue(owner, houseInstance);
         }
 
         public static void AddRentQueue(IPlayer player, uint houseGuid)
@@ -451,6 +515,13 @@ namespace ACE.Server.Managers
         public static List<House> GetCharacterHouses(uint playerGuid)
         {
             return RentQueue.Where(i => i.PlayerGuid == playerGuid).Select(i => i.House).ToList();
+        }
+
+        public static uint GetHouseGuid(uint slumlord_guid, List<uint> house_guids)
+        {
+            var slumlord_prefix = slumlord_guid >> 12;
+
+            return house_guids.FirstOrDefault(i => slumlord_prefix == (i >> 12));
         }
     }
 }
