@@ -2103,6 +2103,8 @@ namespace ACE.Server.WorldObjects
                     {
                         if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.GiveItem))
                         {
+                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+
                             var stackSize = item.StackSize ?? 1;
 
                             var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
