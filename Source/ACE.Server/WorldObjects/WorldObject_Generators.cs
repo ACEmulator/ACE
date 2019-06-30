@@ -129,6 +129,21 @@ namespace ACE.Server.WorldObjects
                     if (profile.MaxObjectsSpawned)
                         continue;
 
+                    if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
+                    {
+                        if (profile.Biota.InitCreate > 1)
+                        {
+                            log.Warn($"0x{Guid} {Name}.SelectProfilesInit(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.InitCreate({profile.Biota.InitCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                            profile.Biota.InitCreate = 1;
+                        }
+
+                        if (profile.Biota.MaxCreate > 1)
+                        {
+                            log.Warn($"0x{Guid} {Name}.SelectProfilesInit(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.MaxCreate({profile.Biota.MaxCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                            profile.Biota.MaxCreate = 1;
+                        }
+                    }
+
                     var probability = rng_selected ? GetAdjustedProbability(i) : profile.Biota.Probability;
 
                     if (rng < probability || probability == -1)
