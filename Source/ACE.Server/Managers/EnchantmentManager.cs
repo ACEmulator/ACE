@@ -146,7 +146,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public virtual AddEnchantmentResult Add(Spell spell, WorldObject caster)
+        public virtual AddEnchantmentResult Add(Spell spell, WorldObject caster, bool equip = false)
         {
             var result = new AddEnchantmentResult();
 
@@ -156,7 +156,7 @@ namespace ACE.Server.Managers
             // if none, add new record
             if (entries.Count == 0)
             {
-                var newEntry = BuildEntry(spell, caster);
+                var newEntry = BuildEntry(spell, caster, equip);
                 newEntry.LayerId = 1;
                 WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
                 WorldObject.ChangesDetected = true;
@@ -182,7 +182,7 @@ namespace ACE.Server.Managers
 
             if (refreshSpell == null)
             {
-                var newEntry = BuildEntry(spell, caster);
+                var newEntry = BuildEntry(spell, caster, equip);
                 newEntry.LayerId = result.NextLayerId;
                 WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
 
@@ -215,7 +215,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Builds an enchantment registry entry from a spell ID
         /// </summary>
-        private BiotaPropertiesEnchantmentRegistry BuildEntry(Spell spell, WorldObject caster = null)
+        private BiotaPropertiesEnchantmentRegistry BuildEntry(Spell spell, WorldObject caster = null, bool equip = false)
         {
             var entry = new BiotaPropertiesEnchantmentRegistry();
 
@@ -237,7 +237,8 @@ namespace ACE.Server.Managers
             }
             else
             {
-                if (caster == null || caster.CurrentWieldedLocation == null && !caster.ItemSetContains(spell.Id))
+                //if (caster == null || caster.CurrentWieldedLocation == null && !caster.ItemSetContains(spell.Id))
+                if (!equip)
                 {
                     entry.Duration = spell.Duration;
                 }
@@ -1290,7 +1291,7 @@ namespace ACE.Server.Managers
                         heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon()) ? 1.05f : 1.0f;
                 }
                 var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));
-                var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating());
+                var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating(CombatType.Magic));    // df?
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));
                 tickAmount *= damageRatingMod * damageResistRatingMod;

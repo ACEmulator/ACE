@@ -116,13 +116,10 @@ namespace ACE.Server.WorldObjects
                     IsAdmin = true;
                 if (Session.AccessLevel == AccessLevel.Developer)
                     IsArch = true;
-                if (Session.AccessLevel == AccessLevel.Envoy)
-                    IsEnvoy = true;
-                // TODO: Need to setup and account properly for IsSentinel and IsAdvocate.
-                // if (Session.AccessLevel == AccessLevel.Sentinel)
-                //    character.IsSentinel = true;
-                // if (Session.AccessLevel == AccessLevel.Advocate)
-                //    character.IsAdvocate= true;
+                if (Session.AccessLevel == AccessLevel.Envoy || Session.AccessLevel == AccessLevel.Sentinel)
+                    IsSentinel = true;
+                if (Session.AccessLevel == AccessLevel.Advocate)
+                    IsAdvocate = true;
             }
 
             ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
@@ -969,7 +966,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(this, () =>
             {
-                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite);
+                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
             });

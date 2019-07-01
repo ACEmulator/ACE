@@ -50,9 +50,28 @@ namespace ACE.Server.Entity
         public bool IsPlaceholder { get => Biota.WeenieClassId == 3666; }
 
         /// <summary>
+        /// TRUE if this Profile generated treasure using TreasureGenerator
+        /// </summary>
+        public bool GeneratedTreasureItem { get; private set; }
+
+        /// <summary>
         /// The total # of active spawned objects + awaiting spawning
         /// </summary>
-        public int CurrentCreate { get => Spawned.Count + SpawnQueue.Count; }
+        public int CurrentCreate
+        {
+            get
+            {
+                if (!GeneratedTreasureItem)
+                    return Spawned.Count + SpawnQueue.Count;
+                else
+                {
+                    if ((Spawned.Count + SpawnQueue.Count) > 0)
+                        return 1;
+                    else
+                        return 0;
+                }
+            }
+        }
 
         /// <summary>
         /// Returns the MaxCreate for this generator profile
@@ -137,7 +156,7 @@ namespace ACE.Server.Entity
         /// Enqueues 1 or multiple objects from this generator profile
         /// adds these items to the spawn queue
         /// </summary>
-        public void Enqueue(int numObjects = 1, bool initialSpawn = true)
+        public void Enqueue(int numObjects = 1)
         {
             for (var i = 0; i < numObjects; i++)
             {
@@ -147,8 +166,6 @@ namespace ACE.Server.Entity
                     break;
                 }*/
                 SpawnQueue.Add(GetSpawnTime());
-                if (initialSpawn)
-                    Generator.CurrentCreate++;
             }
         }
 
@@ -186,10 +203,6 @@ namespace ACE.Server.Entity
                             Spawned.Add(obj.Guid.Full, woi);
                         }
                     }
-                    else
-                    {
-                        //_generator.CurrentCreate--;
-                    }
                 }
                 else
                 {
@@ -212,7 +225,10 @@ namespace ACE.Server.Entity
             {
                 objects = TreasureGenerator();
                 if (objects.Count > 0)
+                {
                     Generator.GeneratedTreasureItem = true;
+                    GeneratedTreasureItem = true;
+                }
             }
             else
             {
@@ -434,15 +450,12 @@ namespace ACE.Server.Entity
 
             if (woi == null) return;
 
-            if (woi.WeenieClassId != Biota.WeenieClassId) return;
-
             RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(Delay), woi.Guid.Full));
         }
 
         public void FreeSlot(uint objectGuid)
         {
-            if (Spawned.Remove(objectGuid))
-                Generator.CurrentCreate--;
+            Spawned.Remove(objectGuid);
         }
     }
 }

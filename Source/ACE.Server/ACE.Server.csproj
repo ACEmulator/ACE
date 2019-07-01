@@ -26,10 +26,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ACE.Adapter\ACE.Adapter.csproj" />
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj" />
     <ProjectReference Include="..\ACE.Database\ACE.Database.csproj" />
     <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj" />
     <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Lifestoned.DataModel">
+      <HintPath>..\lib\Lifestoned.DataModel.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

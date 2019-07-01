@@ -103,10 +103,6 @@ namespace ACE.Server.WorldObjects
             if (ActivationResponse.HasFlag(ActivationResponse.Animate))
                 target.OnAnimate(activator);
 
-            // send chat text - rarely used (only 8 instances in PY16 db)
-            if (ActivationResponse.HasFlag(ActivationResponse.Talk))
-                target.OnTalk(activator);
-
             // perform activation emote
             if (ActivationResponse.HasFlag(ActivationResponse.Emote))
                 target.OnEmote(activator);
@@ -122,11 +118,18 @@ namespace ACE.Server.WorldObjects
             // default use action
             if (ActivationResponse.HasFlag(ActivationResponse.Use))
             {
-                if (player != null)
-                    EmoteManager.OnUse(player);
+                if (activator is Creature creature)
+                {
+                    //target.EmoteManager.OnActivation(creature); // found a few things with Activation on them but not ActivationResponse.Emote...
+                    target.EmoteManager.OnUse(creature);
+                }
 
                 target.ActOnUse(activator);
             }
+
+            // send chat text - rarely used (only 8 instances in PY16 db)
+            if (ActivationResponse.HasFlag(ActivationResponse.Talk))
+                target.OnTalk(activator);
         }
 
         public virtual void ActOnUse(WorldObject activator)

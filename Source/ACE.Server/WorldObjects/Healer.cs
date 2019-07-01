@@ -200,7 +200,7 @@ namespace ACE.Server.WorldObjects
 
             var combatMod = healer.CombatMode == CombatMode.NonCombat ? 1.0f : 1.1f;
 
-            var effectiveSkill = (int)Math.Round(healingSkill.Current + BoostValue * trainedMod);
+            var effectiveSkill = (int)Math.Round((healingSkill.Current + BoostValue) * trainedMod);
             difficulty = (int)Math.Round((vital.MaxValue - vital.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);

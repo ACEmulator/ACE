@@ -452,6 +452,7 @@ namespace ACE.Server.Managers
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
                 ("log_audit", true),                        // if disabled, audit channel is not logged.
+                ("override_encounter_spawn_rates", false),  // if enabled, landblock encounter spawns are overidden by double properties below.
                 ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
                 ("pk_server", false),               // set this to TRUE for darktide servers
                 ("quest_info_enabled", false),      // toggles the /myquests player command
@@ -473,6 +474,8 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
                 ("chess_ai_start_time", -1.0),      // the number of seconds for the chess ai to start. defaults to -1 (disabled)
+                ("encounter_delay", 1800),          // the number of seconds a generator profile for regions is delayed from returning to free slots
+                ("encounter_regen_interval", 600),  // the number of seconds a generator for regions at which spawns its next set of objects.
                 ("luminance_modifier", 1.0),        // scales the amount of luminance received by players
                 ("vendor_unique_rot_time", 300),    // the number of seconds before unique items sold to vendors disappear
                 ("vitae_penalty", 0.05),            // the amount of vitae penalty a player gets per death
@@ -482,6 +485,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
             DictOf(
+                ("content_folder", ".\\Content"),   // for content creators to live edit weenies. defaults to Content in the netcoreapp2.1 folder
                 ("popup_header", "Welcome to Asheron's Call!"),
                 ("popup_welcome", "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation."),
                 ("popup_motd", ""),

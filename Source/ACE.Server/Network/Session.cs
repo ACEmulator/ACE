@@ -53,10 +53,10 @@ namespace ACE.Server.Network
         public string BootSessionReason { get; private set; }
 
 
-        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
+        public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
-            Network = new NetworkSession(this, clientId, serverId);
+            Network = new NetworkSession(this, connectionListener, clientId, serverId);
         }
 
 

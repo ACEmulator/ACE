@@ -64,7 +64,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelaySeconds(3.0f);
                 actionChain.AddAction(this, () =>
                 {
-                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK, true);
 
                     Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
                 });

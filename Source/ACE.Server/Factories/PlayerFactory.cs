@@ -29,13 +29,13 @@ namespace ACE.Server.Factories
             FailedToSpecializeSkill,
         }
 
-        public static CreateResult Create(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId, out Player player)
+        public static CreateResult Create(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId, WeenieType weenieType, out Player player)
         {
             var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[characterCreateInfo.Heritage];
 
-            if (weenie.Type == (int)WeenieType.Admin)
+            if (weenieType == WeenieType.Admin)
                 player = new Admin(weenie, guid, accountId);
-            else if (weenie.Type == (int)WeenieType.Sentinel)
+            else if (weenieType == WeenieType.Sentinel)
                 player = new Sentinel(weenie, guid, accountId);
             else
                 player = new Player(weenie, guid, accountId);
@@ -613,7 +613,7 @@ namespace ACE.Server.Factories
 
             characterCreateInfo.Name = name;
 
-            Create(characterCreateInfo, weenie, guid, accountId, out var player);
+            Create(characterCreateInfo, weenie, guid, accountId, WeenieType.Creature, out var player);
 
             LevelUpPlayer(player);
 

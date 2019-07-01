@@ -143,9 +143,6 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            if (weenie.Type != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
-                weenie.Type = (int)WeenieType.CombatPet;
-
             var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
             if (combatPet == null)
             {
