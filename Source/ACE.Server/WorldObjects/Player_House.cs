@@ -73,6 +73,11 @@ namespace ACE.Server.WorldObjects
             var date = derethDateTime.DateToString();
             var time = derethDateTime.TimeToString();
             var location = Location.GetMapCoordStr();
+            if (location == null)
+            {
+                if (!HouseManager.ApartmentBlocks.TryGetValue(Location.Landblock, out location))
+                    log.Error($"{Name}.GiveDeed() - couldn't find location {Location.ToLOCString()}");
+            }
 
             deed.LongDesc = $"Bought by {Name}{titleStr} on {date} at {time}\n\nPurchased at {location}";
 
@@ -1327,7 +1332,44 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"AccountHouses: {accountHouses.Count}, CharacterHouses: {characterHouses.Count}", ChatMessageType.Broadcast));
 
-            return accountHouses.Count > 1;
+            if (PropertyManager.GetBool("house_per_char").Item)
+            {
+                // 1 house per character
+                if (characterHouses.Count > 1)
+                    ShowMultiHouseWarning(characterHouses, "character");
+
+                return characterHouses.Count > 1;
+            }
+            else
+            {
+                // 1 house per account (retail default)
+                if (accountHouses.Count > 1)
+                    ShowMultiHouseWarning(accountHouses, "account");
+
+                return accountHouses.Count > 1;
+            }
+        }
+
+        public void ShowMultiHouseWarning(List<House> houses, string type)
+        {
+            // this is a dangerous situation, and we want to clean it up asap
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning! You currently own {houses.Count} different houses on this {type}.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Each {type} is only allowed to own 1 house, so you will have to choose which house you want to keep.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You currently own houses at:", ChatMessageType.Broadcast));
+
+            for (var i = 0; i < houses.Count; i++)
+            {
+                var house = houses[i];
+                var slumlord = house.SlumLord;
+                if (slumlord == null)
+                {
+                    log.Error($"{Name}.IsMultiHouseOwner(): {house.Guid} slumlord is null!");
+                    continue;
+                }
+                var coords = HouseManager.GetCoords(slumlord.Location);
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{i + 1}. {coords}", ChatMessageType.Broadcast));
+            }
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Please choose the house you want to keep with /house select # , where # is 1-{houses.Count}", ChatMessageType.Broadcast));
         }
     }
 }

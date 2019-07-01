@@ -444,6 +444,7 @@ namespace ACE.Server.Managers
                 ("fellow_kt_killer", true),         // if FALSE, fellowship kill tasks will share with the fellowship, even if the killer doesn't have the quest
                 ("fellow_kt_landblock", false),     // if TRUE, fellowship kill tasks will share with landblock range (192 distance radius, or entire dungeon)
                 ("fellow_quest_bonus", false),      // if TRUE, applies EvenShare formula to fellowship quest reward XP (300% max bonus, defaults to false in retail)
+                ("house_per_char", false),          // if TRUE, allows 1 house per char instead of 1 house per account
                 ("iou_trades", false),              // (non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on.
                 ("chess_enabled", true),
                 ("corpse_decay_tick_logging", false),   // log decaying player corpse ticks.

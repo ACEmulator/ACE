@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using log4net;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -23,12 +25,14 @@ namespace ACE.Server.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static SortedSet<PlayerHouse> RentQueue;
-
         /// <summary>
         /// A lookup table of HouseId => HouseGuid
         /// </summary>
         public static Dictionary<uint, List<uint>> HouseIdToGuid;
+
+        public static bool IsBuilding;
+
+        public static SortedSet<PlayerHouse> RentQueue;
 
         private static readonly RateLimiter updateHouseManagerRateLimiter = new RateLimiter(1, TimeSpan.FromMinutes(1));
 
@@ -37,8 +41,6 @@ namespace ACE.Server.Managers
             BuildHouseIdToGuid();
             BuildRentQueue();
         }
-
-        public static bool IsBuilding;
 
         /// <summary>
         /// Builds the lookup table for HouseId => HouseGuid
@@ -67,7 +69,7 @@ namespace ACE.Server.Managers
 
                     if (!uint.TryParse(Regex.Match(classname, @"\d+").Value, out var houseId))
                     {
-                        Console.WriteLine($"HouseManager.BuildHouseIdToGuid(): couldn't parse {classname}");
+                        log.Error($"HouseManager.BuildHouseIdToGuid(): couldn't parse {classname}");
                         continue;
                     }
 
@@ -78,7 +80,7 @@ namespace ACE.Server.Managers
                     }
                     houseGuids.Add(guid);
                 }
-                //Console.WriteLine($"BuildHouseIdToGuid: {HouseIdToGuid.Count}");
+                //log.Info($"BuildHouseIdToGuid: {HouseIdToGuid.Count}");
             }
         }
 
@@ -106,76 +108,6 @@ namespace ACE.Server.Managers
 
             //log.Info($"Loaded {RentQueue.Count} active houses.");
             QueryMultiHouse();
-        }
-
-        public static bool RentQueueContainsHouse(uint houseInstance)
-        {
-            return RentQueue.Any(i => i.House.HouseInstance == houseInstance);
-        }
-
-        public static void QueryMultiHouse()
-        {
-            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
-
-            var playerHouses = new Dictionary<IPlayer, List<Biota>>();
-            var accountHouses = new Dictionary<string, List<Biota>>();
-
-            foreach (var slumlord in slumlordBiotas)
-            {
-                var biotaOwner = slumlord.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (ushort)PropertyInstanceId.HouseOwner);
-                if (biotaOwner == null)
-                {
-                    // this is fine. this is just a house that was purchased, and then later abandoned
-                    //Console.WriteLine($"HouseManager.QueryMultiHouse(): couldn't find owner for house {slumlord.Id:X8}");
-                    continue;
-                }
-                var owner = PlayerManager.FindByGuid(biotaOwner.Value);
-                if (owner == null)
-                {
-                    Console.WriteLine($"HouseManager.QueryMultiHouse(): couldn't find owner {biotaOwner.Value:X8}");
-                    continue;
-                }
-
-                if (!playerHouses.TryGetValue(owner, out var houses))
-                {
-                    houses = new List<Biota>();
-                    playerHouses.Add(owner, houses);
-                }
-                houses.Add(slumlord);
-
-                var accountName = owner.Account != null ? owner.Account.AccountName : "NULL";
-
-                if (!accountHouses.TryGetValue(accountName, out var aHouses))
-                {
-                    aHouses = new List<Biota>();
-                    accountHouses.Add(accountName, aHouses);
-                }
-                aHouses.Add(slumlord);
-
-                Console.Write(".");
-            }
-            Console.WriteLine();
-
-            foreach (var playerHouse in playerHouses.OrderByDescending(i => i.Value.Count()))
-                Console.WriteLine($"{playerHouse.Key.Name}: {playerHouse.Value.Count} ({string.Join(" | ", GetCoords(playerHouse.Value))})");
-
-            //foreach (var accountHouse in accountHouses.OrderByDescending(i => i.Value.Count()))
-                //Console.WriteLine($"{accountHouse.Key}: {accountHouse.Value.Count}");
-        }
-
-        public static List<string> GetCoords(List<Biota> biotas)
-        {
-            var coords = new List<string>();
-            foreach (var biota in biotas)
-            {
-                var p = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
-                var pos = new Position(p.ObjCellId, p.OriginX, p.OriginY, p.OriginZ, p.AnglesX, p.AnglesY, p.AnglesZ, p.AnglesW);
-                var str = pos.GetMapCoordStr();
-                if (str == null)
-                    str = pos.ToLOCString();
-                coords.Add(str);
-            }
-            return coords;
         }
 
         public static void AddRentQueue(Biota slumlord)
@@ -218,6 +150,11 @@ namespace ACE.Server.Managers
             AddRentQueue(owner, houseInstance);
         }
 
+        public static bool RentQueueContainsHouse(uint houseInstance)
+        {
+            return RentQueue.Any(i => i.House.HouseInstance == houseInstance);
+        }
+
         public static void AddRentQueue(IPlayer player, uint houseGuid)
         {
             Console.WriteLine($"AddRentQueue({player.Name}, {houseGuid:X8})");
@@ -235,6 +172,95 @@ namespace ACE.Server.Managers
             var playerHouse = new PlayerHouse(player, house);
 
             RentQueue.Add(playerHouse);
+        }
+
+        public static void QueryMultiHouse()
+        {
+            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
+
+            var playerHouses = new Dictionary<IPlayer, List<Biota>>();
+            var accountHouses = new Dictionary<string, List<Biota>>();
+
+            foreach (var slumlord in slumlordBiotas)
+            {
+                var biotaOwner = slumlord.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (ushort)PropertyInstanceId.HouseOwner);
+                if (biotaOwner == null)
+                {
+                    // this is fine. this is just a house that was purchased, and then later abandoned
+                    //Console.WriteLine($"HouseManager.QueryMultiHouse(): couldn't find owner for house {slumlord.Id:X8}");
+                    continue;
+                }
+                var owner = PlayerManager.FindByGuid(biotaOwner.Value);
+                if (owner == null)
+                {
+                    Console.WriteLine($"HouseManager.QueryMultiHouse(): couldn't find owner {biotaOwner.Value:X8}");
+                    continue;
+                }
+
+                if (!playerHouses.TryGetValue(owner, out var houses))
+                {
+                    houses = new List<Biota>();
+                    playerHouses.Add(owner, houses);
+                }
+                houses.Add(slumlord);
+
+                var accountName = owner.Account != null ? owner.Account.AccountName : "NULL";
+
+                if (!accountHouses.TryGetValue(accountName, out var aHouses))
+                {
+                    aHouses = new List<Biota>();
+                    accountHouses.Add(accountName, aHouses);
+                }
+                aHouses.Add(slumlord);
+            }
+
+            Console.WriteLine("Multi-house owners:");
+
+            if (PropertyManager.GetBool("house_per_char").Item)
+            {
+                foreach (var playerHouse in playerHouses.Where(i => i.Value.Count() > 1).OrderByDescending(i => i.Value.Count()))
+                {
+                    Console.WriteLine($"{playerHouse.Key.Name}: {playerHouse.Value.Count}");
+
+                    for (var i = 0; i < playerHouse.Value.Count; i++)
+                        Console.WriteLine($"{i + 1}. {GetCoords(playerHouse.Value[i])}");
+                }
+            }
+            else
+            {
+                foreach (var accountHouse in accountHouses.Where(i => i.Value.Count() > 1).OrderByDescending(i => i.Value.Count()))
+                {
+                    Console.WriteLine($"{accountHouse.Key}: {accountHouse.Value.Count}");
+
+                    for (var i = 0; i < accountHouse.Value.Count; i++)
+                        Console.WriteLine($"{i + 1}. {GetCoords(accountHouse.Value[i])}");
+                }
+            }
+        }
+
+        public static string GetCoords(Biota biota)
+        {
+            var p = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
+
+            return GetCoords(new Position(p.ObjCellId, p.OriginX, p.OriginY, p.OriginZ, p.AnglesX, p.AnglesY, p.AnglesZ, p.AnglesW));
+        }
+
+        public static string GetCoords(Position position)
+        {
+            var coords = position.GetMapCoordStr();
+
+            if (coords == null)
+            {
+                // apartment slumlord?
+                if (ApartmentBlocks.TryGetValue(position.Landblock, out var apartmentBlock))
+                    coords = $"{apartmentBlock} - ";
+                else
+                    log.Error($"HouseManager.GetCoords({position}) - couldn't find apartment block");
+
+                coords += position;
+            }
+
+            return coords;
         }
 
         public static void Tick()
@@ -523,5 +549,59 @@ namespace ACE.Server.Managers
 
             return house_guids.FirstOrDefault(i => slumlord_prefix == (i >> 12));
         }
+
+        public static Dictionary<uint, string> ApartmentBlocks = new Dictionary<uint, string>()
+        {
+            { 0x5360, "Sanctum Residential Halls - Alvan Court" },
+            { 0x5361, "Sanctum Residential Halls - Caerna Dwellings" },
+            { 0x5362, "Sanctum Residential Halls - Illsin Veranda" },
+            { 0x5363, "Sanctum Residential Halls - Marin Court" },
+            { 0x5364, "Sanctum Residential Halls - Ruadnar Court" },
+            { 0x5365, "Sanctum Residential Halls - Senmai Court" },
+            { 0x5366, "Sanctum Residential Halls - Sigil Veranda" },
+            { 0x5367, "Sanctum Residential Halls - Sorveya Court" },
+            { 0x5368, "Sanctum Residential Halls - Sylvan Dwellings" },
+            { 0x5369, "Sanctum Residential Halls - Treyval Veranda" },
+            { 0x7200, "Atrium Residential Halls - Winthur Gate" },
+            { 0x7300, "Atrium Residential Halls - Larkspur Gardens" },
+            { 0x7400, "Atrium Residential Halls - Mellas Court" },
+            { 0x7500, "Atrium Residential Halls - Vesper Gate" },
+            { 0x7600, "Atrium Residential Halls - Gajin Dwellings" },
+            { 0x7700, "Atrium Residential Halls - Valorya Gate" },
+            { 0x7800, "Atrium Residential Halls - Heartland Yard" },
+            { 0x7900, "Atrium Residential Halls - Ivory Gate" },
+            { 0x7A00, "Atrium Residential Halls - Alphas Court" },
+            { 0x7B00, "Atrium Residential Halls - Hasina Gardens" },
+            { 0x7C00, "Oriel Residential Halls - Sorac Gate" },
+            { 0x7D00, "Oriel Residential Halls - Maru Veranda" },
+            { 0x7E00, "Oriel Residential Halls - Forsythian Gardens" },
+            { 0x7F00, "Oriel Residential Halls - Vindalan Dwellings" },
+            { 0x8000, "Oriel Residential Halls - Syrah Dwellings" },
+            { 0x8100, "Oriel Residential Halls - Allain Court" },
+            { 0x8200, "Oriel Residential Halls - White Lotus Gate" },
+            { 0x8300, "Oriel Residential Halls - Autumn Moon Gardens" },
+            { 0x8400, "Oriel Residential Halls - Trellyn Gardens" },
+            { 0x8500, "Oriel Residential Halls - Endara Gate" },
+            { 0x8600, "Haven Residential Halls - Celcynd Grotto" },
+            { 0x8700, "Haven Residential Halls - Trothyr Hollow" },
+            { 0x8800, "Haven Residential Halls - Jojii Gardens" },
+            { 0x8900, "Haven Residential Halls - Cedraic Court" },
+            { 0x8A00, "Haven Residential Halls - Ben Ten Lodge" },
+            { 0x8B00, "Haven Residential Halls - Dulok Court" },
+            { 0x8C00, "Haven Residential Halls - Crescent Moon Veranda" },
+            { 0x8D00, "Haven Residential Halls - Jade Gate" },
+            { 0x8E00, "Haven Residential Halls - Ispar Yard" },
+            { 0x8F00, "Haven Residential Halls - Xao Wu Gardens" },
+            { 0x9000, "Victory Residential Halls - Accord Veranda" },
+            { 0x9100, "Victory Residential Halls - Candeth Court" },
+            { 0x9200, "Victory Residential Halls - Celdiseth Court" },
+            { 0x9300, "Victory Residential Halls - Festivus Court" },
+            { 0x9400, "Victory Residential Halls - Hibiscus Gardens" },
+            { 0x9500, "Victory Residential Halls - Meditation Gardens" },
+            { 0x9600, "Victory Residential Halls - Setera Gardens" },
+            { 0x9700, "Victory Residential Halls - Spirit Gate" },
+            { 0x9800, "Victory Residential Halls - Triumphal Gardens" },
+            { 0x9900, "Victory Residential Halls - Wilamil Court" },
+        };
     }
 }
