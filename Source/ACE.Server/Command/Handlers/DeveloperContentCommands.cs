@@ -161,6 +161,8 @@ namespace ACE.Server.Command.Handlers.Processors
                 converter.SpellNames = DatabaseManager.World.GetAllSpellNames();
                 converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
                 converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
+                if (output.LastModified == DateTime.MinValue)
+                    output.LastModified = DateTime.UtcNow;
                 sqlFilename = converter.GetDefaultFileName(output);
                 var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
                 
