@@ -1485,7 +1485,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Turns current character into a god!",
             "Sets attributes and skills to higher than max levels.\n"
-            + "To return to your mortal state, use the /ungod command.")]
+            + "To return to a mortal state, use the /ungod command.")]
         public static void HandleGod(Session session, params string[] parameters)
         {
             // @god - Sets your own stats to a godly level.
@@ -1500,7 +1500,7 @@ namespace ACE.Server.Command.Handlers
             if (!playerSaved)
             {
                 ChatPacket.SendServerMessage(session, "Error saving player. Godmode not available.", ChatMessageType.Broadcast);
-                Console.WriteLine("Error saving player. Godmode not available.");
+                Console.WriteLine($"Player {session.Player.Name} tried to enter god mode but there was an error saving player. Godmode not available.");
                 return;
             }
 
@@ -1518,10 +1518,9 @@ namespace ACE.Server.Command.Handlers
             string returnState = "1=";
             returnState += $"{DateTime.UtcNow}=";
 
-            // need level, available skill credits, augs?
+            // need level, available skill credits
             foreach (var i in biota.BiotaPropertiesInt)
             {
-                // 24, 25, augs?
                 switch (i.Type)
                 {
                     case 24:
@@ -1576,8 +1575,8 @@ namespace ACE.Server.Command.Handlers
             }
 
             // save return state to db in property string
-            Console.WriteLine($"\n Saving godState: \n {returnState}\n\n");
             session.Player.SetProperty(PropertyString.GodState, returnState);
+            session.Player.SaveBiotaToDatabase();
 
             // Begin Godly Stats Increase
 
@@ -1585,7 +1584,6 @@ namespace ACE.Server.Command.Handlers
             currentPlayer.TotalExperience = 191226310247;
             currentPlayer.Level = 999;
 
-            // List<IGameMessage> ??
             GameMessagePrivateUpdatePropertyInt levelMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, 999);
             GameMessagePrivateUpdatePropertyInt64 totalExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, 191226310247);
 
@@ -1632,15 +1630,14 @@ namespace ACE.Server.Command.Handlers
         }
 
         // ungod
-        [CommandHandler("ungod", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("ungod", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Returns character to a mortal state.",
+            "Sets attributes and skills back to the values they were when you became a god.")]
         public static void HandleUngod(Session session, params string[] parameters)
         {
             // @ungod - Returns skills and attributues to pre-god levels.
-
             Player currentPlayer = session.Player;
             Biota biota = DatabaseManager.Shard.GetBiota(currentPlayer.Guid.Full);
-
-            // should look this up by type = 9006 (godState prop)
             var returnString = biota.BiotaPropertiesString.FirstOrDefault(s => s.Type == (ushort)PropertyString.GodState);
             
             if (returnString.Value.StartsWith("0"))
@@ -1650,116 +1647,82 @@ namespace ACE.Server.Command.Handlers
             }
             else
             {
-                Console.WriteLine($"\n\n Returning to normal state. \n");
-
-                string[] returnStringArr = returnString.Value.Split("=");
-
-                //return all skills to untrained
-                foreach (var s in currentPlayer.Skills)
+                try
                 {
-                    currentPlayer.UnspecializeSkill(s.Key, 0);
-                    currentPlayer.UntrainSkill(s.Key, 0);
-                    var playerSkill = currentPlayer.Skills[s.Key];
-                    playerSkill.Ranks = 0;
-                    playerSkill.ExperienceSpent = 0;
-                    playerSkill.InitLevel = 0;
-                    currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 0, playerSkill.ExperienceSpent));
-                }
+                    string[] returnStringArr = returnString.Value.Split("=");
 
-                int arrLen = returnStringArr.Length;
-                // int, int64, att, att2, skills
-                for (int i = 2; i < arrLen;)
-                {
-                    switch (i)
+                    for (int i = 2; i < returnStringArr.Length;)
                     {
-                        case int n when (n <= 5):
-                            currentPlayer.SetProperty((PropertyInt)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
-                            i += 2;
-                            break;
-                        case int n when (n <= 9):
-                            currentPlayer.SetProperty((PropertyInt64)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
-                            i += 2;
-                            break;
-                        case int n when (n <= 33):
-                            var playerAttr = currentPlayer.Attributes[(PropertyAttribute)int.Parse(returnStringArr[i])];
-                            playerAttr.StartingValue = uint.Parse(returnStringArr[i + 1]);
-                            playerAttr.Ranks = uint.Parse(returnStringArr[i + 2]);
-                            playerAttr.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
-                            i += 4;
-                            break;
-                        case int n when (n <= 48):
-                            var playerVital = currentPlayer.Vitals[(PropertyAttribute2nd)int.Parse(returnStringArr[i])];
-                            playerVital.StartingValue = uint.Parse(returnStringArr[i + 1]);
-                            playerVital.Ranks = uint.Parse(returnStringArr[i + 2]);
-                            playerVital.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
-                            playerVital.Current = uint.Parse(returnStringArr[i + 4]);
-                            i += 5;
-                            break;
-                        case int n when (n <= 314):
+                        switch (i)
+                        {
+                            case int n when (n <= 5):
+                                currentPlayer.SetProperty((PropertyInt)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                                i += 2;
+                                break;
+                            case int n when (n <= 9):
+                                currentPlayer.SetProperty((PropertyInt64)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                                i += 2;
+                                break;
+                            case int n when (n <= 33):
+                                var playerAttr = currentPlayer.Attributes[(PropertyAttribute)int.Parse(returnStringArr[i])];
+                                playerAttr.StartingValue = uint.Parse(returnStringArr[i + 1]);
+                                playerAttr.Ranks = uint.Parse(returnStringArr[i + 2]);
+                                playerAttr.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(currentPlayer, playerAttr.Attribute, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                                i += 4;
+                                break;
+                            case int n when (n <= 48):
+                                var playerVital = currentPlayer.Vitals[(PropertyAttribute2nd)int.Parse(returnStringArr[i])];
+                                playerVital.StartingValue = uint.Parse(returnStringArr[i + 1]);
+                                playerVital.Ranks = uint.Parse(returnStringArr[i + 2]);
+                                playerVital.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                                playerVital.Current = uint.Parse(returnStringArr[i + 4]);
+                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, playerVital.Vital, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+                                i += 5;
+                                break;
+                            case int n when (n <= 314):
+                                var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
+                                playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
+                                playerSkill.AdvancementClass = (SkillAdvancementClass)int.Parse(returnStringArr[i + 2]);
+                                playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                                playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
                             /*
-                            returnState += $"{sk.Type}=";
-                            returnState += $"{sk.LevelFromPP}=";    +1
-                            returnState += $"{sk.SAC}=";            +2
-                            returnState += $"{sk.PP}=";             +3
-                            returnState += $"{sk.InitLevel}=";      +4
-                            returnState += $"{sk.ResistanceAtLastCheck}=";  +5
-                            returnState += $"{sk.LastUsedTime}=";   +6
-                            */
-                            if (returnStringArr[i + 2] == "1")
-                            {
-                                var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
-                                playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
-                                playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
-                                playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
+                             * why is this null? not finding the skill?
+                                var playerSkillBiota = currentPlayer.Biota.BiotaPropertiesSkill.FirstOrDefault(sk => sk.Id == uint.Parse(returnStringArr[i]));
+                                playerSkillBiota.ResistanceAtLastCheck = uint.Parse(returnStringArr[i + 5]);
+                                playerSkillBiota.LastUsedTime = double.Parse(returnStringArr[i + 6]);
+                            */    
+                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill.Skill, playerSkill.AdvancementClass, playerSkill.Ranks, playerSkill.InitLevel, playerSkill.ExperienceSpent));
                                 i += 7;
                                 break;
-                            }
-                            else if (returnStringArr[i + 2] == "2")
-                            {
-                                var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
-                                //currentPlayer.TrainSkill(playerSkill.Skill, 0);
-                                playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
-                                playerSkill.AdvancementClass = (SkillAdvancementClass)int.Parse(returnStringArr[i + 2]);
-                                playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
-                                playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
-                                // resistance at last check?
-                                // last used time?
-                                i += 7;
+                            case 315: //end of returnString, this will need to be updated if the length of the string changes
+                                GameMessagePrivateUpdatePropertyInt levelMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, (int)currentPlayer.Level);
+                                GameMessagePrivateUpdatePropertyInt skMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.AvailableSkillCredits, (int)currentPlayer.AvailableSkillCredits);
+                                GameMessagePrivateUpdatePropertyInt64 totalExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, (long)currentPlayer.TotalExperience);
+                                GameMessagePrivateUpdatePropertyInt64 unassignedExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.AvailableExperience, (long)currentPlayer.AvailableExperience);
+                                currentPlayer.Session.Network.EnqueueSend(levelMsg, skMsg, totalExpMsg, unassignedExpMsg);
+                                i++;
                                 break;
-                            }
-                            else if (returnStringArr[i + 2] == "3")
-                            {
-                                var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
-                                //currentPlayer.SpecializeSkill(playerSkill.Skill, 0);
-                                playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
-                                playerSkill.AdvancementClass = (SkillAdvancementClass)int.Parse(returnStringArr[i + 2]);
-                                playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
-                                playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
-                                // resistance at last check?
-                                // last used time?
-                                i += 7;
+                            default:
+                                // A warning that will alert on the console if the returnString length changes. This should suffice until a smoother way can be found.
+                                Console.WriteLine($"Hit default case in /ungod command with i = {i}, did you change the length of PropertyString.GodState?");
+                                i++;
                                 break;
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Unknown skill specialization level detected for skill type #: {i}.");
-                                i += 7;
-                                break;
-                            }
-                        case 315:
-                            Console.WriteLine($"Reached end of returnString.");
-                            i++;
-                            break;
-                        default:
-                            Console.WriteLine($"Hit default case with i = {i}");
-                            i++;
-                            break;
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Exception {e.Message} caught while {currentPlayer.Name} was attempting to return to normal from godmode.");
+                    ChatPacket.SendServerMessage(session, "Error returning to mortal state, defaulting to godmode.", ChatMessageType.Broadcast);
+                    HandleGod(session);
                 }
 
                 currentPlayer.SetMaxVitals();
 
                 currentPlayer.SetProperty(PropertyString.GodState, $"0={DateTime.UtcNow}");
+
+                currentPlayer.SaveBiotaToDatabase();
 
                 ChatPacket.SendServerMessage(session, "You have returned from your godly state.", ChatMessageType.Broadcast);
             }
