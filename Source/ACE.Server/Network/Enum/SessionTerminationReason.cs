@@ -4,6 +4,7 @@ namespace ACE.Server.Network.Enum
     {
         None,
         PacketHeaderDisconnect,
+        AccountInformationInvalid,
         AccountSelectCallbackException,
         NetworkTimeout,
         /// <summary>
@@ -32,6 +33,7 @@ namespace ACE.Server.Network.Enum
         {
             "",
             "PacketHeader Disconnect",
+            "Account Information Invalid",
             "AccountSelectCallback threw an exception.",
             "Network Timeout",
             "client sent network error disconnect",

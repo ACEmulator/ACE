@@ -181,6 +181,11 @@ namespace ACE.Database
             return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
+        public bool ClearCachedWeenie(uint weenieClassId)
+        {
+            return weenieCache.TryRemove(weenieClassId, out _);
+        }
+
         /// <summary>
         /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
@@ -411,23 +416,26 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
+        /// Returns statics spawn map and their links for the landblock
         /// </summary>
         public List<LandblockInstance> GetCachedInstancesByLandblock(ushort landblock)
+        {
+            using (var context = new WorldDbContext())
+                return GetCachedInstancesByLandblock(context, landblock);
+        }
+
+        public List<LandblockInstance> GetCachedInstancesByLandblock(WorldDbContext context, ushort landblock)
         {
             if (cachedLandblockInstances.TryGetValue(landblock, out var value))
                 return value;
 
-            using (var context = new WorldDbContext())
-            {
-                var results = context.LandblockInstance
-                    .Include(r => r.LandblockInstanceLink)
-                    .AsNoTracking()
-                    .Where(r => r.Landblock == landblock)
-                    .ToList();
+            var results = context.LandblockInstance
+                .Include(r => r.LandblockInstanceLink)
+                .AsNoTracking()
+                .Where(r => r.Landblock == landblock)
+                .ToList();
 
-                cachedLandblockInstances.TryAdd(landblock, results.ToList());
-            }
+            cachedLandblockInstances.TryAdd(landblock, results.ToList());
 
             return cachedLandblockInstances[landblock];
         }
@@ -1045,6 +1053,71 @@ namespace ACE.Database
 
                 return quest;
             }
+        }
+
+        public Dictionary<uint, string> GetAllWeenieNames(WorldDbContext context)
+        {
+            return context.Weenie
+                .AsNoTracking()
+                .Include(r => r.WeeniePropertiesString)
+                .ToDictionary(r => r.ClassId, r => r.WeeniePropertiesString.Where(p => p.Type == (int)PropertyString.Name).FirstOrDefault()?.Value ?? "");
+        }
+
+        public Dictionary<uint, string> GetAllWeenieNames()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllWeenieNames(context);
+        }
+
+        public Dictionary<uint, string> GetAllSpellNames(WorldDbContext context)
+        {
+            return context.Spell
+                .AsNoTracking()
+                .ToDictionary(r => r.Id, r => r.Name);
+        }
+
+        public Dictionary<uint, string> GetAllSpellNames()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllSpellNames(context);
+        }
+
+        public Dictionary<uint, TreasureDeath> GetAllTreasureDeath(WorldDbContext context)
+        {
+            return context.TreasureDeath
+                .AsNoTracking()
+                .ToDictionary(r => r.TreasureType, r => r);
+        }
+
+        public Dictionary<uint, TreasureDeath> GetAllTreasureDeath()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllTreasureDeath(context);
+        }
+
+        public Dictionary<uint, List<TreasureWielded>> GetAllTreasureWielded(WorldDbContext context)
+        {
+            var results = context.TreasureWielded
+                .AsNoTracking();
+
+            var treasure = new Dictionary<uint, List<TreasureWielded>>();
+
+            foreach (var record in results)
+            {
+                if (!treasure.ContainsKey(record.TreasureType))
+                    treasure.Add(record.TreasureType, new List<TreasureWielded>());
+
+                treasure[record.TreasureType].Add(record);
+            }
+
+            return treasure;
+
+        }
+
+        public Dictionary<uint, List<TreasureWielded>> GetAllTreasureWielded()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllTreasureWielded(context);
         }
     }
 }

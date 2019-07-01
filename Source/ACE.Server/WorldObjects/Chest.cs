@@ -233,7 +233,6 @@ namespace ACE.Server.WorldObjects
                 {
                     generator.Spawned.Clear();
                     generator.SpawnQueue.Clear();
-                    CurrentCreate--;
                 }
             }
 

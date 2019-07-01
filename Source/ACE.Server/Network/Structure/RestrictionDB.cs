@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ACE.Entity;
+using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
@@ -37,6 +38,22 @@ namespace ACE.Server.Network.Structure
                 if (guest.Key != MonarchID)
                     Table.Add(guest.Key, Convert.ToUInt32(guest.Value));
             }
+
+            if (house.HouseOwner == null) return;
+
+            // add in players on house owner's account
+            var owner = PlayerManager.FindByGuid(house.HouseOwner.Value);
+
+            if (owner == null)
+            {
+                Console.WriteLine($"RestrictionDB({house.HouseInstance.Value}): couldn't find house owner {house.HouseOwner.Value}");
+                return;
+            }
+
+            var accountPlayers = Player.GetAccountPlayers(owner.Account.AccountId);
+
+            foreach (var accountPlayer in accountPlayers)
+                Table.TryAdd(accountPlayer.Guid, 1);
         }
     }
 

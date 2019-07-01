@@ -251,6 +251,16 @@ namespace ACE.Server.Entity
                 if (sortCell != null && sortCell.has_building())
                     continue;
 
+                if (PropertyManager.GetBool("override_encounter_spawn_rates").Item)
+                {
+                    wo.RegenerationInterval = PropertyManager.GetDouble("encounter_regen_interval").Item;
+
+                    foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
+                    {
+                        profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
+                    }
+                }
+
                 actionQueue.EnqueueAction(new ActionEventDelegate(() =>
                 {
                     AddWorldObject(wo);

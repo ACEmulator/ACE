@@ -1092,6 +1092,9 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
+            // the client handles dequipping a lot of conflicting items automatically,
+            // but there are some cases it misses that must be handled specifically here:
+
             // Unwield wand/missile launcher if dual wielding
             if (wieldedLocation == EquipMask.Shield && !item.IsShield)
             {
@@ -1099,6 +1102,32 @@ namespace ACE.Server.WorldObjects
                 if (mainWeapon != null)
                 {
                     if (!TryDequipObjectWithNetworking(mainWeapon.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                        return false;
+                    }
+
+                    if (!TryCreateInInventoryWithNetworking(dequippedItem))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to add dequip back into inventory!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+
+                        // todo: if this happens, we should just put back the dequipped item to where it was
+
+                        return false;
+                    }
+                }
+            }
+
+            // Unwield dual weapon if equipping thrown weapon
+            if (wieldedLocation == EquipMask.MissileWeapon)
+            {
+                var dualWield = GetDualWieldWeapon();
+
+                if (dualWield != null)
+                {
+                    if (!TryDequipObjectWithNetworking(dualWield.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
                     {
                         Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
@@ -1685,6 +1714,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!CanAddToInventory(sourceStack))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
+                return;
+            }
+
             if ((sourceStackRootOwner == this && targetStackRootOwner != this)  || (sourceStackRootOwner != this && targetStackRootOwner == this)) // Movement is between the player and the world
             {
                 if (sourceStackRootOwner is Vendor)
@@ -1789,7 +1824,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else if (sourceStackRootOwner != null)
                 {
-                    if (!sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _))
+                    if (!sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _) && (!(sourceStackRootOwner is Player playerContainer) || !playerContainer.TryDequipObjectWithNetworking(sourceStack.Guid, out _, DequipObjectAction.DequipToPack)))
                     {
                         Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
@@ -2068,6 +2103,8 @@ namespace ACE.Server.WorldObjects
                     {
                         if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.GiveItem))
                         {
+                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+
                             var stackSize = item.StackSize ?? 1;
 
                             var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
