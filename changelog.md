@@ -1,5 +1,17 @@
 # ACEmulator Change Log
 
+### 2019-07-01
+[Ripley]
+* Fix issue with converting books from JSON to SQL.
+* Adjusted some debug output.
+* Add overridden properties for region encounter generators.
+  - override_encounter_spawn_rates
+    - encounter_regen_interval
+    - encounter_delay
+* Allow camp generators to despawn
+  - When a full "camp" is wiped, if the camp has a parent generator, destroy it so the parent generator can roll the slot again.
+* Added data error protection for treasure data in generator profiles.
+
 ### 2019-06-30
 [Mag-nus]
 * Renamed Envoy references to Sentinel
