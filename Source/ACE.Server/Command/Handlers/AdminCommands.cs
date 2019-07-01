@@ -1130,12 +1130,12 @@ namespace ACE.Server.Command.Handlers
                         {
                             if (item.WeenieClassId == 0)
                             {
-                                msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,6:P2} - {item.WeenieClassId,5} - Nothing\n";
+                                msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,7:P2} - {item.WeenieClassId,5} - Nothing\n";
                                 continue;
                             }
 
                             var weenie = DatabaseManager.World.GetCachedWeenie(item.WeenieClassId);
-                            msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,6:P2} - {item.WeenieClassId,5} - {weenie.ClassName} - {weenie.GetProperty(PropertyString.Name)}\n";
+                            msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,7:P2} - {item.WeenieClassId,5} - {weenie.ClassName} - {weenie.GetProperty(PropertyString.Name)}\n";
                         }
                     }
                     else
@@ -1151,6 +1151,9 @@ namespace ACE.Server.Command.Handlers
                     else
                         msg += "Creature has no wielded items to drop.\n";
                 }
+                else
+                    msg = $"{wo.Name} (0x{wo.Guid}) has no trophies.";
+
                 session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.System));
             }
         }
