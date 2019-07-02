@@ -199,5 +199,10 @@ namespace ACE.Server.WorldObjects
 
             return (int)allegianceMinLevel;
         }
+
+        protected override void OnInitialInventoryLoadCompleted()
+        {
+            HouseManager.OnInitialInventoryLoadCompleted(this);
+        }
     }
 }

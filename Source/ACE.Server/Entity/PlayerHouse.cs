@@ -1,5 +1,4 @@
 using System;
-using ACE.Common;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -31,10 +30,10 @@ namespace ACE.Server.Entity
         {
             var result = RentDue.CompareTo(playerHouse.RentDue);
 
-            if (result != 0)
-                return result;
-            else
-                return 1;
+            if (result == 0)
+                result = House.Guid.Full.CompareTo(playerHouse.House.Guid.Full);
+
+            return result;
         }
     }
 }

@@ -100,8 +100,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                if (House != null)
-                    Teleport(House.SlumLord.Location);
+                Teleport(house.SlumLord.Location);
             });
 
             actionChain.EnqueueChain();

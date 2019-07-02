@@ -15,7 +15,6 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
-using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -29,6 +28,8 @@ namespace ACE.Server.WorldObjects
         public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
+
+            InventoryLoaded = true;
         }
 
         /// <summary>

@@ -57,7 +57,7 @@ namespace ACE.Server.Command.Handlers
             HandleHouseSelect(session, false, parameters);
         }
 
-        public async static void HandleHouseSelect(Session session, bool confirmed, params string[] parameters)
+        public static void HandleHouseSelect(Session session, bool confirmed, params string[] parameters)
         {
             if (!int.TryParse(parameters[0], out var houseIdx))
                 return;
@@ -97,11 +97,7 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var abandonHouse in abandonHouses)
             {
-                // load the most up-to-date house info from db
-                var house = House.GetHouse(abandonHouse.Guid.Full);
-
-                // todo: slumlord inventory callback
-                await Task.Delay(3000);
+                var house = session.Player.GetHouse(abandonHouse.Guid.Full);
 
                 HouseManager.HandleEviction(house, session.Player.Guid.Full, session.Player.Name, true);
             }

@@ -169,6 +169,8 @@ namespace ACE.Server.WorldObjects
                 slumlord.Name = wo.Name;
 
                 slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
+
+                slumlord.SaveBiotaToDatabase();
             }
 
             HouseId = null;
@@ -180,6 +182,8 @@ namespace ACE.Server.WorldObjects
 
             // send text message
             Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
+
+            HouseManager.RemoveRentQueue(house.Guid.Full);
 
             house.ClearRestrictions();
 
@@ -200,7 +204,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (House == null) LoadHouse();
+            var houseInstance = GetHouseInstance();
+
+            if (House == null) LoadHouse(houseInstance);
             if (House == null || House.SlumLord == null) return;
 
             var purchaseTime = (uint)(HousePurchaseTimestamp ?? 0);
@@ -271,6 +277,8 @@ namespace ACE.Server.WorldObjects
             // set house name
             slumlord.Name = $"{Name}'s {slumlord.Name}";
             slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, slumlord.Name));
+
+            slumlord.SaveBiotaToDatabase();
 
             // set house data
             // why has this changed? use callback?
@@ -447,10 +455,29 @@ namespace ACE.Server.WorldObjects
             return totalValue;
         }
 
+        public uint? GetHouseInstance()
+        {
+            // if this character owns a house, always use that
+            if (HouseInstance != null)
+                return HouseInstance;
+
+            // if server is running house_per_char mode (non-default),
+            // only use the HouseInstance for the current character
+            if (PropertyManager.GetBool("house_per_char").Item)
+                return HouseInstance;
+
+            // else return the HouseInstance for the account
+            var accountHouseOwner = GetAccountHouseOwner();
+
+            return accountHouseOwner?.HouseInstance;
+        }
+
         public void HandleActionQueryHouse()
         {
+            var houseInstance = GetHouseInstance();
+
             // no house owned - send 0x226 HouseStatus?
-            if (HouseInstance == null)
+            if (houseInstance == null)
             {
                 Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
                 return;
@@ -458,9 +485,9 @@ namespace ACE.Server.WorldObjects
 
             // house owned - send 0x225 HouseData?
             if (House == null)
-                LoadHouse();
+                LoadHouse(houseInstance);
 
-            var house = GetHouse();
+            var house = GetHouse(houseInstance);
             if (house == null)
             {
                 Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
@@ -479,26 +506,32 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        public House LoadHouse(bool forceLoad = false)
+        public House LoadHouse(uint? houseInstance, bool forceLoad = false)
         {
             if (House != null && !forceLoad)
                 return House;
 
-            if (HouseInstance == null)
+            if (houseInstance == null)
                 return House;
 
-            var houseGuid = HouseInstance.Value;
-            House = House.Load(houseGuid);
+            House = House.Load(houseInstance.Value);
 
             return House;
         }
 
         public House GetHouse()
         {
-            if (HouseInstance == null)
+            var houseInstance = GetHouseInstance();
+
+            return GetHouse(houseInstance);
+        }
+
+        public House GetHouse(uint? houseInstance)
+        {
+            if (houseInstance == null)
                 return null;
 
-            var houseGuid = HouseInstance.Value;
+            var houseGuid = houseInstance.Value;
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
 
             var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
@@ -1285,23 +1318,28 @@ namespace ACE.Server.WorldObjects
             return PlayerManager.GetAllPlayers().Where(i => i.Account != null && i.Account.AccountId == accountID).ToList();
         }
 
-        public House GetAccountHouse()
+        public IPlayer GetAccountHouseOwner()
         {
-            if (HouseInstance != null)
-                return GetHouse();
-
             var accountPlayers = GetAccountPlayers(Account.AccountId);
 
             var accountHouseOwners = accountPlayers.Where(i => i.HouseInstance != null);
 
-            var firstHouseOwner = accountHouseOwners.OrderBy(i => i.HousePurchaseTimestamp).FirstOrDefault();
+            return accountHouseOwners.OrderBy(i => i.HousePurchaseTimestamp).FirstOrDefault();
+        }
 
-            if (firstHouseOwner == null)
+        public House GetAccountHouse()
+        {
+            if (HouseInstance != null)
+                return GetHouse(HouseInstance);
+
+            var accountHouseOwner = GetAccountHouseOwner();
+
+            if (accountHouseOwner != null)
                 return null;
 
-            //Console.WriteLine($"First House Owner: {firstHouseOwner.Name}");
+            //Console.WriteLine($"Account House Owner: {accountHouseOwner.Name}");
 
-            return GetHouse(firstHouseOwner);
+            return GetHouse(accountHouseOwner);
         }
 
         public House GetHouse(IPlayer player)
