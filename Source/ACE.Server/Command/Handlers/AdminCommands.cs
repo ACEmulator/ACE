@@ -1495,7 +1495,7 @@ namespace ACE.Server.Command.Handlers
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
         }
             
-        private static void DoGodMode(bool playerSaved, Session session)
+        private static void DoGodMode(bool playerSaved, Session session, bool exceptionReturn = false)
         {
             if (!playerSaved)
             {
@@ -1508,86 +1508,92 @@ namespace ACE.Server.Command.Handlers
 
             var godString = biota.BiotaPropertiesString.FirstOrDefault(s => s.Type == (ushort)PropertyString.GodState);
 
-            if (godString.Value.StartsWith("1"))
+            if (!exceptionReturn)
             {
-                ChatPacket.SendServerMessage(session, "You are already a god.", ChatMessageType.Broadcast);
-                return;
-            }
+                // if godstate starts with 1, you are in godmode
 
-            // if godstate starts with 1, you are in godmode
-            string returnState = "1=";
-            returnState += $"{DateTime.UtcNow}=";
-
-            // need level, available skill credits
-            foreach (var i in biota.BiotaPropertiesInt)
-            {
-                switch (i.Type)
+                if (godString.Value.StartsWith("1"))
                 {
-                    case 24:
-                        returnState += $"{i.Type}=";
-                        returnState += $"{i.Value}=";
-                        break;
-                    case 25:
-                        returnState += $"{i.Type}=";
-                        returnState += $"{i.Value}=";
-                        break;
-                    default:
-                        break;
+                    ChatPacket.SendServerMessage(session, "You are already a god.", ChatMessageType.Broadcast);
+                    return;
                 }
-            }
 
-            // need total xp, unassigned xp
-            foreach (var iSixFour in biota.BiotaPropertiesInt64)
-            {
-                returnState += $"{iSixFour.Type}=";
-                returnState += $"{iSixFour.Value}=";
-            }
+                string returnState = "1=";
+                returnState += $"{DateTime.UtcNow}=";
 
-            // need all attributes
-            foreach (var att in biota.BiotaPropertiesAttribute)
-            {
-                returnState += $"{att.Type}=";
-                returnState += $"{att.InitLevel}=";
-                returnState += $"{att.LevelFromCP}=";
-                returnState += $"{att.CPSpent}=";
-            }
+                // need level, available skill credits
+                foreach (var i in biota.BiotaPropertiesInt)
+                {
+                    switch (i.Type)
+                    {
+                        case 24:
+                            returnState += $"{i.Type}=";
+                            returnState += $"{i.Value}=";
+                            break;
+                        case 25:
+                            returnState += $"{i.Type}=";
+                            returnState += $"{i.Value}=";
+                            break;
+                        default:
+                            break;
+                    }
+                }
 
-            // need all vitals
-            foreach (var attSec in biota.BiotaPropertiesAttribute2nd)
-            {
-                returnState += $"{attSec.Type}=";
-                returnState += $"{attSec.InitLevel}=";
-                returnState += $"{attSec.LevelFromCP}=";
-                returnState += $"{attSec.CPSpent}=";
-                returnState += $"{attSec.CurrentLevel}=";
-            }
+                // need total xp, unassigned xp
+                foreach (var iSixFour in biota.BiotaPropertiesInt64)
+                {
+                    returnState += $"{iSixFour.Type}=";
+                    returnState += $"{iSixFour.Value}=";
+                }
 
-            // need all skills
-            foreach (var sk in biota.BiotaPropertiesSkill)
-            {
-                returnState += $"{sk.Type}=";
-                returnState += $"{sk.LevelFromPP}=";
-                returnState += $"{sk.SAC}=";
-                returnState += $"{sk.PP}=";
-                returnState += $"{sk.InitLevel}=";
-                returnState += $"{sk.ResistanceAtLastCheck}=";
-                returnState += $"{sk.LastUsedTime}=";
-            }
+                // need all attributes
+                foreach (var att in biota.BiotaPropertiesAttribute)
+                {
+                    returnState += $"{att.Type}=";
+                    returnState += $"{att.InitLevel}=";
+                    returnState += $"{att.LevelFromCP}=";
+                    returnState += $"{att.CPSpent}=";
+                }
 
-            // save return state to db in property string
-            session.Player.SetProperty(PropertyString.GodState, returnState);
-            session.Player.SaveBiotaToDatabase();
+                // need all vitals
+                foreach (var attSec in biota.BiotaPropertiesAttribute2nd)
+                {
+                    returnState += $"{attSec.Type}=";
+                    returnState += $"{attSec.InitLevel}=";
+                    returnState += $"{attSec.LevelFromCP}=";
+                    returnState += $"{attSec.CPSpent}=";
+                    returnState += $"{attSec.CurrentLevel}=";
+                }
+
+                // need all skills
+                foreach (var sk in biota.BiotaPropertiesSkill)
+                {
+                    returnState += $"{sk.Type}=";
+                    returnState += $"{sk.LevelFromPP}=";
+                    returnState += $"{sk.SAC}=";
+                    returnState += $"{sk.PP}=";
+                    returnState += $"{sk.InitLevel}=";
+                }
+
+                // save return state to db in property string
+                session.Player.SetProperty(PropertyString.GodState, returnState);
+                session.Player.SaveBiotaToDatabase(); 
+            }
 
             // Begin Godly Stats Increase
 
             var currentPlayer = session.Player;
-            currentPlayer.TotalExperience = 191226310247;
             currentPlayer.Level = 999;
+            currentPlayer.AvailableExperience = 0;
+            currentPlayer.AvailableSkillCredits = 0;
+            currentPlayer.TotalExperience = 191226310247;
 
-            GameMessagePrivateUpdatePropertyInt levelMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, 999);
-            GameMessagePrivateUpdatePropertyInt64 totalExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, 191226310247);
+            var levelMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, (int)currentPlayer.Level);
+            var expMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.AvailableExperience, (long)currentPlayer.AvailableExperience);
+            var skMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.AvailableSkillCredits, (int)currentPlayer.AvailableSkillCredits);
+            var totalExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, (long)currentPlayer.TotalExperience);
 
-            currentPlayer.Session.Network.EnqueueSend(levelMsg, totalExpMsg);
+            currentPlayer.Session.Network.EnqueueSend(levelMsg, expMsg, skMsg, totalExpMsg);
 
             foreach (var s in currentPlayer.Skills)
             {
@@ -1597,7 +1603,7 @@ namespace ACE.Server.Command.Handlers
                 playerSkill.Ranks = 226;
                 playerSkill.ExperienceSpent = 4100490438u;
                 playerSkill.InitLevel = 5000;
-                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, playerSkill.InitLevel, playerSkill.ExperienceSpent));
             }
 
             foreach (var a in currentPlayer.Attributes)
@@ -1680,22 +1686,16 @@ namespace ACE.Server.Command.Handlers
                                 currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, playerVital.Vital, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
                                 i += 5;
                                 break;
-                            case int n when (n <= 314):
+                            case int n when (n <= 238):
                                 var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
                                 playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
                                 playerSkill.AdvancementClass = (SkillAdvancementClass)int.Parse(returnStringArr[i + 2]);
                                 playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
                                 playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
-                            /*
-                             * why is this null? not finding the skill?
-                                var playerSkillBiota = currentPlayer.Biota.BiotaPropertiesSkill.FirstOrDefault(sk => sk.Id == uint.Parse(returnStringArr[i]));
-                                playerSkillBiota.ResistanceAtLastCheck = uint.Parse(returnStringArr[i + 5]);
-                                playerSkillBiota.LastUsedTime = double.Parse(returnStringArr[i + 6]);
-                            */    
                                 currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill.Skill, playerSkill.AdvancementClass, playerSkill.Ranks, playerSkill.InitLevel, playerSkill.ExperienceSpent));
-                                i += 7;
+                                i += 5;
                                 break;
-                            case 315: //end of returnString, this will need to be updated if the length of the string changes
+                            case 239: //end of returnString, this will need to be updated if the length of the string changes
                                 GameMessagePrivateUpdatePropertyInt levelMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, (int)currentPlayer.Level);
                                 GameMessagePrivateUpdatePropertyInt skMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.AvailableSkillCredits, (int)currentPlayer.AvailableSkillCredits);
                                 GameMessagePrivateUpdatePropertyInt64 totalExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, (long)currentPlayer.TotalExperience);
@@ -1705,7 +1705,7 @@ namespace ACE.Server.Command.Handlers
                                 break;
                             default:
                                 // A warning that will alert on the console if the returnString length changes. This should suffice until a smoother way can be found.
-                                Console.WriteLine($"Hit default case in /ungod command with i = {i}, did you change the length of PropertyString.GodState?");
+                                Console.WriteLine($"Hit default case in /ungod command with i = {i}, did you change the length of the PropertyString.GodState array?");
                                 i++;
                                 break;
                         }
@@ -1713,9 +1713,10 @@ namespace ACE.Server.Command.Handlers
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Exception {e.Message} caught while {currentPlayer.Name} was attempting to return to normal from godmode.");
+                    Console.WriteLine($"Exception ( { e.Source } - {e.Message} ) caught while {currentPlayer.Name} was attempting to return to normal from godmode.");
                     ChatPacket.SendServerMessage(session, "Error returning to mortal state, defaulting to godmode.", ChatMessageType.Broadcast);
-                    HandleGod(session);
+                    DoGodMode(true, session, true);
+                    return;
                 }
 
                 currentPlayer.SetMaxVitals();
@@ -1723,6 +1724,8 @@ namespace ACE.Server.Command.Handlers
                 currentPlayer.SetProperty(PropertyString.GodState, $"0={DateTime.UtcNow}");
 
                 currentPlayer.SaveBiotaToDatabase();
+
+                currentPlayer.PlayParticleEffect(PlayScript.DispelAll, currentPlayer.Guid);
 
                 ChatPacket.SendServerMessage(session, "You have returned from your godly state.", ChatMessageType.Broadcast);
             }
