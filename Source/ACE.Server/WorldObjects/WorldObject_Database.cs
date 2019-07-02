@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         /// This variable is set to true when a change is made, and set to false before a save is requested.<para />
         /// The primary use for this is to trigger save on add/modify/remove of properties.
         /// </summary>
-        public bool ChangesDetected;
+        public bool ChangesDetected { get; set; }
 
         /// <summary>
         /// Best practice says you should use this lock any time you read/write the Biota.<para />
@@ -148,6 +148,9 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             if (WeenieType == WeenieType.Corpse && this is Corpse corpse && corpse.IsMonster)
+                return false;
+
+            if (WeenieType == WeenieType.Portal && this is Portal portal && portal.IsGateway)
                 return false;
 
             // Missiles are unique. The only missiles that are persistable are ones that already exist in the database.
