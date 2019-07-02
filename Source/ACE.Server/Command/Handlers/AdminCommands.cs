@@ -1485,7 +1485,8 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Turns current character into a god!",
             "Sets attributes and skills to higher than max levels.\n"
-            + "To return to a mortal state, use the /ungod command.")]
+            + "To return to a mortal state, use the /ungod command.\n"
+            + "Use the /god command with caution. While unlikely, there is a possibility that the character that runs the command will not be able to return to normal or will end up in a state that is unrecoverable.")]
         public static void HandleGod(Session session, params string[] parameters)
         {
             // @god - Sets your own stats to a godly level.
@@ -1636,9 +1637,11 @@ namespace ACE.Server.Command.Handlers
         }
 
         // ungod
-        [CommandHandler("ungod", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("ungod", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Returns character to a mortal state.",
-            "Sets attributes and skills back to the values they were when you became a god.")]
+            "Sets attributes and skills back to the values they were when you became a god.\n"
+            + "If the command fails to revert your state it will default to godmode.\n"
+            + "In the event of failure, contact a server administrator to sort it out.")]
         public static void HandleUngod(Session session, params string[] parameters)
         {
             // @ungod - Returns skills and attributues to pre-god levels.
