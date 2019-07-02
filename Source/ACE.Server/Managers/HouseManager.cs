@@ -166,8 +166,11 @@ namespace ACE.Server.Managers
             var purchaseTime = (uint)(player.HousePurchaseTimestamp ?? 0);
 
             if (player.HouseRentTimestamp == null)
-                //player.HouseRentTimestamp = (int)house.GetRentDue(purchaseTime);
-                return;
+            {
+                Console.WriteLine($"HouseManager.AddRentQueue({player.Name}, {houseGuid:X8}): player has null HouseRentTimestamp");
+                player.HouseRentTimestamp = (int)house.GetRentDue(purchaseTime);
+                //return;
+            }
 
             var playerHouse = new PlayerHouse(player, house);
 
@@ -351,27 +354,31 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static async void HandleEviction(PlayerHouse playerHouse)
+        public static void HandleEviction(PlayerHouse playerHouse)
+        {
+            HandleEviction(playerHouse.House, playerHouse.PlayerGuid, playerHouse.PlayerName);
+        }
+
+        public static async void HandleEviction(House house, uint playerGuid, string playerName, bool multihouse = false)
         {
             // todo: copied from Player_House.HandleActionAbandonHouse, move to House.Abandon()
             // todo: get online copy of house
-            var house = playerHouse.House;
 
             // clear out slumlord inventory
             // todo: get online copy of house
             var slumlord = house.SlumLord;
             slumlord.ClearInventory(true);
 
-            var player = PlayerManager.FindByGuid(playerHouse.PlayerGuid, out bool isOnline);
+            var player = PlayerManager.FindByGuid(playerGuid, out bool isOnline);
 
-            if (!PropertyManager.GetBool("house_rent_enabled", true).Item)
+            if (!PropertyManager.GetBool("house_rent_enabled", true).Item && !multihouse)
             {
                 // rent disabled, push forward
                 var purchaseTime = (uint)(player.HousePurchaseTimestamp ?? 0);
                 var nextRentTime = house.GetRentDue(purchaseTime);
                 player.HouseRentTimestamp = (int)nextRentTime;
 
-                log.Info($"HouseManager.HandleRentPaid({playerHouse.PlayerName}): house rent disabled via config");
+                log.Info($"HouseManager.HandleRentPaid({playerName}): house rent disabled via config");
 
                 BuildRentQueue();
                 return;
@@ -402,24 +409,30 @@ namespace ACE.Server.Managers
             slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
             slumlord.SaveBiotaToDatabase();
 
-            player.HouseId = null;
-            player.HouseInstance = null;
-            //player.HousePurchaseTimestamp = null;
-            player.HouseRentTimestamp = null;
+            if (!multihouse)
+            {
+                player.HouseId = null;
+                player.HouseInstance = null;
+                //player.HousePurchaseTimestamp = null;
+                player.HouseRentTimestamp = null;
+            }
 
             house.ClearRestrictions();
 
-            log.Info($"HouseManager.HandleRentEviction({playerHouse.PlayerName})");
+            log.Info($"HouseManager.HandleRentEviction({playerName})");
 
             BuildRentQueue();
+
+            if (multihouse)
+                return;
 
             if (!isOnline)
             {
                 // inform player of eviction when they log in
-                var offlinePlayer = PlayerManager.GetOfflinePlayer(playerHouse.PlayerGuid);
+                var offlinePlayer = PlayerManager.GetOfflinePlayer(playerGuid);
                 if (offlinePlayer == null)
                 {
-                    log.Warn($"{playerHouse.PlayerName}.HandleEviction(): couldn't find offline player");
+                    log.Warn($"{playerName}.HandleEviction(): couldn't find offline player");
                     return;
                 }
                 offlinePlayer.SetProperty(PropertyBool.HouseEvicted, true);
@@ -427,7 +440,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var onlinePlayer = PlayerManager.GetOnlinePlayer(playerHouse.PlayerGuid);
+            var onlinePlayer = PlayerManager.GetOnlinePlayer(playerGuid);
 
             onlinePlayer.House = null;
 
@@ -438,6 +451,7 @@ namespace ACE.Server.Managers
             await Task.Delay(3000);     // wait for slumlord inventory biotas above to save
 
             onlinePlayer.HandleActionQueryHouse();
+
         }
 
         public static bool IsRentPaid(PlayerHouse playerHouse)

@@ -225,6 +225,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  Your allegiance rank {rankStr} is now below the requirements for owning a mansion.  Please raise your allegiance rank to {House.SlumLord.GetAllegianceMinLevel()} before the end of the maintenance period or you will lose your mansion, and all your items within it.", ChatMessageType.System));
                 }
 
+                // TODO: for account houses, run this even if char doesn't own house
                 IsMultiHouseOwner();
             });
             actionChain.EnqueueChain();
@@ -1325,17 +1326,18 @@ namespace ACE.Server.WorldObjects
             return House.Load(houseGuid);
         }
 
-        public bool IsMultiHouseOwner()
+        public bool IsMultiHouseOwner(bool showMsg = true)
         {
             var characterHouses = HouseManager.GetCharacterHouses(Guid.Full);
             var accountHouses = HouseManager.GetAccountHouses(Account.AccountId);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"AccountHouses: {accountHouses.Count}, CharacterHouses: {characterHouses.Count}", ChatMessageType.Broadcast));
+            if (showMsg)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"AccountHouses: {accountHouses.Count}, CharacterHouses: {characterHouses.Count}", ChatMessageType.Broadcast));
 
             if (PropertyManager.GetBool("house_per_char").Item)
             {
                 // 1 house per character
-                if (characterHouses.Count > 1)
+                if (characterHouses.Count > 1 && showMsg)
                     ShowMultiHouseWarning(characterHouses, "character");
 
                 return characterHouses.Count > 1;
@@ -1343,11 +1345,19 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // 1 house per account (retail default)
-                if (accountHouses.Count > 1)
+                if (accountHouses.Count > 1 && showMsg)
                     ShowMultiHouseWarning(accountHouses, "account");
 
                 return accountHouses.Count > 1;
             }
+        }
+
+        public List<House> GetMultiHouses()
+        {
+            if (PropertyManager.GetBool("house_per_char").Item)
+                return HouseManager.GetCharacterHouses(Guid.Full);
+            else
+                return HouseManager.GetAccountHouses(Account.AccountId);
         }
 
         public void ShowMultiHouseWarning(List<House> houses, string type)
@@ -1369,7 +1379,7 @@ namespace ACE.Server.WorldObjects
                 var coords = HouseManager.GetCoords(slumlord.Location);
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{i + 1}. {coords}", ChatMessageType.Broadcast));
             }
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"Please choose the house you want to keep with /house select # , where # is 1-{houses.Count}", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Please choose the house you want to keep with /house-select # , where # is 1-{houses.Count}", ChatMessageType.Broadcast));
         }
     }
 }

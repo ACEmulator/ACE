@@ -1,15 +1,21 @@
 using System;
-
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using log4net;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Command.Handlers
 {
     public static class PlayerCommands
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // pop
         [CommandHandler("pop", AccessLevel.Player, CommandHandlerFlag.None, 0,
             "Show current world population",
@@ -40,6 +46,67 @@ namespace ACE.Server.Command.Handlers
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
             }
+        }
+
+        /// <summary>
+        /// For characters/accounts who currently own multiple houses, used to select which house they want to keep
+        /// </summary>
+        [CommandHandler("house-select", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1, "For characters/accounts who currently own multiple houses, used to select which house they want to keep")]
+        public static void HandleHouseSelect(Session session, params string[] parameters)
+        {
+            HandleHouseSelect(session, false, parameters);
+        }
+
+        public async static void HandleHouseSelect(Session session, bool confirmed, params string[] parameters)
+        {
+            if (!int.TryParse(parameters[0], out var houseIdx))
+                return;
+
+            // ensure current multihouse owner
+            if (!session.Player.IsMultiHouseOwner(false))
+            {
+                log.Warn($"{session.Player.Name} tried to /house-select {houseIdx}, but they are not currently a multi-house owner!");
+                return;
+            }
+
+            // get house info for this index
+            var multihouses = session.Player.GetMultiHouses();
+
+            if (houseIdx < 1 || houseIdx > multihouses.Count)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Please enter a number between 1 and {multihouses.Count}.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var keepHouse = multihouses[houseIdx - 1];
+
+            // show confirmation popup
+            if (!confirmed)
+            {
+                var houseType = $"{keepHouse.HouseType}".ToLower();;
+                var loc = HouseManager.GetCoords(keepHouse.SlumLord.Location);
+
+                var msg = $"Are you sure you want to keep the {houseType} at\n{loc}?";
+                session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => HandleHouseSelect(session, true, parameters)), msg);
+                return;
+            }
+
+            // house to keep confirmed, abandon the other houses
+            var abandonHouses = new List<House>(multihouses);
+            abandonHouses.RemoveAt(houseIdx - 1);
+
+            foreach (var abandonHouse in abandonHouses)
+            {
+                // load the most up-to-date house info from db
+                var house = House.GetHouse(abandonHouse.Guid.Full);
+
+                // todo: slumlord inventory callback
+                await Task.Delay(3000);
+
+                HouseManager.HandleEviction(house, session.Player.Guid.Full, session.Player.Name, true);
+            }
+
+            Console.WriteLine("OK");
         }
     }
 }
