@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         /// This variable is set to true when a change is made, and set to false before a save is requested.<para />
         /// The primary use for this is to trigger save on add/modify/remove of properties.
         /// </summary>
-        public bool CharacterChangesDetected;
+        public bool CharacterChangesDetected { get; set; }
 
         /// <summary>
         /// Best practice says you should use this lock any time you read/write the Character.<para />
