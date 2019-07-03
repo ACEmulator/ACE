@@ -129,6 +129,21 @@ namespace ACE.Server.WorldObjects
                     if (profile.MaxObjectsSpawned)
                         continue;
 
+                    if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
+                    {
+                        if (profile.Biota.InitCreate > 1)
+                        {
+                            log.Warn($"0x{Guid} {Name}.SelectProfilesInit(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.InitCreate({profile.Biota.InitCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                            profile.Biota.InitCreate = 1;
+                        }
+
+                        if (profile.Biota.MaxCreate > 1)
+                        {
+                            log.Warn($"0x{Guid} {Name}.SelectProfilesInit(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.MaxCreate({profile.Biota.MaxCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                            profile.Biota.MaxCreate = 1;
+                        }
+                    }
+
                     var probability = rng_selected ? GetAdjustedProbability(i) : profile.Biota.Probability;
 
                     if (rng < probability || probability == -1)
@@ -654,8 +669,19 @@ namespace ACE.Server.WorldObjects
 
             if (!Generator.GeneratorDisabled)
             {
+                var removeQueueTotal = 0;
+
                 foreach (var generator in Generator.GeneratorProfiles)
+                {
                     generator.NotifyGenerator(Guid, regenerationType);
+                    removeQueueTotal += generator.RemoveQueue.Count;
+                }
+
+                if (Generator.GeneratorId.HasValue && Generator.GeneratorId > 0) // Generator is controlled by another generator.
+                {
+                    if (Generator is GenericObject && Generator.Visibility && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is basic generator, not visible to players
+                        Generator.Destroy(); // Generator's complete spawn count has been wiped out
+                }
             }
 
             Generator = null;
