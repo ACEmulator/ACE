@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+
 using log4net;
+
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
@@ -99,8 +101,27 @@ namespace ACE.Server.Command.Handlers
             {
                 var house = session.Player.GetHouse(abandonHouse.Guid.Full);
 
-                HouseManager.HandleEviction(house, session.Player.Guid.Full, session.Player.Name, true);
+                HouseManager.HandleEviction(house, house.HouseOwner ?? 0, true);
             }
+
+            // set player properties for house to keep
+            var player = PlayerManager.FindByGuid(keepHouse.HouseOwner ?? 0, out bool isOnline);
+            if (player == null)
+            {
+                log.Error($"{session.Player.Name}.HandleHouseSelect({houseIdx}) - couldn't find HouseOwner {keepHouse.HouseOwner} for {keepHouse.Name} ({keepHouse.Guid})");
+                return;
+            }
+
+            player.HouseId = keepHouse.HouseId;
+            player.HouseInstance = keepHouse.Guid.Full;
+
+            player.SaveBiotaToDatabase();
+
+            // update house panel for current player
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(3.0f);  // wait for slumlord inventory biotas above to save
+            actionChain.AddAction(session.Player, session.Player.HandleActionQueryHouse);
+            actionChain.EnqueueChain();
 
             Console.WriteLine("OK");
         }
