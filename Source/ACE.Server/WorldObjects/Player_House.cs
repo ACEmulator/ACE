@@ -31,7 +31,9 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine($"\n{Name}.HandleActionBuyHouse()");
 
             // verify player doesn't already own a house
-            if (HouseInstance != null)
+            var houseInstance = GetHouseInstance();
+
+            if (houseInstance != null)
             {
                 //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseAlreadyOwned));
                 Session.Network.EnqueueSend(new GameMessageSystemChat("You already own a house!", ChatMessageType.Broadcast));
@@ -137,9 +139,18 @@ namespace ACE.Server.WorldObjects
         {
             Console.WriteLine($"\n{Name}.HandleActionAbandonHouse()");
 
-            if (House == null)
+            var houseInstance = GetHouseInstance();
+
+            if (houseInstance == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
+            // only the character who directly owns the house can use /house abandon
+            if (HouseInstance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyHouseOwnerCanUseCommand));
                 return;
             }
 
@@ -179,6 +190,8 @@ namespace ACE.Server.WorldObjects
             HouseRentTimestamp = null;
 
             House = null;
+
+            SaveBiotaToDatabase();
 
             // send text message
             Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
@@ -263,7 +276,6 @@ namespace ACE.Server.WorldObjects
             // set house properties
             house.HouseOwner = Guid.Full;
             house.HouseOwnerName = Name;
-            house.SaveBiotaToDatabase();
 
             // relink
             house.UpdateLinks();
@@ -278,6 +290,9 @@ namespace ACE.Server.WorldObjects
             slumlord.Name = $"{Name}'s {slumlord.Name}";
             slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, slumlord.Name));
 
+            SaveBiotaToDatabase();
+
+            house.SaveBiotaToDatabase();
             slumlord.SaveBiotaToDatabase();
 
             // set house data
@@ -1036,9 +1051,18 @@ namespace ACE.Server.WorldObjects
         public void HandleActionModifyAllegianceGuestPermission(bool add)
         {
             //Console.WriteLine($"{Name}.HandleActionModifyAllegianceGuestPermission({add})");
-            if (House == null)
+            var houseInstance = GetHouseInstance();
+
+            if (houseInstance == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
+            // only the character who directly owns the house can use /house guest add_allegiance / remove_allegiance
+            if (HouseInstance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyHouseOwnerCanUseCommand));
                 return;
             }
 
@@ -1095,9 +1119,18 @@ namespace ACE.Server.WorldObjects
         public void HandleActionModifyAllegianceStoragePermission(bool add)
         {
             //Console.WriteLine($"{Name}.HandleActionModifyAllegianceStoragePermission({add})");
-            if (House == null)
+            var houseInstance = GetHouseInstance();
+
+            if (houseInstance == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
+            // only the character who directly owns the house can use /house storage add_allegiance / remove_allegiance
+            if (HouseInstance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyHouseOwnerCanUseCommand));
                 return;
             }
 
