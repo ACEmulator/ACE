@@ -1649,7 +1649,7 @@ namespace ACE.Server.Command.Handlers
             Biota biota = DatabaseManager.Shard.GetBiota(currentPlayer.Guid.Full);
             var returnString = biota.BiotaPropertiesString.FirstOrDefault(s => s.Type == (ushort)PropertyString.GodState);
             
-            if (returnString.Value.StartsWith("0"))
+            if (returnString.Equals(null))
             {
                 ChatPacket.SendServerMessage(session, "Can't get any more ungodly than you already are...", ChatMessageType.Broadcast);
                 return;
@@ -1659,6 +1659,15 @@ namespace ACE.Server.Command.Handlers
                 try
                 {
                     string[] returnStringArr = returnString.Value.Split("=");
+
+                    // correctly formatted return string should have 240 entries
+                    // if the construction of the string changes - this will need to be updated to match
+                    if (returnStringArr.Length != 240)
+                    {
+                        Console.WriteLine($"The returnString was not set to the correct length while {currentPlayer.Name} was attempting to return to normal from godmode.");
+                        ChatPacket.SendServerMessage(session, "Error returning to mortal state, defaulting to godmode.", ChatMessageType.Broadcast);
+                        return;
+                    }
 
                     for (int i = 2; i < returnStringArr.Length;)
                     {
@@ -1724,7 +1733,7 @@ namespace ACE.Server.Command.Handlers
 
                 currentPlayer.SetMaxVitals();
 
-                currentPlayer.SetProperty(PropertyString.GodState, $"0={DateTime.UtcNow}");
+                currentPlayer.RemoveProperty(PropertyString.GodState);
 
                 currentPlayer.SaveBiotaToDatabase();
 
