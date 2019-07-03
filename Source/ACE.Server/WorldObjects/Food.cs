@@ -15,12 +15,6 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public PropertyAttribute2nd BoostEnum
-        {
-            get => (PropertyAttribute2nd)(GetProperty(PropertyInt.BoosterEnum) ?? 0);
-            set { if (value == 0) RemoveProperty(PropertyInt.BoosterEnum); else SetProperty(PropertyInt.BoosterEnum, (int)value); }
-        }
-
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -39,6 +33,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            BaseDescriptionFlags |= ObjectDescriptionFlag.Food;
         }
 
         /// <summary>
@@ -65,21 +60,21 @@ namespace ACE.Server.WorldObjects
             var prevStance = player.CurrentMotionState.Stance;
 
             if (prevStance != MotionStance.NonCombat)
-                player.EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, MotionStance.NonCombat);
+                player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
 
             // start the eat/drink motion
             var motionCommand = GetUseSound() == Sound.Eat1 ? MotionCommand.Eat : MotionCommand.Drink;
 
-            player.EnqueueMotion(actionChain, motionCommand, 1.0f, MotionStance.NonCombat);
+            player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, motionCommand);
 
             // apply consumable
             actionChain.AddAction(player, () => ApplyConsumable(player));
 
             // return to ready stance
-            player.EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, MotionStance.NonCombat);
+            player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, motionCommand);
 
             if (prevStance != MotionStance.NonCombat)
-                player.EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, prevStance);
+                player.EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
 
             actionChain.AddAction(player, () => { player.IsBusy = false; });
 
@@ -100,7 +95,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void ApplyConsumable(Player player)
         {
-            var buffType = (ConsumableBuffType)BoostEnum;
+            var buffType = (ConsumableBuffType)BoosterEnum;
             GameMessageSystemChat buffMessage = null;
 
             // spells
@@ -121,28 +116,26 @@ namespace ACE.Server.WorldObjects
             // vitals
             else
             {
-                var maxVital = BoostEnum - 1;
+                var vital = player.GetCreatureVital(BoosterEnum);
 
-                if (player.Vitals.TryGetValue(maxVital, out var vital))
+                if (vital != null)
                 {
-                    var boostAmount = Boost ?? 0;
+                    var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, BoostValue));
 
-                    var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, boostAmount));
-
-                    if (BoostEnum == PropertyAttribute2nd.Health)
+                    if (BoosterEnum == PropertyAttribute2nd.Health)
                     {
-                        if (boostAmount >= 0)
+                        if (BoostValue >= 0)
                             player.DamageHistory.OnHeal(vitalChange);
                         else
                             player.DamageHistory.Add(this, DamageType.Health, vitalChange);
                     }
 
-                    var verb = boostAmount >= 0 ? "restores" : "takes";
-                    buffMessage = new GameMessageSystemChat($"The {Name} {verb} {vitalChange} points of your {BoostEnum}.", ChatMessageType.Broadcast);
+                    var verb = BoostValue >= 0 ? "restores" : "takes";
+                    buffMessage = new GameMessageSystemChat($"The {Name} {verb} {vitalChange} points of your {BoosterEnum}.", ChatMessageType.Broadcast);
                 }
                 else
                 {
-                    buffMessage = new GameMessageSystemChat($"{Name} ({Guid}) contains invalid vital {BoostEnum}", ChatMessageType.Broadcast);
+                    buffMessage = new GameMessageSystemChat($"{Name} ({Guid}) contains invalid vital {BoosterEnum}", ChatMessageType.Broadcast);
                 }
             }
 

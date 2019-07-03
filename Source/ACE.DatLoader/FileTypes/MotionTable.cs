@@ -146,10 +146,17 @@ namespace ACE.DatLoader.FileTypes
         public float GetAnimationLength(AnimData anim)
         {
             var highFrame = anim.HighFrame;
+
+            // get the maximum # of animation frames
+            var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
+
             if (anim.HighFrame == -1)
+                highFrame = (int)animation.NumFrames;
+
+            if (highFrame > animation.NumFrames)
             {
-                // get the actual high frame from the animation length
-                var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
+                // magic windup for level 6 spells appears to be the only animation w/ bugged data
+                //Console.WriteLine($"MotionTable.GetAnimationLength({anim}): highFrame({highFrame}) > animation.NumFrames({animation.NumFrames})");
                 highFrame = (int)animation.NumFrames;
             }
 

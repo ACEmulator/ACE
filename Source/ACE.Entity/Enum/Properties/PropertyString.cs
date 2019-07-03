@@ -75,6 +75,10 @@ namespace ACE.Entity.Enum.Properties
 
         [ServerOnly]
         PCAPRecordedCurrentMotionState  = 8006,
+        [ServerOnly]
+        PCAPRecordedServerName          = 8031,
+        [ServerOnly]
+        PCAPRecordedCharacterName       = 8032,
 
         /* custom */
         [ServerOnly]

@@ -2139,6 +2139,7 @@ namespace ACE.Server.Command.Handlers
                     break;
             }
         }
+        
         /// <summary>
         /// This is to add spells to items (whether loot or quest generated).  For making weapons to check damage from pcaps or other sources
         /// </summary>
@@ -2200,6 +2201,127 @@ namespace ACE.Server.Command.Handlers
 
                 //session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelScale * 100, 2)}% / {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
+            }
+        }
+
+        [CommandHandler("generatordump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Lists all properties for the last generator you examined.",
+            "")]
+        public static void HandleGeneratorDump(Session session, params string[] parameters)
+        {
+            // TODO: output
+
+            var objectId = new ObjectGuid();
+
+            if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+            {
+                if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                else if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+                else
+                    objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+                if (objectId.IsPlayer())
+                    return;
+
+                var msg = "";
+                if (wo.IsGenerator)
+                {
+                    msg = $"Generator Dump for {wo.Name} (0x{wo.Guid.ToString()})\n";
+                    msg += $"Generator WCID: {wo.WeenieClassId}\n";
+                    msg += $"Generator WeenieClassName: {wo.WeenieClassName}\n";
+                    msg += $"Generator WeenieType: {wo.WeenieType.ToString()}\n";
+                    msg += $"Generator Status: {(wo.GeneratorDisabled ? "Disabled" : "Enabled")}\n";
+                    msg += $"GeneratorType: {wo.GeneratorType.ToString()}\n";
+                    msg += $"GeneratorTimeType: {wo.GeneratorTimeType.ToString()}\n";
+                    msg += $"GeneratorEvent: {(!string.IsNullOrWhiteSpace(wo.GeneratorEvent) ? wo.GeneratorEvent : "Undef")}\n";
+                    msg += $"GeneratorEndDestructionType: {wo.GeneratorEndDestructionType.ToString()}\n";
+                    msg += $"GeneratorDestructionType: {wo.GeneratorDestructionType.ToString()}\n";
+                    msg += $"GeneratorRadius: {wo.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f}\n";
+                    msg += $"InitGeneratedObjects: {wo.InitGeneratedObjects}\n";
+                    msg += $"MaxGeneratedObjects: {wo.MaxGeneratedObjects}\n";
+                    msg += $"GeneratorInitialDelay: {wo.GeneratorInitialDelay}\n";
+                    msg += $"RegenerationInterval: {wo.RegenerationInterval}\n";
+                    msg += $"GeneratorUpdateTimestamp: {wo.GeneratorUpdateTimestamp} ({Time.GetDateTimeFromTimestamp(wo.GeneratorUpdateTimestamp).ToLocalTime()})\n";
+                    msg += $"NextGeneratorUpdateTime: {wo.NextGeneratorUpdateTime} ({((wo.NextGeneratorUpdateTime == double.MaxValue) ? "Disabled" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorUpdateTime).ToLocalTime().ToString())})\n";
+                    msg += $"RegenerationTimestamp: {wo.RegenerationTimestamp} ({Time.GetDateTimeFromTimestamp(wo.RegenerationTimestamp).ToLocalTime()})\n";
+                    msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime} ({((wo.NextGeneratorRegenerationTime == double.MaxValue) ? "On Demand" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorRegenerationTime).ToLocalTime().ToString())})\n";
+
+                    msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count}\n";
+                    msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
+                    msg += $"CurrentCreate: {wo.CurrentCreate}\n";
+
+                    msg += $"===============================================\n";
+                    foreach (var activeProfile in wo.GeneratorActiveProfiles)
+                    {
+                        var profile = wo.GeneratorProfiles[activeProfile];
+
+                        msg += $"Active GeneratorProfile id: {activeProfile}\n";
+
+                        msg += $"Probability: {profile.Biota.Probability} | WCID: {profile.Biota.WeenieClassId} | Delay: {profile.Biota.Delay} | Init: {profile.Biota.InitCreate} | Max: {profile.Biota.MaxCreate}\n";
+                        msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
+                        msg += $"StackSize: {profile.Biota.StackSize} | PaletteId: {profile.Biota.PaletteId} | Shade: {profile.Biota.Shade}\n";
+                        msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
+                        msg += $"GeneratedTreasureItem: {profile.GeneratedTreasureItem}\n";
+                        msg += $"--====--\n";
+                        if (profile.Spawned.Count > 0)
+                        {
+                            msg += "Spawned Objects:\n";
+                            foreach (var spawn in profile.Spawned.Values)
+                            {
+                                msg += $"0x{spawn.Guid}: {spawn.Name} - {spawn.WeenieClassId} - {spawn.WeenieType}\n";
+                            }
+                            msg += $"--====--\n";
+                        }
+
+                        if (profile.SpawnQueue.Count > 0)
+                        {
+                            msg += "Pending Spawn Times:\n";
+                            foreach (var spawn in profile.SpawnQueue)
+                            {
+                                msg += $"{spawn.ToLocalTime()}\n";
+                            }
+                            msg += $"--====--\n";
+                        }
+
+                        if (profile.RemoveQueue.Count > 0)
+                        {
+                            msg += "Pending Removed Objects:\n";
+                            foreach (var spawn in profile.RemoveQueue)
+                            {
+                                var action = "";
+                                switch((RegenerationType)profile.Biota.WhenCreate)
+                                {
+                                    case RegenerationType.Death:
+                                        action = "died";
+                                        break;
+                                    case RegenerationType.Destruction:
+                                        action = "destroyed";
+                                        break;
+                                    case RegenerationType.PickUp:
+                                        action = "picked up";
+                                        break;
+                                    case RegenerationType.Undef:
+                                    default:
+                                        action = "despawned";
+                                        break;
+                                }
+
+                                msg += $"0x{spawn.objectGuid:X8} {action} at {spawn.time.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.time.ToLocalTime()}\n";
+                            }
+                            msg += $"--====--\n";
+                        }
+
+                        msg += $"===============================================\n";
+                    }
+                }
+                else
+                    msg = $"{wo.Name} (0x{wo.Guid.ToString()}) is not a generator.";
+
+                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.System));
             }
         }
 
