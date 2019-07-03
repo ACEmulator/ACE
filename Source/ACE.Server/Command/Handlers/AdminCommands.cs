@@ -1615,10 +1615,13 @@ namespace ACE.Server.Command.Handlers
             {
                 // if godstate starts with 1, you are in godmode
 
-                if (godString.Value.StartsWith("1"))
+                if (godString != null)
                 {
-                    ChatPacket.SendServerMessage(session, "You are already a god.", ChatMessageType.Broadcast);
-                    return;
+                    if (godString.Value.StartsWith("1"))
+                    {
+                        ChatPacket.SendServerMessage(session, "You are already a god.", ChatMessageType.Broadcast);
+                        return;
+                    }
                 }
 
                 string returnState = "1=";
@@ -1730,10 +1733,10 @@ namespace ACE.Server.Command.Handlers
                 currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
             }
 
-            currentPlayer.SetMaxVitals();
-
             currentPlayer.PlayParticleEffect(PlayScript.LevelUp, currentPlayer.Guid);
             currentPlayer.PlayParticleEffect(PlayScript.BaelZharonSmite, currentPlayer.Guid);
+
+            currentPlayer.SetMaxVitals();
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
         }
@@ -1751,7 +1754,7 @@ namespace ACE.Server.Command.Handlers
             Biota biota = DatabaseManager.Shard.GetBiota(currentPlayer.Guid.Full);
             var returnString = biota.BiotaPropertiesString.FirstOrDefault(s => s.Type == (ushort)PropertyString.GodState);
             
-            if (returnString.Equals(null))
+            if (returnString == null)
             {
                 ChatPacket.SendServerMessage(session, "Can't get any more ungodly than you already are...", ChatMessageType.Broadcast);
                 return;
