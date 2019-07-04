@@ -1159,7 +1159,7 @@ namespace ACE.Server.Factories
                     break;
                 case 5:
                 case 6:
-                    lowSpellTier = 5;
+                    lowSpellTier = 6;
                     break;
                 default:
                     lowSpellTier = 7;
@@ -1182,14 +1182,10 @@ namespace ACE.Server.Factories
                     highSpellTier = 5;
                     break;
                 case 3:
-                    highSpellTier = 6;
-                    break;
                 case 4:
                     highSpellTier = 6;
                     break;
                 case 5:
-                    highSpellTier = 7;
-                    break;
                 case 6:
                     highSpellTier = 7;
                     break;
