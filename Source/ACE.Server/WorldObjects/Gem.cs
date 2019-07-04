@@ -180,12 +180,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (WeenieClassId == Aetheria.AetheriaManaStone)
-            {
-                Aetheria.UseObjectOnTarget(player, this, target);
-                return;
-            }
-
             // fallback on recipe manager?
             base.HandleActionUseOnTarget(player, target);
         }

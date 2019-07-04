@@ -111,6 +111,12 @@ namespace ACE.Server.Entity
         {
             //Console.WriteLine($"Aetheria.UseObjectOnTarget({player.Name}, {source.Name}, {target.Name})");
 
+            if (player.IsBusy)
+            {
+                player.SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             // verify use requirements
             var useError = VerifyUseRequirements(player, source, target);
             if (useError != WeenieError.None)
@@ -120,6 +126,8 @@ namespace ACE.Server.Entity
             }
 
             var actionChain = new ActionChain();
+
+            player.IsBusy = true;
 
             // handle switching to peace mode
             if (player.CombatMode != CombatMode.NonCombat)
@@ -132,6 +140,8 @@ namespace ACE.Server.Entity
             player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
 
             actionChain.AddAction(player, () => ActivateSigil(player, source, target));
+
+            player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
         }
@@ -188,6 +198,8 @@ namespace ACE.Server.Entity
             // level?
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("A sigil rises to the surface as you bathe the aetheria in mana.", ChatMessageType.Broadcast));
 
+            player.IsBusy = false;
+
             player.SendUseDoneEvent();
         }
 
@@ -241,6 +253,14 @@ namespace ACE.Server.Entity
             }
             // It is unconfirmed, but believed, that the act of being hit or attacked increases the chances of a surge triggering.
             return procRate;
+        }
+
+        /// <summary>
+        /// Returns TRUE if wo is AetheriaManaStone
+        /// </summary>
+        public static bool IsAetheriaManaStone(WorldObject wo)
+        {
+            return wo.WeenieClassId == AetheriaManaStone;
         }
     }
 }
