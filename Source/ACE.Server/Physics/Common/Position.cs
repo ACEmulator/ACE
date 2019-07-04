@@ -11,6 +11,12 @@ namespace ACE.Server.Physics.Common
         public uint ObjCellID;
         public AFrame Frame;
 
+        public uint Landblock => ObjCellID >> 16;
+
+        public uint LandblockX => ObjCellID >> 24;
+
+        public uint LandblockY => (ObjCellID >> 16) & 0xFF;
+
         public Position()
         {
             Init();
@@ -226,6 +232,25 @@ namespace ACE.Server.Physics.Common
             }
             //return LScape.get_landcell(newCell.Value);
             return newCell.Value;
+        }
+
+        /// <summary>
+        /// Returns the squared 2D distance between 2 positions
+        /// </summary>
+        public float Distance2DSquared(Position p)
+        {
+            if (Landblock == p.Landblock)
+            {
+                var dx = Frame.Origin.X - p.Frame.Origin.X;
+                var dy = Frame.Origin.Y - p.Frame.Origin.Y;
+                return dx * dx + dy * dy;
+            }
+            else
+            {
+                var dx = ((int)LandblockX - p.LandblockX) * 192 + Frame.Origin.X - p.Frame.Origin.X;
+                var dy = ((int)LandblockY - p.LandblockY) * 192 + Frame.Origin.Y - p.Frame.Origin.Y;
+                return dx * dx + dy * dy;
+            }
         }
 
         public bool Equals(Position pos)
