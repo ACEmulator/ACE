@@ -360,6 +360,8 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
+        public DateTime LastTeleportTime;
+
         public void Teleport(Position _newPosition)
         {
             var newPosition = new Position(_newPosition);
@@ -369,6 +371,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.Teleport() - Sending to {newPosition.ToLOCString()}");
 
             Teleporting = true;
+            LastTeleportTime = DateTime.UtcNow;
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 

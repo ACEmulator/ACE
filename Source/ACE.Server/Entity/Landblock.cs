@@ -637,12 +637,6 @@ namespace ACE.Server.Entity
             actionQueue.EnqueueAction(action);
         }
 
-        private void AddPlayerTracking(List<WorldObject> wolist, Player player)
-        {
-            foreach (var wo in wolist)
-                player.AddTrackedObject(wo);
-        }
-
         /// <summary>
         /// This will fail if the wo doesn't have a valid location.
         /// </summary>

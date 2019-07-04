@@ -47,9 +47,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends a network message to player for CreateObject, if applicable
         /// </summary>
-        public void TrackObject(WorldObject worldObject)
+        public void TrackObject(WorldObject worldObject, bool delay = false)
         {
-            //Console.WriteLine($"TrackObject({worldObject.Name})");
+            Console.WriteLine($"TrackObject({worldObject.Name}, {delay})");
 
             if (worldObject == null || worldObject.Guid == Guid)
                 return;

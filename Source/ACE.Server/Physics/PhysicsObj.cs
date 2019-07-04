@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -2176,16 +2177,36 @@ namespace ACE.Server.Physics
             ParticleManager = null;
         }
 
+        public static TimeSpan TeleportCreateObjectDelay = TimeSpan.FromSeconds(10);
+
         public void enqueue_objs(IEnumerable<PhysicsObj> newlyVisible)
         {
             if (!IsPlayer || !(WeenieObj.WorldObject is Player player))
                 return;
 
-            foreach (var obj in newlyVisible)
+            if (DateTime.UtcNow - player.LastTeleportTime < TeleportCreateObjectDelay)
             {
-                var wo = obj.WeenieObj.WorldObject;
-                if (wo != null)
-                    player.TrackObject(wo);
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(TeleportCreateObjectDelay.TotalSeconds);
+                actionChain.AddAction(player, () =>
+                {
+                    foreach (var obj in newlyVisible)
+                    {
+                        var wo = obj.WeenieObj.WorldObject;
+                        if (wo != null)
+                            player.TrackObject(wo, true);
+                    }
+                });
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                foreach (var obj in newlyVisible)
+                {
+                    var wo = obj.WeenieObj.WorldObject;
+                    if (wo != null)
+                        player.TrackObject(wo);
+                }
             }
         }
 
