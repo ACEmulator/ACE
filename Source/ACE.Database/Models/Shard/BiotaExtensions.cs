@@ -1368,7 +1368,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static bool TryRemoveKnownSpell(this Biota biota, int spell, out BiotaPropertiesSpellBook entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveKnownSpell(this Biota biota, int spell, out BiotaPropertiesSpellBook entity, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache)
         {
             rwLock.EnterUpgradeableReadLock();
             try
@@ -1379,6 +1379,8 @@ namespace ACE.Database.Models.Shard
                     rwLock.EnterWriteLock();
                     try
                     {
+                        cache.Remove(spell);
+
                         biota.BiotaPropertiesSpellBook.Remove(entity);
                         entity.Object = null;
                         return true;
