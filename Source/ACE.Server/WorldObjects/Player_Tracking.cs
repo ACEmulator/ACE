@@ -71,22 +71,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public bool AddTrackedObject(WorldObject worldObject)
-        {
-            // does this work for equipped objects?
-            if (ObjMaint.ObjectTable.Values.Contains(worldObject.PhysicsObj))
-            {
-                //Console.WriteLine($"Player {Name} - AddTrackedObject({worldObject}) skipped, already tracked");
-                return false;
-            }
-
-            ObjMaint.AddObject(worldObject.PhysicsObj);
-            ObjMaint.AddVisibleObject(worldObject.PhysicsObj);
-
-            TrackObject(worldObject);
-            return true;
-        }
-
         /// <summary>
         /// This will return true of the object was being tracked and has successfully been removed.
         /// </summary>

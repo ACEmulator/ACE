@@ -60,9 +60,6 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var isAdmin = characterCreateInfo.IsAdmin && (session.AccessLevel >= AccessLevel.Developer);
-            var isEnvoy = characterCreateInfo.IsEnvoy && (session.AccessLevel >= AccessLevel.Sentinel);
-
             Weenie weenie;
             if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
@@ -88,10 +85,10 @@ namespace ACE.Server.Network.Handlers
             if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.Type == (int)WeenieType.Creature)
                 weenie = DatabaseManager.World.GetCachedWeenie("olthoiacidplayer");
 
-            if (isEnvoy)
+            if (characterCreateInfo.IsSentinel && session.AccessLevel >= AccessLevel.Sentinel)
                 weenie = DatabaseManager.World.GetCachedWeenie("sentinel");
 
-            if (isAdmin)
+            if (characterCreateInfo.IsAdmin && session.AccessLevel >= AccessLevel.Developer)
                 weenie = DatabaseManager.World.GetCachedWeenie("admin");
 
             if (weenie == null)
