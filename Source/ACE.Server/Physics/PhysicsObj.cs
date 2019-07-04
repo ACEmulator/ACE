@@ -2177,7 +2177,11 @@ namespace ACE.Server.Physics
             ParticleManager = null;
         }
 
-        public static TimeSpan TeleportCreateObjectDelay = TimeSpan.FromSeconds(10);
+        /// <summary>
+        /// This is to mitigate possible decal crashes w/ CO messages being sent
+        /// for objects when the client landblock is very early in the loading state
+        /// </summary>
+        public static TimeSpan TeleportCreateObjectDelay = TimeSpan.FromSeconds(1);
 
         public void enqueue_objs(IEnumerable<PhysicsObj> newlyVisible)
         {
@@ -2210,6 +2214,28 @@ namespace ACE.Server.Physics
             }
         }
 
+        public void enqueue_obj(PhysicsObj newlyVisible)
+        {
+            if (!IsPlayer || !(WeenieObj.WorldObject is Player player))
+                return;
+
+            var wo = newlyVisible.WeenieObj.WorldObject;
+            if (wo == null)
+                return;
+
+            if (DateTime.UtcNow - player.LastTeleportTime < TeleportCreateObjectDelay)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(TeleportCreateObjectDelay.TotalSeconds);
+                actionChain.AddAction(player, () => player.TrackObject(wo, true));
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                player.TrackObject(wo);
+            }
+        }
+
         public void enter_cell(ObjCell newCell)
         {
             if (PartArray == null) return;
@@ -2232,23 +2258,24 @@ namespace ACE.Server.Physics
 
         public void enter_cell_server(ObjCell newCell)
         {
+            //Console.WriteLine($"{Name}.enter_cell_server({newCell.ID:X8})");
+
             enter_cell(newCell);
             RequestPos.ObjCellID = newCell.ID;
 
+            // handle self
+            var newlyVisible = handle_visible_cells();
+
             if (IsPlayer)
-            {
-                // handle object visibility
-                var newlyVisible = handle_visible_cells();
                 enqueue_objs(newlyVisible);
 
-                // handle object visibility for nearby players
-                foreach (var player in ObjMaint.ObjectTable.Values.Where(i => i.IsPlayer))
-                {
-                    newlyVisible = player.handle_visible_cells();
-                    player.enqueue_objs(newlyVisible);
+            // others / known objects
+            foreach (var obj in ObjMaint.ObjectTable.Values)
+            {
+                var added = obj.handle_visible_obj(this);
 
-                    player.ObjMaint.AddVoyeur(this);
-                }
+                if (added && obj.IsPlayer)
+                    obj.enqueue_obj(this);
             }
         }
 
@@ -2596,6 +2623,35 @@ namespace ACE.Server.Physics
             ObjMaint.AddObjectsToBeDestroyed(newlyOccluded);
 
             return createObjs;
+        }
+
+        public bool handle_visible_obj(PhysicsObj obj)
+        {
+            var isVisible = CurCell.IsVisible(obj.CurCell);
+
+            if (isVisible)
+            {
+                var newlyVisible = ObjMaint.AddVisibleObject(obj);
+
+                if (newlyVisible)
+                {
+                    ObjMaint.AddObject(obj);
+                    ObjMaint.RemoveObjectToBeDestroyed(obj);
+                }
+
+                return newlyVisible;
+            }
+            else
+            {
+                var newlyOccluded = ObjMaint.VisibleObjectTable.ContainsKey(obj.ID);
+
+                if (newlyOccluded)
+                {
+                    ObjMaint.AddObjectToBeDestroyed(obj);
+                    ObjMaint.VisibleObjectTable.Remove(obj.ID);
+                }
+                return false;
+            }
         }
 
         public bool is_completely_visible()
@@ -3998,11 +4054,6 @@ namespace ACE.Server.Physics
             }
             else
                 UpdateTime = PhysicsTimer.CurrentTime;
-        }
-
-        public void get_voyeurs()
-        {
-            ObjMaint.get_voyeurs();
         }
 
         public void add_moveto_listener(Action<WeenieError> listener)

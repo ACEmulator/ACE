@@ -198,6 +198,9 @@ namespace ACE.Server.WorldObjects
 
             SetPosition(PositionType.Home, new Position(Location));
 
+            if (this is Creature creature && !(this is Player))
+                creature.CheckPlayers();
+
             return true;
         }
 

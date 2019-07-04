@@ -49,7 +49,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TrackObject(WorldObject worldObject, bool delay = false)
         {
-            Console.WriteLine($"TrackObject({worldObject.Name}, {delay})");
+            //Console.WriteLine($"TrackObject({worldObject.Name}, {delay})");
 
             if (worldObject == null || worldObject.Guid == Guid)
                 return;
@@ -69,22 +69,6 @@ namespace ACE.Server.WorldObjects
                     if (IsInChildLocation(wieldedItem))
                         TrackEquippedObject(creature, wieldedItem);
             }
-        }
-
-        public bool AddTrackedObject(WorldObject worldObject)
-        {
-            // does this work for equipped objects?
-            if (ObjMaint.ObjectTable.Values.Contains(worldObject.PhysicsObj))
-            {
-                //Console.WriteLine($"Player {Name} - AddTrackedObject({worldObject}) skipped, already tracked");
-                return false;
-            }
-
-            ObjMaint.AddObject(worldObject.PhysicsObj);
-            ObjMaint.AddVisibleObject(worldObject.PhysicsObj);
-
-            TrackObject(worldObject);
-            return true;
         }
 
         /// <summary>

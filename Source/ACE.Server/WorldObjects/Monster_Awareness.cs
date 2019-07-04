@@ -132,7 +132,8 @@ namespace ACE.Server.WorldObjects
                 SetNextTargetTime();
 
                 // rebuild visible objects (handle this better for monsters)
-                GetVisibleObjects();
+                // this is no longer needed with ObjMaint 3.0
+                //GetVisibleObjects();
 
                 var players = GetAttackablePlayers();
                 if (players.Count == 0)
