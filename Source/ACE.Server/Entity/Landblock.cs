@@ -743,6 +743,18 @@ namespace ACE.Server.Entity
             }
         }
 
+        public void EmitSignal(Player player, string message)
+        {
+            foreach (var wo in worldObjects.Values.Where(w => w.EmoteManager.HasAntennas).ToList())
+            {
+                if (player.IsWithinUseRadiusOf(wo, wo.UseRadius ?? 0))
+                {
+                    //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
+                    wo.EmoteManager.OnLocalSignal(player, message);
+                }
+            }
+        }
+
         /// <summary>
         /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
         /// </summary>
