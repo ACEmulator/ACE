@@ -296,7 +296,7 @@ namespace ACE.Server.WorldObjects
             var otherBusy = "Your trading partner is too busy to complete the trade!";
 
             var selfMsg = IsBusy ? selfBusy : otherBusy;
-            var partnerMsg = IsBusy ? selfBusy : otherBusy;
+            var partnerMsg = IsBusy ? otherBusy : selfBusy;
 
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, selfMsg));
             partner.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(partner.Session, partnerMsg));
