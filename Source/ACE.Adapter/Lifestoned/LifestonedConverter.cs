@@ -41,8 +41,8 @@ namespace ACE.Adapter.Lifestoned
                 if (input.Book != null)
                 {
                     result.WeeniePropertiesBook = new WeeniePropertiesBook();
-                    result.WeeniePropertiesBook.MaxNumPages = result.WeeniePropertiesBook.MaxNumPages;
-                    result.WeeniePropertiesBook.MaxNumCharsPerPage = result.WeeniePropertiesBook.MaxNumCharsPerPage;
+                    result.WeeniePropertiesBook.MaxNumPages = input.Book.MaxNumberPages; 
+                    result.WeeniePropertiesBook.MaxNumCharsPerPage = input.Book.MaxCharactersPerPage;
 
                     if (input.Book.Pages != null)
                     {

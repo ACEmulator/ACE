@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool TryResistSpell(Spell spell, WorldObject target, WorldObject caster = null)
         {
-            if (spell.IsBeneficial)
+            if (spell.IsBeneficial || !spell.IsResistable)
                 return false;
 
             // todo: verify this flag exists for all resistable spells

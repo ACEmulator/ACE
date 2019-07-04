@@ -28,6 +28,7 @@ namespace ACE.Server.Network
         private const int timeBetweenAck = 2000; // 2s
 
         private readonly Session session;
+        private readonly ConnectionListener connectionListener;
 
         private readonly Object[] currentBundleLocks = new Object[(int)GameMessageGroup.QueueMax];
         private readonly NetworkBundle[] currentBundles = new NetworkBundle[(int)GameMessageGroup.QueueMax];
@@ -84,11 +85,14 @@ namespace ACE.Server.Network
         public ushort ClientId { get; }
         public ushort ServerId { get; }
 
-        public NetworkSession(Session session, ushort clientId, ushort serverId)
+        public NetworkSession(Session session, ConnectionListener connectionListener, ushort clientId, ushort serverId)
         {
             this.session = session;
+            this.connectionListener = connectionListener;
+
             ClientId = clientId;
             ServerId = serverId;
+
             // New network auth session timeouts will always be low.
             TimeoutTick = DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
@@ -614,7 +618,7 @@ namespace ACE.Server.Network
 
             try
             {
-                Socket socket = SocketManager.GetMainSocket();
+                var socket = connectionListener.Socket;
 
                 packet.CreateReadyToSendPacket(buffer, out var size);
 

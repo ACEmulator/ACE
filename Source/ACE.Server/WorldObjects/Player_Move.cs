@@ -47,6 +47,14 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // fix bug in magic combat mode after walking to target,
+            // crouch animation steps out of range
+            if (useRadius == null)
+                useRadius = target.UseRadius ?? 0.6f;
+
+            if (CombatMode == CombatMode.Magic)
+                useRadius = Math.Max(0.0f, useRadius.Value - 0.2f);
+
             // already within use distance?
             var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid, useRadius);
             if (withinUseRadius)

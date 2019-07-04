@@ -68,6 +68,8 @@ namespace ACE.Server.WorldObjects
 
             GagsTick();
 
+            PhysicsObj.ObjMaint.DestroyObjects();
+
             // Check if we're due for our periodic SavePlayer
             if (LastRequestedDatabaseSave == DateTime.MinValue)
                 LastRequestedDatabaseSave = DateTime.UtcNow;

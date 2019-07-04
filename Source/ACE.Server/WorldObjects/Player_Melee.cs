@@ -177,6 +177,8 @@ namespace ACE.Server.WorldObjects
 
                 actionChain.AddAction(this, () =>
                 {
+                    if (IsDead) return;
+
                     var damageEvent = DamageTarget(creature, weapon);
 
                     // handle target procs
