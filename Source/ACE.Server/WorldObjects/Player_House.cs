@@ -116,6 +116,24 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var owner = PlayerManager.FindByGuid(slumlord.HouseOwner ?? 0);
+            if (owner != null)
+            {
+                var characterHouses = HouseManager.GetCharacterHouses(owner.Guid.Full);
+                var accountHouses = HouseManager.GetAccountHouses(owner.Account.AccountId);
+
+                var ownerHouses = PropertyManager.GetBool("house_per_char").Item ? characterHouses : accountHouses;
+
+                if (ownerHouses.Count() > 1)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("The owner of this house currently owns multiple houses. Maintenance cannot be paid until they only own 1 house.", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            else
+                log.Error($"{Name}.HandleActionRentHouse({slumlord_id:X8}): couldn't find house owner {slumlord.HouseOwner}");
+
+
             // move items from player inventory to slumlord 'inventory'
             foreach (var item_id in item_ids)
             {
