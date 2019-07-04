@@ -34,9 +34,10 @@ namespace ACE.Database.SQLFormatters.Shard
 
         public void CreateSQLINSERTStatement(Biota input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `biota` (`id`, `weenie_Class_Id`, `weenie_Type`)");
+            writer.WriteLine("INSERT INTO `biota` (`id`, `weenie_Class_Id`, `weenie_Type`, `populated_Collection_Flags`)");
 
-            var output = $"VALUES ({input.Id}, {input.WeenieClassId}, {input.WeenieType}) /* {Enum.GetName(typeof(WeenieType), input.WeenieType)} */;";
+            // Default to all flags if none are set
+            var output = $"VALUES ({input.Id}, {input.WeenieClassId}, {input.WeenieType}, {(input.PopulatedCollectionFlags != 0 ? input.PopulatedCollectionFlags : 4294967295)}) /* {Enum.GetName(typeof(WeenieType), input.WeenieType)} */;";
 
             output = FixNullFields(output);
 

@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameEvent.Events
+namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventChannelIndex : GameEventMessage
     {
@@ -35,7 +35,7 @@
                 Writer.WriteString16L("Help");
             }
 
-            if (Session.Player.IsArch || Session.Player.IsEnvoy || Session.Player.IsPsr)
+            if (Session.Player.IsArch || Session.Player.IsSentinel || Session.Player.IsPsr)
             {
                 Writer.Write(7u);
                 Writer.WriteString16L("Abuse");

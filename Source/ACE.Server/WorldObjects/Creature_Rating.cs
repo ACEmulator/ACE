@@ -1,4 +1,5 @@
 using System;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
@@ -208,7 +209,7 @@ namespace ACE.Server.WorldObjects
             return damageRating + enchantments - weaknessRating + augBonus + lumAugBonus;
         }
 
-        public int GetDamageResistRating()
+        public int GetDamageResistRating(CombatType? combatType = null)
         {
             // get from base properties (monsters)?
             var damageResistRating = DamageResistRating ?? 0;
@@ -222,14 +223,43 @@ namespace ACE.Server.WorldObjects
 
             var augBonus = 0;
             var lumAugBonus = 0;
+            var specBonus = 0;
 
             if (this is Player player)
             {
                 augBonus = player.AugmentationDamageReduction * 3;
                 lumAugBonus = player.LumAugDamageReductionRating;
+                specBonus = GetSpecDefenseBonus(combatType);
             }
 
-            return damageResistRating + enchantments - netherDotDamageRating + augBonus + lumAugBonus;
+            return damageResistRating + enchantments - netherDotDamageRating + augBonus + lumAugBonus + specBonus;
+        }
+
+        public int GetSpecDefenseBonus(CombatType? combatType)
+        {
+            // https://asheron.fandom.com/wiki/Announcements_-_2013/02_-_Balance_of_Power
+
+            // New bonus added to specialized defenses against damage of their respective attack type. (Applied in both PvE & PvP)
+
+            // - Specialized Melee Defense skill now adds 1 Damage Rating Resist for every 60 pts against melee attacks
+            // - Specialized Missile Defense skill now adds 1 Damage Rating Resist for every 50 pts against missile attacks
+            // - Specialized Magic Defense skill now adds 1 Damage Rating Resist for every 50 pts against magic attacks
+
+            // only applies to players
+            if (combatType == null || !(this is Player player))
+                return 0;
+
+            var skill = GetDefenseSkill(combatType.Value);
+            var creatureSkill = player.GetCreatureSkill(skill);
+
+            // ensure defense skill is specialized
+            if (creatureSkill.AdvancementClass != SkillAdvancementClass.Specialized)
+                return 0;
+
+            var divisor = skill == Skill.MeleeDefense ? 60 : 50;
+
+            // floor?
+            return (int)creatureSkill.Base / divisor;
         }
 
         public int GetCritRating()

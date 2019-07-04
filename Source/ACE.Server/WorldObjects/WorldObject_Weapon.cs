@@ -425,7 +425,7 @@ namespace ACE.Server.WorldObjects
                 case DamageType.Electric:
                     return ImbuedEffectType.ElectricRending;
                 case DamageType.Nether:
-                    return ImbuedEffectType.Undef;  // none?
+                    return ImbuedEffectType.NetherRending;
                 default:
                     //Console.WriteLine($"GetRendDamageType({damageType}) unexpected damage type");
                     return ImbuedEffectType.Undef;
@@ -716,7 +716,7 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
-            wielder.TryCastSpell(spell, target, wielder);
+            wielder.TryCastSpell(spell, target, this);
         }
     }
 }
