@@ -144,6 +144,8 @@ namespace ACE.Server.Entity
 
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
+            actionChain.AddAction(player, () => player.IsBusy = false);
+
             actionChain.EnqueueChain();
         }
 
@@ -151,7 +153,7 @@ namespace ACE.Server.Entity
         {
             if (source == target)
             {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source} on itself."));
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on itself."));
                 return WeenieError.YouDoNotPassCraftingRequirements;
             }
 
@@ -166,6 +168,12 @@ namespace ACE.Server.Entity
                 target.WeenieClassId != AetheriaBlue && target.WeenieClassId != AetheriaYellow && target.WeenieClassId != AetheriaRed)
 
                 return WeenieError.YouDoNotPassCraftingRequirements;
+
+            if (target.Name != "Coalesced Aetheria")
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on {target.Name} because the sigil is already visible."));
+                return WeenieError.YouDoNotPassCraftingRequirements;
+            }
 
             return WeenieError.None;
         }
@@ -205,8 +213,6 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyString.Name, "Aetheria");
             player.UpdateProperty(target, PropertyString.LongDesc, "This aetheria's sigil now shows on the surface.");
             player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
-
-            player.IsBusy = false;
 
             player.SendUseDoneEvent();
         }
