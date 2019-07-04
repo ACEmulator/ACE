@@ -79,6 +79,11 @@ namespace ACE.Server.Managers
                         var activationTarget = WorldObject.CurrentLandblock?.GetObject(WorldObject.ActivationTarget);
                         activationTarget?.OnActivate(WorldObject);
                     }
+                    else if (WorldObject.GeneratorId.HasValue && WorldObject.GeneratorId > 0) // Fallback to linked generator
+                    {
+                        var linkedGenerator = WorldObject.CurrentLandblock?.GetObject(WorldObject.GeneratorId ?? 0);
+                        linkedGenerator?.OnActivate(WorldObject);
+                    }
                     break;
 
                 case EmoteType.AddCharacterTitle:
@@ -672,6 +677,11 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.LocalSignal:
+                    if (player != null)
+                    {
+                        if (player.CurrentLandblock != null)
+                            player.CurrentLandblock.EmitSignal(player, emote.Message);
+                    }
                     break;
 
                 case EmoteType.LockFellow:
@@ -1478,5 +1488,15 @@ namespace ACE.Server.Managers
         {
             ExecuteEmoteSet(EmoteCategory.ReceiveTalkDirect, message, player);
         }
+
+        /// <summary>
+        /// Called when this NPC receives a local signal from a player
+        /// </summary>
+        public void OnLocalSignal(Player player, string message)
+        {
+            ExecuteEmoteSet(EmoteCategory.ReceiveLocalSignal, message, player);
+        }
+
+        public bool HasAntennas => WorldObject.Biota.BiotaPropertiesEmote.Count(x => x.Category == (int)EmoteCategory.ReceiveLocalSignal) > 0;
     }
 }

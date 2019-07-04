@@ -228,7 +228,7 @@ namespace ACE.Server.Physics
                 return ObjCell.GetVisible(position.ObjCellID);
             }
 
-            var visibleCell = (Common.EnvCell)ObjCell.GetVisible(position.ObjCellID);
+            var visibleCell = (EnvCell)ObjCell.GetVisible(position.ObjCellID);
             if (visibleCell == null) return null;
 
             var point = position.LocalToGlobal(low_pt);
@@ -1632,8 +1632,8 @@ namespace ACE.Server.Physics
             var lbx_b = b >> 24;
             var lby_b = (b >> 16) & 0xFF;
 
-            var dx = (int)Math.Abs(lbx_a - lbx_b);
-            var dy = (int)Math.Abs(lby_a - lby_b);
+            var dx = (int)Math.Abs((int)lbx_a - lbx_b);
+            var dy = (int)Math.Abs((int)lby_a - lby_b);
 
             return Math.Max(dx, dy);
         }
@@ -2178,8 +2178,8 @@ namespace ACE.Server.Physics
 
         public void enqueue_objs(IEnumerable<PhysicsObj> newlyVisible)
         {
-            var player = WeenieObj.WorldObject as Player;
-            if (player == null) return;
+            if (!IsPlayer || !(WeenieObj.WorldObject is Player player))
+                return;
 
             foreach (var obj in newlyVisible)
             {
@@ -4028,6 +4028,11 @@ namespace ACE.Server.Physics
         public override int GetHashCode()
         {
             return ID.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return $"{Name} ({ID:X8})";
         }
     }
 }
