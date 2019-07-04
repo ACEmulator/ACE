@@ -1,4 +1,3 @@
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
@@ -10,9 +9,6 @@ namespace ACE.Server.Factories
     {
         private static WorldObject CreateArmor(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
-            int lowSpellTier = 0;
-            int highSpellTier = 0;
-
             int equipSetId = 0;
 
             int materialType = 0;
@@ -24,43 +20,27 @@ namespace ACE.Server.Factories
             switch (tier)
             {
                 case 1:
-                    lowSpellTier = 1;
-                    highSpellTier = 3;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.ChainmailArmor);
                     break;
                 case 2:
-                    lowSpellTier = 3;
-                    highSpellTier = 5;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.DiforsaArmor);
                     break;
                 case 3:
-                    lowSpellTier = 4;
-                    highSpellTier = 6;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.CovenantArmor);
                     break;
                 case 4:
-                    lowSpellTier = 5;
-                    highSpellTier = 6;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.CovenantArmor);
                     break;
                 case 5:
-                    lowSpellTier = 5;
-                    highSpellTier = 7;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.AlduressaArmor);
                     break;
                 case 6:
-                    lowSpellTier = 6;
-                    highSpellTier = 7;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.HaebreanArmor);
                     break;
                 case 7:
-                    lowSpellTier = 6;
-                    highSpellTier = 8;
                     armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.OlthoiAlduressaArmor);
                     break;
                 default:
-                    lowSpellTier = 7;
-                    highSpellTier = 8;
                     if (lootBias == LootBias.Armor) // Armor Mana Forge Chests don't include clothing type items
                         armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.Helms, (int)LootTables.ArmorType.OlthoiAlduressaArmor);
                     else
@@ -293,87 +273,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.EquipmentSetId, equipSetId);
 
             if (isMagical)
-            {
-                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
-                int numSpells = GetNumSpells(tier);
-
-                int spellcraft = GetSpellcraft(numSpells, tier);
-                wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-                wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellcraft));
-
-                int maxMana = GetMaxMana(numSpells, tier);
-                wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
-                wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
-
-                int[][] spells;
-                int[][] cantrips;
-
-                spells = LootTables.ArmorSpells;
-                cantrips = LootTables.ArmorCantrips;
-
-                int[] shuffledValues = new int[spells.Length];
-                for (int i = 0; i < spells.Length; i++)
-                {
-                    shuffledValues[i] = i;
-                }
-
-                Shuffle(shuffledValues);
-
-                int minorCantrips = GetNumMinorCantrips(tier);
-                int majorCantrips = GetNumMajorCantrips(tier);
-                int epicCantrips = GetNumEpicCantrips(tier);
-                int legendaryCantrips = GetNumLegendaryCantrips(tier);
-                int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-
-                if (numSpells - numCantrips > 0)
-                {
-                    for (int a = 0; a < numSpells - numCantrips; a++)
-                    {
-                        int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                        int spellID = spells[shuffledValues[a]][col];
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                }
-
-                if (numCantrips > 0)
-                {
-                    shuffledValues = new int[cantrips.Length];
-                    for (int i = 0; i < cantrips.Length; i++)
-                    {
-                        shuffledValues[i] = i;
-                    }
-                    Shuffle(shuffledValues);
-                    int shuffledPlace = 0;
-                    //minor cantripps
-                    for (int a = 0; a < minorCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][0];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    //major cantrips
-                    for (int a = 0; a < majorCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][1];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    // epic cantrips
-                    for (int a = 0; a < epicCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][2];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    //legendary cantrips
-                    for (int a = 0; a < legendaryCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][3];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                }
-            }
+                wo = AssignMagic(wo, tier);
             else
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);

@@ -473,14 +473,18 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
-                ("chess_ai_start_time", -1.0),      // the number of seconds for the chess ai to start. defaults to -1 (disabled)
-                ("encounter_delay", 1800),          // the number of seconds a generator profile for regions is delayed from returning to free slots
-                ("encounter_regen_interval", 600),  // the number of seconds a generator for regions at which spawns its next set of objects.
-                ("luminance_modifier", 1.0),        // scales the amount of luminance received by players
-                ("vendor_unique_rot_time", 300),    // the number of seconds before unique items sold to vendors disappear
-                ("vitae_penalty", 0.05),            // the amount of vitae penalty a player gets per death
-                ("vitae_penalty_max", 0.40),        // the maximum vitae penalty a player can have
-                ("xp_modifier", 1.0)                // scales the amount of xp received by players
+                ("minor_cantrip_drop_rate", 1.0),      // Default of one sets rates to coded values; greater than one decreases drop rate, less than one increases drop rate
+                ("major_cantrip_drop_rate", 1.0),
+                ("epic_cantrip_drop_rate", 1.0),
+                ("legendary_cantrip_drop_rate", 1.0),
+                ("chess_ai_start_time", -1.0),         // the number of seconds for the chess ai to start. defaults to -1 (disabled)
+                ("encounter_delay", 1800),             // the number of seconds a generator profile for regions is delayed from returning to free slots
+                ("encounter_regen_interval", 600),     // the number of seconds a generator for regions at which spawns its next set of objects.
+                ("luminance_modifier", 1.0),           // scales the amount of luminance received by players
+                ("vendor_unique_rot_time", 300),       // the number of seconds before unique items sold to vendors disappear
+                ("vitae_penalty", 0.05),               // the amount of vitae penalty a player gets per death
+                ("vitae_penalty_max", 0.40),           // the maximum vitae penalty a player can have
+                ("xp_modifier", 1.0)                   // scales the amount of xp received by players
                 );
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =

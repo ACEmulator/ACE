@@ -1,4 +1,3 @@
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
@@ -347,88 +346,7 @@ namespace ACE.Server.Factories
             }
 
             if (isMagical)
-            {
-                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
-
-                int numSpells = GetNumSpells(tier);
-
-                int lowSpellTier = GetLowSpellTier(tier);
-                int highSpellTier = GetHighSpellTier(tier);
-                int minorCantrips = GetNumMinorCantrips(tier);
-                int majorCantrips = GetNumMajorCantrips(tier);
-                int epicCantrips = GetNumEpicCantrips(tier);
-                int legendaryCantrips = GetNumLegendaryCantrips(tier);
-                int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-
-                int spellCraft = GetSpellcraft(numSpells, tier);
-                int itemDifficulty = GetDifficulty(tier, spellCraft);
-                int maxMana = GetMaxMana(numSpells, tier);
-
-                wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
-
-                wo.SetProperty(PropertyInt.ItemDifficulty, itemDifficulty);
-                wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
-                wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
-                wo.SetProperty(PropertyFloat.ManaRate, GetManaRate());
-
-                int[][] spells = LootTables.MeleeSpells;
-                int[][] cantrips = LootTables.MeleeCantrips;
-                int[] shuffledValues = new int[spells.Length];
-                for (int i = 0; i < spells.Length; i++)
-                {
-                    shuffledValues[i] = i;
-                }
-                Shuffle(shuffledValues);
-
-                if (numSpells - numCantrips > 0)
-                {
-                    for (int a = 0; a < numSpells - numCantrips; a++)
-                    {
-                        int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                        int spellID = spells[shuffledValues[a]][col];
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                }
-                if (numCantrips > 0)
-                {
-                    shuffledValues = new int[cantrips.Length];
-                    for (int i = 0; i < cantrips.Length; i++)
-                    {
-                        shuffledValues[i] = i;
-                    }
-                    Shuffle(shuffledValues);
-                    int shuffledPlace = 0;
-                    wo.SetProperty(PropertyInt.UiEffects, 1);
-                    //minor cantripps
-                    for (int a = 0; a < minorCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][0];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    //major cantrips
-                    for (int a = 0; a < majorCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][1];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    // epic cantrips
-                    for (int a = 0; a < epicCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][2];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                    //legendary cantrips
-                    for (int a = 0; a < legendaryCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][3];
-                        shuffledPlace++;
-                        wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
-                    }
-                }
-            }
+                wo = AssignMagic(wo, tier);
             else
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
