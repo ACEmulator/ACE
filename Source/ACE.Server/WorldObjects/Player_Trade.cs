@@ -213,7 +213,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (ObjectGuid itemGuid in target.ItemsInTradeWindow)
             {
-                if (TryRemoveFromInventoryWithNetworking(itemGuid, out var wo, RemoveFromInventoryAction.TradeItem) || target.TryDequipObjectWithNetworking(itemGuid, out wo, DequipObjectAction.TradeItem))
+                if (target.TryRemoveFromInventoryWithNetworking(itemGuid, out var wo, RemoveFromInventoryAction.TradeItem) || target.TryDequipObjectWithNetworking(itemGuid, out wo, DequipObjectAction.TradeItem))
                 {
                     TryCreateInInventoryWithNetworking(wo);
 
