@@ -1269,6 +1269,10 @@ namespace ACE.Server.WorldObjects
                 else
                     message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
             }
+            else if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId))
+            {
+                    message = $"{caster.Name} surges on {targetName} with the power of {spell.Name}!";
+            }
             else
             {
                 if (target.Name != caster.Name)
