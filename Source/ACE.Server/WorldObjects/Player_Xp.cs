@@ -415,9 +415,6 @@ namespace ACE.Server.WorldObjects
 
                     EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
 
-                    //if (newItemLevel == item.ItemMaxLevel)
-                    //    EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.WeddingBliss));
-
                     OnItemLevelUp(item, prevItemLevel);
 
                 });

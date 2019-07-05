@@ -1271,7 +1271,7 @@ namespace ACE.Server.WorldObjects
             }
             else if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId))
             {
-                    message = $"{caster.Name} surges on {targetName} with the power of {spell.Name}!";
+                    message = $"{caster.Name} surges on {target.Name} with the power of {spell.Name}!";
             }
             else
             {
