@@ -457,7 +457,7 @@ namespace ACE.Server.WorldObjects
                 var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
 
                 if (tradePartner != null)
-                    tradePartner.HandleActionCloseTradeNegotiations(tradePartner.Session);
+                    tradePartner.HandleActionCloseTradeNegotiations();
             }
 
             if (!clientSessionTerminatedAbruptly)
