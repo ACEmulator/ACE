@@ -74,6 +74,9 @@ namespace ACE.Server.WorldObjects
             if (EnchantmentManager.HasEnchantments)
                 EnchantmentManager.HeartBeat();
 
+            if (PhysicsObj != null)
+                PhysicsObj.ObjMaint.DestroyObjects();
+
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
             NextHeartbeatTime = currentUnixTime + CachedHeartbeatInterval;
         }
