@@ -2627,6 +2627,16 @@ namespace ACE.Server.Physics
 
         public bool handle_visible_obj(PhysicsObj obj)
         {
+            if (CurCell == null || obj.CurCell == null)
+            {
+                if (CurCell == null)
+                    log.Error($"{Name}.handle_visible_obj({obj.Name}): CurCell null");
+                else
+                    log.Error($"{Name}.handle_visible_obj({obj.Name}): obj.CurCell null");
+
+                return false;
+            }
+
             var isVisible = CurCell.IsVisible(obj.CurCell);
 
             if (isVisible)
