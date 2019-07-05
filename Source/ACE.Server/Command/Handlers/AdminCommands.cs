@@ -1607,9 +1607,9 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            Biota biota = DatabaseManager.Shard.GetBiota(session.Player.Guid.Full);
+            Biota biota = session.Player.Biota;
 
-            var godString = biota.BiotaPropertiesString.FirstOrDefault(s => s.Type == (ushort)PropertyString.GodState);
+            string godString = session.Player.GodState;
 
             if (!exceptionReturn)
             {
@@ -1617,7 +1617,7 @@ namespace ACE.Server.Command.Handlers
 
                 if (godString != null)
                 {
-                    if (godString.Value.StartsWith("1"))
+                    if (godString.StartsWith("1"))
                     {
                         ChatPacket.SendServerMessage(session, "You are already a god.", ChatMessageType.Broadcast);
                         return;
@@ -1627,30 +1627,11 @@ namespace ACE.Server.Command.Handlers
                 string returnState = "1=";
                 returnState += $"{DateTime.UtcNow}=";
 
-                // need level, available skill credits
-                foreach (var i in biota.BiotaPropertiesInt)
-                {
-                    switch (i.Type)
-                    {
-                        case 24:
-                            returnState += $"{i.Type}=";
-                            returnState += $"{i.Value}=";
-                            break;
-                        case 25:
-                            returnState += $"{i.Type}=";
-                            returnState += $"{i.Value}=";
-                            break;
-                        default:
-                            break;
-                    }
-                }
+                // need level 25, available skill credits 24
+                returnState += $"24={session.Player.AvailableSkillCredits}=25={session.Player.Level}=";
 
-                // need total xp, unassigned xp
-                foreach (var iSixFour in biota.BiotaPropertiesInt64)
-                {
-                    returnState += $"{iSixFour.Type}=";
-                    returnState += $"{iSixFour.Value}=";
-                }
+                // need total xp 1, unassigned xp 2
+                returnState += $"1={session.Player.TotalExperience}=2={session.Player.AvailableExperience}=";
 
                 // need all attributes
                 foreach (var att in biota.BiotaPropertiesAttribute)
@@ -1751,8 +1732,8 @@ namespace ACE.Server.Command.Handlers
         {
             // @ungod - Returns skills and attributues to pre-god levels.
             Player currentPlayer = session.Player;
-            Biota biota = DatabaseManager.Shard.GetBiota(currentPlayer.Guid.Full);
-            var returnString = biota.BiotaPropertiesString.FirstOrDefault(s => s.Type == (ushort)PropertyString.GodState);
+            Biota biota = currentPlayer.Biota;
+            string returnString = session.Player.GodState;
             
             if (returnString == null)
             {
@@ -1763,7 +1744,7 @@ namespace ACE.Server.Command.Handlers
             {
                 try
                 {
-                    string[] returnStringArr = returnString.Value.Split("=");
+                   string[] returnStringArr = returnString.Split("=");
 
                     // correctly formatted return string should have 240 entries
                     // if the construction of the string changes - this will need to be updated to match
