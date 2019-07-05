@@ -184,28 +184,26 @@ namespace ACE.Server.Entity
             var randSigil = (Sigil)ThreadSafeRandom.Next(0, 4);
 
             var equipmentSet = SigilToEquipmentSet[randSigil];
-            //player.UpdateProperty(target, PropertyInt.EquipmentSetId, (int)equipmentSet);
+            target.SetProperty(PropertyInt.EquipmentSetId, (int)equipmentSet);
 
             // change icon
             var color = GetColor(target.WeenieClassId).Value;
             var icon = Icons[color][randSigil];
-            //player.UpdateProperty(target, PropertyDataId.Icon, icon);
-
-            //player.UpdateProperty(target, PropertyString.LongDesc, "This aetheria's sigil now shows on the surface.");
+            target.SetProperty(PropertyDataId.Icon, icon);
 
             // rng select a surge spell
             var surgeSpell = (SpellId)ThreadSafeRandom.Next(5204, 5208);
 
             target.Biota.GetOrAddKnownSpell((int)surgeSpell, target.BiotaDatabaseLock, target.BiotaPropertySpells, out _);
 
-            //player.UpdateProperty(target, PropertyDataId.ProcSpell, (uint)surgeSpell);
+            target.SetProperty(PropertyDataId.ProcSpell, (uint)surgeSpell);
             //target.SetProperty(PropertyFloat.ProcSpellRate, 0.05f);   // proc rate for aetheria?
 
             if (SurgeTargetSelf[surgeSpell])
                 target.SetProperty(PropertyBool.ProcSpellSelfTargeted, true);
 
             // set equip mask
-            //player.UpdateProperty(target, PropertyInt.ValidLocations, (int)ColorToMask[color]);
+            target.SetProperty(PropertyInt.ValidLocations, (int)ColorToMask[color]);
 
             // level?
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("A sigil rises to the surface as you bathe the aetheria in mana.", ChatMessageType.Broadcast));
