@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void PetCheckMonsters(float rangeSquared = RadiusAwarenessSquared)
         {
-            if (!Attackable) return;
+            //if (!Attackable) return;
 
             var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
 
@@ -50,9 +50,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void PetOnAttackMonster(Creature monster)
         {
-            Console.WriteLine($"{Name}.PetOnAttackMonster({monster.Name})");
+            /*Console.WriteLine($"{Name}.PetOnAttackMonster({monster.Name})");
             Console.WriteLine($"Attackable: {monster.Attackable}");
-            Console.WriteLine($"Tolerance: {monster.Tolerance}");
+            Console.WriteLine($"Tolerance: {monster.Tolerance}");*/
 
             if (monster.MonsterState == State.Idle && !monster.Tolerance.HasFlag(Tolerance.NoAttack))
             {
