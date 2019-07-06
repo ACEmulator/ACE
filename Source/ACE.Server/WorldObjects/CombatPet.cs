@@ -51,6 +51,10 @@ namespace ACE.Server.WorldObjects
             GeneratorProfiles.Clear();            
 
             DeathTreasureType = null;
+            WieldedTreasureType = null;
+
+            if (Biota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                Biota.WeenieType = (int)WeenieType.CombatPet;
         }
 
         public void Init(Player player, DamageType damageType, PetDevice petDevice)

@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
             var protMod = EnchantmentManager.GetProtectionResistanceMod(damageType);
             var vulnMod = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
 
-            var naturalResistMod = GetNaturalResistance(damageType);
+            var naturalResistMod = GetNaturalResistance();
 
             // protection mod becomes either life protection or natural resistance,
             // whichever is more powerful (more powerful = lower value here)
@@ -115,7 +115,7 @@ namespace ACE.Server.WorldObjects
             return protMod * vulnMod;
         }
 
-        public virtual float GetNaturalResistance(DamageType damageType)
+        public virtual float GetNaturalResistance()
         {
             // overridden for players
             return 1.0f;
@@ -167,17 +167,17 @@ namespace ACE.Server.WorldObjects
                 case ResistanceType.Nether:
                     return (ResistNether ?? 1.0) * GetResistanceMod(DamageType.Nether, weapon, weaponResistanceMod);
                 case ResistanceType.HealthBoost:
-                    return ResistHealthBoostMod;    // probably some other boost modifiers that should be factored in here...
+                    return (ResistHealthBoost ?? 1.0) * GetHealingRatingMod();
                 case ResistanceType.HealthDrain:
-                    return (ResistHealthDrain ?? 1.0) * GetResistanceMod(DamageType.Health, weapon, weaponResistanceMod);
+                    return (ResistHealthDrain ?? 1.0) * GetNaturalResistance() * GetLifeResistRatingMod();
                 case ResistanceType.StaminaBoost:
-                    return ResistStaminaBoostMod;
+                    return (ResistStaminaBoost ?? 1.0) * GetHealingRatingMod();     // does healing rating affect these?
                 case ResistanceType.StaminaDrain:
-                    return (ResistStaminaDrain ?? 1.0) * GetResistanceMod(DamageType.Stamina, weapon, weaponResistanceMod);
+                    return (ResistStaminaDrain ?? 1.0) * GetNaturalResistance();
                 case ResistanceType.ManaBoost:
-                    return ResistManaBoostMod;
+                    return (ResistManaBoost ?? 1.0) * GetHealingRatingMod();
                 case ResistanceType.ManaDrain:
-                    return (ResistManaDrain ?? 1.0) * GetResistanceMod(DamageType.Mana, weapon, weaponResistanceMod);
+                    return (ResistManaDrain ?? 1.0) * GetNaturalResistance();
                 default:
                     return 1.0;
             }
@@ -195,7 +195,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.StaminaRate); else SetProperty(PropertyFloat.StaminaRate, value.Value); }
         }
 
-        public int ArmorLevelMod => (ArmorLevel ?? 0) + EnchantmentManager.GetBodyArmorMod();
         public double ResistSlashMod => (ResistSlash ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Slash);
         public double ResistPierceMod => (ResistPierce ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Pierce);
         public double ResistBludgeonMod => (ResistBludgeon ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Bludgeon);
@@ -204,12 +203,6 @@ namespace ACE.Server.WorldObjects
         public double ResistAcidMod => (ResistAcid ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Acid);
         public double ResistElectricMod => (ResistElectric ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Electric);
         public double ResistNetherMod => (ResistNether ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Nether);
-        public double ResistHealthDrainMod => (ResistHealthDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Health);
-        public double ResistHealthBoostMod => (ResistHealthBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Health);
-        public double ResistStaminaDrainMod => (ResistStaminaDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Stamina);
-        public double ResistStaminaBoostMod => (ResistStaminaBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Stamina);
-        public double ResistManaDrainMod => (ResistManaDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Mana);
-        public double ResistManaBoostMod => (ResistManaBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Mana);
 
         public bool NoCorpse
         {

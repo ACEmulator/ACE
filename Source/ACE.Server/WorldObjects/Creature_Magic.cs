@@ -127,7 +127,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Handles an item casting a spell on player or creature
+        /// Handles equipping an item casting a spell on player or creature
         /// </summary>
         public virtual EnchantmentStatus CreateItemSpell(WorldObject item, uint spellID)
         {
@@ -142,7 +142,7 @@ namespace ACE.Server.WorldObjects
             {
                 case MagicSchool.CreatureEnchantment:
 
-                    enchantmentStatus = CreatureMagic(this, spell, item);
+                    enchantmentStatus = CreatureMagic(this, spell, item, true);
                     if (enchantmentStatus.Message != null)
                         EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
 
@@ -150,7 +150,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    LifeMagic(this, spell, out uint damage, out bool critical, out enchantmentStatus, item);
+                    LifeMagic(this, spell, out uint damage, out bool critical, out enchantmentStatus, item, true);
                     if (enchantmentStatus.Message != null)
                         EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
 
@@ -159,9 +159,9 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.ItemEnchantment:
 
                     if (spell.HasItemCategory || spell.IsPortalSpell)
-                        enchantmentStatus = ItemMagic(this, spell, item);
+                        enchantmentStatus = ItemMagic(this, spell, item, true);
                     else
-                        enchantmentStatus = ItemMagic(item, spell, item);
+                        enchantmentStatus = ItemMagic(item, spell, item, true);
 
                     var playScript = spell.IsPortalSpell && spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
                     EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));

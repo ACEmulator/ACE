@@ -615,12 +615,20 @@ namespace ACE.Server.WorldObjects
             return recklessnessMod;
         }
 
-        public Player GetKiller_PKLite()
+        /// <summary>
+        /// Returns TRUE if this player is PK and died to another player
+        /// </summary>
+        public bool IsPKDeath()
         {
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-                return CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0)) as Player;
-            else
-                return null;
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PK) && new ObjectGuid(KillerId ?? 0).IsPlayer();
+        }
+
+        /// <summary>
+        /// Returns TRUE if this player is PKLite and died to another player
+        /// </summary>
+        public bool IsPKLiteDeath()
+        {
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PKLite) && new ObjectGuid(KillerId ?? 0).IsPlayer();
         }
 
         /// <summary>
@@ -733,7 +741,7 @@ namespace ACE.Server.WorldObjects
         // - These abilities are player-only, creatures with high endurance will not benefit from any of these changes.
         // - Come May, you can type @help endurance for a summary of the April changes to Endurance.
 
-        public override float GetNaturalResistance(DamageType damageType)
+        public override float GetNaturalResistance()
         {
             // base strength and endurance give the player a natural resistance to damage,
             // which caps at 50% (equivalent to level 5 life prots)

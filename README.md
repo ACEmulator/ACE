@@ -29,7 +29,7 @@ The following three sections (Database, Code, and Starting the Server) contain a
 
 ### Database
 1. Install MySQL or MariaDB
-   * [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
+   * [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/)
    * [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
    * Optionally install SQLYog editor [on Github](https://github.com/webyog/sqlyog-community/wiki/Downloads) for the following steps
 2. Create two databases named `ace_auth`, `ace_shard`.

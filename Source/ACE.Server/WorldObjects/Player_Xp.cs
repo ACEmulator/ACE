@@ -55,7 +55,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            UpdateXpAndLevel(amount);
+            UpdateXpAndLevel(amount, xpType);
 
             // for passing XP up the allegiance chain,
             // this function is only called at the very beginning, to start the process.
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Adds XP to a player's total XP, handles triggers (vitae, level up)
         /// </summary>
-        private void UpdateXpAndLevel(long amount)
+        private void UpdateXpAndLevel(long amount, XpType xpType)
         {
             // until we are max level we must make sure that we send
             var xpTable = DatManager.PortalDat.XpTable;
@@ -96,7 +96,7 @@ namespace ACE.Server.WorldObjects
                 CheckForLevelup();
             }
 
-            if (HasVitae)
+            if (HasVitae && xpType != XpType.Allegiance)
                 UpdateXpVitae(amount);
         }
 
@@ -149,7 +149,7 @@ namespace ACE.Server.WorldObjects
                     if (vitae != null)
                     {
                         var curPenalty = vitae.StatModValue;
-                        if (curPenalty.EpsilonEquals(1.0f) || vitaePenalty > 1.0f)
+                        if (curPenalty.EpsilonEquals(1.0f) || curPenalty > 1.0f)
                             EnchantmentManager.RemoveVitae();
                     }
                 });
@@ -392,31 +392,36 @@ namespace ACE.Server.WorldObjects
         public void GrantItemXP(long amount)
         {
             foreach (var item in EquippedObjects.Values.Where(i => i.HasItemLevel))
+                GrantItemXP(item, amount);
+        }
+
+        public void GrantItemXP(WorldObject item, long amount)
+        {
+            var prevItemLevel = item.ItemLevel.Value;
+            var addItemXP = item.AddItemXP(amount);
+
+            if (addItemXP > 0)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(item, PropertyInt64.ItemTotalXp, item.ItemTotalXp.Value));
+
+            // handle item leveling up
+            var newItemLevel = item.ItemLevel.Value;
+            if (newItemLevel > prevItemLevel)
             {
-                var prevItemLevel = item.ItemLevel.Value;
-                var addItemXP = item.AddItemXP(amount);
-
-                if (addItemXP > 0)
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(item, PropertyInt64.ItemTotalXp, item.ItemTotalXp.Value));
-
-                // handle item leveling up
-                var newItemLevel = item.ItemLevel.Value;
-                if (newItemLevel > prevItemLevel)
+                var actionChain = new ActionChain();
+                actionChain.AddAction(this, () =>
                 {
-                    var actionChain = new ActionChain();
-                    actionChain.AddAction(this, () =>
-                    {
-                        var msg = newItemLevel != item.ItemMaxLevel ? $"Your {item.Name} is now level {newItemLevel}!" : $"Your {item.Name} has reached the maximum level of {newItemLevel}!";
-                        Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                    var msg = newItemLevel != item.ItemMaxLevel ? $"Your {item.Name} is now level {newItemLevel}!" : $"Your {item.Name} has reached the maximum level of {newItemLevel}!";
+                    Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
-                        EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
+                    EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
 
-                        if (newItemLevel == item.ItemMaxLevel)
-                            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.WeddingBliss));
+                    if (newItemLevel == item.ItemMaxLevel)
+                        EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.WeddingBliss));
 
-                    });
-                    actionChain.EnqueueChain();
-                }
+                    OnItemLevelUp(item, prevItemLevel);
+
+                });
+                actionChain.EnqueueChain();
             }
         }
     }

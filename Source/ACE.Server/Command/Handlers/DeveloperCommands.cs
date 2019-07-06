@@ -841,6 +841,29 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, "Usage: /grantxp [name] 1234 (max 999999999999)", ChatMessageType.Broadcast);
         }
 
+        [CommandHandler("grantitemxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Give item XP to the last appraised item.")]
+        public static void HandleGrantItemXp(Session session, params string[] parameters)
+        {
+            if (!long.TryParse(parameters[0], out var amount))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid amount {parameters[0]}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var item = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (item == null) return;
+
+            if (!item.HasItemLevel)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{item.Name} is not a levelable item.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Player.GrantItemXP(item, amount);
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted to {item.Name}.", ChatMessageType.Broadcast));
+        }
+
         [CommandHandler("spendallxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]
         public static void HandleSpendAllXp(Session session, params string[] parameters)
         {
@@ -2246,9 +2269,9 @@ namespace ACE.Server.Command.Handlers
                     msg += $"GeneratorInitialDelay: {wo.GeneratorInitialDelay}\n";
                     msg += $"RegenerationInterval: {wo.RegenerationInterval}\n";
                     msg += $"GeneratorUpdateTimestamp: {wo.GeneratorUpdateTimestamp} ({Time.GetDateTimeFromTimestamp(wo.GeneratorUpdateTimestamp).ToLocalTime()})\n";
-                    msg += $"NextGeneratorUpdateTime: {wo.NextGeneratorUpdateTime} ({Time.GetDateTimeFromTimestamp(wo.NextGeneratorUpdateTime).ToLocalTime()})\n";
+                    msg += $"NextGeneratorUpdateTime: {wo.NextGeneratorUpdateTime} ({((wo.NextGeneratorUpdateTime == double.MaxValue) ? "Disabled" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorUpdateTime).ToLocalTime().ToString())})\n";
                     msg += $"RegenerationTimestamp: {wo.RegenerationTimestamp} ({Time.GetDateTimeFromTimestamp(wo.RegenerationTimestamp).ToLocalTime()})\n";
-                    msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime} ({Time.GetDateTimeFromTimestamp(wo.NextGeneratorRegenerationTime).ToLocalTime()})\n";
+                    msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime} ({((wo.NextGeneratorRegenerationTime == double.MaxValue) ? "On Demand" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorRegenerationTime).ToLocalTime().ToString())})\n";
 
                     msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count}\n";
                     msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
@@ -2265,6 +2288,7 @@ namespace ACE.Server.Command.Handlers
                         msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
                         msg += $"StackSize: {profile.Biota.StackSize} | PaletteId: {profile.Biota.PaletteId} | Shade: {profile.Biota.Shade}\n";
                         msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
+                        msg += $"GeneratedTreasureItem: {profile.GeneratedTreasureItem}\n";
                         msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)
                         {
@@ -2291,7 +2315,25 @@ namespace ACE.Server.Command.Handlers
                             msg += "Pending Removed Objects:\n";
                             foreach (var spawn in profile.RemoveQueue)
                             {
-                                msg += $"0x{spawn.objectGuid:X8} removed at {spawn.time.ToLocalTime()}\n";
+                                var action = "";
+                                switch((RegenerationType)profile.Biota.WhenCreate)
+                                {
+                                    case RegenerationType.Death:
+                                        action = "died";
+                                        break;
+                                    case RegenerationType.Destruction:
+                                        action = "destroyed";
+                                        break;
+                                    case RegenerationType.PickUp:
+                                        action = "picked up";
+                                        break;
+                                    case RegenerationType.Undef:
+                                    default:
+                                        action = "despawned";
+                                        break;
+                                }
+
+                                msg += $"0x{spawn.objectGuid:X8} {action} at {spawn.time.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.time.ToLocalTime()}\n";
                             }
                             msg += $"--====--\n";
                         }

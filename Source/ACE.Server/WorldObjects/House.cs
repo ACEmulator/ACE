@@ -239,7 +239,7 @@ namespace ACE.Server.WorldObjects
             SetLinkProperties(wo);
         }
 
-        public bool IsApartment => HouseType != null && (HouseType)HouseType.Value == ACE.Entity.Enum.HouseType.Apartment;
+        public bool IsApartment => HouseType != null && HouseType.Value == ACE.Entity.Enum.HouseType.Apartment;
 
         /// <summary>
         /// Returns TRUE if this player has guest or storage access
@@ -250,6 +250,11 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             if (player.Guid.Full == HouseOwner.Value)
+                return true;
+
+            var owner = PlayerManager.FindByGuid(HouseOwner.Value);
+
+            if (owner != null && owner.Account.AccountId == player.Account.AccountId)
                 return true;
 
             // handle allegiance permissions
@@ -390,7 +395,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (_dungeonLandblockID == null)
                 {
-                    var rootHouseBlock = RootHouse.CurrentLandblock.Id.Raw | 0xFFFF;
+                    var rootHouseBlock = RootHouse.Location.LandblockId.Raw | 0xFFFF;
 
                     var housePortals = GetHousePortals();
 
@@ -474,7 +479,11 @@ namespace ACE.Server.WorldObjects
                 if (_rootGuid != null)
                     return _rootGuid.Value;
 
-                if (!CurrentLandblock.IsDungeon)
+                // CurrentLandblock == null should only happen when the player is in a villa/mansion dungeon basement,
+                // and the outdoor house landblock is still unloaded. the reference to the outdoor House will be a shallow reference at that point,
+                // and this should only happen for outdoor landblocks
+
+                if (CurrentLandblock == null || !CurrentLandblock.IsDungeon)
                 {
                     _rootGuid = Guid;
                     return Guid;

@@ -113,9 +113,14 @@ namespace ACE.Server.Entity
         public bool IsBeneficial => Flags.HasFlag(SpellFlags.Beneficial);
 
         /// <summary>
-        /// Returns TRUE if this is a hamrful spell
+        /// Returns TRUE if this is a harmful spell
         /// </summary>
         public bool IsHarmful { get => !IsBeneficial; }
+
+        /// <summary>
+        /// Returns TRUE if this spell is resistable
+        /// </summary>
+        public bool IsResistable => Flags.HasFlag(SpellFlags.Resistable);
 
         public bool IsProjectile => NumProjectiles > 0;
 

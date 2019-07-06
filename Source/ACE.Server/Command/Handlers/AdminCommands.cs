@@ -1136,12 +1136,12 @@ namespace ACE.Server.Command.Handlers
                         {
                             if (item.WeenieClassId == 0)
                             {
-                                msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,6:P2} - {item.WeenieClassId,5} - Nothing\n";
+                                msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,7:P2} - {item.WeenieClassId,5} - Nothing\n";
                                 continue;
                             }
 
                             var weenie = DatabaseManager.World.GetCachedWeenie(item.WeenieClassId);
-                            msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,6:P2} - {item.WeenieClassId,5} - {weenie.ClassName} - {weenie.GetProperty(PropertyString.Name)}\n";
+                            msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,7:P2} - {item.WeenieClassId,5} - {weenie.ClassName} - {weenie.GetProperty(PropertyString.Name)}\n";
                         }
                     }
                     else
@@ -1157,6 +1157,9 @@ namespace ACE.Server.Command.Handlers
                     else
                         msg += "Creature has no wielded items to drop.\n";
                 }
+                else
+                    msg = $"{wo.Name} (0x{wo.Guid}) has no trophies.";
+
                 session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.System));
             }
         }
@@ -1190,13 +1193,30 @@ namespace ACE.Server.Command.Handlers
 
         // add <spell>
         [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Adds the specified spell to your own spellbook.", "<spellid>")]
-        public static void HandleAdd(Session session, params string[] parameters)
+        public static void HandleAddSpell(Session session, params string[] parameters)
         {
             if (Enum.TryParse(parameters[0], true, out SpellId spellId))
             {
                 if (Enum.IsDefined(typeof(SpellId), spellId))
                     session.Player.LearnSpellWithNetworking((uint)spellId);
             }
+        }
+
+        [CommandHandler("removespell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Removes the specified spell to your own spellbook.", "<spellid>")]
+        public static void HandleRemoveSpell(Session session, params string[] parameters)
+        {
+            if (!Enum.TryParse(parameters[0], true, out SpellId spellId))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown spell {parameters[0]}", ChatMessageType.Broadcast));
+                return;
+            }
+            if (session.Player.RemoveKnownSpell((uint)spellId))
+            {
+                var spell = new Entity.Spell(spellId, false);
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} removed from spellbook.", ChatMessageType.Broadcast));
+            }
+            else
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You don't know that spell!", ChatMessageType.Broadcast));
         }
 
         // adminhouse
@@ -1764,9 +1784,9 @@ namespace ACE.Server.Command.Handlers
 
             var guid = GuidManager.NewPlayerGuid();
 
-            weenie.Type = (int)session.Player.WeenieType;
-
             var player = new Player(weenie, guid, session.AccountId);
+
+            player.Biota.WeenieType = (int)session.Player.WeenieType;
 
             var name = string.Join(' ', parameters.Skip(1));
             if (parameters.Length > 1)
@@ -1850,7 +1870,12 @@ namespace ACE.Server.Command.Handlers
         }
 
         // qst
-        [CommandHandler("qst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("qst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Query, stamp, and erase quests on the targeted player",
+            "[list | bestow | erase]\n"
+            + "qst list - List the quest flags for the targeted player\n"
+            + "qst bestow - Stamps the specific quest flag on the targeted player. If this fails, it's probably because you spelled the quest flag wrong.\n"
+            + "qst erase - Erase the specific quest flag from the targeted player.If no quest flag is given, it erases the entire quest table for the targeted player.\n")]
         public static void Handleqst(Session session, params string[] parameters)
         {
             // fellow bestow  stamp erase
@@ -1865,27 +1890,107 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (parameters[0].Equals("erase"))
-            {
-                if (parameters.Length < 2)
-                {
-                    // delete all quests?
-                    // seems unsafe, maybe a confirmation?
-                    return;
-                }
-                var questName = parameters[1];
-                var player = session.Player;
-                if (!player.QuestManager.HasQuest(questName))
-                {
-                    player.SendMessage($"{questName} not found");
-                    return;
-                }
-                player.QuestManager.Erase(questName);
-                player.SendMessage($"{questName} erased");
-                return;
-            }
+            var objectId = new ObjectGuid();
 
-            // TODO: output
+            if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+            else if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+            else if (session.Player.CurrentAppraisalTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+            var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+            if (wo != null && wo is Player player)
+            {
+                if (parameters[0].Equals("list"))
+                {
+                    var questsHdr = $"Quest Registry for {player.Name} (0x{player.Guid}):\n";
+                    questsHdr += "================================================\n";
+                    var quests = "";
+                    foreach (var quest in player.QuestManager.Quests)
+                    {
+                        quests += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+                        var nextSolve = player.QuestManager.GetNextSolveTime(quest.QuestName);
+
+                        if (nextSolve == TimeSpan.MinValue)
+                            quests += "Can Solve: Immediately\n";
+                        else if (nextSolve == TimeSpan.MaxValue)
+                            quests += "Can Solve: Never again\n";
+                        else
+                            quests += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+
+                        quests += "--====--\n";
+                    }
+
+                    session.Player.SendMessage($"{questsHdr}{(quests != "" ? quests : "No quests found.")}");
+                    return;
+                }
+
+                if (parameters[0].Equals("bestow"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        // delete all quests?
+                        // seems unsafe, maybe a confirmation?
+                        return;
+                    }
+                    var questName = parameters[1];
+                    if (player.QuestManager.HasQuest(questName))
+                    {
+                        session.Player.SendMessage($"{player.Name} already has {questName}");
+                        return;
+                    }
+
+                    var canSolve = player.QuestManager.CanSolve(questName);
+                    if (canSolve)
+                    {
+                        player.QuestManager.Update(questName);
+                        session.Player.SendMessage($"{questName} bestowed on {player.Name}");
+                        return;
+                    }
+                    else
+                    {
+                        session.Player.SendMessage($"Couldn't bestow {questName} on {player.Name}");
+                        return;
+                    }
+                }
+
+                if (parameters[0].Equals("erase"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        // delete all quests?
+                        // seems unsafe, maybe a confirmation?
+                        session.Player.SendMessage($"You must specify a quest to erase, if you want to erase all quests use the following command: /qst erase *");
+                        return;
+                    }
+                    var questName = parameters[1];
+
+                    if (questName == "*")
+                    {
+                        player.QuestManager.EraseAll();
+                        session.Player.SendMessage($"All quests erased.");
+                        return;
+                    }
+
+                    if (!player.QuestManager.HasQuest(questName))
+                    {
+                        session.Player.SendMessage($"{questName} not found.");
+                        return;
+                    }
+                    player.QuestManager.Erase(questName);
+                    session.Player.SendMessage($"{questName} erased.");
+                    return;
+                }
+            }
+            else
+            {
+                if (wo == null)
+                    session.Player.SendMessage($"Selected object (0x{objectId}) not found.");
+                else
+                    session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a player.");
+            }
         }
 
         // raise
