@@ -152,6 +152,8 @@ namespace ACE.Server.WorldObjects
             var amount = DamageNext;
             var iAmount = (int)Math.Round(amount);
 
+            var pAmount = 0;
+
             switch (DamageType)
             {
                 default:
@@ -159,25 +161,26 @@ namespace ACE.Server.WorldObjects
                     amount *= (float)player.GetLifeResistance(DamageType);
                     iAmount = (int)Math.Round(amount);
                     player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
+                    pAmount = Math.Abs(iAmount);
                     if (player.IsDead && Players.Contains(player.Guid))
                         Players.Remove(player.Guid);
                     break;
 
                 case DamageType.Mana:
-                    player.UpdateVitalDelta(player.Mana, -iAmount);
+                    pAmount = player.UpdateVitalDelta(player.Mana, -iAmount);
                     break;
                 case DamageType.Stamina:
-                    player.UpdateVitalDelta(player.Stamina, -iAmount);
+                    pAmount = player.UpdateVitalDelta(player.Stamina, -iAmount);
                     break;
                 case DamageType.Health:
-                    player.UpdateVitalDelta(player.Health, -iAmount);
+                    pAmount = player.UpdateVitalDelta(player.Health, -iAmount);
                     break;
             }
 
             if (!Visibility)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.TriggerActivated, 1.0f));
 
-            if (!string.IsNullOrWhiteSpace(ActivationTalk))
+            if (!string.IsNullOrWhiteSpace(ActivationTalk) && pAmount != 0)
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", Math.Abs(iAmount).ToString()), ChatMessageType.Broadcast));
 
             // perform activation emote
