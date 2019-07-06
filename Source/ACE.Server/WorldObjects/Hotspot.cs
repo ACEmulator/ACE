@@ -160,8 +160,7 @@ namespace ACE.Server.WorldObjects
                     if (player.Invincible) return;
                     amount *= (float)player.GetLifeResistance(DamageType);
                     iAmount = (int)Math.Round(amount);
-                    player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
-                    pAmount = Math.Abs(iAmount);
+                    pAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
                     if (player.IsDead && Players.Contains(player.Guid))
                         Players.Remove(player.Guid);
                     break;
