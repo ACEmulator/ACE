@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2019-07-06
+[Ripley, Mag-nus]
+* Add `2019-06-10-00-Add_Fields_To_Account_Table.sql` to Auth Updates folder. Servers are required to update Auth database with this script.
+* Rescaffolded to add in new fields to Account.
+* Add in creation ip/time and last login ip/time to account creation/login.
+
 ### 2019-07-04
 [Ripley]
 * Add DoNothing ActOnUse to CraftTool.
@@ -291,12 +297,6 @@
 
 [gmriggs]
 * Added Sandstone Salvage for new items, updated existing Sandstone Salvage bags
-
-### 2019-06-10
-[Ripley, Mag-nus]
-* Add `2019-06-10-00-Add_Fields_To_Account_Table.sql` to Auth Updates folder. Required to update Auth database.
-* Rescaffolded to add in new fields to Account.
-* Add in creation ip/time and last login ip/time to account creation/login.
 
 ### 2019-06-09
 [Ripley]
