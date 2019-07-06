@@ -614,6 +614,9 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return WeaponType.Undef;    // unarmed?
 
+            if (weapon is Caster)
+                return WeaponType.Magic;
+
             var weaponType = weapon.GetProperty(PropertyInt.WeaponType);
             if (weaponType != null)
                 return (WeaponType)weaponType;
