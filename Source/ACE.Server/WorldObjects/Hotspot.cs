@@ -152,34 +152,31 @@ namespace ACE.Server.WorldObjects
             var amount = DamageNext;
             var iAmount = (int)Math.Round(amount);
 
-            var pAmount = 0;
-
             switch (DamageType)
             {
                 default:
                     if (player.Invincible) return;
                     amount *= (float)player.GetLifeResistance(DamageType);
-                    iAmount = (int)Math.Round(amount);
-                    pAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
+                    iAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
                     if (player.IsDead && Players.Contains(player.Guid))
                         Players.Remove(player.Guid);
                     break;
 
                 case DamageType.Mana:
-                    pAmount = player.UpdateVitalDelta(player.Mana, -iAmount);
+                    iAmount = player.UpdateVitalDelta(player.Mana, -iAmount);
                     break;
                 case DamageType.Stamina:
-                    pAmount = player.UpdateVitalDelta(player.Stamina, -iAmount);
+                    iAmount = player.UpdateVitalDelta(player.Stamina, -iAmount);
                     break;
                 case DamageType.Health:
-                    pAmount = player.UpdateVitalDelta(player.Health, -iAmount);
+                    iAmount = player.UpdateVitalDelta(player.Health, -iAmount);
                     break;
             }
 
             if (!Visibility)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.TriggerActivated, 1.0f));
 
-            if (!string.IsNullOrWhiteSpace(ActivationTalk) && pAmount != 0)
+            if (!string.IsNullOrWhiteSpace(ActivationTalk) && iAmount != 0)
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", Math.Abs(iAmount).ToString()), ChatMessageType.Broadcast));
 
             // perform activation emote
