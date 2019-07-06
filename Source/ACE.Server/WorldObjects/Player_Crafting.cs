@@ -142,7 +142,7 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                if (item.Workmanship == null || (item.Retained ?? false)) continue;
+                if (item.Workmanship == null || item.Retained) continue;
 
                 AddSalvage(salvageBags, item, salvageResults);
 

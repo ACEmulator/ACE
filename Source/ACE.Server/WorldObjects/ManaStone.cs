@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
                 else if (target.ItemCurMana.HasValue && target.ItemCurMana.Value > 0 && target.ItemMaxMana.HasValue && target.ItemMaxMana.Value > 0)
                 {
                     // absorb mana from the item
-                    if (target.Retained ?? false)
+                    if (target.Retained)
                         useResult = WeenieError.ActionCancelled;
                     else
                     {

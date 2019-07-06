@@ -33,7 +33,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Food;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Food;
         }
 
         /// <summary>

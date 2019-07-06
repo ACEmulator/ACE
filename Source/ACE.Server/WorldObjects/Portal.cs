@@ -30,7 +30,7 @@ namespace ACE.Server.WorldObjects
 
         protected void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Portal;
 
             UpdatePortalDestination(Destination);
         }
