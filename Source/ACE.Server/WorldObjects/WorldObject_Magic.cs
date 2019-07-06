@@ -77,8 +77,10 @@ namespace ACE.Server.WorldObjects
 
             // send message to player, if applicable
             var player = this as Player;
-            if (player != null && status.Message != null && showMsg)
+            if (player != null && status.Message != null && !status.Broadcast && showMsg)
                 player.Session.Network.EnqueueSend(status.Message);
+            else if (player != null && status.Message != null && status.Broadcast && showMsg)
+                player.EnqueueBroadcast(status.Message);
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
@@ -1269,9 +1271,10 @@ namespace ACE.Server.WorldObjects
                 else
                     message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
             }
-            else if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId))
+            else if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell.HasValue && caster.ProcSpell.Value == spell.Id)
             {
-                    message = $"{caster.Name} surges on {target.Name} with the power of {spell.Name}!";
+                message = $"{caster.Name} surges on {target.Name} with the power of {spell.Name}!";
+                enchantmentStatus.Broadcast = true;
             }
             else
             {

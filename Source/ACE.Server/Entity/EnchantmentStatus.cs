@@ -11,6 +11,7 @@ namespace ACE.Server.Entity
         public Spell Spell;
         public StackType StackType;
         public GameMessageSystemChat Message;
+        public bool Broadcast;
         public bool Success;
 
         public EnchantmentStatus(Spell spell)
