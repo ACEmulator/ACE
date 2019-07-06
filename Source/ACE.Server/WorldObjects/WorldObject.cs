@@ -198,8 +198,8 @@ namespace ACE.Server.WorldObjects
 
             SetPosition(PositionType.Home, new Position(Location));
 
-            if (this is Creature creature && !(this is Player))
-                creature.CheckPlayers();
+            if (!PhysicsObj.DatObject)
+                ObjMaintInit();
 
             return true;
         }
@@ -261,7 +261,7 @@ namespace ACE.Server.WorldObjects
                 ephemeralPositions.TryAdd((PositionType)x, null);
 
             foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
-                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);            
+                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
@@ -317,7 +317,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // note: visibility lists are actively maintained only for players
-            return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
+            return PhysicsObj.ObjMaint.VisibleObjects.ContainsKey(wo.PhysicsObj.ID);
         }
 
         //public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);     // arrow
@@ -1057,5 +1057,25 @@ namespace ACE.Server.WorldObjects
         }
 
         public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
+
+        public void ObjMaintInit()
+        {
+            var attackable = Attackable && !Guid.IsPlayer();
+
+            var visibleObjs = ObjectMaint.InitialClamp ? PhysicsObj.ObjMaint.GetVisibleObjectsDist(PhysicsObj.CurCell) : PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
+
+            if (attackable)
+            {
+                var visibleTargets = visibleObjs.Where(i => i.IsPlayer || i.IsCombatPet).ToList();
+
+                PhysicsObj.ObjMaint.AddVisibleTargets(visibleTargets);
+            }
+            else
+            {
+                var knownPlayers = visibleObjs.Where(i => i.IsPlayer).ToList();
+
+                PhysicsObj.ObjMaint.AddKnownPlayers(knownPlayers);
+            }
+        }
     }
 }

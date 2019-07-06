@@ -105,6 +105,7 @@ namespace ACE.Server.Physics
         public CellArray CellArray;
         public ObjectMaint ObjMaint;
         public bool IsPlayer => ID >= 0x50000001 && ID <= 0x5FFFFFFF;
+        public bool IsCombatPet;
 
         public static readonly int UpdateTimeLength = 9;
 
@@ -2264,18 +2265,19 @@ namespace ACE.Server.Physics
             RequestPos.ObjCellID = newCell.ID;
 
             // handle self
-            var newlyVisible = handle_visible_cells();
-
             if (IsPlayer)
-                enqueue_objs(newlyVisible);
-
-            // others / known objects
-            foreach (var obj in ObjMaint.ObjectTable.Values)
             {
-                var added = obj.handle_visible_obj(this);
+                var newlyVisible = handle_visible_cells();
+                enqueue_objs(newlyVisible);
+            }
 
-                if (added && obj.IsPlayer)
-                    obj.enqueue_obj(this);
+            // handle known players
+            foreach (var player in ObjMaint.KnownPlayers.Values)
+            {
+                var added = player.handle_visible_obj(this);
+
+                if (added)
+                    player.enqueue_obj(this);
             }
         }
 
@@ -2593,21 +2595,21 @@ namespace ACE.Server.Physics
             // get the list of visible objects from this cell
             var visibleObjects = ObjMaint.GetVisibleObjects(CurCell);
 
-            //Console.WriteLine("Visible objects from this cell: " + visibleObjects.Count);
+            Console.WriteLine("Visible objects from this cell: " + visibleObjects.Count);
             //foreach (var visibleObject in visibleObjects)
                 //Console.WriteLine(visibleObject.Name);
 
             // get the difference between current and previous visible
-            //var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjectTable.Values).ToList();
-            var newlyOccluded = ObjMaint.VisibleObjectTable.Values.Except(visibleObjects).ToList();
-            //Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
+            var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjects.Values).ToList();
+            var newlyOccluded = ObjMaint.VisibleObjects.Values.Except(visibleObjects).ToList();
+            Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
             //Console.WriteLine("Newly occluded objects: " + newlyOccluded.Count);
             //foreach (var obj in newlyOccluded)
                 //Console.WriteLine(obj.Name);
 
             // add newly visible objects, and get the previously unknowns
             var createObjs = ObjMaint.AddVisibleObjects(visibleObjects);
-            //Console.WriteLine("Create objects: " + createObjs.Count);
+            Console.WriteLine("Create objects: " + createObjs.Count);
             /*if (createObjs.Count != newlyVisible.Count)
             {
                 Console.WriteLine($"Create objs differs from newly visible ({createObjs.Count} vs. {newlyVisible.Count})");
@@ -2653,13 +2655,11 @@ namespace ACE.Server.Physics
             }
             else
             {
-                var newlyOccluded = ObjMaint.VisibleObjectTable.ContainsKey(obj.ID);
+                var newlyOccluded = ObjMaint.VisibleObjects.ContainsKey(obj.ID);
 
                 if (newlyOccluded)
-                {
                     ObjMaint.AddObjectToBeDestroyed(obj);
-                    ObjMaint.VisibleObjectTable.Remove(obj.ID);
-                }
+
                 return false;
             }
         }

@@ -58,6 +58,12 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Idle;
         }
 
+        public Tolerance Tolerance
+        {
+            get => (Tolerance)(GetProperty(PropertyInt.Tolerance) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.Tolerance); else SetProperty(PropertyInt.Tolerance, (int)value); }
+        }
+
         /// <summary>
         /// This list of possible targeting tactics for this monster
         /// </summary>
@@ -230,25 +236,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<Creature> GetAttackablePlayers()
         {
-            // TODO: this might need refreshed
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
-
             var players = new List<Creature>();
 
-            foreach (var obj in visibleObjs)
+            foreach (var player in PhysicsObj.ObjMaint.VisibleTargets.Values)
             {
-                // exclude self (should hopefully not be in this list)
-                if (PhysicsObj == obj) continue;
+                // TODO: attack combat pets
+                var creature = player.WeenieObj.WorldObject as Creature;
+                if (creature == null) continue;
 
-                // ensure player or player's pet
-                var wo = obj.WeenieObj.WorldObject;
-                if (wo == null) continue;
-                if (!(wo is Player) && !(wo is CombatPet)) continue;
-                var creature = wo as Creature;
-
-                // ensure attackable
-                var attackable = creature.GetProperty(PropertyBool.Attackable) ?? false;
-                if (!attackable) continue;
+                if (!creature.Attackable) continue;
 
                 // ensure within 'detection radius' ?
                 var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : RadiusAwarenessSquared;
@@ -256,7 +252,6 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 players.Add(creature);
-
             }
             return players;
         }
@@ -308,7 +303,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Rebuilds the visible objects tables for this monster
+        /// Rebuilds the visible objects tables
         /// </summary>
         public void GetVisibleObjects()
         {
@@ -319,43 +314,40 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a monster is first spawning in
         /// </summary>
-        public void CheckPlayers()
+        public void CheckTargets()
         {
-            var attackable = Attackable ?? false;
-            var tolerance = (Tolerance)(GetProperty(PropertyInt.Tolerance) ?? 0);
-
-            if (!attackable && TargetingTactic == 0 || tolerance != Tolerance.None)
+            if (!Attackable && TargetingTactic == TargetingTactic.None || Tolerance != Tolerance.None)
                 return;
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(0.75f);
-            actionChain.AddAction(this, CheckPlayers_Inner);
+            actionChain.AddAction(this, CheckTargets_Inner);
             actionChain.EnqueueChain();
         }
 
-        public void CheckPlayers_Inner()
-        { 
-            var visiblePlayers = PhysicsObj.ObjMaint.VoyeurTable.Values;
-
-            Player closestPlayer = null;
+        public void CheckTargets_Inner()
+        {
+            Creature closestTarget = null;
             var closestDistSq = float.MaxValue;
 
-            foreach (var visiblePlayer in visiblePlayers)
+            foreach (var visibleTarget in PhysicsObj.ObjMaint.VisibleTargets.Values)
             {
-                var player = visiblePlayer.WeenieObj.WorldObject as Player;
-                if (player == null || !player.IsAttackable || (player.Hidden ?? false)) continue;
+                var creature = visibleTarget.WeenieObj.WorldObject as Creature;
 
-                var distSq = Location.SquaredDistanceTo(player.Location);
+                if (creature == null || creature is Player player && (!player.Attackable || (player.Hidden ?? false)))
+                    continue;
+
+                var distSq = Location.SquaredDistanceTo(creature.Location);
                 if (distSq < closestDistSq)
                 {
                     closestDistSq = distSq;
-                    closestPlayer = player;
+                    closestTarget = creature;
                 }
             }
-            if (closestPlayer == null || closestDistSq > RadiusAwarenessSquared)
+            if (closestTarget == null || closestDistSq > RadiusAwarenessSquared)
                 return;
 
-            closestPlayer.AlertMonster(this);
+            closestTarget.AlertMonster(this);
         }
 
         public double? VisualAwarenessRange
@@ -387,7 +379,7 @@ namespace ACE.Server.WorldObjects
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
-                if (nearbyCreature == null || nearbyCreature.IsAwake/* || nearbyCreature.IsAlerted*/ || !(nearbyCreature.GetProperty(PropertyBool.Attackable) ?? false))
+                if (nearbyCreature == null || nearbyCreature.IsAwake/* || nearbyCreature.IsAlerted*/ || !nearbyCreature.Attackable)
                     continue;
 
                 if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||

@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetKnownObjects()
         {
-            return ObjMaint.ObjectTable.Values.Select(o => o.WeenieObj.WorldObject).Where(wo => wo != null).ToList();
+            return ObjMaint.KnownObjects.Values.Select(o => o.WeenieObj.WorldObject).Where(wo => wo != null).ToList();
         }
 
         /// <summary>
@@ -69,6 +69,22 @@ namespace ACE.Server.WorldObjects
                     if (IsInChildLocation(wieldedItem))
                         TrackEquippedObject(creature, wieldedItem);
             }
+        }
+
+        public bool AddTrackedObject(WorldObject worldObject)
+        {
+            // does this work for equipped objects?
+            if (ObjMaint.KnownObjects.Values.Contains(worldObject.PhysicsObj))
+            {
+                //Console.WriteLine($"Player {Name} - AddTrackedObject({worldObject.Name}) skipped, already tracked");
+                return false;
+            }
+
+            ObjMaint.AddObject(worldObject.PhysicsObj);
+            ObjMaint.AddVisibleObject(worldObject.PhysicsObj);
+
+            TrackObject(worldObject);
+            return true;
         }
 
         /// <summary>

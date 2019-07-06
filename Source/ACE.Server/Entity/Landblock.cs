@@ -682,6 +682,9 @@ namespace ACE.Server.Entity
             else
                 pendingRemovals.Remove(wo.Guid);
 
+            // broadcast to nearby players
+            wo.NotifyPlayers();
+
             return true;
         }
 
@@ -822,14 +825,6 @@ namespace ACE.Server.Entity
                 }
             }
             return null;
-        }
-
-        public void ResendObjectsInRange(WorldObject wo)
-        {
-            wo.PhysicsObj.ObjMaint.RemoveAllObjects();
-
-            var visibleObjs = wo.PhysicsObj.handle_visible_cells();
-            wo.PhysicsObj.enqueue_objs(visibleObjs);
         }
 
         /// <summary>

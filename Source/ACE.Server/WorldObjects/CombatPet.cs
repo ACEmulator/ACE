@@ -75,6 +75,8 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Awake;
             IsAwake = true;
             player.CurrentActiveCombatPet = this;
+            if (PhysicsObj != null)
+                PhysicsObj.IsCombatPet = true;
 
             // copy ratings from pet device
             DamageRating = petDevice.GearDamage;
@@ -96,8 +98,8 @@ namespace ACE.Server.WorldObjects
         public override bool FindNextTarget()
         {
             // rebuild visible objects (handle this better for monsters)
-            // this is no longer needed with ObjMaint 3.0
-            //GetVisibleObjects();
+            // TODO: clean this up for ObjMaint 3.0?
+            GetVisibleObjects();
 
             var nearbyMonsters = GetNearbyMonsters();
             if (nearbyMonsters.Count == 0)
@@ -127,7 +129,7 @@ namespace ACE.Server.WorldObjects
         public List<Creature> GetNearbyMonsters()
         {
             // TODO: this might need refreshed
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
+            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjects.Values;
 
             var monsters = new List<Creature>();
 
@@ -145,9 +147,7 @@ namespace ACE.Server.WorldObjects
                 var creature = wo as Creature;
                 if (creature == null || wo is CombatPet || creature.IsDead) continue;
 
-                // ensure attackable
-                var attackable = creature.GetProperty(PropertyBool.Attackable) ?? false;
-                if (!attackable) continue;
+                if (!Attackable) continue;
 
                 monsters.Add(creature);
             }

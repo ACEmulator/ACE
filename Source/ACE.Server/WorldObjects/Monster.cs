@@ -25,16 +25,5 @@ namespace ACE.Server.WorldObjects
             Awake,
             Return
         };
-
-        /// <summary>
-        /// Returns TRUE if this is an attackable monster
-        /// </summary>
-        public bool IsAttackable()
-        {
-            var attackable = GetProperty(PropertyBool.Attackable) ?? false;
-            var tolerance = (Tolerance)(GetProperty(PropertyInt.Tolerance) ?? 0);
-
-            return attackable && !tolerance.HasFlag(Tolerance.NoAttack);
-        }
     }
 }

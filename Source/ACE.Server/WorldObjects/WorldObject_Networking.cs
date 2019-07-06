@@ -813,7 +813,6 @@ namespace ACE.Server.WorldObjects
             var flag = BaseDescriptionFlags;
             var weenieFlags2 = CalculatedWeenieHeaderFlag2();
 
-
             //if (flag.HasFlag(ObjectDescriptionFlag.Openable))
             //    if (!Open.HasValue)
             //        Open = true;
@@ -823,9 +822,6 @@ namespace ACE.Server.WorldObjects
             if (flag.HasFlag(ObjectDescriptionFlag.Stuck))
                 if (!Stuck.HasValue)
                     Stuck = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.Attackable))
-                if (!Attackable.HasValue)
-                    Attackable = true;
             if (flag.HasFlag(ObjectDescriptionFlag.HiddenAdmin))
                 if (!HiddenAdmin.HasValue)
                     HiddenAdmin = true;
@@ -876,11 +872,6 @@ namespace ACE.Server.WorldObjects
                 else
                     flag &= ~ObjectDescriptionFlag.Player;
             }
-            ////Attackable             = 0x00000010,
-            if (Attackable ?? false)
-                flag |= ObjectDescriptionFlag.Attackable;
-            else
-                flag &= ~ObjectDescriptionFlag.Attackable;
             ////PlayerKiller           = 0x00000020,
             if (PlayerKillerStatus == PlayerKillerStatus.PK)
                 flag |= ObjectDescriptionFlag.PlayerKiller;
@@ -1155,7 +1146,7 @@ namespace ACE.Server.WorldObjects
             if (!excludeSelf && this is Player self)
                 self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (Visibility && !player.Adminvision)
                     continue;
@@ -1250,7 +1241,7 @@ namespace ACE.Server.WorldObjects
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
@@ -1286,7 +1277,7 @@ namespace ACE.Server.WorldObjects
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (self != null && useSquelch && player.Squelches.Contains(self))
                     continue;
@@ -1323,7 +1314,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
             {
                 if (Visibility && !player.Adminvision)
@@ -1344,7 +1335,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject as Player).ToList();
             foreach (var player in nearbyPlayers.Except(excludePlayers))
             {
                 if (Visibility && !player.Adminvision)
@@ -1353,6 +1344,19 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(msgs);
             }
             return nearbyPlayers;
+        }
+
+        /// <summary>
+        /// Called when a new PhysicsObj enters the world
+        /// </summary>
+        public void NotifyPlayers()
+        {
+            // send create object network message to visible players
+            foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(i => i.WeenieObj.WorldObject as Player).ToList())
+                player.AddTrackedObject(this);
+
+            if (this is Creature creature && !(this is Player))
+                creature.CheckTargets();
         }
     }
 }
