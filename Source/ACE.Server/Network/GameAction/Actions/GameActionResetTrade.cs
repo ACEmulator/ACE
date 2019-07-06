@@ -13,10 +13,10 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (target != null)
             {
-                session.Player.HandleActionResetTrade(session, whoReset);
+                session.Player.HandleActionResetTrade(whoReset);
 
                 //Send GameEvent to reset partner's trade window
-                target.HandleActionResetTrade(target.Session, whoReset);
+                target.HandleActionResetTrade(whoReset);
             }
         }
     }

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ACE.Common;
 using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
+using System.Net;
 
 namespace ACE.Database.Tests
 {
@@ -27,7 +28,7 @@ namespace ACE.Database.Tests
         [TestMethod]
         public void CreateAccount_GetAccountByName_ReturnsAccount()
         {
-            var newAccount = authDb.CreateAccount("testaccount1", "testpassword1", AccessLevel.Player);
+            var newAccount = authDb.CreateAccount("testaccount1", "testpassword1", AccessLevel.Player, IPAddress.Parse("127.0.0.1"));
 
             var results = authDb.GetAccountByName(newAccount.AccountName);
             Assert.IsNotNull(results);
