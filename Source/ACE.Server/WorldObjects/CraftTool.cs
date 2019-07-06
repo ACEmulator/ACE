@@ -40,10 +40,5 @@ namespace ACE.Server.WorldObjects
             // fallback on recipe manager
             base.HandleActionUseOnTarget(player, target);
         }
-
-        public override void ActOnUse(WorldObject wo)
-        {
-            // Do nothing
-        }
     }
 }

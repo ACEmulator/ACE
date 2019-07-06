@@ -123,20 +123,5 @@ namespace ACE.Server.WorldObjects
 
             EquipDequipItemFromSet(item, spells, prevSpells);
         }
-
-        public void OnItemLevelUp(WorldObject item, int prevItemLevel)
-        {
-            if (!item.HasItemSet) return;
-
-            var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
-
-            var levelDiff = prevItemLevel - (item.ItemLevel ?? 0);
-
-            var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems, levelDiff);
-
-            var spells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
-
-            EquipDequipItemFromSet(item, spells, prevSpells);
-        }
     }
 }

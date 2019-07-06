@@ -137,8 +137,13 @@ namespace ACE.Server.Physics.Common
             {
                 if (InitialClamp && !ObjectTable.ContainsKey(obj.ID))
                 {
-                    var distSq = PhysicsObj.Position.Distance2DSquared(obj.Position);
+                    var wo = PhysicsObj.WeenieObj.WorldObject;
+                    var objWo = obj.WeenieObj.WorldObject;
 
+                    if (wo == null || objWo == null)
+                        return false;
+
+                    var distSq = wo.Location.Distance2DSquared(objWo.Location);
                     if (distSq > InitialClamp_DistSq)
                         return false;
                 }
@@ -273,8 +278,13 @@ namespace ACE.Server.Physics.Common
             var dist = new List<PhysicsObj>();
             foreach (var obj in visibleObjs)
             {
-                var distSq = PhysicsObj.Position.Distance2DSquared(obj.Position);
+                var wo = PhysicsObj.WeenieObj.WorldObject;
+                var objWo = obj.WeenieObj.WorldObject;
 
+                if (wo == null || objWo == null)
+                    continue;
+
+                var distSq = wo.Location.Distance2DSquared(objWo.Location);
                 if (distSq <= InitialClamp_DistSq)
                     dist.Add(obj);
             }

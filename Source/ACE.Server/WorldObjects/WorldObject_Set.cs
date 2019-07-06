@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the item set spells for a particular level
         /// </summary>
-        public static List<Spell> GetSpellSet(EquipmentSet equipmentSet, List<WorldObject> setItems, int levelDiff = 0)
+        public static List<Spell> GetSpellSet(EquipmentSet equipmentSet, List<WorldObject> setItems)
         {
             var spells = new List<Spell>();
 
@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
                 return spells;
 
             // apply maximum level cap here?
-            var level = (uint)(setItems.Sum(i => i.ItemLevel ?? 0) + levelDiff);
+            var level = (uint)setItems.Sum(i => i.ItemLevel ?? 0);
             var highestTier = spellSet.SpellSetTiers.Last().Key;
 
             //Console.WriteLine($"Total level: {level}");
