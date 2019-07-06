@@ -1241,7 +1241,17 @@ namespace ACE.Server.WorldObjects
             var enchantmentStatus = new EnchantmentStatus(spell);
 
             // create enchantment
-            var addResult = target.EnchantmentManager.Add(spell, caster, equip);
+            AddEnchantmentResult addResult;
+            var aetheriaProc = false;
+
+            if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell.HasValue && caster.ProcSpell.Value == spell.Id)
+            {
+                caster = target.CurrentLandblock?.GetObject(caster.WielderId.Value);
+                addResult = target.EnchantmentManager.Add(spell, caster, equip);
+                aetheriaProc = true;
+            }
+            else
+                addResult = target.EnchantmentManager.Add(spell, caster, equip);
 
             var playerTarget = target as Player;
 
@@ -1264,17 +1274,17 @@ namespace ACE.Server.WorldObjects
 
             string message = null;
 
-            if (caster is Creature)
+            if (aetheriaProc)
+            {
+                message = $"Aetheria surges on {target.Name} with the power of {spell.Name}!";
+                enchantmentStatus.Broadcast = true;
+            }
+            else if (caster is Creature)
             {
                 if (caster.Guid == Guid)
                     message = $"You cast {spell.Name} on {targetName}{suffix}";
                 else
                     message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
-            }
-            else if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell.HasValue && caster.ProcSpell.Value == spell.Id)
-            {
-                message = $"{caster.Name} surges on {target.Name} with the power of {spell.Name}!";
-                enchantmentStatus.Broadcast = true;
             }
             else
             {
