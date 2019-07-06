@@ -823,9 +823,6 @@ namespace ACE.Server.WorldObjects
             if (flag.HasFlag(ObjectDescriptionFlag.Stuck))
                 if (!Stuck.HasValue)
                     Stuck = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.Attackable))
-                if (!Attackable.HasValue)
-                    Attackable = true;
             if (flag.HasFlag(ObjectDescriptionFlag.HiddenAdmin))
                 if (!HiddenAdmin.HasValue)
                     HiddenAdmin = true;
@@ -877,7 +874,7 @@ namespace ACE.Server.WorldObjects
                     flag &= ~ObjectDescriptionFlag.Player;
             }
             ////Attackable             = 0x00000010,
-            if (Attackable ?? false)
+            if (Attackable)
                 flag |= ObjectDescriptionFlag.Attackable;
             else
                 flag &= ~ObjectDescriptionFlag.Attackable;

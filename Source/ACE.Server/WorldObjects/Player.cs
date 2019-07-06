@@ -270,8 +270,7 @@ namespace ACE.Server.WorldObjects
             // pooky logic - handle monsters attacking on appraisal
             if (creature != null && creature.MonsterState == State.Idle)
             {
-                var tolerance = (Tolerance)(creature.GetProperty(PropertyInt.Tolerance) ?? 0);
-                if (tolerance.HasFlag(Tolerance.Appraise))
+                if (creature.Tolerance.HasFlag(Tolerance.Appraise))
                 {
                     creature.AttackTarget = this;
                     creature.WakeUp();

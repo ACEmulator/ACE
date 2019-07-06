@@ -1399,10 +1399,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyBool.Stuck); else SetProperty(PropertyBool.Stuck, value.Value); }
         }
 
-        public bool? Attackable
+        public bool Attackable
         {
-            get => GetProperty(PropertyBool.Attackable);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Attackable); else SetProperty(PropertyBool.Attackable, value.Value); }
+            get => GetProperty(PropertyBool.Attackable) ?? true;
+            set { if (value) RemoveProperty(PropertyBool.Attackable); else SetProperty(PropertyBool.Attackable, value); }
         }
 
         public bool SafeSpellComponents
