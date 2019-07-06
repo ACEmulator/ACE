@@ -262,6 +262,8 @@ namespace ACE.Server.WorldObjects
 
             ObjectDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
+            UpdateDescriptionFlags();
+
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManagerWithCaching(this);
 
