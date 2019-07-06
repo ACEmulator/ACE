@@ -147,7 +147,7 @@ namespace ACE.Server.WorldObjects
                 var creature = wo as Creature;
                 if (creature == null || wo is CombatPet || creature.IsDead) continue;
 
-                if (!Attackable) continue;
+                if (!creature.Attackable) continue;
 
                 monsters.Add(creature);
             }
