@@ -1121,6 +1121,9 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStackSize); else SetProperty(PropertyInt.MaxStackSize, value.Value); }
         }
 
+        /// <summary>
+        /// If this property is not defined, defaults to true
+        /// </summary>
         public bool IsSellable
         {
             get => GetProperty(PropertyBool.IsSellable) ?? true;
@@ -1398,6 +1401,9 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.Stuck); else SetProperty(PropertyBool.Stuck, value); UpdateDescriptionFlags(); }
         }
 
+        /// <summary>
+        /// If this property is not defined, defaults to true
+        /// </summary>
         public bool Attackable
         {
             get => GetProperty(PropertyBool.Attackable) ?? true;

@@ -252,7 +252,7 @@ namespace ACE.Server.WorldObjects
                 var creature = wo as Creature;
 
                 // ensure attackable
-                if (!Attackable) continue;
+                if (!creature.Attackable) continue;
 
                 // ensure within 'detection radius' ?
                 var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : RadiusAwarenessSquared;
