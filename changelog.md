@@ -1,5 +1,20 @@
 # ACEmulator Change Log
 
+### 2019-07-06
+[Ripley, Mag-nus]
+* Add `2019-06-10-00-Add_Fields_To_Account_Table.sql` to Auth Updates folder. Servers are required to update Auth database with this script.
+* Rescaffolded to add in new fields to Account.
+* Add in creation ip/time and last login ip/time to account creation/login.
+
+### 2019-07-04
+[Ripley]
+* Add DoNothing ActOnUse to CraftTool.
+* Adjust EmoteManager
+  - Wire up EmoteType.LocalSignal.
+  - Wire up EmoteCategory.ReceiveLocalSignal.
+  - Adjust EmoteType.Activate to fall back to linked generator if no activation target is specified.
+* Add Landblock.EmitSignal to support localized object interaction.
+
 ### 2019-07-01
 [Ripley]
 * Fix issue with converting books from JSON to SQL.

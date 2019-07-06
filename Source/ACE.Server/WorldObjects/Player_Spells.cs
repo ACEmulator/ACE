@@ -30,6 +30,14 @@ namespace ACE.Server.WorldObjects
             return spellAdded;
         }
 
+        /// <summary>
+        /// Removes a known spell from the player's spellbook
+        /// </summary>
+        public bool RemoveKnownSpell(uint spellId)
+        {
+            return Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock, BiotaPropertySpells);
+        }
+
         public void LearnSpellWithNetworking(uint spellId, bool uiOutput = true)
         {
             var spells = DatManager.PortalDat.SpellTable;
@@ -120,6 +128,21 @@ namespace ACE.Server.WorldObjects
             // get the spells from before / with this item
             setItems.Add(item);
             var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+
+            EquipDequipItemFromSet(item, spells, prevSpells);
+        }
+
+        public void OnItemLevelUp(WorldObject item, int prevItemLevel)
+        {
+            if (!item.HasItemSet) return;
+
+            var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
+
+            var levelDiff = prevItemLevel - (item.ItemLevel ?? 0);
+
+            var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems, levelDiff);
+
+            var spells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
 
             EquipDequipItemFromSet(item, spells, prevSpells);
         }

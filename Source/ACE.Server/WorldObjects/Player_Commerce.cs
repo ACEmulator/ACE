@@ -181,15 +181,16 @@ namespace ACE.Server.WorldObjects
         /// <param name="items"></param>
         public void HandleActionBuyItem(uint vendorGuid, List<ItemProfile> items)
         {
-            var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
-
-            if (vendor == null)
+            if (IsBusy)
             {
-                SendUseDoneEvent();
+                SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return;
             }
 
-            vendor.BuyItems_ValidateTransaction(items, this);
+            var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
+
+            if (vendor != null)
+                vendor.BuyItems_ValidateTransaction(items, this);
 
             SendUseDoneEvent();
         }
@@ -315,6 +316,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionSellItem(List<ItemProfile> itemprofiles, uint vendorGuid)
         {
+            if (IsBusy)
+            {
+                SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
 
             if (vendor == null)

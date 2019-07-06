@@ -841,6 +841,29 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, "Usage: /grantxp [name] 1234 (max 999999999999)", ChatMessageType.Broadcast);
         }
 
+        [CommandHandler("grantitemxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Give item XP to the last appraised item.")]
+        public static void HandleGrantItemXp(Session session, params string[] parameters)
+        {
+            if (!long.TryParse(parameters[0], out var amount))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid amount {parameters[0]}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var item = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (item == null) return;
+
+            if (!item.HasItemLevel)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{item.Name} is not a levelable item.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Player.GrantItemXP(item, amount);
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted to {item.Name}.", ChatMessageType.Broadcast));
+        }
+
         [CommandHandler("spendallxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]
         public static void HandleSpendAllXp(Session session, params string[] parameters)
         {
