@@ -189,8 +189,24 @@ namespace ACE.Server.Factories
         /// <returns></returns>
         public static WorldObject CreateLootByWCID(uint wcid, int tier)
         {
+            int longDescDecoration = 5;
+
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(wcid);
-            if (wo.TsysMutationData != null) { 
+
+            if (wo == null)
+                return null;
+
+            int workmanship = GetWorkmanship(tier);
+            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+
+            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
+            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
+
+            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, longDescDecoration);
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+
+            if (wo.TsysMutationData != null)
+            {
                 int newMaterialType = GetMaterialType(wo, tier);
                 if (newMaterialType > 0)
                 {
@@ -198,6 +214,11 @@ namespace ACE.Server.Factories
                     wo = RandomizeColor(wo);
                 }
             }
+
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            wo.Value = value;
 
             return wo;
         }
