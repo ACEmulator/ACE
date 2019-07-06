@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Net;
 using System.Threading;
 
 using log4net;
@@ -333,6 +334,8 @@ namespace ACE.Server.Command.Handlers
                         CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
                         return;
                     }
+                    else // get updated data from db.
+                        account = DatabaseManager.Authentication.GetAccountById(account.AccountId);
                 }
                 else
                     account = DatabaseManager.Authentication.GetAccountByName(charName);
@@ -342,6 +345,9 @@ namespace ACE.Server.Command.Handlers
                     message = $"Account '{account.AccountName}' is not banned.\n"; //todo: fix this when banning works
                     if (account.AccessLevel > (int)AccessLevel.Player)
                         message += $"Account '{account.AccountName}' has been granted AccessLevel.{((AccessLevel)account.AccessLevel).ToString()} rights.\n";
+                    message += $"Account created on {account.CreateTime.ToLocalTime()} by IP: {(account.CreateIP != null ? new IPAddress(account.CreateIP).ToString() : "N/A")} \n";
+                    message += $"Account last logged on at {(account.LastLoginTime.HasValue ? account.LastLoginTime.Value.ToLocalTime().ToString() : "N/A")} by IP: {(account.LastLoginIP != null ? new IPAddress(account.LastLoginIP).ToString() : "N/A")}\n";
+                    message += $"Account total times logged on {account.TotalTimesLoggedIn}\n";
                     var characters = DatabaseManager.Shard.GetCharacters(account.AccountId, true);
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
                     message += "-------------------\n";
