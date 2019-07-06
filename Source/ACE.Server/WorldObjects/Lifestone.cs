@@ -29,7 +29,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.LifeStone;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.LifeStone;
 
             RadarColor = ACE.Entity.Enum.RadarColor.LifeStone;
         }

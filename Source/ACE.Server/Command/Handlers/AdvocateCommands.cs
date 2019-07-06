@@ -28,12 +28,12 @@ namespace ACE.Server.Command.Handlers
             switch (param)
             {
                 case "off":
-                    session.Player.UpdateProperty(session.Player, PropertyBool.Attackable, false);
+                    session.Player.UpdateProperty(session.Player, PropertyBool.Attackable, false, true);
                     session.Network.EnqueueSend(new GameMessageSystemChat("Monsters will only attack you if provoked by you first.", ChatMessageType.Broadcast));
                     break;
                 case "on":
                 default:
-                    session.Player.UpdateProperty(session.Player, PropertyBool.Attackable, true);
+                    session.Player.UpdateProperty(session.Player, PropertyBool.Attackable, true, true);
                     session.Network.EnqueueSend(new GameMessageSystemChat("Monsters will attack you normally.", ChatMessageType.Broadcast));
                     break;
             }

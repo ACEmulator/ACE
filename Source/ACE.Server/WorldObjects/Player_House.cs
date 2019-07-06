@@ -958,7 +958,7 @@ namespace ACE.Server.WorldObjects
                 if (!rootHouse.OnProperty(this))
                     continue;
 
-                if (IgnoreHouseBarriers ?? false)
+                if (IgnoreHouseBarriers)
                     continue;
 
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))

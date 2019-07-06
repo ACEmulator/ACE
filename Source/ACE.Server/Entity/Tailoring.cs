@@ -67,7 +67,7 @@ namespace ACE.Server.Entity
                 return WeenieError.YouDoNotPassCraftingRequirements;
 
             // verify not retained item
-            if (target.Retained ?? false)
+            if (target.Retained)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat("You must use Sandstone Salvage to remove the retained property before tailoring.", ChatMessageType.Craft));
                 return WeenieError.YouDoNotPassCraftingRequirements;

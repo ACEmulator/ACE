@@ -181,15 +181,16 @@ namespace ACE.Server.WorldObjects
         /// <param name="items"></param>
         public void HandleActionBuyItem(uint vendorGuid, List<ItemProfile> items)
         {
-            var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
-
-            if (vendor == null)
+            if (IsBusy)
             {
-                SendUseDoneEvent();
+                SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return;
             }
 
-            vendor.BuyItems_ValidateTransaction(items, this);
+            var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
+
+            if (vendor != null)
+                vendor.BuyItems_ValidateTransaction(items, this);
 
             SendUseDoneEvent();
         }
@@ -315,6 +316,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionSellItem(List<ItemProfile> itemprofiles, uint vendorGuid)
         {
+            if (IsBusy)
+            {
+                SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
 
             if (vendor == null)
@@ -338,7 +345,7 @@ namespace ACE.Server.WorldObjects
                 if (item == null)
                     continue;
 
-                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || (acceptedItemTypes & item.ItemType) == 0)
+                if ((acceptedItemTypes & item.ItemType) == 0 || !item.IsSellable || item.Retained)
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold")); // TODO: find retail messages

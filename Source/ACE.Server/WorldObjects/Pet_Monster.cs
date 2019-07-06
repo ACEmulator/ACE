@@ -48,7 +48,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void PetOnAttackMonster(Creature monster)
         {
-            /*Console.WriteLine($"{Name}.PetOnAttackMonster({monster.Name}");
+            /*Console.WriteLine($"{Name}.PetOnAttackMonster({monster.Name})");
             Console.WriteLine($"Attackable: {monster.Attackable}");
             Console.WriteLine($"Tolerance: {monster.Tolerance}");*/
 

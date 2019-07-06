@@ -21,7 +21,6 @@ namespace ACE.Server.WorldObjects
         /// When it rots, it would be destroyed, and removed from the landblock.<para />
         /// In most cases, these should be player dropped items or corpses. It can also be a missile or spell projectile.<para />
         /// Items that have a TimeToRot value of -1 will return false.<para />
-        /// Items that have a BaseDescriptionFlags with ObjectDescriptionFlag.Stuck set will return false.<para />
         /// Generators and items still linked to a generator will return false.
         /// </summary>
         public bool IsDecayable()

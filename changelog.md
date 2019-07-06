@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2019-07-04
+[Ripley]
+* Add DoNothing ActOnUse to CraftTool.
+* Adjust EmoteManager
+  - Wire up EmoteType.LocalSignal.
+  - Wire up EmoteCategory.ReceiveLocalSignal.
+  - Adjust EmoteType.Activate to fall back to linked generator if no activation target is specified.
+* Add Landblock.EmitSignal to support localized object interaction.
+
 ### 2019-07-01
 [Ripley]
 * Fix issue with converting books from JSON to SQL.

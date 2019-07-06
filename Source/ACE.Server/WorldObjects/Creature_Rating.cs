@@ -357,11 +357,18 @@ namespace ACE.Server.WorldObjects
             return healResistRating + enchantments;
         }
 
+        public float GetHealingRatingMod()
+        {
+            var boostMod = GetPositiveRatingMod(GetHealingBoostRating());
+            var resistMod = GetNegativeRatingMod(GetHealingResistRating());
+
+            return boostMod * resistMod;
+        }
+
         public int GetLifeResistRating()
         {
-            // drain resistance?
-
-            // Drain Resistances - allows one to partially resist drain health/stamina/mana and harm attacks (not including other life transfer spells).
+            // only affects health drain?
+            // only cast by Sigil of Perserverance (Aetheria)?
 
             // get from base properties (monsters)?
             var lifeResistRating = LifeResistRating ?? 0;
@@ -372,9 +379,26 @@ namespace ACE.Server.WorldObjects
             return lifeResistRating + enchantments;
         }
 
+        public float GetLifeResistRatingMod()
+        {
+            return GetNegativeRatingMod(GetLifeResistRating());
+        }
+
+        public int GetDotResistanceRating()
+        {
+            // get from base properties (monsters)?
+            var dotResistRating = DotResistRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.DotResistRating);
+
+            return dotResistRating + enchantments;
+        }
+
         public int GetNetherResistRating()
         {
-            // wiki calls this dot resistance, does this affect dirty fighting bleed attack?
+            // there is a property defined for this,
+            // but does anything use this?
 
             // get from base properties (monsters)?
             var netherResistRating = NetherResistRating ?? 0;

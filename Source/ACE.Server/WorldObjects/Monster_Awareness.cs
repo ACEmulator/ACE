@@ -244,6 +244,7 @@ namespace ACE.Server.WorldObjects
                 var creature = player.WeenieObj.WorldObject as Creature;
                 if (creature == null) continue;
 
+                // ensure attackable
                 if (!creature.Attackable) continue;
 
                 // ensure within 'detection radius' ?

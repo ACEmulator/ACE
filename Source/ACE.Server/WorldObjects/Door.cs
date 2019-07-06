@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Door;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Door;
 
             if (!DefaultOpen)
             {

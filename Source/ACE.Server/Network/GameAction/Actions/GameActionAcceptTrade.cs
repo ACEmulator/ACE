@@ -15,7 +15,7 @@ namespace ACE.Server.Network.GameAction.Actions
             bool initatorAccepts = Convert.ToBoolean(message.Payload.ReadUInt32());
             bool partnerAccepts = Convert.ToBoolean(message.Payload.ReadUInt32());
 
-            session.Player.HandleActionAcceptTrade(session, session.Player.Guid);
+            session.Player.HandleActionAcceptTrade();
         }
     }
 }

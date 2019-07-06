@@ -10,17 +10,9 @@ namespace ACE.Server.WorldObjects
     {
         public override string Name
         {
-            get => IsPlussed ? (((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Off) < ACE.Entity.Enum.CloakStatus.Player) ? "+" + base.Name : base.Name) : base.Name;
+            get => IsPlussed && CloakStatus < CloakStatus.Player ? "+" + base.Name : base.Name;
 
-            set
-            {
-                var name = value;
-
-                if (name.StartsWith("+"))
-                    name = name.Substring(1);
-
-                base.Name = name;
-            }
+            set => base.Name = value.TrimStart('+');
         }
 
         // ========================================
@@ -224,6 +216,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.SpellComponentsRequired) ?? true;
             set { if (value) RemoveProperty(PropertyBool.SpellComponentsRequired); else SetProperty(PropertyBool.SpellComponentsRequired, value); }
+        }
+
+        public bool SafeSpellComponents
+        {
+            get => GetProperty(PropertyBool.SafeSpellComponents) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.SafeSpellComponents); else SetProperty(PropertyBool.SafeSpellComponents, value); }
         }
 
 

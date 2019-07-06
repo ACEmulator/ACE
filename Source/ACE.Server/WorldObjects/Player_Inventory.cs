@@ -601,6 +601,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionPutItemInContainer(uint itemGuid, uint containerGuid, int placement = 0)
         {
+            if (IsBusy)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
             OnPutItemInContainer(itemGuid, containerGuid, placement);
 
             var item = FindObject(itemGuid, SearchLocations.LocationsICanMove, out _, out var itemRootOwner, out var itemWasEquipped);
@@ -613,7 +620,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!item.Guid.IsDynamic() || item is Creature || (item.BaseDescriptionFlags & ObjectDescriptionFlag.Stuck) != 0)
+            if (!item.Guid.IsDynamic() || item is Creature || item.Stuck)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't move that!")); // Custom error message
@@ -675,27 +682,14 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                Container itemAsContainer = item as Container;
-
-                // Checking to see if item to pick is an container itself and IsOpen
-                if (itemAsContainer != null && itemAsContainer.IsOpen)
-                {
-                    if (itemAsContainer.Viewer == Session.Player.Guid.Full)
-                    {
-                        // We're the one that has it open. Close it before picking it up
-                        itemAsContainer.Close(this);
-                    }
-                    else
-                    {
-                        // We're not who has it open. Can't pick up something someone else is viewing!
-                        Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.The_IsCurrentlyInUse, item.Name));
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-                        return;
-                    }
-                }
+                var itemAsContainer = item as Container;
 
                 if (itemAsContainer != null)
                 {
+                    // Checking to see if item to pick is an container itself and IsOpen
+                    if (!VerifyContainerOpenStatus(itemAsContainer, item))
+                        return;
+
                     foreach (var obj in itemAsContainer.Inventory.Values)
                     {
                         if ((obj.Attuned ?? 0) >= 1)
@@ -746,6 +740,10 @@ namespace ACE.Server.WorldObjects
                             EnqueueBroadcastMotion(returnStance);
                             return;
                         }
+
+                        // Checking to see if item to pick is an container itself and IsOpen
+                        if (!VerifyContainerOpenStatus(itemAsContainer, item))
+                            return;
 
                         var questSolve = false;
                         var isFromMyCorpse = false;
@@ -819,6 +817,27 @@ namespace ACE.Server.WorldObjects
             {
                 DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement);
             }
+        }
+
+        private bool VerifyContainerOpenStatus(Container itemAsContainer, WorldObject item)
+        {
+            // Checking to see if item to pick is an container itself and IsOpen
+            if (itemAsContainer != null && itemAsContainer.IsOpen)
+            {
+                if (itemAsContainer.Viewer == Session.Player.Guid.Full)
+                {
+                    // We're the one that has it open. Close it before picking it up
+                    itemAsContainer.Close(this);
+                }
+                else
+                {
+                    // We're not who has it open. Can't pick up something someone else is viewing!
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.The_IsCurrentlyInUse, item.Name));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    return false;
+                }
+            }
+            return true;
         }
 
         private bool DoHandleActionPutItemInContainer(WorldObject item, Container itemRootOwner, bool itemWasEquipped, Container container, Container containerRootOwner, int placement)
@@ -1913,6 +1932,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(uint targetGuid, uint itemGuid, int amount)
         {
+            if (IsBusy)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
             if (amount <= 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to give item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, itemGuid, amount);
@@ -2280,7 +2306,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (item.Inscribable == true)
+            if (item.Inscribable)
             {
                 var doInscribe = false;
                 if (string.IsNullOrWhiteSpace(item.ScribeAccount) && string.IsNullOrWhiteSpace(item.ScribeName))
