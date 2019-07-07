@@ -95,14 +95,16 @@ namespace ACE.Server.Physics.Common
         /// only maintained for players
         /// </summary>
         /// <returns>true if previously an unknown object</returns>
-        public bool AddObject(PhysicsObj obj)
+        public bool AddKnownObject(PhysicsObj obj)
         {
             if (KnownObjects.ContainsKey(obj.ID))
                 return false;
 
             KnownObjects.Add(obj.ID, obj);
 
-            // add to target object's voyeurs
+            // maintain KnownPlayers for both parties
+            if (obj.IsPlayer) AddKnownPlayer(obj);
+
             obj.ObjMaint.AddKnownPlayer(PhysicsObj);
 
             return true;
@@ -114,12 +116,12 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         /// <param name="objs">A list of currently visible objects</param>
         /// <returns>The list of visible objects that were previously unknown</returns>
-        public List<PhysicsObj> AddObjects(List<PhysicsObj> objs)
+        public List<PhysicsObj> AddKnownObjects(List<PhysicsObj> objs)
         {
             var newObjs = new List<PhysicsObj>();
 
             foreach (var obj in objs)
-                if (AddObject(obj)) newObjs.Add(obj);
+                if (AddKnownObject(obj)) newObjs.Add(obj);
 
             return newObjs;
         }
@@ -129,14 +131,14 @@ namespace ACE.Server.Physics.Common
         /// in an outdoor landblock
         /// this is only used for players
         /// </summary>
-        public List<PhysicsObj> GetVisibleObjects(ObjCell cell)
+        public List<PhysicsObj> GetVisibleObjects(ObjCell cell, bool attackTargetsOnly = false)
         {
             if (PhysicsObj.CurLandblock == null || cell == null) return new List<PhysicsObj>();
 
             // use PVS / VisibleCells for EnvCells not seen outside
             // (mostly dungeons, also some large indoor areas ie. caves)
             if (cell is EnvCell envCell && !envCell.SeenOutside)
-                return GetVisibleObjects(envCell);
+                return GetVisibleObjects(envCell, attackTargetsOnly);
 
             // use current landblock + adjacents for outdoors,
             // and envcells seen from outside (all buildings)
@@ -149,14 +151,17 @@ namespace ACE.Server.Physics.Common
                     visibleObjs.AddRange(adjacent.ServerObjects);
             }
 
-            return visibleObjs.Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
+            if (attackTargetsOnly)
+                return visibleObjs.Where(i => (i.IsPlayer || i.WeenieObj.IsCombatPet) && i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
+            else
+                return visibleObjs.Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
         }
 
         /// <summary>
         /// Returns a list of objects that are currently visible from a dungeon cell
         /// this is only used for players
         /// </summary>
-        public List<PhysicsObj> GetVisibleObjects(EnvCell cell)
+        public List<PhysicsObj> GetVisibleObjects(EnvCell cell, bool onlyPlayers = false)
         {
             var visibleObjs = new List<PhysicsObj>();
 
@@ -169,7 +174,11 @@ namespace ACE.Server.Physics.Common
                 if (envCell != null)
                     visibleObjs.AddRange(envCell.ObjectList);
             }
-            return visibleObjs.Where(i => !i.DatObject && i.ID != PhysicsObj.ID).Distinct().ToList();
+
+            if (onlyPlayers)
+                return visibleObjs.Where(i => (i.IsPlayer || i.WeenieObj.IsCombatPet) && i.ID != PhysicsObj.ID).Distinct().ToList();
+            else
+                return visibleObjs.Where(i => !i.DatObject && i.ID != PhysicsObj.ID).Distinct().ToList();
         }
 
 
@@ -199,8 +208,8 @@ namespace ACE.Server.Physics.Common
             Console.WriteLine($"{PhysicsObj.Name}.AddVisibleObject({obj.Name})");
             VisibleObjects.Add(obj.ID, obj);
 
-            // maintain visible targets for monsters
-            obj.ObjMaint.AddVisibleTarget(PhysicsObj);
+            if (obj.WeenieObj.IsMonster)
+                obj.ObjMaint.AddVisibleTarget(PhysicsObj, false);
 
             return true;
         }
@@ -220,7 +229,7 @@ namespace ACE.Server.Physics.Common
             }
             RemoveObjectsToBeDestroyed(objs);
 
-            return AddObjects(visibleAdded);
+            return AddKnownObjects(visibleAdded);
         }
 
         /// <summary>
@@ -232,8 +241,9 @@ namespace ACE.Server.Physics.Common
         {
             var removed = VisibleObjects.Remove(obj.ID);
 
-            // maintain visible players for monsters
-            obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
+            // maintain visible targets for monsters
+            if (obj.WeenieObj.IsMonster)
+                obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
 
             return removed;
         }
@@ -331,10 +341,10 @@ namespace ACE.Server.Physics.Common
             // destroyed objects would also run these
             RemoveVisibleObject(obj);
 
-            // this should only need to be run if obj is Player
-            KnownPlayers.Remove(obj.ID);
+            // maintain KnownPlayers for both objects
+            if (obj.IsPlayer)
+                RemoveKnownPlayer(obj);
 
-            // the player is in control of maintaining their voyeur status to other objects
             obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
         }
 
@@ -361,7 +371,13 @@ namespace ACE.Server.Physics.Common
             }
 
             Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddKnownPlayer({obj.Name})");
-            return KnownPlayers.TryAdd(obj.ID, obj);
+
+            // TryAdd for existing keys still modifies collection?
+            if (KnownPlayers.ContainsKey(obj.ID))
+                return false;
+
+            KnownPlayers.Add(obj.ID, obj);
+            return true;
         }
 
         /// <summary>
@@ -383,6 +399,7 @@ namespace ACE.Server.Physics.Common
         public bool RemoveKnownPlayer(PhysicsObj obj)
         {
             Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
+
             return KnownPlayers.Remove(obj.ID);
         }
 
@@ -390,21 +407,47 @@ namespace ACE.Server.Physics.Common
         /// Used by FindNextTarget for monsters
         /// contains Players and CombatPets
         /// </summary>
-        public bool AddVisibleTarget(PhysicsObj obj)
+        public bool AddVisibleTarget(PhysicsObj obj, bool clamp = true)
         {
-            // only tracking players who know about this object
-            if (!obj.IsPlayer)
+            if (PhysicsObj.WeenieObj.IsCombatPet)
             {
-                Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player");
-                return false;
+                // only tracking monsters
+                if (!obj.WeenieObj.IsMonster)
+                {
+                    Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-monster");
+                    return false;
+                }
+            }
+            else
+            {
+                // only tracking players and combat pets
+                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet)
+                {
+                    Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player / non-combat pet");
+                    return false;
+                }
             }
             if (PhysicsObj.DatObject)
             {
                 Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add player for dat object");
             }
 
+            if (clamp && InitialClamp && !obj.ObjMaint.KnownObjects.ContainsKey(obj.ID))
+            {
+                var distSq = PhysicsObj.Position.Distance2DSquared(obj.Position);
+
+                if (distSq > InitialClamp_DistSq)
+                    return false;
+            }
+
+            // TryAdd for existing keys still modifies collection?
+            if (VisibleTargets.ContainsKey(obj.ID))
+                return false;
+
             Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddVisibleTarget({obj.Name})");
-            return VisibleTargets.TryAdd(obj.ID, obj);
+
+            VisibleTargets.Add(obj.ID, obj);
+            return true;
         }
 
         /// <summary>
@@ -430,9 +473,9 @@ namespace ACE.Server.Physics.Common
             return VisibleTargets.Remove(obj.ID);
         }
 
-        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell)
+        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell, bool onlyPlayers = false)
         {
-            var visibleObjs = GetVisibleObjects(cell);
+            var visibleObjs = GetVisibleObjects(cell, onlyPlayers);
 
             var dist = new List<PhysicsObj>();
             foreach (var obj in visibleObjs)
@@ -480,6 +523,8 @@ namespace ACE.Server.Physics.Common
             KnownObjects.Clear();
             VisibleObjects.Clear();
             DestructionQueue.Clear();
+            KnownPlayers.Clear();
+            VisibleTargets.Clear();
         }
 
         /// <summary>

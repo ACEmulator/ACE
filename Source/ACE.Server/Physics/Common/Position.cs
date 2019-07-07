@@ -247,6 +247,8 @@ namespace ACE.Server.Physics.Common
             }
             else
             {
+
+
                 var dx = ((int)LandblockX - p.LandblockX) * 192 + Frame.Origin.X - p.Frame.Origin.X;
                 var dy = ((int)LandblockY - p.LandblockY) * 192 + Frame.Origin.Y - p.Frame.Origin.Y;
                 return dx * dx + dy * dy;

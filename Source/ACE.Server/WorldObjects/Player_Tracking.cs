@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            ObjMaint.AddObject(worldObject.PhysicsObj);
+            ObjMaint.AddKnownObject(worldObject.PhysicsObj);
             ObjMaint.AddVisibleObject(worldObject.PhysicsObj);
 
             TrackObject(worldObject);

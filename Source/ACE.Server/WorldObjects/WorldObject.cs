@@ -1061,11 +1061,9 @@ namespace ACE.Server.WorldObjects
 
         public void ObjMaintInit()
         {
-            var attackable = Attackable && !Guid.IsPlayer();
+            /*var visibleObjs = ObjectMaint.InitialClamp ? PhysicsObj.ObjMaint.GetVisibleObjectsDist(PhysicsObj.CurCell) : PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
 
-            var visibleObjs = ObjectMaint.InitialClamp ? PhysicsObj.ObjMaint.GetVisibleObjectsDist(PhysicsObj.CurCell) : PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
-
-            if (attackable)
+            if (this is Creature creature && creature.IsMonster)
             {
                 var visibleTargets = visibleObjs.Where(i => i.IsPlayer || i.IsCombatPet).ToList();
 
@@ -1076,7 +1074,7 @@ namespace ACE.Server.WorldObjects
                 var knownPlayers = visibleObjs.Where(i => i.IsPlayer).ToList();
 
                 PhysicsObj.ObjMaint.AddKnownPlayers(knownPlayers);
-            }
+            }*/
         }
     }
 }

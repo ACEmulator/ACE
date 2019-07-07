@@ -15,16 +15,21 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
-        public virtual void Monster_Tick(double currentUnixTime)
+        public void Monster_Tick(double currentUnixTime)
         {
+            if (IsChessPiece && this is GamePiece gamePiece)
+            {
+                // faster than vtable?
+                gamePiece.Tick(currentUnixTime);
+                return;
+            }
+
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
             if (!IsAwake && MonsterState == State.Return)
                 MonsterState = State.Idle;
 
             if (!IsAwake || IsDead) return;
-
-            IsMonster = true;
 
             HandleFindTarget();
 

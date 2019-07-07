@@ -17,11 +17,19 @@ namespace ACE.Server.Physics.Common
         public readonly WorldObjectInfo WorldObjectInfo;
         public WorldObject WorldObject => WorldObjectInfo?.TryGetWorldObject();
 
+        public bool IsMonster;
+
+        public bool IsCombatPet;
+
         public WeenieObject() { }
 
         public WeenieObject(WorldObject worldObject)
         {
             WorldObjectInfo = new WorldObjectInfo(worldObject);
+
+            IsCombatPet = worldObject is CombatPet;
+
+            IsMonster = worldObject is Creature creature && creature.IsMonster && !IsCombatPet;
         }
 
         public bool CanJump(float extent)
