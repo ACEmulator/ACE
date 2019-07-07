@@ -65,6 +65,9 @@ namespace ACE.Server.WorldObjects
 
             if (!UseRadius.HasValue)
                 UseRadius = 0.5f;
+
+            if (ContainerId != null)
+                IsOpen = false;
         }
 
 
