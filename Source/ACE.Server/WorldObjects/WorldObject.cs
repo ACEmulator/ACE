@@ -310,16 +310,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns TRUE if this object has the input object in its PVS
-        /// Note that this is NOT a direct line of sight test!
+        /// Returns TRUE if this object has wo in VisibleTargets list
         /// </summary>
-        public bool IsVisible(WorldObject wo)
+        public bool IsVisibleTarget(WorldObject wo)
         {
             if (PhysicsObj == null || wo.PhysicsObj == null)
                 return false;
 
-            // note: visibility lists are actively maintained only for players
-            return PhysicsObj.ObjMaint.VisibleObjects.ContainsKey(wo.PhysicsObj.ID);
+            // note: VisibleTargets is only maintained for monsters and combat pets
+            return PhysicsObj.ObjMaint.VisibleTargets.ContainsKey(wo.PhysicsObj.ID);
         }
 
         //public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);     // arrow

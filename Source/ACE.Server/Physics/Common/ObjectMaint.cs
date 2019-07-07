@@ -131,14 +131,14 @@ namespace ACE.Server.Physics.Common
         /// in an outdoor landblock
         /// this is only used for players
         /// </summary>
-        public List<PhysicsObj> GetVisibleObjects(ObjCell cell, bool attackTargetsOnly = false)
+        public List<PhysicsObj> GetVisibleObjects(ObjCell cell, VisibleObjectType type = VisibleObjectType.All)
         {
             if (PhysicsObj.CurLandblock == null || cell == null) return new List<PhysicsObj>();
 
             // use PVS / VisibleCells for EnvCells not seen outside
             // (mostly dungeons, also some large indoor areas ie. caves)
             if (cell is EnvCell envCell && !envCell.SeenOutside)
-                return GetVisibleObjects(envCell, attackTargetsOnly);
+                return GetVisibleObjects(envCell, type);
 
             // use current landblock + adjacents for outdoors,
             // and envcells seen from outside (all buildings)
@@ -151,17 +151,14 @@ namespace ACE.Server.Physics.Common
                     visibleObjs.AddRange(adjacent.ServerObjects);
             }
 
-            if (attackTargetsOnly)
-                return visibleObjs.Where(i => (i.IsPlayer || i.WeenieObj.IsCombatPet) && i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
-            else
-                return visibleObjs.Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
+            return ApplyFilter(visibleObjs, type).Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
         }
 
         /// <summary>
         /// Returns a list of objects that are currently visible from a dungeon cell
         /// this is only used for players
         /// </summary>
-        public List<PhysicsObj> GetVisibleObjects(EnvCell cell, bool onlyPlayers = false)
+        public List<PhysicsObj> GetVisibleObjects(EnvCell cell, VisibleObjectType type)
         {
             var visibleObjs = new List<PhysicsObj>();
 
@@ -175,12 +172,33 @@ namespace ACE.Server.Physics.Common
                     visibleObjs.AddRange(envCell.ObjectList);
             }
 
-            if (onlyPlayers)
-                return visibleObjs.Where(i => (i.IsPlayer || i.WeenieObj.IsCombatPet) && i.ID != PhysicsObj.ID).Distinct().ToList();
-            else
-                return visibleObjs.Where(i => !i.DatObject && i.ID != PhysicsObj.ID).Distinct().ToList();
+            return ApplyFilter(visibleObjs, type).Where(i => !i.DatObject && i.ID != PhysicsObj.ID).Distinct().ToList();
         }
 
+        public enum VisibleObjectType
+        {
+            All,
+            Players,
+            AttackTargets
+        };
+
+        public IEnumerable<PhysicsObj> ApplyFilter(List<PhysicsObj> objs, VisibleObjectType type)
+        {
+            IEnumerable<PhysicsObj> results = objs;
+
+            if (type == VisibleObjectType.Players)
+            {
+                results = objs.Where(i => i.IsPlayer);
+            }
+            else if (type == VisibleObjectType.AttackTargets)
+            {
+                if (PhysicsObj.WeenieObj.IsCombatPet)
+                    results = objs.Where(i => i.WeenieObj.IsMonster);
+                else
+                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet);
+            }
+            return results;
+        }
 
         public static bool InitialClamp = true;
 
@@ -334,6 +352,11 @@ namespace ACE.Server.Physics.Common
         {
             if (obj == null) return;
 
+            if (obj.Name.Equals("Tusker Guard"))
+            {
+                var debug = true;
+            }
+
             // destruction queue should only need to run these
             KnownObjects.Remove(obj.ID);
             DestructionQueue.Remove(obj);
@@ -432,7 +455,7 @@ namespace ACE.Server.Physics.Common
                 Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add player for dat object");
             }
 
-            if (clamp && InitialClamp && !obj.ObjMaint.KnownObjects.ContainsKey(obj.ID))
+            if (clamp && InitialClamp && obj.IsPlayer && !obj.ObjMaint.KnownObjects.ContainsKey(obj.ID))
             {
                 var distSq = PhysicsObj.Position.Distance2DSquared(obj.Position);
 
@@ -447,6 +470,11 @@ namespace ACE.Server.Physics.Common
             Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddVisibleTarget({obj.Name})");
 
             VisibleTargets.Add(obj.ID, obj);
+
+            // maintain inverse for monsters / combat pets
+            if (!obj.IsPlayer)
+                obj.ObjMaint.AddVisibleTarget(PhysicsObj);
+
             return true;
         }
 
@@ -473,9 +501,9 @@ namespace ACE.Server.Physics.Common
             return VisibleTargets.Remove(obj.ID);
         }
 
-        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell, bool onlyPlayers = false)
+        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell, VisibleObjectType type)
         {
-            var visibleObjs = GetVisibleObjects(cell, onlyPlayers);
+            var visibleObjs = GetVisibleObjects(cell, type);
 
             var dist = new List<PhysicsObj>();
             foreach (var obj in visibleObjs)
@@ -535,6 +563,12 @@ namespace ACE.Server.Physics.Common
         {
             foreach (var obj in KnownObjects.Values)
                 obj.ObjMaint.RemoveObject(PhysicsObj);
+
+            foreach (var obj in KnownPlayers.Values)
+                obj.ObjMaint.RemoveObject(PhysicsObj);
+
+            foreach (var obj in VisibleTargets.Values)
+                obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
 
             RemoveServerObject(PhysicsObj);
         }

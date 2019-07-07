@@ -94,8 +94,6 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"Player {Name} - RemoveTrackedObject({remove})");
 
-            ObjMaint.RemoveObject(worldObject.PhysicsObj);
-
             if (fromPickup)
                 Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
             else

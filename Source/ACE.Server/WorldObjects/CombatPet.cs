@@ -89,7 +89,7 @@ namespace ACE.Server.WorldObjects
         {
             var creature = AttackTarget as Creature;
 
-            if (creature == null || creature.IsDead || !IsVisible(creature))
+            if (creature == null || creature.IsDead || !IsVisibleTarget(creature))
                 FindNextTarget();
         }
 

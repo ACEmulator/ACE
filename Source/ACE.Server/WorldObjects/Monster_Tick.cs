@@ -36,6 +36,12 @@ namespace ACE.Server.WorldObjects
             CheckMissHome();    // tickrate?
 
             var pet = this as CombatPet;
+
+            if (pet == null)
+            {
+                var debug = true;
+            }
+
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
             {
                 Destroy();
@@ -55,7 +61,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var creatureTarget = AttackTarget as Creature;
-            if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !creatureTarget.IsVisible(this))))
+            if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !creatureTarget.IsVisibleTarget(this))))
             {
                 FindNextTarget();
                 return;

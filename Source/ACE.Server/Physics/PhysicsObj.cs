@@ -2637,20 +2637,24 @@ namespace ACE.Server.Physics
         {
             if (WeenieObj.IsMonster)
             {
-                var visiblePlayers = ObjMaint.GetVisibleObjects(CurCell, true);
+                // players and combat pets
+                var visibleTargets = ObjMaint.GetVisibleObjects(CurCell, ObjectMaint.VisibleObjectType.AttackTargets);
 
-                var newTargets = ObjMaint.AddVisibleTargets(visiblePlayers);
+                var newTargets = ObjMaint.AddVisibleTargets(visibleTargets);
             }
             else
             {
-                var knownPlayers = ObjectMaint.InitialClamp ? ObjMaint.GetVisibleObjectsDist(CurCell, true) : ObjMaint.GetVisibleObjects(CurCell, true);
+                // everything except monsters
+                // usually these are server objects whose position never changes
+                var knownPlayers = ObjectMaint.InitialClamp ? ObjMaint.GetVisibleObjectsDist(CurCell, ObjectMaint.VisibleObjectType.Players)
+                    : ObjMaint.GetVisibleObjects(CurCell, ObjectMaint.VisibleObjectType.Players);
 
                 ObjMaint.AddKnownPlayers(knownPlayers);
             }
 
             if (WeenieObj.IsCombatPet)
             {
-                var visibleMonsters = ObjMaint.GetVisibleObjects(CurCell).Where(i => i.WeenieObj.IsMonster).ToList();
+                var visibleMonsters = ObjMaint.GetVisibleObjects(CurCell, ObjectMaint.VisibleObjectType.AttackTargets);
 
                 var newTargets = ObjMaint.AddVisibleTargets(visibleMonsters);
             }
@@ -2676,7 +2680,7 @@ namespace ACE.Server.Physics
 
                 if (newlyVisible)
                 {
-                    ObjMaint.AddKnownObject(obj);
+                   ObjMaint.AddKnownObject(obj);
                     ObjMaint.RemoveObjectToBeDestroyed(obj);
                 }
 
