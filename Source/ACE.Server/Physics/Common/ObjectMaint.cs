@@ -12,7 +12,8 @@ namespace ACE.Server.Physics.Common
     public class ObjectMaint
     {
         /// <summary>
-        /// Objects are removed from the client after this amount of time
+        /// The client automatically previously known objects
+        /// if they remain outside visibility for this amount of time
         /// </summary>
         public static readonly float DestructionTime = 25.0f;
 
@@ -357,18 +358,19 @@ namespace ACE.Server.Physics.Common
             RemoveVisibleObject(obj);
 
             // maintain KnownPlayers for both objects
+            if (PhysicsObj.IsPlayer)
+                obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
+
             if (obj.IsPlayer)
                 RemoveKnownPlayer(obj);
-
-            obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
         }
 
         /// <summary>
         /// Adds a player who currently knows about this object
         /// - this is maintained for all server-spawned objects
         /// 
-        /// when an object broadcasts, it sends network messages to all voyeurs,
-        /// all players who currently know about this object
+        /// when an object broadcasts, it sends network messages
+        /// to all players who currently know about this object
         /// </summary>
         /// <returns>true if previously an unknown object</returns>
         public bool AddKnownPlayer(PhysicsObj obj)
