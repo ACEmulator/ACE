@@ -137,19 +137,14 @@ namespace ACE.Server.WorldObjects
                 SelectTargetingTactic();
                 SetNextTargetTime();
 
-                // rebuild visible objects (handle this better for monsters)
-                // this is no longer needed with ObjMaint 3.0
-                //GetVisibleObjects();
-
-                var players = GetAttackablePlayers();
-                if (players.Count == 0)
+                var visibleTargets = GetAttackTargets();
+                if (visibleTargets.Count == 0)
                 {
                     if (MonsterState != State.Return)
                     {
                         AttackTarget = null;
                         MoveToHome();
                     }
-
                     return false;
                 }
 
@@ -175,7 +170,7 @@ namespace ACE.Server.WorldObjects
 
                         // this is a very common tactic with monsters,
                         // although it is not truly random, it is weighted by distance
-                        var targetDistances = BuildTargetDistance(players);
+                        var targetDistances = BuildTargetDistance(visibleTargets);
                         AttackTarget = SelectWeightedDistance(targetDistances);
                         break;
 
@@ -204,19 +199,19 @@ namespace ACE.Server.WorldObjects
                         // should probably shuffle the list beforehand,
                         // in case a bunch of levels of same level are in a group,
                         // so the same player isn't always selected
-                        var lowestLevel = players.OrderBy(p => p.Level).FirstOrDefault();
+                        var lowestLevel = visibleTargets.OrderBy(p => p.Level).FirstOrDefault();
                         AttackTarget = lowestLevel;
                         break;
 
                     case TargetingTactic.Strongest:
 
-                        var highestLevel = players.OrderByDescending(p => p.Level).FirstOrDefault();
+                        var highestLevel = visibleTargets.OrderByDescending(p => p.Level).FirstOrDefault();
                         AttackTarget = highestLevel;
                         break;
 
                     case TargetingTactic.Nearest:
 
-                        var nearest = BuildTargetDistance(players);
+                        var nearest = BuildTargetDistance(visibleTargets);
                         AttackTarget = nearest[0].Target;
                         break;
                 }
@@ -232,16 +227,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns a list of attackable players in this monster's visible objects table
+        /// Returns a list of attackable targets currently visible to this monster
         /// </summary>
-        public List<Creature> GetAttackablePlayers()
+        public List<Creature> GetAttackTargets()
         {
-            var players = new List<Creature>();
+            var visibleTargets = new List<Creature>();
 
-            foreach (var player in PhysicsObj.ObjMaint.VisibleTargets.Values)
+            foreach (var target in PhysicsObj.ObjMaint.VisibleTargets.Values)
             {
-                // TODO: attack combat pets
-                var creature = player.WeenieObj.WorldObject as Creature;
+                var creature = target.WeenieObj.WorldObject as Creature;
                 if (creature == null) continue;
 
                 // ensure attackable
@@ -252,9 +246,9 @@ namespace ACE.Server.WorldObjects
                 if (Location.SquaredDistanceTo(creature.Location) >= chaseDistSq)
                     continue;
 
-                players.Add(creature);
+                visibleTargets.Add(creature);
             }
-            return players;
+            return visibleTargets;
         }
 
         /// <summary>

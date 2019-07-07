@@ -199,7 +199,7 @@ namespace ACE.Server.Physics.Common
             Console.WriteLine($"{PhysicsObj.Name}.AddVisibleObject({obj.Name})");
             VisibleObjects.Add(obj.ID, obj);
 
-            // maintain visible players for monsters
+            // maintain visible targets for monsters
             obj.ObjMaint.AddVisibleTarget(PhysicsObj);
 
             return true;
@@ -359,6 +359,8 @@ namespace ACE.Server.Physics.Common
                 Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddKnownPlayer({obj.Name}): tried to add player for dat object");
                 return false;
             }
+
+            Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddKnownPlayer({obj.Name})");
             return KnownPlayers.TryAdd(obj.ID, obj);
         }
 
@@ -380,6 +382,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool RemoveKnownPlayer(PhysicsObj obj)
         {
+            Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
             return KnownPlayers.Remove(obj.ID);
         }
 
@@ -399,6 +402,8 @@ namespace ACE.Server.Physics.Common
             {
                 Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add player for dat object");
             }
+
+            Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddVisibleTarget({obj.Name})");
             return VisibleTargets.TryAdd(obj.ID, obj);
         }
 
@@ -421,6 +426,7 @@ namespace ACE.Server.Physics.Common
 
         public bool RemoveVisibleTarget(PhysicsObj obj)
         {
+            Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveVisibleTarget({obj.Name})");
             return VisibleTargets.Remove(obj.ID);
         }
 

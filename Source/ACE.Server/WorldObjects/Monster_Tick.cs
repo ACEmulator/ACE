@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
             if (!IsAwake && MonsterState == State.Return)
-                MonsterState = MonsterState = State.Idle;
+                MonsterState = State.Idle;
 
             if (!IsAwake || IsDead) return;
 
