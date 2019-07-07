@@ -37,11 +37,6 @@ namespace ACE.Server.WorldObjects
 
             var pet = this as CombatPet;
 
-            if (pet == null)
-            {
-                var debug = true;
-            }
-
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
             {
                 Destroy();

@@ -2601,21 +2601,21 @@ namespace ACE.Server.Physics
             // get the list of visible objects from this cell
             var visibleObjects = ObjMaint.GetVisibleObjects(CurCell);
 
-            Console.WriteLine("Visible objects from this cell: " + visibleObjects.Count);
+            //Console.WriteLine("Visible objects from this cell: " + visibleObjects.Count);
             //foreach (var visibleObject in visibleObjects)
                 //Console.WriteLine(visibleObject.Name);
 
             // get the difference between current and previous visible
-            var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjects.Values).ToList();
+            //var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjects.Values).ToList();
             var newlyOccluded = ObjMaint.VisibleObjects.Values.Except(visibleObjects).ToList();
-            Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
+            //Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
             //Console.WriteLine("Newly occluded objects: " + newlyOccluded.Count);
             //foreach (var obj in newlyOccluded)
                 //Console.WriteLine(obj.Name);
 
             // add newly visible objects, and get the previously unknowns
             var createObjs = ObjMaint.AddVisibleObjects(visibleObjects);
-            Console.WriteLine("Create objects: " + createObjs.Count);
+            //Console.WriteLine("Create objects: " + createObjs.Count);
             /*if (createObjs.Count != newlyVisible.Count)
             {
                 Console.WriteLine($"Create objs differs from newly visible ({createObjs.Count} vs. {newlyVisible.Count})");

@@ -223,7 +223,7 @@ namespace ACE.Server.Physics.Common
                     return false;
             }
 
-            Console.WriteLine($"{PhysicsObj.Name}.AddVisibleObject({obj.Name})");
+            //Console.WriteLine($"{PhysicsObj.Name}.AddVisibleObject({obj.Name})");
             VisibleObjects.Add(obj.ID, obj);
 
             if (obj.WeenieObj.IsMonster)
@@ -393,7 +393,7 @@ namespace ACE.Server.Physics.Common
                 return false;
             }
 
-            Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddKnownPlayer({obj.Name})");
+            //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddKnownPlayer({obj.Name})");
 
             // TryAdd for existing keys still modifies collection?
             if (KnownPlayers.ContainsKey(obj.ID))
@@ -421,7 +421,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool RemoveKnownPlayer(PhysicsObj obj)
         {
-            Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
+            //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
 
             return KnownPlayers.Remove(obj.ID);
         }
@@ -453,6 +453,7 @@ namespace ACE.Server.Physics.Common
             if (PhysicsObj.DatObject)
             {
                 Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add player for dat object");
+                return false;
             }
 
             if (clamp && InitialClamp && obj.IsPlayer && !obj.ObjMaint.KnownObjects.ContainsKey(obj.ID))
@@ -467,7 +468,7 @@ namespace ACE.Server.Physics.Common
             if (VisibleTargets.ContainsKey(obj.ID))
                 return false;
 
-            Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddVisibleTarget({obj.Name})");
+            //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddVisibleTarget({obj.Name})");
 
             VisibleTargets.Add(obj.ID, obj);
 
@@ -497,7 +498,7 @@ namespace ACE.Server.Physics.Common
 
         public bool RemoveVisibleTarget(PhysicsObj obj)
         {
-            Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveVisibleTarget({obj.Name})");
+            //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveVisibleTarget({obj.Name})");
             return VisibleTargets.Remove(obj.ID);
         }
 
@@ -564,7 +565,7 @@ namespace ACE.Server.Physics.Common
             foreach (var obj in KnownObjects.Values)
                 obj.ObjMaint.RemoveObject(PhysicsObj);
 
-            foreach (var obj in KnownPlayers.Values)
+            foreach (var obj in KnownPlayers.Values.ToList())
                 obj.ObjMaint.RemoveObject(PhysicsObj);
 
             foreach (var obj in VisibleTargets.Values)

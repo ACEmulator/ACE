@@ -298,15 +298,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Rebuilds the visible objects tables
-        /// </summary>
-        public void GetVisibleObjects()
-        {
-            PhysicsObj.ObjMaint.RemoveAllObjects();
-            PhysicsObj.handle_visible_cells();
-        }
-
-        /// <summary>
         /// Called when a monster is first spawning in
         /// </summary>
         public void CheckTargets()
