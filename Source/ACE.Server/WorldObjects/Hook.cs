@@ -71,7 +71,7 @@ namespace ACE.Server.WorldObjects
                 return Item.CheckUseRequirements(activator);
             }
 
-            if (!House.RootHouse.HasPermission(player, false))
+            if (HouseOwner.HasValue && HouseOwner.Value > 0 && player.Guid.Full != HouseOwner.Value) // Only HouseOwners can open hooks to add/remove items
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked"));
                 return new ActivationResult(false);
