@@ -1,8 +1,9 @@
 # ACEmulator Change Log
 
-### 2019-07-04
+### 2019-07-07
 [Ripley]
 * Only allow use of Hookers on Hooks.
+* Fix some issues with using certain Hookers that were previously broken.
 
 ### 2019-07-06
 [Ripley, Mag-nus]
