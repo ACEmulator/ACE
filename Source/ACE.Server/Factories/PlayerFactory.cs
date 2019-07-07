@@ -219,6 +219,9 @@ namespace ACE.Server.Factories
             player.SetProperty(PropertyInt.MeleeMastery, (int)meleeMastery);
             player.SetProperty(PropertyInt.RangedMastery, (int)rangedMastery);
 
+            // Set innate augs
+            SetInnateAugmentations(player);
+
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
             var grantedWeenies = new List<uint>();
@@ -512,7 +515,49 @@ namespace ACE.Server.Factories
                     rangedMastery = WeaponType.Undef;
                     break;
             }
-    }
+        }
+
+        private static void SetInnateAugmentations(Player player)
+        {
+            switch (player.HeritageGroup)
+            {
+                case HeritageGroup.Aluvian:
+                case HeritageGroup.Gharundim:
+                case HeritageGroup.Sho:
+                case HeritageGroup.Viamontian:
+                    player.AugmentationJackOfAllTrades = 1;
+                    break;
+
+                case HeritageGroup.Shadowbound:
+                case HeritageGroup.Penumbraen:
+                    player.AugmentationCriticalExpertise = 1;
+                    break;
+
+                case HeritageGroup.Gearknight:
+                    player.AugmentationDamageReduction = 1;
+                    break;
+
+                case HeritageGroup.Undead:
+                    player.AugmentationCriticalDefense = 1;
+                    break;
+
+                case HeritageGroup.Empyrean:
+                    player.AugmentationInfusedLifeMagic = 1;
+                    break;
+
+                case HeritageGroup.Tumerok:
+                    player.AugmentationCriticalPower = 1;
+                    break;
+
+                case HeritageGroup.Lugian:
+                    player.AugmentationIncreasedCarryingCapacity = 1;
+                    break;
+
+                case HeritageGroup.Olthoi:
+                case HeritageGroup.OlthoiAcid:
+                    break;
+            }
+        }
 
         public static WorldObject CreateIOU(uint missingWeenieId)
         {
