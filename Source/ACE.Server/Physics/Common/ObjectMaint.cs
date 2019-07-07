@@ -59,8 +59,9 @@ namespace ACE.Server.Physics.Common
         public Dictionary<uint, PhysicsObj> KnownPlayers { get; set; }
 
         /// <summary>
-        /// For monster FindNextTarget
-        /// contains Players and CombatPets
+        /// For monster and CombatPet FindNextTarget
+        /// - for monsters, contains players and combat pets
+        /// - for combat pets, contains monsters
         /// </summary>
         public Dictionary<uint, PhysicsObj> VisibleTargets { get; set; }
 
@@ -128,8 +129,6 @@ namespace ACE.Server.Physics.Common
 
         /// <summary>
         /// Returns a list of objects that are currently visible from a cell
-        /// in an outdoor landblock
-        /// this is only used for players
         /// </summary>
         public List<PhysicsObj> GetVisibleObjects(ObjCell cell, VisibleObjectType type = VisibleObjectType.All)
         {
@@ -156,7 +155,6 @@ namespace ACE.Server.Physics.Common
 
         /// <summary>
         /// Returns a list of objects that are currently visible from a dungeon cell
-        /// this is only used for players
         /// </summary>
         public List<PhysicsObj> GetVisibleObjects(EnvCell cell, VisibleObjectType type)
         {
@@ -253,7 +251,7 @@ namespace ACE.Server.Physics.Common
         /// <summary>
         /// Removes an object from the visible objects list
         /// only run for players, and also removes the player from
-        /// the object's visible players list
+        /// the object's visible targets list
         /// </summary>
         public bool RemoveVisibleObject(PhysicsObj obj)
         {
@@ -346,16 +344,10 @@ namespace ACE.Server.Physics.Common
         /// <summary>
         /// Removes an object after it has expired from the destruction queue,
         /// or it has been destroyed
-        /// this is only maintained for players?
         /// </summary>
         public void RemoveObject(PhysicsObj obj)
         {
             if (obj == null) return;
-
-            if (obj.Name.Equals("Tusker Guard"))
-            {
-                var debug = true;
-            }
 
             // destruction queue should only need to run these
             KnownObjects.Remove(obj.ID);
@@ -417,7 +409,7 @@ namespace ACE.Server.Physics.Common
         }
 
         /// <summary>
-        /// Removes an object from the voyeurs table
+        /// Removes a known player for this object
         /// </summary>
         public bool RemoveKnownPlayer(PhysicsObj obj)
         {
@@ -427,8 +419,9 @@ namespace ACE.Server.Physics.Common
         }
 
         /// <summary>
-        /// Used by FindNextTarget for monsters
-        /// contains Players and CombatPets
+        /// For monster and CombatPet FindNextTarget
+        /// - for monsters, contains players and combat pets
+        /// - for combat pets, contains monsters
         /// </summary>
         public bool AddVisibleTarget(PhysicsObj obj, bool clamp = true)
         {
@@ -480,9 +473,9 @@ namespace ACE.Server.Physics.Common
         }
 
         /// <summary>
-        /// Called when an attackable non-player creature first spawns in
-        /// Adds objs to visible targets (players and combat pets),
-        /// and also adds player objs to KnownPlayers
+        /// For monster and CombatPet FindNextTarget
+        /// - for monsters, contains players and combat pets
+        /// - for combat pets, contains monsters
         /// </summary>
         public List<PhysicsObj> AddVisibleTargets(List<PhysicsObj> objs)
         {
