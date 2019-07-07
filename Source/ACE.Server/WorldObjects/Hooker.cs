@@ -41,15 +41,7 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (!OwnerId.HasValue || OwnerId.Value == 0)
-                return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemOnlyUsableOnHook, Name));
-
-            var wo = player.CurrentLandblock.GetObject(OwnerId.Value);
-
-            if (wo == null)
-                return new ActivationResult(false);
-
-            if (!(wo is Hook hook))
+            if (!IsHooked(player, out var hook))
                 return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemOnlyUsableOnHook, Name));
 
             if (!hook.HouseOwner.HasValue || hook.HouseOwner.Value == 0 || (!hook.House.OpenStatus && !hook.House.HasPermission(player)))
@@ -60,6 +52,26 @@ namespace ACE.Server.WorldObjects
                 return baseRequirements;
 
             return new ActivationResult(true);
+        }
+
+        public bool IsHooked (WorldObject checker, out Hook hook)
+        {
+            hook = null;
+
+            if (!OwnerId.HasValue || OwnerId.Value == 0)
+                return false;
+
+            var wo = checker.CurrentLandblock.GetObject(OwnerId.Value);
+
+            if (wo == null)
+                return false;
+
+            if (!(wo is Hook _hook))
+                return false;
+
+            hook = _hook;
+
+            return true;
         }
     }
 }

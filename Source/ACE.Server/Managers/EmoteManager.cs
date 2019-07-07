@@ -28,7 +28,10 @@ namespace ACE.Server.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public WorldObject WorldObject;
+        public WorldObject WorldObject => _proxy ?? _worldObject;
+
+        private WorldObject _worldObject;
+        private WorldObject _proxy;
 
         /// <summary>
         /// Returns TRUE if this WorldObject is currently busy processing other emotes
@@ -39,7 +42,7 @@ namespace ACE.Server.Managers
 
         public EmoteManager(WorldObject worldObject)
         {
-            WorldObject = worldObject;
+            _worldObject = worldObject;
         }
 
         /// <summary>
@@ -1253,7 +1256,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public BiotaPropertiesEmote GetEmoteSet(EmoteCategory category, string questName = null, VendorType? vendorType = null, uint? wcid = null, bool useRNG = true)
         {
-            var emoteSet = WorldObject.Biota.BiotaPropertiesEmote.Where(e => e.Category == (uint)category);
+            // always pull emoteSet from _worldObject
+            var emoteSet = _worldObject.Biota.BiotaPropertiesEmote.Where(e => e.Category == (uint)category);
 
             // optional criteria
             if (questName != null)
@@ -1501,5 +1505,21 @@ namespace ACE.Server.Managers
         }
 
         public bool HasAntennas => WorldObject.Biota.BiotaPropertiesEmote.Count(x => x.Category == (int)EmoteCategory.ReceiveLocalSignal) > 0;
+
+        /// <summary>
+        /// Call this function when WorldObject is being used via a proxy object, e.g.: Hooker on a Hook
+        /// </summary>
+        public void SetProxy(WorldObject worldObject)
+        {
+            _proxy = worldObject;
+        }
+
+        /// <summary>
+        /// Called when this object is removed from the proxy object (Hooker is picked up from Hook)
+        /// </summary>
+        public void ClearProxy()
+        {
+            _proxy = null;
+        }
     }
 }

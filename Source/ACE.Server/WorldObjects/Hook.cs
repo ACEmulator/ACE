@@ -85,6 +85,7 @@ namespace ACE.Server.WorldObjects
             {
                 // redirect to item.ActOnUse
                 Item.OnActivate(wo);
+
                 return;
             }
 
@@ -127,7 +128,12 @@ namespace ACE.Server.WorldObjects
             ObjScale = item.ObjScale;
             Name = item.Name;
 
+            if (MotionTableId != 0)
+                CurrentMotionState = new Motion(MotionStance.Invalid);
+
             Placement = (Placement)(item.HookPlacement ?? (int)ACE.Entity.Enum.Placement.Hook);
+
+            item.EmoteManager.SetProxy(this);
 
             // Here we explicilty save the hook to the database to prevent item loss.
             // If the player adds an item to the hook, and the server crashes before the hook has been saved, the item will be lost.
@@ -141,7 +147,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This event is raised when player removes item from hook
         /// </summary>
-        protected override void OnRemoveItem()
+        protected override void OnRemoveItem(WorldObject removedItem)
         {
             //Console.WriteLine("Hook.OnRemoveItem()");
 
@@ -160,6 +166,11 @@ namespace ACE.Server.WorldObjects
             Placement = hook.Placement;
             ObjScale = hook.ObjScale;
             Name = hook.Name;
+
+            if (MotionTableId == 0)
+                CurrentMotionState = null;
+
+            removedItem.EmoteManager.ClearProxy();
 
             EnqueueBroadcast(new GameMessageUpdateObject(this));
         }
