@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-07-04
+[Ripley]
+* Only allow use of Hookers on Hooks.
+
 ### 2019-07-06
 [Ripley, Mag-nus]
 * Add `2019-06-10-00-Add_Fields_To_Account_Table.sql` to Auth Updates folder. Servers are required to update Auth database with this script.

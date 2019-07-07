@@ -57,13 +57,21 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            if (!(House.HouseHooksVisible ?? true) && Item != null && !(Item is Hooker))
+            {
+                if (player.Guid.Full == HouseOwner.Value)
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.HookItemNotUsable_CanOpen));
+                else
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.HookItemNotUsable_CannotOpen));
+            }
+
             if (!(House.HouseHooksVisible ?? true) && Item != null)
             {
                 // redirect to item.CheckUseRequirements
                 return Item.CheckUseRequirements(activator);
             }
 
-            if (!House.RootHouse.HasPermission(player, true))
+            if (!House.RootHouse.HasPermission(player, false))
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked"));
                 return new ActivationResult(false);
