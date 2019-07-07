@@ -223,10 +223,9 @@ namespace ACE.Server.WorldObjects
 
             // verify healing boost comes from target instead of healer?
             // sounds like target in LumAugHealingRating...
-            var healRatingMod = Creature.GetPositiveRatingMod(target.GetHealingBoostRating());
-            var healResistRatingMod = Creature.GetNegativeRatingMod(target.GetHealingResistRating());
+            var ratingMod = target.GetHealingRatingMod();
 
-            healAmount *= healRatingMod * healResistRatingMod;
+            healAmount *= ratingMod;
 
             // chance for critical healing
             criticalHeal = ThreadSafeRandom.Next(0.0f, 1.0f) < 0.1f;

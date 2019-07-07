@@ -472,6 +472,8 @@ namespace ACE.Server.WorldObjects
                         if (srcVitalChange > spell.TransferCap)
                             srcVitalChange = (uint)spell.TransferCap;
                     }
+
+                    // should healing resistances be applied here?
                     var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination)) : 1.0f;
 
                     destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Net;
 using System.Threading;
 
 using log4net;
@@ -333,6 +334,8 @@ namespace ACE.Server.Command.Handlers
                         CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
                         return;
                     }
+                    else // get updated data from db.
+                        account = DatabaseManager.Authentication.GetAccountById(account.AccountId);
                 }
                 else
                     account = DatabaseManager.Authentication.GetAccountByName(charName);
@@ -342,6 +345,9 @@ namespace ACE.Server.Command.Handlers
                     message = $"Account '{account.AccountName}' is not banned.\n"; //todo: fix this when banning works
                     if (account.AccessLevel > (int)AccessLevel.Player)
                         message += $"Account '{account.AccountName}' has been granted AccessLevel.{((AccessLevel)account.AccessLevel).ToString()} rights.\n";
+                    message += $"Account created on {account.CreateTime.ToLocalTime()} by IP: {(account.CreateIP != null ? new IPAddress(account.CreateIP).ToString() : "N/A")} \n";
+                    message += $"Account last logged on at {(account.LastLoginTime.HasValue ? account.LastLoginTime.Value.ToLocalTime().ToString() : "N/A")} by IP: {(account.LastLoginIP != null ? new IPAddress(account.LastLoginIP).ToString() : "N/A")}\n";
+                    message += $"Account total times logged on {account.TotalTimesLoggedIn}\n";
                     var characters = DatabaseManager.Shard.GetCharacters(account.AccountId, true);
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
                     message += "-------------------\n";
@@ -1187,13 +1193,30 @@ namespace ACE.Server.Command.Handlers
 
         // add <spell>
         [CommandHandler("addspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Adds the specified spell to your own spellbook.", "<spellid>")]
-        public static void HandleAdd(Session session, params string[] parameters)
+        public static void HandleAddSpell(Session session, params string[] parameters)
         {
             if (Enum.TryParse(parameters[0], true, out SpellId spellId))
             {
                 if (Enum.IsDefined(typeof(SpellId), spellId))
                     session.Player.LearnSpellWithNetworking((uint)spellId);
             }
+        }
+
+        [CommandHandler("removespell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Removes the specified spell to your own spellbook.", "<spellid>")]
+        public static void HandleRemoveSpell(Session session, params string[] parameters)
+        {
+            if (!Enum.TryParse(parameters[0], true, out SpellId spellId))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown spell {parameters[0]}", ChatMessageType.Broadcast));
+                return;
+            }
+            if (session.Player.RemoveKnownSpell((uint)spellId))
+            {
+                var spell = new Entity.Spell(spellId, false);
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} removed from spellbook.", ChatMessageType.Broadcast));
+            }
+            else
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You don't know that spell!", ChatMessageType.Broadcast));
         }
 
         // adminhouse
