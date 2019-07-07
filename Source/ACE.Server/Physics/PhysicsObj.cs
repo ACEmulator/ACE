@@ -1113,6 +1113,9 @@ namespace ACE.Server.Physics
                 return true;
             }
 
+            // modified: maintain consistency for Position.Frame in change_cell
+            set_frame(curPos.Frame);
+
             if (transitCell.Equals(CurCell))
             {
                 Position.ObjCellID = curPos.ObjCellID;
@@ -1134,7 +1137,7 @@ namespace ACE.Server.Physics
                 change_cell(transitCell);
             }
 
-            set_frame(curPos.Frame);
+            //set_frame(curPos.Frame);
 
             var collisions = transition.CollisionInfo;
 
@@ -2197,7 +2200,7 @@ namespace ACE.Server.Physics
                 child.enter_cell(newCell);
 
             CurCell = newCell;
-            Position.ObjCellID = newCell.ID;
+            Position.ObjCellID = newCell.ID;        // warning: Position will be in an inconsistent state here, until set_frame() is run!
             if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
                 PartArray.SetCellID(newCell.ID);
 
