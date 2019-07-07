@@ -15,6 +15,7 @@ using ACE.Database.Entity;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using Version = ACE.Database.Models.World.Version;
 
 namespace ACE.Database
 {
@@ -1118,6 +1119,29 @@ namespace ACE.Database
         {
             using (var context = new WorldDbContext())
                 return GetAllTreasureWielded(context);
+        }
+
+        /// <summary>
+        /// Get the version information stored in database
+        /// </summary>
+        public Version GetVersion(WorldDbContext context)
+        {
+            var version = context.Version
+                .FirstOrDefault(r => r.Id == 1);
+
+            if (version == null)
+                return null;
+
+            return version;
+        }
+
+        /// <summary>
+        /// Get the version information stored in database
+        /// </summary>
+        public Version GetVersion()
+        {
+            using (var context = new WorldDbContext())
+                return GetVersion(context);
         }
     }
 }

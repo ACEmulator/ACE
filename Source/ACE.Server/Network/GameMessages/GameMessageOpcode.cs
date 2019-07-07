@@ -64,6 +64,7 @@ namespace ACE.Server.Network.GameMessages
         GameEvent                       = 0xF7B0,
         GameAction                      = 0xF7B1,
         CharacterEnterWorldRequest      = 0xF7C8,
+        GetServerVersion                = 0xF7CC,
         FriendsOld                      = 0xF7CD,
         CharacterRestore                = 0xF7D9,
         AccountBoot                     = 0xF7DC,
