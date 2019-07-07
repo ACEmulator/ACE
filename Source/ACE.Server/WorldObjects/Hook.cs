@@ -59,7 +59,7 @@ namespace ACE.Server.WorldObjects
 
             if (!(House.HouseHooksVisible ?? true) && Item != null && !(Item is Hooker))
             {
-                if (player.Guid.Full == HouseOwner.Value)
+                if (HouseOwner.HasValue && player.Guid.Full == HouseOwner.Value)
                     return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemUnusableOnHook_CanOpen, Name));
                 else
                     return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemUnusableOnHook_CannotOpen, Name));
@@ -71,7 +71,7 @@ namespace ACE.Server.WorldObjects
                 return Item.CheckUseRequirements(activator);
             }
 
-            if (HouseOwner.HasValue && HouseOwner.Value > 0 && player.Guid.Full != HouseOwner.Value) // Only HouseOwners can open hooks to add/remove items
+            if (!HouseOwner.HasValue || (HouseOwner.HasValue && HouseOwner.Value == 0) || (HouseOwner.HasValue && HouseOwner.Value > 0 && player.Guid.Full != HouseOwner.Value)) // Only HouseOwners can open hooks to add/remove items
             {
                 if (Item == null)
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.HookItemNotUsable_CannotOpen));
