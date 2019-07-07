@@ -410,13 +410,10 @@ namespace ACE.Server.WorldObjects
                 var actionChain = new ActionChain();
                 actionChain.AddAction(this, () =>
                 {
-                    var msg = newItemLevel != item.ItemMaxLevel ? $"Your {item.Name} is now level {newItemLevel}!" : $"Your {item.Name} has reached the maximum level of {newItemLevel}!";
+                    var msg = $"Your {item.Name} has increased in power to level {newItemLevel}!";
                     Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                     EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
-
-                    if (newItemLevel == item.ItemMaxLevel)
-                        EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.WeddingBliss));
 
                     OnItemLevelUp(item, prevItemLevel);
 

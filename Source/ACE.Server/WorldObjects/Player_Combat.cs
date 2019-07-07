@@ -437,15 +437,15 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Applies damages to a player from a physical damage source
         /// </summary>
-        public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
+        public int TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
-            if (Invincible || IsDead) return;
+            if (Invincible || IsDead) return 0;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
             {
                 HandleLifestoneProtection();
-                return;
+                return 0;
             }
 
             var amount = (uint)Math.Round(_amount);
@@ -465,13 +465,13 @@ namespace ACE.Server.WorldObjects
             {
                 OnDeath(source, damageType, crit);
                 Die();
-                return;
+                return (int)damageTaken;
             }
 
             if (!BodyParts.Indices.TryGetValue(bodyPart, out var iDamageLocation))
             {
                 log.Error($"{Name}.TakeDamage({source.Name}, {damageType}, {amount}, {bodyPart}, {crit}): avoided crash for bad damage location");
-                return;
+                return 0;
             }
             var damageLocation = (DamageLocation)iDamageLocation;
 
@@ -492,6 +492,8 @@ namespace ACE.Server.WorldObjects
             // if player attacker, update PK timer
             if (source is Player attacker)
                 UpdatePKTimers(attacker, this);
+
+            return (int)damageTaken;
         }
 
         public string GetArmorType(BodyPart bodyPart)

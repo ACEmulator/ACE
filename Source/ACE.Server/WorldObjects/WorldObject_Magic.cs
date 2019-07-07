@@ -77,8 +77,10 @@ namespace ACE.Server.WorldObjects
 
             // send message to player, if applicable
             var player = this as Player;
-            if (player != null && status.Message != null && showMsg)
+            if (player != null && status.Message != null && !status.Broadcast && showMsg)
                 player.Session.Network.EnqueueSend(status.Message);
+            else if (player != null && status.Message != null && status.Broadcast && showMsg)
+                player.EnqueueBroadcast(status.Message);
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
@@ -1241,7 +1243,17 @@ namespace ACE.Server.WorldObjects
             var enchantmentStatus = new EnchantmentStatus(spell);
 
             // create enchantment
-            var addResult = target.EnchantmentManager.Add(spell, caster, equip);
+            AddEnchantmentResult addResult;
+            var aetheriaProc = false;
+
+            if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell.HasValue && caster.ProcSpell.Value == spell.Id)
+            {
+                caster = target.CurrentLandblock?.GetObject(caster.WielderId.Value);
+                addResult = target.EnchantmentManager.Add(spell, caster, equip);
+                aetheriaProc = true;
+            }
+            else
+                addResult = target.EnchantmentManager.Add(spell, caster, equip);
 
             var playerTarget = target as Player;
 
@@ -1264,7 +1276,12 @@ namespace ACE.Server.WorldObjects
 
             string message = null;
 
-            if (caster is Creature)
+            if (aetheriaProc)
+            {
+                message = $"Aetheria surges on {target.Name} with the power of {spell.Name}!";
+                enchantmentStatus.Broadcast = true;
+            }
+            else if (caster is Creature)
             {
                 if (caster.Guid == Guid)
                     message = $"You cast {spell.Name} on {targetName}{suffix}";

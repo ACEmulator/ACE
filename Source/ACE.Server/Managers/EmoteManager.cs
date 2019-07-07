@@ -1404,6 +1404,9 @@ namespace ACE.Server.Managers
             if (WorldObject is Player)
                 return;
 
+            if (WorldObject is Creature creature && creature.IsAwake)
+                return;
+
             ExecuteEmoteSet(EmoteCategory.HeartBeat);
         }
 
