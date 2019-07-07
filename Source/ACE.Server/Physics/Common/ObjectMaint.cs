@@ -346,7 +346,7 @@ namespace ACE.Server.Physics.Common
         /// Removes an object after it has expired from the destruction queue,
         /// or it has been destroyed
         /// </summary>
-        public void RemoveObject(PhysicsObj obj)
+        public void RemoveObject(PhysicsObj obj, bool reverse = true)
         {
             if (obj == null) return;
 
@@ -358,11 +358,13 @@ namespace ACE.Server.Physics.Common
             RemoveVisibleObject(obj);
 
             // maintain KnownPlayers for both objects
-            if (PhysicsObj.IsPlayer)
+            if (PhysicsObj.IsPlayer && reverse)
                 obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
 
             if (obj.IsPlayer)
                 RemoveKnownPlayer(obj);
+
+            RemoveVisibleTarget(obj);
         }
 
         /// <summary>
@@ -560,8 +562,8 @@ namespace ACE.Server.Physics.Common
             foreach (var obj in KnownObjects.Values)
                 obj.ObjMaint.RemoveObject(PhysicsObj);
 
-            foreach (var obj in KnownPlayers.Values.ToList())
-                obj.ObjMaint.RemoveObject(PhysicsObj);
+            foreach (var obj in KnownPlayers.Values)
+                obj.ObjMaint.RemoveObject(PhysicsObj, false);
 
             foreach (var obj in VisibleTargets.Values)
                 obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
