@@ -2051,6 +2051,13 @@ namespace ACE.Server.Command.Handlers
             }
 
             WorldObject loot = LootGenerationFactory.CreateLootByWCID(weenieClassId, tier);
+
+            if (loot == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Generating {weenieClassId} was not successful.", ChatMessageType.Broadcast));
+                return;
+            }
+
             session.Player.TryCreateInInventoryWithNetworking(loot);
         }
 
