@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (!(House.HouseHooksVisible ?? true) && Item != null && !(Item is Hooker))
+            if (!(House.HouseHooksVisible ?? true) && Item != null && (!(Item is Hooker || Item is Book)))
             {
                 if (HouseOwner.HasValue && player.Guid.Full == HouseOwner.Value)
                     return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemUnusableOnHook_CanOpen, Name));
@@ -92,6 +92,9 @@ namespace ACE.Server.WorldObjects
         {
             if (!(House.HouseHooksVisible ?? true) && Item != null)
             {
+                if (wo is Player player)
+                    player.LasUsedHookId = Guid;
+
                 // redirect to item.ActOnUse
                 Item.OnActivate(wo);
 
