@@ -29,6 +29,8 @@ namespace ACE.Server.WorldObjects
         public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
+
+            InventoryLoaded = true;
         }
 
         /// <summary>
@@ -515,7 +517,7 @@ namespace ACE.Server.WorldObjects
                 if (forceSave)
                     item.SaveBiotaToDatabase();
 
-                OnRemoveItem();
+                OnRemoveItem(item);
 
                 return true;
             }
@@ -773,20 +775,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This event is raised when player removes item from container
         /// </summary>
-        protected virtual void OnRemoveItem()
+        protected virtual void OnRemoveItem(WorldObject worldObject)
         {
             // empty base
         }
 
         public virtual MotionCommand MotionPickup => MotionCommand.Pickup;
-
-        /// <summary>
-        /// Mainly used to mark containers (corpse) inventory loaded for proper decay rules
-        /// </summary>
-        public void MarkAsInventoryLoaded()
-        {
-            InventoryLoaded = true;
-        }
 
         public override bool IsAttunedOrContainsAttuned => base.IsAttunedOrContainsAttuned || Inventory.Values.Any(i => i.IsAttunedOrContainsAttuned);
 

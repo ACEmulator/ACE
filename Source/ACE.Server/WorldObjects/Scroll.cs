@@ -110,9 +110,12 @@ namespace ACE.Server.WorldObjects
             });
 
 
+            // FIXME: return stance time
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             player.LastUseTime += animTime;     // return stance
+
+            actionChain.AddDelaySeconds(animTime);
 
             actionChain.AddAction(player, () => player.IsBusy = false);
 

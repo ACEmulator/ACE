@@ -385,6 +385,7 @@ namespace ACE.Server.WorldObjects
             WieldedByOther      = 0x10,
             TradedByOther       = 0x20,
             ObjectsKnownByMe    = 0x40,
+            LastUsedHook        = 0x80,
             LocationsICanMove   = MyInventory | MyEquippedItems | Landblock | LastUsedContainer,
             Everywhere          = 0xFF
         }
@@ -502,6 +503,20 @@ namespace ACE.Server.WorldObjects
                     return result;
             }
 
+            if (searchLocations.HasFlag(SearchLocations.LastUsedHook))
+            {
+                if (CurrentLandblock?.GetObject(LasUsedHookId) is Hook lastUsedHook)
+                {
+                    result = lastUsedHook.GetInventoryItem(objectGuid, out foundInContainer);
+
+                    if (result != null)
+                    {
+                        rootOwner = lastUsedHook;
+                        return result;
+                    }
+                }
+            }
+
             return null;
         }
 
@@ -601,6 +616,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionPutItemInContainer(uint itemGuid, uint containerGuid, int placement = 0)
         {
+            if (IsBusy)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
             OnPutItemInContainer(itemGuid, containerGuid, placement);
 
             var item = FindObject(itemGuid, SearchLocations.LocationsICanMove, out _, out var itemRootOwner, out var itemWasEquipped);
@@ -743,6 +765,13 @@ namespace ACE.Server.WorldObjects
                         if (itemRootOwner == null && item.CurrentLandblock == null)
                         {
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
+                            EnqueueBroadcastMotion(returnStance);
+                            return;
+                        }
+
+                        if (item.QuestRestriction != null && !QuestManager.HasQuest(item.QuestRestriction))
+                        {
+                            QuestManager.HandleNoQuestError(item);
                             EnqueueBroadcastMotion(returnStance);
                             return;
                         }
@@ -1913,6 +1942,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(uint targetGuid, uint itemGuid, int amount)
         {
+            if (IsBusy)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
             if (amount <= 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to give item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, itemGuid, amount);
