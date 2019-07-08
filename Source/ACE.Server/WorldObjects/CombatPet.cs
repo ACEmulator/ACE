@@ -152,8 +152,8 @@ namespace ACE.Server.WorldObjects
             }
 
             // hack fixed in v3
-            PhysicsObj.ObjMaint.ObjectTable.Clear();
-            PhysicsObj.ObjMaint.VisibleObjectTable.Clear();
+            //PhysicsObj.ObjMaint.ObjectTable.Clear();
+            //PhysicsObj.ObjMaint.VisibleObjectTable.Clear();
 
             return monsters;
         }
