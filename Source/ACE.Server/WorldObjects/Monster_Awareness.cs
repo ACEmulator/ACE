@@ -255,8 +255,12 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 players.Add(creature);
-
             }
+
+            // hack fixed in v3
+            PhysicsObj.ObjMaint.ObjectTable.Clear();
+            PhysicsObj.ObjMaint.VisibleObjectTable.Clear();
+
             return players;
         }
 
