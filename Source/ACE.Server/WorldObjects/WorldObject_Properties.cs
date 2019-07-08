@@ -2666,6 +2666,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.LifeResistRating); else SetProperty(PropertyInt.LifeResistRating, value.Value); }
         }
 
+        public int? DotResistRating
+        {
+            get => GetProperty(PropertyInt.DotResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DotResistRating); else SetProperty(PropertyInt.DotResistRating, value.Value); }
+        }
+
         public int? NetherResistRating
         {
             get => GetProperty(PropertyInt.NetherResistRating);

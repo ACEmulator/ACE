@@ -4,6 +4,7 @@ using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
@@ -111,6 +112,12 @@ namespace ACE.Server.Entity
         {
             //Console.WriteLine($"Aetheria.UseObjectOnTarget({player.Name}, {source.Name}, {target.Name})");
 
+            if (player.IsBusy)
+            {
+                player.SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             // verify use requirements
             var useError = VerifyUseRequirements(player, source, target);
             if (useError != WeenieError.None)
@@ -120,6 +127,8 @@ namespace ACE.Server.Entity
             }
 
             var actionChain = new ActionChain();
+
+            player.IsBusy = true;
 
             // handle switching to peace mode
             if (player.CombatMode != CombatMode.NonCombat)
@@ -133,13 +142,20 @@ namespace ACE.Server.Entity
 
             actionChain.AddAction(player, () => ActivateSigil(player, source, target));
 
+            player.EnqueueMotion(actionChain, MotionCommand.Ready);
+
+            actionChain.AddAction(player, () => player.IsBusy = false);
+
             actionChain.EnqueueChain();
         }
 
         public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)
         {
             if (source == target)
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on itself."));
                 return WeenieError.YouDoNotPassCraftingRequirements;
+            }
 
             // ensure both source and target are in player's inventory
             if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
@@ -153,6 +169,12 @@ namespace ACE.Server.Entity
 
                 return WeenieError.YouDoNotPassCraftingRequirements;
 
+            if (target.Name != "Coalesced Aetheria")
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on {target.Name} because the sigil is already visible."));
+                return WeenieError.YouDoNotPassCraftingRequirements;
+            }
+
             return WeenieError.None;
         }
 
@@ -162,31 +184,33 @@ namespace ACE.Server.Entity
             var randSigil = (Sigil)ThreadSafeRandom.Next(0, 4);
 
             var equipmentSet = SigilToEquipmentSet[randSigil];
-            player.UpdateProperty(target, PropertyInt.EquipmentSetId, (int)equipmentSet);
+            target.SetProperty(PropertyInt.EquipmentSetId, (int)equipmentSet);
 
             // change icon
             var color = GetColor(target.WeenieClassId).Value;
             var icon = Icons[color][randSigil];
-            player.UpdateProperty(target, PropertyDataId.Icon, icon);
-
-            player.UpdateProperty(target, PropertyString.LongDesc, "This aetheria's sigil now shows on the surface.");
+            target.SetProperty(PropertyDataId.Icon, icon);
 
             // rng select a surge spell
             var surgeSpell = (SpellId)ThreadSafeRandom.Next(5204, 5208);
 
             target.Biota.GetOrAddKnownSpell((int)surgeSpell, target.BiotaDatabaseLock, target.BiotaPropertySpells, out _);
 
-            player.UpdateProperty(target, PropertyDataId.ProcSpell, (uint)surgeSpell);
+            target.SetProperty(PropertyDataId.ProcSpell, (uint)surgeSpell);
             //target.SetProperty(PropertyFloat.ProcSpellRate, 0.05f);   // proc rate for aetheria?
 
             if (SurgeTargetSelf[surgeSpell])
                 target.SetProperty(PropertyBool.ProcSpellSelfTargeted, true);
 
             // set equip mask
-            player.UpdateProperty(target, PropertyInt.ValidLocations, (int)ColorToMask[color]);
+            target.SetProperty(PropertyInt.ValidLocations, (int)ColorToMask[color]);
 
             // level?
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("A sigil rises to the surface as you bathe the aetheria in mana.", ChatMessageType.Broadcast));
+
+            player.UpdateProperty(target, PropertyString.Name, "Aetheria");
+            player.UpdateProperty(target, PropertyString.LongDesc, "This aetheria's sigil now shows on the surface.");
+            player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
 
             player.SendUseDoneEvent();
         }
@@ -241,6 +265,14 @@ namespace ACE.Server.Entity
             }
             // It is unconfirmed, but believed, that the act of being hit or attacked increases the chances of a surge triggering.
             return procRate;
+        }
+
+        /// <summary>
+        /// Returns TRUE if wo is AetheriaManaStone
+        /// </summary>
+        public static bool IsAetheriaManaStone(WorldObject wo)
+        {
+            return wo.WeenieClassId == AetheriaManaStone;
         }
     }
 }
