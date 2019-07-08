@@ -1,0 +1,15 @@
+USE `ace_auth`;
+
+ALTER TABLE `account`
+ADD COLUMN `email_Address` VARCHAR(320) NULL DEFAULT NULL AFTER `accessLevel`,
+ADD COLUMN `create_Time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `email_Address`,
+ADD COLUMN `create_I_P` VARBINARY(16) NULL DEFAULT NULL AFTER `create_Time`,
+ADD COLUMN `create_I_P_ntoa` VARCHAR(45) GENERATED ALWAYS AS (INET6_NTOA(`create_I_P`)) VIRTUAL AFTER `create_I_P`,
+ADD COLUMN `last_Login_Time` DATETIME NULL DEFAULT NULL AFTER `create_I_P_ntoa`,
+ADD COLUMN `last_Login_I_P` VARBINARY(16) NULL DEFAULT NULL AFTER `last_Login_Time`,
+ADD COLUMN `last_Login_I_P_ntoa` VARCHAR(45) GENERATED ALWAYS AS (INET6_NTOA(`last_Login_I_P`)) VIRTUAL AFTER `last_Login_I_P`,
+ADD COLUMN `total_Times_Logged_In` INT(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `last_Login_I_P_ntoa`,
+ADD COLUMN `banned_Time` DATETIME NULL AFTER `total_Times_Logged_In`,
+ADD COLUMN `banned_By_Account_Id` INT(10) UNSIGNED NULL AFTER `banned_Time`,
+ADD COLUMN `ban_Expire_Time` DATETIME NULL AFTER `banned_By_Account_Id`,
+ADD COLUMN `ban_Reason` VARCHAR(1000) NULL DEFAULT NULL AFTER `ban_Expire_Time`;

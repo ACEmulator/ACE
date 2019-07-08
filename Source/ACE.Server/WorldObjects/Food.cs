@@ -120,7 +120,12 @@ namespace ACE.Server.WorldObjects
 
                 if (vital != null)
                 {
-                    var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, BoostValue));
+                    // only apply to restoration food?
+                    var ratingMod = BoostValue > 0 ? player.GetHealingRatingMod() : 1.0f;
+
+                    var boostValue = (int)Math.Round(BoostValue * ratingMod);
+
+                    var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, boostValue));
 
                     if (BoosterEnum == PropertyAttribute2nd.Health)
                     {
