@@ -12,7 +12,7 @@ namespace ACE.Server.Physics.Common
     public class ObjectMaint
     {
         /// <summary>
-        /// The client automatically previously known objects
+        /// The client automatically removes known objects
         /// if they remain outside visibility for this amount of time
         /// </summary>
         public static readonly float DestructionTime = 25.0f;
