@@ -169,7 +169,9 @@ namespace ACE.Server.WorldObjects
             TradeItem,
             SellItem,
 
-            ToCorpseOnDeath
+            ToCorpseOnDeath,
+
+            ConsumeItem
         }
 
         public bool TryRemoveFromInventoryWithNetworking(uint objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
@@ -202,6 +204,11 @@ namespace ACE.Server.WorldObjects
                 // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
                 // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
                 item.SaveBiotaToDatabase();
+            }
+
+            if (removeFromInventoryAction == RemoveFromInventoryAction.ConsumeItem)
+            {
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
             }
 
             return true;
@@ -1014,6 +1021,8 @@ namespace ACE.Server.WorldObjects
 
                 if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                     UpdateCoinValue();
+
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
             }
         }
 
