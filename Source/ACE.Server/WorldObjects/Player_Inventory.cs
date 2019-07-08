@@ -385,6 +385,7 @@ namespace ACE.Server.WorldObjects
             WieldedByOther      = 0x10,
             TradedByOther       = 0x20,
             ObjectsKnownByMe    = 0x40,
+            LastUsedHook        = 0x80,
             LocationsICanMove   = MyInventory | MyEquippedItems | Landblock | LastUsedContainer,
             Everywhere          = 0xFF
         }
@@ -500,6 +501,20 @@ namespace ACE.Server.WorldObjects
 
                 if (result != null)
                     return result;
+            }
+
+            if (searchLocations.HasFlag(SearchLocations.LastUsedHook))
+            {
+                if (CurrentLandblock?.GetObject(LasUsedHookId) is Hook lastUsedHook)
+                {
+                    result = lastUsedHook.GetInventoryItem(objectGuid, out foundInContainer);
+
+                    if (result != null)
+                    {
+                        rootOwner = lastUsedHook;
+                        return result;
+                    }
+                }
             }
 
             return null;
@@ -750,6 +765,13 @@ namespace ACE.Server.WorldObjects
                         if (itemRootOwner == null && item.CurrentLandblock == null)
                         {
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
+                            EnqueueBroadcastMotion(returnStance);
+                            return;
+                        }
+
+                        if (item.QuestRestriction != null && !QuestManager.HasQuest(item.QuestRestriction))
+                        {
+                            QuestManager.HandleNoQuestError(item);
                             EnqueueBroadcastMotion(returnStance);
                             return;
                         }

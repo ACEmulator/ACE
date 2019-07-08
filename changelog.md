@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2019-07-07
+[Ripley]
+* Only allow use of Hookers on Hooks.
+* Fix some issues with using certain Hookers that were previously broken.
+* Fix issues with Books on hooks, Chalk Boards now writable for all as expected, all other books readable.
+
 ### 2019-07-06
 [Ripley, Mag-nus]
 * Add `2019-06-10-00-Add_Fields_To_Account_Table.sql` to Auth Updates folder. Servers are required to update Auth database with this script.

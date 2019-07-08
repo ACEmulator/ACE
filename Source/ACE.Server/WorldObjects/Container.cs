@@ -517,7 +517,7 @@ namespace ACE.Server.WorldObjects
                 if (forceSave)
                     item.SaveBiotaToDatabase();
 
-                OnRemoveItem();
+                OnRemoveItem(item);
 
                 return true;
             }
@@ -775,7 +775,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This event is raised when player removes item from container
         /// </summary>
-        protected virtual void OnRemoveItem()
+        protected virtual void OnRemoveItem(WorldObject worldObject)
         {
             // empty base
         }
