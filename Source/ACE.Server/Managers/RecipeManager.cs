@@ -47,6 +47,7 @@ namespace ACE.Server.Managers
             if (source == target)
             {
                 var message = new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft);
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on itself."));
                 player.Session.Network.EnqueueSend(message);
                 player.SendUseDoneEvent();
                 return;

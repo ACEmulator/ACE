@@ -148,6 +148,11 @@ namespace ACE.Server.WorldObjects
 
                 monsters.Add(creature);
             }
+
+            // hack fixed in v3
+            //PhysicsObj.ObjMaint.ObjectTable.Clear();
+            //PhysicsObj.ObjMaint.VisibleObjectTable.Clear();
+
             return monsters;
         }
 

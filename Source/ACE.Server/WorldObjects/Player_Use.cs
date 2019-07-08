@@ -15,6 +15,11 @@ namespace ACE.Server.WorldObjects
         public ObjectGuid LastOpenedContainerId { get; set; }
 
         /// <summary>
+        /// This is set by Hook.ActOnUse
+        /// </summary>
+        public ObjectGuid LasUsedHookId { get; set; }
+
+        /// <summary>
         /// Handles the 'GameAction 0x35 - UseWithTarget' network message
         /// when player double clicks an inventory item resulting in a target indicator
         /// and then clicks another item

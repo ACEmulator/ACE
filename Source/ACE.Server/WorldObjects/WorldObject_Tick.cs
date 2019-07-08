@@ -154,7 +154,10 @@ namespace ACE.Server.WorldObjects
                         // Containers enqueue the loading of their inventory from callbacks. It's possible the callback happened before the container was added to the landblock
                     }
                     else
-                        log.WarnFormat("Item 0x{0:X8}:{1} has enqueued an action but is not attached to a landblock.", Guid.Full, Name);
+                    {
+                        if (!(OwnerId.HasValue && OwnerId.Value > 0))
+                            log.WarnFormat("Item 0x{0:X8}:{1} has enqueued an action but is not attached to a landblock.", Guid.Full, Name);
+                    }
 
                     WorldManager.EnqueueAction(action);
                 }
