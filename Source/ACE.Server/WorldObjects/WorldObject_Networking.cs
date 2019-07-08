@@ -812,8 +812,7 @@ namespace ACE.Server.WorldObjects
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest
                 || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
             {
-                var openable = !IsLocked || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage;
-                UpdateDescriptionFlag(ObjectDescriptionFlag.Openable, openable);
+                UpdateDescriptionFlag(ObjectDescriptionFlag.Openable, !IsLocked);
             }
 
             UpdateDescriptionFlag(ObjectDescriptionFlag.Inscribable, Inscribable);
