@@ -4,6 +4,7 @@
 [Ripley]
 * Only allow use of Hookers on Hooks.
 * Fix some issues with using certain Hookers that were previously broken.
+* Fix issues with Books on hooks, Chalk Boards now writable for all as expected, all other books readable.
 
 ### 2019-07-06
 [Ripley, Mag-nus]
