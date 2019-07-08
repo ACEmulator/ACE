@@ -65,18 +65,20 @@ namespace ACE.Server.WorldObjects
             var weenieFlags =  CalculateWeenieHeaderFlag();
             var weenieFlags2 = CalculateWeenieHeaderFlag2();
 
+            var descriptionFlags = ObjectDescriptionFlags;
+
             if (adminvision)
-                ObjectDescriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
+                descriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
 
             writer.Write((uint)weenieFlags);
             writer.WriteString16L(Name ?? String.Empty);
             writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(IconId, 0x6000000);
             writer.Write((uint)ItemType);
-            writer.Write((uint)ObjectDescriptionFlags);
+            writer.Write((uint)descriptionFlags);
             writer.Align();
 
-            if ((ObjectDescriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
+            if ((descriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
                 writer.Write((uint)weenieFlags2);
 
             if ((weenieFlags & WeenieHeaderFlag.PluralName) != 0)
