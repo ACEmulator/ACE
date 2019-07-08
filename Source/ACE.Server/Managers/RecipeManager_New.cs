@@ -313,15 +313,13 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
                 case WeenieClassName.W_MATERIALWHITESAPPHIRE100_CLASS:
                 case WeenieClassName.W_MATERIALWHITESAPPHIRE_CLASS:
+                case WeenieClassName.W_LEFTHANDTETHER_CLASS:
+                case WeenieClassName.W_LEFTHANDTETHERREMOVER_CLASS:
+                case WeenieClassName.W_COREPLATINGINTEGRATOR_CLASS:
+                case WeenieClassName.W_COREPLATINGDISINTEGRATOR_CLASS:
 
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
-
-                // 45683 - left hand tether
-                // 45684 - left hand tether remove
-
-                // 42979 - core plating integrator
-                // 43022 - core plating disintegrator
             }
 
             return recipe;
@@ -411,6 +409,10 @@ namespace ACE.Server.Managers
             { WeenieClassName.W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS, 4453 },
             { WeenieClassName.W_MATERIALWHITESAPPHIRE100_CLASS,           4453 },
             { WeenieClassName.W_MATERIALWHITESAPPHIRE_CLASS,              4453 },
+            { WeenieClassName.W_LEFTHANDTETHER_CLASS,                     6798 },
+            { WeenieClassName.W_LEFTHANDTETHERREMOVER_CLASS,              6799 },
+            { WeenieClassName.W_COREPLATINGINTEGRATOR_CLASS,              6800 },
+            { WeenieClassName.W_COREPLATINGDISINTEGRATOR_CLASS,           6801 },
         };
     }
 }

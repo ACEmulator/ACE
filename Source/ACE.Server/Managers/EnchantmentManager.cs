@@ -1290,11 +1290,17 @@ namespace ACE.Server.Managers
                     else
                         heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon()) ? 1.05f : 1.0f;
                 }
+
                 var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));
+
                 var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating(CombatType.Magic));    // df?
+                var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());
+
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));
-                tickAmount *= damageRatingMod * damageResistRatingMod;
+                //Console.WriteLine("NRR: " + Creature.NegativeModToRating(netherResistRatingMod));
+
+                tickAmount *= damageRatingMod * damageResistRatingMod * dotResistRatingMod;
 
                 if (damagers.ContainsKey(damager))
                     damagers[damager] += tickAmount;

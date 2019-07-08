@@ -1,9 +1,7 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using System.IO;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -34,6 +32,12 @@ namespace ACE.Server.WorldObjects
             if (PetDevice.IsEncapsulatedSpirit(this) && target is PetDevice petDevice)
             {
                 petDevice.Refill(player, this);
+                return;
+            }
+
+            if (Aetheria.IsAetheriaManaStone(this) && Aetheria.IsAetheria(target.WeenieClassId))
+            {
+                Aetheria.UseObjectOnTarget(player, this, target);
                 return;
             }
 

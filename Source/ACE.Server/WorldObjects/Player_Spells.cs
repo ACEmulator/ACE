@@ -30,6 +30,14 @@ namespace ACE.Server.WorldObjects
             return spellAdded;
         }
 
+        /// <summary>
+        /// Removes a known spell from the player's spellbook
+        /// </summary>
+        public bool RemoveKnownSpell(uint spellId)
+        {
+            return Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock, BiotaPropertySpells);
+        }
+
         public void LearnSpellWithNetworking(uint spellId, bool uiOutput = true)
         {
             var spells = DatManager.PortalDat.SpellTable;

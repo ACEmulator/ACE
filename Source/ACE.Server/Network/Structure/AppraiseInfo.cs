@@ -439,7 +439,7 @@ namespace ACE.Server.Network.Structure
             var damageRating = creature.GetDamageRating();
 
             // include heritage / weapon type rating?
-            var weapon = creature.GetEquippedWeapon();
+            var weapon = creature.GetEquippedWeapon() ?? creature.GetEquippedWand();
             if (creature.GetHeritageBonus(weapon))
                 damageRating += 5;
 

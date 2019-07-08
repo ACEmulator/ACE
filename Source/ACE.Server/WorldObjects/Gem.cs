@@ -65,6 +65,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!string.IsNullOrWhiteSpace(UseSendsSignal))
+            {
+                player.CurrentLandblock?.EmitSignal(player, UseSendsSignal);
+                return;
+            }
+
             // handle rare gems
             if (RareUsesTimer)
             {
@@ -180,12 +186,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (WeenieClassId == Aetheria.AetheriaManaStone)
-            {
-                Aetheria.UseObjectOnTarget(player, this, target);
-                return;
-            }
-
             // fallback on recipe manager?
             base.HandleActionUseOnTarget(player, target);
         }
@@ -196,5 +196,11 @@ namespace ACE.Server.WorldObjects
         /// Note that if the player logs out, this cooldown timer continues to tick/expire (unlike enchantments)
         /// </summary>
         public static int RareTimer = 180;
+
+        public string UseSendsSignal
+        {
+            get => GetProperty(PropertyString.UseSendsSignal);
+            set { if (value == null) RemoveProperty(PropertyString.UseSendsSignal); else SetProperty(PropertyString.UseSendsSignal, value); }
+        }
     }
 }

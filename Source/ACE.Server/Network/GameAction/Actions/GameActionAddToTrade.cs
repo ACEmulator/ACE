@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
             var itemGuid = message.Payload.ReadUInt32();
             var tradeSlot = message.Payload.ReadUInt32();
 
-            session.Player.HandleActionAddToTrade(session, itemGuid, tradeSlot);
+            session.Player.HandleActionAddToTrade(itemGuid, tradeSlot);
         }
     }
 }
