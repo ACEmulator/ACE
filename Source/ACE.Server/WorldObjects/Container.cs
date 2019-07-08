@@ -29,6 +29,8 @@ namespace ACE.Server.WorldObjects
         public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
+
+            InventoryLoaded = true;
         }
 
         /// <summary>
@@ -779,14 +781,6 @@ namespace ACE.Server.WorldObjects
         }
 
         public virtual MotionCommand MotionPickup => MotionCommand.Pickup;
-
-        /// <summary>
-        /// Mainly used to mark containers (corpse) inventory loaded for proper decay rules
-        /// </summary>
-        public void MarkAsInventoryLoaded()
-        {
-            InventoryLoaded = true;
-        }
 
         public override bool IsAttunedOrContainsAttuned => base.IsAttunedOrContainsAttuned || Inventory.Values.Any(i => i.IsAttunedOrContainsAttuned);
 
