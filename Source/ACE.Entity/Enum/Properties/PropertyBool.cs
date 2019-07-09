@@ -12,6 +12,7 @@ namespace ACE.Entity.Enum.Properties
         Undef                            = 0,
         [Ephemeral][ServerOnly]
         Stuck                            = 1,
+        [Ephemeral]
         Open                             = 2,
         Locked                           = 3,
         RotProof                         = 4,

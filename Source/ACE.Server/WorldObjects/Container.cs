@@ -38,6 +38,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Biota biota) : base(biota)
         {
+            if (Biota.TryRemoveProperty(PropertyBool.Open, out _, BiotaDatabaseLock))
+                ChangesDetected = true;
+
             SetEphemeralValues();
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
@@ -68,8 +71,7 @@ namespace ACE.Server.WorldObjects
             if (!UseRadius.HasValue)
                 UseRadius = 0.5f;
 
-            if (ContainerId != null)
-                IsOpen = false;
+            IsOpen = false;
         }
 
 
