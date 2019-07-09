@@ -110,9 +110,9 @@ namespace ACE.Server.WorldObjects
         /// Returns the current equipped active melee weapon
         /// This will normally be the primary melee weapon, but if dual wielding, this will be the weapon for the next attack
         /// </summary>
-        public WorldObject GetEquippedMeleeWeapon()
+        public WorldObject GetEquippedMeleeWeapon(bool forceMainHand = false)
         {
-            if (!IsDualWieldAttack || DualWieldAlternate)
+            if (!IsDualWieldAttack || DualWieldAlternate || forceMainHand)
                 return EquippedObjects.Values.FirstOrDefault(e => e.ParentLocation == ACE.Entity.Enum.ParentLocation.RightHand && (e.CurrentWieldedLocation == EquipMask.MeleeWeapon || e.CurrentWieldedLocation == EquipMask.TwoHanded));
 
             return GetDualWieldWeapon();
@@ -140,6 +140,14 @@ namespace ACE.Server.WorldObjects
         public WorldObject GetEquippedMissileWeapon()
         {
             return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon);
+        }
+
+        /// <summary>
+        /// Returns the current equipped weapon in main hand
+        /// </summary>
+        public WorldObject GetEquippedMainHand()
+        {
+            return GetEquippedMeleeWeapon(true) ?? GetEquippedMissileWeapon() ?? GetEquippedWand();
         }
 
         /// <summary>
@@ -301,7 +309,7 @@ namespace ACE.Server.WorldObjects
         /// Called by non-player creatures to unwield an item,
         /// removing any spells casted by the item
         /// </summary>
-        protected bool TryUnwieldObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
+        public bool TryUnwieldObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
         {
             if (!TryDequipObjectWithBroadcasting(objectGuid, out worldObject, out wieldedLocation, droppingToLandscape))
                 return false;
