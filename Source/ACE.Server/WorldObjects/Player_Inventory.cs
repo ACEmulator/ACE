@@ -1133,10 +1133,16 @@ namespace ACE.Server.WorldObjects
             // the client handles dequipping a lot of conflicting items automatically,
             // but there are some cases it misses that must be handled specifically here:
 
-            // Unwield wand/missile launcher if dual wielding
+            // Unwield wand/missile launcher/two-handed if dual wielding
             if (wieldedLocation == EquipMask.Shield && !item.IsShield)
             {
-                var mainWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon || e.CurrentWieldedLocation == EquipMask.Held);
+                var mainWeapon = GetEquippedMeleeWeapon(true);
+
+                if (mainWeapon != null && !mainWeapon.IsTwoHanded)
+                    mainWeapon = null;
+
+                mainWeapon = mainWeapon ?? GetEquippedMissileWeapon() ?? GetEquippedWand();
+
                 if (mainWeapon != null)
                 {
                     if (!TryDequipObjectWithNetworking(mainWeapon.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
