@@ -301,7 +301,7 @@ namespace ACE.Server.WorldObjects
         /// Called by non-player creatures to unwield an item,
         /// removing any spells casted by the item
         /// </summary>
-        protected bool TryUnwieldObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
+        public bool TryUnwieldObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
         {
             if (!TryDequipObjectWithBroadcasting(objectGuid, out worldObject, out wieldedLocation, droppingToLandscape))
                 return false;

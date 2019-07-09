@@ -248,6 +248,7 @@ namespace ACE.Server.WorldObjects
 
                 visibleTargets.Add(creature);
             }
+
             return visibleTargets;
         }
 

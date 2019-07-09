@@ -270,7 +270,6 @@ namespace ACE.Server.WorldObjects
             if (CanGenerateRare && killer != null)
                 corpse.GenerateRare(killer);
 
-            corpse.MarkAsInventoryLoaded();
             corpse.EnterWorld();
 
             if (this is Player p)

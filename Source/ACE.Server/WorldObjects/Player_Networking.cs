@@ -35,8 +35,6 @@ namespace ACE.Server.WorldObjects
             if (BarberActive)
                 BarberActive = false;
 
-            HandleAugsForwardCompatibility();
-
             if (AllegianceNode != null)
                 AllegianceRank = (int)AllegianceNode.Rank;
             else
