@@ -173,7 +173,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void AddRentQueue(IPlayer player, uint houseGuid)
         {
-            Console.WriteLine($"AddRentQueue({player.Name}, {houseGuid:X8})");
+            //Console.WriteLine($"AddRentQueue({player.Name}, {houseGuid:X8})");
 
             var house = House.Load(houseGuid);
             if (house == null)      // this can happen for basement dungeons
@@ -397,9 +397,13 @@ namespace ACE.Server.Managers
 
             player.HouseRentTimestamp = (int)nextRentTime;
 
+            player.SaveBiotaToDatabase();
+
             // clear out slumlord inventory
             var slumlord = playerHouse.House.SlumLord;
             slumlord.ClearInventory(true);
+
+            slumlord.SaveBiotaToDatabase();
 
             log.Info($"HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
 
@@ -475,10 +479,17 @@ namespace ACE.Server.Managers
             slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
             slumlord.SaveBiotaToDatabase();
 
-            player.HouseId = null;
-            player.HouseInstance = null;
-            //player.HousePurchaseTimestamp = null;
-            player.HouseRentTimestamp = null;
+            // if evicting a multihouse owner's previous house,
+            // no update for player properties
+            if (player.HouseInstance == house.Guid.Full)
+            {
+                player.HouseId = null;
+                player.HouseInstance = null;
+                //player.HousePurchaseTimestamp = null;
+                player.HouseRentTimestamp = null;
+            }
+            else
+                log.Warn($"HouseManager.HandleRentEviction({house.Guid}, {player.Name}, {multihouse}): house guids don't match {player.HouseInstance}");
 
             house.ClearRestrictions();
 
@@ -716,7 +727,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void OnInitialInventoryLoadCompleted(SlumLord slumlord)
         {
-            Console.WriteLine($"HouseManager.OnInitialInventoryLoadCompleted({slumlord.Name})");
+            //Console.WriteLine($"HouseManager.OnInitialInventoryLoadCompleted({slumlord.Name})");
 
             if (SlumlordCallbacks.TryGetValue(slumlord.Guid.Full, out var callbacks))
             {
