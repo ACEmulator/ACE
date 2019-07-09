@@ -360,6 +360,9 @@ namespace ACE.Server.Physics.Common
             RemoveKnownObject(obj, inverse);
             RemoveVisibleObject(obj, inverse);
             DestructionQueue.Remove(obj);
+
+            RemoveKnownPlayer(obj);
+            RemoveVisibleTarget(obj);
         }
 
         /// <summary>

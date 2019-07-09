@@ -137,16 +137,12 @@ namespace ACE.Server.WorldObjects
                 // why does this need to be in here?
                 if (creature.IsDead)
                 {
-                    Console.WriteLine($"{Name}.GetNearbyMonsters(): refusing to add dead creature {creature.Name} ({creature.Guid})");
+                    //Console.WriteLine($"{Name}.GetNearbyMonsters(): refusing to add dead creature {creature.Name} ({creature.Guid})");
                     continue;
                 }
 
                 monsters.Add(creature);
             }
-
-            // hack fixed in v3
-            //PhysicsObj.ObjMaint.ObjectTable.Clear();
-            //PhysicsObj.ObjMaint.VisibleObjectTable.Clear();
 
             return monsters;
         }
