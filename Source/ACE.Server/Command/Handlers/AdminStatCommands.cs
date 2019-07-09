@@ -94,6 +94,8 @@ namespace ACE.Server.Command.Handlers
 
             sb.Append($"Physics Landblocks Count - {LScape.LandblocksCount:N0}, Total Server Objects: {ObjectMaint.ServerObjects.Count:N0}{'\n'}");
 
+            sb.Append($"PhysicsObj Count - {ACE.Server.Physics.PhysicsObj.WeakReferences.Count:N0}{'\n'}");
+
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");
 
@@ -101,6 +103,37 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
 
             CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
+        }
+
+        // auditphysicsobj
+        [CommandHandler("auditphysicsobj", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server performance statistics")]
+        public static void HandleAuditPhysicsObj(Session session, params string[] parameters)
+        {
+            lock (ACE.Server.Physics.PhysicsObj.WeakReferences)
+            {
+                for (int i = ACE.Server.Physics.PhysicsObj.WeakReferences.Count - 1; i >= 0; i--)
+                {
+                    if (!ACE.Server.Physics.PhysicsObj.WeakReferences[i].TryGetTarget(out var target))
+                    {
+                        //log.Warn($"~PhysicsObj TryGetTarget failed at {i}");
+                        ACE.Server.Physics.PhysicsObj.WeakReferences.RemoveAt(i);
+                    }
+                }
+
+                foreach (var weakReference in ACE.Server.Physics.PhysicsObj.WeakReferences)
+                {
+                    if (weakReference.TryGetTarget(out var target))
+                    {
+                        if (target.WeenieObj?.WorldObjectInfo != null && target.WeenieObj.WorldObjectInfo.TryGetWorldObject() == null)
+                        {
+                            if (target.WOIReleasedTime == DateTime.MinValue)
+                                target.WOIReleasedTime = DateTime.UtcNow;
+
+                            log.Warn($"Physics object ID: {target.ID:X8}, createTime: {target.CreateTime:HH:mm:ss}, destroyObjectTime: {target.DestroyObjectTime:HH:mm:ss}, woiReleasedTime: {target.WOIReleasedTime:HH:mm:ss}, elapsed: {(DateTime.UtcNow - target.WOIReleasedTime).TotalSeconds:N2}s, without WorldObject: 0x{target.WeenieObj.WorldObjectInfo.Guid}:{target.WeenieObj.WorldObjectInfo.Name}");
+                        }
+                    }
+                }
+            }
         }
 
         // serverstatus

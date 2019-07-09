@@ -109,6 +109,12 @@ namespace ACE.Server.Physics
 
         public PhysicsObj()
         {
+            lock (WeakReferences)
+            {
+                CreateTime = DateTime.UtcNow;
+                WeakReferences.Add(new WeakReference<PhysicsObj>(this));
+            }
+
             PlayerVector = new Vector3(0, 0, 1);
             PlayerDistance = float.MaxValue;
             CYpt = float.MaxValue;
@@ -143,12 +149,56 @@ namespace ACE.Server.Physics
             }
         }
 
+        public DateTime CreateTime;
+        public DateTime DestroyObjectTime;
+        public DateTime WOIReleasedTime;
+        public static readonly List<WeakReference<PhysicsObj>> WeakReferences = new List<WeakReference<PhysicsObj>>();
+        private static DateTime lastAudit;
         // calling DestroyObject() twice can be bad - especially if a new object has been re-created for it,
         // such as the player already relogging back in
-        /*~PhysicsObj()
+        ~PhysicsObj()
         {
-            DestroyObject();
-        }*/
+            lock (WeakReferences)
+            {
+                for (int i = WeakReferences.Count - 1 ; i >= 0 ; i--)
+                {
+                    if (!WeakReferences[i].TryGetTarget(out var target))
+                    {
+                        //log.Warn($"~PhysicsObj TryGetTarget failed at {i}");
+                        WeakReferences.RemoveAt(i);
+                    }
+                    else
+                    {
+                        if (target == this)
+                        {
+                            log.Warn($"~PhysicsObj RemoveAt {i}, ID: {target.ID:X8}");
+                            WeakReferences.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
+
+                if (DateTime.UtcNow - lastAudit > TimeSpan.FromMinutes(1))
+                {
+                    lastAudit = DateTime.UtcNow;
+
+                    foreach (var weakReference in WeakReferences)
+                    {
+                        if (weakReference.TryGetTarget(out var target))
+                        {
+                            if (target.WeenieObj?.WorldObjectInfo != null && target.WeenieObj.WorldObjectInfo.TryGetWorldObject() == null)
+                            {
+                                if (target.WOIReleasedTime == DateTime.MinValue)
+                                    target.WOIReleasedTime = DateTime.UtcNow;
+
+                                log.Warn($"Physics object ID: {target.ID:X8}, createTime: {target.CreateTime:HH:mm:ss}, destroyObjectTime: {target.DestroyObjectTime:HH:mm:ss}, woiReleasedTime: {target.WOIReleasedTime:HH:mm:ss}, elapsed: {(DateTime.UtcNow - target.WOIReleasedTime).TotalSeconds:N2}s, without WorldObject: 0x{target.WeenieObj.WorldObjectInfo.Guid}:{target.WeenieObj.WorldObjectInfo.Name}");
+                            }
+                        }
+                    }
+                }
+            }
+            //DestroyObject();
+        }
 
         public void Destroy()
         {
@@ -174,6 +224,9 @@ namespace ACE.Server.Physics
         /// </summary>
         public void DestroyObject()
         {
+            DestroyObjectTime = DateTime.UtcNow;
+            //log.Debug($"Physics DestroyObject ID: {ID:X8}, WorldObject: 0x{WeenieObj?.WorldObjectInfo?.Guid}:{WeenieObj?.WorldObjectInfo?.Name}");
+
             leave_cell(false);
             remove_shadows_from_cells();
             leave_world();
