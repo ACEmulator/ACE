@@ -128,6 +128,14 @@ namespace ACE.Server.Physics.Common
             return newObjs;
         }
 
+        public void RemoveKnownObject(PhysicsObj obj, bool inversePlayer = true)
+        {
+            KnownObjects.Remove(obj.ID);
+
+            if (PhysicsObj.IsPlayer && inversePlayer)
+                obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
+        }
+
         /// <summary>
         /// Returns a list of objects that are currently visible from a cell
         /// </summary>
@@ -254,12 +262,11 @@ namespace ACE.Server.Physics.Common
         /// only run for players, and also removes the player from
         /// the object's visible targets list
         /// </summary>
-        public bool RemoveVisibleObject(PhysicsObj obj)
+        public bool RemoveVisibleObject(PhysicsObj obj, bool inverseTarget = true)
         {
             var removed = VisibleObjects.Remove(obj.ID);
 
-            // maintain visible targets for monsters
-            if (obj.WeenieObj.IsMonster)
+            if (inverseTarget)
                 obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
 
             return removed;
@@ -346,25 +353,13 @@ namespace ACE.Server.Physics.Common
         /// Removes an object after it has expired from the destruction queue,
         /// or it has been destroyed
         /// </summary>
-        public void RemoveObject(PhysicsObj obj, bool reverse = true)
+        public void RemoveObject(PhysicsObj obj, bool inverse = true)
         {
             if (obj == null) return;
 
-            // destruction queue should only need to run these
-            KnownObjects.Remove(obj.ID);
+            RemoveKnownObject(obj, inverse);
+            RemoveVisibleObject(obj, inverse);
             DestructionQueue.Remove(obj);
-
-            // destroyed objects would also run these
-            RemoveVisibleObject(obj);
-
-            // maintain KnownPlayers for both objects
-            if (PhysicsObj.IsPlayer && reverse)
-                obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
-
-            if (obj.IsPlayer)
-                RemoveKnownPlayer(obj);
-
-            RemoveVisibleTarget(obj);
         }
 
         /// <summary>
@@ -562,11 +557,15 @@ namespace ACE.Server.Physics.Common
             foreach (var obj in KnownObjects.Values)
                 obj.ObjMaint.RemoveObject(PhysicsObj);
 
+            // we are maintaining the inverses here,
+            // so passing false to iterate with modifying these collections
             foreach (var obj in KnownPlayers.Values)
                 obj.ObjMaint.RemoveObject(PhysicsObj, false);
 
             foreach (var obj in VisibleTargets.Values)
-                obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
+                obj.ObjMaint.RemoveObject(PhysicsObj, false);
+
+            RemoveAllObjects();
 
             RemoveServerObject(PhysicsObj);
         }

@@ -2680,7 +2680,7 @@ namespace ACE.Server.Physics
 
                 if (newlyVisible)
                 {
-                   ObjMaint.AddKnownObject(obj);
+                    ObjMaint.AddKnownObject(obj);
                     ObjMaint.RemoveObjectToBeDestroyed(obj);
                 }
 
