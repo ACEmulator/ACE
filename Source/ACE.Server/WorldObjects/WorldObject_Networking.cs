@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
             writer.Write((uint)descriptionFlags);
             writer.Align();
 
-            if ((ObjectDescriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
+            if ((descriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
                 writer.Write((uint)weenieFlags2);
 
             if ((weenieFlags & WeenieHeaderFlag.PluralName) != 0)
