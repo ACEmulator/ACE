@@ -1,11 +1,11 @@
 using System;
-using ACE.Common;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
     public class PlayerHouse: IComparable<PlayerHouse>
     {
+        public uint AccountId;
         public uint PlayerGuid;
         public string PlayerName;
         public House House;
@@ -13,6 +13,11 @@ namespace ACE.Server.Entity
 
         public PlayerHouse(IPlayer player, House house)
         {
+            if (player.Account != null)
+                AccountId = player.Account.AccountId;
+            else
+                Console.WriteLine($"PlayerHouse({player.Name}, {house.Name} ({house.Guid})) - couldn't find account id");
+
             PlayerGuid = player.Guid.Full;
             PlayerName = player.Name;
 
@@ -23,7 +28,12 @@ namespace ACE.Server.Entity
 
         public int CompareTo(PlayerHouse playerHouse)
         {
-            return RentDue.CompareTo(playerHouse.RentDue);
+            var result = RentDue.CompareTo(playerHouse.RentDue);
+
+            if (result == 0)
+                result = House.Guid.Full.CompareTo(playerHouse.House.Guid.Full);
+
+            return result;
         }
     }
 }

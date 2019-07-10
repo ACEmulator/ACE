@@ -123,6 +123,11 @@ namespace ACE.Database
             return _wrappedDatabase.GetBiotasByWcid(id);
         }
 
+        public List<Biota> GetBiotasByType(WeenieType type)
+        {
+            return _wrappedDatabase.GetBiotasByType(type);
+        }
+
         public void GetBiota(uint id, Action<Biota> callback)
         {
             _queue.Add(new Task(() =>
