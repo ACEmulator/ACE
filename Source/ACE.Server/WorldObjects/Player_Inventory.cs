@@ -765,7 +765,10 @@ namespace ACE.Server.WorldObjects
 
                         // Checking to see if item to pick is an container itself and IsOpen
                         if (!VerifyContainerOpenStatus(itemAsContainer, item))
+                        {
+                            EnqueueBroadcastMotion(returnStance);
                             return;
+                        }
 
                         if (item.QuestRestriction != null && !QuestManager.HasQuest(item.QuestRestriction))
                         {

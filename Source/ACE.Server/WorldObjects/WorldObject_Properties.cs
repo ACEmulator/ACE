@@ -1374,14 +1374,15 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        // ========================================
-        // ======== Description Properties ========
-        // ========================================
         public bool IsOpen
         {
             get => GetProperty(PropertyBool.Open) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value); }
         }
+
+        // ========================================
+        // ======== Description Properties ========
+        // ========================================
 
         public bool IsLocked
         {

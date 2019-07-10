@@ -140,7 +140,6 @@ namespace ACE.Server.WorldObjects
                     //Console.WriteLine($"{Name}.GetNearbyMonsters(): refusing to add dead creature {creature.Name} ({creature.Guid})");
                     continue;
                 }
-
                 monsters.Add(creature);
             }
 

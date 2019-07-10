@@ -65,15 +65,17 @@ namespace ACE.Server.WorldObjects
             var weenieFlags =  CalculateWeenieHeaderFlag();
             var weenieFlags2 = CalculateWeenieHeaderFlag2();
 
+            var descriptionFlags = ObjectDescriptionFlags;
+
             if (adminvision)
-                ObjectDescriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
+                descriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
 
             writer.Write((uint)weenieFlags);
             writer.WriteString16L(Name ?? String.Empty);
             writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(IconId, 0x6000000);
             writer.Write((uint)ItemType);
-            writer.Write((uint)ObjectDescriptionFlags);
+            writer.Write((uint)descriptionFlags);
             writer.Align();
 
             if ((ObjectDescriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
@@ -810,8 +812,7 @@ namespace ACE.Server.WorldObjects
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest
                 || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
             {
-                var openable = WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage || (!IsOpen && !IsLocked);
-                UpdateDescriptionFlag(ObjectDescriptionFlag.Openable, openable);
+                UpdateDescriptionFlag(ObjectDescriptionFlag.Openable, !IsLocked);
             }
 
             UpdateDescriptionFlag(ObjectDescriptionFlag.Inscribable, Inscribable);
