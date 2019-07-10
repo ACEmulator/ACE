@@ -81,7 +81,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS:
 
                     // ensure item is not retained and sellable
-                    if ((target.Retained ?? false) || !(target.GetProperty(PropertyBool.IsSellable) ?? true))
+                    if (target.Retained || !target.IsSellable)
                         return null;
 
                     // use leather recipe as base
@@ -95,7 +95,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALSANDSTONE_CLASS:
 
                     // ensure item is retained and sellable
-                    if (!(target.Retained ?? false) || !(target.GetProperty(PropertyBool.IsSellable) ?? true))
+                    if (!target.Retained || !target.IsSellable)
                         return null;
 
                     // use sandstone recipe as base

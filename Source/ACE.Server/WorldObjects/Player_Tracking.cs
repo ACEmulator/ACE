@@ -151,7 +151,7 @@ namespace ACE.Server.WorldObjects
 
         public void DeCloak()
         {
-            if (CloakStatus == ACE.Entity.Enum.CloakStatus.Off)
+            if (CloakStatus == CloakStatus.Off)
                 return;
 
             var actionChain = new ActionChain();
@@ -185,7 +185,7 @@ namespace ACE.Server.WorldObjects
 
         public void Cloak()
         {
-            if (CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+            if (CloakStatus == CloakStatus.On)
                 return;
 
             var actionChain = new ActionChain();

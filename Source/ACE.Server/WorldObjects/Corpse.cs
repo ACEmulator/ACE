@@ -49,7 +49,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Corpse;
 
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
 

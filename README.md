@@ -48,11 +48,11 @@ The following three sections (Database, Code, and Starting the Server) contain a
 ### Code 
 1. Install Visual Studio 2017
    * [Visual Studio minimum required version - VS Community 2017 15.7.0](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15)
-   * [.NET Core 2.1 x64 SDK Required](https://www.microsoft.com/net/download/visual-studio-sdks)
+   * [.NET Core 2.2 x64 SDK (Visual Studio 2017) Required](https://www.microsoft.com/net/download/visual-studio-sdks)
    * If using Visual Studio Community Edition, make sure the following two workloads are installed: .NET Core cross-platform development and .NET Desktop Development
 2. Copy `ACE.Server\Config.js.example` to `ACE.Server\Config.js` and modify settings, such as passwords and other server settings.
 3. Open ACE.sln with Visual Studio and build the solution.
-4. Download and install [Microsoft .NET Core Runtime - 2.1](https://www.microsoft.com/net/download) if you don't already have it.
+4. Download and install [Microsoft .NET Core Runtime - 2.2](https://www.microsoft.com/net/download) if you don't already have it.
 
 
 ### Starting the Server

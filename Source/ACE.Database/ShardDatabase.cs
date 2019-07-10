@@ -272,6 +272,23 @@ namespace ACE.Database
             }
         }
 
+        public List<Biota> GetBiotasByType(WeenieType type)
+        {
+            // warning: this query is currently unindexed!
+            using (var context = new ShardDbContext())
+            {
+                var iType = (int)type;
+
+                var results = context.Biota.Where(r => r.WeenieType == iType);
+
+                var biotas = new List<Biota>();
+                foreach (var result in results)
+                    biotas.Add(GetBiota(context, result.Id));
+
+                return biotas;
+            }
+        }
+
         public bool SaveBiota(Biota biota, ReaderWriterLockSlim rwLock)
         {
             if (BiotaContexts.TryGetValue(biota, out var cachedContext))

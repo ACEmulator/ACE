@@ -146,7 +146,7 @@ namespace ACE.Server.Physics.Common
             if (WorldObject is Player)
                 prof.Flags |= ObjCollisionProfileFlags.Player;
 
-            if (WorldObject.Attackable ?? false)
+            if (WorldObject.Attackable)
                 prof.Flags |= ObjCollisionProfileFlags.Attackable;
 
             if (WorldObject is Door)

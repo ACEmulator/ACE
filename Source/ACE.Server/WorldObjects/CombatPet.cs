@@ -96,7 +96,8 @@ namespace ACE.Server.WorldObjects
         public override bool FindNextTarget()
         {
             // rebuild visible objects (handle this better for monsters)
-            GetVisibleObjects();
+            // this is no longer needed with ObjMaint 3.0
+            //GetVisibleObjects();
 
             var nearbyMonsters = GetNearbyMonsters();
             if (nearbyMonsters.Count == 0)
@@ -144,9 +145,7 @@ namespace ACE.Server.WorldObjects
                 var creature = wo as Creature;
                 if (creature == null || wo is CombatPet || creature.IsDead) continue;
 
-                // ensure attackable
-                var attackable = creature.GetProperty(PropertyBool.Attackable) ?? false;
-                if (!attackable) continue;
+                if (!creature.Attackable) continue;
 
                 monsters.Add(creature);
             }
