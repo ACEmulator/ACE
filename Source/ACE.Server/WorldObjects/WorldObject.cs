@@ -200,9 +200,6 @@ namespace ACE.Server.WorldObjects
 
             SetPosition(PositionType.Home, new Position(Location));
 
-            if (!PhysicsObj.DatObject)
-                ObjMaintInit();
-
             return true;
         }
 
@@ -1041,23 +1038,5 @@ namespace ACE.Server.WorldObjects
         }
 
         public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
-
-        public void ObjMaintInit()
-        {
-            /*var visibleObjs = ObjectMaint.InitialClamp ? PhysicsObj.ObjMaint.GetVisibleObjectsDist(PhysicsObj.CurCell) : PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
-
-            if (this is Creature creature && creature.IsMonster)
-            {
-                var visibleTargets = visibleObjs.Where(i => i.IsPlayer || i.IsCombatPet).ToList();
-
-                PhysicsObj.ObjMaint.AddVisibleTargets(visibleTargets);
-            }
-            else
-            {
-                var knownPlayers = visibleObjs.Where(i => i.IsPlayer).ToList();
-
-                PhysicsObj.ObjMaint.AddKnownPlayers(knownPlayers);
-            }*/
-        }
     }
 }
