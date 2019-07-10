@@ -360,7 +360,7 @@ namespace ACE.Server.WorldObjects
             var spellTarget = spell.BaseRangeConstant > 0 ? target as Creature : creature;
             var targetPlayer = spellTarget as Player;
 
-            if (this is Gem)
+            if (this is Gem || this is Hook)
                 spellTarget = target as Creature;
 
             if (spellTarget == null || !spellTarget.IsAlive)

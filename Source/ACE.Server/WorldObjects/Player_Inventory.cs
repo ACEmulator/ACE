@@ -169,7 +169,9 @@ namespace ACE.Server.WorldObjects
             TradeItem,
             SellItem,
 
-            ToCorpseOnDeath
+            ToCorpseOnDeath,
+
+            ConsumeItem
         }
 
         public bool TryRemoveFromInventoryWithNetworking(uint objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
@@ -202,6 +204,11 @@ namespace ACE.Server.WorldObjects
                 // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
                 // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
                 item.SaveBiotaToDatabase();
+            }
+
+            if (removeFromInventoryAction == RemoveFromInventoryAction.ConsumeItem)
+            {
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
             }
 
             return true;
@@ -385,6 +392,7 @@ namespace ACE.Server.WorldObjects
             WieldedByOther      = 0x10,
             TradedByOther       = 0x20,
             ObjectsKnownByMe    = 0x40,
+            LastUsedHook        = 0x80,
             LocationsICanMove   = MyInventory | MyEquippedItems | Landblock | LastUsedContainer,
             Everywhere          = 0xFF
         }
@@ -500,6 +508,20 @@ namespace ACE.Server.WorldObjects
 
                 if (result != null)
                     return result;
+            }
+
+            if (searchLocations.HasFlag(SearchLocations.LastUsedHook))
+            {
+                if (CurrentLandblock?.GetObject(LasUsedHookId) is Hook lastUsedHook)
+                {
+                    result = lastUsedHook.GetInventoryItem(objectGuid, out foundInContainer);
+
+                    if (result != null)
+                    {
+                        rootOwner = lastUsedHook;
+                        return result;
+                    }
+                }
             }
 
             return null;
@@ -754,6 +776,13 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
+                        if (item.QuestRestriction != null && !QuestManager.HasQuest(item.QuestRestriction))
+                        {
+                            QuestManager.HandleNoQuestError(item);
+                            EnqueueBroadcastMotion(returnStance);
+                            return;
+                        }
+
                         var questSolve = false;
                         var isFromMyCorpse = false;
                         var isFromMyHook = false;
@@ -992,6 +1021,8 @@ namespace ACE.Server.WorldObjects
 
                 if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                     UpdateCoinValue();
+
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
             }
         }
 
@@ -1102,10 +1133,16 @@ namespace ACE.Server.WorldObjects
             // the client handles dequipping a lot of conflicting items automatically,
             // but there are some cases it misses that must be handled specifically here:
 
-            // Unwield wand/missile launcher if dual wielding
+            // Unwield wand/missile launcher/two-handed if dual wielding
             if (wieldedLocation == EquipMask.Shield && !item.IsShield)
             {
-                var mainWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon || e.CurrentWieldedLocation == EquipMask.Held);
+                var mainWeapon = GetEquippedMeleeWeapon(true);
+
+                if (mainWeapon != null && !mainWeapon.IsTwoHanded)
+                    mainWeapon = null;
+
+                mainWeapon = mainWeapon ?? GetEquippedMissileWeapon() ?? GetEquippedWand();
+
                 if (mainWeapon != null)
                 {
                     if (!TryDequipObjectWithNetworking(mainWeapon.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))

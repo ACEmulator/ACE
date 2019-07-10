@@ -66,7 +66,9 @@ namespace ACE.Server.WorldObjects
 
         public bool IsBusy { get; set; }
         public bool IsShield { get => CombatUse != null && CombatUse == ACE.Entity.Enum.CombatUse.Shield; }
-        public bool IsTwoHanded { get => CurrentWieldedLocation != null && CurrentWieldedLocation == EquipMask.TwoHanded; }
+        // ValidLocations is bugged for some older two-handed weapons, still contains MeleeWeapon instead of TwoHanded?
+        //public bool IsTwoHanded { get => CurrentWieldedLocation != null && CurrentWieldedLocation == EquipMask.TwoHanded; }
+        public bool IsTwoHanded => WeaponSkill == Skill.TwoHandedCombat;
         public bool IsBow { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Bow || DefaultCombatStyle == CombatStyle.Crossbow); }
         public bool IsAtlatl { get => DefaultCombatStyle != null && DefaultCombatStyle == CombatStyle.Atlatl; }
         public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
@@ -464,24 +466,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void ReadBookPage(Session reader, uint pageNum)
-        {
-            //PageData pageData = new PageData();
-            //AceObjectPropertiesBook bookPage = PropertiesBook[pageNum];
-
-            //pageData.AuthorID = bookPage.AuthorId;
-            //pageData.AuthorName = bookPage.AuthorName;
-            //pageData.AuthorAccount = bookPage.AuthorAccount;
-            //pageData.PageIdx = pageNum;
-            //pageData.PageText = bookPage.PageText;
-            //pageData.IgnoreAuthor = false;
-            //// TODO - check for PropertyBool.IgnoreAuthor flag
-
-            //var bookDataResponse = new GameEventBookPageDataResponse(reader, Guid.Full, pageData);
-            //reader.Network.EnqueueSend(bookDataResponse);
-        }
-
- 
         public string DebugOutputString(WorldObject obj)
         {
             var sb = new StringBuilder();

@@ -99,9 +99,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
                     return;
                 }
-
-                if (House != null)
-                    Teleport(House.SlumLord.Location);
+                Teleport(house.SlumLord.Location);
             });
 
             actionChain.EnqueueChain();

@@ -358,8 +358,7 @@ namespace ACE.Server.Managers
             else
             {
                 var error = new GameEventInventoryServerSaveFailed(Player.Session, wo.Guid.Full, WeenieError.ItemRequiresQuestToBePickedUp);
-                var text = new GameMessageSystemChat("This item requires you to complete a specific quest before you can pick it up!", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, error);
+                Player.Session.Network.EnqueueSend(error);
             }
         }
 

@@ -338,58 +338,6 @@ namespace ACE.Server.WorldObjects
             ManaQueryTarget = itemGuid;
         }
 
-        public void ReadBookPage(uint bookGuid, uint pageNum)
-        {
-            // TODO: Do we want to throttle this request, like appraisals?
-            // The object can be in two spots... on the player or on the landblock
-            // First check the player
-            WorldObject wo = GetInventoryItem(bookGuid);
-            // book is in the player's inventory...
-            if (wo != null)
-            {
-                wo.ReadBookPage(Session, pageNum);
-            }
-            else
-            {
-                CurrentLandblock?.GetObject(bookGuid).ReadBookPage(Session, pageNum);
-            }
-        }
-
-        public void HandleActionBookAddPage(uint bookGuid)
-        {
-            // find inventory book
-            var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
-            if (book == null) return;
-
-            var page = book.AddPage(Guid.Full, Name, Session.Account, false, "");
-
-            if (page != null)
-                Session.Network.EnqueueSend(new GameEventBookAddPageResponse(Session, bookGuid, page.PageId, true));
-        }
-
-        public void HandleActionBookModifyPage(uint bookGuid, uint pageId, string pageText)
-        {
-            // find inventory book
-            var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
-            if (book == null) return;
-
-            var success = book.ModifyPage(pageId, pageText, this);
-
-            Session.Network.EnqueueSend(new GameEventBookModifyPageResponse(Session, bookGuid, pageId, true));
-        }
-
-        public void HandleActionBookDeletePage(uint bookGuid, uint pageId)
-        {
-            // find inventory book
-            var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
-            if (book == null) return;
-
-            var success = book.DeletePage(pageId, this);
-
-            Session.Network.EnqueueSend(new GameEventBookDeletePageResponse(Session, bookGuid, pageId, success));
-        }
-
-
 
         /// <summary>
         /// Sends a death message broadcast all players on the landblock? that a killer has a victim

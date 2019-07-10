@@ -648,48 +648,6 @@ namespace ACE.Server.WorldObjects
             { Skill.VoidMagic, WeaponType.Magic },
         };
 
-        public void HandleAugsForwardCompatibility()
-        {
-            switch (HeritageGroup)
-            {
-                case HeritageGroup.Aluvian:
-                case HeritageGroup.Gharundim:
-                case HeritageGroup.Sho:
-                case HeritageGroup.Viamontian:
-                    AugmentationJackOfAllTrades = 1;
-                    break;
-
-                case HeritageGroup.Shadowbound:
-                case HeritageGroup.Penumbraen:
-                    AugmentationCriticalExpertise = 1;
-                    break;
-
-                case HeritageGroup.Gearknight:
-                    AugmentationDamageReduction = 1;
-                    break;
-
-                case HeritageGroup.Undead:
-                    AugmentationCriticalDefense = 1;
-                    break;
-
-                case HeritageGroup.Empyrean:
-                    AugmentationInfusedLifeMagic = 1;
-                    break;
-
-                case HeritageGroup.Tumerok:
-                    AugmentationCriticalPower = 1;
-                    break;
-
-                case HeritageGroup.Lugian:
-                    AugmentationIncreasedCarryingCapacity = 1;
-                    break;
-
-                case HeritageGroup.Olthoi:
-                case HeritageGroup.OlthoiAcid:
-                    break;
-            }
-        }
-
         /// <summary>
         /// Resets the skill, refunds all experience and skill credits, if allowed.
         /// </summary>
