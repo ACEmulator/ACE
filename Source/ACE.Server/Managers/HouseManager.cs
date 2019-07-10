@@ -324,7 +324,7 @@ namespace ACE.Server.Managers
 
             updateHouseManagerRateLimiter.RegisterEvent();
 
-            log.Info($"HouseManager.Tick({RentQueue.Count})");
+            //log.Info($"HouseManager.Tick({RentQueue.Count})");
 
             var nextEntry = RentQueue.FirstOrDefault();
 

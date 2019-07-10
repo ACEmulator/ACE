@@ -1420,8 +1420,8 @@ namespace ACE.Server.WorldObjects
             var characterHouses = HouseManager.GetCharacterHouses(Guid.Full);
             var accountHouses = HouseManager.GetAccountHouses(Account.AccountId);
 
-            if (showMsg)
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"AccountHouses: {accountHouses.Count}, CharacterHouses: {characterHouses.Count}", ChatMessageType.Broadcast));
+            //if (showMsg)
+                //Session.Network.EnqueueSend(new GameMessageSystemChat($"AccountHouses: {accountHouses.Count}, CharacterHouses: {characterHouses.Count}", ChatMessageType.Broadcast));
 
             if (PropertyManager.GetBool("house_per_char").Item)
             {
