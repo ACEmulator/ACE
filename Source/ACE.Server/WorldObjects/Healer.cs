@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Healer;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Healer;
         }
 
         public override void HandleActionUseOnTarget(Player healer, WorldObject target)

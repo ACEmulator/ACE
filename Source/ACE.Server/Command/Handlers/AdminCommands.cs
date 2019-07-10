@@ -866,12 +866,14 @@ namespace ACE.Server.Command.Handlers
             {
                 if (parameters[0] == "all")
                 {
-                    foreach (var wo in session.Player.GetKnownObjects())
+                    foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values)
                     {
+                        var wo = obj.WeenieObj.WorldObject;
+
                         if (wo is Player) // I don't recall if @smite all would kill players in range, assuming it didn't
                             continue;
 
-                        if (wo is Creature creature && creature.IsAttackable())
+                        if (wo is Creature creature && creature.Attackable)
                             creature.Smite(session.Player);
                     }
 

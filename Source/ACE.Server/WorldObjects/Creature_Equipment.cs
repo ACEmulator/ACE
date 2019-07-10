@@ -497,8 +497,6 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldList()
         {
-            var attackable = Attackable ?? false;
-
             var wielded = Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Wield) != 0).ToList();
 
             var items = CreateListSelect(wielded);

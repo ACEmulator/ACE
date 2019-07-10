@@ -35,10 +35,10 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = new Motion(MotionStance.Invalid);
 
             if (PkLevelModifier == -1)
-                BaseDescriptionFlags |= ObjectDescriptionFlag.NpkSwitch;
+                ObjectDescriptionFlags |= ObjectDescriptionFlag.NpkSwitch;
 
             if (PkLevelModifier == 1)
-                BaseDescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
+                ObjectDescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
         }
 
         /// <summary>

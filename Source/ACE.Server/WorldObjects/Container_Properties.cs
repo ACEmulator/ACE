@@ -11,6 +11,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInstanceId.Viewer); else SetProperty(PropertyInstanceId.Viewer, value); }
         }
 
+        public uint? LastUnlocker
+        {
+            get => GetProperty(PropertyInstanceId.LastUnlocker);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.LastUnlocker); else SetProperty(PropertyInstanceId.LastUnlocker, value.Value); }
+        }
+
         public bool ResetMessagePending
         {
             get => GetProperty(PropertyBool.ResetMessagePending) ?? false;

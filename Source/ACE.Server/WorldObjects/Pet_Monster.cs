@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void PetCheckMonsters(float rangeSquared = RadiusAwarenessSquared)
         {
-            //if (GetProperty(PropertyBool.Attackable) ?? true == false) return;
+            //if (!Attackable) return;
 
             var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
 
@@ -36,10 +36,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private bool PetAlertMonster(Creature monster)
         {
-            var attackable = monster.GetProperty(PropertyBool.Attackable) ?? false;
-            var tolerance = (Tolerance)(monster.GetProperty(PropertyInt.Tolerance) ?? 0);
-
-            if (attackable && monster.MonsterState == State.Idle && tolerance == Tolerance.None)
+            if (monster.Attackable && monster.MonsterState == State.Idle && monster.Tolerance == Tolerance.None)
             {
                 monster.AttackTarget = this;
                 monster.WakeUp();
@@ -53,16 +50,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void PetOnAttackMonster(Creature monster)
         {
-            var attackable = monster.GetProperty(PropertyBool.Attackable) ?? false;
-            var tolerance = (Tolerance)(monster.GetProperty(PropertyInt.Tolerance) ?? 0);
-            var hasTolerance = monster.GetProperty(PropertyInt.Tolerance).HasValue;
+            /*Console.WriteLine($"{Name}.PetOnAttackMonster({monster.Name})");
+            Console.WriteLine($"Attackable: {monster.Attackable}");
+            Console.WriteLine($"Tolerance: {monster.Tolerance}");*/
 
-            /*Console.WriteLine("OnAttackMonster(" + monster.Name + ")");
-            Console.WriteLine("Attackable: " + attackable);
-            Console.WriteLine("Tolerance: " + tolerance);
-            Console.WriteLine("HasTolerance: " + hasTolerance);*/
-
-            if (monster.MonsterState == State.Idle && !tolerance.HasFlag(Tolerance.NoAttack))
+            if (monster.MonsterState == State.Idle && !monster.Tolerance.HasFlag(Tolerance.NoAttack))
             {
                 monster.AttackTarget = this;
                 monster.WakeUp();

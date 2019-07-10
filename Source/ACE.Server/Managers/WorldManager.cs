@@ -162,7 +162,7 @@ namespace ACE.Server.Managers
 
             if (stripAdminProperties) // continue stripping properties
             {
-                player.CloakStatus = null;
+                player.CloakStatus = CloakStatus.Undef;
                 player.Attackable = true;
                 player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.DamagedByCollisions, true);
                 player.AdvocateLevel = null;
