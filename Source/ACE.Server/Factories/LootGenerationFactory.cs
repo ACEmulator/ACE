@@ -100,16 +100,21 @@ namespace ACE.Server.Factories
                 numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
                 {
+                    double dropRateSkew = PropertyManager.GetDouble("aetheria_drop_rate_mod").Item;
+                    if (dropRateSkew <= 0)
+                        dropRateSkew = 1;
+
                     // Coalesced Aetheria doesn't drop in loot tiers less than 5
                     // According to wiki, Weapon Mana Forge chests don't drop Aetheria, also
                     // a loot role will only drop one Coealesced Aetheria per call into loot system, as I don't remember there
                     // being multiples, and I didn't find any written mention of it.
                     if (aetheriaGenerated == false && profile.Tier > 4 && lootBias != LootBias.Weapons)
-                        aetheriaDropChance = ThreadSafeRandom.Next(1, 100);
+                        aetheriaDropChance = ThreadSafeRandom.Next(1, (int)(1000 * dropRateSkew));
                     else
                         aetheriaDropChance = 0;
 
-                    if (aetheriaDropChance > 90)  // Initially set for a 10% chance to drop
+
+                    if (aetheriaDropChance <= 10)  // Default set for a 1% chance drop rate
                     {
                         lootWorldObject = CreateAetheria(profile.Tier);
                         if (lootWorldObject != null)
@@ -1881,7 +1886,7 @@ namespace ACE.Server.Factories
             if (tier < 8)
                 return numLegendaries;
 
-            double dropRateSkew = PropertyManager.GetDouble("legendary_cantrip_drop_rate").Item;
+            double dropRateSkew = PropertyManager.GetDouble("legendary_cantrip_drop_rate_mod").Item;
             if (dropRateSkew <= 0)
                 dropRateSkew = 1;
 
@@ -1903,7 +1908,7 @@ namespace ACE.Server.Factories
             if (tier < 7)
                 return numEpics;
 
-            double dropRateSkew = PropertyManager.GetDouble("epic_cantrip_drop_rate").Item;
+            double dropRateSkew = PropertyManager.GetDouble("epic_cantrip_drop_rate_mod").Item;
             if (dropRateSkew <= 0)
                 dropRateSkew = 1;
 
@@ -1927,7 +1932,7 @@ namespace ACE.Server.Factories
         {
             int numMajors = 0;
 
-            double dropRateSkew = PropertyManager.GetDouble("major_cantrip_drop_rate").Item;
+            double dropRateSkew = PropertyManager.GetDouble("major_cantrip_drop_rate_mod").Item;
             if (dropRateSkew <= 0)
                 dropRateSkew = 1;
 
@@ -1972,7 +1977,7 @@ namespace ACE.Server.Factories
         {
             int numMinors = 0;
 
-            double dropRateSkew = PropertyManager.GetDouble("minor_cantrip_drop_rate").Item;
+            double dropRateSkew = PropertyManager.GetDouble("minor_cantrip_drop_rate_mod").Item;
             if (dropRateSkew <= 0)
                 dropRateSkew = 1;
 
