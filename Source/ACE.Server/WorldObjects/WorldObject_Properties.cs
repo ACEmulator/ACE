@@ -1344,41 +1344,41 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Bonded); else SetProperty(PropertyInt.Bonded, value.Value); }
         }
 
-
-        // ========================================
-        // ====== Weenie Header 2 Properties ======
-        // ========================================
-        // used in CalculatedWeenieHeaderFlag2()
-        public uint? IconUnderlayId
-        {
-            get => GetProperty(PropertyDataId.IconUnderlay);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value); }
-        }
-
-        public int? CooldownId
-        {
-            get => GetProperty(PropertyInt.SharedCooldown);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.SharedCooldown); else SetProperty(PropertyInt.SharedCooldown, value.Value); }
-        }
-
-        public double? CooldownDuration
-        {
-            get => GetProperty(PropertyFloat.CooldownDuration);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CooldownDuration); else SetProperty(PropertyFloat.CooldownDuration, value.Value); }
-        }
-
-        public uint? PetOwner
-        {
-            get => GetProperty(PropertyInstanceId.PetOwner);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.PetOwner); else SetProperty(PropertyInstanceId.PetOwner, value.Value); }
-        }
-
-
         public bool IsOpen
         {
             get => GetProperty(PropertyBool.Open) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value); }
         }
+
+
+        // ========================================
+        // ====== Weenie Header 2 Properties ======
+        // ========================================
+        // used in CalculateWeenieHeaderFlag2()
+        public uint? IconUnderlayId
+        {
+            get => GetProperty(PropertyDataId.IconUnderlay);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value); UpdateDescriptionFlags();  }
+        }
+
+        public int? CooldownId
+        {
+            get => GetProperty(PropertyInt.SharedCooldown);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.SharedCooldown); else SetProperty(PropertyInt.SharedCooldown, value.Value); UpdateDescriptionFlags(); }
+        }
+
+        public double? CooldownDuration
+        {
+            get => GetProperty(PropertyFloat.CooldownDuration);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CooldownDuration); else SetProperty(PropertyFloat.CooldownDuration, value.Value); UpdateDescriptionFlags(); }
+        }
+
+        public uint? PetOwner
+        {
+            get => GetProperty(PropertyInstanceId.PetOwner);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.PetOwner); else SetProperty(PropertyInstanceId.PetOwner, value.Value); UpdateDescriptionFlags(); }
+        }
+
 
         // ========================================
         // ======== Description Properties ========
