@@ -1,8 +1,10 @@
+using System.Collections.Generic;
+
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using System.Collections.Generic;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -37,7 +39,7 @@ namespace ACE.Server.Command.Handlers
 
                     session.Player.DeCloak();
 
-                    session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Off);
+                    session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.Off);
 
                     CommandHandlerHelper.WriteOutputInfo(session, $"You are no longer cloaked, can no longer pass through doors and will appear as an admin.", ChatMessageType.Broadcast);
                     break;
@@ -47,7 +49,7 @@ namespace ACE.Server.Command.Handlers
 
                     session.Player.Cloak();
 
-                    session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.On);
+                    session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.On);
 
                     CommandHandlerHelper.WriteOutputInfo(session, $"You are now cloaked.\nYou are now etheral and can pass through doors.", ChatMessageType.Broadcast);
                     break;
@@ -57,7 +59,7 @@ namespace ACE.Server.Command.Handlers
                         if (session.Player.CloakStatus == CloakStatus.Player)
                             return;
 
-                        session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Player);
+                        session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.Player);
 
                         session.Player.DeCloak();
                         CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as a player.", ChatMessageType.Broadcast);
@@ -71,7 +73,7 @@ namespace ACE.Server.Command.Handlers
                         if (session.Player.CloakStatus == CloakStatus.Creature)
                             return;
 
-                        session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Creature);
+                        session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.Creature);
                         session.Player.Attackable = true;
 
                         session.Player.DeCloak();

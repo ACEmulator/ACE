@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
 
         public PhysicsObj PhysicsObj { get; protected set; }
 
-        public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
+        public ObjectDescriptionFlag ObjectDescriptionFlags { get; protected set; }
 
         public SequenceManager Sequences { get; } = new SequenceManager();
 
@@ -200,6 +200,9 @@ namespace ACE.Server.WorldObjects
 
             SetPosition(PositionType.Home, new Position(Location));
 
+            if (this is Creature creature && !(this is Player))
+                creature.CheckPlayers();
+
             return true;
         }
 
@@ -262,7 +265,9 @@ namespace ACE.Server.WorldObjects
             foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
                 ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);            
 
-            BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
+            ObjectDescriptionFlags = ObjectDescriptionFlag.Attackable;
+
+            UpdateDescriptionFlags();
 
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManagerWithCaching(this);
@@ -459,7 +464,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (WeenieType == WeenieType.Container)
                     return ContainerType.Container;
-                else if (RequiresBackpackSlot ?? false)
+                else if (RequiresPackSlot)
                     return ContainerType.Foci;
                 else
                     return ContainerType.NonContainer;
@@ -495,15 +500,14 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {obj.Guid.Full} (GuidType.{obj.Guid.Type.ToString()})");
                         break;
                     case "descriptionflags":
-                        var descriptionFlags = CalculatedDescriptionFlag();
-                        sb.AppendLine($"{prop.Name} = {descriptionFlags.ToString()}" + " (" + (uint)descriptionFlags + ")");
+                        sb.AppendLine($"{prop.Name} = {ObjectDescriptionFlags.ToString()}" + " (" + (uint)ObjectDescriptionFlags + ")");
                         break;
                     case "weenieflags":
-                        var weenieFlags = CalculatedWeenieHeaderFlag();
+                        var weenieFlags = CalculateWeenieHeaderFlag();
                         sb.AppendLine($"{prop.Name} = {weenieFlags.ToString()}" + " (" + (uint)weenieFlags + ")");
                         break;
                     case "weenieflags2":
-                        var weenieFlags2 = CalculatedWeenieHeaderFlag2();
+                        var weenieFlags2 = CalculateWeenieHeaderFlag2();
                         sb.AppendLine($"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")");
                         break;
                     case "itemtype":
@@ -649,7 +653,7 @@ namespace ACE.Server.WorldObjects
                     EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
                 else
                 {
-                    if (this is Player player && player.CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+                    if (this is Player player && player.CloakStatus == CloakStatus.On)
                     {
                         var ps = PhysicsObj.State;
                         ps &= ~PhysicsState.Cloaked;

@@ -83,7 +83,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Vendor;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Vendor;
         }
 
 

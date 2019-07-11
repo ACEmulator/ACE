@@ -1,3 +1,4 @@
+using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
@@ -184,6 +185,25 @@ namespace ACE.Server.Entity
 
             if (source != null)
                 source.EmoteManager.ExecuteEmoteSet(response ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, Quest, player);
+        }
+    }
+
+    public class Confirmation_Custom: Confirmation
+    {
+        public Action Action;
+
+        public Confirmation_Custom(ObjectGuid playerGuid, Action action)
+            : base(playerGuid, ConfirmationType.Yes_No)
+        {
+            Action = action;
+        }
+
+        public override void ProcessConfirmation(bool response)
+        {
+            var player = GetPlayerResponse(response);
+            if (player == null) return;
+
+            Action();
         }
     }
 }

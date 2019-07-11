@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Book;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Book;
 
             SetProperty(PropertyInt.AppraisalPages, Biota.BiotaPropertiesBookPageData.Count);
 

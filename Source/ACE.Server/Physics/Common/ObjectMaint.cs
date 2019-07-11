@@ -266,21 +266,6 @@ namespace ACE.Server.Physics.Common
             return cells;
         }
 
-        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell)
-        {
-            var visibleObjs = GetVisibleObjects(cell);
-
-            var dist = new List<PhysicsObj>();
-            foreach (var obj in visibleObjs)
-            {
-                var distSq = PhysicsObj.Position.Distance2DSquared(obj.Position);
-
-                if (distSq <= InitialClamp_DistSq)
-                    dist.Add(obj);
-            }
-            return dist;
-        }
-
         /// <summary>
         /// Returns a list of objects that are currently visible from a cell
         /// in an outdoor landblock
@@ -467,19 +452,6 @@ namespace ACE.Server.Physics.Common
         public bool RemoveVoyeur(PhysicsObj obj)
         {
             return VoyeurTable.Remove(obj.ID);
-        }
-
-        /// <summary>
-        /// Called when a new PhysicsObj is first instantiated
-        /// Gets the list of visible players to this PhysicsObj,
-        /// and adds them to the voyeurs list
-        /// </summary>
-        public void get_voyeurs()
-        {
-            if (PhysicsObj.DatObject) return;
-
-            var visiblePlayers = InitialClamp ? GetVisibleObjectsDist(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList() : GetVisibleObjects(PhysicsObj.CurCell);
-            AddVoyeurs(visiblePlayers);
         }
 
         /// <summary>
