@@ -807,7 +807,7 @@ namespace ACE.Server.WorldObjects
             return weenieHeaderFlag2;
         }
 
-        private void UpdateDescriptionFlags()
+        public void UpdateDescriptionFlags()
         {
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest
                 || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
