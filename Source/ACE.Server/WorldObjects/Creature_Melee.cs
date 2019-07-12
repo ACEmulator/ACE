@@ -116,7 +116,7 @@ namespace ACE.Server.WorldObjects
             if (!weapon.IsCleaving) return null;
 
             // sort visible objects by ascending distance
-            var visible = PhysicsObj.ObjMaint.VisibleObjectTable.Values.Where(o => o.WeenieObj.WorldObject != null).ToList();
+            var visible = PhysicsObj.ObjMaint.VisibleObjects.Values.Where(o => o.WeenieObj.WorldObject != null).ToList();
             visible.Sort(DistanceComparator);
 
             var cleaveTargets = new List<Creature>();

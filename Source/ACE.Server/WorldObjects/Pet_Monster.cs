@@ -1,6 +1,4 @@
-using System;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
 {
@@ -16,15 +14,13 @@ namespace ACE.Server.WorldObjects
         {
             //if (!Attackable) return;
 
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
+            var visibleTargets = PhysicsObj.ObjMaint.VisibleTargets.Values;
 
-            foreach (var obj in visibleObjs)
+            foreach (var visibleTarget in visibleTargets)
             {
-                if (PhysicsObj == obj) continue;
+                var monster = visibleTarget.WeenieObj.WorldObject as Creature;
 
-                var monster = obj.WeenieObj.WorldObject as Creature;
-
-                if (monster == null || monster is Player) continue;
+                if (monster == null || monster.IsDead) continue;
 
                 if (Location.SquaredDistanceTo(monster.Location) < rangeSquared)
                     PetAlertMonster(monster);

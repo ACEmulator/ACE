@@ -999,5 +999,20 @@ namespace ACE.Server.WorldObjects
                     return Skill.None;
             }
         }
+
+        /// <summary>
+        /// Wakes up a monster if it can be alerted
+        /// </summary>
+        public bool AlertMonster(Creature monster)
+        {
+            if ((monster.Attackable || monster.TargetingTactic != TargetingTactic.None) && monster.MonsterState == State.Idle && monster.Tolerance == Tolerance.None)
+            {
+                //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
+                monster.AttackTarget = this;
+                monster.WakeUp();
+                return true;
+            }
+            return false;
+        }
     }
 }

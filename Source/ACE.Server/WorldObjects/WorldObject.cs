@@ -200,9 +200,6 @@ namespace ACE.Server.WorldObjects
 
             SetPosition(PositionType.Home, new Position(Location));
 
-            if (this is Creature creature && !(this is Player))
-                creature.CheckPlayers();
-
             return true;
         }
 
@@ -263,11 +260,9 @@ namespace ACE.Server.WorldObjects
                 ephemeralPositions.TryAdd((PositionType)x, null);
 
             foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
-                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);            
+                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
 
             ObjectDescriptionFlags = ObjectDescriptionFlag.Attackable;
-
-            UpdateDescriptionFlags();
 
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManagerWithCaching(this);
@@ -312,16 +307,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns TRUE if this object has the input object in its PVS
-        /// Note that this is NOT a direct line of sight test!
+        /// Returns TRUE if this object has wo in VisibleTargets list
         /// </summary>
-        public bool IsVisible(WorldObject wo)
+        public bool IsVisibleTarget(WorldObject wo)
         {
             if (PhysicsObj == null || wo.PhysicsObj == null)
                 return false;
 
-            // note: visibility lists are actively maintained only for players
-            return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
+            // note: VisibleTargets is only maintained for monsters and combat pets
+            return PhysicsObj.ObjMaint.VisibleTargets.ContainsKey(wo.PhysicsObj.ID);
         }
 
         //public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);     // arrow

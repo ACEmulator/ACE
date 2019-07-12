@@ -65,20 +65,22 @@ namespace ACE.Server.WorldObjects
             var weenieFlags =  CalculateWeenieHeaderFlag();
             var weenieFlags2 = CalculateWeenieHeaderFlag2();
 
-            var descriptionFlags = ObjectDescriptionFlags;
+            UpdateObjectDescriptionFlags();
+
+            var objDescriptionFlags = ObjectDescriptionFlags;
 
             if (adminvision)
-                descriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
+                objDescriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
 
             writer.Write((uint)weenieFlags);
             writer.WriteString16L(Name ?? String.Empty);
             writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(IconId, 0x6000000);
             writer.Write((uint)ItemType);
-            writer.Write((uint)descriptionFlags);
+            writer.Write((uint)objDescriptionFlags);
             writer.Align();
 
-            if ((descriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
+            if ((objDescriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
                 writer.Write((uint)weenieFlags2);
 
             if ((weenieFlags & WeenieHeaderFlag.PluralName) != 0)
@@ -807,43 +809,43 @@ namespace ACE.Server.WorldObjects
             return weenieHeaderFlag2;
         }
 
-        private void UpdateDescriptionFlags()
+        private void UpdateObjectDescriptionFlags()
         {
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest
                 || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
             {
-                UpdateDescriptionFlag(ObjectDescriptionFlag.Openable, !IsLocked);
+                UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Openable, !IsLocked);
             }
 
-            UpdateDescriptionFlag(ObjectDescriptionFlag.Inscribable, Inscribable);
-            UpdateDescriptionFlag(ObjectDescriptionFlag.Stuck, Stuck);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Inscribable, Inscribable);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Stuck, Stuck);
 
             if (WeenieType == WeenieType.Admin || WeenieType == WeenieType.Sentinel)
-                UpdateDescriptionFlag(ObjectDescriptionFlag.Player, CloakStatus < CloakStatus.Creature);
+                UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Player, CloakStatus < CloakStatus.Creature);
 
-            UpdateDescriptionFlag(ObjectDescriptionFlag.Attackable, Attackable);
-            UpdateDescriptionFlag(ObjectDescriptionFlag.PlayerKiller, PlayerKillerStatus == PlayerKillerStatus.PK);
-            UpdateDescriptionFlag(ObjectDescriptionFlag.HiddenAdmin, HiddenAdmin);
-            UpdateDescriptionFlag(ObjectDescriptionFlag.UiHidden, UiHidden);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Attackable, Attackable);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.PlayerKiller, PlayerKillerStatus == PlayerKillerStatus.PK);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.HiddenAdmin, HiddenAdmin);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.UiHidden, UiHidden);
 
             if (WeenieType == WeenieType.Admin || WeenieType == WeenieType.Sentinel)
-                UpdateDescriptionFlag(ObjectDescriptionFlag.Admin, CloakStatus < CloakStatus.Player);
+                UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Admin, CloakStatus < CloakStatus.Player);
 
-            UpdateDescriptionFlag(ObjectDescriptionFlag.FreePkStatus, PlayerKillerStatus == PlayerKillerStatus.Free);
-            UpdateDescriptionFlag(ObjectDescriptionFlag.ImmuneCellRestrictions, IgnoreHouseBarriers);
-            UpdateDescriptionFlag(ObjectDescriptionFlag.RequiresPackSlot, RequiresPackSlot);
-            UpdateDescriptionFlag(ObjectDescriptionFlag.Retained, Retained);
-            UpdateDescriptionFlag(ObjectDescriptionFlag.PkLiteStatus, PlayerKillerStatus == PlayerKillerStatus.PKLite);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.FreePkStatus, PlayerKillerStatus == PlayerKillerStatus.Free);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.ImmuneCellRestrictions, IgnoreHouseBarriers);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.RequiresPackSlot, RequiresPackSlot);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Retained, Retained);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.PkLiteStatus, PlayerKillerStatus == PlayerKillerStatus.PKLite);
 
             var weenieFlags2 = CalculateWeenieHeaderFlag2();
 
-            UpdateDescriptionFlag(ObjectDescriptionFlag.IncludesSecondHeader, weenieFlags2 > WeenieHeaderFlag2.None);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.IncludesSecondHeader, weenieFlags2 > WeenieHeaderFlag2.None);
 
-            UpdateDescriptionFlag(ObjectDescriptionFlag.WieldOnUse, WieldOnUse);
-            UpdateDescriptionFlag(ObjectDescriptionFlag.WieldLeft, WieldLeft);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.WieldOnUse, WieldOnUse);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.WieldLeft, WieldLeft);
         }
 
-        private void UpdateDescriptionFlag(ObjectDescriptionFlag flag, bool value)
+        private void UpdateObjectDescriptionFlag(ObjectDescriptionFlag flag, bool value)
         {
             if (value)
                 ObjectDescriptionFlags |= flag;
@@ -1019,7 +1021,7 @@ namespace ACE.Server.WorldObjects
             if (!excludeSelf && this is Player self)
                 self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (Visibility && !player.Adminvision)
                     continue;
@@ -1114,7 +1116,7 @@ namespace ACE.Server.WorldObjects
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
@@ -1150,7 +1152,7 @@ namespace ACE.Server.WorldObjects
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
                 if (self != null && useSquelch && player.Squelches.Contains(self))
                     continue;
@@ -1187,7 +1189,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
             {
                 if (Visibility && !player.Adminvision)
@@ -1208,7 +1210,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject as Player).ToList();
             foreach (var player in nearbyPlayers.Except(excludePlayers))
             {
                 if (Visibility && !player.Adminvision)
@@ -1217,6 +1219,19 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(msgs);
             }
             return nearbyPlayers;
+        }
+
+        /// <summary>
+        /// Called when a new PhysicsObj enters the world
+        /// </summary>
+        public void NotifyPlayers()
+        {
+            // send create object network message to visible players
+            foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(i => i.WeenieObj.WorldObject as Player).ToList())
+                player.AddTrackedObject(this);
+
+            if (this is Creature creature && !(this is Player))
+                creature.CheckTargets();
         }
     }
 }

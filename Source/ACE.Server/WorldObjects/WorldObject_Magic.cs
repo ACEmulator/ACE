@@ -1334,6 +1334,12 @@ namespace ACE.Server.WorldObjects
 
             if (target != null)
             {
+                if (Location == null || target.Location == null)
+                {
+                    log.Error($"{Name}.CreateSpellProjectile({spell.Name}, {target.Name}): Location={Location}, target.Location={target.Location}");
+                    return null;
+                }
+
                 var matchIndoors = Location.Indoors == target.Location.Indoors;
                 var globalDest = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
                 globalDest.Z += target.Height / 2.0f;
