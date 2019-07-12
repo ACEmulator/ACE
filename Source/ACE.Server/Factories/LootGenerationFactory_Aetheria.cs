@@ -48,30 +48,34 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-            double dropRateSkew = PropertyManager.GetDouble("aetheria_drop_rate_mod").Item;
-            if (dropRateSkew <= 0)
-                dropRateSkew = 1;
 
             // Initial role for an Aetheria level 1 through 3
             wo.ItemMaxLevel = ThreadSafeRandom.Next(1, 3);
 
             // Perform an additional role check for a chance at a higher Aetheria level for tiers 6+
-            int aetheriaHigherLevelChance = ThreadSafeRandom.Next(1, (int)(100 * dropRateSkew));
-            switch (tier)
+            if (tier > 5)
             {
-                case 6:
-                    if (aetheriaHigherLevelChance <= 10)
-                        wo.ItemMaxLevel = 4;
-                    break;
-                case 7:
-                case 8:
-                    if (aetheriaHigherLevelChance <= 10)
-                        wo.ItemMaxLevel = 4;
-                    else if (aetheriaHigherLevelChance <= 5)
-                        wo.ItemMaxLevel = 5;
-                    break;
-                default:
-                    break;
+                double dropRateSkew = PropertyManager.GetDouble("aetheria_drop_rate_mod").Item;
+                if (dropRateSkew <= 0)
+                    dropRateSkew = 1;
+
+                int aetheriaHigherLevelChance = ThreadSafeRandom.Next(1, (int)(100 * dropRateSkew));
+                switch (tier)
+                {
+                    case 6:
+                        if (aetheriaHigherLevelChance <= 10)
+                            wo.ItemMaxLevel = 4;
+                        break;
+                    case 7:
+                    case 8:
+                        if (aetheriaHigherLevelChance <= 10)
+                            wo.ItemMaxLevel = 4;
+                        else if (aetheriaHigherLevelChance <= 5)
+                            wo.ItemMaxLevel = 5;
+                        break;
+                    default:
+                        break;
+                }
             }
 
             switch (wo.ItemMaxLevel)
