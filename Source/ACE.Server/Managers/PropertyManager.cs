@@ -474,6 +474,11 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
+                ("minor_cantrip_drop_rate_mod", 1.0),      // Default of one sets drop rates to coded values; 
+                ("major_cantrip_drop_rate_mod", 1.0),      // greater than one decreases drop rate,
+                ("epic_cantrip_drop_rate_mod", 1.0),       // less than one increases drop rate
+                ("legendary_cantrip_drop_rate_mod", 1.0),
+                ("aetheria_level_drop_rate_mod", 1.0),
                 ("chess_ai_start_time", -1.0),      // the number of seconds for the chess ai to start. defaults to -1 (disabled)
                 ("encounter_delay", 1800),          // the number of seconds a generator profile for regions is delayed from returning to free slots
                 ("encounter_regen_interval", 600),  // the number of seconds a generator for regions at which spawns its next set of objects.
