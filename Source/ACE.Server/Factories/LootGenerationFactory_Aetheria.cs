@@ -55,7 +55,7 @@ namespace ACE.Server.Factories
             // Perform an additional role check for a chance at a higher Aetheria level for tiers 6+
             if (tier > 5)
             {
-                double dropRateSkew = PropertyManager.GetDouble("aetheria_drop_rate_mod").Item;
+                double dropRateSkew = PropertyManager.GetDouble("aetheria_level_drop_rate_mod").Item;
                 if (dropRateSkew <= 0)
                     dropRateSkew = 1;
 
