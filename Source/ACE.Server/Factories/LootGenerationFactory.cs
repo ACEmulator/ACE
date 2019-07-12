@@ -1890,7 +1890,7 @@ namespace ACE.Server.Factories
             // 1% chance for a legendary, 0.02% chance for 2 legendaries
             if (legendaryCantripChance <= 50)
                 numLegendaries = 1;
-            else if (legendaryCantripChance <= 1)
+            if (legendaryCantripChance <= 1)
                 numLegendaries = 2;
 
             return numLegendaries;
@@ -1907,17 +1907,17 @@ namespace ACE.Server.Factories
             if (dropRateSkew <= 0)
                 dropRateSkew = 1;
 
-            int epicCantripChance = ThreadSafeRandom.Next(1, (int)(100000 * dropRateSkew));
+            int epicCantripChance = ThreadSafeRandom.Next(1, (int)(1000000 * dropRateSkew));
 
-            // 1% chance for 1 Epic, 0.1% chance for 2 Epics,
-            // 0.01% chance for 3 Epics, 0.001% chance for 4 Epics 
+            // 0.1% chance for 1 Epic, 0.01% chance for 2 Epics,
+            // 0.001% chance for 3 Epics, 0.0001% chance for 4 Epics 
             if (epicCantripChance <= 1000)
                 numEpics = 1;
-            else if (epicCantripChance <= 100)
+            if (epicCantripChance <= 100)
                 numEpics = 2;
-            else if (epicCantripChance <= 10)
+            if (epicCantripChance <= 10)
                 numEpics = 3;
-            else if (epicCantripChance <= 1)
+            if (epicCantripChance <= 1)
                 numEpics = 4;
 
             return numEpics;
