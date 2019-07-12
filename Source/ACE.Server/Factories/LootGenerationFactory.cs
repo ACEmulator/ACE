@@ -100,21 +100,16 @@ namespace ACE.Server.Factories
                 numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
                 {
-                    double dropRateSkew = PropertyManager.GetDouble("aetheria_drop_rate_mod").Item;
-                    if (dropRateSkew <= 0)
-                        dropRateSkew = 1;
-
                     // Coalesced Aetheria doesn't drop in loot tiers less than 5
                     // According to wiki, Weapon Mana Forge chests don't drop Aetheria, also
                     // a loot role will only drop one Coealesced Aetheria per call into loot system, as I don't remember there
                     // being multiples, and I didn't find any written mention of it.
                     if (aetheriaGenerated == false && profile.Tier > 4 && lootBias != LootBias.Weapons)
-                        aetheriaDropChance = ThreadSafeRandom.Next(1, (int)(1000 * dropRateSkew));
+                        aetheriaDropChance = ThreadSafeRandom.Next(1, (int)(100));
                     else
                         aetheriaDropChance = 0;
 
-
-                    if (aetheriaDropChance <= 10)  // Default set for a 1% chance drop rate
+                    if (aetheriaDropChance > 90 )  // Default set for a 10% chance drop rate
                     {
                         lootWorldObject = CreateAetheria(profile.Tier);
                         if (lootWorldObject != null)
