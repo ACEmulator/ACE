@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -2179,16 +2180,40 @@ namespace ACE.Server.Physics
             ParticleManager = null;
         }
 
+        /// <summary>
+        /// This is to mitigate possible decal crashes w/ CO messages being sent
+        /// for objects when the client landblock is very early in the loading state
+        /// </summary>
+        public static TimeSpan TeleportCreateObjectDelay = TimeSpan.FromSeconds(1);
+
         public void enqueue_objs(IEnumerable<PhysicsObj> newlyVisible)
         {
             if (!IsPlayer || !(WeenieObj.WorldObject is Player player))
                 return;
 
-            foreach (var obj in newlyVisible)
+            if (DateTime.UtcNow - player.LastTeleportTime < TeleportCreateObjectDelay)
             {
-                var wo = obj.WeenieObj.WorldObject;
-                if (wo != null)
-                    player.TrackObject(wo);
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(TeleportCreateObjectDelay.TotalSeconds);
+                actionChain.AddAction(player, () =>
+                {
+                    foreach (var obj in newlyVisible)
+                    {
+                        var wo = obj.WeenieObj.WorldObject;
+                        if (wo != null)
+                            player.TrackObject(wo, true);
+                    }
+                });
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                foreach (var obj in newlyVisible)
+                {
+                    var wo = obj.WeenieObj.WorldObject;
+                    if (wo != null)
+                        player.TrackObject(wo);
+                }
             }
         }
 
@@ -2198,8 +2223,20 @@ namespace ACE.Server.Physics
                 return;
 
             var wo = newlyVisible.WeenieObj.WorldObject;
-            if (wo != null)
+            if (wo == null)
+                return;
+
+            if (DateTime.UtcNow - player.LastTeleportTime < TeleportCreateObjectDelay)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(TeleportCreateObjectDelay.TotalSeconds);
+                actionChain.AddAction(player, () => player.TrackObject(wo, true));
+                actionChain.EnqueueChain();
+            }
+            else
+            {
                 player.TrackObject(wo);
+            }
         }
 
         public void enter_cell(ObjCell newCell)
@@ -2230,18 +2267,23 @@ namespace ACE.Server.Physics
             RequestPos.ObjCellID = newCell.ID;
 
             // handle self
-            var newlyVisible = handle_visible_cells();
-
             if (IsPlayer)
-                enqueue_objs(newlyVisible);
-
-            // others / known objects
-            foreach (var obj in ObjMaint.ObjectTable.Values)
             {
-                var added = obj.handle_visible_obj(this);
+                var newlyVisible = handle_visible_cells();
+                enqueue_objs(newlyVisible);
+            }
+            else
+            {
+                handle_visible_cells_non_player();
+            }
 
-                if (added && obj.IsPlayer)
-                    obj.enqueue_obj(this);
+            // handle known players
+            foreach (var player in ObjMaint.KnownPlayers.Values)
+            {
+                var added = player.handle_visible_obj(this);
+
+                if (added)
+                    player.enqueue_obj(this);
             }
         }
 
@@ -2564,8 +2606,8 @@ namespace ACE.Server.Physics
                 //Console.WriteLine(visibleObject.Name);
 
             // get the difference between current and previous visible
-            //var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjectTable.Values).ToList();
-            var newlyOccluded = ObjMaint.VisibleObjectTable.Values.Except(visibleObjects).ToList();
+            //var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjects.Values).ToList();
+            var newlyOccluded = ObjMaint.VisibleObjects.Values.Except(visibleObjects).ToList();
             //Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
             //Console.WriteLine("Newly occluded objects: " + newlyOccluded.Count);
             //foreach (var obj in newlyOccluded)
@@ -2591,8 +2633,45 @@ namespace ACE.Server.Physics
             return createObjs;
         }
 
+        public void handle_visible_cells_non_player()
+        {
+            if (WeenieObj.IsMonster)
+            {
+                // players and combat pets
+                var visibleTargets = ObjMaint.GetVisibleObjects(CurCell, ObjectMaint.VisibleObjectType.AttackTargets);
+
+                var newTargets = ObjMaint.AddVisibleTargets(visibleTargets);
+            }
+            else
+            {
+                // everything except monsters
+                // usually these are server objects whose position never changes
+                var knownPlayers = ObjectMaint.InitialClamp ? ObjMaint.GetVisibleObjectsDist(CurCell, ObjectMaint.VisibleObjectType.Players)
+                    : ObjMaint.GetVisibleObjects(CurCell, ObjectMaint.VisibleObjectType.Players);
+
+                ObjMaint.AddKnownPlayers(knownPlayers);
+            }
+
+            if (WeenieObj.IsCombatPet)
+            {
+                var visibleMonsters = ObjMaint.GetVisibleObjects(CurCell, ObjectMaint.VisibleObjectType.AttackTargets);
+
+                var newTargets = ObjMaint.AddVisibleTargets(visibleMonsters);
+            }
+        }
+
         public bool handle_visible_obj(PhysicsObj obj)
         {
+            if (CurCell == null || obj.CurCell == null)
+            {
+                if (CurCell == null)
+                    log.Error($"{Name}.handle_visible_obj({obj.Name}): CurCell null");
+                else
+                    log.Error($"{Name}.handle_visible_obj({obj.Name}): obj.CurCell null");
+
+                return false;
+            }
+
             var isVisible = CurCell.IsVisible(obj.CurCell);
 
             if (isVisible)
@@ -2601,7 +2680,7 @@ namespace ACE.Server.Physics
 
                 if (newlyVisible)
                 {
-                    ObjMaint.AddObject(obj);
+                    ObjMaint.AddKnownObject(obj);
                     ObjMaint.RemoveObjectToBeDestroyed(obj);
                 }
 
@@ -2609,13 +2688,11 @@ namespace ACE.Server.Physics
             }
             else
             {
-                var newlyOccluded = ObjMaint.VisibleObjectTable.ContainsKey(obj.ID);
+                var newlyOccluded = ObjMaint.VisibleObjects.ContainsKey(obj.ID);
 
                 if (newlyOccluded)
-                {
                     ObjMaint.AddObjectToBeDestroyed(obj);
-                    ObjMaint.VisibleObjectTable.Remove(obj.ID);
-                }
+
                 return false;
             }
         }

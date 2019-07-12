@@ -15,22 +15,28 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
-        public virtual void Monster_Tick(double currentUnixTime)
+        public void Monster_Tick(double currentUnixTime)
         {
+            if (IsChessPiece && this is GamePiece gamePiece)
+            {
+                // faster than vtable?
+                gamePiece.Tick(currentUnixTime);
+                return;
+            }
+
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
             if (!IsAwake && MonsterState == State.Return)
-                MonsterState = MonsterState = State.Idle;
+                MonsterState = State.Idle;
 
             if (!IsAwake || IsDead) return;
-
-            IsMonster = true;
 
             HandleFindTarget();
 
             CheckMissHome();    // tickrate?
 
             var pet = this as CombatPet;
+
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
             {
                 Destroy();
@@ -50,7 +56,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var creatureTarget = AttackTarget as Creature;
-            if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !creatureTarget.IsVisible(this))))
+            if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !IsVisibleTarget(creatureTarget))))
             {
                 FindNextTarget();
                 return;

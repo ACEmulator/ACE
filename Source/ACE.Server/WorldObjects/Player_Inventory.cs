@@ -688,7 +688,7 @@ namespace ACE.Server.WorldObjects
 
             if (containerRootOwner is Corpse corpse)
             {
-                if (corpse.IsMonster == false)
+                if (!corpse.IsMonster)
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.Dead));
                     return;

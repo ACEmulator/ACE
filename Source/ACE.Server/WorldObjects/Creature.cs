@@ -89,6 +89,8 @@ namespace ACE.Server.WorldObjects
                 Mana.Current = Mana.MaxValue;
             }
 
+            SetMonsterState();
+
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
         }
 

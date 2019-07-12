@@ -89,16 +89,12 @@ namespace ACE.Server.WorldObjects
         {
             var creature = AttackTarget as Creature;
 
-            if (creature == null || creature.IsDead || !IsVisible(creature))
+            if (creature == null || creature.IsDead || !IsVisibleTarget(creature))
                 FindNextTarget();
         }
 
         public override bool FindNextTarget()
         {
-            // rebuild visible objects (handle this better for monsters)
-            // this is no longer needed with ObjMaint 3.0
-            //GetVisibleObjects();
-
             var nearbyMonsters = GetNearbyMonsters();
             if (nearbyMonsters.Count == 0)
             {
@@ -122,37 +118,30 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns a list of attackable monsters in this pet's visible objects table
+        /// Returns a list of attackable monsters in this pet's visible targets
         /// </summary>
         public List<Creature> GetNearbyMonsters()
         {
-            // TODO: this might need refreshed
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
-
             var monsters = new List<Creature>();
 
-            foreach (var obj in visibleObjs)
+            foreach (var visibleTarget in PhysicsObj.ObjMaint.VisibleTargets.Values)
             {
-                // exclude self (should hopefully not be in this list)
-                if (PhysicsObj == obj) continue;
+                var creature = visibleTarget.WeenieObj.WorldObject as Creature;
 
-                // exclude players
-                var wo = obj.WeenieObj.WorldObject;
-                if (wo == null) continue;
-                if (wo is Player) continue;
+                if (creature == null)
+                {
+                    Console.WriteLine($"{Name}.GetNearbyMonsters(): couldn't find {visibleTarget.Name} ({visibleTarget.ID:X8})");
+                    continue;
+                }
 
-                // ensure creature / not combat pet
-                var creature = wo as Creature;
-                if (creature == null || wo is CombatPet || creature.IsDead) continue;
-
-                if (!creature.Attackable) continue;
-
+                // why does this need to be in here?
+                if (creature.IsDead)
+                {
+                    //Console.WriteLine($"{Name}.GetNearbyMonsters(): refusing to add dead creature {creature.Name} ({creature.Guid})");
+                    continue;
+                }
                 monsters.Add(creature);
             }
-
-            // hack fixed in v3
-            //PhysicsObj.ObjMaint.ObjectTable.Clear();
-            //PhysicsObj.ObjMaint.VisibleObjectTable.Clear();
 
             return monsters;
         }

@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!Attackable) return;
 
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
+            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjects.Values;
 
             foreach (var obj in visibleObjs)
             {
@@ -34,25 +34,12 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Wakes up a monster if it can be alerted
-        /// </summary>
-        public bool AlertMonster(Creature monster)
-        {
-            if ((monster.Attackable || monster.TargetingTactic != TargetingTactic.None) && monster.MonsterState == State.Idle && monster.Tolerance == Tolerance.None)
-            {
-                //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
-                monster.AttackTarget = this;
-                monster.WakeUp();
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
         /// Called when this player attacks a monster
         /// </summary>
         public void OnAttackMonster(Creature monster)
         {
+            if (!Attackable) return;
+
             /*Console.WriteLine($"{Name}.OnAttackMonster({monster.Name})");
             Console.WriteLine($"Attackable: {monster.Attackable}");
             Console.WriteLine($"Tolerance: {monster.Tolerance}");*/
