@@ -1029,7 +1029,6 @@ namespace ACE.Server.Managers
                 return;
             }
             targetMod.SetProperty(prop, value);
-            targetMod.UpdateDescriptionFlags();
         }
 
         public static void ModifyInt(Player player, RecipeModsInt intMod, WorldObject source, WorldObject target, WorldObject result)
@@ -1045,18 +1044,15 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
-                    targetMod.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.Add:
                     targetMod.IncProperty(prop, value);
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
-                    target.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, player.GetProperty(prop) ?? 0);     // ??
-                    result.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.AddSpell:
                     if (value != -1)
@@ -1085,18 +1081,15 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
-                    targetMod.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.Add:
                     targetMod.IncProperty(prop, value);
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
-                    target.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, player.GetProperty(prop) ?? 0);
-                    result.UpdateDescriptionFlags();
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyFloat({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1117,15 +1110,12 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
-                    targetMod.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
-                    target.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, player.GetProperty(prop) ?? player.Name);
-                    result.UpdateDescriptionFlags();
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyString({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1146,15 +1136,12 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
-                    targetMod.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
-                    target.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, player, targetMod));     // ??
-                    result.UpdateDescriptionFlags();
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInstanceID({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1189,15 +1176,12 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
-                    targetMod.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
-                    target.UpdateDescriptionFlags();
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, player.GetProperty(prop) ?? 0);
-                    target.UpdateDescriptionFlags();
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
