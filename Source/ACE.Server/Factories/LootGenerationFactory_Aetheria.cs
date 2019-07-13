@@ -36,7 +36,7 @@ namespace ACE.Server.Factories
                     chance = ThreadSafeRandom.Next(1, 9); // Example 33% between color type
                     if (chance <= 3)
                         aetheriaType = Aetheria.AetheriaBlue;
-                    else if (chance <= 6)
+                    if (chance <= 6)
                         aetheriaType = Aetheria.AetheriaYellow;
                     else
                         aetheriaType = Aetheria.AetheriaRed;
