@@ -235,6 +235,29 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the list of all loaded landblocks separated between outdoor and dungeon
+        /// </summary>
+        public static List<List<Landblock>> GetLoadedLandblocksSeparated()
+        {
+            lock (landblockMutex)
+            {
+                var results = new List<List<Landblock>>(loadedLandblocks.Count);
+
+                results.Add(new List<Landblock>(loadedLandblocks.Count)); // Outdoor
+
+                foreach (var landblock in loadedLandblocks)
+                {
+                    if (landblock.IsDungeon)
+                        results.Add(new List<Landblock> { landblock });
+                    else
+                        results[0].Add(landblock);
+                }
+
+                return results;
+            }
+        }
+
+        /// <summary>
         /// Returns the list of all active landblocks. This is just all loaded landblocks that are !IsDormant
         /// </summary>
         public static List<Landblock> GetActiveLandblocks()
