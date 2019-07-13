@@ -1041,7 +1041,7 @@ namespace ACE.Server.Managers
             else
                 return manaConvMod;*/
 
-            return manaConvAuraMod + manaConvMod;
+            return manaConvAuraMod * manaConvMod;
         }
 
         /// <summary>
