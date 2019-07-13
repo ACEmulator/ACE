@@ -338,9 +338,8 @@ namespace ACE.Server.Network.Structure
                 {
                     if (worldObject is Caster)
                     {
-                        // Caster weapon only item Auras
                         if ((enchantment.SpellCategory == (uint)SpellCategory.DefenseModLowering)
-                            || (enchantment.SpellCategory == (uint)SpellCategory.AppraisalResistanceRaising)
+                            || (enchantment.SpellCategory == (uint)SpellCategory.ManaConversionModLowering)
                             || (GetSpellName((uint)enchantment.SpellId).Contains("Spirit"))) // Spirit Loather spells
                         {
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -353,7 +352,6 @@ namespace ACE.Server.Network.Structure
                     }
                     else
                     {
-                        // Other weapon type Auras
                         if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModLowering)
                             || (enchantment.SpellCategory == (uint)SpellCategory.DamageLowering)
                             || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModLowering)
@@ -373,7 +371,8 @@ namespace ACE.Server.Network.Structure
                         {
                             // Caster weapon only item Auras
                             if ((enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.AppraisalResistanceLowering)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaisingRare)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.ManaConversionModRaising)
                                 || (enchantment.SpellCategory == (uint)SpellCategory.SpellDamageRaising))
                             {
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -381,16 +380,21 @@ namespace ACE.Server.Network.Structure
                         }
                         else if (worldObject is Missile || worldObject is Ammunition)
                         {
-                            if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising))
+                            if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaisingRare))
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                         else
                         {
                             // Other weapon type Auras
                             if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.AttackModRaisingRare)
                                 || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaisingRare)
                                 || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaising))
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaisingRare)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaisingRare))
                             {
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }
