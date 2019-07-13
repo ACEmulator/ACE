@@ -70,7 +70,7 @@ namespace ACE.Server.Factories
                     case 8:
                         if (aetheriaHigherLevelChance <= 10)
                             wo.ItemMaxLevel = 4;
-                        else if (aetheriaHigherLevelChance <= 5)
+                        if (aetheriaHigherLevelChance <= 5)
                             wo.ItemMaxLevel = 5;
                         break;
                     default:
