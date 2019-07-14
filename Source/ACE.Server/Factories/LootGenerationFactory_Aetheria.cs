@@ -65,12 +65,7 @@ namespace ACE.Server.Factories
             // Perform an additional roll check for a chance at a higher Aetheria level for tiers 6+
             if (tier > 5)
             {
-                // FIXME
-                double dropRateSkew = PropertyManager.GetDouble("aetheria_level_drop_rate_mod").Item;
-                if (dropRateSkew <= 0)
-                    dropRateSkew = 1;
-
-                if (ThreadSafeRandom.Next(1, (int)(50 * dropRateSkew)) == 1)
+                if (ThreadSafeRandom.Next(1, 50) == 1)
                 {
                     wo.ItemMaxLevel = 4;
                     if (tier > 6 && ThreadSafeRandom.Next(1, 5) == 1)
