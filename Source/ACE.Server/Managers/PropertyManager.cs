@@ -478,7 +478,7 @@ namespace ACE.Server.Managers
                 ("major_cantrip_drop_rate", 1.0),
                 ("epic_cantrip_drop_rate", 1.0),
                 ("legendary_cantrip_drop_rate", 1.0),
-                ("aethera_drop_rate", 1.0),
+                ("aetheria_drop_rate", 1.0),
                 ("chess_ai_start_time", -1.0),      // the number of seconds for the chess ai to start. defaults to -1 (disabled)
                 ("encounter_delay", 1800),          // the number of seconds a generator profile for regions is delayed from returning to free slots
                 ("encounter_regen_interval", 600),  // the number of seconds a generator for regions at which spawns its next set of objects.
