@@ -109,7 +109,7 @@ namespace ACE.Server.Factories
                     // a loot role will only drop one Coealesced Aetheria per call into loot system, as I don't remember there
                     // being multiples, and I didn't find any written mention of it.
                     if (!aetheriaGenerated && profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
-                        generateAetheria = ThreadSafeRandom.Next(1, (int)(10 * dropRateMod)) == 1;  // 10% of all magical items generated are Aetheria? this seems extremely high...
+                        generateAetheria = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1;     // base 1% of all magical items aetheria?
                     else
                         generateAetheria = false;
 
