@@ -62,8 +62,8 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (HouseOwner != null || !PropertyManager.GetBool("house_purchase_requirements").Item)
-                return new ActivationResult(true);
+            //if (HouseOwner != null || !PropertyManager.GetBool("house_purchase_requirements").Item)
+            //    return new ActivationResult(true);
 
             // ensure player doesn't already own a house?
 
@@ -71,31 +71,31 @@ namespace ACE.Server.WorldObjects
             if (!baseRequirements.Success)
                 return baseRequirements;
 
-            if (MinLevel != null)
-            {
-                var playerLevel = player.Level ?? 1;
-                if (playerLevel < MinLevel)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBeAboveLevel_ToBuyHouse, MinLevel.ToString()));
-            }
+            //if (MinLevel != null)
+            //{
+            //    var playerLevel = player.Level ?? 1;
+            //    if (playerLevel < MinLevel)
+            //        return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBeAboveLevel_ToBuyHouse, MinLevel.ToString()));
+            //}
 
-            if (HouseRequiresMonarch)
-            {
-                if (player.Allegiance == null || player.Allegiance.MonarchId != player.Guid.Full)
-                {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You must be a monarch to purchase this dwelling.", ChatMessageType.Broadcast));
-                    return new ActivationResult(false);
-                }
-            }
+            //if (HouseRequiresMonarch)
+            //{
+            //    if (player.Allegiance == null || player.Allegiance.MonarchId != player.Guid.Full)
+            //    {
+            //        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You must be a monarch to purchase this dwelling.", ChatMessageType.Broadcast));
+            //        return new ActivationResult(false);
+            //    }
+            //}
 
-            if (AllegianceMinLevel != null)
-            {
-                var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
-                if (allegianceMinLevel == -1)
-                    allegianceMinLevel = AllegianceMinLevel.Value;
+            //if (AllegianceMinLevel != null)
+            //{
+            //    var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+            //    if (allegianceMinLevel == -1)
+            //        allegianceMinLevel = AllegianceMinLevel.Value;
 
-                if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
-            }
+            //    if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
+            //        return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
+            //}
 
             return new ActivationResult(true);
         }
@@ -110,12 +110,21 @@ namespace ACE.Server.WorldObjects
             // sent house profile
             var houseProfile = new HouseProfile();
             houseProfile.DwellingID = HouseId.Value;
-            houseProfile.Type = House.HouseType.Value;
+            houseProfile.Type = House.HouseType;
+
+            if (House.HouseStatus == HouseStatus.Disabled)
+                houseProfile.Bitmask &= ~HouseBitfield.Active;
+
+            if (HouseRequiresMonarch)
+                houseProfile.Bitmask |= HouseBitfield.RequiresMonarch;
 
             if (MinLevel != null)
                 houseProfile.MinLevel = MinLevel.Value;
             if (AllegianceMinLevel != null)
                 houseProfile.MinAllegRank = AllegianceMinLevel.Value;
+
+            if (House.HouseStatus == HouseStatus.InActive)
+                houseProfile.MaintenanceFree = true;
 
             if (HouseOwner != null)
             {
@@ -153,6 +162,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsRentPaid()
         {
+            if (House != null && House.HouseStatus == HouseStatus.InActive)
+                return true;
+
             var houseProfile = new HouseProfile();
             houseProfile.SetRentItems(GetRentItems());
             houseProfile.SetPaidItems(this);

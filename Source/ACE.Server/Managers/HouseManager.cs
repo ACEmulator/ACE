@@ -360,7 +360,7 @@ namespace ACE.Server.Managers
             {
                 playerHouse.House = house;
 
-                var isPaid = IsRentPaid(playerHouse);
+                var isPaid = IsRentPaid(playerHouse) || playerHouse.House.HouseStatus <= HouseStatus.InActive;
                 var hasRequirements = HasRequirements(playerHouse);
                 //log.Info($"{playerHouse.PlayerName}.ProcessRent(): isPaid = {isPaid}");
 
@@ -603,6 +603,9 @@ namespace ACE.Server.Managers
 
             houseData.SetRentItems(house.SlumLord.GetRentItems());
             houseData.SetPaidItems(house.SlumLord);
+
+            if (house.HouseStatus == HouseStatus.InActive)
+                houseData.MaintenanceFree = true;
 
             return houseData;
         }

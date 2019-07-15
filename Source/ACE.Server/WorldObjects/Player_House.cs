@@ -47,6 +47,38 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (slumlord.MinLevel != null)
+            {
+                var playerLevel = Level ?? 1;
+                if (playerLevel < slumlord.MinLevel)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBeAboveLevel_ToBuyHouse, slumlord.MinLevel.ToString()));
+                    return;
+                }
+            }
+
+            if (slumlord.HouseRequiresMonarch)
+            {
+                if (Allegiance == null || Allegiance.MonarchId != Guid.Full)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeMonarchToPurchaseDwelling));
+                    return;
+                }
+            }
+
+            if (slumlord.AllegianceMinLevel != null)
+            {
+                var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+                if (allegianceMinLevel == -1)
+                    allegianceMinLevel = slumlord.AllegianceMinLevel.Value;
+
+                if (Allegiance == null || AllegianceNode.Rank < allegianceMinLevel)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
+                    return;
+                }
+            }
+
             var verified = VerifyPurchase(slumlord, item_ids);
             if (!verified)
             {
@@ -151,6 +183,8 @@ namespace ACE.Server.WorldObjects
             slumlord.ActOnUse(this);
 
             HandleActionQueryHouse();
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Maintenance {(slumlord.IsRentPaid() ? "" : "partially ")}paid.", ChatMessageType.Broadcast));
         }
 
         public void HandleActionAbandonHouse()
@@ -251,7 +285,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (House == null || House.SlumLord == null) return;
 
-                if (!House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
+                if (House.HouseStatus == HouseStatus.Active && !House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
                 {
                     Session.Network.EnqueueSend(new GameMessageSystemChat("Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.System));
                 }
