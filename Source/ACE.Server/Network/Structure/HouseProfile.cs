@@ -17,7 +17,7 @@ namespace ACE.Server.Network.Structure
         public int MaxLevel;            // The maximum level requirement to purchase this dewlling (-1 if no requirement)
         public int MinAllegRank;        // The minimum allegiance rank requirement to purchase this dwelling (-1 if no requirement)
         public int MaxAllegRank;        // The maximum allegiance rank requirement to purchase this dwelling (-1 if no requirement)
-        public bool MaintenanceFree;     // Indicates maintenance is free this period, admin flag
+        public bool MaintenanceFree;    // Indicates maintenance is free this period, admin flag
         public HouseType Type;          // The type of dwelling (1=cottage, 2=villa, 3=mansion, 4=apartment)
         public string OwnerName;        // The name of the current owner
         public List<HousePayment> Buy;  // The list of items required for purchasing a house
