@@ -685,10 +685,10 @@ namespace ACE.Server.WorldObjects
             if (PluralName != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.PluralName;
 
-            if (ItemCapacity != null)
+            if (ItemCapacity != null && !(this is SlumLord))
                 weenieHeaderFlag |= WeenieHeaderFlag.ItemsCapacity;
 
-            if (ContainerCapacity != null)
+            if (ContainerCapacity != null && !(this is SlumLord))
                 weenieHeaderFlag |= WeenieHeaderFlag.ContainersCapacity;
 
             if (AmmoType != null)
@@ -764,7 +764,7 @@ namespace ACE.Server.WorldObjects
             {
                 weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
 
-                if (house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                if (house.HouseType == HouseType.Mansion)
                     houseOwner = house.LinkedHouses[0].HouseOwner;
             }
 

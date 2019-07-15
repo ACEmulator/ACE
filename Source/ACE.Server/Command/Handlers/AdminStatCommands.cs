@@ -61,12 +61,20 @@ namespace ACE.Server.Command.Handlers
 
             // todo, expand this
             var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
-            int dormantLandblocks = 0;
+            int dormantLandblocks = 0, activeDungeonLandblocks = 0, dormantDungeonLandblocks = 0;
             int players = 0, creatures = 0, missiles = 0, other = 0, total = 0;
             foreach (var landblock in loadedLandblocks)
             {
                 if (landblock.IsDormant)
                     dormantLandblocks++;
+
+                if (landblock.IsDungeon)
+                {
+                    if (landblock.IsDormant)
+                        dormantDungeonLandblocks++;
+                    else
+                        activeDungeonLandblocks++;
+                }
 
                 foreach (var worldObject in landblock.GetAllWorldObjectsForDiagnostics())
                 {
@@ -82,7 +90,7 @@ namespace ACE.Server.Command.Handlers
                     total++;
                 }
             }
-            sb.Append($"Landblocks: {(loadedLandblocks.Count - dormantLandblocks):N0} active, {dormantLandblocks:N0} dormant - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+            sb.Append($"Landblocks: {(loadedLandblocks.Count - dormantLandblocks):N0} active ({activeDungeonLandblocks:N0} dungeons), {dormantLandblocks:N0} dormant ({dormantDungeonLandblocks:N0} dungeons) - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
             if (ServerPerformanceMonitor.IsRunning)

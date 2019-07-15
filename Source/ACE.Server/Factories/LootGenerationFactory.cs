@@ -95,21 +95,25 @@ namespace ACE.Server.Factories
 
             if (itemChance <= profile.MagicItemChance)
             {
-                int aetheriaDropChance;
-                bool aetheriaGenerated = false;
                 numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
+
+                bool aetheriaGenerated = false;
+                bool generateAetheria = false;
+                double dropRate = PropertyManager.GetDouble("aetheria_drop_rate").Item;
+                double dropRateMod = 1.0 / dropRate;
+
                 for (var i = 0; i < numItems; i++)
                 {
                     // Coalesced Aetheria doesn't drop in loot tiers less than 5
                     // According to wiki, Weapon Mana Forge chests don't drop Aetheria, also
                     // a loot role will only drop one Coealesced Aetheria per call into loot system, as I don't remember there
                     // being multiples, and I didn't find any written mention of it.
-                    if (aetheriaGenerated == false && profile.Tier > 4 && lootBias != LootBias.Weapons)
-                        aetheriaDropChance = ThreadSafeRandom.Next(1, (int)(100));
+                    if (!aetheriaGenerated && profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
+                        generateAetheria = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1;     // base 1% of all magical items aetheria?
                     else
-                        aetheriaDropChance = 0;
+                        generateAetheria = false;
 
-                    if (aetheriaDropChance > 90 )  // Default set for a 10% chance drop rate
+                    if (generateAetheria)
                     {
                         lootWorldObject = CreateAetheria(profile.Tier);
                         if (lootWorldObject != null)
@@ -925,7 +929,7 @@ namespace ACE.Server.Factories
             return damageMod2;
         }
 
-        private static double GetManaRate(WorldObject wo)
+        public static double GetManaRate(WorldObject wo)
         {
             double manaRate;
 
@@ -935,7 +939,7 @@ namespace ACE.Server.Factories
                     manaRate = 0.04166667;
                     break;
                 default:
-                    manaRate = 1.0 / (double)(ThreadSafeRandom.Next(10, 30));
+                    manaRate = 1.0 / ThreadSafeRandom.Next(10, 30);
                     break;
             }
 
@@ -1879,18 +1883,18 @@ namespace ACE.Server.Factories
             int numLegendaries = 0;
 
             if (tier < 8)
-                return numLegendaries;
+                return 0;
 
-            double dropRateSkew = PropertyManager.GetDouble("legendary_cantrip_drop_rate_mod").Item;
-            if (dropRateSkew <= 0)
-                dropRateSkew = 1;
+            var dropRate = PropertyManager.GetDouble("legendary_cantrip_drop_rate").Item;
+            if (dropRate <= 0)
+                return 0;
 
-            int legendaryCantripChance = ThreadSafeRandom.Next(1, (int)(5000 * dropRateSkew));
+            var dropRateMod = 1.0 / dropRate;
 
             // 1% chance for a legendary, 0.02% chance for 2 legendaries
-            if (legendaryCantripChance <= 50)
+            if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1)
                 numLegendaries = 1;
-            else if (legendaryCantripChance <= 1)
+            if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
                 numLegendaries = 2;
 
             return numLegendaries;
@@ -1901,23 +1905,23 @@ namespace ACE.Server.Factories
             int numEpics = 0;
 
             if (tier < 7)
-                return numEpics;
+                return 0;
 
-            double dropRateSkew = PropertyManager.GetDouble("epic_cantrip_drop_rate_mod").Item;
-            if (dropRateSkew <= 0)
-                dropRateSkew = 1;
+            var dropRate = PropertyManager.GetDouble("epic_cantrip_drop_rate").Item;
+            if (dropRate <= 0)
+                return 0;
 
-            int epicCantripChance = ThreadSafeRandom.Next(1, (int)(100000 * dropRateSkew));
+            var dropRateMod = 1.0 / dropRate;
 
-            // 1% chance for 1 Epic, 0.1% chance for 2 Epics,
-            // 0.01% chance for 3 Epics, 0.001% chance for 4 Epics 
-            if (epicCantripChance <= 1000)
+            // 0.1% chance for 1 Epic, 0.01% chance for 2 Epics,
+            // 0.001% chance for 3 Epics, 0.0001% chance for 4 Epics 
+            if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod)) == 1)
                 numEpics = 1;
-            else if (epicCantripChance <= 100)
+            if (ThreadSafeRandom.Next(1, (int)(10000 * dropRateMod)) == 1)
                 numEpics = 2;
-            else if (epicCantripChance <= 10)
+            if (ThreadSafeRandom.Next(1, (int)(100000 * dropRateMod)) == 1)
                 numEpics = 3;
-            else if (epicCantripChance <= 1)
+            if (ThreadSafeRandom.Next(1, (int)(1000000 * dropRateMod)) == 1)
                 numEpics = 4;
 
             return numEpics;
@@ -1927,9 +1931,11 @@ namespace ACE.Server.Factories
         {
             int numMajors = 0;
 
-            double dropRateSkew = PropertyManager.GetDouble("major_cantrip_drop_rate_mod").Item;
-            if (dropRateSkew <= 0)
-                dropRateSkew = 1;
+            var dropRate = PropertyManager.GetDouble("major_cantrip_drop_rate").Item;
+            if (dropRate <= 0)
+                return 0;
+
+            var dropRateMod = 1.0 / dropRate;
 
             switch (tier)
             {
@@ -1937,30 +1943,30 @@ namespace ACE.Server.Factories
                     numMajors = 0;
                     break;
                 case 2:
-                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
                         numMajors = 1;
                     break;
                 case 3:
-                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
                         numMajors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(10000 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(10000 * dropRateMod)) == 1)
                         numMajors = 2;
                     break;
                 case 4:
                 case 5:
                 case 6:
-                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
                         numMajors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateMod)) == 1)
                         numMajors = 2;
                     break;
                 case 7:
                 default:
-                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
                         numMajors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateMod)) == 1)
                         numMajors = 2;
-                    if (ThreadSafeRandom.Next(1, (int)(15000 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(15000 * dropRateMod)) == 1)
                         numMajors = 3;
                     break;
             }
@@ -1972,42 +1978,44 @@ namespace ACE.Server.Factories
         {
             int numMinors = 0;
 
-            double dropRateSkew = PropertyManager.GetDouble("minor_cantrip_drop_rate_mod").Item;
-            if (dropRateSkew <= 0)
-                dropRateSkew = 1;
+            var dropRate = PropertyManager.GetDouble("minor_cantrip_drop_rate").Item;
+            if (dropRate <= 0)
+                return 0;
+
+            var dropRateMod = 1.0 / dropRate;
 
             switch (tier)
             {
                 case 1:
-                    if (ThreadSafeRandom.Next(1, (int)(100 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1)
                         numMinors = 1;
                     break;
                 case 2:
                 case 3:
-                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateMod)) == 1)
                         numMinors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateMod)) == 1)
                         numMinors = 2;
                     break;
                 case 4:
                 case 5:
-                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateMod)) == 1)
                         numMinors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateMod)) == 1)
                         numMinors = 2;
-                    if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod)) == 1)
                         numMinors = 3;
                     break;
                 case 6:
                 case 7:
                 default:
-                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateMod)) == 1)
                         numMinors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateMod)) == 1)
                         numMinors = 2;
-                    if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod)) == 1)
                         numMinors = 3;
-                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateSkew)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateMod)) == 1)
                         numMinors = 4;
                     break;
             }
