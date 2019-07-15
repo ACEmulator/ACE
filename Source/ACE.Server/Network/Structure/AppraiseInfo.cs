@@ -187,7 +187,13 @@ namespace ACE.Server.Network.Structure
                     longDesc += "You must be a monarch to purchase and maintain this dwelling.\n";
 
                 if (slumLord.AllegianceMinLevel.HasValue)
-                    longDesc += $"Restricted to characters of allegiance rank {slumLord.AllegianceMinLevel.Value} or greater.\n";
+                {
+                    var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+                    if (allegianceMinLevel == -1)
+                        allegianceMinLevel = slumLord.AllegianceMinLevel.Value;
+
+                    longDesc += $"Restricted to characters of allegiance rank {allegianceMinLevel} or greater.\n";
+                }
 
                 PropertiesString.Add(PropertyString.LongDesc, longDesc);
             }
