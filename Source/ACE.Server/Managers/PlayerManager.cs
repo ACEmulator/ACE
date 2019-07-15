@@ -397,7 +397,7 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// This will return null oi the guid was not found.
+        /// This will return null if the guid was not found.
         /// </summary>
         public static IPlayer FindByGuid(ObjectGuid guid, out bool isOnline)
         {
