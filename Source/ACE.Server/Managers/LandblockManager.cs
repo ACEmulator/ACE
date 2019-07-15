@@ -201,21 +201,6 @@ namespace ACE.Server.Managers
                         }
                     }
 
-
-                    /*
-                    // start old method
-                    threadSeparatedLandblockGroups.Add(new List<Landblock>(loadedLandblocks.Count)); // Outdoor
-
-                    foreach (var landblock in loadedLandblocks)
-                    {
-                        if (landblock.IsDungeon)
-                            threadSeparatedLandblockGroups.Add(new List<Landblock> { landblock });
-                        else
-                            threadSeparatedLandblockGroups[0].Add(landblock);
-                    }
-                    // end old method
-                    */
-
                     threadSeparatedLandblockGroupsNeedsRecalculating = false;
                 }
             }
