@@ -21,17 +21,13 @@ namespace ACE.Server.WorldObjects
     {
         public Dictionary<ObjectGuid, bool> Guests;
 
-        public static int MaxGuests = 32;
+        public static int MaxGuests = 128;
 
         /// <summary>
         /// house open/closed status
         /// 0 = closed, 1 = open
         /// </summary>
-        public bool OpenStatus
-        {
-            get => Convert.ToBoolean(HouseStatus);
-            set => HouseStatus = Convert.ToInt32(value);
-        }
+        public bool OpenStatus { get => IsOpen; set => IsOpen = value; }
 
         /// <summary>
         /// For linking mansions
@@ -80,7 +76,7 @@ namespace ACE.Server.WorldObjects
         {
             var houseData = new HouseData();
             houseData.Position = Location;
-            houseData.Type = (HouseType)HouseType;
+            houseData.Type = HouseType;
 
             if (SlumLord == null)
             {
@@ -98,6 +94,10 @@ namespace ACE.Server.WorldObjects
                 houseData.RentTime = GetRentTimestamp(houseData.BuyTime);
                 houseData.SetPaidItems(SlumLord);
             }
+
+            if (HouseStatus == HouseStatus.InActive)
+                houseData.MaintenanceFree = true;
+
             return houseData;
         }
 
@@ -192,7 +192,7 @@ namespace ACE.Server.WorldObjects
         {
             // for house dungeons, link to outdoor house properties
             var house = this;
-            if (CurrentLandblock != null && CurrentLandblock.IsDungeon && HouseType != ACE.Entity.Enum.HouseType.Apartment)
+            if (CurrentLandblock != null && CurrentLandblock.IsDungeon && HouseType != HouseType.Apartment)
             {
                 var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
                 if (biota != null)
@@ -245,7 +245,7 @@ namespace ACE.Server.WorldObjects
             SetLinkProperties(wo);
         }
 
-        public bool IsApartment => HouseType != null && HouseType.Value == ACE.Entity.Enum.HouseType.Apartment;
+        public bool IsApartment => HouseType == HouseType.Apartment;
 
         /// <summary>
         /// Returns TRUE if this player has guest or storage access

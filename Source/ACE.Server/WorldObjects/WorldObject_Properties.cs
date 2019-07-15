@@ -1266,16 +1266,16 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.HouseOwnerName); else SetProperty(PropertyString.HouseOwnerName, value); }
         }
 
-        public int HouseStatus
+        public HouseStatus HouseStatus
         {
-            get => GetProperty(PropertyInt.HouseStatus) ?? 0;
-            set { if (value == 0) RemoveProperty(PropertyInt.HouseStatus); else SetProperty(PropertyInt.HouseStatus, value); }
+            get => (HouseStatus?)GetProperty(PropertyInt.HouseStatus) ?? HouseStatus.Active;
+            set { if (value == HouseStatus.Active) RemoveProperty(PropertyInt.HouseStatus); else SetProperty(PropertyInt.HouseStatus, (int)value); }
         }
 
-        public HouseType? HouseType
+        public HouseType HouseType
         {
-            get => (HouseType?)GetProperty(PropertyInt.HouseType);
-            set { if (value.HasValue) RemoveProperty(PropertyInt.HouseType); else SetProperty(PropertyInt.HouseType, (int)value.Value); }
+            get => (HouseType?)GetProperty(PropertyInt.HouseType) ?? HouseType.Undef;
+            set { if (value == HouseType.Undef) RemoveProperty(PropertyInt.HouseType); else SetProperty(PropertyInt.HouseType, (int)value); }
         }
 
         public int? HookItemType
