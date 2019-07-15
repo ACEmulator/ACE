@@ -90,7 +90,7 @@ namespace ACE.Server.Command.Handlers
                     total++;
                 }
             }
-            sb.Append($"Landblocks: {(loadedLandblocks.Count - dormantLandblocks):N0} active ({activeDungeonLandblocks:N0} dungeons), {dormantLandblocks:N0} dormant ({dormantDungeonLandblocks:N0} dungeons) - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+            sb.Append($"Landblocks: {(loadedLandblocks.Count - dormantLandblocks):N0} active ({activeDungeonLandblocks:N0} dungeons), {dormantLandblocks:N0} dormant ({dormantDungeonLandblocks:N0} dungeons) , Landblock Groups: {LandblockManager.ThreadSeparatedLandblockGroupsCount:N0} - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
             if (ServerPerformanceMonitor.IsRunning)

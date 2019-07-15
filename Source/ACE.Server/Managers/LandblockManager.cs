@@ -40,6 +40,15 @@ namespace ACE.Server.Managers
 
         private static readonly List<List<Landblock>> threadSeparatedLandblockGroups = new List<List<Landblock>>();
 
+        public static int ThreadSeparatedLandblockGroupsCount
+        {
+            get
+            {
+                lock (landblockMutex)
+                    return threadSeparatedLandblockGroups.Count;
+            }
+        }
+
         /// <summary>
         /// DestructionQueue is concurrent because it can be added to by multiple threads at once, publicly via AddToDestructionQueue()
         /// </summary>
@@ -158,6 +167,18 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
+        private static void ProcessLandblock(HashSet<Landblock> landblocksAdded, List<Landblock> workingSet, Landblock landblock)
+        {
+            if (!landblocksAdded.Contains(landblock))
+            {
+                workingSet.Add(landblock);
+                landblocksAdded.Add(landblock);
+
+                foreach (var adjacent in landblock.Adjacents)
+                    ProcessLandblock(landblocksAdded, workingSet, adjacent);
+            }
+        }
+
         public static void Tick(double currentUnixTime)
         {
             if (threadSeparatedLandblockGroupsNeedsRecalculating)
@@ -166,6 +187,23 @@ namespace ACE.Server.Managers
                 {
                     threadSeparatedLandblockGroups.Clear();
 
+                    var landblocksAdded = new HashSet<Landblock>(loadedLandblocks.Count);
+
+                    foreach (var loadedLandblock in loadedLandblocks)
+                    {
+                        if (!landblocksAdded.Contains(loadedLandblock))
+                        {
+                            var workingSet = new List<Landblock>();
+
+                            ProcessLandblock(landblocksAdded, workingSet, loadedLandblock);
+
+                            threadSeparatedLandblockGroups.Add(workingSet);
+                        }
+                    }
+
+
+                    /*
+                    // start old method
                     threadSeparatedLandblockGroups.Add(new List<Landblock>(loadedLandblocks.Count)); // Outdoor
 
                     foreach (var landblock in loadedLandblocks)
@@ -175,6 +213,8 @@ namespace ACE.Server.Managers
                         else
                             threadSeparatedLandblockGroups[0].Add(landblock);
                     }
+                    // end old method
+                    */
 
                     threadSeparatedLandblockGroupsNeedsRecalculating = false;
                 }
