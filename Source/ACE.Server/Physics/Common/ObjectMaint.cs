@@ -57,7 +57,7 @@ namespace ACE.Server.Physics.Common
         /// A list of players that currently know about this object
         /// This is maintained for all server-spawned WorldObjects, and is used for broadcasting
         /// </summary>
-        public Dictionary<uint, PhysicsObj> KnownPlayers { get; set; }
+        public ConcurrentDictionary<uint, PhysicsObj> KnownPlayers { get; set; }
 
         /// <summary>
         /// For monster and CombatPet FindNextTarget
@@ -88,7 +88,7 @@ namespace ACE.Server.Physics.Common
             VisibleObjects = new Dictionary<uint, PhysicsObj>();
             DestructionQueue = new Dictionary<PhysicsObj, double>();
 
-            KnownPlayers = new Dictionary<uint, PhysicsObj>();
+            KnownPlayers = new ConcurrentDictionary<uint, PhysicsObj>();
             VisibleTargets = new Dictionary<uint, PhysicsObj>();
         }
 
@@ -393,7 +393,7 @@ namespace ACE.Server.Physics.Common
             if (KnownPlayers.ContainsKey(obj.ID))
                 return false;
 
-            KnownPlayers.Add(obj.ID, obj);
+            KnownPlayers.TryAdd(obj.ID, obj);
             return true;
         }
 
@@ -417,7 +417,7 @@ namespace ACE.Server.Physics.Common
         {
             //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
 
-            return KnownPlayers.Remove(obj.ID);
+            return KnownPlayers.TryRemove(obj.ID, out _);
         }
 
         /// <summary>
