@@ -54,52 +54,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceMinLevel); else SetProperty(PropertyInt.AllegianceMinLevel, value.Value); }
         }
 
-        /// <summary>
-        /// Verifies the use requirements for the Slumlord
-        /// </summary>
-        public override ActivationResult CheckUseRequirements(WorldObject activator)
-        {
-            if (!(activator is Player player))
-                return new ActivationResult(false);
-
-            //if (HouseOwner != null || !PropertyManager.GetBool("house_purchase_requirements").Item)
-            //    return new ActivationResult(true);
-
-            // ensure player doesn't already own a house?
-
-            var baseRequirements = base.CheckUseRequirements(activator);
-            if (!baseRequirements.Success)
-                return baseRequirements;
-
-            //if (MinLevel != null)
-            //{
-            //    var playerLevel = player.Level ?? 1;
-            //    if (playerLevel < MinLevel)
-            //        return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBeAboveLevel_ToBuyHouse, MinLevel.ToString()));
-            //}
-
-            //if (HouseRequiresMonarch)
-            //{
-            //    if (player.Allegiance == null || player.Allegiance.MonarchId != player.Guid.Full)
-            //    {
-            //        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You must be a monarch to purchase this dwelling.", ChatMessageType.Broadcast));
-            //        return new ActivationResult(false);
-            //    }
-            //}
-
-            //if (AllegianceMinLevel != null)
-            //{
-            //    var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
-            //    if (allegianceMinLevel == -1)
-            //        allegianceMinLevel = AllegianceMinLevel.Value;
-
-            //    if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
-            //        return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
-            //}
-
-            return new ActivationResult(true);
-        }
-
         public override void ActOnUse(WorldObject worldObject)
         {
             //Console.WriteLine($"SlumLord.ActOnUse({worldObject.Name})");
