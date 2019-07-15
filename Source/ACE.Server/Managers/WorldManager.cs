@@ -390,15 +390,9 @@ namespace ACE.Server.Managers
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_RelocateObjectForPhysics);
 
             // Tick all of our Landblocks and WorldObjects
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
-            var loadedLandblocks = LandblockManager.GetLoadedLandblocksSeparated();
-
-            Parallel.ForEach(loadedLandblocks, landblocks =>
-            {
-                foreach (var landblock in landblocks)
-                    landblock.Tick(Time.GetUnixTime());
-            });
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_LandblockManager_Tick);
+            LandblockManager.Tick(Time.GetUnixTime());
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_LandblockManager_Tick);
 
             // clean up inactive landblocks
             LandblockManager.UnloadLandblocks();

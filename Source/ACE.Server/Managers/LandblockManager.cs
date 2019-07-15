@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-
+using System.Threading.Tasks;
 using log4net;
 
 using ACE.Common;
@@ -35,6 +35,10 @@ namespace ACE.Server.Managers
         /// A lookup table of all the currently loaded landblocks
         /// </summary>
         private static readonly HashSet<Landblock> loadedLandblocks = new HashSet<Landblock>();
+
+        private static bool threadSeparatedLandblockGroupsNeedsRecalculating = true;
+
+        private static readonly List<List<Landblock>> threadSeparatedLandblockGroups = new List<List<Landblock>>();
 
         /// <summary>
         /// DestructionQueue is concurrent because it can be added to by multiple threads at once, publicly via AddToDestructionQueue()
@@ -154,6 +158,35 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
+        public static void Tick(double currentUnixTime)
+        {
+            if (threadSeparatedLandblockGroupsNeedsRecalculating)
+            {
+                lock (landblockMutex)
+                {
+                    threadSeparatedLandblockGroups.Clear();
+
+                    threadSeparatedLandblockGroups.Add(new List<Landblock>(loadedLandblocks.Count)); // Outdoor
+
+                    foreach (var landblock in loadedLandblocks)
+                    {
+                        if (landblock.IsDungeon)
+                            threadSeparatedLandblockGroups.Add(new List<Landblock> { landblock });
+                        else
+                            threadSeparatedLandblockGroups[0].Add(landblock);
+                    }
+
+                    threadSeparatedLandblockGroupsNeedsRecalculating = false;
+                }
+            }
+
+            Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup =>
+            {
+                foreach (var landblock in landblockGroup)
+                    landblock.Tick(Time.GetUnixTime());
+            });
+        }
+
         /// <summary>
         /// Adds a WorldObject to the landblock defined by the object's location
         /// </summary>
@@ -205,6 +238,8 @@ namespace ACE.Server.Managers
                         log.Error($"LandblockManager: failed to add {landblock.Id.Raw:X8} to active landblocks!");
                         return landblock;
                     }
+
+                    threadSeparatedLandblockGroupsNeedsRecalculating = true;
                 }
 
                 if (permaload)
@@ -232,29 +267,6 @@ namespace ACE.Server.Managers
         {
             lock (landblockMutex)
                 return loadedLandblocks.ToList();
-        }
-
-        /// <summary>
-        /// Returns the list of all loaded landblocks separated between outdoor and dungeon
-        /// </summary>
-        public static List<List<Landblock>> GetLoadedLandblocksSeparated()
-        {
-            lock (landblockMutex)
-            {
-                var results = new List<List<Landblock>>(loadedLandblocks.Count);
-
-                results.Add(new List<Landblock>(loadedLandblocks.Count)); // Outdoor
-
-                foreach (var landblock in loadedLandblocks)
-                {
-                    if (landblock.IsDungeon)
-                        results.Add(new List<Landblock> { landblock });
-                    else
-                        results[0].Add(landblock);
-                }
-
-                return results;
-            }
         }
 
         /// <summary>
@@ -433,6 +445,7 @@ namespace ACE.Server.Managers
                         if (loadedLandblocks.Remove(landblock))
                         {
                             landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
+                            threadSeparatedLandblockGroupsNeedsRecalculating = true;
                             NotifyAdjacents(landblock);
                         }
                         else
