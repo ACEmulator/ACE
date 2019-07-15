@@ -49,32 +49,29 @@ namespace ACE.Server.Factories
                 return null;
 
 
-            // Initial role for an Aetheria level 1 through 3
-            wo.ItemMaxLevel = ThreadSafeRandom.Next(1, 3);
+            // Initial roll for an Aetheria level 1 through 3
+            wo.ItemMaxLevel = 1;
 
-            // Perform an additional role check for a chance at a higher Aetheria level for tiers 6+
+            var rng = ThreadSafeRandom.Next(1, 7);
+
+            if (rng > 4)
+            {
+                if (rng > 6)
+                    wo.ItemMaxLevel = 3;
+                else
+                    wo.ItemMaxLevel = 2;
+            }
+
+            // Perform an additional roll check for a chance at a higher Aetheria level for tiers 6+
             if (tier > 5)
             {
-                double dropRateSkew = PropertyManager.GetDouble("aetheria_level_drop_rate_mod").Item;
-                if (dropRateSkew <= 0)
-                    dropRateSkew = 1;
-
-                int aetheriaHigherLevelChance = ThreadSafeRandom.Next(1, (int)(100 * dropRateSkew));
-                switch (tier)
+                if (ThreadSafeRandom.Next(1, 50) == 1)
                 {
-                    case 6:
-                        if (aetheriaHigherLevelChance <= 10)
-                            wo.ItemMaxLevel = 4;
-                        break;
-                    case 7:
-                    case 8:
-                        if (aetheriaHigherLevelChance <= 10)
-                            wo.ItemMaxLevel = 4;
-                        else if (aetheriaHigherLevelChance <= 5)
-                            wo.ItemMaxLevel = 5;
-                        break;
-                    default:
-                        break;
+                    wo.ItemMaxLevel = 4;
+                    if (tier > 6 && ThreadSafeRandom.Next(1, 5) == 1)
+                    {
+                        wo.ItemMaxLevel = 5;
+                    }
                 }
             }
 

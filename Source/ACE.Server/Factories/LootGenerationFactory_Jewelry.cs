@@ -179,6 +179,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyFloat.ManaRate);
             }
 
+            wo = RandomizeColor(wo);
             return wo;
         }
     }

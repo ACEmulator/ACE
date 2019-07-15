@@ -155,6 +155,66 @@ namespace ACE.Server.Network.Structure
                     PropertiesInt.Remove(PropertyInt.EncumbranceVal);
             }
 
+            if (wo is SlumLord slumLord)
+            {                
+                PropertiesBool.Clear();
+                PropertiesDID.Clear();
+                PropertiesFloat.Clear();
+                PropertiesIID.Clear();
+                //PropertiesInt.Clear();
+                PropertiesInt64.Clear();
+                PropertiesString.Clear();
+
+                var longDesc = "";
+
+                if (slumLord.HouseOwner.HasValue && slumLord.HouseOwner.Value > 0)
+                {
+                    longDesc = $"The current maintenance has {(slumLord.IsRentPaid() ? "" : "not ")}been paid.\n";
+
+                    PropertiesInt.Clear();
+                }
+                else
+                {
+                    //longDesc = $"This house is {(slumLord.HouseStatus == HouseStatus.Disabled ? "not " : "")}available for purchase.\n"; // this was the retail msg.
+                    longDesc = $"This {(slumLord.House.HouseType == HouseType.Undef ? "house" : slumLord.House.HouseType.ToString().ToLower())} is {(slumLord.House.HouseStatus == HouseStatus.Disabled ? "not " : "")}available for purchase.\n";
+
+                    var discardInts = PropertiesInt.Where(x => x.Key != PropertyInt.HouseStatus && x.Key != PropertyInt.HouseType && x.Key != PropertyInt.MinLevel && x.Key != PropertyInt.MaxLevel && x.Key != PropertyInt.AllegianceMinLevel && x.Key != PropertyInt.AllegianceMaxLevel).Select(x => x.Key).ToList();
+                    foreach (var key in discardInts)
+                        PropertiesInt.Remove(key);
+                }
+
+                if (slumLord.HouseRequiresMonarch)
+                    longDesc += "You must be a monarch to purchase and maintain this dwelling.\n";
+
+                if (slumLord.AllegianceMinLevel.HasValue)
+                {
+                    var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+                    if (allegianceMinLevel == -1)
+                        allegianceMinLevel = slumLord.AllegianceMinLevel.Value;
+
+                    longDesc += $"Restricted to characters of allegiance rank {allegianceMinLevel} or greater.\n";
+                }
+
+                PropertiesString.Add(PropertyString.LongDesc, longDesc);
+            }
+
+            if (wo is Storage)
+            {
+                var longDesc = "";
+
+                if (wo.HouseOwner.HasValue && wo.HouseOwner.Value > 0)
+                    longDesc = $"Owned by {wo.ParentLink.HouseOwnerName}\n";
+
+                var discardString = PropertiesString.Where(x => x.Key != PropertyString.Use).Select(x => x.Key).ToList();
+                foreach (var key in discardString)
+                    PropertiesString.Remove(key);
+
+                PropertiesString.Add(PropertyString.LongDesc, longDesc);
+
+                if (PropertiesInt.ContainsKey(PropertyInt.Value))
+                    PropertiesInt[PropertyInt.Value] = wo.Biota.GetProperty(PropertyInt.Value, wo.BiotaDatabaseLock) ?? 200; // Value is masked to base value of Storage
+            }
+
             if (wo is Hook)
             {
                 // If the hook has any inventory, we need to send THOSE properties instead.
@@ -338,9 +398,8 @@ namespace ACE.Server.Network.Structure
                 {
                     if (worldObject is Caster)
                     {
-                        // Caster weapon only item Auras
                         if ((enchantment.SpellCategory == (uint)SpellCategory.DefenseModLowering)
-                            || (enchantment.SpellCategory == (uint)SpellCategory.AppraisalResistanceRaising)
+                            || (enchantment.SpellCategory == (uint)SpellCategory.ManaConversionModLowering)
                             || (GetSpellName((uint)enchantment.SpellId).Contains("Spirit"))) // Spirit Loather spells
                         {
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -353,7 +412,6 @@ namespace ACE.Server.Network.Structure
                     }
                     else
                     {
-                        // Other weapon type Auras
                         if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModLowering)
                             || (enchantment.SpellCategory == (uint)SpellCategory.DamageLowering)
                             || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModLowering)
@@ -373,7 +431,8 @@ namespace ACE.Server.Network.Structure
                         {
                             // Caster weapon only item Auras
                             if ((enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.AppraisalResistanceLowering)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaisingRare)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.ManaConversionModRaising)
                                 || (enchantment.SpellCategory == (uint)SpellCategory.SpellDamageRaising))
                             {
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -381,16 +440,21 @@ namespace ACE.Server.Network.Structure
                         }
                         else if (worldObject is Missile || worldObject is Ammunition)
                         {
-                            if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising))
+                            if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaisingRare))
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                         else
                         {
                             // Other weapon type Auras
                             if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.AttackModRaisingRare)
                                 || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaisingRare)
                                 || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaising))
+                                || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaisingRare)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaising)
+                                || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaisingRare))
                             {
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }

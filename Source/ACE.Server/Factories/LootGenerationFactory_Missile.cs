@@ -168,12 +168,6 @@ namespace ACE.Server.Factories
             int eleMod = 0;
             switch (wield)
             {
-                case 0:
-                    break;
-                case 250:
-                    break;
-                case 270:
-                    break;
                 case 315:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
@@ -250,6 +244,9 @@ namespace ACE.Server.Factories
                         eleMod = 21;
                     else
                         eleMod = 22;
+                    break;
+                default:
+                    eleMod = 0;
                     break;
             }
 
