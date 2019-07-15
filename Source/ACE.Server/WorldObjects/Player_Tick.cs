@@ -3,6 +3,7 @@ using System.Linq;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Factories;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -119,7 +120,7 @@ namespace ACE.Server.WorldObjects
 
             var EquippedManaConsumers = EquippedObjects.Where(k =>
                 (k.Value.IsAffecting ?? false) &&
-                k.Value.ManaRate.HasValue &&
+                //k.Value.ManaRate.HasValue &&
                 k.Value.ItemMaxMana.HasValue &&
                 k.Value.ItemCurMana.HasValue &&
                 k.Value.ItemCurMana.Value > 0).ToList();
@@ -127,6 +128,18 @@ namespace ACE.Server.WorldObjects
             foreach (var k in EquippedManaConsumers)
             {
                 var item = k.Value;
+
+                // this was a bug in lootgen until 7/11/2019, mostly for clothing/armor/shields
+                // tons of existing items on servers are in this bugged state, where they aren't ticking mana.
+                // this retroactively fixes them when equipped
+                // items such as Impious Staff are excluded from this via IsAffecting
+
+                if (item.ManaRate == null)
+                {
+                    item.ManaRate = LootGenerationFactory.GetManaRate(item);
+                    log.Warn($"{Name}.ManaConsumersTick(): {k.Value.Name} ({k.Value.Guid}) fixed missing ManaRate");
+                }
+
                 var rate = item.ManaRate.Value;
 
                 if (LumAugItemManaUsage != 0)

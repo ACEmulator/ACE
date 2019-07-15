@@ -929,7 +929,7 @@ namespace ACE.Server.Factories
             return damageMod2;
         }
 
-        private static double GetManaRate(WorldObject wo)
+        public static double GetManaRate(WorldObject wo)
         {
             double manaRate;
 
@@ -939,7 +939,7 @@ namespace ACE.Server.Factories
                     manaRate = 0.04166667;
                     break;
                 default:
-                    manaRate = 1.0 / (double)(ThreadSafeRandom.Next(10, 30));
+                    manaRate = 1.0 / ThreadSafeRandom.Next(10, 30);
                     break;
             }
 
