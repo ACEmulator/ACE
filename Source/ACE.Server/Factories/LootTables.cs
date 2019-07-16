@@ -1750,7 +1750,7 @@ namespace ACE.Factories
             ////Willpower
             new int[] { 2584, 2577, 4227, 6101},
             ////Sneak Attack
-            new int[] {5887, 5892, 5897, 6070 },
+            new int[] { 5887, 5892, 5897, 6070},
             ////Arcane Enlight
             new int[] { 2537, 2502, 4684, 6041},
             ////Mana C
@@ -1767,6 +1767,8 @@ namespace ACE.Factories
             new int[] { 2600, 2588, 4663, 6091},
             ////Hermetic Link
             new int[] { 3199, 3200, 4686, 6087},
+            ////Spirit Thirst
+            new int[] { 3251, 3250, 4670, 6098},
         };
 
         public static readonly int[][] MeleeCantrips =
