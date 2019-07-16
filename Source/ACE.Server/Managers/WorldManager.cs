@@ -391,7 +391,7 @@ namespace ACE.Server.Managers
 
             // Tick all of our Landblocks and WorldObjects
             ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_LandblockManager_Tick);
-            LandblockManager.Tick(Time.GetUnixTime());
+            LandblockManager.Tick();
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_LandblockManager_Tick);
 
             // clean up inactive landblocks

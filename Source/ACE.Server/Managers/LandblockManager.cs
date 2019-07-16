@@ -167,7 +167,7 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
-        private static void ProcessLandblock(HashSet<Landblock> landblocksAdded, List<Landblock> workingSet, Landblock landblock)
+        private static void AddLandblockToLandblockGroup(HashSet<Landblock> landblocksAdded, List<Landblock> workingSet, Landblock landblock)
         {
             if (!landblocksAdded.Contains(landblock))
             {
@@ -175,11 +175,11 @@ namespace ACE.Server.Managers
                 landblocksAdded.Add(landblock);
 
                 foreach (var adjacent in landblock.Adjacents)
-                    ProcessLandblock(landblocksAdded, workingSet, adjacent);
+                    AddLandblockToLandblockGroup(landblocksAdded, workingSet, adjacent);
             }
         }
 
-        public static void Tick(double currentUnixTime)
+        public static void Tick()
         {
             if (threadSeparatedLandblockGroupsNeedsRecalculating)
             {
@@ -195,11 +195,15 @@ namespace ACE.Server.Managers
                         {
                             var workingSet = new List<Landblock>();
 
-                            ProcessLandblock(landblocksAdded, workingSet, loadedLandblock);
+                            AddLandblockToLandblockGroup(landblocksAdded, workingSet, loadedLandblock);
 
                             threadSeparatedLandblockGroups.Add(workingSet);
                         }
                     }
+
+                    // Debugging
+                    if (landblocksAdded.Count != loadedLandblocks.Count)
+                        log.Error($"landblocksAdded.Count ({landblocksAdded.Count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
 
                     threadSeparatedLandblockGroupsNeedsRecalculating = false;
                 }
