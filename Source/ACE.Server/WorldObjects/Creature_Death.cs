@@ -106,7 +106,7 @@ namespace ACE.Server.WorldObjects
                 sw2.Stop();
 
                 if (sw.Elapsed.Seconds >= 1 || sw2.Elapsed.Seconds >= 1)
-                    log.Warn($"Creature_Death Die() ActionChain took: {sw.Elapsed.TotalSeconds}, {sw2.Elapsed.TotalSeconds}");
+                    log.Warn($"Creature_Death Die() ActionChain took: {sw.Elapsed.TotalSeconds}, {sw2.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
             });
 
             dieChain.EnqueueChain();
