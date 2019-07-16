@@ -157,10 +157,28 @@ namespace ACE.Server.WorldObjects
 
             dieChain.AddAction(this, () =>
             {
+                var sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
                 CreateCorpse(topDamager);
+                sw.Stop();
+
+                var sw2 = new System.Diagnostics.Stopwatch();
+                sw2.Start();
                 TeleportOnDeath();      // enter portal space
+                sw2.Stop();
+
+                var sw3 = new System.Diagnostics.Stopwatch();
+                sw3.Start();
                 SetLifestoneProtection();
+                sw3.Stop();
+
+                var sw4 = new System.Diagnostics.Stopwatch();
+                sw4.Start();
                 SetMinimumTimeSincePK();
+                sw4.Stop();
+
+                if (sw.Elapsed.Seconds >= 1 || sw2.Elapsed.Seconds >= 1 || sw3.Elapsed.Seconds >= 1 || sw4.Elapsed.Seconds >= 1)
+                    log.Warn($"Player_Death Die() ActionChain took: {sw.Elapsed.TotalSeconds}, {sw2.Elapsed.TotalSeconds}, {sw3.Elapsed.TotalSeconds}, {sw4.Elapsed.TotalSeconds}");
             });
 
             dieChain.EnqueueChain();
