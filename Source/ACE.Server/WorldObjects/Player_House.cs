@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -785,6 +786,8 @@ namespace ACE.Server.WorldObjects
             }
 
             house.OpenStatus = openStatus;
+            house.Biota.SetProperty(PropertyBool.Open, house.OpenStatus, house.BiotaDatabaseLock, out _);
+            house.ChangesDetected = true;
             house.UpdateRestrictionDB();
 
             if (openStatus)
