@@ -44,7 +44,7 @@ namespace ACE.Server.Physics.Common
         /// This list of objects that are currently within PVS / VisibleCell range
         /// only maintained for players
         /// </summary>
-        public Dictionary<uint, PhysicsObj> VisibleObjects { get; set; }
+        public ConcurrentDictionary<uint, PhysicsObj> VisibleObjects { get; set; }
 
         /// <summary>
         /// Objects that were previously visible to the client,
@@ -85,7 +85,7 @@ namespace ACE.Server.Physics.Common
             PhysicsObj = obj;
 
             KnownObjects = new Dictionary<uint, PhysicsObj>();
-            VisibleObjects = new Dictionary<uint, PhysicsObj>();
+            VisibleObjects = new ConcurrentDictionary<uint, PhysicsObj>();
             DestructionQueue = new Dictionary<PhysicsObj, double>();
 
             KnownPlayers = new ConcurrentDictionary<uint, PhysicsObj>();
@@ -231,7 +231,7 @@ namespace ACE.Server.Physics.Common
             }
 
             //Console.WriteLine($"{PhysicsObj.Name}.AddVisibleObject({obj.Name})");
-            VisibleObjects.Add(obj.ID, obj);
+            VisibleObjects.TryAdd(obj.ID, obj);
 
             if (obj.WeenieObj.IsMonster)
                 obj.ObjMaint.AddVisibleTarget(PhysicsObj, false);
@@ -264,7 +264,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool RemoveVisibleObject(PhysicsObj obj, bool inverseTarget = true)
         {
-            var removed = VisibleObjects.Remove(obj.ID);
+            var removed = VisibleObjects.TryRemove(obj.ID, out _);
 
             if (inverseTarget)
                 obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);

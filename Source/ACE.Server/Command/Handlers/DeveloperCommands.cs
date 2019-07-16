@@ -2028,7 +2028,7 @@ namespace ACE.Server.Command.Handlers
                     var kvps = value.ObjMaint.VisibleObjects.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.VisibleObjects.Remove(kvp.Key))
+                        if (value.ObjMaint.VisibleObjects.TryRemove(kvp.Key, out _))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VisibleObjectTable]");
                             visibleObjectTableErrors++;
