@@ -1040,5 +1040,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.RecallsDisabled) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.RecallsDisabled); else SetProperty(PropertyBool.RecallsDisabled, value); }
         }
+
+        public AetheriaBitfield AetheriaFlags
+        {
+            get => (AetheriaBitfield)(GetProperty(PropertyInt.AetheriaBitfield) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.AetheriaBitfield); else SetProperty(PropertyInt.AetheriaBitfield, (int)value); }
+        }
     }
 }
