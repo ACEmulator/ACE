@@ -476,7 +476,7 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                if (HouseType == ACE.Entity.Enum.HouseType.Apartment || HouseType == ACE.Entity.Enum.HouseType.Cottage)
+                if (HouseType == HouseType.Apartment || HouseType == HouseType.Cottage)
                 {
                     _rootGuid = Guid;
                     return Guid;

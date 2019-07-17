@@ -1205,6 +1205,18 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            // verify Aetheria slot, client doesn't handle this
+            if ((wieldedLocation & EquipMask.Sigil) != 0)
+            {
+                if (wieldedLocation.HasFlag(EquipMask.SigilOne)   && !AetheriaFlags.HasFlag(AetheriaBitfield.Blue) ||
+                    wieldedLocation.HasFlag(EquipMask.SigilTwo)   && !AetheriaFlags.HasFlag(AetheriaBitfield.Yellow) ||
+                    wieldedLocation.HasFlag(EquipMask.SigilThree) && !AetheriaFlags.HasFlag(AetheriaBitfield.Red))
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    return false;
+                }
+            }
+
             // TODO: this handles armor slots,
             // trinkets and weapons would need to be handled a bit differently
 
