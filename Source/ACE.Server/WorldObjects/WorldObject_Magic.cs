@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
             if (player != null && status.Message != null && !status.Broadcast && showMsg)
                 player.Session.Network.EnqueueSend(status.Message);
             else if (player != null && status.Message != null && status.Broadcast && showMsg)
-                player.EnqueueBroadcast(status.Message);
+                player.EnqueueBroadcast(status.Message, LocalBroadcastRange);
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
