@@ -299,7 +299,7 @@ namespace ACE.Server.WorldObjects
             {
                 var dieChain = new ActionChain();
                 dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () => DoSuicideStaging(suicideTS, suicideCurNumDeaths));
+                dieChain.AddAction(this, () => DoSuicideStaging(suicideTS, NumDeaths));
                 dieChain.EnqueueChain();
             }
         }
