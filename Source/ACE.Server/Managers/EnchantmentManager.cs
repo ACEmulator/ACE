@@ -1211,11 +1211,8 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Called every ~5 seconds for active object
         /// </summary>
-        public void HeartBeat(double? heartbeatInterval = null)
+        public void HeartBeat(double heartbeatInterval)
         {
-            if (heartbeatInterval == null)
-                heartbeatInterval = WorldObject.HeartbeatInterval ?? 5;
-
             var expired = new List<BiotaPropertiesEnchantmentRegistry>();
 
             var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
@@ -1223,7 +1220,7 @@ namespace ACE.Server.Managers
 
             foreach (var enchantment in enchantments)
             {
-                enchantment.StartTime -= heartbeatInterval.Value;
+                enchantment.StartTime -= heartbeatInterval;
 
                 // StartTime ticks backwards to -Duration
                 if (enchantment.Duration >= 0 && enchantment.StartTime <= -enchantment.Duration)

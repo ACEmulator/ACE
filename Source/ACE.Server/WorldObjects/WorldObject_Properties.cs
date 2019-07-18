@@ -2688,7 +2688,18 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.PKDamageResistRating);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageResistRating); else SetProperty(PropertyInt.PKDamageResistRating, value.Value); }
         }
-        
+
+        public int? Lifespan
+        {
+            get => GetProperty(PropertyInt.Lifespan);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Lifespan); else SetProperty(PropertyInt.Lifespan, value.Value); }
+        }
+
+        public int? RemainingLifespan
+        {
+            get => GetProperty(PropertyInt.RemainingLifespan);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RemainingLifespan); else SetProperty(PropertyInt.RemainingLifespan, value.Value); }
+        }
 
         /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.
