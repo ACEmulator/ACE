@@ -239,49 +239,49 @@ namespace ACE.Server.WorldObjects
             DoSuicideStaging(NumDeaths);
         }
 
-        private void DoSuicideStaging(int suicideCurNumDeaths)
+        private void DoSuicideStaging(int playerCurrentNumDeaths)
         {
             if (!suicideInProgress) return;
 
             switch (suicideStage)
             {
                 case 1:
-                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && playerCurrentNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("I feel faint...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 2:
-                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && playerCurrentNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("My sight is growing dim...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 3:
-                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && playerCurrentNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("My life is flashing before my eyes...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 4:
-                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && playerCurrentNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("I see a light...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 5:
-                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && playerCurrentNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("Oh cruel, cruel world!", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 6:
-                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && playerCurrentNumDeaths == suicideCurrentNumDeaths)
                     {
                         suicideStage++;
                         Die(this, DamageHistory.TopDamager);
@@ -292,7 +292,7 @@ namespace ACE.Server.WorldObjects
                     return;
             }
 
-            if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
+            if (suicideInProgress && playerCurrentNumDeaths == suicideCurrentNumDeaths)
             {
                 var dieChain = new ActionChain();
                 dieChain.AddDelaySeconds(3);
