@@ -248,39 +248,19 @@ namespace ACE.Server.WorldObjects
             switch (suicideStage)
             {
                 case 1:
-                    if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
-                    {
-                        stageMsg = "I feel faint...";
-                        suicideStage++;
-                    }
+                    stageMsg = "I feel faint...";
                     break;
                 case 2:
-                    if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
-                    {
-                        stageMsg = "My sight is growing dim...";
-                        suicideStage++;
-                    }
+                    stageMsg = "My sight is growing dim...";
                     break;
                 case 3:
-                    if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
-                    {
-                        stageMsg = "My life is flashing before my eyes...";
-                        suicideStage++;
-                    }
+                    stageMsg = "My life is flashing before my eyes...";
                     break;
                 case 4:
-                    if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
-                    {
-                        stageMsg = "I see a light...";
-                        suicideStage++;
-                    }
+                    stageMsg = "I see a light...";
                     break;
                 case 5:
-                    if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
-                    {
-                        stageMsg = "Oh cruel, cruel world";
-                        suicideStage++;
-                    }
+                    stageMsg = "Oh cruel, cruel world";
                     break;
                 case 6:
                     if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
@@ -297,7 +277,11 @@ namespace ACE.Server.WorldObjects
             if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
             {
                 var dieChain = new ActionChain();
-                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage(stageMsg, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddAction(this, () =>
+                {
+                    EnqueueBroadcast(new GameMessageCreatureMessage(stageMsg, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+                    suicideStage++;
+                });
                 dieChain.AddDelaySeconds(3);
                 dieChain.AddAction(this, () => DoSuicideStaging(NumDeaths));
                 dieChain.EnqueueChain();
