@@ -138,6 +138,12 @@ namespace ACE.Server.WorldObjects
             // send network messages for player death
             Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths);
 
+            if (lastDamager.Guid == Guid) // suicide
+            {
+                var msgSelfInflictedDeath = new GameEventWeenieError(Session, WeenieError.YouKilledYourself);
+                Session.Network.EnqueueSend(msgSelfInflictedDeath);
+            }
+
             // update vitae
             // players who died in a PKLite fight do not accrue vitae
             if (!IsPKLiteDeath())
