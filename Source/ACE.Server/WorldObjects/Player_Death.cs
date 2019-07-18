@@ -210,7 +210,25 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionDie()
         {
-            Die(this, DamageHistory.TopDamager);
+            var dieChain = new ActionChain();
+
+            if (!PropertyManager.GetBool("suicide_instant_death").Item)
+            {
+                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("I feel faint...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddDelaySeconds(3);
+                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("My sight is growing dim...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddDelaySeconds(3);
+                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("My life is flashing before my eyes...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddDelaySeconds(3);
+                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("I see a light...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddDelaySeconds(3);
+                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("Oh cruel, cruel world!", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddDelaySeconds(3);
+            }
+
+            dieChain.AddAction(this, () => Die(this, DamageHistory.TopDamager));
+
+            dieChain.EnqueueChain();
         }
 
         public List<WorldObject> CalculateDeathItems(Corpse corpse)
