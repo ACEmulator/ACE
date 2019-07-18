@@ -1291,6 +1291,9 @@ namespace ACE.Server.Managers
             // do healing
             var healAmount = creature.UpdateVitalDelta(creature.Health, (int)Math.Round(tickAmountTotal));
             creature.DamageHistory.OnHeal((uint)healAmount);
+
+            if (creature is Player player)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You receive {healAmount} points of periodic healing.", ChatMessageType.Combat));
         }
 
         /// <summary>
