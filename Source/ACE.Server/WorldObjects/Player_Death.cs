@@ -113,6 +113,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected override void Die(WorldObject lastDamager, WorldObject topDamager)
         {
+            if (suicideInProgress)
+                suicideInProgress = false;
+
             UpdateVital(Health, 0);
             NumDeaths++;
 
@@ -211,28 +214,58 @@ namespace ACE.Server.WorldObjects
             teleportChain.EnqueueChain();
         }
 
+        private bool suicideInProgress;
+
         /// <summary>
         /// Called when player uses the /die command
         /// </summary>
         public void HandleActionDie()
         {
+            if (suicideInProgress) return;
+
             var dieChain = new ActionChain();
+
+            dieChain.AddAction(this, () => suicideInProgress = true);
 
             if (!PropertyManager.GetBool("suicide_instant_death").Item)
             {
-                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("I feel faint...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddAction(this, () =>
+                {
+                    if (suicideInProgress)
+                        EnqueueBroadcast(new GameMessageCreatureMessage("I feel faint...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+                });
                 dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("My sight is growing dim...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddAction(this, () =>
+                {
+                    if (suicideInProgress)
+                        EnqueueBroadcast(new GameMessageCreatureMessage("My sight is growing dim...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+                });
                 dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("My life is flashing before my eyes...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddAction(this, () =>
+                {
+                    if (suicideInProgress)
+                        EnqueueBroadcast(new GameMessageCreatureMessage("My life is flashing before my eyes...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+                });
                 dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("I see a light...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddAction(this, () =>
+                {
+                    if (suicideInProgress)
+                        EnqueueBroadcast(new GameMessageCreatureMessage("I see a light...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+                });
                 dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () => EnqueueBroadcast(new GameMessageCreatureMessage("Oh cruel, cruel world!", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange));
+                dieChain.AddAction(this, () =>
+                {
+                    if (suicideInProgress)
+                        EnqueueBroadcast(new GameMessageCreatureMessage("Oh cruel, cruel world!", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+                });
                 dieChain.AddDelaySeconds(3);
             }
 
-            dieChain.AddAction(this, () => Die(this, DamageHistory.TopDamager));
+            dieChain.AddAction(this, () =>
+            {
+                if (suicideInProgress)
+                    Die(this, DamageHistory.TopDamager);
+            });
 
             dieChain.EnqueueChain();
         }
