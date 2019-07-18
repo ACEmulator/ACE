@@ -260,7 +260,7 @@ namespace ACE.Server.WorldObjects
                     stageMsg = "I see a light...";
                     break;
                 case 5:
-                    stageMsg = "Oh cruel, cruel world";
+                    stageMsg = "Oh cruel, cruel world!";
                     break;
                 case 6:
                     if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
