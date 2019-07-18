@@ -114,7 +114,12 @@ namespace ACE.Server.WorldObjects
         protected override void Die(WorldObject lastDamager, WorldObject topDamager)
         {
             if (suicideInProgress)
+            {
                 suicideInProgress = false;
+                suicideStage = -1;
+                suicideStarted = -1;
+                suicideCurrentNumDeaths = -1;
+            }
 
             UpdateVital(Health, 0);
             NumDeaths++;
@@ -215,6 +220,9 @@ namespace ACE.Server.WorldObjects
         }
 
         private bool suicideInProgress;
+        private int suicideStage;
+        private double suicideStarted;
+        private int suicideCurrentNumDeaths;
 
         /// <summary>
         /// Called when player uses the /die command
@@ -223,51 +231,77 @@ namespace ACE.Server.WorldObjects
         {
             if (suicideInProgress) return;
 
-            var dieChain = new ActionChain();
-
-            dieChain.AddAction(this, () => suicideInProgress = true);
-
+            suicideInProgress = true;
             if (!PropertyManager.GetBool("suicide_instant_death").Item)
+                suicideStage = 1;
+            else
+                suicideStage = 6;
+            suicideStarted = Common.Time.GetUnixTime();
+            suicideCurrentNumDeaths = NumDeaths;
+
+            DoSuicideStaging(suicideStarted, suicideCurrentNumDeaths);
+        }
+
+        private void DoSuicideStaging(double suicideTS, int suicideCurNumDeaths)
+        {
+            if (!suicideInProgress) return;
+
+            switch (suicideStage)
             {
-                dieChain.AddAction(this, () =>
-                {
-                    if (suicideInProgress)
+                case 1:
+                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    {
                         EnqueueBroadcast(new GameMessageCreatureMessage("I feel faint...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
-                });
-                dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () =>
-                {
-                    if (suicideInProgress)
+                        suicideStage++;
+                    }
+                    break;
+                case 2:
+                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    {
                         EnqueueBroadcast(new GameMessageCreatureMessage("My sight is growing dim...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
-                });
-                dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () =>
-                {
-                    if (suicideInProgress)
+                        suicideStage++;
+                    }
+                    break;
+                case 3:
+                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    {
                         EnqueueBroadcast(new GameMessageCreatureMessage("My life is flashing before my eyes...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
-                });
-                dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () =>
-                {
-                    if (suicideInProgress)
+                        suicideStage++;
+                    }
+                    break;
+                case 4:
+                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    {
                         EnqueueBroadcast(new GameMessageCreatureMessage("I see a light...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
-                });
-                dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () =>
-                {
-                    if (suicideInProgress)
+                        suicideStage++;
+                    }
+                    break;
+                case 5:
+                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    {
                         EnqueueBroadcast(new GameMessageCreatureMessage("Oh cruel, cruel world!", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
-                });
-                dieChain.AddDelaySeconds(3);
+                        suicideStage++;
+                    }
+                    break;
+                case 6:
+                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    {
+                        suicideStage++;
+                        Die(this, DamageHistory.TopDamager);
+                    }
+                    return;
+                default:
+                    // DO NOTHING
+                    return;
             }
 
-            dieChain.AddAction(this, () =>
+            if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
             {
-                if (suicideInProgress)
-                    Die(this, DamageHistory.TopDamager);
-            });
-
-            dieChain.EnqueueChain();
+                var dieChain = new ActionChain();
+                dieChain.AddDelaySeconds(3);
+                dieChain.AddAction(this, () => DoSuicideStaging(suicideTS, suicideCurNumDeaths));
+                dieChain.EnqueueChain();
+            }
         }
 
         public List<WorldObject> CalculateDeathItems(Corpse corpse)
@@ -515,9 +549,12 @@ namespace ACE.Server.WorldObjects
 
             // send network messages
             var dropList = DropMessage(dropItems, numCoinsDropped);
-            Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
+            if (!string.IsNullOrWhiteSpace(dropList))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.Broadcast));
 
-            DeathItemLog(dropItems);
+                DeathItemLog(dropItems);
+            }
 
             return dropItems;
         }
