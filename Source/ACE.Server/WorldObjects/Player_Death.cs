@@ -171,9 +171,8 @@ namespace ACE.Server.WorldObjects
                 if (suicideInProgress)
                 {
                     suicideInProgress = false;
-                    suicideStage = -1;
-                    suicideStarted = -1;
-                    suicideCurrentNumDeaths = -1;
+                    suicideStage = null;
+                    suicideCurrentNumDeaths = null;
                 }
             });
 
@@ -220,9 +219,8 @@ namespace ACE.Server.WorldObjects
         }
 
         private bool suicideInProgress;
-        private int suicideStage;
-        private double suicideStarted;
-        private int suicideCurrentNumDeaths;
+        private int? suicideStage;
+        private int? suicideCurrentNumDeaths;
 
         /// <summary>
         /// Called when player uses the /die command
@@ -236,55 +234,54 @@ namespace ACE.Server.WorldObjects
                 suicideStage = 1;
             else
                 suicideStage = 6;
-            suicideStarted = Common.Time.GetUnixTime();
             suicideCurrentNumDeaths = NumDeaths;
 
-            DoSuicideStaging(suicideStarted, suicideCurrentNumDeaths);
+            DoSuicideStaging(NumDeaths);
         }
 
-        private void DoSuicideStaging(double suicideTS, int suicideCurNumDeaths)
+        private void DoSuicideStaging(int suicideCurNumDeaths)
         {
             if (!suicideInProgress) return;
 
             switch (suicideStage)
             {
                 case 1:
-                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("I feel faint...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 2:
-                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("My sight is growing dim...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 3:
-                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("My life is flashing before my eyes...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 4:
-                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("I see a light...", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 5:
-                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
                     {
                         EnqueueBroadcast(new GameMessageCreatureMessage("Oh cruel, cruel world!", Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
                         suicideStage++;
                     }
                     break;
                 case 6:
-                    if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+                    if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
                     {
                         suicideStage++;
                         Die(this, DamageHistory.TopDamager);
@@ -295,11 +292,11 @@ namespace ACE.Server.WorldObjects
                     return;
             }
 
-            if (suicideInProgress && suicideTS == suicideStarted && suicideCurNumDeaths == suicideCurrentNumDeaths)
+            if (suicideInProgress && suicideCurNumDeaths == suicideCurrentNumDeaths)
             {
                 var dieChain = new ActionChain();
                 dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () => DoSuicideStaging(suicideTS, NumDeaths));
+                dieChain.AddAction(this, () => DoSuicideStaging(NumDeaths));
                 dieChain.EnqueueChain();
             }
         }
