@@ -403,7 +403,7 @@ namespace ACE.Server.WorldObjects
 
             var creatureSkill = GetCreatureSkill(skill);
 
-            if (creatureSkill.Ranks == 0)
+            if (creatureSkill.InitLevel == 0)
             {
                 // convert to post-MoA skill
                 if (weapon != null && weapon.IsRanged)
