@@ -1255,8 +1255,6 @@ namespace ACE.Server.WorldObjects
             else
                 addResult = target.EnchantmentManager.Add(spell, caster, equip);
 
-            var playerTarget = target as Player;
-
             // build message
             var suffix = "";
             switch (addResult.StackType)
@@ -1272,8 +1270,6 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            var targetName = this == target ? "yourself" : target.Name;
-
             string message = null;
 
             if (aetheriaProc)
@@ -1281,33 +1277,14 @@ namespace ACE.Server.WorldObjects
                 message = $"Aetheria surges on {target.Name} with the power of {spell.Name}!";
                 enchantmentStatus.Broadcast = true;
             }
-            else if (caster is Creature)
+            else if (caster == this || target == this || caster != target)
             {
-                if (caster.Guid == Guid)
-                    message = $"You cast {spell.Name} on {targetName}{suffix}";
-                else
-                    message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
-            }
-            else
-            {
-                if (target.Name != caster.Name)
-                    message = $"{caster.Name} casts {spell.Name} on you{suffix}";
-                else
-                    message = null;
-            }
+                var prefix = caster == this ? "You cast" : $"{caster.Name} casts";
+                var targetName = target.Name;
+                if (target == this)
+                    targetName = caster == this ? "yourself" : "you";
 
-            if (playerTarget != null)
-            {
-                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
-
-                playerTarget.HandleMaxVitalUpdate(spell);
-
-                if (playerTarget != this)
-                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
-            }
-            else if (caster != this && caster is Creature && target.Wielder is Player wielder)
-            {
-                wielder.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic));
+                message = $"{prefix} {spell.Name} on {targetName}{suffix}";
             }
 
             if (message != null)
@@ -1317,6 +1294,25 @@ namespace ACE.Server.WorldObjects
 
             enchantmentStatus.StackType = addResult.StackType;
             enchantmentStatus.Success = true;
+
+            var playerTarget = target as Player;
+
+            if (playerTarget != null)
+            {
+                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
+
+                playerTarget.HandleMaxVitalUpdate(spell);
+            }
+
+            if (playerTarget == null && target.Wielder is Player wielder)
+                playerTarget = wielder;
+
+            if (playerTarget != null && playerTarget != this)
+            {
+                var targetName = target == playerTarget ? "you" : target.Name;
+
+                playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic));
+            }
 
             return enchantmentStatus;
         }
