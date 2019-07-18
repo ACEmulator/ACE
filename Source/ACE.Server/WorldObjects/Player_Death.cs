@@ -113,14 +113,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected override void Die(WorldObject lastDamager, WorldObject topDamager)
         {
-            if (suicideInProgress)
-            {
-                suicideInProgress = false;
-                suicideStage = -1;
-                suicideStarted = -1;
-                suicideCurrentNumDeaths = -1;
-            }
-
             UpdateVital(Health, 0);
             NumDeaths++;
 
@@ -175,6 +167,14 @@ namespace ACE.Server.WorldObjects
                 TeleportOnDeath();      // enter portal space
                 SetLifestoneProtection();
                 SetMinimumTimeSincePK();
+
+                if (suicideInProgress)
+                {
+                    suicideInProgress = false;
+                    suicideStage = -1;
+                    suicideStarted = -1;
+                    suicideCurrentNumDeaths = -1;
+                }
             });
 
             dieChain.EnqueueChain();
