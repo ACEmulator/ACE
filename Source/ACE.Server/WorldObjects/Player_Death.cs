@@ -212,7 +212,7 @@ namespace ACE.Server.WorldObjects
             teleportChain.EnqueueChain();
         }
 
-        private bool suicideInProgress { get; set; }
+        private bool suicideInProgress;
 
         /// <summary>
         /// Called when player uses the /die command
