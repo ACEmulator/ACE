@@ -115,6 +115,7 @@ namespace ACE.Server.WorldObjects
         {
             UpdateVital(Health, 0);
             NumDeaths++;
+            suicideInProgress = false;
 
             // killer = top damager for looting rights
             if (topDamager != null)
@@ -137,6 +138,12 @@ namespace ACE.Server.WorldObjects
 
             // send network messages for player death
             Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths);
+
+            if (lastDamager.Guid == Guid) // suicide
+            {
+                var msgSelfInflictedDeath = new GameEventWeenieError(Session, WeenieError.YouKilledYourself);
+                Session.Network.EnqueueSend(msgSelfInflictedDeath);
+            }
 
             // update vitae
             // players who died in a PKLite fight do not accrue vitae
@@ -205,12 +212,55 @@ namespace ACE.Server.WorldObjects
             teleportChain.EnqueueChain();
         }
 
+        private bool suicideInProgress;
+
         /// <summary>
         /// Called when player uses the /die command
         /// </summary>
         public void HandleActionDie()
         {
-            Die(this, DamageHistory.TopDamager);
+            if (IsDead || Teleporting)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
+            if (suicideInProgress)
+                return;
+
+            suicideInProgress = true;
+
+            if (PropertyManager.GetBool("suicide_instant_death").Item)
+                Die(this, DamageHistory.TopDamager);
+            else
+                HandleSuicide(NumDeaths);
+        }
+
+        private static List<string> SuicideMessages = new List<string>()
+        {
+            "I feel faint...",
+            "My sight is growing dim...",
+            "My life is flashing before my eyes...",
+            "I see a light...",
+            "Oh cruel, cruel world!"
+        };
+
+        private void HandleSuicide(int numDeaths, int step = 0)
+        {
+            if (!suicideInProgress || numDeaths != NumDeaths)
+                return;
+
+            if (step < SuicideMessages.Count)
+            {
+                EnqueueBroadcast(new GameMessageCreatureMessage(SuicideMessages[step], Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+
+                var suicideChain = new ActionChain();
+                suicideChain.AddDelaySeconds(3.0f);
+                suicideChain.AddAction(this, () => HandleSuicide(numDeaths, step + 1));
+                suicideChain.EnqueueChain();
+            }
+            else
+                Die(this, DamageHistory.TopDamager);
         }
 
         public List<WorldObject> CalculateDeathItems(Corpse corpse)
@@ -458,9 +508,12 @@ namespace ACE.Server.WorldObjects
 
             // send network messages
             var dropList = DropMessage(dropItems, numCoinsDropped);
-            Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
+            if (!string.IsNullOrWhiteSpace(dropList))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.Broadcast));
 
-            DeathItemLog(dropItems);
+                DeathItemLog(dropItems);
+            }
 
             return dropItems;
         }
