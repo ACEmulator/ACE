@@ -115,6 +115,7 @@ namespace ACE.Server.WorldObjects
         {
             UpdateVital(Health, 0);
             NumDeaths++;
+            suicideInProgress = false;
 
             // killer = top damager for looting rights
             if (topDamager != null)
@@ -167,13 +168,6 @@ namespace ACE.Server.WorldObjects
                 TeleportOnDeath();      // enter portal space
                 SetLifestoneProtection();
                 SetMinimumTimeSincePK();
-
-                if (suicideInProgress)
-                {
-                    suicideInProgress = false;
-                    suicideStage = null;
-                    suicideCurrentNumDeaths = null;
-                }
             });
 
             dieChain.EnqueueChain();
@@ -218,9 +212,7 @@ namespace ACE.Server.WorldObjects
             teleportChain.EnqueueChain();
         }
 
-        private bool suicideInProgress;
-        private int? suicideStage;
-        private int? suicideCurrentNumDeaths;
+        private bool suicideInProgress { get; set; }
 
         /// <summary>
         /// Called when player uses the /die command
@@ -230,62 +222,37 @@ namespace ACE.Server.WorldObjects
             if (suicideInProgress) return;
 
             suicideInProgress = true;
-            if (!PropertyManager.GetBool("suicide_instant_death").Item)
-                suicideStage = 1;
+            if (PropertyManager.GetBool("suicide_instant_death").Item)
+                Die(this, DamageHistory.TopDamager);
             else
-                suicideStage = 6;
-            suicideCurrentNumDeaths = NumDeaths;
-
-            DoSuicideStaging(NumDeaths);
+                HandleSuicide(NumDeaths);
         }
 
-        private void DoSuicideStaging(int playerCurrentNumDeaths)
+        private static List<string> SuicideMessages = new List<string>()
         {
-            if (!suicideInProgress || !suicideCurrentNumDeaths.HasValue) return;
+            "I feel faint...",
+            "My sight is growing dim...",
+            "My life is flashing before my eyes...",
+            "I see a light...",
+            "Oh cruel, cruel world!"
+        };
 
-            var stageMsg = "";
+        private void HandleSuicide(int numDeaths, int step = 0)
+        {
+            if (!suicideInProgress || numDeaths != NumDeaths)
+                return;
 
-            switch (suicideStage)
+            if (step < SuicideMessages.Count)
             {
-                case 1:
-                    stageMsg = "I feel faint...";
-                    break;
-                case 2:
-                    stageMsg = "My sight is growing dim...";
-                    break;
-                case 3:
-                    stageMsg = "My life is flashing before my eyes...";
-                    break;
-                case 4:
-                    stageMsg = "I see a light...";
-                    break;
-                case 5:
-                    stageMsg = "Oh cruel, cruel world!";
-                    break;
-                case 6:
-                    if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
-                    {
-                        suicideStage++;
-                        Die(this, DamageHistory.TopDamager);
-                    }
-                    return;
-                default:
-                    // DO NOTHING
-                    return;
-            }
+                EnqueueBroadcast(new GameMessageCreatureMessage(SuicideMessages[step], Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
 
-            if (suicideInProgress && suicideCurrentNumDeaths == playerCurrentNumDeaths)
-            {
-                var dieChain = new ActionChain();
-                dieChain.AddAction(this, () =>
-                {
-                    EnqueueBroadcast(new GameMessageCreatureMessage(stageMsg, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
-                    suicideStage++;
-                });
-                dieChain.AddDelaySeconds(3);
-                dieChain.AddAction(this, () => DoSuicideStaging(NumDeaths));
-                dieChain.EnqueueChain();
+                var suicideChain = new ActionChain();
+                suicideChain.AddDelaySeconds(3.0f);
+                suicideChain.AddAction(this, () => HandleSuicide(numDeaths, step + 1));
+                suicideChain.EnqueueChain();
             }
+            else
+                Die(this, DamageHistory.TopDamager);
         }
 
         public List<WorldObject> CalculateDeathItems(Corpse corpse)
