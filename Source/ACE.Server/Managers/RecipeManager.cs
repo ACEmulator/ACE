@@ -1126,11 +1126,11 @@ namespace ACE.Server.Managers
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
-                    if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.Name}) - {op}");
+                    if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? sourceMod.Name}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     result.SetProperty(prop, player.GetProperty(prop) ?? player.Name);
-                    if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.Name}) - {op}");
+                    if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? player.Name}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyString({source.Name}, {target.Name}): unhandled operation {op}");
