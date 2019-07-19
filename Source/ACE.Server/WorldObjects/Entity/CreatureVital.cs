@@ -112,6 +112,8 @@ namespace ACE.Server.WorldObjects.Entity
             }
         }
 
+        public uint Missing => MaxValue - Current;
+
         public ModifierType ModifierType
         {
             get

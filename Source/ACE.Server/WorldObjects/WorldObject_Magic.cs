@@ -467,7 +467,7 @@ namespace ACE.Server.WorldObjects
                     var isDrain = spell.TransferFlags.HasFlag(TransferFlags.TargetSource | TransferFlags.CasterDestination);
                     var drainMod = isDrain ? (float)source.GetResistanceMod(GetDrainResistanceType(spell.Source)) : 1.0f;
 
-                    srcVitalChange = (uint)Math.Round(source.GetCurrentCreatureVital(spell.Source) * spell.Proportion * drainMod);
+                    srcVitalChange = (uint)Math.Round(source.GetCreatureVital(spell.Source).Current * spell.Proportion * drainMod);
 
                     if (spell.TransferCap != 0)
                     {
@@ -481,6 +481,15 @@ namespace ACE.Server.WorldObjects
                     destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
 
                     // scale srcVitalChange to destVitalChange?
+                    var missingDest = destination.GetCreatureVital(spell.Destination).Missing;
+
+                    if (destVitalChange > missingDest)
+                    {
+                        var scalar = (float)missingDest / destVitalChange;
+
+                        srcVitalChange = (uint)Math.Round(srcVitalChange * scalar);
+                        destVitalChange = missingDest;
+                    }
 
                     // Apply the change in vitals to the source
                     switch (spell.Source)
@@ -580,19 +589,19 @@ namespace ACE.Server.WorldObjects
 
                     if (spell.Name.Contains("Blight"))
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * spell.DrainPercentage);
+                        var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Mana).Current * spell.DrainPercentage);
                         damage = (uint)-caster.UpdateVitalDelta(caster.Mana, -tryDamage);
                         damageType = DamageType.Mana;
                     }
                     else if (spell.Name.Contains("Tenacity"))
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spell.DrainPercentage);
+                        var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Stamina).Current * spell.DrainPercentage);
                         damage = (uint)-caster.UpdateVitalDelta(caster.Stamina, -tryDamage);
                         damageType = DamageType.Stamina;
                     }
                     else
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Health) * spell.DrainPercentage);
+                        var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Health).Current * spell.DrainPercentage);
                         damage = (uint)-caster.UpdateVitalDelta(caster.Health, -tryDamage);
                         caster.DamageHistory.Add(this, DamageType.Health, damage);
                         damageType = DamageType.Health;
