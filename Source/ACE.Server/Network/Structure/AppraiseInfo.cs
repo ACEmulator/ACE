@@ -344,13 +344,17 @@ namespace ACE.Server.Network.Structure
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.ElementalDamageMod))
             {
-                var elementalDamageMod = wielder.EnchantmentManager.GetElementalDamageMod();
-                if (elementalDamageMod != 0)
-                {
-                    PropertiesFloat[PropertyFloat.ElementalDamageMod] += elementalDamageMod;
+                var weaponEnchantments = wo.EnchantmentManager.GetElementalDamageMod();
+                var wielderEnchantments = wielder.EnchantmentManager.GetElementalDamageMod();
 
-                    ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder);
-                    ResistColor = ResistMaskHelper.GetColorMask(wielder);
+                var enchantments = weaponEnchantments + wielderEnchantments;
+
+                if (enchantments != 0)
+                {
+                    PropertiesFloat[PropertyFloat.ElementalDamageMod] += enchantments;
+
+                    ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder, wo);
+                    ResistColor = ResistMaskHelper.GetColorMask(wielder, wo);
                 }
             }
         }

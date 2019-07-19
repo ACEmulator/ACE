@@ -12,13 +12,13 @@ namespace ACE.Server.WorldObjects
         public AttackType MAttackType
         {
             get => (AttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
-            set { if (value == AttackType.Undef) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
+            set { if (value == 0) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
         }
 
-        public int? W_WeaponType
+        public WeaponType W_WeaponType
         {
-            get => GetProperty(PropertyInt.WeaponType) ?? 0;
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, value.Value); }
+            get => (WeaponType)(GetProperty(PropertyInt.WeaponType) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, (int)value); }
         }
 
         public Skill WeaponSkill
@@ -27,10 +27,10 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.WeaponSkill); else SetProperty(PropertyInt.WeaponSkill, (int)value); }
         }
 
-        public int? W_DamageType
+        public DamageType W_DamageType
         {
-            get => GetProperty(PropertyInt.DamageType) ?? 0;
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.DamageType); else SetProperty(PropertyInt.DamageType, value.Value); }
+            get => (DamageType)(GetProperty(PropertyInt.DamageType) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.DamageType); else SetProperty(PropertyInt.DamageType, (int)value); }
         }
 
         /// <summary>
@@ -312,40 +312,40 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns a multiplicative elemental damage bonus for the magic caster weapon type
+        /// PvP damaged is halved, automatically displayed in the client
+        /// </summary>
+        public static readonly float ElementalDamageBonusPvPReduction = 0.5f;
+
+        /// <summary>
+        /// Returns a multiplicative elemental damage modifier for the magic caster weapon type
         /// </summary>
         public static float GetCasterElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
         {
-            // A multiplicative bonus, so the default is 1
-            float elementalDmgBonusPvPReduction = 0.5f;
-            float modifier = defaultBonusModifier;
+            var weapon = GetWeapon(wielder as Player);
 
-            var wielderAsPlayer = wielder as Player;
-            var targetAsPlayer = target as Player;
+            if (!(weapon is Caster) || weapon.W_DamageType != damageType)
+                return 1.0f;
 
-            WorldObject weapon = GetWeapon(wielderAsPlayer);
+            var elementalDamageMod = weapon.ElementalDamageMod ?? 1.0f;
 
-            if (weapon is Caster)
-            {
-                var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
-                if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
-                {
-                    var casterElementalDmgMod = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? modifier) + wielder.EnchantmentManager.GetElementalDamageMod();
-                    if (casterElementalDmgMod > modifier)
-                    {
-                        modifier = casterElementalDmgMod;
-                        if (wielderAsPlayer != null && targetAsPlayer != null)
-                            modifier = 1.0f + (casterElementalDmgMod - 1.0f) * elementalDmgBonusPvPReduction;
-                    }
-                }
-            }
-            return modifier;
+            // additive to base multiplier
+            var wielderEnchantments = wielder.EnchantmentManager.GetElementalDamageMod();
+            var weaponEnchantments = weapon.EnchantmentManager.GetElementalDamageMod();
+
+            var enchantments = wielderEnchantments + weaponEnchantments;
+
+            var modifier = (float)(elementalDamageMod + enchantments);
+
+            if (modifier > 1.0f && wielder is Player && target is Player)
+                modifier = 1.0f + (modifier - 1.0f) * ElementalDamageBonusPvPReduction;
+
+            return (float)(elementalDamageMod + enchantments);
         }
 
         /// <summary>
         /// Returns an additive elemental damage bonus for the missile launcher weapon type
         /// </summary>
-        public static int GetMissileElementalDamageModifier(Creature wielder, DamageType damageType)
+        public static int GetMissileElementalDamageBonus(Creature wielder, DamageType damageType)
         {
             // An additive bonus, so the default is zero
             int modifier = 0;
