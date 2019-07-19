@@ -219,9 +219,17 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionDie()
         {
-            if (suicideInProgress) return;
+            if (IsDead || Teleporting)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
+            if (suicideInProgress)
+                return;
 
             suicideInProgress = true;
+
             if (PropertyManager.GetBool("suicide_instant_death").Item)
                 Die(this, DamageHistory.TopDamager);
             else
