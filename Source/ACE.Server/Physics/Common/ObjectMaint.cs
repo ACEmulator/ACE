@@ -38,7 +38,7 @@ namespace ACE.Server.Physics.Common
         ///
         /// - This is only maintained for players.
         /// </remarks>
-        public Dictionary<uint, PhysicsObj> KnownObjects { get; set; }
+        public ConcurrentDictionary<uint, PhysicsObj> KnownObjects { get; set; }
 
         /// <summary>
         /// This list of objects that are currently within PVS / VisibleCell range
@@ -84,7 +84,7 @@ namespace ACE.Server.Physics.Common
         {
             PhysicsObj = obj;
 
-            KnownObjects = new Dictionary<uint, PhysicsObj>();
+            KnownObjects = new ConcurrentDictionary<uint, PhysicsObj>();
             VisibleObjects = new ConcurrentDictionary<uint, PhysicsObj>();
             DestructionQueue = new ConcurrentDictionary<PhysicsObj, double>();
 
@@ -102,7 +102,7 @@ namespace ACE.Server.Physics.Common
             if (KnownObjects.ContainsKey(obj.ID))
                 return false;
 
-            KnownObjects.Add(obj.ID, obj);
+            KnownObjects.TryAdd(obj.ID, obj);
 
             // maintain KnownPlayers for both parties
             if (obj.IsPlayer) AddKnownPlayer(obj);
@@ -130,7 +130,7 @@ namespace ACE.Server.Physics.Common
 
         public void RemoveKnownObject(PhysicsObj obj, bool inversePlayer = true)
         {
-            KnownObjects.Remove(obj.ID);
+            KnownObjects.TryRemove(obj.ID, out _);
 
             if (PhysicsObj.IsPlayer && inversePlayer)
                 obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
