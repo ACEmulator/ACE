@@ -215,7 +215,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    LifeMagic(player, spell, out uint damage, out bool critical, out enchantmentStatus);
+                    LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, player);
                     if (enchantmentStatus.Message != null)
                         EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
@@ -518,7 +518,7 @@ namespace ACE.Server.WorldObjects
                                     VoidMagic(target, spell);
                                     break;
                                 case MagicSchool.LifeMagic:
-                                    LifeMagic(target, spell, out uint damage, out bool critical, out var enchantmentStatus);
+                                    LifeMagic(spell, out uint damage, out bool critical, out var enchantmentStatus, target);
                                     break;
                             }
                         }
@@ -638,7 +638,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    targetDeath = LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus);
+                    targetDeath = LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
@@ -942,6 +942,9 @@ namespace ACE.Server.WorldObjects
                             case MagicSchool.VoidMagic:
                                 WarMagic(spell);
                                 break;
+                            case MagicSchool.LifeMagic:
+                                LifeMagic(spell, out uint damage, out bool critical, out var enchantmentStatus);
+                                break;
                             default:
                                 Session.Network.EnqueueSend(new GameMessageSystemChat("Untargeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
                                 break;
@@ -1047,7 +1050,7 @@ namespace ACE.Server.WorldObjects
                     EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = targetPlayer.LifeMagic(targetPlayer, spl.Spell, out dmg, out crit, out ec, this);
+                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out crit, out ec, targetPlayer, this);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {
