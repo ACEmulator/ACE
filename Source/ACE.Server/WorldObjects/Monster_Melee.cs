@@ -439,11 +439,11 @@ namespace ACE.Server.WorldObjects
                 var motionName = ((MotionCommand)maneuver.Motion).ToString();
                 if (motionName.Contains("Special"))
                     //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
-                    parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.Key == 22).ToList();  // always use Breath?
+                    parts = Biota.BiotaPropertiesBodyPart.Where(b => b.Key == (int)CombatBodyPart.Breath).ToList();  // always use Breath?
             }
             if (parts == null)
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
-                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.Key != 22 && b.BH != 0).ToList();
+                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.Key != (int)CombatBodyPart.Breath).ToList();
 
             if (parts.Count == 0)
             {
