@@ -241,7 +241,14 @@ namespace ACE.Server.WorldObjects
             if (weapon != null)
                 return GetDamageType();
             else
-                return (DamageType)attackPart.DType;
+            {
+                var damageType = (DamageType)attackPart.DType;
+
+                if (damageType.IsMultiDamage())
+                    damageType = damageType.SelectDamageType();
+
+                return damageType;
+            }
         }
 
         /// <summary>
