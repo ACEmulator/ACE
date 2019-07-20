@@ -48,24 +48,7 @@ namespace ACE.Entity.Enum
 
         public static bool IsMultiDamage(this DamageType damageType)
         {
-            switch (damageType)
-            {
-                case DamageType.Undef:
-                case DamageType.Slash:
-                case DamageType.Pierce:
-                case DamageType.Bludgeon:
-                case DamageType.Cold:
-                case DamageType.Fire:
-                case DamageType.Acid:
-                case DamageType.Electric:
-                case DamageType.Health:
-                case DamageType.Stamina:
-                case DamageType.Mana:
-                case DamageType.Nether:
-                case DamageType.Base:
-                    return false;
-            }
-            return true;
+            return EnumHelper.HasMultiple((uint)damageType);
         }
 
         public static DamageType SelectDamageType(this DamageType damageType)
