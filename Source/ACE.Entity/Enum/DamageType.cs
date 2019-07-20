@@ -72,7 +72,7 @@ namespace ACE.Entity.Enum
         {
             var damageTypes = EnumHelper.GetFlags(damageType);
 
-            var rng = ThreadSafeRandom.Next(0, damageTypes.Count - 1);
+            var rng = ThreadSafeRandom.Next(1, damageTypes.Count - 1);
 
             return (DamageType)damageTypes[rng];
         }
