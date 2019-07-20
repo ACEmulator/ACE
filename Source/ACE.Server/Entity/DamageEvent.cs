@@ -303,8 +303,8 @@ namespace ACE.Server.Entity
                 if (DamageType == DamageType.Base)
                 {
                     var weapon = attacker.GetEquippedWeapon();
-                    if (weapon != null && (weapon.W_DamageType ?? 0) != 0)
-                        DamageType = (DamageType)weapon.W_DamageType;
+                    if (weapon != null && weapon.W_DamageType != DamageType.Undef)
+                        DamageType = weapon.W_DamageType;
                     else
                         DamageType = DamageType.Pierce;
                 }
@@ -316,7 +316,7 @@ namespace ACE.Server.Entity
             BaseDamageMod = attacker.GetBaseDamageMod();
 
             if (DamageSource.ItemType == ItemType.MissileWeapon)
-                BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageModifier(attacker, DamageType);
+                BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(attacker, DamageType);
 
             BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
         }

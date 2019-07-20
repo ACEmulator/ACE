@@ -17,7 +17,7 @@ namespace ACE.Common.Extensions
         /// <summary>
         /// Returns the # of bits set in a Flags enum
         /// </summary>
-        /// <param name="enumVal">The enum int value</param>
+        /// <param name="enumVal">The enum uint value</param>
         public static int NumFlags(uint enumVal)
         {
             var cnt = 0;
@@ -28,6 +28,15 @@ namespace ACE.Common.Extensions
                 cnt++;
             }
             return cnt;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this flags enum has multiple flags set
+        /// </summary>
+        /// <param name="enumVal">The enum uint value</param>
+        public static bool HasMultiple(uint enumVal)
+        {
+            return (enumVal & (enumVal - 1)) != 0;
         }
     }
 }

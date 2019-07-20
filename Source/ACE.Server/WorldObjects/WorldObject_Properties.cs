@@ -992,6 +992,14 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ManaConversionMod); else SetProperty(PropertyFloat.ManaConversionMod, value.Value); }
         }
 
+        // for missile launchers, additive
+        public int? ElementalDamageBonus
+        {
+            get => GetProperty(PropertyInt.ElementalDamageBonus);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ElementalDamageBonus); else SetProperty(PropertyInt.ElementalDamageBonus, value.Value); }
+        }
+
+        // for casters, multiplicative
         public double? ElementalDamageMod
         {
             get => GetProperty(PropertyFloat.ElementalDamageMod);
