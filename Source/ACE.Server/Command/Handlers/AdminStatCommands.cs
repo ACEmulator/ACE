@@ -54,19 +54,27 @@ namespace ACE.Server.Command.Handlers
             // todo, add actual system memory used/avail
             sb.Append($"{(proc.PrivateMemorySize64 >> 20):N0} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
 
-            sb.Append($"{NetworkManager.GetSessionCount():N0} connections, {PlayerManager.GetAllOnline().Count:N0} players online{'\n'}");
+            sb.Append($"{NetworkManager.GetSessionCount():N0} connections, {NetworkManager.GetUniqueSessionEndpointCount():N0} unique connections, {PlayerManager.GetAllOnline().Count:N0} players online{'\n'}");
             sb.Append($"Total Accounts Created: {DatabaseManager.Authentication.GetAccountCount():N0}, Total Characters Created: {(PlayerManager.GetAllOffline().Count + PlayerManager.GetAllOnline().Count):N0}{'\n'}");
 
             // 330 active objects, 1931 total objects(16777216 buckets.)
 
             // todo, expand this
             var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
-            int dormantLandblocks = 0;
+            int dormantLandblocks = 0, activeDungeonLandblocks = 0, dormantDungeonLandblocks = 0;
             int players = 0, creatures = 0, missiles = 0, other = 0, total = 0;
             foreach (var landblock in loadedLandblocks)
             {
                 if (landblock.IsDormant)
                     dormantLandblocks++;
+
+                if (landblock.IsDungeon)
+                {
+                    if (landblock.IsDormant)
+                        dormantDungeonLandblocks++;
+                    else
+                        activeDungeonLandblocks++;
+                }
 
                 foreach (var worldObject in landblock.GetAllWorldObjectsForDiagnostics())
                 {
@@ -82,7 +90,7 @@ namespace ACE.Server.Command.Handlers
                     total++;
                 }
             }
-            sb.Append($"Landblocks: {(loadedLandblocks.Count - dormantLandblocks):N0} active, {dormantLandblocks:N0} dormant - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+            sb.Append($"Landblocks: {(loadedLandblocks.Count - dormantLandblocks):N0} active ({activeDungeonLandblocks:N0} dungeons), {dormantLandblocks:N0} dormant ({dormantDungeonLandblocks:N0} dungeons) - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
             if (ServerPerformanceMonitor.IsRunning)

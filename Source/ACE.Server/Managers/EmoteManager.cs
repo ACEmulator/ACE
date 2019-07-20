@@ -133,10 +133,8 @@ namespace ACE.Server.Managers
                 case EmoteType.AwardNoShareXP:
 
                     if (player != null)
-                    {
                         player.EarnXP((long)emote.Amount64, XpType.Quest, ShareType.None);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
-                    }
+
                     break;
 
                 case EmoteType.AwardSkillPoints:
@@ -162,10 +160,9 @@ namespace ACE.Server.Managers
                     if (player != null)
                     {
                         var amt = (long)emote.Amount64;
-                        if (amt >= 1)
+                        if (amt > 0)
                         {
                             player.EarnXP(amt, XpType.Quest, ShareType.All);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                         }
                         else if (amt < 0)
                         {

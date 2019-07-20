@@ -992,6 +992,14 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ManaConversionMod); else SetProperty(PropertyFloat.ManaConversionMod, value.Value); }
         }
 
+        // for missile launchers, additive
+        public int? ElementalDamageBonus
+        {
+            get => GetProperty(PropertyInt.ElementalDamageBonus);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ElementalDamageBonus); else SetProperty(PropertyInt.ElementalDamageBonus, value.Value); }
+        }
+
+        // for casters, multiplicative
         public double? ElementalDamageMod
         {
             get => GetProperty(PropertyFloat.ElementalDamageMod);
@@ -1266,16 +1274,16 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.HouseOwnerName); else SetProperty(PropertyString.HouseOwnerName, value); }
         }
 
-        public int HouseStatus
+        public HouseStatus HouseStatus
         {
-            get => GetProperty(PropertyInt.HouseStatus) ?? 0;
-            set { if (value == 0) RemoveProperty(PropertyInt.HouseStatus); else SetProperty(PropertyInt.HouseStatus, value); }
+            get => (HouseStatus?)GetProperty(PropertyInt.HouseStatus) ?? HouseStatus.Active;
+            set { if (value == HouseStatus.Active) RemoveProperty(PropertyInt.HouseStatus); else SetProperty(PropertyInt.HouseStatus, (int)value); }
         }
 
-        public HouseType? HouseType
+        public HouseType HouseType
         {
-            get => (HouseType?)GetProperty(PropertyInt.HouseType);
-            set { if (value.HasValue) RemoveProperty(PropertyInt.HouseType); else SetProperty(PropertyInt.HouseType, (int)value.Value); }
+            get => (HouseType?)GetProperty(PropertyInt.HouseType) ?? HouseType.Undef;
+            set { if (value == HouseType.Undef) RemoveProperty(PropertyInt.HouseType); else SetProperty(PropertyInt.HouseType, (int)value); }
         }
 
         public int? HookItemType
@@ -1344,15 +1352,21 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Bonded); else SetProperty(PropertyInt.Bonded, value.Value); }
         }
 
+        public bool IsOpen
+        {
+            get => GetProperty(PropertyBool.Open) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value); }
+        }
+
 
         // ========================================
         // ====== Weenie Header 2 Properties ======
         // ========================================
-        // used in CalculatedWeenieHeaderFlag2()
+        // used in CalculateWeenieHeaderFlag2()
         public uint? IconUnderlayId
         {
             get => GetProperty(PropertyDataId.IconUnderlay);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value);  }
         }
 
         public int? CooldownId
@@ -1374,12 +1388,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public bool IsOpen
-        {
-            get => GetProperty(PropertyBool.Open) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value); }
-        }
-
         // ========================================
         // ======== Description Properties ========
         // ========================================
@@ -1387,19 +1395,19 @@ namespace ACE.Server.WorldObjects
         public bool IsLocked
         {
             get => GetProperty(PropertyBool.Locked) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.Locked); else SetProperty(PropertyBool.Locked, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.Locked); else SetProperty(PropertyBool.Locked, value); }
         }
 
         public bool Inscribable
         {
             get => GetProperty(PropertyBool.Inscribable) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.Inscribable); else SetProperty(PropertyBool.Inscribable, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.Inscribable); else SetProperty(PropertyBool.Inscribable, value); }
         }
 
         public bool Stuck
         {
             get => GetProperty(PropertyBool.Stuck) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.Stuck); else SetProperty(PropertyBool.Stuck, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.Stuck); else SetProperty(PropertyBool.Stuck, value); }
         }
 
         /// <summary>
@@ -1408,49 +1416,49 @@ namespace ACE.Server.WorldObjects
         public bool Attackable
         {
             get => GetProperty(PropertyBool.Attackable) ?? true;
-            set { if (value) RemoveProperty(PropertyBool.Attackable); else SetProperty(PropertyBool.Attackable, value); UpdateDescriptionFlags(); }
+            set { if (value) RemoveProperty(PropertyBool.Attackable); else SetProperty(PropertyBool.Attackable, value); }
         }
 
         public bool HiddenAdmin
         {
             get => GetProperty(PropertyBool.HiddenAdmin) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.HiddenAdmin); else SetProperty(PropertyBool.HiddenAdmin, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.HiddenAdmin); else SetProperty(PropertyBool.HiddenAdmin, value); }
         }
 
         public bool UiHidden
         {
             get => GetProperty(PropertyBool.UiHidden) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.UiHidden); else SetProperty(PropertyBool.UiHidden, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.UiHidden); else SetProperty(PropertyBool.UiHidden, value); }
         }
 
         public bool IgnoreHouseBarriers
         {
             get => GetProperty(PropertyBool.IgnoreHouseBarriers) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.IgnoreHouseBarriers); else SetProperty(PropertyBool.IgnoreHouseBarriers, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.IgnoreHouseBarriers); else SetProperty(PropertyBool.IgnoreHouseBarriers, value); }
         }
 
         public bool RequiresPackSlot
         {
             get => GetProperty(PropertyBool.RequiresBackpackSlot) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.RequiresBackpackSlot); else SetProperty(PropertyBool.RequiresBackpackSlot, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.RequiresBackpackSlot); else SetProperty(PropertyBool.RequiresBackpackSlot, value); }
         }
 
         public bool Retained
         {
             get => GetProperty(PropertyBool.Retained) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.Retained); else SetProperty(PropertyBool.Retained, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.Retained); else SetProperty(PropertyBool.Retained, value); }
         }
 
         public bool WieldOnUse
         {
             get => GetProperty(PropertyBool.WieldOnUse) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.WieldOnUse); else SetProperty(PropertyBool.WieldOnUse, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.WieldOnUse); else SetProperty(PropertyBool.WieldOnUse, value); }
         }
 
         public bool WieldLeft
         {
             get => GetProperty(PropertyBool.AutowieldLeft) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.AutowieldLeft); else SetProperty(PropertyBool.AutowieldLeft, value); UpdateDescriptionFlags(); }
+            set { if (!value) RemoveProperty(PropertyBool.AutowieldLeft); else SetProperty(PropertyBool.AutowieldLeft, value); }
         }
 
         // ========================================
@@ -2332,7 +2340,7 @@ namespace ACE.Server.WorldObjects
         private PlayerKillerStatus _playerKillerStatus
         {
             get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? PlayerKillerStatus.NPK;
-            set { SetProperty(PropertyInt.PlayerKillerStatus, (int)value); UpdateDescriptionFlags(); }
+            set { SetProperty(PropertyInt.PlayerKillerStatus, (int)value); }
         }
 
         public PlayerKillerStatus PlayerKillerStatus
@@ -2351,7 +2359,7 @@ namespace ACE.Server.WorldObjects
         public CloakStatus CloakStatus
         {
             get => (CloakStatus)(GetProperty(PropertyInt.CloakStatus) ?? 0);
-            set { if (value == 0) RemoveProperty(PropertyInt.CloakStatus); else SetProperty(PropertyInt.CloakStatus, (int)value); UpdateDescriptionFlags(); }
+            set { if (value == 0) RemoveProperty(PropertyInt.CloakStatus); else SetProperty(PropertyInt.CloakStatus, (int)value); }
         }
 
         public bool IgnorePortalRestrictions

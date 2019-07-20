@@ -66,7 +66,16 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            if (player.CurrentLandblock.IsDungeon && Destination.LandblockId != player.CurrentLandblock.Id)
+                return new ActivationResult(true); // Allow escape to overworld always.
+
             if (player.IgnorePortalRestrictions)
+                return new ActivationResult(true);
+
+            if (!House.RootHouse.HouseOwner.HasValue || House.RootHouse.HouseOwner == 0)
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
+
+            if (House.RootHouse.IsOpen && House.RootHouse.HouseOwner.HasValue && House.RootHouse.HouseOwner > 0)
                 return new ActivationResult(true);
 
             if (!House.RootHouse.HasPermission(player))

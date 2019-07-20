@@ -866,7 +866,7 @@ namespace ACE.Server.Command.Handlers
             {
                 if (parameters[0] == "all")
                 {
-                    foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values)
+                    foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjects.Values)
                     {
                         var wo = obj.WeenieObj.WorldObject;
 

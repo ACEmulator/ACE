@@ -39,7 +39,7 @@ The following three sections (Database, Code, and Starting the Server) contain a
 6. Create a final database named `ace_world`.
 7. Load WorldBase.sql to initialize the ace_world database. 
 8. Download from [ACE-World-16PY-Patches](https://github.com/ACEmulator/ACE-World-16PY-Patches) the [latest release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest) of world data, extract and load into your ace_world database.
-   * [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.55+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
+   * [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.98+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
 9. SKIP THIS STEP IF USING DOWNLOADED WORLD DATA FROM PREVIOUS STEP.
    * If using a custom database, you may need to update the schema for the emulator to operate correctly. If you're using the official release data, this step is not recommended.
    * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.

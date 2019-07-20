@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -180,6 +181,27 @@ namespace ACE.Server.Network.Managers
             try
             {
                 return sessionMap.Count(s => s != null);
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
+        public static int GetUniqueSessionEndpointCount()
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                var ipAddresses = new HashSet<IPAddress>();
+
+                foreach (var s in sessionMap)
+                {
+                    if (s != null)
+                        ipAddresses.Add(s.EndPoint.Address);
+                }
+
+                return ipAddresses.Count;
             }
             finally
             {

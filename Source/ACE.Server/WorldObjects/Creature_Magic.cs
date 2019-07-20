@@ -89,41 +89,71 @@ namespace ACE.Server.WorldObjects
             if (castItem != null && (castItem.SpellDID ?? 0) == spell.Id)
                 baseCost = (uint)(castItem.ItemManaCost ?? 0);
 
-            uint mana_conversion_skill = (uint)Math.Round(caster.GetCreatureSkill(Skill.ManaConversion).Current * GetWeaponManaConversionModifier(caster));
-
-            uint difficulty = spell.PowerMod;   // modified power difficulty
-
-            double baseManaPercent = 1.0;
-            if (mana_conversion_skill > difficulty)
-                baseManaPercent = (double)difficulty / mana_conversion_skill;
-
-            uint preCost = 0;
-
             if ((spell.School == MagicSchool.ItemEnchantment) && (spell.MetaSpellType == SpellType.Enchantment) &&
                 (spell.Category >= SpellCategory.ArmorValueRaising) && (spell.Category <= SpellCategory.AcidicResistanceLowering) && target is Player targetPlayer)
             {
-                int numTargetItems = 1;
+                var numTargetItems = 1;
                 if (targetPlayer != null)
                     numTargetItems = targetPlayer.EquippedObjects.Values.Count(i => (i is Clothing || i.IsShield) && i.IsEnchantable);
 
-                preCost = (uint)Math.Round((baseCost + (spell.ManaMod * numTargetItems)) * baseManaPercent);
+                baseCost += spell.ManaMod * (uint)numTargetItems;
             }
             else if ((spell.Flags & SpellFlags.FellowshipSpell) != 0)
             {
-                int numFellows = 1;
-                var player = this as Player;
-                if (player != null && player.Fellowship != null)
+                var numFellows = 1;
+                if (this is Player player && player.Fellowship != null)
                     numFellows = player.Fellowship.FellowshipMembers.Count;
 
-                preCost = (uint)Math.Round((baseCost + (spell.ManaMod * numFellows)) * baseManaPercent);
+                baseCost += spell.ManaMod * (uint)numFellows;
             }
-            else
-                preCost = (uint)Math.Round(baseCost * baseManaPercent);
 
-            if (preCost < 1) preCost = 1;
+            var difficulty = spell.PowerMod;   // modified power difficulty
 
-            uint manaUsed = ThreadSafeRandom.Next(1, preCost);
-            return manaUsed;
+            var mana_conversion_skill = (uint)Math.Round(caster.GetCreatureSkill(Skill.ManaConversion).Current * GetWeaponManaConversionModifier(caster));
+
+            var manaCost = GetManaCost(difficulty, baseCost, mana_conversion_skill);
+
+            return manaCost;
+        }
+
+        public static uint GetManaCost(uint difficulty, uint manaCost, uint manaConv)
+        {
+            // thanks to GDLE for this function!
+            if (manaConv == 0)
+                return manaCost;
+
+            // Dropping diff by half as Specced ManaC is only 48 with starter Aug so 50 at level 1 means no bonus
+            //   easiest change without having to create two different formulas to try to emulate retail
+            var successChance = SkillCheck.GetSkillChance(manaConv, difficulty / 2);
+            var roll = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            // Luck lowers the roll value to give better outcome
+            // e.g. successChance = 0.83 & roll = 0.71 would still provide some savings.
+            //   but a luck roll of 0.19 will lower that 0.71 to 0.13 so the caster would
+            //   receive a 60% reduction in mana cost.  without the luck roll, 12%
+            //   so players will always have a level of "luck" in manacost if they make skill checks
+            var luck = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            if (roll <= successChance)
+            {
+                manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
+            }
+
+            // above seems to give a good middle of the range
+            // seen in pcaps for mana usage for low level chars
+            // bug still need a way to give a better reduction for the "lucky"
+
+            // save some calc time if already at 1 mana cost
+            if (manaCost > 1)
+            {
+                successChance = SkillCheck.GetSkillChance(manaConv, difficulty);
+                roll = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+                if (roll <= successChance)
+                    manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
+            }
+
+            return Math.Max(manaCost, 1);
         }
 
         /// <summary>

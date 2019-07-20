@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.IO;
 
 using Microsoft.EntityFrameworkCore;
@@ -24,10 +25,12 @@ namespace ACE.Server.Command.Handlers.Processors
             var sep = Path.DirectorySeparatorChar;
 
             var json_folder = $"{di.FullName}{sep}json{sep}weenies{sep}";
-            var sql_folder = json_folder.Replace("json", "sql");
 
             var wcid = parameters[0];
             var prefix = wcid + " - ";
+
+            if (wcid.Equals("all", StringComparison.OrdinalIgnoreCase))
+                prefix = "";
 
             di = new DirectoryInfo(json_folder);
 
@@ -39,30 +42,13 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var fi = files[0];
-
-            // convert json -> sql
-            var sqlFile = json2sql(session, json_folder, fi.Name);
-            if (sqlFile == null) return;
-
-            // import sql to db
-            ImportSQL(sql_folder + sqlFile);
-            CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sqlFile}");
-
-            // clear this weenie out of the cache
-            if (uint.TryParse(wcid, out var weenieClassId))
-                DatabaseManager.World.ClearCachedWeenie(weenieClassId);
+            foreach (var file in files)
+                HandleImportJson(session, json_folder, file.Name);
         }
 
         [CommandHandler("import-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports SQL weenie from the Content folder", "<wcid>")]
         public static void HandleImportSQL(Session session, params string[] parameters)
         {
-            if (!uint.TryParse(parameters[0], out var wcid))
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid wcid {parameters[0]}");
-                return;
-            }
-
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
 
@@ -70,37 +56,29 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sql_folder = $"{di.FullName}{sep}sql{sep}weenies{sep}";
 
+            var wcid = parameters[0];
+            var prefix = wcid + " ";
+
+            if (wcid.Equals("all", StringComparison.OrdinalIgnoreCase))
+                prefix = "";
+
             di = new DirectoryInfo(sql_folder);
 
-            var files = di.Exists ? di.GetFiles($"{wcid} *.sql") : null;
+            var files = di.Exists ? di.GetFiles($"{prefix}*.sql") : null;
 
             if (files == null || files.Length == 0)
             {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find {sql_folder}{wcid} - *.sql");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find {sql_folder}{prefix}*.sql");
                 return;
             }
 
-            var sqlFile = files[0].Name;
-
-            // import sql to db
-            ImportSQL(sql_folder + sqlFile);
-            CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sqlFile}");
-
-            // clear this weenie out of the cache
-            DatabaseManager.World.ClearCachedWeenie(wcid);
-
-            // load weenie from database
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
-
-            if (weenie == null)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't load weenie {wcid} from db");
-                return;
-            }
-
-            sql2json(session, weenie, sql_folder, sqlFile);
+            foreach (var file in files)
+                HandleImportSQL(session, sql_folder, file.Name);
         }
 
+        /// <summary>
+        /// Returns the absolute content folder path, and verifies it exists
+        /// </summary>
         private static DirectoryInfo VerifyContentFolder(Session session)
         {
             var content_folder = PropertyManager.GetString("content_folder").Item;
@@ -124,6 +102,33 @@ namespace ACE.Server.Command.Handlers.Processors
             return di;
         }
 
+        /// <summary>
+        /// Converts JSON to SQL, imports to database, and clears the weenie cache
+        /// </summary>
+        private static void HandleImportJson(Session session, string json_folder, string json_file)
+        {
+            if (!uint.TryParse(Regex.Match(json_file, @"\d+").Value, out var wcid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find wcid from {json_file}");
+                return;
+            }
+
+            // convert json -> sql
+            var sqlFile = json2sql(session, json_folder, json_file);
+            if (sqlFile == null) return;
+
+            // import sql to db
+            var sql_folder = json_folder.Replace("json", "sql");
+            ImportSQL(sql_folder + sqlFile);
+            CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sqlFile}");
+
+            // clear this weenie out of the cache
+            DatabaseManager.World.ClearCachedWeenie(wcid);
+        }
+
+        /// <summary>
+        /// Converts a json file to sql file
+        /// </summary>
         public static string json2sql(Session session, string folder, string json_filename)
         {
             var json_file = folder + json_filename;
@@ -165,7 +170,7 @@ namespace ACE.Server.Command.Handlers.Processors
                     output.LastModified = DateTime.UtcNow;
                 sqlFilename = converter.GetDefaultFileName(output);
                 var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
-                
+
                 converter.CreateSQLDELETEStatement(output, sqlFile);
                 sqlFile.WriteLine();
                 converter.CreateSQLINSERTStatement(output, sqlFile);
@@ -183,6 +188,39 @@ namespace ACE.Server.Command.Handlers.Processors
             return sqlFilename;
         }
 
+        /// <summary>
+        /// Converts SQL to JSON, imports to database, clears the weenie cache
+        /// </summary>
+        private static void HandleImportSQL(Session session, string sql_folder, string sql_file)
+        {
+            if (!uint.TryParse(Regex.Match(sql_file, @"\d+").Value, out var wcid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find wcid from {sql_file}");
+                return;
+            }
+
+            // import sql to db
+            ImportSQL(sql_folder + sql_file);
+            CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sql_file}");
+
+            // clear this weenie out of the cache
+            DatabaseManager.World.ClearCachedWeenie(wcid);
+
+            // load weenie from database
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+
+            if (weenie == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't load weenie {wcid} from db");
+                return;
+            }
+
+            sql2json(session, weenie, sql_folder, sql_file);
+        }
+
+        /// <summary>
+        /// Converts a sql file to json file
+        /// </summary>
         public static bool sql2json(Session session, Weenie weenie, string sql_folder, string sql_filename)
         {
             if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json))
@@ -194,6 +232,11 @@ namespace ACE.Server.Command.Handlers.Processors
             var json_folder = sql_folder.Replace("sql", "json");
             var json_filename = sql_filename.Replace(".sql", ".json");
 
+            var di = new DirectoryInfo(json_folder);
+
+            if (!di.Exists)
+                di.Create();
+
             File.WriteAllText(json_folder + json_filename, json);
 
             CommandHandlerHelper.WriteOutputInfo(session, $"Converted {sql_filename} to {json_filename}");
@@ -201,6 +244,9 @@ namespace ACE.Server.Command.Handlers.Processors
             return true;
         }
 
+        /// <summary>
+        /// Imports an SQL file into the database
+        /// </summary>
         public static void ImportSQL(string sqlFile)
         {
             var sqlCommands = File.ReadAllText(sqlFile);

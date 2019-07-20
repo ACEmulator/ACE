@@ -460,6 +460,7 @@ namespace ACE.Server.Managers
                 ("salvage_handle_overages", false), // in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost
                 ("spellcast_recoil_queue", false),  // if true, players can queue the next spell to cast during recoil animation
                 ("show_dot_messages", false),       // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
+                ("suicide_instant_death", false),   // if enabled, @die command kills player instantly. defaults to disabled, as in retail
                 ("use_wield_requirements", true),   // disable this to bypass wield requirements. mostly for dev debugging
                 ("world_closed", false)             // enable this to startup world as a closed to players world.
                 );
@@ -475,6 +476,11 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
+                ("minor_cantrip_drop_rate", 1.0),
+                ("major_cantrip_drop_rate", 1.0),
+                ("epic_cantrip_drop_rate", 1.0),
+                ("legendary_cantrip_drop_rate", 1.0),
+                ("aetheria_drop_rate", 1.0),
                 ("chess_ai_start_time", -1.0),      // the number of seconds for the chess ai to start. defaults to -1 (disabled)
                 ("encounter_delay", 1800),          // the number of seconds a generator profile for regions is delayed from returning to free slots
                 ("encounter_regen_interval", 600),  // the number of seconds a generator for regions at which spawns its next set of objects.

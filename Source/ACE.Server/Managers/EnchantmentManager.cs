@@ -964,10 +964,12 @@ namespace ACE.Server.Managers
             // (possibly from also being cast as direct item spells elsewhere?)
             // and blood drinker 8 is properly defined as aura...
 
-            if (WorldObject is Creature && auraDamageMod != 0)
+            /*if (WorldObject is Creature && auraDamageMod != 0)
                 return auraDamageMod;
             else
-                return damageMod;
+                return damageMod;*/
+
+            return auraDamageMod + damageMod;
         }
 
         /// <summary>
@@ -986,10 +988,12 @@ namespace ACE.Server.Managers
             var offenseMod = GetAdditiveMod(PropertyFloat.WeaponOffense);
             var auraOffenseMod = GetAdditiveMod(PropertyFloat.WeaponAuraOffense);
 
-            if (WorldObject is Creature && auraOffenseMod != 0)
+            /*if (WorldObject is Creature && auraOffenseMod != 0)
                 return auraOffenseMod;
             else
-                return offenseMod;
+                return offenseMod;*/
+
+            return auraOffenseMod + offenseMod;
         }
 
         /// <summary>
@@ -1000,10 +1004,12 @@ namespace ACE.Server.Managers
             var speedMod = GetAdditiveMod(PropertyInt.WeaponTime);
             var auraSpeedMod = GetAdditiveMod(PropertyInt.WeaponAuraSpeed);
 
-            if (WorldObject is Creature && auraSpeedMod != 0)
+            /*if (WorldObject is Creature && auraSpeedMod != 0)
                 return auraSpeedMod;
             else
-                return speedMod;
+                return speedMod;*/
+
+            return auraSpeedMod + speedMod;
         }
 
         /// <summary>
@@ -1014,10 +1020,12 @@ namespace ACE.Server.Managers
             var defenseMod = GetAdditiveMod(PropertyFloat.WeaponDefense);
             var auraDefenseMod = GetAdditiveMod(PropertyFloat.WeaponAuraDefense);
 
-            if (WorldObject is Creature && auraDefenseMod != 0)
+            /*if (WorldObject is Creature && auraDefenseMod != 0)
                 return auraDefenseMod;
             else
-                return defenseMod;
+                return defenseMod;*/
+
+            return auraDefenseMod + defenseMod;
         }
 
         /// <summary>
@@ -1028,10 +1036,12 @@ namespace ACE.Server.Managers
             var manaConvMod = GetMultiplicativeMod(PropertyFloat.ManaConversionMod);
             var manaConvAuraMod = GetMultiplicativeMod(PropertyFloat.WeaponAuraManaConv);
 
-            if (WorldObject is Creature && manaConvAuraMod != 1.0f)
+            /*if (WorldObject is Creature && manaConvAuraMod != 1.0f)
                 return manaConvAuraMod;
             else
-                return manaConvMod;
+                return manaConvMod;*/
+
+            return manaConvAuraMod * manaConvMod;
         }
 
         /// <summary>
@@ -1042,10 +1052,12 @@ namespace ACE.Server.Managers
             var elementalDamageMod = GetAdditiveMod(PropertyFloat.ElementalDamageMod);
             var elementalDamageAuraMod = GetAdditiveMod(PropertyFloat.WeaponAuraElemental);
 
-            if (WorldObject is Creature && elementalDamageAuraMod != 0)
+            /*if (WorldObject is Creature && elementalDamageAuraMod != 0)
                 return elementalDamageAuraMod;
             else
-                return elementalDamageMod;
+                return elementalDamageMod;*/
+
+            return elementalDamageAuraMod + elementalDamageMod;
         }
 
         /// <summary>
@@ -1230,6 +1242,7 @@ namespace ACE.Server.Managers
         {
             var dots = new List<BiotaPropertiesEnchantmentRegistry>();
             var netherDots = new List<BiotaPropertiesEnchantmentRegistry>();
+            var heals = new List<BiotaPropertiesEnchantmentRegistry>();
 
             foreach (var enchantment in enchantments)
             {
@@ -1239,6 +1252,9 @@ namespace ACE.Server.Managers
 
                 if (enchantment.StatModKey == (int)PropertyInt.NetherOverTime)
                     netherDots.Add(enchantment);
+
+                if (enchantment.StatModKey == (int)PropertyInt.HealOverTime)
+                    heals.Add(enchantment);
             }
 
             // apply damage over time (DoTs)
@@ -1247,6 +1263,37 @@ namespace ACE.Server.Managers
 
             if (netherDots.Count > 0)
                 ApplyDamageTick(netherDots, DamageType.Nether);
+
+            // apply healing over time (HoTs)
+            if (heals.Count > 0)
+                ApplyHealingTick(heals);
+        }
+
+        public void ApplyHealingTick(List<BiotaPropertiesEnchantmentRegistry> enchantments)
+        {
+            var creature = WorldObject as Creature;
+            if (creature == null) return;
+
+            // get the total tick amount
+            var tickAmountTotal = 0.0f;
+            foreach (var enchantment in enchantments)
+            {
+                var totalAmount = enchantment.StatModValue;
+                var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
+                var tickAmount = totalAmount / totalTicks;
+
+                tickAmountTotal += tickAmount;
+            }
+
+            // apply healing ratings
+            tickAmountTotal *= creature.GetHealingRatingMod();
+
+            // do healing
+            var healAmount = creature.UpdateVitalDelta(creature.Health, (int)Math.Round(tickAmountTotal));
+            creature.DamageHistory.OnHeal((uint)healAmount);
+
+            if (creature is Player player)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You receive {healAmount} points of periodic healing.", ChatMessageType.Combat));
         }
 
         /// <summary>

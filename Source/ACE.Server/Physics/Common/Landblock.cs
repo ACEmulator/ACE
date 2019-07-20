@@ -31,7 +31,7 @@ namespace ACE.Server.Physics.Common
         public List<ushort> StabList;
         public List<LandCell> DrawArray;
         public List<PhysicsObj> Scenery;
-        public List<PhysicsObj> ServerObjects;
+        public List<PhysicsObj> ServerObjects { get; set; }
 
         public static bool UseSceneFiles = true;
 

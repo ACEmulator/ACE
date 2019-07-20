@@ -41,15 +41,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetKnownObjects()
         {
-            return ObjMaint.ObjectTable.Values.Select(o => o.WeenieObj.WorldObject).Where(wo => wo != null).ToList();
+            return ObjMaint.KnownObjects.Values.Select(o => o.WeenieObj.WorldObject).Where(wo => wo != null).ToList();
         }
 
         /// <summary>
         /// Sends a network message to player for CreateObject, if applicable
         /// </summary>
-        public void TrackObject(WorldObject worldObject)
+        public void TrackObject(WorldObject worldObject, bool delay = false)
         {
-            //Console.WriteLine($"TrackObject({worldObject.Name})");
+            //Console.WriteLine($"TrackObject({worldObject.Name}, {delay})");
 
             if (worldObject == null || worldObject.Guid == Guid)
                 return;
@@ -74,13 +74,13 @@ namespace ACE.Server.WorldObjects
         public bool AddTrackedObject(WorldObject worldObject)
         {
             // does this work for equipped objects?
-            if (ObjMaint.ObjectTable.Values.Contains(worldObject.PhysicsObj))
+            if (ObjMaint.KnownObjects.Values.Contains(worldObject.PhysicsObj))
             {
-                //Console.WriteLine($"Player {Name} - AddTrackedObject({worldObject}) skipped, already tracked");
+                //Console.WriteLine($"Player {Name} - AddTrackedObject({worldObject.Name}) skipped, already tracked");
                 return false;
             }
 
-            ObjMaint.AddObject(worldObject.PhysicsObj);
+            ObjMaint.AddKnownObject(worldObject.PhysicsObj);
             ObjMaint.AddVisibleObject(worldObject.PhysicsObj);
 
             TrackObject(worldObject);
@@ -93,8 +93,6 @@ namespace ACE.Server.WorldObjects
         public bool RemoveTrackedObject(WorldObject worldObject, bool fromPickup)
         {
             //Console.WriteLine($"Player {Name} - RemoveTrackedObject({remove})");
-
-            ObjMaint.RemoveObject(worldObject.PhysicsObj);
 
             if (fromPickup)
                 Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));

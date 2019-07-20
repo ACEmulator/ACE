@@ -393,17 +393,32 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the pre-MoA skill for a non-player creature
+        /// Returns the current weapon skill for non-player creatures
         /// </summary>
         public virtual Skill GetCurrentWeaponSkill()
         {
             var weapon = GetEquippedWeapon();
-            if (weapon == null) return Skill.UnarmedCombat;
 
-            var skill = (Skill)(weapon.GetProperty(PropertyInt.WeaponSkill) ?? 0);
+            var skill = weapon != null ? weapon.WeaponSkill : Skill.UnarmedCombat;
+
+            var creatureSkill = GetCreatureSkill(skill);
+
+            if (creatureSkill.InitLevel == 0)
+            {
+                // convert to post-MoA skill
+                if (weapon != null && weapon.IsRanged)
+                    skill = Skill.MissileWeapons;
+                else if (skill == Skill.Sword)
+                    skill = Skill.HeavyWeapons;
+                else if (skill == Skill.Dagger)
+                    skill = Skill.FinesseWeapons;
+                else
+                    skill = Skill.LightWeapons;
+            }
+
             //Console.WriteLine("Monster weapon skill: " + skill);
 
-            return skill == Skill.None ? Skill.UnarmedCombat : skill;
+            return skill;
         }
 
         /// <summary>
@@ -998,6 +1013,21 @@ namespace ACE.Server.WorldObjects
                 default:
                     return Skill.None;
             }
+        }
+
+        /// <summary>
+        /// Wakes up a monster if it can be alerted
+        /// </summary>
+        public bool AlertMonster(Creature monster)
+        {
+            if ((monster.Attackable || monster.TargetingTactic != TargetingTactic.None) && monster.MonsterState == State.Idle && monster.Tolerance == Tolerance.None)
+            {
+                //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
+                monster.AttackTarget = this;
+                monster.WakeUp();
+                return true;
+            }
+            return false;
         }
     }
 }

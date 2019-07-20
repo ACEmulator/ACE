@@ -69,10 +69,9 @@ namespace ACE.Server.WorldObjects
             TargetPiece = CurrentLandblock.GetObject(victim) as GamePiece;
         }
 
-        public override void Monster_Tick(double currentUnixTime)
+        public void Tick(double currentUnixTime)
         {
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
-            IsMonster = true;
 
             switch (GamePieceState)
             {

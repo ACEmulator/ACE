@@ -235,7 +235,7 @@ namespace ACE.Server.Entity
                     || Category == SpellCategory.DefenseModLowering
                     || Category == SpellCategory.AttackModLowering
                     || Category == SpellCategory.WeaponTimeLowering
-                    || Category == SpellCategory.AppraisalResistanceRaising;    // hermetic void, replaced hide value, unchanged category in dat
+                    || Category == SpellCategory.ManaConversionModLowering;    // hermetic void, replaced hide value, unchanged category in dat
             }
         }
 
@@ -262,7 +262,7 @@ namespace ACE.Server.Entity
                     || Category == SpellCategory.DamageRaising
                     || Category == SpellCategory.DefenseModRaising
                     || Category == SpellCategory.WeaponTimeRaising
-                    || Category == SpellCategory.AppraisalResistanceLowering
+                    || Category == SpellCategory.ManaConversionModRaising
                     || Category == SpellCategory.SpellDamageRaising;
             }
         }

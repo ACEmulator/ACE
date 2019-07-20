@@ -493,7 +493,8 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // handle self procs
-                    TryProcEquippedItems(this, true);
+                    if (spell.IsHarmful && target != this)
+                        TryProcEquippedItems(this, true);
 
                     break;
 

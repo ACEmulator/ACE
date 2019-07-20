@@ -96,6 +96,9 @@ namespace ACE.Server.WorldObjects
                 CheckForLevelup();
             }
 
+            if (xpType == XpType.Quest)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} experience.", ChatMessageType.Broadcast));
+
             if (HasVitae && xpType != XpType.Allegiance)
                 UpdateXpVitae(amount);
         }
@@ -355,14 +358,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void GrantLevelProportionalXp(double percent, ulong max, bool shareable = false)
         {
-            var maxLevel = GetMaxLevel();
-            if (Level >= maxLevel) return;
+            var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
 
-            var nextLevel = Level.Value + 1;
-            if (nextLevel > 275)
-                nextLevel = 275;
-
-            var nextLevelXP = GetXPBetweenLevels(Level.Value, nextLevel);
             var scaledXP = (long)Math.Min(nextLevelXP * percent, max);
 
             var shareType = shareable ? ShareType.All : ShareType.None;
