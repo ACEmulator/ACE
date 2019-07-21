@@ -386,7 +386,7 @@ namespace ACE.Server.WorldObjects
                 finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * shieldMod;
                 return finalDamage;
             }
-            // war magic projectiles (and void currently)
+            // war/void magic projectiles
             else
             {
                 if (criticalHit)
@@ -404,13 +404,19 @@ namespace ACE.Server.WorldObjects
                 /* War Magic skill-based damage bonus
                  * http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
                  */
-                if (sourcePlayer != null && Spell.School == MagicSchool.WarMagic)
+                if (sourcePlayer != null)
                 {
-                    var warSkill = source.GetCreatureSkill(Spell.School).Current;
-                    if (warSkill > Spell.Power)
+                    // per retail stats, level 8 difficulty is capped to 350 insead of 400
+                    // without this, level 7s have the potential to deal more damage than level 8s
+                    var difficulty = Math.Min(Spell.Power, 350);
+                    var magicSkill = source.GetCreatureSkill(Spell.School).Current;
+
+                    if (magicSkill > difficulty)
                     {
                         // Bonus clamped to a maximum of 50%
-                        var percentageBonus = Math.Clamp((warSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
+                        //var percentageBonus = Math.Clamp((magicSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
+                        var percentageBonus = (magicSkill - difficulty) / 1000.0f;
+
                         warSkillBonus = Spell.MinDamage * percentageBonus;
                     }
                 }
