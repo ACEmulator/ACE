@@ -406,7 +406,7 @@ namespace ACE.Server.WorldObjects
                  */
                 if (sourcePlayer != null)
                 {
-                    // per retail stats, level 8 difficulty is capped to 350 insead of 400
+                    // per retail stats, level 8 difficulty is capped to 350 instead of 400
                     // without this, level 7s have the potential to deal more damage than level 8s
                     var difficulty = Math.Min(Spell.Power, 350);
                     var magicSkill = source.GetCreatureSkill(Spell.School).Current;
