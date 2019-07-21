@@ -1633,18 +1633,6 @@ namespace ACE.Factories
 
         public static readonly int[][] JewelryCantrips =
         {
-            ////Strength
-            new int[] { 2583, 2576, 3965, 6107},
-            ////Endurance
-            new int[] { 2580, 2573, 4226, 6104},
-            ////Coordination
-            new int[] { 2579, 2572, 3963, 6103},
-            ////Quickness
-            new int[] { 2582, 2575, 4019, 6106},
-            ////Focus
-            new int[] { 2581, 2574, 3964, 6105},
-            ////Willpower
-            new int[] { 2584, 2577, 4227, 6101},
             ////Invuln
             new int[] { 2550, 2515, 4696, 6055},
             ////Impreg
