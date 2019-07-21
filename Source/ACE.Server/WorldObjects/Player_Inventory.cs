@@ -2135,15 +2135,16 @@ namespace ACE.Server.WorldObjects
 
                 var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
                 var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.Name;
+                string itemMaterial = item.MaxStackSize == null && item.MaterialType != null ? string.Format("{0} ", RecipeManager.GetMaterialName(item.MaterialType ?? 0)) : "";
 
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemMaterial}{itemName}.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
                 // send DO to source player if not splitting a stack
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 
-                target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemName}.", ChatMessageType.Broadcast));
+                target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemMaterial}{itemName}.", ChatMessageType.Broadcast));
                 target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
             });
 
@@ -2183,6 +2184,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (acceptAll || result.Category == (uint)EmoteCategory.Give)
                 {
+                    string itemMaterial = item.MaxStackSize == null && item.MaterialType != null ? string.Format("{0} ", RecipeManager.GetMaterialName(item.MaterialType ?? 0)) : "";
+
                     // for NPCs that accept items with EmoteCategory.Give,
                     // if stacked item, only give 1
                     if (!acceptAll && RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
@@ -2203,7 +2206,7 @@ namespace ACE.Server.WorldObjects
 
                             var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
                             var itemName = stackSize > 1 ? item.GetPluralName() : item.Name;
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemMaterial}{itemName}.", ChatMessageType.Broadcast));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
                         }
                         else
