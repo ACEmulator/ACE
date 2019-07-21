@@ -36,6 +36,8 @@ namespace ACE.Server.Managers
         /// </summary>
         private static readonly HashSet<Landblock> loadedLandblocks = new HashSet<Landblock>();
 
+        public static bool MultiThreadedLandblockGroupTicking = true;
+
         private static bool threadSeparatedLandblockGroupsNeedsRecalculating = true;
 
         private static readonly List<List<Landblock>> threadSeparatedLandblockGroups = new List<List<Landblock>>();
@@ -209,11 +211,22 @@ namespace ACE.Server.Managers
                 }
             }
 
-            Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup =>
+            if (MultiThreadedLandblockGroupTicking)
             {
-                foreach (var landblock in landblockGroup)
-                    landblock.Tick(Time.GetUnixTime());
-            });
+                Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup =>
+                {
+                    foreach (var landblock in landblockGroup)
+                        landblock.Tick(Time.GetUnixTime());
+                });
+            }
+            else
+            {
+                foreach (var landblockGroup in threadSeparatedLandblockGroups)
+                {
+                    foreach (var landblock in landblockGroup)
+                        landblock.Tick(Time.GetUnixTime());
+                }
+            }
         }
 
         /// <summary>
