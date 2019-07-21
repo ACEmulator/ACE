@@ -27,10 +27,17 @@ namespace ACE.Server.Managers
         private static readonly Dictionary<uint, Player> onlinePlayers = new Dictionary<uint, Player>();
         private static readonly Dictionary<uint, OfflinePlayer> offlinePlayers = new Dictionary<uint, OfflinePlayer>();
 
+        public static readonly long DefaultPlayerSaveInterval = 5;
+
         /// <summary>
         /// OfflinePlayers will be saved to the database every 1 hour
         /// </summary>
         private static readonly TimeSpan databaseSaveInterval = TimeSpan.FromHours(1);
+
+        /// <summary>
+        /// The timespan between automatic flushing of character changes to the database
+        /// </summary>
+        public static TimeSpan PlayerSaveInterval = TimeSpan.FromMinutes(DefaultPlayerSaveInterval); // default to 5 until initialized from PropertyManager
 
         private static DateTime lastDatabaseSave = DateTime.MinValue;
 
@@ -46,6 +53,8 @@ namespace ACE.Server.Managers
                 var offlinePlayer = new OfflinePlayer(result);
                 offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
             }
+
+            UpdateAfterPropertyChanges();
         }
 
         public static void Tick()
@@ -569,6 +578,12 @@ namespace ACE.Server.Managers
         {
             foreach (var player in GetAllOnline().Where(p => p.Session.AccessLevel < AccessLevel.Advocate))
                 player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, "The world is now closed"), null, "The world is now closed");
+        }
+
+        public static void UpdateAfterPropertyChanges()
+        {
+            long playerSaveIntervalMins = PropertyManager.GetLong("player_save_interval", DefaultPlayerSaveInterval).Item;
+            PlayerSaveInterval = TimeSpan.FromMinutes(playerSaveIntervalMins);
         }
     }
 }

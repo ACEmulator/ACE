@@ -120,6 +120,8 @@ namespace ACE.Server.Managers
                 CachedBooleanSettings[key].Modify(newVal);
             else
                 CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal);
+
+            PlayerManager.UpdateAfterPropertyChanges();
         }
 
         public static void ModifyBoolDescription(string key, string description)
@@ -165,6 +167,8 @@ namespace ACE.Server.Managers
                 CachedLongSettings[key].Modify(newVal);
             else
                 CachedLongSettings[key] = new ConfigurationEntry<long>(true, newVal);
+
+            PlayerManager.UpdateAfterPropertyChanges();
         }
 
         public static void ModifyLongDescription(string key, string description)
@@ -210,6 +214,8 @@ namespace ACE.Server.Managers
                 CachedDoubleSettings[key].Modify(newVal);
             else
                 CachedDoubleSettings[key] = new ConfigurationEntry<double>(true, newVal);
+
+            PlayerManager.UpdateAfterPropertyChanges();
         }
 
         public static void ModifyDoubleDescription(string key, string description)
@@ -469,8 +475,9 @@ namespace ACE.Server.Managers
                 ("char_delete_time", 3600),         // the amount of time in seconds a deleted character can be restored
                 ("mansion_min_rank", 6),            // overrides the default allegiance rank required to own a mansion
                 ("max_chars_per_account", 11),      // retail defaults to 11, client supports up to 20
-                ("pk_timer", 20)                    // the number of seconds where a player cannot perform certain actions (ie. teleporting)
+                ("pk_timer", 20),                   // the number of seconds where a player cannot perform certain actions (ie. teleporting)
                                                     // after becoming involved in a PK battle
+                ("player_save_interval", 5)         // number of minutes between saving of characters
                 );
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =

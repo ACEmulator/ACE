@@ -10,8 +10,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public static TimeSpan PlayerSaveInterval = TimeSpan.FromMinutes(5);
-
         public DateTime CharacterLastRequestedDatabaseSave { get; protected set; }
 
         /// <summary>
