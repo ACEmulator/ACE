@@ -1750,7 +1750,7 @@ namespace ACE.Server.WorldObjects
 
         public int? EncumbranceVal
         {
-            get => GetProperty(PropertyInt.EncumbranceVal) ?? 0;
+            get => GetProperty(PropertyInt.EncumbranceVal);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
         }
 
