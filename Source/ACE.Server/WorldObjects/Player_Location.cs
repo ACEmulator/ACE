@@ -121,6 +121,11 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
                 return;
             }
+            if (IsBusy || EmoteManager.IsBusy)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
 
             if (Sanctuary == null)
             {
@@ -180,6 +185,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsBusy || EmoteManager.IsBusy)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall), 96.0f);
@@ -195,8 +206,10 @@ namespace ACE.Server.WorldObjects
             mpChain.AddDelaySeconds(14);
 
             // Then do teleport
+            IsBusy = true;
             mpChain.AddAction(this, () =>
             {
+                IsBusy = false;
                 var endPos = new Position(Location);
                 if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
@@ -241,6 +254,11 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourAllegianceDoesNotHaveHometown));
                 return;
             }
+            if (IsBusy || EmoteManager.IsBusy)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
 
             if (CombatMode != CombatMode.NonCombat)
             {
@@ -259,10 +277,12 @@ namespace ACE.Server.WorldObjects
             var actionChain = new ActionChain();
 
             // Then do teleport
+            IsBusy = true;
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.AllegianceHometownRecall);
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(this, () =>
             {
+                IsBusy = false;
                 var endPos = new Position(Location);
                 if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
@@ -293,6 +313,11 @@ namespace ACE.Server.WorldObjects
             if (RecallsDisabled)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                return;
+            }
+            if (IsBusy || EmoteManager.IsBusy)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
             }
 
@@ -343,8 +368,11 @@ namespace ACE.Server.WorldObjects
             // Then do teleport
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.HouseRecall);
             actionChain.AddDelaySeconds(animLength);
+
+            IsBusy = true;
             actionChain.AddAction(this, () =>
             {
+                IsBusy = false;
                 var endPos = new Position(Location);
                 if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
