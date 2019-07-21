@@ -2338,7 +2338,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("showprops", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Displays the name of all properties configurable via the modify commands")]
         public static void HandleDisplayProps(Session session, params string[] paramters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, DefaultPropertyManager.ListProperties());
+            CommandHandlerHelper.WriteOutputInfo(session, PropertyManager.ListProperties());
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]

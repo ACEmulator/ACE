@@ -365,6 +365,26 @@ namespace ACE.Server.Managers
 
             log.Debug($"PropertyManager DoWork took {(DateTime.UtcNow - startTime).TotalMilliseconds:N0} ms");
         }
+        public static string ListProperties()
+        {
+            string props = "Boolean properties:\n";
+            foreach (var item in DefaultPropertyManager.DefaultBooleanProperties)
+                props += string.Format("\t{0}: {1} (current is {2}, default is {3})\n", item.Key, item.Value.Description, GetBool(item.Key).Item, item.Value.Item);
+
+            props += "\nLong properties:\n";
+            foreach (var item in DefaultPropertyManager.DefaultLongProperties)
+                props += string.Format("\t{0}: {1} (current is {2}, default is {3})\n", item.Key, item.Value.Description, GetLong(item.Key).Item, item.Value.Item);
+
+            props += "\nDouble properties:\n";
+            foreach (var item in DefaultPropertyManager.DefaultDoubleProperties)
+                props += string.Format("\t{0}: {1} (current is {2}, default is {3})\n", item.Key, item.Value.Description, GetDouble(item.Key).Item, item.Value.Item);
+
+            props += "\nString properties:\n";
+            foreach (var item in DefaultPropertyManager.DefaultStringProperties)
+                props += string.Format("\t{0}: {1} (default is hidden)\n", item.Key, item.Value.Description);
+
+            return props;
+        }
     }
 
     public struct Property<T>
@@ -518,26 +538,5 @@ namespace ACE.Server.Managers
                 ("popup_motd", new Property<string>("", "Popup message of the day")),
                 ("server_motd", new Property<string>("", "Server message of the day"))
                 );
-
-        public static string ListProperties()
-        {
-            string props = "Boolean properties:\n";
-            foreach (var item in DefaultBooleanProperties)
-                props += string.Format("\t{0}: {1} (default is {2})\n", item.Key, item.Value.Description, item.Value.Item);
-
-            props += "\nLong properties:\n";
-            foreach (var item in DefaultLongProperties)
-                props += string.Format("\t{0}: {1} (default is {2})\n", item.Key, item.Value.Description, item.Value.Item);
-
-            props += "\nDouble properties:\n";
-            foreach (var item in DefaultDoubleProperties)
-                props += string.Format("\t{0}: {1} (default is {2})\n", item.Key, item.Value.Description, item.Value.Item);
-
-            props += "\nString properties:\n";
-            foreach (var item in DefaultStringProperties)
-                props += string.Format("\t{0}: {1} (default is hidden)\n", item.Key, item.Value.Description);
-
-            return props;
-        }
     }
 }
