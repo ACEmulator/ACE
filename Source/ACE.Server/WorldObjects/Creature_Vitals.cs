@@ -23,16 +23,19 @@ namespace ACE.Server.WorldObjects
             Mana.Current = Mana.MaxValue;
         }
 
-        public uint GetCurrentCreatureVital(PropertyAttribute2nd vital)
+        public CreatureVital GetCreatureVital(PropertyAttribute2nd vital)
         {
             switch (vital)
             {
-                case PropertyAttribute2nd.Mana:
-                    return Mana.Current;
+                case PropertyAttribute2nd.Health:
+                    return Health;
                 case PropertyAttribute2nd.Stamina:
-                    return Stamina.Current;
+                    return Stamina;
+                case PropertyAttribute2nd.Mana:
+                    return Mana;
                 default:
-                    return Health.Current;
+                    log.Error($"{Name}.GetCreatureVital({vital}): unexpected vital");
+                    return null;
             }
         }
 

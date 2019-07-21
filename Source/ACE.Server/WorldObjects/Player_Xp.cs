@@ -96,6 +96,9 @@ namespace ACE.Server.WorldObjects
                 CheckForLevelup();
             }
 
+            if (xpType == XpType.Quest)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} experience.", ChatMessageType.Broadcast));
+
             if (HasVitae && xpType != XpType.Allegiance)
                 UpdateXpVitae(amount);
         }

@@ -358,6 +358,7 @@ namespace ACE.Server.WorldObjects
 
             if (sellList.Count == 0)
             {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
                 SendUseDoneEvent(WeenieError.None);
                 return;
             }

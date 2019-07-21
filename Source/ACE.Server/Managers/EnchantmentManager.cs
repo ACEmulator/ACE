@@ -1242,6 +1242,7 @@ namespace ACE.Server.Managers
         {
             var dots = new List<BiotaPropertiesEnchantmentRegistry>();
             var netherDots = new List<BiotaPropertiesEnchantmentRegistry>();
+            var heals = new List<BiotaPropertiesEnchantmentRegistry>();
 
             foreach (var enchantment in enchantments)
             {
@@ -1251,6 +1252,9 @@ namespace ACE.Server.Managers
 
                 if (enchantment.StatModKey == (int)PropertyInt.NetherOverTime)
                     netherDots.Add(enchantment);
+
+                if (enchantment.StatModKey == (int)PropertyInt.HealOverTime)
+                    heals.Add(enchantment);
             }
 
             // apply damage over time (DoTs)
@@ -1259,6 +1263,37 @@ namespace ACE.Server.Managers
 
             if (netherDots.Count > 0)
                 ApplyDamageTick(netherDots, DamageType.Nether);
+
+            // apply healing over time (HoTs)
+            if (heals.Count > 0)
+                ApplyHealingTick(heals);
+        }
+
+        public void ApplyHealingTick(List<BiotaPropertiesEnchantmentRegistry> enchantments)
+        {
+            var creature = WorldObject as Creature;
+            if (creature == null) return;
+
+            // get the total tick amount
+            var tickAmountTotal = 0.0f;
+            foreach (var enchantment in enchantments)
+            {
+                var totalAmount = enchantment.StatModValue;
+                var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
+                var tickAmount = totalAmount / totalTicks;
+
+                tickAmountTotal += tickAmount;
+            }
+
+            // apply healing ratings
+            tickAmountTotal *= creature.GetHealingRatingMod();
+
+            // do healing
+            var healAmount = creature.UpdateVitalDelta(creature.Health, (int)Math.Round(tickAmountTotal));
+            creature.DamageHistory.OnHeal((uint)healAmount);
+
+            if (creature is Player player)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You receive {healAmount} points of periodic healing.", ChatMessageType.Combat));
         }
 
         /// <summary>

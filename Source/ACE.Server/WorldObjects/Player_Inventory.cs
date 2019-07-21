@@ -874,6 +874,8 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionPutItemInContainer(WorldObject item, Container itemRootOwner, bool itemWasEquipped, Container container, Container containerRootOwner, int placement)
         {
+            //Console.WriteLine($"DoHandleActionPutItemInContainer({item.Name}, {container.Name}, {itemWasEquipped}, {placement})");
+
             if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
             {
                 item.CurrentLandblock.RemoveWorldObject(item.Guid, false, true);
@@ -1051,6 +1053,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGetAndWieldItem(uint itemGuid, EquipMask wieldedLocation)
         {
+            //Console.WriteLine($"{Name}.HandleActionGetAndWieldItem({itemGuid:X8}, {wieldedLocation})");
+
             // todo fix this, it seems IsAnimating is always true for a player
             // todo we need to know when a player is busy to avoid additional actions during that time
             /*if (IsAnimating)
@@ -1136,6 +1140,8 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionGetAndWieldItem(WorldObject item, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
         {
+            //Console.WriteLine($"DoHandleActionGetAndWieldItem({item.Name}, {wieldedLocation}, {wasEquipped})");
+
             var wieldError = CheckWieldRequirements(item);
 
             if (wieldError != WeenieError.None)
@@ -1202,6 +1208,28 @@ namespace ACE.Server.WorldObjects
 
                         return false;
                     }
+                }
+            }
+
+            // client bug: equip wand or bow
+            // then equip melee weapon instead, then swap melee weapon to offhand slot
+            // client automatically sends a request to wield the wand/bow again, only this time with EquipMask.MeleeWeapon
+            // this client bug will still exist for melee weapons
+            if (wieldedLocation == EquipMask.MeleeWeapon && ((item.ValidLocations ?? EquipMask.None) & wieldedLocation) == 0)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                return false;
+            }
+
+            // verify Aetheria slot, client doesn't handle this
+            if ((wieldedLocation & EquipMask.Sigil) != 0)
+            {
+                if (wieldedLocation.HasFlag(EquipMask.SigilOne)   && !AetheriaFlags.HasFlag(AetheriaBitfield.Blue) ||
+                    wieldedLocation.HasFlag(EquipMask.SigilTwo)   && !AetheriaFlags.HasFlag(AetheriaBitfield.Yellow) ||
+                    wieldedLocation.HasFlag(EquipMask.SigilThree) && !AetheriaFlags.HasFlag(AetheriaBitfield.Red))
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    return false;
                 }
             }
 

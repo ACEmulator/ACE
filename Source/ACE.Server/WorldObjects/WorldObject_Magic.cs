@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
             if (player != null && status.Message != null && !status.Broadcast && showMsg)
                 player.Session.Network.EnqueueSend(status.Message);
             else if (player != null && status.Message != null && status.Broadcast && showMsg)
-                player.EnqueueBroadcast(status.Message);
+                player.EnqueueBroadcast(status.Message, LocalBroadcastRange);
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
@@ -467,7 +467,7 @@ namespace ACE.Server.WorldObjects
                     var isDrain = spell.TransferFlags.HasFlag(TransferFlags.TargetSource | TransferFlags.CasterDestination);
                     var drainMod = isDrain ? (float)source.GetResistanceMod(GetDrainResistanceType(spell.Source)) : 1.0f;
 
-                    srcVitalChange = (uint)Math.Round(source.GetCurrentCreatureVital(spell.Source) * spell.Proportion * drainMod);
+                    srcVitalChange = (uint)Math.Round(source.GetCreatureVital(spell.Source).Current * spell.Proportion * drainMod);
 
                     if (spell.TransferCap != 0)
                     {
@@ -481,6 +481,15 @@ namespace ACE.Server.WorldObjects
                     destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
 
                     // scale srcVitalChange to destVitalChange?
+                    var missingDest = destination.GetCreatureVital(spell.Destination).Missing;
+
+                    if (destVitalChange > missingDest)
+                    {
+                        var scalar = (float)missingDest / destVitalChange;
+
+                        srcVitalChange = (uint)Math.Round(srcVitalChange * scalar);
+                        destVitalChange = missingDest;
+                    }
 
                     // Apply the change in vitals to the source
                     switch (spell.Source)
@@ -580,19 +589,19 @@ namespace ACE.Server.WorldObjects
 
                     if (spell.Name.Contains("Blight"))
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * spell.DrainPercentage);
+                        var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Mana).Current * spell.DrainPercentage);
                         damage = (uint)-caster.UpdateVitalDelta(caster.Mana, -tryDamage);
                         damageType = DamageType.Mana;
                     }
                     else if (spell.Name.Contains("Tenacity"))
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spell.DrainPercentage);
+                        var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Stamina).Current * spell.DrainPercentage);
                         damage = (uint)-caster.UpdateVitalDelta(caster.Stamina, -tryDamage);
                         damageType = DamageType.Stamina;
                     }
                     else
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Health) * spell.DrainPercentage);
+                        var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Health).Current * spell.DrainPercentage);
                         damage = (uint)-caster.UpdateVitalDelta(caster.Health, -tryDamage);
                         caster.DamageHistory.Add(this, DamageType.Health, damage);
                         damageType = DamageType.Health;
@@ -1255,8 +1264,6 @@ namespace ACE.Server.WorldObjects
             else
                 addResult = target.EnchantmentManager.Add(spell, caster, equip);
 
-            var playerTarget = target as Player;
-
             // build message
             var suffix = "";
             switch (addResult.StackType)
@@ -1272,8 +1279,6 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            var targetName = this == target ? "yourself" : target.Name;
-
             string message = null;
 
             if (aetheriaProc)
@@ -1281,33 +1286,14 @@ namespace ACE.Server.WorldObjects
                 message = $"Aetheria surges on {target.Name} with the power of {spell.Name}!";
                 enchantmentStatus.Broadcast = true;
             }
-            else if (caster is Creature)
+            else if (caster == this || target == this || caster != target)
             {
-                if (caster.Guid == Guid)
-                    message = $"You cast {spell.Name} on {targetName}{suffix}";
-                else
-                    message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
-            }
-            else
-            {
-                if (target.Name != caster.Name)
-                    message = $"{caster.Name} casts {spell.Name} on you{suffix}";
-                else
-                    message = null;
-            }
+                var prefix = caster == this ? "You cast" : $"{caster.Name} casts";
+                var targetName = target.Name;
+                if (target == this)
+                    targetName = caster == this ? "yourself" : "you";
 
-            if (playerTarget != null)
-            {
-                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
-
-                playerTarget.HandleMaxVitalUpdate(spell);
-
-                if (playerTarget != this)
-                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
-            }
-            else if (caster != this && caster is Creature && target.Wielder is Player wielder)
-            {
-                wielder.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic));
+                message = $"{prefix} {spell.Name} on {targetName}{suffix}";
             }
 
             if (message != null)
@@ -1317,6 +1303,25 @@ namespace ACE.Server.WorldObjects
 
             enchantmentStatus.StackType = addResult.StackType;
             enchantmentStatus.Success = true;
+
+            var playerTarget = target as Player;
+
+            if (playerTarget != null)
+            {
+                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
+
+                playerTarget.HandleMaxVitalUpdate(spell);
+            }
+
+            if (playerTarget == null && target.Wielder is Player wielder)
+                playerTarget = wielder;
+
+            if (playerTarget != null && playerTarget != this)
+            {
+                var targetName = target == playerTarget ? "you" : target.Name;
+
+                playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic));
+            }
 
             return enchantmentStatus;
         }

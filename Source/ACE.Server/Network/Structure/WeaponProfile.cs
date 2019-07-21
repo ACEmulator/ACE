@@ -56,7 +56,7 @@ namespace ACE.Server.Network.Structure
             WeaponLength = weapon.GetProperty(PropertyFloat.WeaponLength) ?? 1.0f;
             MaxVelocity = weapon.GetProperty(PropertyFloat.MaximumVelocity) ?? 1.0f;
             WeaponOffense = GetWeaponOffense(weapon, wielder);
-            MaxVelocityEstimated = (uint)Math.Round(MaxVelocity);   // ??
+            //MaxVelocityEstimated = (uint)Math.Round(MaxVelocity);   // not found in pcaps?
         }
 
         /// <summary>
