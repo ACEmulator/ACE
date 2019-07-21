@@ -49,10 +49,7 @@ namespace ACE.Server.WorldObjects
 
         public TimeSpan PlayerSaveInterval
         {
-            get
-            {
-                return PlayerManager.PlayerSaveInterval;
-            }
+            get => PlayerManager.PlayerSaveInterval;
         }
 
         /// <summary>
