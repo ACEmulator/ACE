@@ -961,6 +961,9 @@ namespace ACE.Server.WorldObjects
                         break;
                 }
 
+                if (spell.CasterEffect != 0)
+                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
                 // return to magic combat stance
                 var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
                 EnqueueBroadcastMotion(returnStance);
