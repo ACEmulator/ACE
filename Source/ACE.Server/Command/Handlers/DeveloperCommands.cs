@@ -1210,36 +1210,14 @@ namespace ACE.Server.Command.Handlers
         // Quests/Contracts
         // ==================================
 
-        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Send a contract to yourself.", "uint\n" + "@sendcontract 100 is a sample contract")]
+        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Query, stamp, and erase contracts on the targeted player",
+            "[list | bestow | erase]\n"
+            + "contract list - List the contracts for the targeted player\n"
+            + "contract bestow - Stamps the specific contract on the targeted player. If this fails, it's probably because the contract is invalid.\n"
+            + "contract erase - Erase the specific contract from the targeted player. If no quest flag is given, it erases the entire contract table for the targeted player.\n")]
         public static void HandleContract(Session session, params string[] parameters)
         {
-            //if (!(parameters?.Length > 0)) return;
-            //if (!uint.TryParse(parameters[0], out var contractId)) return;
-
-            ////ContractTracker contractTracker = new ContractTracker(contractId, session.Player.Guid.Full)
-            ////{
-            ////    Stage = 0,
-            ////    TimeWhenDone = 0,
-            ////    TimeWhenRepeats = 0,
-            ////    DeleteContract = 0,
-            ////    SetAsDisplayContract = 1
-            ////};
-
-            //////if (!session.Player.TrackedContracts.ContainsKey(contractId))
-            //////    session.Player.TrackedContracts.Add(contractId, contractTracker);
-
-            ////GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(session, contractTracker);
-            ////session.Network.EnqueueSend(contractMsg);
-            ////ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
-
-            //session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(session));
-
-            // fellow bestow  stamp erase
-            // @qst list[filter]-List the quest flags for the targeted player, if a filter is provided, you will only get quest flags back that have the filter as a substring of the quest name. (Filter IS case sensitive!)
-            // @qst erase < quest flag > -Erase the specific quest flag from the targeted player.If no quest flag is given, it erases the entire quest table for the targeted player.
-            // @qst erase fellow < quest flag > -Erase a fellowship quest flag.
-            // @qst bestow < quest flag > -Stamps the specific quest flag on the targeted player.If this fails, it's probably because you spelled the quest flag wrong.
-            // @qst - Query, stamp, and erase quests on the targeted player.
             if (parameters.Length == 0)
             {
                 // todo: display help screen
@@ -1307,11 +1285,10 @@ namespace ACE.Server.Command.Handlers
                 {
                     if (parameters.Length < 2)
                     {
-                        // delete all quests?
+                        // delete all contracts?
                         // seems unsafe, maybe a confirmation?
                         return;
                     }
-                    //var contractId = parameters[1];
 
                     if (!uint.TryParse(parameters[1], out var contractId))
                         return;
@@ -1326,25 +1303,25 @@ namespace ACE.Server.Command.Handlers
 
                     if (player.ContractManager.HasContract(contractId))
                     {
-                        session.Player.SendMessage($"{player.Name} already has {datContract.ContractName} ({contractId})");
+                        session.Player.SendMessage($"{player.Name} already has the contract for \"{datContract.ContractName}\" ({contractId})");
                         return;
                     }
 
-                    //var canSolve = player.QuestManager.CanSolve(questName);
-                    //if (canSolve)
-                    //{
+                    var hasContract = player.ContractManager.HasContract(contractId);
+                    if (!hasContract)
+                    {
                         player.ContractManager.Add(contractId);
-                        session.Player.SendMessage($"{datContract.ContractName} ({contractId}) bestowed on {player.Name}");
-                        //return;
-                    //}
-                    //else
-                    //{
-                    //    session.Player.SendMessage($"Couldn't bestow {contractId} on {player.Name}");
-                    //    return;
-                    //}
+                        session.Player.SendMessage($"Contract for \"{datContract.ContractName}\" ({contractId}) bestowed on {player.Name}");
+                        return;
+                    }
+                    else
+                    {
+                        session.Player.SendMessage($"Couldn't bestow {contractId} on {player.Name}");
+                        return;
+                    }
                 }
 
-                if (parameters[0].Equals("delete"))
+                if (parameters[0].Equals("erase"))
                 {
                     if (parameters.Length < 2)
                     {
@@ -1353,8 +1330,6 @@ namespace ACE.Server.Command.Handlers
                         session.Player.SendMessage($"You must specify a contract to delete, if you want to delete all contracts use the following command: /contract delete *");
                         return;
                     }
-
-                    //var contractId = parameters[1];
 
                     if (parameters[1] == "*")
                     {
@@ -1383,38 +1358,6 @@ namespace ACE.Server.Command.Handlers
                     session.Player.SendMessage($"{datContract.ContractName} ({contractId}) deleted for {player.Name}.");
                     return;
                 }
-
-                //if (parameters[0].Equals("erase"))
-                //{
-                //    if (parameters.Length < 2)
-                //    {
-                //        // delete all contracts?
-                //        // seems unsafe, maybe a confirmation?
-                //        session.Player.SendMessage($"You must specify a contract to erase, if you want to erase all contracts use the following command: /contract erase *");
-                //        return;
-                //    }
-
-                //    //var contractId = parameters[1];
-
-                //    if (parameters[1] == "*")
-                //    {
-                //        player.ContractManager.EraseAll();
-                //        session.Player.SendMessage($"All contracts erased.");
-                //        return;
-                //    }
-
-                //    if (!uint.TryParse(parameters[1], out var contractId))
-                //        return;
-
-                //    if (!player.ContractManager.HasContract(contractId))
-                //    {
-                //        session.Player.SendMessage($"{contractId} not found.");
-                //        return;
-                //    }
-                //    player.ContractManager.Erase(contractId);
-                //    session.Player.SendMessage($"{contractId} erased.");
-                //    return;
-                //}
             }
             else
             {
