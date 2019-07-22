@@ -105,7 +105,7 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns TRUE if at max capacity for Contracts for thiss player
+        /// Returns TRUE if at max capacity for Contracts for this player
         /// </summary>
         public bool IsFull => Contracts.Count >= MaxContracts;
 
