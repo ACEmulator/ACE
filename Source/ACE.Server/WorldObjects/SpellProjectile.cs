@@ -269,7 +269,8 @@ namespace ACE.Server.WorldObjects
             }
 
             var critical = false;
-            var damage = CalculateDamage(ProjectileSource, target, ref critical);
+            var critDefended = false;
+            var damage = CalculateDamage(ProjectileSource, target, ref critical, ref critDefended);
 
             // null damage -> target resisted; damage of -1 -> target already dead
             if (damage != null && damage != -1)
@@ -288,7 +289,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    DamageTarget(target, damage, critical);
+                    DamageTarget(target, damage, critical, critDefended);
                 }
 
                 if (player != null)
@@ -310,7 +311,7 @@ namespace ACE.Server.WorldObjects
         /// Calculates the damage for a spell projectile
         /// Used by war magic, void magic, and life magic projectiles
         /// </summary>
-        public double? CalculateDamage(WorldObject _source, Creature target, ref bool criticalHit)
+        public double? CalculateDamage(WorldObject _source, Creature target, ref bool criticalHit, ref bool critDefended)
         {
             var source = _source as Creature;
             var sourcePlayer = source as Player;
@@ -347,17 +348,16 @@ namespace ACE.Server.WorldObjects
             var critical = GetWeaponMagicCritFrequencyModifier(source, attackSkill, target);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
-                var criticalDefended = false;
                 if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
                 {
                     var criticalDefenseMod = sourcePlayer != null ? 0.05f : 0.25f;
                     var criticalDefenseChance = targetPlayer.AugmentationCriticalDefense * criticalDefenseMod;
 
                     if (criticalDefenseChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                        criticalDefended = true;
+                        critDefended = true;
                 }
 
-                if (!criticalDefended)
+                if (!critDefended)
                     criticalHit = true;
             }
 
@@ -480,7 +480,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called for a spell projectile to damage its target
         /// </summary>
-        public void DamageTarget(WorldObject _target, double? damage, bool critical)
+        public void DamageTarget(WorldObject _target, double? damage, bool critical, bool critDefended = false)
         {
             var player = ProjectileSource as Player;
 
@@ -554,14 +554,20 @@ namespace ACE.Server.WorldObjects
                 var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
                 if (player != null)
                 {
-                    var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.", ChatMessageType.Magic);
+                    var critProt = critDefended ? " Your target's Critical Protection augmentation allows them to avoid your critical hit!" : "";
+
+                    var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}", ChatMessageType.Magic);
                     var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
 
                     player.Session.Network.EnqueueSend(attackerMsg, updateHealth);
                 }
 
                 if (targetPlayer != null)
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.", ChatMessageType.Magic));
+                {
+                    var critProt = critDefended ? " Your Critical Protection augmentation allows you to avoid a critical hit!" : "";
+
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}", ChatMessageType.Magic));
+                }
             }
             else
             {

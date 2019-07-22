@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
                 OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
 
                 if (targetPlayer != null)
-                    targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical);
+                    targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical, damageEvent.CriticalDefended);
                 else
                     target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);
             }
@@ -149,7 +149,7 @@ namespace ACE.Server.WorldObjects
                 if (targetPlayer != null && targetPlayer.UnderLifestoneProtection)
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"The Lifestone's magic protects {target.Name} from the attack!", ChatMessageType.Magic));
                 else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
+                    Session.Network.EnqueueSend(new GameEventEvasionAttackerNotification(Session, target.Name));
             }
 
             if (damageEvent.HasDamage && target.IsAlive)
@@ -159,6 +159,8 @@ namespace ACE.Server.WorldObjects
                     attackConditions |= AttackConditions.Recklessness;
                 if (damageEvent.SneakAttackMod > 1.0f)
                     attackConditions |= AttackConditions.SneakAttack;
+                if (damageEvent.CriticalDefended)
+                    attackConditions |= AttackConditions.CriticalProtectionAugmentation;
 
                 // notify attacker
                 var intDamage = (uint)Math.Round(damageEvent.Damage);
@@ -278,7 +280,7 @@ namespace ACE.Server.WorldObjects
             else
                 UpdateVitalDelta(Stamina, -1);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {attacker.Name}!", ChatMessageType.CombatEnemy));
+            Session.Network.EnqueueSend(new GameEventEvasionDefenderNotification(Session, attacker.Name));
 
             var creature = attacker as Creature;
             if (creature == null) return;
@@ -437,7 +439,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Applies damages to a player from a physical damage source
         /// </summary>
-        public int TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
+        public int TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false, bool critProt = false)
         {
             if (Invincible || IsDead) return 0;
 
@@ -478,7 +480,11 @@ namespace ACE.Server.WorldObjects
             // send network messages
             if (source is Creature creature)
             {
-                var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
+                var attackConditions = new AttackConditions();
+                if (critProt)
+                    attackConditions |= AttackConditions.CriticalProtectionAugmentation;
+
+                var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, attackConditions);
                 Session.Network.EnqueueSend(text);
 
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
