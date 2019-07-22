@@ -1705,14 +1705,12 @@ namespace ACE.Factories
             new int[] { 2554, 2519, 4232, 6059},
             ////Fealty
             new int[] { 2546, 2511, 4692, 6051},
+            ////Jump
+            new int[] { 2553, 2518, 4699, 6058},
+            ////Sprint
+            new int[] { 2564, 2529, 4710, 6071},
             ////Armor Self
             new int[] { 2578, 2571, 4911, 6102},
-            ////Regeneration
-            new int[] { 2626, 2623, 4680, 6077},
-            ////Rejuvenation
-            new int[] { 2628, 2625, 4682, 6076},
-            ////Mana Renewal
-            new int[] { 2627, 2624, 4681, 6078 },
             ////Armor Self
             new int[] { 2578, 2571, 4911, 6102},
             ////Acid Prot
