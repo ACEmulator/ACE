@@ -81,8 +81,6 @@ namespace ACE.Server.Managers
 
         public ContractTracker GetContractTracker(uint contractId)
         {
-            //if (ContractTrackerTable.TryGetValue(contractId, out var contractTracker))
-            //    return contractTracker;
             if (GetContract(contractId) != null)
                 return new ContractTracker(Player, contractId);
             else
