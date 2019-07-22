@@ -75,6 +75,12 @@ namespace ACE.Server.Network.Structure
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(Contract.QuestflagStamped))
+            {
+                if (player.QuestManager.HasQuest(Contract.QuestflagStamped))
+                    Stage = ContractStage.InProgress; // Is this right?
+            }
+
             if (!string.IsNullOrWhiteSpace(Contract.QuestflagTimer))
             {
                 if (player.QuestManager.HasQuest(Contract.QuestflagTimer))
