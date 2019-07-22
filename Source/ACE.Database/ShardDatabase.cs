@@ -673,7 +673,7 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                .Include(r => r.CharacterPropertiesContract)
+                .Include(r => r.CharacterPropertiesContractRegistry)
                 .Include(r => r.CharacterPropertiesFillCompBook)
                 .Include(r => r.CharacterPropertiesFriendList)
                 .Include(r => r.CharacterPropertiesQuestRegistry)
@@ -695,7 +695,7 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var results = context.Character
-                .Include(r => r.CharacterPropertiesContract)
+                .Include(r => r.CharacterPropertiesContractRegistry)
                 .Include(r => r.CharacterPropertiesFillCompBook)
                 .Include(r => r.CharacterPropertiesFriendList)
                 .Include(r => r.CharacterPropertiesQuestRegistry)
