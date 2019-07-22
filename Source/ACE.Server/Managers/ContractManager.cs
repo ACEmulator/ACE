@@ -164,12 +164,6 @@ namespace ACE.Server.Managers
             }
             else
             {
-                //// update existing quest
-                //existing.LastTimeCompleted = (uint)Time.GetUnixTime();
-                //existing.NumTimesCompleted++;
-                //if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
-                //if (Player != null) Player.CharacterChangesDetected = true;
-
                 if (Debug) Console.WriteLine($"{Player.Name}.ContractManager.Add({contractId}): contract for {datContract.ContractName} already exists in registry.");
             }
         }
