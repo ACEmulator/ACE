@@ -48,14 +48,6 @@ namespace ACE.Server.WorldObjects
         public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
 
         /// <summary>
-        /// The time period between automatic saving of player character changes
-        /// </summary>
-        public TimeSpan PlayerSaveInterval
-        {
-            get => PlayerManager.PlayerSaveInterval;
-        }
-
-        /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Player(Weenie weenie, ObjectGuid guid, uint accountId) : base(weenie, guid)

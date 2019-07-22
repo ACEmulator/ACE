@@ -124,8 +124,6 @@ namespace ACE.Server.Managers
                 CachedBooleanSettings[key].Modify(newVal);
             else
                 CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal, DefaultPropertyManager.DefaultBooleanProperties[key].Description);
-
-            PlayerManager.UpdateAfterPropertyChanges();
             return true;
         }
 
@@ -176,8 +174,6 @@ namespace ACE.Server.Managers
                 CachedLongSettings[key].Modify(newVal);
             else
                 CachedLongSettings[key] = new ConfigurationEntry<long>(true, newVal, DefaultPropertyManager.DefaultLongProperties[key].Description);
-
-            PlayerManager.UpdateAfterPropertyChanges();
             return true;
         }
 
@@ -226,8 +222,6 @@ namespace ACE.Server.Managers
                 CachedDoubleSettings[key].Modify(newVal);
             else
                 CachedDoubleSettings[key] = new ConfigurationEntry<double>(true, newVal, DefaultPropertyManager.DefaultDoubleProperties[key].Description);
-
-            PlayerManager.UpdateAfterPropertyChanges();
             return true;
         }
 
@@ -278,8 +272,6 @@ namespace ACE.Server.Managers
                 CachedStringSettings[key].Modify(newVal);
             else
                 CachedStringSettings[key] = new ConfigurationEntry<string>(true, newVal, DefaultPropertyManager.DefaultStringProperties[key].Description);
-
-            PlayerManager.UpdateAfterPropertyChanges();
             return true;
         }
 
