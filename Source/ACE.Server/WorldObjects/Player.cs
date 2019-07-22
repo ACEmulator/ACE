@@ -47,6 +47,9 @@ namespace ACE.Server.WorldObjects
 
         public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
 
+        /// <summary>
+        /// The time period between automatic saving of player character changes
+        /// </summary>
         public TimeSpan PlayerSaveInterval
         {
             get => PlayerManager.PlayerSaveInterval;

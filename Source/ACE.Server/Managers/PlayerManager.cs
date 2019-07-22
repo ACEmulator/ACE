@@ -27,7 +27,7 @@ namespace ACE.Server.Managers
         private static readonly Dictionary<uint, Player> onlinePlayers = new Dictionary<uint, Player>();
         private static readonly Dictionary<uint, OfflinePlayer> offlinePlayers = new Dictionary<uint, OfflinePlayer>();
 
-        public static readonly long DefaultPlayerSaveInterval = 5;
+        public static readonly long DefaultPlayerSaveIntervalSecs = 300; // default to 5 minutes
 
         /// <summary>
         /// OfflinePlayers will be saved to the database every 1 hour
@@ -37,7 +37,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// The timespan between automatic flushing of character changes to the database
         /// </summary>
-        public static TimeSpan PlayerSaveInterval = TimeSpan.FromMinutes(DefaultPlayerSaveInterval); // default to 5 until initialized from PropertyManager
+        public static TimeSpan PlayerSaveInterval = TimeSpan.FromSeconds(DefaultPlayerSaveIntervalSecs); // default to 5 until initialized from PropertyManager
 
         private static DateTime lastDatabaseSave = DateTime.MinValue;
 
@@ -582,8 +582,8 @@ namespace ACE.Server.Managers
 
         public static void UpdateAfterPropertyChanges()
         {
-            long playerSaveIntervalMins = PropertyManager.GetLong("player_save_interval", DefaultPlayerSaveInterval).Item;
-            PlayerSaveInterval = TimeSpan.FromMinutes(playerSaveIntervalMins);
+            long playerSaveIntervalSecs = PropertyManager.GetLong("player_save_interval", DefaultPlayerSaveIntervalSecs).Item;
+            PlayerSaveInterval = TimeSpan.FromSeconds(playerSaveIntervalSecs);
         }
     }
 }

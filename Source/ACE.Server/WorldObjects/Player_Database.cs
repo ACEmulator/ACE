@@ -18,6 +18,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool CharacterChangesDetected { get; set; }
 
+
         /// <summary>
         /// Best practice says you should use this lock any time you read/write the Character.<para />
         /// <para />
