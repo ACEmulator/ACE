@@ -510,23 +510,13 @@ namespace ACE.Server.Managers
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world."))
                 );
 
-<<<<<<< HEAD
-        public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
-            DictOf<string, long>(
-                ("char_delete_time", 3600),         // the amount of time in seconds a deleted character can be restored
-                ("mansion_min_rank", 6),            // overrides the default allegiance rank required to own a mansion
-                ("max_chars_per_account", 11),      // retail defaults to 11, client supports up to 20
-                ("pk_timer", 20),                   // the number of seconds where a player cannot perform certain actions (ie. teleporting)
-                                                    // after becoming involved in a PK battle
-                ("player_save_interval", 300)         // number of seconds between saving of characters
-=======
         public static readonly ReadOnlyDictionary<string, Property<long>> DefaultLongProperties =
             DictOf(
                 ("char_delete_time", new Property<long>(3600, "the amount of time in seconds a deleted character can be restored")),
                 ("mansion_min_rank", new Property<long>(6, "overrides the default allegiance rank required to own a mansion")),
                 ("max_chars_per_account", new Property<long>(11, "retail defaults to 11, client supports up to 20")),
-                ("pk_timer", new Property<long>(20, "the number of seconds where a player cannot perform certain actions (ie. teleporting) after becoming involved in a PK battle"))
->>>>>>> upstream/master
+                ("pk_timer", new Property<long>(20, "the number of seconds where a player cannot perform certain actions (ie. teleporting) after becoming involved in a PK battle")),
+                ("player_save_interval", new Property<long>(300, "the number of seconds between automatic player saves"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
