@@ -10,6 +10,6 @@ namespace ACE.Server.Network.Enum
         Update              = 0x2,
         HasAllegianceAge    = 0x4,
         HasPackedLevel      = 0x8,
-        MayPassupExperience = 0x10,
+        MayPassupExperience = 0x10, // HasPackedLevel | Update?
     }
 }
