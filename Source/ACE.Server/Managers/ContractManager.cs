@@ -263,8 +263,28 @@ namespace ACE.Server.Managers
         }
     }
 
+    public class ContractComparer : IComparer<uint>
+    {
+        public static ushort TableSize = 32;
+
+        public int Compare(uint a, uint b)
+        {
+            var keyA = a % TableSize;
+            var keyB = b % TableSize;
+
+            var result = keyA.CompareTo(keyB);
+
+            if (result == 0)
+                result = a.CompareTo(b);
+
+            return result;
+        }
+    }
+
     public static class ContractManagerExtensions
     {
+        public static ContractComparer ContractComparer = new ContractComparer();
+
         public static void Write(this BinaryWriter writer, ContractManager contractManager)
         {
             writer.Write(contractManager.ContractTrackerTable);
@@ -272,12 +292,20 @@ namespace ACE.Server.Managers
 
         public static void Write(this BinaryWriter writer, Dictionary<uint, ContractTracker> contractTrackerHash)
         {
-            PackableHashTable.WriteHeader(writer, contractTrackerHash.Count);
-            foreach (var kvp in contractTrackerHash)
+            #region PackableHashTable of Contract table - <uint, ContractTracker>
+            // the current number of contracts
+            writer.Write((ushort)contractTrackerHash.Count); //count - number of items in the table
+            writer.Write(ContractComparer.TableSize);    // static table size from retail pcaps
+
+            // --- ContractTrackers ---
+
+            var contractTrackers = new SortedDictionary<uint, ContractTracker>(contractTrackerHash, ContractComparer);
+            foreach (var contractTracker in contractTrackers)
             {
-                writer.Write(kvp.Key);
-                writer.Write(kvp.Value);
+                writer.Write(contractTracker.Key);
+                writer.Write(contractTracker.Value);
             }
+            #endregion
         }
     }
 }
