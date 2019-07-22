@@ -85,7 +85,19 @@ namespace ACE.Server.WorldObjects
                 ObjScale = null;
 
             if (SpellType == ProjectileSpellType.Ring)
-                ScriptedCollision = false;
+            {
+                if (spellId == 3818)
+                {
+                    PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.Explode;
+                    PhysicsObj.DefaultScriptIntensity = 1.0f;
+                    ScriptedCollision = true;
+                }
+                else
+                {
+                    ScriptedCollision = false;
+                }
+            }
+                
 
             // Whirling Blade spells get omega values and "align path" turned off which
             // creates the nice swirling animation
@@ -120,7 +132,7 @@ namespace ACE.Server.WorldObjects
             {
                 return ProjectileSpellType.Streak;
             }
-            else if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233 || spellID == 6320)
+            else if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233 || spellID == 6320 || spellID == 3818)
             {
                 return ProjectileSpellType.Ring;
             }
@@ -128,7 +140,7 @@ namespace ACE.Server.WorldObjects
             {
                 return ProjectileSpellType.Wall;
             }
-            else if ((spell.Wcid >= 20973 && spell.Wcid <= 20979) || (spellID >= 5362 && spellID <= 5369))
+            else if (spell.NonTracking)
             {
                 return ProjectileSpellType.Arc;
             }
@@ -165,7 +177,7 @@ namespace ACE.Server.WorldObjects
             }
             if (spellType == ProjectileSpellType.Ring)
             {
-                if (Spell.Level == 6)
+                if (Spell.Level == 6 || Spell.Id == 3818)
                     return 0.4f;
                 if (Spell.Level == 7)
                     return 1.0f;
@@ -386,7 +398,7 @@ namespace ACE.Server.WorldObjects
                 finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * shieldMod;
                 return finalDamage;
             }
-            // war magic projectiles (and void currently)
+            // war/void magic projectiles
             else
             {
                 if (criticalHit)
@@ -404,13 +416,19 @@ namespace ACE.Server.WorldObjects
                 /* War Magic skill-based damage bonus
                  * http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
                  */
-                if (sourcePlayer != null && Spell.School == MagicSchool.WarMagic)
+                if (sourcePlayer != null)
                 {
-                    var warSkill = source.GetCreatureSkill(Spell.School).Current;
-                    if (warSkill > Spell.Power)
+                    // per retail stats, level 8 difficulty is capped to 350 instead of 400
+                    // without this, level 7s have the potential to deal more damage than level 8s
+                    var difficulty = Math.Min(Spell.Power, 350);
+                    var magicSkill = source.GetCreatureSkill(Spell.School).Current;
+
+                    if (magicSkill > difficulty)
                     {
                         // Bonus clamped to a maximum of 50%
-                        var percentageBonus = Math.Clamp((warSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
+                        //var percentageBonus = Math.Clamp((magicSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
+                        var percentageBonus = (magicSkill - difficulty) / 1000.0f;
+
                         warSkillBonus = Spell.MinDamage * percentageBonus;
                     }
                 }

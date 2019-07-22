@@ -242,6 +242,12 @@ namespace ACE.Server.Entity
         public float DefaultLaunchAngle { get => _spell.DefaultLaunchAngle ?? 0; }
 
         /// <summary>
+        /// If this is on then projectile spells won't lead a target.
+        /// Arc spells have this set to true.
+        /// </summary>
+        public bool NonTracking { get => _spell.NonTracking ?? false; }
+
+        /// <summary>
         /// The offset to apply to the spawn position
         /// </summary>
         public Vector3 CreateOffsetOrigin { get => new Vector3(_spell.CreateOffsetOriginX ?? 0.0f, _spell.CreateOffsetOriginY ?? 0.0f, _spell.CreateOffsetOriginZ ?? 0.0f); }
