@@ -1,6 +1,6 @@
 using System;
 
-namespace ACE.Server.Network.Enum
+namespace ACE.Entity.Enum
 {
     [Flags]
     public enum AttackConditions

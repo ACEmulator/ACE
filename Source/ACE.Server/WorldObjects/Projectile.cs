@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
                         // monster damage player
                         if (damageEvent.HasDamage)
                         {
-                            targetPlayer.TakeDamage(sourceCreature, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical, damageEvent.CriticalDefended);
+                            targetPlayer.TakeDamage(sourceCreature, damageEvent);
 
                             // blood splatter?
 

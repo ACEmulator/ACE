@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
@@ -140,7 +139,7 @@ namespace ACE.Server.WorldObjects
                 OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
 
                 if (targetPlayer != null)
-                    targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical, damageEvent.CriticalDefended);
+                    targetPlayer.TakeDamage(this, damageEvent);
                 else
                     target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);
             }
@@ -154,18 +153,10 @@ namespace ACE.Server.WorldObjects
 
             if (damageEvent.HasDamage && target.IsAlive)
             {
-                var attackConditions = new AttackConditions();
-                if (damageEvent.RecklessnessMod > 1.0f)
-                    attackConditions |= AttackConditions.Recklessness;
-                if (damageEvent.SneakAttackMod > 1.0f)
-                    attackConditions |= AttackConditions.SneakAttack;
-                if (damageEvent.CriticalDefended)
-                    attackConditions |= AttackConditions.CriticalProtectionAugmentation;
-
                 // notify attacker
                 var intDamage = (uint)Math.Round(damageEvent.Damage);
 
-                Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, attackConditions));
+                Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, damageEvent.AttackConditions));
 
                 // splatter effects
                 if (targetPlayer == null)
@@ -436,10 +427,15 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
         }
 
+        public int TakeDamage(WorldObject source, DamageEvent damageEvent)
+        {
+            return TakeDamage(source, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical, damageEvent.AttackConditions);
+        }
+
         /// <summary>
         /// Applies damages to a player from a physical damage source
         /// </summary>
-        public int TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false, bool critProt = false)
+        public int TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false, AttackConditions attackConditions = AttackConditions.None)
         {
             if (Invincible || IsDead) return 0;
 
@@ -480,10 +476,6 @@ namespace ACE.Server.WorldObjects
             // send network messages
             if (source is Creature creature)
             {
-                var attackConditions = new AttackConditions();
-                if (critProt)
-                    attackConditions |= AttackConditions.CriticalProtectionAugmentation;
-
                 var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, attackConditions);
                 Session.Network.EnqueueSend(text);
 

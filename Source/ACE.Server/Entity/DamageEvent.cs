@@ -6,6 +6,7 @@ using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -494,6 +495,23 @@ namespace ACE.Server.Entity
             {
                 ShowInfo(defender);
                 return;
+            }
+        }
+
+        public AttackConditions AttackConditions
+        {
+            get
+            {
+                var attackConditions = new AttackConditions();
+
+                if (CriticalDefended)
+                    attackConditions |= AttackConditions.CriticalProtectionAugmentation;
+                if (RecklessnessMod > 1.0f)
+                    attackConditions |= AttackConditions.Recklessness;
+                if (SneakAttackMod > 1.0f)
+                    attackConditions |= AttackConditions.SneakAttack;
+
+                return attackConditions;
             }
         }
     }
