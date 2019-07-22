@@ -1253,7 +1253,7 @@ namespace ACE.Server.Command.Handlers
                         {
                             var timeWhenDone = new TimeSpan(0, 0, (int)contractTracker.TimeWhenDone);
 
-                            if (timeWhenDone == TimeSpan.MinValue)
+                            if (timeWhenDone == TimeSpan.MinValue || timeWhenDone.TotalSeconds == 0)
                                 contracts += $"TimeWhenDone: Expired ({contractTracker.TimeWhenDone})\n";
                             else if (timeWhenDone == TimeSpan.MaxValue)
                                 contracts += $"TimeWhenDone: Unlimited ({contractTracker.TimeWhenDone})\n";
