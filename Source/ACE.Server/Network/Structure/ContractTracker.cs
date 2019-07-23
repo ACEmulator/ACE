@@ -30,9 +30,9 @@ namespace ACE.Server.Network.Structure
 
         public ContractTracker() { }
 
-        public ContractTracker(CharacterPropertiesContractRegistry contract)
+        public ContractTracker(Player player, CharacterPropertiesContractRegistry contract)
         {
-            Init(contract.ContractId);
+            Init(contract.ContractId, player);
 
             DeleteContract = contract.DeleteContract;
             SetAsDisplayContract = contract.SetAsDisplayContract;
