@@ -115,6 +115,8 @@ namespace ACE.Server.Entity
 
         public bool HasDamage => !Evaded && !LifestoneProtection;
 
+        public bool CriticalDefended;
+
         public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, CombatManeuver combatManeuver = null)
         {
             var damageEvent = new DamageEvent();
@@ -194,17 +196,16 @@ namespace ACE.Server.Entity
             CriticalChance = WorldObject.GetWeaponCritChanceModifier(attacker, attackSkill, defender);
             if (CriticalChance > ThreadSafeRandom.Next(0.0f, 1.0f))
             {
-                var criticalDefended = false;
                 if (playerDefender != null && playerDefender.AugmentationCriticalDefense > 0)
                 {
                     var criticalDefenseMod = playerAttacker != null ? 0.05f : 0.25f;
                     var criticalDefenseChance = playerDefender.AugmentationCriticalDefense * criticalDefenseMod;
 
                     if (criticalDefenseChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                        criticalDefended = true;
+                        CriticalDefended = true;
                 }
 
-                if (!criticalDefended)
+                if (!CriticalDefended)
                 {
                     IsCritical = true;
 
@@ -439,6 +440,7 @@ namespace ACE.Server.Entity
             // critical hit
             info += $"CriticalChance: {CriticalChance}\n";
             info += $"CriticalHit: {IsCritical}\n";
+            info += $"CriticalDefended: {CriticalDefended}\n";
             info += $"CriticalDamageMod: {CriticalDamageMod}\n";
 
             if (BodyPart != 0)
@@ -492,6 +494,23 @@ namespace ACE.Server.Entity
             {
                 ShowInfo(defender);
                 return;
+            }
+        }
+
+        public AttackConditions AttackConditions
+        {
+            get
+            {
+                var attackConditions = new AttackConditions();
+
+                if (CriticalDefended)
+                    attackConditions |= AttackConditions.CriticalProtectionAugmentation;
+                if (RecklessnessMod > 1.0f)
+                    attackConditions |= AttackConditions.Recklessness;
+                if (SneakAttackMod > 1.0f)
+                    attackConditions |= AttackConditions.SneakAttack;
+
+                return attackConditions;
             }
         }
     }
