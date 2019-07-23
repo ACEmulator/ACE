@@ -2310,14 +2310,22 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
+        [CommandHandler("showprops", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Displays the name of all properties configurable via the modify commands")]
+        public static void HandleDisplayProps(Session session, params string[] paramters)
+        {
+            CommandHandlerHelper.WriteOutputInfo(session, PropertyManager.ListProperties());
+        }
+
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]
         public static void HandleModifyServerBoolProperty(Session session, params string[] paramters)
         {
             try
             {
                 var boolVal = bool.Parse(paramters[1]);
-                PropertyManager.ModifyBool(paramters[0], boolVal);
-                CommandHandlerHelper.WriteOutputInfo(session, "Bool property successfully updated!");
+                if (PropertyManager.ModifyBool(paramters[0], boolVal))
+                    CommandHandlerHelper.WriteOutputInfo(session, "Bool property successfully updated!");
+                else
+                    CommandHandlerHelper.WriteOutputInfo(session, "Unknown bool property was not updated. Type showprops for a list of properties.");
             }
             catch (Exception)
             {
@@ -2338,8 +2346,10 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var intVal = int.Parse(paramters[1]);
-                PropertyManager.ModifyLong(paramters[0], intVal);
-                CommandHandlerHelper.WriteOutputInfo(session, "Long property successfully updated!");
+                if (PropertyManager.ModifyLong(paramters[0], intVal))
+                    CommandHandlerHelper.WriteOutputInfo(session, "Long property successfully updated!");
+                else
+                    CommandHandlerHelper.WriteOutputInfo(session, "Unknown long property was not updated. Type showprops for a list of properties.");
             }
             catch (Exception)
             {
@@ -2360,8 +2370,10 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var floatVal = float.Parse(paramters[1]);
-                PropertyManager.ModifyDouble(paramters[0], floatVal);
-                CommandHandlerHelper.WriteOutputInfo(session, "Double property successfully updated!");
+                if (PropertyManager.ModifyDouble(paramters[0], floatVal))
+                    CommandHandlerHelper.WriteOutputInfo(session, "Double property successfully updated!");
+                else
+                    CommandHandlerHelper.WriteOutputInfo(session, "Unknown double property was not updated. Type showprops for a list of properties.");
             }
             catch (Exception)
             {
@@ -2379,8 +2391,10 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("modifystring", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a string", "modifystring (string) (string)")]
         public static void HandleModifyServerStringProperty(Session session, params string[] parameters)
         {
-            PropertyManager.ModifyString(parameters[0], parameters[1]);
-            CommandHandlerHelper.WriteOutputInfo(session, "String property successfully updated!");
+            if (PropertyManager.ModifyString(parameters[0], parameters[1]))
+                CommandHandlerHelper.WriteOutputInfo(session, "String property successfully updated!");
+            else
+                CommandHandlerHelper.WriteOutputInfo(session, "Unknown string property was not updated. Type showprops for a list of properties.");
         }
 
         [CommandHandler("fetchstring", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a string", "fetchstring (string)")]

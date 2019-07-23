@@ -233,14 +233,13 @@ namespace ACE.Server.Managers
                     var truncated = percent.Truncate(decimalPlaces);
 
                     var toolMaterial = GetMaterialName(tool.MaterialType ?? 0);
-                    var targetMaterial = GetMaterialName(target.MaterialType ?? 0);
 
                     // TODO: retail messages
                     // You determine that you have a 100 percent chance to succeed.
                     // You determine that you have a 99 percent chance to succeed.
                     // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
 
-                    var templateMsg = $"You have a % chance of using {toolMaterial} {tool.Name} on {targetMaterial} {target.Name}.";
+                    var templateMsg = $"You have a % chance of using {toolMaterial} {tool.Name} on {target.NameWithMaterial}.";
                     var floorMsg = templateMsg.Replace("%", (int)percent + "%");
                     var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
                     var exactMsg = templateMsg.Replace("%", percent + "%");
@@ -273,7 +272,6 @@ namespace ACE.Server.Managers
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
             var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
-            var itemMaterial = GetMaterialName(target.MaterialType ?? 0);
 
             if (success)
             {
@@ -281,10 +279,10 @@ namespace ACE.Server.Managers
 
                 // send local broadcast
                 if (incItemTinkered)
-                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}.", ChatMessageType.Craft), 96.0f);
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), 96.0f);
             }
             else if (incItemTinkered)
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
 
             CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 

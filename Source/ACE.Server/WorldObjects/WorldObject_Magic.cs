@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
                     WarMagic(target, spell);
                     break;
                 case MagicSchool.LifeMagic:
-                    var targetDeath = LifeMagic(target, spell, out uint damage, out bool critical, out status, caster);
+                    var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out status, target, caster);
                     if (targetDeath && target is Creature targetCreature)
                     {
                         targetCreature.OnDeath(this, DamageType.Health, false);
@@ -347,7 +347,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a Life Magic spell
         /// </summary>
-        protected bool LifeMagic(WorldObject target, Spell spell, out uint damage, out bool critical, out EnchantmentStatus enchantmentStatus, WorldObject itemCaster = null, bool equip = false)
+        protected bool LifeMagic(Spell spell, out uint damage, out bool critical, out EnchantmentStatus enchantmentStatus, WorldObject target = null, WorldObject itemCaster = null, bool equip = false)
         {
             critical = false;
             string srcVital, destVital;
@@ -363,7 +363,9 @@ namespace ACE.Server.WorldObjects
             if (this is Gem || this is Hook)
                 spellTarget = target as Creature;
 
-            if (spellTarget == null || !spellTarget.IsAlive)
+            // NonComponentTargetType should be 0 for untargeted spells.
+            // Return if the spell type is targeted with no target defined or the target is already dead.
+            if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != 0)
             {
                 damage = 0;
                 return false;
@@ -610,8 +612,18 @@ namespace ACE.Server.WorldObjects
                             //player.Fellowship.OnVitalUpdate(player);
                     }
 
-                    var lifeProjectile = CreateSpellProjectile(spell, target, damage);
-                    LaunchSpellProjectile(lifeProjectile);
+                    if (target != null)
+                    {
+                        var lifeProjectile = CreateSpellProjectile(spell, target, damage);
+                        LaunchSpellProjectile(lifeProjectile);
+
+                        // TODO: Implement volleys and blasts
+                    }
+                    else
+                    {
+                        var spellProjectiles = CreateRingProjectiles(spell, damage);
+                        LaunchSpellProjectiles(spellProjectiles);
+                    }
 
                     if (caster.Health.Current <= 0)
                     {
@@ -668,7 +680,7 @@ namespace ACE.Server.WorldObjects
 
             enchantmentStatus.Success = true;
 
-            return spellTarget.IsDead;
+            return spellTarget?.IsDead ?? false;
         }
 
         /// <summary>
@@ -702,7 +714,7 @@ namespace ACE.Server.WorldObjects
             // redirect creature dispels to life magic
             if (spell.MetaSpellType == SpellType.Dispel)
             {
-                LifeMagic(target, spell, out uint damage, out bool critical, out var enchantmentStatus);
+                LifeMagic(spell, out uint damage, out bool critical, out var enchantmentStatus, target);
                 return enchantmentStatus;
             }
             return CreateEnchantment(target, itemCaster ?? this, spell, equip);
@@ -718,7 +730,7 @@ namespace ACE.Server.WorldObjects
             // redirect item dispels to life magic
             if (spell.MetaSpellType == SpellType.Dispel)
             {
-                LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus, itemCaster, equip);
+                LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target, itemCaster, equip);
                 return enchantmentStatus;
             }
 
@@ -1532,12 +1544,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates a list of ring spell projectiles ready for creation in the world.
         /// </summary>
-        private List<SpellProjectile> CreateRingProjectiles(Spell spell)
+        private List<SpellProjectile> CreateRingProjectiles(Spell spell, uint lifeProjectileDamage = 0)
         {
             Vector3 originOffset = GetRingOriginOffset(spell);
             AceVector3 velocity = GetRingVelocity(spell);
 
-            var spellProjectiles = GetSpreadProjectiles(spell, originOffset: originOffset, velocity: velocity);
+            var spellProjectiles = GetSpreadProjectiles(spell, originOffset: originOffset, velocity: velocity, lifeProjectileDamage: lifeProjectileDamage);
 
             return spellProjectiles;
         }
@@ -1547,11 +1559,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private Vector3 GetRingOriginOffset(Spell spell)
         {
+            var zOffset = Height * 2 / 3;
             if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233 || spell.Id == 6320)
-            {
-                var zOffset = Height * 2 / 3;
                 return new Vector3(0f, 0.82f, zOffset);
-            }
+            if (spell.Id == 3818) // Curse of Raven Fury
+                return new Vector3(0f, PhysicsObj.GetRadius(), zOffset);
+
             return Vector3.Zero;
         }
 
@@ -1562,8 +1575,10 @@ namespace ACE.Server.WorldObjects
         {
             if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233)
                 return new AceVector3(0f, 2f, 0);
-            if (spell.Id == 6320)
+            if (spell.Id == 6320) // Ring of Skulls II
                 return new AceVector3(0, 15, 0);
+            if (spell.Id == 3818) // Curse of Raven Fury
+                return new AceVector3(0, 10, 0);
 
             return new AceVector3(0, 0, 0);
         }
@@ -1571,7 +1586,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates a list of spell projectiles which use spread angles (Blast or Ring spells).
         /// </summary>
-        private List<SpellProjectile> GetSpreadProjectiles(Spell spell, WorldObject target = null, Vector3? originOffset = null, AceVector3 velocity = null)
+        private List<SpellProjectile> GetSpreadProjectiles(Spell spell, WorldObject target = null, Vector3? originOffset = null, AceVector3 velocity = null, uint lifeProjectileDamage = 0)
         {
             var spellProjectiles = new List<SpellProjectile>();
 
@@ -1606,7 +1621,7 @@ namespace ACE.Server.WorldObjects
                 projOrigin.LandblockId = new LandblockId(projOrigin.GetCell());
                 var globalVelocity = Vector3.Transform(velocity.Get(),
                     Location.Rotation);
-                centerProjectile = CreateSpellProjectile(spell, origin: projOrigin, velocity: new AceVector3(globalVelocity.X, globalVelocity.Y, globalVelocity.Z));
+                centerProjectile = CreateSpellProjectile(spell, origin: projOrigin, velocity: new AceVector3(globalVelocity.X, globalVelocity.Y, globalVelocity.Z), lifeProjectileDamage: lifeProjectileDamage);
             }
 
             spellProjectiles.Add(centerProjectile);
@@ -1642,7 +1657,7 @@ namespace ACE.Server.WorldObjects
                 var globalProjVelocity = Vector3.Transform(localProjVelocity, this.Location.Rotation);
                 spellProjectiles.Add(
                     CreateSpellProjectile(spell, origin: projOrigin,
-                    velocity: new AceVector3(globalProjVelocity.X, globalProjVelocity.Y, globalProjVelocity.Z)
+                    velocity: new AceVector3(globalProjVelocity.X, globalProjVelocity.Y, globalProjVelocity.Z), lifeProjectileDamage: lifeProjectileDamage
                 ));
             }
 
