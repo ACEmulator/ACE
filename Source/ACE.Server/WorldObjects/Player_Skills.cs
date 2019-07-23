@@ -552,11 +552,14 @@ namespace ACE.Server.WorldObjects
 
         public override bool GetHeritageBonus(WorldObject weapon)
         {
+            if (weapon == null || !weapon.IsMasterable)
+                return false;
+
             if (PropertyManager.GetBool("universal_masteries").Item)
             {
                 // https://asheron.fandom.com/wiki/Spring_2014_Update
                 // end of retail - universal masteries
-                return weapon != null && weapon.IsMasterable;
+                return true;
             }
             else
                 return GetHeritageBonus(GetWeaponType(weapon));
