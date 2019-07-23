@@ -50,6 +50,11 @@ namespace ACE.Server.WorldObjects
         public static float RecallMoveThreshold = 8.0f;
         public static float RecallMoveThresholdSq = RecallMoveThreshold * RecallMoveThreshold;
 
+        public bool TooBusyToRecall
+        {
+            get => IsBusy || EmoteManager.IsBusy || Teleporting;
+        }
+
         public void HandleActionTeleToHouse()
         {
             if (PKTimerActive)
@@ -61,6 +66,12 @@ namespace ACE.Server.WorldObjects
             if (RecallsDisabled)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                return;
+            }
+
+            if (TooBusyToRecall)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
             }
 
@@ -121,7 +132,8 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
                 return;
             }
-            if (IsBusy || EmoteManager.IsBusy)
+
+            if (TooBusyToRecall)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
@@ -185,7 +197,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsBusy || EmoteManager.IsBusy)
+            if (TooBusyToRecall)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
@@ -242,6 +254,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (TooBusyToRecall)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
             // check if player is in an allegiance
             if (Allegiance == null)
             {
@@ -252,11 +270,6 @@ namespace ACE.Server.WorldObjects
             if (Allegiance.Sanctuary == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourAllegianceDoesNotHaveHometown));
-                return;
-            }
-            if (IsBusy || EmoteManager.IsBusy)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
             }
 
@@ -315,7 +328,8 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
                 return;
             }
-            if (IsBusy || EmoteManager.IsBusy)
+
+            if (TooBusyToRecall)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;

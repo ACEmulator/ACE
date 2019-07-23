@@ -895,7 +895,8 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyNonPKsMayEnterPKLite));
                 return;
             }
-            if (IsBusy || EmoteManager.IsBusy)
+
+            if (TooBusyToRecall)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
