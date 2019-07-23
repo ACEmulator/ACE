@@ -95,7 +95,8 @@ namespace ACE.Server.WorldObjects
 
             if (UseCreateContractId.HasValue && UseCreateContractId > 0)
             {
-                player.ContractManager.Add(UseCreateContractId.Value);
+                if (!player.ContractManager.Add(UseCreateContractId.Value))
+                    return;
             }
 
             if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)

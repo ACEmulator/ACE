@@ -9,6 +9,8 @@ using System.IO;
 using ACE.Server.Network.Structure;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
+using ACE.Server.Network.GameMessages.Messages;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Managers
 {
@@ -112,22 +114,22 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Adds a new contract to the player's registry
         /// </summary>
-        public void Add(int contractId)
+        public bool Add(int contractId)
         {
-            Add(Convert.ToUInt32(contractId));
+            return Add(Convert.ToUInt32(contractId));
         }
 
         /// <summary>
         /// Adds a new contract to the player's registry
         /// </summary>
-        public void Add(uint contractId)
+        public bool Add(uint contractId)
         {
             var datContract = GetContractFromDat(contractId);
 
             if (datContract == null)
             {
                 if (Debug) Console.WriteLine($"{Player.Name}.ContractManager.Add({contractId}): Contract not found in DAT file.");
-                return;
+                return false;
             }
 
             if (IsFull)
@@ -136,8 +138,10 @@ namespace ACE.Server.Managers
                 {
                     //Player.Session.Network.EnqueueSend(new GameEventWeenieError(Player.Session, WeenieError.ContractError));
                     //what happened here in retail?
+
+                    Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You currently have the maximum amount of contracts for this character and cannot take on another! You must abandon at least one contract before you can accept the contract for {datContract.ContractName}.", ChatMessageType.Broadcast));
                 }
-                return;
+                return false;
             }
 
             var existing = GetContract(contractId);
@@ -165,7 +169,11 @@ namespace ACE.Server.Managers
             else
             {
                 if (Debug) Console.WriteLine($"{Player.Name}.ContractManager.Add({contractId}): contract for {datContract.ContractName} already exists in registry.");
+
+                return false;
             }
+
+            return true;
         }
 
         /// <summary>
