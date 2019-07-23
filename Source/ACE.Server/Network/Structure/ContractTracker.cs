@@ -22,7 +22,7 @@ namespace ACE.Server.Network.Structure
         public double TimeWhenRepeats;
         public uint Version => Contract.Version;
 
-        public bool DeleteContract;       // Not sure if retail servers always kept contracts and used this to hide them, but we discard so this exists only to client to remove it from list.
+        public bool DeleteContract;       // Not sure if retail servers always kept contracts and used this to hide them, but we discard so this exists only to force client to remove it from list.
         public bool SetAsDisplayContract; // depreciated?
 
         // not sent in network structure

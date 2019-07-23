@@ -157,7 +157,7 @@ namespace ACE.Server.Managers
                 if (Player != null)
                 {
                     Player.CharacterChangesDetected = true;
-                    Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, contractId));
+                    Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, info));
                 }
 
                 RefreshMonitoredQuestFlags();
@@ -250,9 +250,11 @@ namespace ACE.Server.Managers
             if (Debug)
                 Console.WriteLine($"{Player.Name}.ContractManager.Update");
 
-            if (Player != null)
+            var contract = GetContract(contractId);
+
+            if (Player != null && contract != null)
             {
-                Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, contractId));
+                Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, contract));
             }
         }
     }
