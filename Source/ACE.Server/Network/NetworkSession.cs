@@ -630,8 +630,8 @@ namespace ACE.Server.Network
                 {
                     var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
                     var sb = new StringBuilder();
-                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                    sb.AppendLine(buffer.BuildPacketString());
+                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", size, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+                    sb.AppendLine(buffer.BuildPacketString(0, size));
                     packetLog.Debug(sb.ToString());
                 }
 
