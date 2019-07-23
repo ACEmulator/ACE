@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ACE.Entity.Enum
 {
@@ -330,5 +327,4 @@ namespace ACE.Entity.Enum
         Contract_321_Kill__Tou_Tou_Shadows,
         Contract_322_Kill__Tou_Tou_Void_Lords
     }
-
 }
