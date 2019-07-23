@@ -436,13 +436,12 @@ namespace ACE.Server.WorldObjects
             ReportCollisions = true;
             IgnoreCollisions = false;
             Hidden = false;
-
+            Teleporting = false;
+            
             CheckMonsters();
             CheckHouse();
 
             EnqueueBroadcastPhysicsState();
-
-            Teleporting = false;
         }
 
         public void NotifyLandblocks()

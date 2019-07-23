@@ -511,7 +511,7 @@ namespace ACE.Server.WorldObjects
                                 VoidMagic(target, spell);
                                 break;
                             case MagicSchool.LifeMagic:
-                                LifeMagic(target, spell, out uint damage, out bool critical, out var enchantmentStatus);
+                                LifeMagic(spell, out uint damage, out bool critical, out var enchantmentStatus, target);
                                 break;
                         }
                     }
@@ -710,7 +710,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    targetDeath = LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus);
+                    targetDeath = LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
@@ -1017,7 +1017,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    LifeMagic(player, spell, out uint damage, out bool critical, out enchantmentStatus);
+                    LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, player);
                     if (enchantmentStatus.Message != null)
                         EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;

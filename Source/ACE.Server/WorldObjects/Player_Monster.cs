@@ -16,7 +16,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CheckMonsters(float rangeSquared = RadiusAwarenessSquared)
         {
-            if (!Attackable) return;
+            if (!Attackable || Teleporting) return;
 
             var visibleObjs = PhysicsObj.ObjMaint.VisibleObjects.Values;
 
