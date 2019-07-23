@@ -276,9 +276,6 @@ namespace ACE.Server.WorldObjects
 
             if (MotionTableId != 0)
                 CurrentMotionState = new Motion(MotionStance.Invalid);
-
-            if (WeenieType == WeenieType.Corpse)
-                HeartbeatInterval = 5;
         }
 
         /// <summary>

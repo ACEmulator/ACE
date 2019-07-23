@@ -2,6 +2,7 @@ using System;
 
 using ACE.Common;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -34,9 +35,10 @@ namespace ACE.Server.WorldObjects
         {
             var currentUnixTime = Time.GetUnixTime();
 
-            if (this is Game)
+            if (WeenieType == WeenieType.GamePiece)
                 HeartbeatInterval = 1.0f;
-            else if (Lifespan != null)
+
+            if (HeartbeatInterval == null)
                 HeartbeatInterval = 5.0f;
 
             CachedHeartbeatInterval = HeartbeatInterval ?? 0;
