@@ -114,12 +114,18 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="key">The string key for the property</param>
         /// <param name="newVal">The value to replace the old value with</param>
-        public static void ModifyBool(string key, bool newVal)
+        /// <returns>true if the property was modified, false if no property exists with the given key</returns>
+        public static bool ModifyBool(string key, bool newVal)
         {
+            if (!DefaultPropertyManager.DefaultBooleanProperties.ContainsKey(key))
+                return false;
+
             if (CachedBooleanSettings.ContainsKey(key))
                 CachedBooleanSettings[key].Modify(newVal);
             else
-                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal);
+                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal, DefaultPropertyManager.DefaultBooleanProperties[key].Description);
+
+            return true;
         }
 
         public static void ModifyBoolDescription(string key, string description)
@@ -159,12 +165,18 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="key">The string key for the property</param>
         /// <param name="newVal">The value to replace the old value with</param>
-        public static void ModifyLong(string key, long newVal)
+        /// <returns>true if the property was modified, false if no property exists with the given key</returns>
+        public static bool ModifyLong(string key, long newVal)
         {
+            if (!DefaultPropertyManager.DefaultLongProperties.ContainsKey(key))
+                return false;
+
             if (CachedLongSettings.ContainsKey(key))
                 CachedLongSettings[key].Modify(newVal);
             else
-                CachedLongSettings[key] = new ConfigurationEntry<long>(true, newVal);
+                CachedLongSettings[key] = new ConfigurationEntry<long>(true, newVal, DefaultPropertyManager.DefaultLongProperties[key].Description);
+
+            return true;
         }
 
         public static void ModifyLongDescription(string key, string description)
@@ -204,12 +216,15 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="key">The string key for the property</param>
         /// <param name="newVal">The value to replace the old value with</param>
-        public static void ModifyDouble(string key, double newVal)
+        public static bool ModifyDouble(string key, double newVal)
         {
+            if (!DefaultPropertyManager.DefaultDoubleProperties.ContainsKey(key))
+                return false;
             if (CachedDoubleSettings.ContainsKey(key))
                 CachedDoubleSettings[key].Modify(newVal);
             else
-                CachedDoubleSettings[key] = new ConfigurationEntry<double>(true, newVal);
+                CachedDoubleSettings[key] = new ConfigurationEntry<double>(true, newVal, DefaultPropertyManager.DefaultDoubleProperties[key].Description);
+            return true;
         }
 
         public static void ModifyDoubleDescription(string key, string description)
@@ -249,12 +264,18 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="key">The string key for the property</param>
         /// <param name="newVal">The value to replace the old value with</param>
-        public static void ModifyString(string key, string newVal)
+        /// <returns>true if the property was modified, false if no property exists with the given key</returns>
+        public static bool ModifyString(string key, string newVal)
         {
+            if (!DefaultPropertyManager.DefaultStringProperties.ContainsKey(key))
+                return false;
+
             if (CachedStringSettings.ContainsKey(key))
                 CachedStringSettings[key].Modify(newVal);
             else
-                CachedStringSettings[key] = new ConfigurationEntry<string>(true, newVal);
+                CachedStringSettings[key] = new ConfigurationEntry<string>(true, newVal, DefaultPropertyManager.DefaultStringProperties[key].Description);
+
+            return true;
         }
 
         public static void ModifyStringDescription(string key, string description)
@@ -344,6 +365,26 @@ namespace ACE.Server.Managers
 
             log.Debug($"PropertyManager DoWork took {(DateTime.UtcNow - startTime).TotalMilliseconds:N0} ms");
         }
+        public static string ListProperties()
+        {
+            string props = "Boolean properties:\n";
+            foreach (var item in DefaultPropertyManager.DefaultBooleanProperties)
+                props += string.Format("\t{0}: {1} (current is {2}, default is {3})\n", item.Key, item.Value.Description, GetBool(item.Key).Item, item.Value.Item);
+
+            props += "\nLong properties:\n";
+            foreach (var item in DefaultPropertyManager.DefaultLongProperties)
+                props += string.Format("\t{0}: {1} (current is {2}, default is {3})\n", item.Key, item.Value.Description, GetLong(item.Key).Item, item.Value.Item);
+
+            props += "\nDouble properties:\n";
+            foreach (var item in DefaultPropertyManager.DefaultDoubleProperties)
+                props += string.Format("\t{0}: {1} (current is {2}, default is {3})\n", item.Key, item.Value.Description, GetDouble(item.Key).Item, item.Value.Item);
+
+            props += "\nString properties:\n";
+            foreach (var item in DefaultPropertyManager.DefaultStringProperties)
+                props += string.Format("\t{0}: {1} (default is hidden)\n", item.Key, item.Value.Description);
+
+            return props;
+        }
     }
 
     public struct Property<T>
@@ -417,19 +458,19 @@ namespace ACE.Server.Managers
 
             //bool
             foreach (var item in DefaultBooleanProperties)
-                PropertyManager.ModifyBool(item.Key, item.Value);
+                PropertyManager.ModifyBool(item.Key, item.Value.Item);
 
             //float
             foreach (var item in DefaultDoubleProperties)
-                PropertyManager.ModifyDouble(item.Key, item.Value);
+                PropertyManager.ModifyDouble(item.Key, item.Value.Item);
 
             //int
             foreach (var item in DefaultLongProperties)
-                PropertyManager.ModifyLong(item.Key, item.Value);
+                PropertyManager.ModifyLong(item.Key, item.Value.Item);
 
             //string
             foreach (var item in DefaultStringProperties)
-                PropertyManager.ModifyString(item.Key, item.Value);
+                PropertyManager.ModifyString(item.Key, item.Value.Item);
         }
 
         // ==================================================================================
@@ -437,66 +478,65 @@ namespace ACE.Server.Managers
         // please use the /modifybool, /modifylong, /modifydouble, and /modifystring commands
         // ==================================================================================
 
-        public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
+        public static readonly ReadOnlyDictionary<string, Property<bool>> DefaultBooleanProperties =
             DictOf(
-                ("advanced_combat_pets", false),    // (non-retail function) If enabled, Combat Pets can cast spells
-                ("assess_creature_mod", false),     // (non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed.
-                ("fellow_kt_killer", true),         // if FALSE, fellowship kill tasks will share with the fellowship, even if the killer doesn't have the quest
-                ("fellow_kt_landblock", false),     // if TRUE, fellowship kill tasks will share with landblock range (192 distance radius, or entire dungeon)
-                ("fellow_quest_bonus", false),      // if TRUE, applies EvenShare formula to fellowship quest reward XP (300% max bonus, defaults to false in retail)
-                ("house_per_char", false),          // if TRUE, allows 1 house per char instead of 1 house per account
-                ("iou_trades", false),              // (non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on.
-                ("chess_enabled", true),
-                ("corpse_decay_tick_logging", false),   // log decaying player corpse ticks.
-                ("corpse_destroy_pyreals", true),       // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
-                ("gateway_ties_summonable", true),      // if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail
-                ("house_purchase_requirements", true),
-                ("house_rent_enabled", true),
-                ("log_audit", true),                        // if disabled, audit channel is not logged.
-                ("override_encounter_spawn_rates", false),  // if enabled, landblock encounter spawns are overidden by double properties below.
-                ("player_receive_immediate_save", false),   // if enabled, when the player receives items from an NPC, they will be saved immediately
-                ("pk_server", false),               // set this to TRUE for darktide servers
-                ("quest_info_enabled", false),      // toggles the /myquests player command
-                ("salvage_handle_overages", false), // in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost
-                ("show_dot_messages", false),       // if enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail
-                ("suicide_instant_death", false),   // if enabled, @die command kills player instantly. defaults to disabled, as in retail
-                ("use_wield_requirements", true),   // disable this to bypass wield requirements. mostly for dev debugging
-                ("world_closed", false)             // enable this to startup world as a closed to players world.
+                ("advanced_combat_pets", new Property<bool>(false, "(non-retail function) If enabled, Combat Pets can cast spells")),
+                ("assess_creature_mod", new Property<bool>(false, "(non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed.")),
+                ("fellow_kt_killer", new Property<bool>(true, "if FALSE, fellowship kill tasks will share with the fellowship, even if the killer doesn't have the quest")),
+                ("fellow_kt_landblock", new Property<bool>(false, "if TRUE, fellowship kill tasks will share with landblock range (192 distance radius, or entire dungeon)")),
+                ("fellow_quest_bonus", new Property<bool>(false, "if TRUE, applies EvenShare formula to fellowship quest reward XP (300% max bonus, defaults to false in retail)")),
+                ("house_per_char", new Property<bool>(false, "if TRUE, allows 1 house per char instead of 1 house per account")),
+                ("iou_trades", new Property<bool>(false, "(non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on.")),
+                ("chess_enabled", new Property<bool>(true, "if FALSE then chess will be disabled")),
+                ("corpse_decay_tick_logging", new Property<bool>(false, "If ENABLED then player corpse ticks will be logged")),
+                ("corpse_destroy_pyreals", new Property<bool>(true, "If FALSE then pyreals will not be completely destroyed on player death")),
+                ("gateway_ties_summonable", new Property<bool>(true, "if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail")),
+                ("house_purchase_requirements", new Property<bool>(true, "")),
+                ("house_rent_enabled", new Property<bool>(true, "If FALSE then rent is not required")),
+                ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),                     
+                ("override_encounter_spawn_rates", new Property<bool>(false, "if enabled, landblock encounter spawns are overidden by double properties below.")),
+                ("player_receive_immediate_save", new Property<bool>(false, "if enabled, when the player receives items from an NPC, they will be saved immediately")),
+                ("pk_server", new Property<bool>(false, "set this to TRUE for darktide servers")),
+                ("quest_info_enabled", new Property<bool>(false, "toggles the /myquests player command")),
+                ("salvage_handle_overages", new Property<bool>(false, "in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost")),
+                ("show_dot_messages", new Property<bool>(false, "enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail")),
+                ("suicide_instant_death", new Property<bool>(false, "if enabled, @die command kills player instantly. defaults to disabled, as in retail")),
+                ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
+                ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world."))
                 );
 
-        public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
-            DictOf<string, long>(
-                ("char_delete_time", 3600),         // the amount of time in seconds a deleted character can be restored
-                ("mansion_min_rank", 6),            // overrides the default allegiance rank required to own a mansion
-                ("max_chars_per_account", 11),      // retail defaults to 11, client supports up to 20
-                ("pk_timer", 20)                    // the number of seconds where a player cannot perform certain actions (ie. teleporting)
-                                                    // after becoming involved in a PK battle
+        public static readonly ReadOnlyDictionary<string, Property<long>> DefaultLongProperties =
+            DictOf(
+                ("char_delete_time", new Property<long>(3600, "the amount of time in seconds a deleted character can be restored")),
+                ("mansion_min_rank", new Property<long>(6, "overrides the default allegiance rank required to own a mansion")),
+                ("max_chars_per_account", new Property<long>(11, "retail defaults to 11, client supports up to 20")),
+                ("pk_timer", new Property<long>(20, "the number of seconds where a player cannot perform certain actions (ie. teleporting) after becoming involved in a PK battle"))
                 );
 
-        public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
+        public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
             DictOf(
-                ("minor_cantrip_drop_rate", 1.0),
-                ("major_cantrip_drop_rate", 1.0),
-                ("epic_cantrip_drop_rate", 1.0),
-                ("legendary_cantrip_drop_rate", 1.0),
-                ("aetheria_drop_rate", 1.0),
-                ("chess_ai_start_time", -1.0),      // the number of seconds for the chess ai to start. defaults to -1 (disabled)
-                ("encounter_delay", 1800),          // the number of seconds a generator profile for regions is delayed from returning to free slots
-                ("encounter_regen_interval", 600),  // the number of seconds a generator for regions at which spawns its next set of objects.
-                ("luminance_modifier", 1.0),        // scales the amount of luminance received by players
-                ("vendor_unique_rot_time", 300),    // the number of seconds before unique items sold to vendors disappear
-                ("vitae_penalty", 0.05),            // the amount of vitae penalty a player gets per death
-                ("vitae_penalty_max", 0.40),        // the maximum vitae penalty a player can have
-                ("xp_modifier", 1.0)                // scales the amount of xp received by players
+                ("minor_cantrip_drop_rate", new Property<double>(1.0, "Modifier for minor cantrip drop rate, 1 being normal")),
+                ("major_cantrip_drop_rate", new Property<double>(1.0, "Modifier for major cantrip drop rate, 1 being normal")),
+                ("epic_cantrip_drop_rate", new Property<double>(1.0, "Modifier for epic cantrip drop rate, 1 being normal")),
+                ("legendary_cantrip_drop_rate", new Property<double>(1.0, "Modifier for legendary cantrip drop rate, 1 being normal")),
+                ("aetheria_drop_rate", new Property<double>(1.0, "Modifier for Aetheria drop rate, 1 being normal")),
+                ("chess_ai_start_time", new Property<double>(-1.0, "the number of seconds for the chess ai to start. defaults to -1 (disabled)")),
+                ("encounter_delay", new Property<double>(1800, "the number of seconds a generator profile for regions is delayed from returning to free slots")),
+                ("encounter_regen_interval", new Property<double>(600, "the number of seconds a generator for regions at which spawns its next set of objects.")),
+                ("luminance_modifier", new Property<double>(1.0, "scales the amount of luminance received by players")),
+                ("vendor_unique_rot_time", new Property<double>(300, "the number of seconds before unique items sold to vendors disappear")),
+                ("vitae_penalty", new Property<double>(0.05, "the amount of vitae penalty a player gets per death")),
+                ("vitae_penalty_max", new Property<double>(0.40, "the maximum vitae penalty a player can have")),
+                ("xp_modifier", new Property<double>(1.0, "scales the amount of xp received by players"))
                 );
 
-        public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
+        public static readonly ReadOnlyDictionary<string, Property<String>> DefaultStringProperties =
             DictOf(
-                ("content_folder", ".\\Content"),   // for content creators to live edit weenies. defaults to Content in the netcoreapp2.1 folder
-                ("popup_header", "Welcome to Asheron's Call!"),
-                ("popup_welcome", "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation."),
-                ("popup_motd", ""),
-                ("server_motd", "")
+                ("content_folder", new Property<string>(".\\Content", "for content creators to live edit weenies. defaults to Content in the netcoreapp2.1 folder")),
+                ("popup_header", new Property<string>("Welcome to Asheron's Call!", "Welcome message displayed when you log in")),
+                ("popup_welcome", new Property<string>("To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.", "Welcome message popup in training halls")),
+                ("popup_motd", new Property<string>("", "Popup message of the day")),
+                ("server_motd", new Property<string>("", "Server message of the day"))
                 );
     }
 }

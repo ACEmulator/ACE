@@ -102,7 +102,7 @@ namespace ACE.Server.WorldObjects
                         else if (targetPlayer != null)
                         {
                             // this is a player taking damage
-                            targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical);
+                            targetPlayer.TakeDamage(this, damageEvent);
 
                             if (damageEvent.ShieldMod != 1.0f)
                             {

@@ -2134,7 +2134,7 @@ namespace ACE.Server.WorldObjects
                 var stackSize = itemToGive.StackSize ?? 1;
 
                 var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
-                var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.Name;
+                var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.NameWithMaterial;
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
@@ -2190,7 +2190,7 @@ namespace ACE.Server.WorldObjects
                         if (itemToGive == null)
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.NameWithMaterial}.", ChatMessageType.Broadcast));
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
                     }
                     else
@@ -2202,7 +2202,7 @@ namespace ACE.Server.WorldObjects
                             var stackSize = item.StackSize ?? 1;
 
                             var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
-                            var itemName = stackSize > 1 ? item.GetPluralName() : item.Name;
+                            var itemName = stackSize > 1 ? item.GetPluralName() : item.NameWithMaterial;
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
                         }
@@ -2215,7 +2215,7 @@ namespace ACE.Server.WorldObjects
                 else if (result.Category == (uint)EmoteCategory.Refuse)
                 {
                     // Item rejected by npc
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.Name}.", ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.NameWithMaterial}.", ChatMessageType.Broadcast));
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeAiRefuseEmote));
                 }
             }
@@ -2228,7 +2228,7 @@ namespace ACE.Server.WorldObjects
 
         private void HandleIOUTurnIn(WorldObject target, WorldObject iouToTurnIn)
         {
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {iouToTurnIn.Name}.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {iouToTurnIn.NameWithMaterial}.", ChatMessageType.Broadcast));
             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, iouToTurnIn.Guid.Full, WeenieError.TradeAiRefuseEmote));
 
             if (iouToTurnIn is Book book)

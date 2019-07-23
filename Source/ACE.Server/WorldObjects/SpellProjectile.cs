@@ -85,7 +85,19 @@ namespace ACE.Server.WorldObjects
                 ObjScale = null;
 
             if (SpellType == ProjectileSpellType.Ring)
-                ScriptedCollision = false;
+            {
+                if (spellId == 3818)
+                {
+                    PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.Explode;
+                    PhysicsObj.DefaultScriptIntensity = 1.0f;
+                    ScriptedCollision = true;
+                }
+                else
+                {
+                    ScriptedCollision = false;
+                }
+            }
+                
 
             // Whirling Blade spells get omega values and "align path" turned off which
             // creates the nice swirling animation
@@ -120,7 +132,7 @@ namespace ACE.Server.WorldObjects
             {
                 return ProjectileSpellType.Streak;
             }
-            else if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233 || spellID == 6320)
+            else if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233 || spellID == 6320 || spellID == 3818)
             {
                 return ProjectileSpellType.Ring;
             }
@@ -128,7 +140,7 @@ namespace ACE.Server.WorldObjects
             {
                 return ProjectileSpellType.Wall;
             }
-            else if ((spell.Wcid >= 20973 && spell.Wcid <= 20979) || (spellID >= 5362 && spellID <= 5369))
+            else if (spell.NonTracking)
             {
                 return ProjectileSpellType.Arc;
             }
@@ -165,7 +177,7 @@ namespace ACE.Server.WorldObjects
             }
             if (spellType == ProjectileSpellType.Ring)
             {
-                if (Spell.Level == 6)
+                if (Spell.Level == 6 || Spell.Id == 3818)
                     return 0.4f;
                 if (Spell.Level == 7)
                     return 1.0f;
@@ -269,7 +281,8 @@ namespace ACE.Server.WorldObjects
             }
 
             var critical = false;
-            var damage = CalculateDamage(ProjectileSource, target, ref critical);
+            var critDefended = false;
+            var damage = CalculateDamage(ProjectileSource, target, ref critical, ref critDefended);
 
             // null damage -> target resisted; damage of -1 -> target already dead
             if (damage != null && damage != -1)
@@ -288,7 +301,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    DamageTarget(target, damage, critical);
+                    DamageTarget(target, damage, critical, critDefended);
                 }
 
                 if (player != null)
@@ -310,7 +323,7 @@ namespace ACE.Server.WorldObjects
         /// Calculates the damage for a spell projectile
         /// Used by war magic, void magic, and life magic projectiles
         /// </summary>
-        public double? CalculateDamage(WorldObject _source, Creature target, ref bool criticalHit)
+        public double? CalculateDamage(WorldObject _source, Creature target, ref bool criticalHit, ref bool critDefended)
         {
             var source = _source as Creature;
             var sourcePlayer = source as Player;
@@ -347,17 +360,16 @@ namespace ACE.Server.WorldObjects
             var critical = GetWeaponMagicCritFrequencyModifier(source, attackSkill, target);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
-                var criticalDefended = false;
                 if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
                 {
                     var criticalDefenseMod = sourcePlayer != null ? 0.05f : 0.25f;
                     var criticalDefenseChance = targetPlayer.AugmentationCriticalDefense * criticalDefenseMod;
 
                     if (criticalDefenseChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                        criticalDefended = true;
+                        critDefended = true;
                 }
 
-                if (!criticalDefended)
+                if (!critDefended)
                     criticalHit = true;
             }
 
@@ -386,7 +398,7 @@ namespace ACE.Server.WorldObjects
                 finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * shieldMod;
                 return finalDamage;
             }
-            // war magic projectiles (and void currently)
+            // war/void magic projectiles
             else
             {
                 if (criticalHit)
@@ -404,13 +416,19 @@ namespace ACE.Server.WorldObjects
                 /* War Magic skill-based damage bonus
                  * http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
                  */
-                if (sourcePlayer != null && Spell.School == MagicSchool.WarMagic)
+                if (sourcePlayer != null)
                 {
-                    var warSkill = source.GetCreatureSkill(Spell.School).Current;
-                    if (warSkill > Spell.Power)
+                    // per retail stats, level 8 difficulty is capped to 350 instead of 400
+                    // without this, level 7s have the potential to deal more damage than level 8s
+                    var difficulty = Math.Min(Spell.Power, 350);
+                    var magicSkill = source.GetCreatureSkill(Spell.School).Current;
+
+                    if (magicSkill > difficulty)
                     {
                         // Bonus clamped to a maximum of 50%
-                        var percentageBonus = Math.Clamp((warSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
+                        //var percentageBonus = Math.Clamp((magicSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
+                        var percentageBonus = (magicSkill - difficulty) / 1000.0f;
+
                         warSkillBonus = Spell.MinDamage * percentageBonus;
                     }
                 }
@@ -480,7 +498,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called for a spell projectile to damage its target
         /// </summary>
-        public void DamageTarget(WorldObject _target, double? damage, bool critical)
+        public void DamageTarget(WorldObject _target, double? damage, bool critical, bool critDefended = false)
         {
             var player = ProjectileSource as Player;
 
@@ -554,14 +572,20 @@ namespace ACE.Server.WorldObjects
                 var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
                 if (player != null)
                 {
-                    var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.", ChatMessageType.Magic);
+                    var critProt = critDefended ? " Your target's Critical Protection augmentation allows them to avoid your critical hit!" : "";
+
+                    var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}", ChatMessageType.Magic);
                     var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
 
                     player.Session.Network.EnqueueSend(attackerMsg, updateHealth);
                 }
 
                 if (targetPlayer != null)
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.", ChatMessageType.Magic));
+                {
+                    var critProt = critDefended ? " Your Critical Protection augmentation allows you to avoid a critical hit!" : "";
+
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}", ChatMessageType.Magic));
+                }
             }
             else
             {

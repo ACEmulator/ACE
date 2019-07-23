@@ -824,6 +824,15 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyString.Name, value);
         }
 
+        public String NameWithMaterial
+        {
+            get
+            {
+                string itemMaterial = MaxStackSize == null && MaterialType != null ? string.Format("{0} ", RecipeManager.GetMaterialName(MaterialType ?? 0)) : "";
+                return String.Format("{0}{1}", itemMaterial, Name);
+            }
+        }
+
         public string DisplayName
         {
             get => GetProperty(PropertyString.DisplayName);
