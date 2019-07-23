@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
 
         public bool TooBusyToRecall
         {
-            get => IsBusy || EmoteManager.IsBusy || Teleporting;
+            get => IsBusy || Teleporting;
         }
 
         public void HandleActionTeleToHouse()
@@ -102,8 +102,10 @@ namespace ACE.Server.WorldObjects
             // Then do teleport
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.HouseRecall);
             actionChain.AddDelaySeconds(animLength);
+            IsBusy = true;
             actionChain.AddAction(this, () =>
             {
+                IsBusy = false;
                 var endPos = new Position(Location);
                 if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
@@ -165,9 +167,11 @@ namespace ACE.Server.WorldObjects
             ActionChain lifestoneChain = new ActionChain();
 
             // Then do teleport
+            IsBusy = true;
             lifestoneChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.LifestoneRecall));
             lifestoneChain.AddAction(this, () =>
             {
+                IsBusy = false;
                 var endPos = new Position(Location);
                 if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
                 {
