@@ -2133,8 +2133,8 @@ namespace ACE.Server.WorldObjects
 
                 var stackSize = itemToGive.StackSize ?? 1;
 
-                var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
-                var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.NameWithMaterial;
+                var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
+                var itemName = itemToGive.GetNameWithMaterial(stackSize);
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
@@ -2201,8 +2201,9 @@ namespace ACE.Server.WorldObjects
 
                             var stackSize = item.StackSize ?? 1;
 
-                            var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
-                            var itemName = stackSize > 1 ? item.GetPluralName() : item.NameWithMaterial;
+                            var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
+                            var itemName = item.GetNameWithMaterial(stackSize);
+
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
                         }

@@ -824,13 +824,18 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyString.Name, value);
         }
 
-        public String NameWithMaterial
+        public string NameWithMaterial => GetNameWithMaterial();
+
+        public string GetNameWithMaterial(int? stackSize = null)
         {
-            get
-            {
-                string itemMaterial = MaxStackSize == null && MaterialType != null ? string.Format("{0} ", RecipeManager.GetMaterialName(MaterialType ?? 0)) : "";
-                return String.Format("{0}{1}", itemMaterial, Name);
-            }
+            var name = stackSize != null && stackSize != 1 ? GetPluralName() : Name;
+
+            if (MaterialType == null)
+                return name;
+
+            var material = RecipeManager.GetMaterialName(MaterialType ?? 0);
+
+            return $"{material} {name}";
         }
 
         public string DisplayName
