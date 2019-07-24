@@ -824,12 +824,17 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyString.Name, value);
         }
 
-        public String NameWithMaterial
+        public string NameWithMaterial
         {
             get
             {
-                string itemMaterial = MaxStackSize == null && MaterialType != null ? string.Format("{0} ", RecipeManager.GetMaterialName(MaterialType ?? 0)) : "";
-                return String.Format("{0}{1}", itemMaterial, Name);
+                if (MaterialType == null || MaxStackSize != null)
+                    return Name;
+
+                var material = RecipeManager.GetMaterialName(MaterialType ?? 0);
+                var name = Name.Replace(material, "").Trim();   // ACCWeenieObject::GetObjectName(NameType, int)
+
+                return $"{material} {name}";
             }
         }
 
