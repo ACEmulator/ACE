@@ -896,6 +896,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (TooBusyToRecall)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast));
 
             // perform pk lite entry motion / effect
@@ -907,8 +913,10 @@ namespace ACE.Server.WorldObjects
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength);
+            IsBusy = true;
             actionChain.AddAction(this, () =>
             {
+                IsBusy = false;
                 UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
