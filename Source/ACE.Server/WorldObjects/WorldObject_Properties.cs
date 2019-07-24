@@ -1188,16 +1188,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Function to genreate and set the VisualClothingPriority of the armor piece
         /// </summary>
-        /// <param name="setupId">The setup.did of the user equipping the item</param>
-        public void setVisualClothingPriority(uint setupId)
+        public void setVisualClothingPriority()
         {
             if (ClothingBase.HasValue && (CurrentWieldedLocation & EquipMask.Armor) != 0)
             {
                 ClothingTable item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)ClothingBase);
-                VisualClothingPriority = item.GetVisualPriority(setupId);
+                VisualClothingPriority = item.GetVisualPriority();
             }
         }
-
 
         public bool? TopLayerPriority
         {

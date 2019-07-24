@@ -42,7 +42,12 @@ namespace ACE.DatLoader.FileTypes
             return 0;
         }
 
-        public CoverageMask? GetVisualPriority(uint setupId)
+        /// <summary>
+        /// Calculates the ClothingPriority of an item based on the actual coverage. So while an Over-Robe may just be "Chest", we want to know it covers everything but head & arms.
+        /// </summary>
+        /// <param name="setupId">Defaults to HUMAN_MALE if not set, which is good enough</param>
+        /// <returns></returns>
+        public CoverageMask? GetVisualPriority(uint setupId = 0x02000001)
         {
             if (ClothingBaseEffects.ContainsKey(setupId))
             {

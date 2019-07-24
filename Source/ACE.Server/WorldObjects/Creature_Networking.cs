@@ -81,16 +81,21 @@ namespace ACE.Server.WorldObjects
             // get all the Armor Items so we can calculate their priority
             var armorItems = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & EquipMask.Armor) != 0).ToList();
             foreach (var w in armorItems)
-            {
-                w.setVisualClothingPriority(SetupTableId);
-                Console.WriteLine($"{w.Name} has a VisualClothingPriority of {(uint?)w.VisualClothingPriority} and a ClothingPriority of {(uint?)w.ClothingPriority}");
-            }
-            armorItems = GetSortedEquippedItems(armorItems);
+                w.setVisualClothingPriority();
 
-            var clothesAndCloaks = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Cloak)) != 0).ToList();
-            clothesAndCloaks = GetSortedEquippedItems(clothesAndCloaks);
+            // sort the armor into the proper order... TopLayerPriority first, then no priority, then TopLayerPriority=false.
+            // Secondary sort field is the calculated "VisualClothingPriority"
+            var top = armorItems.Where(x => x.TopLayerPriority == true).OrderBy(x => x.VisualClothingPriority);
+            var noLayer = armorItems.Where(x => x.TopLayerPriority == null).OrderBy(x => x.VisualClothingPriority);
+            var bottom = armorItems.Where(x => x.TopLayerPriority == false).OrderBy(x => x.VisualClothingPriority);
+            var sortedArmorItems = bottom.Concat(noLayer).Concat(top).ToList();
+            //var sortedArmorItems = GetSortedEquippedItems(armorItems);
 
-            var eo = clothesAndCloaks.Concat(armorItems).ToList();
+
+            // Clothing and Cloaks do not have a tailoring/reduction issue to worry about. What you see is what you get, so we can use ClothingPriority only to get this data.
+            var clothesAndCloaks = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Cloak)) != 0).OrderBy(x => x.ClothingPriority);
+
+            var eo = clothesAndCloaks.Concat(sortedArmorItems).ToList();
 
             if (eo.Count == 0)
             {
@@ -110,10 +115,8 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            Console.WriteLine($"Top layer items on down...");
             foreach (var w in eo)
             {
-                Console.WriteLine($"-{w.Name}");
                 if ((w.CurrentWieldedLocation == EquipMask.HeadWear) && !showHelm && (this is Player))
                     continue;
 
@@ -209,24 +212,6 @@ namespace ACE.Server.WorldObjects
                 return base.CalculateObjDesc();
 
             return objDesc;
-        }
-
-        private List<WorldObject> GetSortedEquippedItems(List<WorldObject> items)
-        {
-            if (items.Count == 0) return new List<WorldObject>();
-
-            var top = items.Where(x => x.TopLayerPriority == true).OrderBy(x => x.VisualClothingPriority);
-            var noLayer = items.Where(x => x.TopLayerPriority == null).OrderBy(x => x.VisualClothingPriority);
-            var bottom = items.Where(x => x.TopLayerPriority == false).OrderBy(x => x.VisualClothingPriority);
-            var eo = bottom.Concat(noLayer).Concat(top).ToList();
-            Console.WriteLine("\n\n*****************");
-            foreach (var t in top)
-                Console.WriteLine($"{t.Name} in top ");
-            foreach (var n in noLayer)
-                Console.WriteLine($"{n.Name} in none ");
-            foreach (var b in bottom)
-                Console.WriteLine($"{b.Name} in bottom ");
-            return eo;
         }
 
         /// <summary>
