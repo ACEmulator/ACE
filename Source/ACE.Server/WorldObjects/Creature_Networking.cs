@@ -75,7 +75,24 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            var eo = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.ClothingPriority).ToList();
+            // var eo = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.ClothingPriority).ToList();
+            // var eo = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.TopLayerPriority == true).ThenBy(x => x.TopLayerPriority == null).ThenBy(x => x.TopLayerPriority == false).ThenBy(x => x.ClothingPriority).ToList();
+
+            // get all the Armor Items so we can calculate their priority
+            var armorItems = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & EquipMask.Armor) != 0).ToList();
+            foreach (var w in armorItems)
+            {
+                w.setVisualClothingPriority(SetupTableId);
+                Console.WriteLine($"{w.Name} has a VisualClothingPriority of {(uint?)w.VisualClothingPriority} and a ClothingPriority of {(uint?)w.ClothingPriority}");
+            }
+
+            // get all the "visual" objects
+            var visualObjects = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0);
+
+            var top = visualObjects.Where(x => x.TopLayerPriority == true).OrderBy(x => x.VisualClothingPriority);
+            var noLayer = visualObjects.Where(x => x.TopLayerPriority == null).OrderBy(x => x.VisualClothingPriority);
+            var bottom = visualObjects.Where(x => x.TopLayerPriority == false).OrderBy(x => x.VisualClothingPriority);
+            var eo = top.Concat(noLayer).Concat(bottom).ToList();
 
             if (eo.Count == 0)
             {
@@ -94,8 +111,10 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            Console.WriteLine($"Top layer items on down...");
             foreach (var w in eo)
             {
+                Console.WriteLine($"-{w.Name}");
                 if ((w.CurrentWieldedLocation == EquipMask.HeadWear) && !showHelm && (this is Player))
                     continue;
 

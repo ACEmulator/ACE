@@ -2410,5 +2410,14 @@ namespace ACE.Server.Command.Handlers
             session.Player.SetHouseOwner(slumlord);
             session.Player.GiveDeed();
         }
+
+        [CommandHandler("cbtest", AccessLevel.Player, CommandHandlerFlag.ConsoleInvoke, "Test ClothingBase VisualPriority.")]
+        public static void HandleCbTest(Session session, params string[] parameters)
+        {
+            ClothingTable item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)0x100007E3);
+            uint priority = (uint)item.GetVisualPriority(0x02000001);
+            Console.WriteLine(priority.ToString("X8") + ", " + priority.ToString());
+        }
+
     }
 }
