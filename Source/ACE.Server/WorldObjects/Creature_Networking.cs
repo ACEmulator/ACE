@@ -39,13 +39,11 @@ namespace ACE.Server.WorldObjects
 
             var coverage = new List<uint>();
 
-            bool showHelm = true;
-            bool showCloak = true;
-
             uint thisSetupId = SetupTableId;
-
+            bool showHelm;
+            bool showCloak;
             if (this is Player player)
-            { 
+            {
                 showHelm = player.GetCharacterOption(CharacterOption.ShowYourHelmOrHeadGear);
                 showCloak = player.GetCharacterOption(CharacterOption.ShowYourCloak);
 
@@ -74,9 +72,11 @@ namespace ACE.Server.WorldObjects
                         break;
                 }
             }
-
-            // var eo = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.ClothingPriority).ToList();
-            // var eo = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.TopLayerPriority == true).ThenBy(x => x.TopLayerPriority == null).ThenBy(x => x.TopLayerPriority == false).ThenBy(x => x.ClothingPriority).ToList();
+            else
+            {
+                showHelm = true;
+                showCloak = true;
+            }
 
             // get all the Armor Items so we can calculate their priority
             var armorItems = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & EquipMask.Armor) != 0).ToList();
@@ -85,17 +85,16 @@ namespace ACE.Server.WorldObjects
                 w.setVisualClothingPriority(SetupTableId);
                 Console.WriteLine($"{w.Name} has a VisualClothingPriority of {(uint?)w.VisualClothingPriority} and a ClothingPriority of {(uint?)w.ClothingPriority}");
             }
+            armorItems = GetSortedEquippedItems(armorItems);
 
-            // get all the "visual" objects
-            var visualObjects = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0);
+            var clothesAndCloaks = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Cloak)) != 0).ToList();
+            clothesAndCloaks = GetSortedEquippedItems(clothesAndCloaks);
 
-            var top = visualObjects.Where(x => x.TopLayerPriority == true).OrderBy(x => x.VisualClothingPriority);
-            var noLayer = visualObjects.Where(x => x.TopLayerPriority == null).OrderBy(x => x.VisualClothingPriority);
-            var bottom = visualObjects.Where(x => x.TopLayerPriority == false).OrderBy(x => x.VisualClothingPriority);
-            var eo = top.Concat(noLayer).Concat(bottom).ToList();
+            var eo = clothesAndCloaks.Concat(armorItems).ToList();
 
             if (eo.Count == 0)
             {
+                // Check if there is any defined ObjDesc in the Biota and, if so, apply them
                 if (Biota.BiotaPropertiesAnimPart.Count > 0 || Biota.BiotaPropertiesPalette.Count > 0 || Biota.BiotaPropertiesTextureMap.Count > 0)
                 {
                     foreach (var animPart in Biota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
@@ -135,7 +134,6 @@ namespace ACE.Server.WorldObjects
                                 coverage.Add(a.PartIndex);
                         continue;
                     }
-                        
 
                     if (item.ClothingBaseEffects.ContainsKey(thisSetupId))
                     // Check if the player model has data. Gear Knights, this is usually you.
@@ -154,7 +152,6 @@ namespace ACE.Server.WorldObjects
                                 if (objDesc.TextureChanges.FirstOrDefault(c => c.PartIndex == (byte)t.Index && c.OldTexture == t1.OldTexture && c.NewTexture == t1.NewTexture) == null)
                                     objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
                             }
-                            //AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                         }
 
                         if (item.ClothingSubPalEffects.Count > 0)
@@ -175,9 +172,6 @@ namespace ACE.Server.WorldObjects
                                 itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
                             }
 
-                            //if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false))
-                            //    IconId = itemSubPal.Icon;
-
                             float shade = 0;
                             if (w.Shade.HasValue)
                                 shade = (float)w.Shade;
@@ -191,7 +185,6 @@ namespace ACE.Server.WorldObjects
                                     uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
                                     uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
                                     objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = itemPal, Offset = palOffset, NumColors = numColors });
-                                    //AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
                                 }
                             }
                         }
@@ -215,21 +208,25 @@ namespace ACE.Server.WorldObjects
             if (coverage.Count == 0 && ClothingBase.HasValue)
                 return base.CalculateObjDesc();
 
-            /*var p = this as Player;
-            if (p != null)
-            {
-                Console.WriteLine("AnimPart changes:");
-                Console.WriteLine("PartIndex\tPartID\n====================================");
-                foreach (var animPartChange in objDesc.AnimPartChanges)
-                    Console.WriteLine(animPartChange.PartIndex + "\t" + animPartChange.PartID.ToString("X8"));
-
-                Console.WriteLine("TextureMap changes:");
-                Console.WriteLine("PartIndex\tOldTex\tNewTex\n====================================");
-                foreach (var texChange in objDesc.TextureChanges)
-                    Console.WriteLine(texChange.PartIndex + "\t" + texChange.OldTexture.ToString("X8") + "\t" + texChange.NewTexture.ToString("X8"));
-            }*/
-
             return objDesc;
+        }
+
+        private List<WorldObject> GetSortedEquippedItems(List<WorldObject> items)
+        {
+            if (items.Count == 0) return new List<WorldObject>();
+
+            var top = items.Where(x => x.TopLayerPriority == true).OrderBy(x => x.VisualClothingPriority);
+            var noLayer = items.Where(x => x.TopLayerPriority == null).OrderBy(x => x.VisualClothingPriority);
+            var bottom = items.Where(x => x.TopLayerPriority == false).OrderBy(x => x.VisualClothingPriority);
+            var eo = bottom.Concat(noLayer).Concat(top).ToList();
+            Console.WriteLine("\n\n*****************");
+            foreach (var t in top)
+                Console.WriteLine($"{t.Name} in top ");
+            foreach (var n in noLayer)
+                Console.WriteLine($"{n.Name} in none ");
+            foreach (var b in bottom)
+                Console.WriteLine($"{b.Name} in bottom ");
+            return eo;
         }
 
         /// <summary>
