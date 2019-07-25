@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects
 
             AuditItemSpells();
 
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
             {
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(3.0f);
