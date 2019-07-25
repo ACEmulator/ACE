@@ -1182,6 +1182,32 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ClothingPriority); else SetProperty(PropertyInt.ClothingPriority, (int)value.Value); }
         }
 
+        /// <summary>
+        /// Returns the VisualClothingPriority, if set, else returns ClothingPriority
+        /// </summary>
+        public CoverageMask? VisualClothingPriority
+        {
+            get { if((CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority) != null) { return (CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority); } else {return (CoverageMask?)GetProperty(PropertyInt.ClothingPriority); }; }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.VisualClothingPriority); else SetProperty(PropertyInt.VisualClothingPriority, (int)value.Value); }
+        }
+        /// <summary>
+        /// Function to genreate and set the VisualClothingPriority of the armor piece
+        /// </summary>
+        public void setVisualClothingPriority()
+        {
+            if (ClothingBase.HasValue && (CurrentWieldedLocation & EquipMask.Armor) != 0)
+            {
+                ClothingTable item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)ClothingBase);
+                VisualClothingPriority = item.GetVisualPriority();
+            }
+        }
+
+        public bool? TopLayerPriority
+        {
+            get => (bool?)GetProperty(PropertyBool.TopLayerPriority);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.TopLayerPriority); else SetProperty(PropertyBool.TopLayerPriority, (bool)value.Value); }
+        }
+
         public RadarColor? RadarColor
         {
             get => (RadarColor?)GetProperty(PropertyInt.RadarBlipColor);
