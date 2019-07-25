@@ -266,6 +266,13 @@ namespace ACE.Server.WorldObjects
                     if (item.HasProcSpell((uint)spell.Spell))
                         continue;
 
+                    if (spell.Probability == 0.0f)
+                    {
+                        var _spell = new Spell(spell.Spell, false);
+                        log.Warn($"{Name}.TryEquipObjectWithNetworking({item.Name} ({item.Guid}, wcid {item.WeenieClassId})) - spellbook contains {_spell.Name} probability 0, ignoring");
+                        continue;
+                    }
+
                     var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
                     if (enchantmentStatus.Success)
                         item.IsAffecting = true;
