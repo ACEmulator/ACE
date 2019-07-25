@@ -266,6 +266,13 @@ namespace ACE.Server.WorldObjects
                     if (item.HasProcSpell((uint)spell.Spell))
                         continue;
 
+                    if (spell.Probability == 0.0f)
+                    {
+                        var _spell = new Spell(spell.Spell, false);
+                        log.Warn($"{Name}.TryEquipObjectWithNetworking({item.Name} ({item.Guid}, wcid {item.WeenieClassId})) - spellbook contains {_spell.Name} probability 0, ignoring");
+                        continue;
+                    }
+
                     var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
                     if (enchantmentStatus.Success)
                         item.IsAffecting = true;
@@ -910,7 +917,9 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (!container.TryAddToInventory(item, placement, true))
+            var burdenCheck = itemRootOwner != this && containerRootOwner == this;
+
+            if (!container.TryAddToInventory(item, placement, true, burdenCheck))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "AddToInventory failed!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
@@ -2133,8 +2142,8 @@ namespace ACE.Server.WorldObjects
 
                 var stackSize = itemToGive.StackSize ?? 1;
 
-                var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
-                var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.NameWithMaterial;
+                var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
+                var itemName = itemToGive.GetNameWithMaterial(stackSize);
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
@@ -2201,8 +2210,9 @@ namespace ACE.Server.WorldObjects
 
                             var stackSize = item.StackSize ?? 1;
 
-                            var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
-                            var itemName = stackSize > 1 ? item.GetPluralName() : item.NameWithMaterial;
+                            var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
+                            var itemName = item.GetNameWithMaterial(stackSize);
+
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
                         }
