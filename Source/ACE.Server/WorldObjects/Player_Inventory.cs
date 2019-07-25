@@ -910,7 +910,9 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (!container.TryAddToInventory(item, placement, true))
+            var burdenCheck = itemRootOwner != this && containerRootOwner == this;
+
+            if (!container.TryAddToInventory(item, placement, true, burdenCheck))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "AddToInventory failed!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
