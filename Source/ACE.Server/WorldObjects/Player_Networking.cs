@@ -56,6 +56,8 @@ namespace ACE.Server.WorldObjects
             HandleAllegianceOnLogin();
             HandleHouseOnLogin();
 
+            AuditItemSpells();
+
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
             {
                 var actionChain = new ActionChain();
