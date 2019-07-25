@@ -120,6 +120,30 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns all spells from all levels in the item set
+        /// </summary>
+        public static List<Spell> GetSpellSetAll(EquipmentSet equipmentSet)
+        {
+            var spells = new List<Spell>();
+
+            if (!DatManager.PortalDat.SpellTable.SpellSet.TryGetValue((uint)equipmentSet, out var spellSet))
+                return spells;
+
+            var spellIds = new HashSet<uint>();
+
+            foreach (var level in spellSet.SpellSetTiers.Values)
+            {
+                foreach (var spell in level.Spells)
+                    spellIds.Add(spell);
+            }
+
+            foreach (var spellId in spellIds)
+                spells.Add(new Spell(spellId, false));
+
+            return spells;
+        }
+
+        /// <summary>
         /// Returns the item set spells for a particular level
         /// </summary>
         public static List<Spell> GetSpellSet(EquipmentSet equipmentSet, List<WorldObject> setItems, int levelDiff = 0)
