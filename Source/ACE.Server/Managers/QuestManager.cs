@@ -135,6 +135,12 @@ namespace ACE.Server.Managers
             }
             else
             {
+                if (IsMaxSolves(questName))
+                {
+                    if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): can not update existing quest. IsMaxSolves({questName}) is true.");
+                    return;
+                }
+
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted++;
