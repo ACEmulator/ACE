@@ -2387,11 +2387,16 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                var pk_server = PropertyManager.GetBool("pk_server").Item;
-                if (this is Player && pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
-                    return PlayerKillerStatus.PK;
-                else
-                    return _playerKillerStatus;
+                if (this is Player)
+                {
+                    var pk_server = PropertyManager.GetBool("pk_server").Item;
+                    var pkl_server = PropertyManager.GetBool("pkl_server").Item;
+                    if ((pk_server || pkl_server) && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
+                    {
+                        return pkl_server ? PlayerKillerStatus.PKLite : PlayerKillerStatus.PK;
+                    }
+                }
+                return _playerKillerStatus;
             }
             set => _playerKillerStatus = value;
         }
