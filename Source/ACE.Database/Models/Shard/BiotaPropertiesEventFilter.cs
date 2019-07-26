@@ -9,6 +9,6 @@ namespace ACE.Database.Models.Shard
         public uint ObjectId { get; set; }
         public int Event { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

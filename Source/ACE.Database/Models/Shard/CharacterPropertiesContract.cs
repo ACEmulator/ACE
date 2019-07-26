@@ -15,6 +15,6 @@ namespace ACE.Database.Models.Shard
         public bool DeleteContract { get; set; }
         public bool SetAsDisplayContract { get; set; }
 
-        public Character Character { get; set; }
+        public virtual Character Character { get; set; }
     }
 }

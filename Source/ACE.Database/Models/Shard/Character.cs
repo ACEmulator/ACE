@@ -13,6 +13,7 @@ namespace ACE.Database.Models.Shard
             CharacterPropertiesQuestRegistry = new HashSet<CharacterPropertiesQuestRegistry>();
             CharacterPropertiesShortcutBar = new HashSet<CharacterPropertiesShortcutBar>();
             CharacterPropertiesSpellBar = new HashSet<CharacterPropertiesSpellBar>();
+            CharacterPropertiesSquelch = new HashSet<CharacterPropertiesSquelch>();
             CharacterPropertiesTitleBook = new HashSet<CharacterPropertiesTitleBook>();
         }
 
@@ -31,12 +32,13 @@ namespace ACE.Database.Models.Shard
         public uint HairTexture { get; set; }
         public uint DefaultHairTexture { get; set; }
 
-        public ICollection<CharacterPropertiesContract> CharacterPropertiesContract { get; set; }
-        public ICollection<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
-        public ICollection<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
-        public ICollection<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
-        public ICollection<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
-        public ICollection<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
-        public ICollection<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
+        public virtual ICollection<CharacterPropertiesContract> CharacterPropertiesContract { get; set; }
+        public virtual ICollection<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
+        public virtual ICollection<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
+        public virtual ICollection<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
+        public virtual ICollection<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
+        public virtual ICollection<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
+        public virtual ICollection<CharacterPropertiesSquelch> CharacterPropertiesSquelch { get; set; }
+        public virtual ICollection<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
     }
 }

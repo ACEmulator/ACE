@@ -41,9 +41,9 @@ namespace ACE.Server.WorldObjects
         public bool LastContact = true;
         public bool IsJumping = false;
 
-        public SquelchDB Squelches;
-
         public ConfirmationManager ConfirmationManager;
+
+        public SquelchManager SquelchManager;
 
         public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
 
@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
 
             LootPermission = new Dictionary<ObjectGuid, DateTime>();
 
-            Squelches = new SquelchDB();
+            SquelchManager = new SquelchManager(this);
 
             return; // todo
             /* todo fix for new EF model
@@ -923,114 +923,6 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
-        }
-
-        public void HandleActionModifyCharacterSquelch(bool squelch, uint playerGuid, string playerName, ChatMessageType messageType)
-        {
-            //Console.WriteLine($"{Name}.HandleActionModifyCharacterSquelch({squelch}, {playerGuid:X8}, {playerName}, {messageType})");
-
-            IPlayer player;
-
-            if (playerGuid != 0)
-            {
-                player = PlayerManager.FindByGuid(new ObjectGuid(playerGuid));
-
-                if (player == null)
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Couldn't find player to squelch.", ChatMessageType.Broadcast));
-                    return;
-                }
-            }
-            else
-            {
-                player = PlayerManager.FindByName(playerName);
-
-                if (player == null)
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
-                    return;
-                }
-            }
-
-            if (player.Guid == Guid)
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
-                return;
-            }
-
-            if (squelch)
-            {
-                if (Squelches.Characters.ContainsKey(player.Guid))
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already squelched.", ChatMessageType.Broadcast));
-                    return;
-                }
-
-                Squelches.Characters.Add(player.Guid, new SquelchInfo(messageType, player.Name, false));
-
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been squelched.", ChatMessageType.Broadcast));
-            }
-            else
-            {
-                if (!Squelches.Characters.Remove(player.Guid))
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not squelched.", ChatMessageType.Broadcast));
-                    return;
-                }
-
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been unsquelched.", ChatMessageType.Broadcast));
-            }
-
-            Session.Network.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
-        }
-
-        public void HandleActionModifyAccountSquelch(bool squelch, string playerName)
-        {
-            //Console.WriteLine($"{Name}.HandleActionModifyAccountSquelch({squelch}, {playerName})");
-
-            var player = PlayerManager.GetOnlinePlayer(playerName);
-
-            if (player == null)
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
-                return;
-            }
-
-            if (player.Guid == Guid)
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
-                return;
-            }
-
-            if (squelch)
-            {
-                if (Squelches.Accounts.ContainsKey(player.Session.Account))
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is already squelched.", ChatMessageType.Broadcast));
-                    return;
-                }
-
-                Squelches.Accounts.Add(player.Session.Account, player.Guid.Full);
-
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been squelched.", ChatMessageType.Broadcast));
-            }
-            else
-            {
-                if (!Squelches.Accounts.Remove(player.Session.Account))
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is not squelched.", ChatMessageType.Broadcast));
-                    return;
-                }
-
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been unsquelched.", ChatMessageType.Broadcast));
-            }
-
-            Session.Network.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
-        }
-
-        public void HandleActionModifyGlobalSquelch(bool squelch, ChatMessageType messageType)
-        {
-            //Console.WriteLine($"{Name}.HandleActionModifyGlobalSquelch({squelch}, {messageType})");
         }
     }
 }

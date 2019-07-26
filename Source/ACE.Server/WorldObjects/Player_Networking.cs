@@ -56,6 +56,11 @@ namespace ACE.Server.WorldObjects
             HandleAllegianceOnLogin();
             HandleHouseOnLogin();
 
+            // retail appeared to send the squelch list very early,
+            // even before the CreatePlayer, but doing it here
+            if (SquelchManager.HasSquelches)
+                SquelchManager.SendSquelchDB();
+
             AuditItemSpells();
 
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)

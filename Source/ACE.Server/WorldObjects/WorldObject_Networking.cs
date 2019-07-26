@@ -1154,7 +1154,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
-                if (self != null && useSquelch && player.Squelches.Contains(self))
+                if (self != null && useSquelch && player.SquelchManager.Squelches.Contains(self))
                     continue;
 
                 if (isDungeon && Location.Landblock != player.Location.Landblock)

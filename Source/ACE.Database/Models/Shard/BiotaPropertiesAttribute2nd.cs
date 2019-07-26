@@ -13,6 +13,6 @@ namespace ACE.Database.Models.Shard
         public uint CPSpent { get; set; }
         public uint CurrentLevel { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }
