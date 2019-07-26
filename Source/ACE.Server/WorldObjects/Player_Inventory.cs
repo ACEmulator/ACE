@@ -105,6 +105,8 @@ namespace ACE.Server.WorldObjects
             if (item.WeenieType == WeenieType.Coin)
                 UpdateCoinValue();
 
+            item.SaveBiotaToDatabase();
+
             return true;
         }
 
