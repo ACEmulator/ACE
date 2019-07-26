@@ -49,7 +49,8 @@ namespace ACE.Server.WorldObjects
 
         public bool HasEnoughBurdenToAddToInventory(WorldObject worldObject)
         {
-            return (EncumbranceVal + worldObject.EncumbranceVal <= (GetEncumbranceCapacity() * 3));
+            // We can still pick up null items, for some reason, we have the conditional for that
+            return (EncumbranceVal + (worldObject.EncumbranceVal ?? 0) <= (GetEncumbranceCapacity() * 3));
         }
 
         public bool HasEnoughBurdenToAddToInventory(int totalEncumbranceToCheck)
