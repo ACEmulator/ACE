@@ -902,7 +902,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast), LocalBroadcastRange);
 
             // perform pk lite entry motion / effect
             var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
