@@ -73,6 +73,13 @@ namespace ACE.Server.Entity
                 return WeenieError.YouDoNotPassCraftingRequirements;
             }
 
+            // Can't apply Unenchantable to an enchantable, and vice versa
+            if( (source.ResistMagic.HasValue && source.ResistMagic >= 9999) != (target.ResistMagic.HasValue && target.ResistMagic >= 9999))
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot tailor between an item that is enchantable and unenchantable.", ChatMessageType.Craft));
+                return WeenieError.YouDoNotPassCraftingRequirements;
+            }
+
             return WeenieError.None;
         }
 
@@ -148,6 +155,8 @@ namespace ACE.Server.Entity
 
             SetCommonProperties(target, wo);
 
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You tailor the appearance off an existing piece of armor.", ChatMessageType.Broadcast));
+
             wo.ClothingPriority = target.ClothingPriority;
 
             // ObjDescOverride.Clear()
@@ -159,6 +168,23 @@ namespace ACE.Server.Entity
         {
             // a lot of this was probably done with recipes and mutations in the original
             // here a lot is done directly in code..
+
+            player.UpdateProperty(target, PropertyInt.PaletteTemplate, source.PaletteTemplate);
+            player.UpdateProperty(target, PropertyBool.Dyable, source.GetProperty(PropertyBool.Dyable));
+            player.UpdateProperty(target, PropertyBool.IgnoreCloIcons, source.GetProperty(PropertyBool.IgnoreCloIcons));
+            player.UpdateProperty(target, PropertyDataId.Icon, source.IconId);
+            player.UpdateProperty(target, PropertyDataId.Setup, source.SetupTableId);
+            player.UpdateProperty(target, PropertyDataId.ClothingBase, source.ClothingBase);
+            player.UpdateProperty(target, PropertyDataId.PaletteBase, source.PaletteBaseId);
+            player.UpdateProperty(target, PropertyFloat.Shade, source.Shade);
+            player.UpdateProperty(target, PropertyString.Name, source.Name);
+            player.UpdateProperty(target, PropertyString.LongDesc, source.LongDesc);
+
+            // Retail did not update these. Guessing any item, if any, that used these wasn't actually able to be tailored. - OptimShi
+            player.UpdateProperty(target, PropertyFloat.Shade2, source.Shade2);
+            player.UpdateProperty(target, PropertyFloat.Shade3, source.Shade3);
+            player.UpdateProperty(target, PropertyFloat.Shade4, source.Shade4);
+
 
             target.Name = source.Name;
 
@@ -178,8 +204,16 @@ namespace ACE.Server.Entity
             target.PaletteBaseId = source.PaletteBaseId;
             target.ClothingBase = source.ClothingBase;
             target.IconId = source.IconId;
+        }
 
-            // probably missing some fields...
+        public static void SetCommonWeaponProperties(WorldObject source, WorldObject target)
+        {
+            // Weapons
+            target.HookType = source.HookType;
+            target.HookPlacement = source.HookPlacement;
+            target.LightsStatus = source.LightsStatus;
+            target.DefaultScale = source.DefaultScale;
+            target.Translucency = source.Translucency;
         }
 
         public static void Finalize(Player player, WorldObject source, WorldObject target, WorldObject result)
@@ -219,6 +253,8 @@ namespace ACE.Server.Entity
             {
                 wo.DefaultCombatStyle = target.DefaultCombatStyle;
             }
+
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You tailor the appearance off the weapon.", ChatMessageType.Broadcast));
 
             wo.W_DamageType = target.W_DamageType;
             wo.ObjScale = target.ObjScale;
@@ -334,10 +370,15 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You tailor the appearance onto a different piece of armor.", ChatMessageType.Broadcast));
+
             // update properties
             // creating a brand new item might be reasonable here,
             // but we have to make sure the list of properties here is completed
             UpdateCommonProps(player, source, target);
+
+            // Send UpdateObject
+
 
             // ObjDescOverride.Clear()
 
@@ -388,12 +429,15 @@ namespace ACE.Server.Entity
                     return;
             }
 
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You tailor the appearance onto a different weapon.", ChatMessageType.Broadcast));
+
             // update properties
             // creating a brand new item might be reasonable here,
             // but we have to make sure the list of properties here is completed
             UpdateCommonProps(player, source, target);
+            UpdateWeaponProps(player, source, target);
 
-            target.ObjScale = source.ObjScale;
+            // target.ObjScale = source.ObjScale;
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
@@ -402,21 +446,31 @@ namespace ACE.Server.Entity
 
         public static void UpdateCommonProps(Player player, WorldObject source, WorldObject target)
         {
-            player.UpdateProperty(target, PropertyString.Name, source.Name);
-
             player.UpdateProperty(target, PropertyInt.PaletteTemplate, source.PaletteTemplate);
-            player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
-            player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
-
+            player.UpdateProperty(target, PropertyBool.Dyable, source.GetProperty(PropertyBool.Dyable));
+            player.UpdateProperty(target, PropertyBool.IgnoreCloIcons, source.GetProperty(PropertyBool.IgnoreCloIcons));
+            player.UpdateProperty(target, PropertyDataId.Icon, source.IconId);
+            player.UpdateProperty(target, PropertyDataId.Setup, source.SetupTableId);
+            player.UpdateProperty(target, PropertyDataId.ClothingBase, source.ClothingBase);
+            player.UpdateProperty(target, PropertyDataId.PaletteBase, source.PaletteBaseId);
             player.UpdateProperty(target, PropertyFloat.Shade, source.Shade);
+            player.UpdateProperty(target, PropertyString.Name, source.Name);
+            player.UpdateProperty(target, PropertyString.LongDesc, source.LongDesc);
+
+            // Retail did not update these. Guessing any item, if any, that used these wasn't actually able to be tailored. - OptimShi
             player.UpdateProperty(target, PropertyFloat.Shade2, source.Shade2);
             player.UpdateProperty(target, PropertyFloat.Shade3, source.Shade3);
             player.UpdateProperty(target, PropertyFloat.Shade4, source.Shade4);
 
-            player.UpdateProperty(target, PropertyDataId.Setup, source.SetupTableId);
-            player.UpdateProperty(target, PropertyDataId.PaletteBase, source.PaletteBaseId);
-            player.UpdateProperty(target, PropertyDataId.ClothingBase, source.ClothingBase);
-            player.UpdateProperty(target, PropertyDataId.Icon, source.IconId);
+
+        }
+        public static void UpdateWeaponProps(Player player, WorldObject source, WorldObject target)
+        {
+            player.UpdateProperty(target, PropertyInt.HookType, source.HookType);
+            player.UpdateProperty(target, PropertyInt.HookPlacement, source.HookPlacement);
+            player.UpdateProperty(target, PropertyBool.LightsStatus, source.LightsStatus);
+            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.DefaultScale);
+            player.UpdateProperty(target, PropertyFloat.Translucency, source.Translucency);
         }
 
         public static uint? GetArmorWCID(EquipMask validLocations)

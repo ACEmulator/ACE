@@ -2754,6 +2754,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.RemainingLifespan); else SetProperty(PropertyInt.RemainingLifespan, value.Value); }
         }
 
+        public double? DefaultScale
+        {
+            get => GetProperty(PropertyFloat.DefaultScale);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.DefaultScale); else SetProperty(PropertyFloat.DefaultScale, (double)value.Value); }
+        }
+
         /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.
         /// </summary>
