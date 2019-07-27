@@ -98,8 +98,8 @@ namespace ACE.Server.Managers
 
                 case EmoteType.AddContract:
 
-                    if (player != null)
-                        //Contracts werent in emote table
+                    // Contracts werent in emote table for 16py, guessing that Stat was used to hold id for contract.
+                    if (player != null && emote.Stat.HasValue && emote.Stat.Value > 0)
                         player.ContractManager.Add(emote.Stat.Value);
                     break;
 
