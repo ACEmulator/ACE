@@ -888,7 +888,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.RemoveContract:
 
-                    if (player != null)
+                    if (player != null && emote.Stat.HasValue && emote.Stat.Value > 0)
                         player.HandleActionAbandonContract((uint)emote.Stat);
                     break;
 
