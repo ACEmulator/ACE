@@ -11,8 +11,6 @@ CREATE TABLE `character_properties_squelch` (
 	
 	PRIMARY KEY `character_Id_squelch_Character_Id_uidx` (`character_Id`, `squelch_Character_Id`),
 	
-	KEY `character_Id_idx` (`character_Id`),
-	
 	CONSTRAINT `character_Id_contraint` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

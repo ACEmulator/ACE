@@ -1459,9 +1459,6 @@ namespace ACE.Database.Models.Shard
 
                 entity.ToTable("character_properties_squelch");
 
-                entity.HasIndex(e => e.CharacterId)
-                    .HasName("character_Id_idx");
-
                 entity.Property(e => e.CharacterId).HasColumnName("character_Id");
 
                 entity.Property(e => e.SquelchCharacterId).HasColumnName("squelch_Character_Id");
