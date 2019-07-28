@@ -1329,6 +1329,12 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            if (loot is House)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
+                return;
+            }
+
             if (hasPalette)
                 loot.PaletteTemplate = palette;
             if (hasShade)
@@ -1397,6 +1403,12 @@ namespace ACE.Server.Command.Handlers
             if (loot == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (loot is House)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
                 return;
             }
 
