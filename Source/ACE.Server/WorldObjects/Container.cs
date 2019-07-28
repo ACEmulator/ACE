@@ -308,9 +308,9 @@ namespace ACE.Server.WorldObjects
         /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>
-        public bool TryAddToInventory(WorldObject worldObject, int placementPosition = 0, bool limitToMainPackOnly = false)
+        public bool TryAddToInventory(WorldObject worldObject, int placementPosition = 0, bool limitToMainPackOnly = false, bool burdenCheck = true)
         {
-            return TryAddToInventory(worldObject, out _, placementPosition, limitToMainPackOnly);
+            return TryAddToInventory(worldObject, out _, placementPosition, limitToMainPackOnly, burdenCheck);
         }
 
         /// <summary>
@@ -383,9 +383,10 @@ namespace ACE.Server.WorldObjects
         /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>
-        public bool TryAddToInventory(WorldObject worldObject, out Container container, int placementPosition = 0, bool limitToMainPackOnly = false)
+        public bool TryAddToInventory(WorldObject worldObject, out Container container, int placementPosition = 0, bool limitToMainPackOnly = false, bool burdenCheck = true)
         {
-            if (this is Player player)
+            // bug: should be root owner
+            if (this is Player player && burdenCheck)
             {
                 if (!player.HasEnoughBurdenToAddToInventory(worldObject))
                 {

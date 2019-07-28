@@ -140,5 +140,27 @@ namespace ACE.Server.WorldObjects
             else
                 Destroy();
         }
+
+        public void DeleteObject(Container rootOwner = null)
+        {
+            if (IsGenerator)
+                ResetGenerator();
+
+            if (Wielder != null)
+            {
+                if (Wielder is Player player)
+                    player.TryDequipObjectWithNetworking(Guid, out _, Player.DequipObjectAction.ConsumeItem);
+                else if (Wielder is Creature creature)
+                    creature.TryUnwieldObjectWithBroadcasting(Guid, out _, out _);
+            }
+            else if (rootOwner != null)
+            {
+                if (rootOwner is Player player)
+                    player.TryRemoveFromInventoryWithNetworking(Guid, out _, Player.RemoveFromInventoryAction.ConsumeItem);
+                else
+                    rootOwner.TryRemoveFromInventory(Guid);
+            }
+            Destroy();
+        }
     }
 }
