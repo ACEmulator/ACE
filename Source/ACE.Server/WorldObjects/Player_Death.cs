@@ -147,10 +147,10 @@ namespace ACE.Server.WorldObjects
 
             // update vitae
             // players who died in a PKLite fight do not accrue vitae
-            if (!IsPKLiteDeath())
+            if (!IsPKLiteDeath(topDamager))
                 InflictVitaePenalty();
 
-            if (IsPKDeath() || AugmentationSpellsRemainPastDeath == 0)
+            if (IsPKDeath(topDamager) || AugmentationSpellsRemainPastDeath == 0)
             {
                 var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
                 EnchantmentManager.RemoveAllEnchantments();
@@ -394,14 +394,14 @@ namespace ACE.Server.WorldObjects
             // if player dies in a PKLite battle,
             // they don't drop any items, and revert back to NPK status
 
-            if (IsPKLiteDeath())
+            if (IsPKLiteDeath(corpse.KillerId))
             {
                 PlayerKillerStatus = PlayerKillerStatus.NPK;
                 EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
                 return new List<WorldObject>();
             }
 
-            var numItemsDropped = GetNumItemsDropped();
+            var numItemsDropped = GetNumItemsDropped(corpse);
 
             var numCoinsDropped = GetNumCoinsDropped();
 
@@ -542,7 +542,7 @@ namespace ACE.Server.WorldObjects
         /// Rolls for the # of items to drop for a player death
         /// </summary>
         /// <returns></returns>
-        public int GetNumItemsDropped()
+        public int GetNumItemsDropped(Corpse corpse)
         {
             // Original formula:
 
@@ -580,7 +580,7 @@ namespace ACE.Server.WorldObjects
             // augmentation three times you will no longer drop any items (except half of your Pyreals and all Rares except if you're a PK).
             // If you drop no items, you will not leave a corpse.
 
-            if (!IsPKDeath() && AugmentationLessDeathItemLoss > 0)
+            if (!IsPKDeath(corpse.KillerId) && AugmentationLessDeathItemLoss > 0)
             {
                 numItemsDropped = Math.Max(0, numItemsDropped - AugmentationLessDeathItemLoss * 5);
             }

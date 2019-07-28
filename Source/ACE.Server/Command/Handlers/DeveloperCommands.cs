@@ -854,15 +854,24 @@ namespace ACE.Server.Command.Handlers
             var item = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (item == null) return;
 
-            if (!item.HasItemLevel)
+            if (item is Player player)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{item.Name} is not a levelable item.", ChatMessageType.Broadcast));
-                return;
+                player.GrantItemXP(amount);
+
+                foreach (var i in player.EquippedObjects.Values.Where(i => i.HasItemLevel))
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted to {i.Name}.", ChatMessageType.Broadcast));
             }
+            else
+            {
+                if (item.HasItemLevel)
+                {
+                    session.Player.GrantItemXP(item, amount);
 
-            session.Player.GrantItemXP(item, amount);
-
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted to {item.Name}.", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted to {item.Name}.", ChatMessageType.Broadcast));
+                }
+                else
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{item.Name} is not a levelable item.", ChatMessageType.Broadcast));
+            }
         }
 
         [CommandHandler("spendallxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]

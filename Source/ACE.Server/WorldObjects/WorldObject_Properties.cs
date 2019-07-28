@@ -824,13 +824,18 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyString.Name, value);
         }
 
-        public String NameWithMaterial
+        public string NameWithMaterial => GetNameWithMaterial();
+
+        public string GetNameWithMaterial(int? stackSize = null)
         {
-            get
-            {
-                string itemMaterial = MaxStackSize == null && MaterialType != null ? string.Format("{0} ", RecipeManager.GetMaterialName(MaterialType ?? 0)) : "";
-                return String.Format("{0}{1}", itemMaterial, Name);
-            }
+            var name = stackSize != null && stackSize != 1 ? GetPluralName() : Name;
+
+            if (MaterialType == null)
+                return name;
+
+            var material = RecipeManager.GetMaterialName(MaterialType ?? 0);
+
+            return $"{material} {name}";
         }
 
         public string DisplayName
@@ -1175,6 +1180,32 @@ namespace ACE.Server.WorldObjects
         {
             get => (CoverageMask?)GetProperty(PropertyInt.ClothingPriority);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ClothingPriority); else SetProperty(PropertyInt.ClothingPriority, (int)value.Value); }
+        }
+
+        /// <summary>
+        /// Returns the VisualClothingPriority, if set, else returns ClothingPriority
+        /// </summary>
+        public CoverageMask? VisualClothingPriority
+        {
+            get { if((CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority) != null) { return (CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority); } else {return (CoverageMask?)GetProperty(PropertyInt.ClothingPriority); }; }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.VisualClothingPriority); else SetProperty(PropertyInt.VisualClothingPriority, (int)value.Value); }
+        }
+        /// <summary>
+        /// Function to genreate and set the VisualClothingPriority of the armor piece
+        /// </summary>
+        public void setVisualClothingPriority()
+        {
+            if (ClothingBase.HasValue && (CurrentWieldedLocation & EquipMask.Armor) != 0)
+            {
+                ClothingTable item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)ClothingBase);
+                VisualClothingPriority = item.GetVisualPriority();
+            }
+        }
+
+        public bool? TopLayerPriority
+        {
+            get => (bool?)GetProperty(PropertyBool.TopLayerPriority);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.TopLayerPriority); else SetProperty(PropertyBool.TopLayerPriority, (bool)value.Value); }
         }
 
         public RadarColor? RadarColor
@@ -2356,11 +2387,16 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                var pk_server = PropertyManager.GetBool("pk_server").Item;
-                if (this is Player && pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
-                    return PlayerKillerStatus.PK;
-                else
-                    return _playerKillerStatus;
+                if (this is Player)
+                {
+                    var pk_server = PropertyManager.GetBool("pk_server").Item;
+                    var pkl_server = PropertyManager.GetBool("pkl_server").Item;
+                    if ((pk_server || pkl_server) && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
+                    {
+                        return pkl_server ? PlayerKillerStatus.PKLite : PlayerKillerStatus.PK;
+                    }
+                }
+                return _playerKillerStatus;
             }
             set => _playerKillerStatus = value;
         }
@@ -2705,7 +2741,18 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.PKDamageResistRating);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageResistRating); else SetProperty(PropertyInt.PKDamageResistRating, value.Value); }
         }
-        
+
+        public int? Lifespan
+        {
+            get => GetProperty(PropertyInt.Lifespan);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Lifespan); else SetProperty(PropertyInt.Lifespan, value.Value); }
+        }
+
+        public int? RemainingLifespan
+        {
+            get => GetProperty(PropertyInt.RemainingLifespan);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RemainingLifespan); else SetProperty(PropertyInt.RemainingLifespan, value.Value); }
+        }
 
         /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.

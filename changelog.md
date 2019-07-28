@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2019-07-25
+[OptimShi]
+* Fix to allow *null* EncumberanceVal items to be carried.
+
+### 2019-07-24
+[OptimShi]
+* Added support for proper visual display of Layered Armor (Tailoring) and Reduced Armor (Tailoring) as well as future items such as Over-Robes.
+
 ### 2019-07-07
 [Ripley]
 * Only allow use of Hookers on Hooks.

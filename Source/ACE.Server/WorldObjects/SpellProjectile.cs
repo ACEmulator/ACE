@@ -537,7 +537,7 @@ namespace ACE.Server.WorldObjects
                     // could sneak attack be applied to void DoTs?
                     sneakAttackMod = player.GetSneakAttackMod(target);
                     //Console.WriteLine("Magic sneak attack:  + sneakAttackMod);
-                    heritageMod = player.GetHeritageBonus(WeaponType.Magic) ? 1.05f : 1.0f;
+                    heritageMod = player.GetHeritageBonus(player.GetEquippedWand()) ? 1.05f : 1.0f;
                 }
 
                 // DR / DRR applies for magic too?

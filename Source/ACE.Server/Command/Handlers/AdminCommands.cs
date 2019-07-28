@@ -262,33 +262,8 @@ namespace ACE.Server.Command.Handlers
                 }
             }
 
-            if (wo.IsGenerator)
-                wo.ResetGenerator();
-
-            if (wo.WielderId != null)
-            {
-                var wielder = session.Player.CurrentLandblock.GetObject(wo.WielderId.Value);
-
-                if (wielder != null)
-                {
-                    if (wielder is Player player)
-                        player.TryDequipObjectWithNetworking(objectId, out _, Player.DequipObjectAction.ConsumeItem);
-                    else if (wielder is Creature creature)
-                        creature.TryUnwieldObjectWithBroadcasting(objectId, out _, out _);
-                }
-            }
-            else if (rootOwner != null)
-            {
-                if (rootOwner is Player player)
-                    player.TryRemoveFromInventoryWithNetworking(objectId, out _, Player.RemoveFromInventoryAction.ConsumeItem);
-                else
-                {
-                    rootOwner.TryRemoveFromInventory(objectId);
-                    session.Network.EnqueueSend(new GameMessageDeleteObject(wo));
-                }
-            }
-
-            wo.Destroy();
+            wo.DeleteObject(rootOwner);
+            session.Network.EnqueueSend(new GameMessageDeleteObject(wo));
 
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleted 0x{wo.Guid}:{wo.Name}");
         }
@@ -1354,6 +1329,12 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            if (loot is House)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
+                return;
+            }
+
             if (hasPalette)
                 loot.PaletteTemplate = palette;
             if (hasShade)
@@ -1422,6 +1403,12 @@ namespace ACE.Server.Command.Handlers
             if (loot == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (loot is House)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1632,59 +1619,249 @@ namespace ACE.Server.Command.Handlers
         }
 
         // god
-        [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+            "Turns current character into a god!",
+            "Sets attributes and skills to higher than max levels.\n"
+            + "To return to a mortal state, use the /ungod command.\n"
+            + "Use the /god command with caution. While unlikely, there is a possibility that the character that runs the command will not be able to return to normal or will end up in a state that is unrecoverable.")]
         public static void HandleGod(Session session, params string[] parameters)
         {
             // @god - Sets your own stats to a godly level.
-
-            session.Player.TotalExperience = 191226310247;
-            session.Player.Level = 999;
-
-            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Level, 999));
-            session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(session.Player, PropertyInt64.TotalExperience, 191226310247));
-
-            foreach (var s in session.Player.Skills)
+            // need to save stats so that we can return with /ungod
+            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            biotas.Add((session.Player.Biota, session.Player.BiotaDatabaseLock));
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
+        }
+            
+        private static void DoGodMode(bool playerSaved, Session session, bool exceptionReturn = false)
+        {
+            if (!playerSaved)
             {
-                session.Player.TrainSkill(s.Key, 0);
-                session.Player.SpecializeSkill(s.Key, 0);
-                var playerSkill = session.Player.Skills[s.Key];
+                ChatPacket.SendServerMessage(session, "Error saving player. Godmode not available.", ChatMessageType.Broadcast);
+                Console.WriteLine($"Player {session.Player.Name} tried to enter god mode but there was an error saving player. Godmode not available.");
+                return;
+            }
+
+            Biota biota = session.Player.Biota;
+
+            string godString = session.Player.GodState;
+
+            if (!exceptionReturn)
+            {
+                // if godstate starts with 1, you are in godmode
+
+                if (godString != null)
+                {
+                    if (godString.StartsWith("1"))
+                    {
+                        ChatPacket.SendServerMessage(session, "You are already a god.", ChatMessageType.Broadcast);
+                        return;
+                    }
+                }
+
+                string returnState = "1=";
+                returnState += $"{DateTime.UtcNow}=";
+
+                // need level 25, available skill credits 24
+                returnState += $"24={session.Player.AvailableSkillCredits}=25={session.Player.Level}=";
+
+                // need total xp 1, unassigned xp 2
+                returnState += $"1={session.Player.TotalExperience}=2={session.Player.AvailableExperience}=";
+
+                // need all attributes
+                foreach (var att in biota.BiotaPropertiesAttribute)
+                {
+                    returnState += $"{att.Type}=";
+                    returnState += $"{att.InitLevel}=";
+                    returnState += $"{att.LevelFromCP}=";
+                    returnState += $"{att.CPSpent}=";
+                }
+
+                // need all vitals
+                foreach (var attSec in biota.BiotaPropertiesAttribute2nd)
+                {
+                    returnState += $"{attSec.Type}=";
+                    returnState += $"{attSec.InitLevel}=";
+                    returnState += $"{attSec.LevelFromCP}=";
+                    returnState += $"{attSec.CPSpent}=";
+                    returnState += $"{attSec.CurrentLevel}=";
+                }
+
+                // need all skills
+                foreach (var sk in biota.BiotaPropertiesSkill)
+                {
+                    returnState += $"{sk.Type}=";
+                    returnState += $"{sk.LevelFromPP}=";
+                    returnState += $"{sk.SAC}=";
+                    returnState += $"{sk.PP}=";
+                    returnState += $"{sk.InitLevel}=";
+                }
+
+                // save return state to db in property string
+                session.Player.SetProperty(PropertyString.GodState, returnState);
+                session.Player.SaveBiotaToDatabase(); 
+            }
+
+            // Begin Godly Stats Increase
+
+            var currentPlayer = session.Player;
+            currentPlayer.Level = 999;
+            currentPlayer.AvailableExperience = 0;
+            currentPlayer.AvailableSkillCredits = 0;
+            currentPlayer.TotalExperience = 191226310247;
+
+            var levelMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, (int)currentPlayer.Level);
+            var expMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.AvailableExperience, (long)currentPlayer.AvailableExperience);
+            var skMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.AvailableSkillCredits, (int)currentPlayer.AvailableSkillCredits);
+            var totalExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, (long)currentPlayer.TotalExperience);
+
+            currentPlayer.Session.Network.EnqueueSend(levelMsg, expMsg, skMsg, totalExpMsg);
+
+            foreach (var s in currentPlayer.Skills)
+            {
+                currentPlayer.TrainSkill(s.Key, 0);
+                currentPlayer.SpecializeSkill(s.Key, 0);
+                var playerSkill = currentPlayer.Skills[s.Key];
                 playerSkill.Ranks = 226;
                 playerSkill.ExperienceSpent = 4100490438u;
                 playerSkill.InitLevel = 5000;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(session.Player, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, 5000u, playerSkill.ExperienceSpent));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, playerSkill.InitLevel, playerSkill.ExperienceSpent));
             }
 
-            foreach (var a in session.Player.Attributes)
+            foreach (var a in currentPlayer.Attributes)
             {
-                var playerAttr = session.Player.Attributes[a.Key];
+                var playerAttr = currentPlayer.Attributes[a.Key];
                 playerAttr.StartingValue = 9809u;
                 playerAttr.Ranks = 190u;
                 playerAttr.ExperienceSpent = 4019438644u;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(session.Player, a.Key, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(currentPlayer, a.Key, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
             }
 
-            session.Player.SetMaxVitals();
+            currentPlayer.SetMaxVitals();
 
-            foreach (var v in session.Player.Vitals)
+            foreach (var v in currentPlayer.Vitals)
             {
-                var playerVital = session.Player.Vitals[v.Key];
+                var playerVital = currentPlayer.Vitals[v.Key];
                 playerVital.Ranks = 196u;
                 playerVital.ExperienceSpent = 4285430197u;
                 // my OCD will not let health/stam not be equal due to the endurance calc
                 playerVital.StartingValue = (v.Key == PropertyAttribute2nd.MaxHealth) ? 94803u : 89804u;
-                session.Player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(session.Player, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
             }
 
-            session.Player.SetMaxVitals();
+            currentPlayer.PlayParticleEffect(PlayScript.LevelUp, currentPlayer.Guid);
+            currentPlayer.PlayParticleEffect(PlayScript.BaelZharonSmite, currentPlayer.Guid);
 
-            session.Player.ChangesDetected = true;
-
-            session.Player.PlayParticleEffect(PlayScript.LevelUp, session.Player.Guid);
-            session.Player.PlayParticleEffect(PlayScript.BaelZharonSmite, session.Player.Guid);
+            currentPlayer.SetMaxVitals();
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
+        }
 
-            session.Player.SaveCharacterToDatabase();
+        // ungod
+        [CommandHandler("ungod", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+            "Returns character to a mortal state.",
+            "Sets attributes and skills back to the values they were when you became a god.\n"
+            + "If the command fails to revert your state it will default to godmode.\n"
+            + "In the event of failure, contact a server administrator to sort it out.")]
+        public static void HandleUngod(Session session, params string[] parameters)
+        {
+            // @ungod - Returns skills and attributues to pre-god levels.
+            Player currentPlayer = session.Player;
+            Biota biota = currentPlayer.Biota;
+            string returnString = session.Player.GodState;
+            
+            if (returnString == null)
+            {
+                ChatPacket.SendServerMessage(session, "Can't get any more ungodly than you already are...", ChatMessageType.Broadcast);
+                return;
+            }
+            else
+            {
+                try
+                {
+                   string[] returnStringArr = returnString.Split("=");
+
+                    // correctly formatted return string should have 240 entries
+                    // if the construction of the string changes - this will need to be updated to match
+                    if (returnStringArr.Length != 240)
+                    {
+                        Console.WriteLine($"The returnString was not set to the correct length while {currentPlayer.Name} was attempting to return to normal from godmode.");
+                        ChatPacket.SendServerMessage(session, "Error returning to mortal state, defaulting to godmode.", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    for (int i = 2; i < returnStringArr.Length;)
+                    {
+                        switch (i)
+                        {
+                            case int n when (n <= 5):
+                                currentPlayer.SetProperty((PropertyInt)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                                i += 2;
+                                break;
+                            case int n when (n <= 9):
+                                currentPlayer.SetProperty((PropertyInt64)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                                i += 2;
+                                break;
+                            case int n when (n <= 33):
+                                var playerAttr = currentPlayer.Attributes[(PropertyAttribute)int.Parse(returnStringArr[i])];
+                                playerAttr.StartingValue = uint.Parse(returnStringArr[i + 1]);
+                                playerAttr.Ranks = uint.Parse(returnStringArr[i + 2]);
+                                playerAttr.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(currentPlayer, playerAttr.Attribute, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                                i += 4;
+                                break;
+                            case int n when (n <= 48):
+                                var playerVital = currentPlayer.Vitals[(PropertyAttribute2nd)int.Parse(returnStringArr[i])];
+                                playerVital.StartingValue = uint.Parse(returnStringArr[i + 1]);
+                                playerVital.Ranks = uint.Parse(returnStringArr[i + 2]);
+                                playerVital.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                                playerVital.Current = uint.Parse(returnStringArr[i + 4]);
+                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, playerVital.Vital, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+                                i += 5;
+                                break;
+                            case int n when (n <= 238):
+                                var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
+                                playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
+                                playerSkill.AdvancementClass = (SkillAdvancementClass)int.Parse(returnStringArr[i + 2]);
+                                playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
+                                playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
+                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill.Skill, playerSkill.AdvancementClass, playerSkill.Ranks, playerSkill.InitLevel, playerSkill.ExperienceSpent));
+                                i += 5;
+                                break;
+                            case 239: //end of returnString, this will need to be updated if the length of the string changes
+                                GameMessagePrivateUpdatePropertyInt levelMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, (int)currentPlayer.Level);
+                                GameMessagePrivateUpdatePropertyInt skMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.AvailableSkillCredits, (int)currentPlayer.AvailableSkillCredits);
+                                GameMessagePrivateUpdatePropertyInt64 totalExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.TotalExperience, (long)currentPlayer.TotalExperience);
+                                GameMessagePrivateUpdatePropertyInt64 unassignedExpMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.AvailableExperience, (long)currentPlayer.AvailableExperience);
+                                currentPlayer.Session.Network.EnqueueSend(levelMsg, skMsg, totalExpMsg, unassignedExpMsg);
+                                i++;
+                                break;
+                            default:
+                                // A warning that will alert on the console if the returnString length changes. This should suffice until a smoother way can be found.
+                                Console.WriteLine($"Hit default case in /ungod command with i = {i}, did you change the length of the PropertyString.GodState array?");
+                                i++;
+                                break;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Exception ( { e.Source } - {e.Message} ) caught while {currentPlayer.Name} was attempting to return to normal from godmode.");
+                    ChatPacket.SendServerMessage(session, "Error returning to mortal state, defaulting to godmode.", ChatMessageType.Broadcast);
+                    DoGodMode(true, session, true);
+                    return;
+                }
+
+                currentPlayer.SetMaxVitals();
+
+                currentPlayer.RemoveProperty(PropertyString.GodState);
+
+                currentPlayer.SaveBiotaToDatabase();
+
+                currentPlayer.PlayParticleEffect(PlayScript.DispelAll, currentPlayer.Guid);
+
+                ChatPacket.SendServerMessage(session, "You have returned from your godly state.", ChatMessageType.Broadcast);
+            }
         }
 
         // magic god
