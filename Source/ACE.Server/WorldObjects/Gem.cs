@@ -97,6 +97,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (!player.ContractManager.Add(UseCreateContractId.Value))
                     return;
+                else // this wasn't in retail, but the lack of feedback when using a contract gem just seems jarring so...
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} accepted. Click on the quill icon in the lower right corner to open your contract tab to view your active contracts.", ChatMessageType.Broadcast));
             }
 
             if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
