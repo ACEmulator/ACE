@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
-namespace ACE.Factories
+namespace ACE.Server.Factories
 {
     public static class LootTables
     {
-
         /// <summary>
         /// The following data is materialID/material value modifier
         /// </summary>
@@ -1633,18 +1632,6 @@ namespace ACE.Factories
 
         public static readonly int[][] JewelryCantrips =
         {
-            ////Strength
-            new int[] { 2583, 2576, 3965, 6107},
-            ////Endurance
-            new int[] { 2580, 2573, 4226, 6104},
-            ////Coordination
-            new int[] { 2579, 2572, 3963, 6103},
-            ////Quickness
-            new int[] { 2582, 2575, 4019, 6106},
-            ////Focus
-            new int[] { 2581, 2574, 3964, 6105},
-            ////Willpower
-            new int[] { 2584, 2577, 4227, 6101},
             ////Invuln
             new int[] { 2550, 2515, 4696, 6055},
             ////Impreg
@@ -1717,14 +1704,12 @@ namespace ACE.Factories
             new int[] { 2554, 2519, 4232, 6059},
             ////Fealty
             new int[] { 2546, 2511, 4692, 6051},
+            ////Jump
+            new int[] { 2553, 2518, 4699, 6058},
+            ////Sprint
+            new int[] { 2564, 2529, 4710, 6071},
             ////Armor Self
             new int[] { 2578, 2571, 4911, 6102},
-            ////Regeneration
-            new int[] { 2626, 2623, 4680, 6077},
-            ////Rejuvenation
-            new int[] { 2628, 2625, 4682, 6076},
-            ////Mana Renewal
-            new int[] { 2627, 2624, 4681, 6078 },
             ////Armor Self
             new int[] { 2578, 2571, 4911, 6102},
             ////Acid Prot
@@ -1750,7 +1735,7 @@ namespace ACE.Factories
             ////Willpower
             new int[] { 2584, 2577, 4227, 6101},
             ////Sneak Attack
-            new int[] {5887, 5892, 5897, 6070 },
+            new int[] { 5887, 5892, 5897, 6070},
             ////Arcane Enlight
             new int[] { 2537, 2502, 4684, 6041},
             ////Mana C
@@ -1767,6 +1752,8 @@ namespace ACE.Factories
             new int[] { 2600, 2588, 4663, 6091},
             ////Hermetic Link
             new int[] { 3199, 3200, 4686, 6087},
+            ////Spirit Thirst
+            new int[] { 3251, 3250, 4670, 6098},
         };
 
         public static readonly int[][] MeleeCantrips =
@@ -2239,5 +2226,28 @@ namespace ACE.Factories
             37200,
             37195
         };
+
+        // for logging epic/legendary drops
+        public static HashSet<int> EpicCantrips;
+        public static HashSet<int> LegendaryCantrips;
+
+        private static List<int[][]> cantripTables = new List<int[][]>() { ArmorCantrips, JewelryCantrips, WandCantrips, MeleeCantrips, MissileCantrips };
+
+        static LootTables()
+        {
+            BuildCantripsTable(ref EpicCantrips, 2);
+            BuildCantripsTable(ref LegendaryCantrips, 3);
+        }
+
+        private static void BuildCantripsTable(ref HashSet<int> table, int tier)
+        {
+            table = new HashSet<int>();
+
+            foreach (var cantripTable in cantripTables)
+            {
+                foreach (var category in cantripTable)
+                    table.Add(category[tier]);
+            }
+        }
     }
 }

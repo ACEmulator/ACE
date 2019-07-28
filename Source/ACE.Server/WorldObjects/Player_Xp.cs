@@ -96,6 +96,9 @@ namespace ACE.Server.WorldObjects
                 CheckForLevelup();
             }
 
+            if (xpType == XpType.Quest)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} experience.", ChatMessageType.Broadcast));
+
             if (HasVitae && xpType != XpType.Allegiance)
                 UpdateXpVitae(amount);
         }
@@ -404,6 +407,8 @@ namespace ACE.Server.WorldObjects
             var newItemLevel = item.ItemLevel.Value;
             if (newItemLevel > prevItemLevel)
             {
+                OnItemLevelUp(item, prevItemLevel);
+
                 var actionChain = new ActionChain();
                 actionChain.AddAction(this, () =>
                 {
@@ -411,9 +416,6 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                     EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
-
-                    OnItemLevelUp(item, prevItemLevel);
-
                 });
                 actionChain.EnqueueChain();
             }

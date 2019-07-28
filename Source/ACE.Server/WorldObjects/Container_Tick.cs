@@ -1,4 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
+
+using ACE.Entity.Enum;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -6,10 +10,11 @@ namespace ACE.Server.WorldObjects
     {
         public override void Heartbeat(double currentUnixTime)
         {
-            Inventory_Tick();
+            // TODO: fix bug for landblock containers w/ no heartbeat
+            Inventory_Tick(this);
 
-            foreach (var subcontainer in Inventory.Values.Where(i => i is Container))
-                (subcontainer as Container).Inventory_Tick();
+            foreach (var subcontainer in Inventory.Values.OfType<Container>())
+                subcontainer.Inventory_Tick(this);
 
             // for landblock containers
             if (IsOpen && CurrentLandblock != null)
@@ -30,17 +35,37 @@ namespace ACE.Server.WorldObjects
             base.Heartbeat(currentUnixTime);
         }
 
-        public void Inventory_Tick()
+        public void Inventory_Tick(Container rootOwner)
         {
+            var expireItems = new List<WorldObject>();
+
             // added where clause
-            foreach (var wo in Inventory.Values.Where(i => i.EnchantmentManager.HasEnchantments))
+            foreach (var wo in Inventory.Values.Where(i => i.EnchantmentManager.HasEnchantments || i.RemainingLifespan.HasValue))
             {
                 // FIXME: wo.NextHeartbeatTime is double.MaxValue here
                 //if (wo.NextHeartbeatTime <= currentUnixTime)
-                //wo.Heartbeat(currentUnixTime);
+                    //wo.Heartbeat(currentUnixTime);
 
                 // just go by parent heartbeats, only for enchantments?
-                wo.EnchantmentManager.HeartBeat(HeartbeatInterval);
+                if (wo.EnchantmentManager.HasEnchantments)
+                    wo.EnchantmentManager.HeartBeat(CachedHeartbeatInterval);
+
+                if (wo.RemainingLifespan != null)
+                {
+                    wo.RemainingLifespan -= (int)CachedHeartbeatInterval;
+
+                    if (wo.RemainingLifespan <= 0)
+                        expireItems.Add(wo);
+                }
+            }
+
+            // delete items when RemainingLifespan <= 0
+            foreach (var expireItem in expireItems)
+            {
+                expireItem.DeleteObject(rootOwner);
+
+                if (rootOwner is Player player)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Its lifespan finished, your {expireItem.Name} crumbles to dust.", ChatMessageType.Broadcast));
             }
         }
     }

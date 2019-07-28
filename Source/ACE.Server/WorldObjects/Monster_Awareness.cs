@@ -239,7 +239,7 @@ namespace ACE.Server.WorldObjects
                 if (creature == null) continue;
 
                 // ensure attackable
-                if (!creature.Attackable) continue;
+                if (!creature.Attackable || creature.Teleporting) continue;
 
                 // ensure within 'detection radius' ?
                 var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : RadiusAwarenessSquared;
@@ -321,7 +321,7 @@ namespace ACE.Server.WorldObjects
             {
                 var creature = visibleTarget.WeenieObj.WorldObject as Creature;
 
-                if (creature == null || creature is Player player && (!player.Attackable || (player.Hidden ?? false)))
+                if (creature == null || creature is Player player && (!player.Attackable || player.Teleporting || (player.Hidden ?? false)))
                     continue;
 
                 var distSq = Location.SquaredDistanceTo(creature.Location);

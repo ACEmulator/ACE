@@ -8,7 +8,6 @@ using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Factories;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 using ACE.Entity.Enum.Properties;
@@ -1913,16 +1912,20 @@ namespace ACE.Server.Factories
 
             var dropRateMod = 1.0 / dropRate;
 
-            // 0.1% chance for 1 Epic, 0.01% chance for 2 Epics,
-            // 0.001% chance for 3 Epics, 0.0001% chance for 4 Epics 
-            if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod)) == 1)
-                numEpics = 1;
-            if (ThreadSafeRandom.Next(1, (int)(10000 * dropRateMod)) == 1)
-                numEpics = 2;
-            if (ThreadSafeRandom.Next(1, (int)(100000 * dropRateMod)) == 1)
-                numEpics = 3;
-            if (ThreadSafeRandom.Next(1, (int)(1000000 * dropRateMod)) == 1)
-                numEpics = 4;
+            // 25% base chance for no epics for tier 7
+            if (ThreadSafeRandom.Next(1, 4) > 1)
+            {
+                // 1% chance for 1 Epic, 0.1% chance for 2 Epics,
+                // 0.01% chance for 3 Epics, 0.001% chance for 4 Epics 
+                if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1)
+                    numEpics = 1;
+                if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod)) == 1)
+                    numEpics = 2;
+                if (ThreadSafeRandom.Next(1, (int)(10000 * dropRateMod)) == 1)
+                    numEpics = 3;
+                if (ThreadSafeRandom.Next(1, (int)(100000 * dropRateMod)) == 1)
+                    numEpics = 4;
+            }
 
             return numEpics;
         }

@@ -51,7 +51,7 @@ namespace ACE.Server.Command.Handlers
 
                     session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.On);
 
-                    CommandHandlerHelper.WriteOutputInfo(session, $"You are now cloaked.\nYou are now etheral and can pass through doors.", ChatMessageType.Broadcast);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"You are now cloaked.\nYou are now ethereal and can pass through doors.", ChatMessageType.Broadcast);
                     break;
                 case "player":
                     if (session.AccessLevel > AccessLevel.Envoy)

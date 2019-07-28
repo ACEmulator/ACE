@@ -320,6 +320,10 @@ namespace ACE.Server.WorldObjects
                         else
                             Enum.TryParse("Attack" + GetAttackHeight() + Math.Min((int)GetPowerRange(), 2), out motion);
 
+                        // AttackHigh1 was deprecated in retail
+                        if (motion == MotionCommand.AttackHigh1)
+                            motion = MotionCommand.AttackHigh2;
+
                         return motion;
                     }
             }
