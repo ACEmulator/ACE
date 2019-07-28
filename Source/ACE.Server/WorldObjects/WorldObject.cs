@@ -99,6 +99,10 @@ namespace ACE.Server.WorldObjects
             InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
+
+            // TODO: fix weenie data
+            if (Lifespan != null)
+                RemainingLifespan = Lifespan;
         }
 
         /// <summary>
@@ -272,9 +276,6 @@ namespace ACE.Server.WorldObjects
 
             if (MotionTableId != 0)
                 CurrentMotionState = new Motion(MotionStance.Invalid);
-
-            if (WeenieType == WeenieType.Corpse)
-                HeartbeatInterval = 5;
         }
 
         /// <summary>

@@ -718,5 +718,22 @@ namespace ACE.Server.WorldObjects
             }
             wielder.TryCastSpell(spell, target, this);
         }
+
+        private bool? isMasterable;
+
+        public bool IsMasterable
+        {
+            get
+            {
+                // should be based on this, but a bunch of the weapon data probably needs to be updated...
+                //return W_WeaponType != WeaponType.Undef;
+
+                // cache this?
+                if (isMasterable == null)
+                    isMasterable = LongDesc == null || !LongDesc.Contains("This weapon seems tough to master.", StringComparison.OrdinalIgnoreCase);
+
+                return isMasterable.Value;
+            }
+        }
     }
 }
