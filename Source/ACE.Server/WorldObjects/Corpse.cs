@@ -1,19 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Factories;
-using ACE.Server.Entity.Actions;
-using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -236,6 +237,28 @@ namespace ACE.Server.WorldObjects
             }
             else
                 log.Error($"[RARE] failed to add to corpse inventory");
+        }
+
+        public void DoCantripLogging(WorldObject killer, WorldObject wo)
+        {
+            var epicCantrips = wo.EpicCantrips;
+            var legendaryCantrips = wo.LegendaryCantrips;
+
+            if (epicCantrips.Count > 0)
+                log.Info($"[EPIC] {Name} ({Guid}) generated item with {epicCantrips.Count} epic{(epicCantrips.Count > 1 ? "s" : "")} - {wo.Name} ({wo.Guid}) - {GetSpellList(epicCantrips)} - killed by {killer.Name} ({killer.Guid})");
+
+            if (legendaryCantrips.Count > 0)
+                log.Info($"[LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer.Name} ({killer.Guid})");
+        }
+
+        public static string GetSpellList(List<BiotaPropertiesSpellBook> spellbook)
+        {
+            var spells = new List<Server.Entity.Spell>();
+
+            foreach (var spell in spellbook)
+                spells.Add(new Server.Entity.Spell(spell.Spell, false));
+
+            return string.Join(", ", spells.Select(i => i.Name));
         }
     }
 }

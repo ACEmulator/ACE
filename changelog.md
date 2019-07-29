@@ -6,8 +6,15 @@
   - This requires a shard update script found in updates folder: `2019-07-22-00-Update_Contracts.sql`
 
 ### 2019-07-25
+[OptimShi]
+* Fix to allow *null* EncumberanceVal items to be carried.
+
 [Ripley]
 * Add forced save to db for items being moved between players to prevent loss if crash occurs before normal save interval.
+
+### 2019-07-24
+[OptimShi]
+* Added support for proper visual display of Layered Armor (Tailoring) and Reduced Armor (Tailoring) as well as future items such as Over-Robes.
 
 ### 2019-07-17
 [Ripley]

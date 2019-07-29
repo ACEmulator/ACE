@@ -587,6 +587,12 @@ namespace ACE.Entity.Enum.Properties
         /// </summary>
         [ServerOnly]
         Hairstyle = 9012,
+        /// <summary>
+        /// Used to store the calculated Clothing Priority for use with armor reduced items and items like Over-Robes.
+        /// </summary>
+        [Ephemeral][ServerOnly]
+        VisualClothingPriority = 9013,
+
     }
 
     public static class PropertyIntExtensions
