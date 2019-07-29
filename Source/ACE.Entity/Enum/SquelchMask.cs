@@ -1,9 +1,13 @@
+using System;
+
 namespace ACE.Entity.Enum
 {
+    [Flags]
     public enum SquelchMask: uint
     {
         // this is not a client enum,
         // but is equivalent to 1 << ChatMessageType
+        None                = 0x0,
         Speech              = 0x4,
         Tell                = 0x8,
         Combat              = 0x40,
@@ -18,6 +22,41 @@ namespace ACE.Entity.Enum
         Recall              = 0x800000,
         Craft               = 0x1000000,
         Salvaging           = 0x2000000,
+        Combined            = Speech | Tell | Combat | Magic | Emote | Appraisal | Spellcasting | Allegiance | Fellowship | CombatEnemy | CombatSelf | Recall | Craft | Salvaging,
         AllChannels         = 0xFFFFFFFF
+    }
+
+    public static class SquelchMaskExtensions
+    {
+        public static SquelchMask Add(this SquelchMask maskA, SquelchMask maskB)
+        {
+            if (maskA == SquelchMask.AllChannels || maskB == SquelchMask.AllChannels)
+                return SquelchMask.AllChannels;
+
+            var result = maskA | maskB;
+
+            if (result == SquelchMask.Combined)
+                return SquelchMask.AllChannels;
+            else
+                return result;
+        }
+
+        public static SquelchMask Remove(this SquelchMask maskA, SquelchMask maskB)
+        {
+            if (maskB == SquelchMask.AllChannels)
+                return SquelchMask.None;
+
+            var result = maskA;
+
+            if (result == SquelchMask.AllChannels)
+                result = SquelchMask.Combined;
+
+            result &= ~maskB;
+
+            if (result == SquelchMask.Combined)
+                result = SquelchMask.AllChannels;
+
+            return result;
+        }
     }
 }

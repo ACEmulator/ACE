@@ -112,40 +112,85 @@ namespace ACE.Server.Managers
                 return;
             }
 
+
+            if (squelch)
+                SquelchCharacter(player, messageType);
+            else
+                UnsquelchCharacter(player, messageType);
+
+            UpdateSquelchDB();
+
+            SendSquelchDB();
+        }
+
+        public void SquelchCharacter(IPlayer player, ChatMessageType messageType)
+        {
             var squelches = Player.Character.GetSquelches(Player.CharacterDatabaseLock);
 
             var existing = squelches.FirstOrDefault(i => i.SquelchCharacterId == player.Guid.Full);
 
-            if (squelch)
+            var newMask = messageType.ToMask();
+
+            var channelMsg = messageType == ChatMessageType.AllChannels ? "" : $" on the {messageType} channel.";
+
+            if (existing != null)
             {
-                if (existing != null)
+                var existingMask = (SquelchMask)existing.Type;
+
+                newMask = existingMask.Add(newMask);
+
+                if (existingMask == newMask)
                 {
-                    Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already squelched.", ChatMessageType.Broadcast));
+                    Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already squelched{channelMsg}.", ChatMessageType.Broadcast));
                     return;
                 }
-
-                Player.Character.AddOrUpdateSquelch(player.Guid.Full, 0, (uint)messageType.ToMask(), Player.CharacterDatabaseLock);
-                Player.CharacterChangesDetected = true;
-
-                Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been squelched.", ChatMessageType.Broadcast));
             }
-            else
-            {
-                if (existing == null)
-                {
-                    Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not squelched.", ChatMessageType.Broadcast));
-                    return;
-                }
 
+            Player.Character.AddOrUpdateSquelch(player.Guid.Full, 0, (uint)newMask, Player.CharacterDatabaseLock);
+            Player.CharacterChangesDetected = true;
+
+            Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been squelched{channelMsg}.", ChatMessageType.Broadcast));
+        }
+
+        public void UnsquelchCharacter(IPlayer player, ChatMessageType messageType)
+        {
+            var squelches = Player.Character.GetSquelches(Player.CharacterDatabaseLock);
+
+            var existing = squelches.FirstOrDefault(i => i.SquelchCharacterId == player.Guid.Full);
+
+            if (existing == null)
+            {
+                Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not squelched.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (messageType == ChatMessageType.AllChannels)
+            {
                 Player.Character.TryRemoveSquelch(player.Guid.Full, 0, out _, Player.CharacterDatabaseLock);
                 Player.CharacterChangesDetected = true;
 
                 Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been unsquelched.", ChatMessageType.Broadcast));
             }
+            else
+            {
+                var existingMask = (SquelchMask)existing.Type;
+                var removeMask = messageType.ToMask();
 
-            UpdateSquelchDB();
+                if (!existingMask.HasFlag(removeMask))
+                {
+                    Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not squelched on the {messageType} channel.", ChatMessageType.Broadcast));
+                    return;
+                }
 
-            SendSquelchDB();
+                var newMask = existingMask.Remove(removeMask);
+
+                if (newMask != SquelchMask.None)
+                    Player.Character.AddOrUpdateSquelch(player.Guid.Full, 0, (uint)newMask, Player.CharacterDatabaseLock);
+                else
+                    Player.Character.TryRemoveSquelch(player.Guid.Full, 0, out _, Player.CharacterDatabaseLock);
+
+                Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been unsquelched on the {messageType} channel.", ChatMessageType.Broadcast));
+            }
         }
 
         /// <summary>
