@@ -73,13 +73,6 @@ namespace ACE.Server.Entity
                 return WeenieError.YouDoNotPassCraftingRequirements;
             }
 
-            // Can't apply Unenchantable to an enchantable, and vice versa
-            if( (source.ResistMagic.HasValue && source.ResistMagic >= 9999) != (target.ResistMagic.HasValue && target.ResistMagic >= 9999))
-            {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot tailor between an item that is enchantable and unenchantable.", ChatMessageType.Craft));
-                return WeenieError.YouDoNotPassCraftingRequirements;
-            }
-
             return WeenieError.None;
         }
 
@@ -272,7 +265,7 @@ namespace ACE.Server.Entity
         {
             //Console.WriteLine($"TailorReduceArmor({player.Name}, {source.Name}, {target.Name})");
 
-            // verify requirements
+            // Verify requirements - Can only reduce LootGen Armor
             if (target.ItemWorkmanship == null)
             {
                 player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
