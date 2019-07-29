@@ -185,7 +185,7 @@ namespace ACE.Server.WorldObjects
                 sw4.Stop();
 
                 if (sw.Elapsed.Seconds >= 1 || sw2.Elapsed.Seconds >= 1 || sw3.Elapsed.Seconds >= 1 || sw4.Elapsed.Seconds >= 1)
-                    log.Warn($"Player_Death Die() ActionChain took: {sw.Elapsed.TotalSeconds}, {sw2.Elapsed.TotalSeconds}, {sw3.Elapsed.TotalSeconds}, {sw4.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
+                    log.Warn($"Player_Death Die() ActionChain took: {sw.Elapsed.TotalSeconds}, {sw2.Elapsed.TotalSeconds}, {sw3.Elapsed.TotalSeconds}, {sw4.Elapsed.TotalSeconds}");
             });
 
             dieChain.EnqueueChain();
