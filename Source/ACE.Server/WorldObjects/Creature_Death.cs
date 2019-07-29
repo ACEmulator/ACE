@@ -161,6 +161,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected void CreateCorpse(WorldObject killer)
         {
+            var sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            try { 
             if (NoCorpse)
             {
                 var loot = GenerateTreasure(killer, null);
@@ -173,8 +176,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var sw1 = new System.Diagnostics.Stopwatch();
+            sw1.Start();
             var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
             var prefix = "Corpse";
+            sw1.Stop();
+            if (sw1.Elapsed.Seconds >= 1)
+                log.Warn($"Creature_Death CreateCorpse() CreateNewWorldObject took: {sw1.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
 
             if (TreasureCorpse)
             {
@@ -272,7 +280,12 @@ namespace ACE.Server.WorldObjects
             if (CanGenerateRare && killer != null)
                 corpse.GenerateRare(killer);
 
+            var sw2 = new System.Diagnostics.Stopwatch();
+            sw2.Start();
             corpse.EnterWorld();
+            sw2.Stop();
+            if (sw2.Elapsed.Seconds >= 1)
+                log.Warn($"Creature_Death CreateCorpse() EnterWorld took: {sw2.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
 
             if (this is Player p)
             {
@@ -284,6 +297,13 @@ namespace ACE.Server.WorldObjects
 
             if (saveCorpse)
                 corpse.SaveBiotaToDatabase();
+            }
+            finally
+            {
+                sw.Stop();
+                if (sw.Elapsed.Seconds >= 1)
+                    log.Warn($"Creature_Death CreateCorpse() took: {sw.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
+            }
         }
 
         public bool CanGenerateRare
