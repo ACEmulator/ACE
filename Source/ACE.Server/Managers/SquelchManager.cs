@@ -48,7 +48,6 @@ namespace ACE.Server.Managers
         {
             switch (channel)
             {
-                case ChatMessageType.AllChannels:   // added?
                 case ChatMessageType.Speech:
                 case ChatMessageType.Tell:
                 case ChatMessageType.Combat:
@@ -76,7 +75,7 @@ namespace ACE.Server.Managers
         {
             Console.WriteLine($"{Player.Name}.HandleActionModifyCharacterSquelch({squelch}, {playerGuid:X8}, {playerName}, {messageType})");
 
-            if (!IsLegalChannel(messageType))
+            if (messageType != ChatMessageType.AllChannels && !IsLegalChannel(messageType))
             {
                 Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{messageType} is not a legal squelch channel", ChatMessageType.Broadcast));
                 return;
@@ -125,7 +124,7 @@ namespace ACE.Server.Managers
                     return;
                 }
 
-                Player.Character.AddOrUpdateSquelch(player.Guid.Full, 0, (uint)messageType, Player.CharacterDatabaseLock);
+                Player.Character.AddOrUpdateSquelch(player.Guid.Full, 0, (uint)messageType.ToMask(), Player.CharacterDatabaseLock);
                 Player.CharacterChangesDetected = true;
 
                 Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been squelched.", ChatMessageType.Broadcast));
@@ -185,7 +184,7 @@ namespace ACE.Server.Managers
                 }
 
                 // always all channels?
-                Player.Character.AddOrUpdateSquelch(player.Guid.Full, player.Account.AccountId, (uint)ChatMessageType.AllChannels, Player.CharacterDatabaseLock);
+                Player.Character.AddOrUpdateSquelch(player.Guid.Full, player.Account.AccountId, (uint)SquelchMask.AllChannels, Player.CharacterDatabaseLock);
                 Player.CharacterChangesDetected = true;
 
                 Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been squelched.", ChatMessageType.Broadcast));

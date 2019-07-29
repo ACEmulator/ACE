@@ -18,9 +18,6 @@ namespace ACE.Server.Network.Structure
 
         public SquelchInfo(SquelchMask filter, string playerName, bool account)
         {
-            // fixme
-            filter = SquelchMask.AllChannels;
-
             Filters = new List<SquelchMask>() { filter, filter, filter, filter };
             PlayerName = playerName;
             Account = account;
