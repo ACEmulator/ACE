@@ -57,4 +57,24 @@ namespace ACE.Entity.Enum
         Craft        = 0x1000,
         Salvaging    = 0x2000,
     }
+
+    public enum SquelchMask: uint
+    {
+        // this might be equivalent to 1 << (ChatMessageType + 1), verify
+        Speech              = 0x4,
+        SpeechDirect        = 0x8,      // tell
+        Combat              = 0x40,
+        Magic               = 0x80,
+        Emote               = 0x1000,
+        AppraisalChannel    = 0x10000,
+        MagicCastingChannel = 0x20000,
+        AllegienceChannel   = 0x40000,
+        FellowshipChannel   = 0x80000,
+        CombatEnemy         = 0x200000,
+        CombatSelf          = 0x400000,
+        Recall              = 0x800000,
+        Craft               = 0x1000000,
+        Salvaging           = 0x2000000,
+        AllChannels         = 0xFFFFFFFF
+    }
 }

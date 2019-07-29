@@ -7,23 +7,26 @@ namespace ACE.Server.Network.Structure
 {
     public class SquelchInfo
     {
-        public List<ChatMessageType> Filters;
+        public List<SquelchMask> Filters;
         public string PlayerName;
         public bool Account;
 
         public SquelchInfo()
         {
-            Filters = new List<ChatMessageType>();
+            Filters = new List<SquelchMask>();
         }
 
-        public SquelchInfo(ChatMessageType filter, string playerName, bool account)
+        public SquelchInfo(SquelchMask filter, string playerName, bool account)
         {
-            Filters = new List<ChatMessageType>() { filter };
+            // fixme
+            filter = SquelchMask.AllChannels;
+
+            Filters = new List<SquelchMask>() { filter, filter, filter, filter };
             PlayerName = playerName;
             Account = account;
         }
 
-        public SquelchInfo(List<ChatMessageType> filters, string playerName, bool account)
+        public SquelchInfo(List<SquelchMask> filters, string playerName, bool account)
         {
             Filters = filters;
             PlayerName = playerName;
@@ -50,7 +53,7 @@ namespace ACE.Server.Network.Structure
             writer.Write(Convert.ToUInt32(info.Account));
         }
 
-        public static void Write(this BinaryWriter writer, List<ChatMessageType> filters)
+        public static void Write(this BinaryWriter writer, List<SquelchMask> filters)
         {
             writer.Write(filters.Count);
             foreach (var filter in filters)

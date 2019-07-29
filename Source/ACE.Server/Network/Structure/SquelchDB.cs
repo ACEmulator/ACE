@@ -59,7 +59,7 @@ namespace ACE.Server.Network.Structure
                 if (squelch.SquelchAccountId == 0)
                 {
                     // chracter squelch
-                    var squelchInfo = new SquelchInfo((ChatMessageType)squelch.Type, squelchPlayer.Name, false);
+                    var squelchInfo = new SquelchInfo((SquelchMask)squelch.Type, squelchPlayer.Name, false);
 
                     Characters.Add(squelch.SquelchCharacterId, squelchInfo);
                 }
@@ -88,7 +88,7 @@ namespace ACE.Server.Network.Structure
                         continue;
 
                     if (!charactersPlus.TryGetValue(guid, out var existing))
-                        charactersPlus.Add(guid, new SquelchInfo(ChatMessageType.AllChannels, accountPlayer.Name, true));
+                        charactersPlus.Add(guid, new SquelchInfo(SquelchMask.AllChannels, accountPlayer.Name, true));
                     else
                         existing.Account = true;
                 }
