@@ -103,26 +103,30 @@ namespace ACE.Server.Network.Structure
         /// <summary>
         /// Returns TRUE if the input player is filtered by this player
         /// </summary>
-        public bool Contains(Player player, ChatMessageType messageType = ChatMessageType.AllChannels)
+        public bool Contains(WorldObject source, ChatMessageType messageType = ChatMessageType.AllChannels)
         {
             // ensure this channel can be squelched
-            if (messageType != ChatMessageType.AllChannels && !SquelchManager.IsLegalChannel(messageType))
+            if (!SquelchManager.IsLegalChannel(messageType))
                 return false;
-
-            // check account squelches
-
-            // the client forces account squelches to be AllMessages,
-            // so for these, channel mask is not required
-            if (Accounts.ContainsKey(player.Session.Account))
-                return true;
-
-            // check character squelches
-            Characters.TryGetValue(player.Guid.Full, out var squelchInfo);
 
             var squelchMask = messageType.ToMask();
 
-            if (squelchInfo != null && squelchInfo.Filters[0].HasFlag(squelchMask))
-                return true;
+            if (source is Player player)
+            {
+                // check account squelches
+
+                // the client forces account squelches to be AllMessages,
+                // so for these, channel mask is not required
+
+                if (Accounts.ContainsKey(player.Session.Account))
+                    return true;
+
+                // check character squelches
+                Characters.TryGetValue(player.Guid.Full, out var squelchInfo);
+
+                if (squelchInfo != null && squelchInfo.Filters[0].HasFlag(squelchMask))
+                    return true;
+            }
 
             // check global squelches
             if (Globals.Filters.Count > 0 && Globals.Filters[0].HasFlag(squelchMask))

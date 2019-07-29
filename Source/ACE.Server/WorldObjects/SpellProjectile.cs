@@ -339,6 +339,9 @@ namespace ACE.Server.WorldObjects
             // check lifestone protection
             if (targetPlayer != null && targetPlayer.UnderLifestoneProtection)
             {
+                if (sourcePlayer != null)
+                    sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Lifestone's magic protects {targetPlayer.Name} from the attack!", ChatMessageType.Magic));
+
                 targetPlayer.HandleLifestoneProtection();
                 return null;
             }

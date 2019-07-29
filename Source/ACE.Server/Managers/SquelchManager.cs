@@ -131,7 +131,7 @@ namespace ACE.Server.Managers
 
             var newMask = messageType.ToMask();
 
-            var channelMsg = messageType == ChatMessageType.AllChannels ? "" : $" on the {messageType} channel.";
+            var channelMsg = messageType == ChatMessageType.AllChannels ? "" : $" on the {messageType} channel";
 
             if (existing != null)
             {
