@@ -14,6 +14,6 @@ namespace ACE.Database.Models.Shard
         public bool IgnoreAuthor { get; set; }
         public string PageText { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

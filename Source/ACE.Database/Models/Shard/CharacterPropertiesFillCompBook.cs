@@ -10,6 +10,6 @@ namespace ACE.Database.Models.Shard
         public int SpellComponentId { get; set; }
         public int QuantityToRebuy { get; set; }
 
-        public Character Character { get; set; }
+        public virtual Character Character { get; set; }
     }
 }
