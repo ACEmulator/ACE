@@ -641,7 +641,7 @@ namespace ACE.Server.WorldObjects
         public void HandleActionTalk(string message)
         {
             if (!IsGagged)
-                EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, true);
+                EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
             else
                 SendGagError();
         }

@@ -106,7 +106,7 @@ namespace ACE.Server.Network.Structure
         public bool Contains(WorldObject source, ChatMessageType messageType = ChatMessageType.AllChannels)
         {
             // ensure this channel can be squelched
-            if (!SquelchManager.IsLegalChannel(messageType))
+            if (messageType != ChatMessageType.AllChannels && !SquelchManager.IsLegalChannel(messageType))
                 return false;
 
             var squelchMask = messageType.ToMask();

@@ -330,13 +330,17 @@ namespace ACE.Server.WorldObjects
             {
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetCreature.Name} resists your spell", ChatMessageType.Magic));
+                    if (!player.SquelchManager.Squelches.Contains(targetCreature, ChatMessageType.Magic))
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetCreature.Name} resists your spell", ChatMessageType.Magic));
+
                     player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
                 }
 
                 if (targetPlayer != null)
                 {
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {Name}", ChatMessageType.Magic));
+                    if (!targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {Name}", ChatMessageType.Magic));
+
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSound(targetPlayer.Guid, Sound.ResistSpell, 1.0f));
 
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
@@ -676,8 +680,8 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            if (targetMsg != null)
-                (target as Player).Session.Network.EnqueueSend(targetMsg);
+            if (targetMsg != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+                targetPlayer.Session.Network.EnqueueSend(targetMsg);
 
             enchantmentStatus.Success = true;
 
@@ -1329,7 +1333,7 @@ namespace ACE.Server.WorldObjects
             if (playerTarget == null && target.Wielder is Player wielder)
                 playerTarget = wielder;
 
-            if (playerTarget != null && playerTarget != this)
+            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
             {
                 var targetName = target == playerTarget ? "you" : target.Name;
 
