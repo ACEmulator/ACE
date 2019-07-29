@@ -37,9 +37,9 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns TRUE if this player has squelched any accounts or characters
+        /// Returns TRUE if this player has squelched any accounts / characters / globals
         /// </summary>
-        public bool HasSquelches => Squelches.Accounts.Count > 0 || Squelches.Characters.Count > 0;
+        public bool HasSquelches => Squelches.Accounts.Count > 0 || Squelches.Characters.Count > 0 || Squelches.Globals.Filters.Count > 0;
 
         /// <summary>
         /// Returns TRUE if this channel can be squelched
@@ -254,11 +254,32 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Called when modifying the global squelches (entry point?)
+        /// Called when modifying the global squelches - @filter
         /// </summary>
         public void HandleActionModifyGlobalSquelch(bool squelch, ChatMessageType messageType)
         {
             Console.WriteLine($"{Player.Name}.HandleActionModifyGlobalSquelch({squelch}, {messageType})");
+
+            var mask = messageType.ToMask();
+
+            var existingMask = Player.SquelchGlobal;
+            var newMask = squelch ? existingMask.Add(mask) : existingMask.Remove(mask);
+
+            var op = squelch ? "squelch" : "unsquelch";
+
+            if (existingMask == newMask)
+            {
+                Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {messageType} channel is already {op}ed.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            Player.SquelchGlobal = newMask;
+
+            Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {messageType} channel has been {op}ed.", ChatMessageType.Broadcast));
+
+            UpdateSquelchDB();
+
+            SendSquelchDB();
         }
 
         /// <summary>
@@ -267,7 +288,7 @@ namespace ACE.Server.Managers
         /// <returns></returns>
         public void UpdateSquelchDB()
         {
-            Squelches = new SquelchDB(Player.Character.GetSquelches(Player.CharacterDatabaseLock));
+            Squelches = new SquelchDB(Player.Character.GetSquelches(Player.CharacterDatabaseLock), Player.SquelchGlobal);
         }
 
         /// <summary>

@@ -41,7 +41,7 @@ namespace ACE.Server.Network.Structure
         /// <summary>
         /// Constructs a new SquelchDB for network sending
         /// </summary>
-        public SquelchDB(List<CharacterPropertiesSquelch> squelches)
+        public SquelchDB(List<CharacterPropertiesSquelch> squelches, SquelchMask globals)
         {
             Accounts = new Dictionary<string, uint>();
             Characters = new Dictionary<uint, SquelchInfo>();
@@ -69,6 +69,10 @@ namespace ACE.Server.Network.Structure
                     Accounts.Add(squelchPlayer.Account.AccountName, squelchPlayer.Guid.Full);
                 }
             }
+
+            // global squelch
+            if (globals != SquelchMask.None)
+                Globals.Filters.Add(globals);
         }
 
         /// <summary>
@@ -101,10 +105,27 @@ namespace ACE.Server.Network.Structure
         /// </summary>
         public bool Contains(Player player, ChatMessageType messageType = ChatMessageType.AllChannels)
         {
+            // ensure this channel can be squelched
+            if (messageType != ChatMessageType.AllChannels && !SquelchManager.IsLegalChannel(messageType))
+                return false;
+
+            // check account squelches
+
+            // the client forces account squelches to be AllMessages,
+            // so for these, channel mask is not required
             if (Accounts.ContainsKey(player.Session.Account))
                 return true;
 
-            if (Characters.ContainsKey(player.Guid.Full))
+            // check character squelches
+            Characters.TryGetValue(player.Guid.Full, out var squelchInfo);
+
+            var squelchMask = messageType.ToMask();
+
+            if (squelchInfo != null && squelchInfo.Filters[0].HasFlag(squelchMask))
+                return true;
+
+            // check global squelches
+            if (Globals.Filters.Count > 0 && Globals.Filters[0].HasFlag(squelchMask))
                 return true;
 
             return false;
