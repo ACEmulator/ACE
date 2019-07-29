@@ -1,10 +1,45 @@
 # ACEmulator Change Log
 
+### 2019-07-28
+[Ripley]
+* Wire up full support for contract system.
+
+### 2019-07-25
+[Ripley]
+* Add forced save to db for items being moved between players to prevent loss if crash occurs before normal save interval.
+
+### 2019-07-17
+[Ripley]
+* Further adjust vendor sell fix to include correct error msg when 0 items are sold as a result of a fail.
+
+### 2019-07-16
+[Ripley]
+* Fix issue with HousePortal permissions, IsOpen saving.
+
+### 2019-07-15
+[Ripley]
+* Various updates to Housing objects related to assessment
+* Increase guestlist to 128 to match end of retail number.
+* Stored Open status of house in different property to allow for future option to use HouseStatus to turn off rent.
+
+### 2019-07-12
+[Ripley]
+* Fix issue with some recipe changes and ObjectDescriptionFlags
+
+### 2019-07-10
+[Ripley]
+* Clean up error on sell to Vendor fail message.
+
+### 2019-07-08
+[Ripley]
+* Add support for a version command response. Gives a basic idea of what version database is running currently and if running in debug/release mode.
+
 ### 2019-07-07
 [Ripley]
 * Only allow use of Hookers on Hooks.
 * Fix some issues with using certain Hookers that were previously broken.
 * Fix issues with Books on hooks, Chalk Boards now writable for all as expected, all other books readable.
+* Fix some miscellaneous Aetheria issues.
 
 ### 2019-07-06
 [Ripley, Mag-nus]
