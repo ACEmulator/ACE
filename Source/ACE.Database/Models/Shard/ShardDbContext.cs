@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -1394,11 +1394,8 @@ namespace ACE.Database.Models.Shard
 
                 entity.ToTable("character_properties_shortcut_bar");
 
-                entity.HasIndex(e => new { e.CharacterId, e.ShortcutBarIndex, e.ShortcutObjectId })
-                    .HasName("wcid_shortcutbar_barIndex_ObjectId_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.HasIndex(e => e.CharacterId)
+                    .HasName("wcid_shortcutbar_idx");
 
                 entity.Property(e => e.CharacterId)
                     .HasColumnName("character_Id")
