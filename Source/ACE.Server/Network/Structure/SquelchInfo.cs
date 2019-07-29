@@ -18,6 +18,12 @@ namespace ACE.Server.Network.Structure
 
         public SquelchInfo(SquelchMask filter, string playerName, bool account)
         {
+            // not sure why this is sent 4x..
+            // if not sent 4x, then the 'checkbox' in the chat menu doesn't toggle
+
+            // there doesn't appear to be any pcaps of players performing per-channel character squelches,
+            // so not sure how those were handled for this packet.
+
             Filters = new List<SquelchMask>() { filter, filter, filter, filter };
             PlayerName = playerName;
             Account = account;

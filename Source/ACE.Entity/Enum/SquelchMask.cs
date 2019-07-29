@@ -5,8 +5,7 @@ namespace ACE.Entity.Enum
     [Flags]
     public enum SquelchMask: uint
     {
-        // this is not a client enum,
-        // but is equivalent to 1 << ChatMessageType
+        // this is equivalent to 1 << ChatMessageType
         None                = 0x0,
         Speech              = 0x4,
         Tell                = 0x8,
