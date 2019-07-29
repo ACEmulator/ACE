@@ -3,6 +3,7 @@
 ### 2019-07-28
 [Ripley]
 * Wire up full support for contract system.
+  - This requires a shard update script found in updates folder: `2019-07-22-00-Update_Contracts.sql`
 
 ### 2019-07-25
 [Ripley]
