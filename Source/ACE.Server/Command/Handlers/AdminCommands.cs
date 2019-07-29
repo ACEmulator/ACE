@@ -1329,6 +1329,12 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            if (loot is House)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
+                return;
+            }
+
             if (hasPalette)
                 loot.PaletteTemplate = palette;
             if (hasShade)
@@ -1397,6 +1403,12 @@ namespace ACE.Server.Command.Handlers
             if (loot == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (loot is House)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -2065,7 +2077,7 @@ namespace ACE.Server.Command.Handlers
             "[list | bestow | erase]\n"
             + "qst list - List the quest flags for the targeted player\n"
             + "qst bestow - Stamps the specific quest flag on the targeted player. If this fails, it's probably because you spelled the quest flag wrong.\n"
-            + "qst erase - Erase the specific quest flag from the targeted player.If no quest flag is given, it erases the entire quest table for the targeted player.\n")]
+            + "qst erase - Erase the specific quest flag from the targeted player. If no quest flag is given, it erases the entire quest table for the targeted player.\n")]
         public static void Handleqst(Session session, params string[] parameters)
         {
             // fellow bestow  stamp erase

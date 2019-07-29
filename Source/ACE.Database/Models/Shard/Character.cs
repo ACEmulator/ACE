@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.Shard
@@ -7,7 +7,7 @@ namespace ACE.Database.Models.Shard
     {
         public Character()
         {
-            CharacterPropertiesContract = new HashSet<CharacterPropertiesContract>();
+            CharacterPropertiesContractRegistry = new HashSet<CharacterPropertiesContractRegistry>();
             CharacterPropertiesFillCompBook = new HashSet<CharacterPropertiesFillCompBook>();
             CharacterPropertiesFriendList = new HashSet<CharacterPropertiesFriendList>();
             CharacterPropertiesQuestRegistry = new HashSet<CharacterPropertiesQuestRegistry>();
@@ -32,7 +32,7 @@ namespace ACE.Database.Models.Shard
         public uint HairTexture { get; set; }
         public uint DefaultHairTexture { get; set; }
 
-        public virtual ICollection<CharacterPropertiesContract> CharacterPropertiesContract { get; set; }
+        public virtual ICollection<CharacterPropertiesContractRegistry> CharacterPropertiesContractRegistry { get; set; }
         public virtual ICollection<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
         public virtual ICollection<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
         public virtual ICollection<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -41,7 +41,7 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<BiotaPropertiesString> BiotaPropertiesString { get; set; }
         public virtual DbSet<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
         public virtual DbSet<Character> Character { get; set; }
-        public virtual DbSet<CharacterPropertiesContract> CharacterPropertiesContract { get; set; }
+        public virtual DbSet<CharacterPropertiesContractRegistry> CharacterPropertiesContractRegistry { get; set; }
         public virtual DbSet<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
         public virtual DbSet<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
         public virtual DbSet<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
@@ -74,6 +74,12 @@ namespace ACE.Database.Models.Shard
             modelBuilder.Entity<Biota>(entity =>
             {
                 entity.ToTable("biota");
+
+                entity.HasIndex(e => e.WeenieClassId)
+                    .HasName("biota_wcid_idx");
+
+                entity.HasIndex(e => e.WeenieType)
+                    .HasName("biota_type_idx");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -1266,15 +1272,12 @@ namespace ACE.Database.Models.Shard
                     .HasDefaultValueSql("'0'");
             });
 
-            modelBuilder.Entity<CharacterPropertiesContract>(entity =>
+            modelBuilder.Entity<CharacterPropertiesContractRegistry>(entity =>
             {
-                entity.ToTable("character_properties_contract");
+                entity.HasKey(e => new { e.CharacterId, e.ContractId })
+                    .HasName("PRIMARY");
 
-                entity.HasIndex(e => new { e.CharacterId, e.ContractId })
-                    .HasName("wcid_contract_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.ToTable("character_properties_contract_registry");
 
                 entity.Property(e => e.CharacterId)
                     .HasColumnName("character_Id")
@@ -1290,16 +1293,8 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("set_As_Display_Contract")
                     .HasColumnType("bit(1)");
 
-                entity.Property(e => e.Stage).HasColumnName("stage");
-
-                entity.Property(e => e.TimeWhenDone).HasColumnName("time_When_Done");
-
-                entity.Property(e => e.TimeWhenRepeats).HasColumnName("time_When_Repeats");
-
-                entity.Property(e => e.Version).HasColumnName("version");
-
                 entity.HasOne(d => d.Character)
-                    .WithMany(p => p.CharacterPropertiesContract)
+                    .WithMany(p => p.CharacterPropertiesContractRegistry)
                     .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_contract");
             });
@@ -1394,6 +1389,9 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<CharacterPropertiesShortcutBar>(entity =>
             {
+                entity.HasKey(e => new { e.CharacterId, e.ShortcutBarIndex })
+                    .HasName("PRIMARY");
+
                 entity.ToTable("character_properties_shortcut_bar");
 
                 entity.HasIndex(e => new { e.CharacterId, e.ShortcutBarIndex, e.ShortcutObjectId })

@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
-namespace ACE.Factories
+namespace ACE.Server.Factories
 {
     public static class LootTables
     {
-
         /// <summary>
         /// The following data is materialID/material value modifier
         /// </summary>
@@ -2227,5 +2226,28 @@ namespace ACE.Factories
             37200,
             37195
         };
+
+        // for logging epic/legendary drops
+        public static HashSet<int> EpicCantrips;
+        public static HashSet<int> LegendaryCantrips;
+
+        private static List<int[][]> cantripTables = new List<int[][]>() { ArmorCantrips, JewelryCantrips, WandCantrips, MeleeCantrips, MissileCantrips };
+
+        static LootTables()
+        {
+            BuildCantripsTable(ref EpicCantrips, 2);
+            BuildCantripsTable(ref LegendaryCantrips, 3);
+        }
+
+        private static void BuildCantripsTable(ref HashSet<int> table, int tier)
+        {
+            table = new HashSet<int>();
+
+            foreach (var cantripTable in cantripTables)
+            {
+                foreach (var category in cantripTable)
+                    table.Add(category[tier]);
+            }
+        }
     }
 }
