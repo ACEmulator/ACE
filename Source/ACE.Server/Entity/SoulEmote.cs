@@ -7,76 +7,80 @@ namespace ACE.Server.Entity
     {
         public static HashSet<MotionCommand> SoulEmotes = new HashSet<MotionCommand>()
         {
-            MotionCommand.AFKState,     // *afk*
-            MotionCommand.AkimboState,  // *akimbo*
-            MotionCommand.AtEaseState,  // *atease*, *at ease*
-            MotionCommand.ATOYOT,       // *atoyot*
-            MotionCommand.Beckon,       // *beckon*, *beckons*
-            MotionCommand.BeSeeingYou,  // *beseeingyou*, *be seeing you*
-            MotionCommand.BlowKiss,     // *blowkiss*, *blow kiss*
-            MotionCommand.BowDeepState, // *bow*, *bows*, *bowdeep*, *bow deep*
-            MotionCommand.Cheer,        // *cheer*
-            MotionCommand.ClapHands,    // *claphands*, *clap hands*
-            MotionCommand.DrudgeDanceState, // *crazydance*, *crazy dance*, *dance*, *dancecrazy*, *dance crazy*, *dancestep*, *dance step*, *drudgedance*, *drudge dance*
-            MotionCommand.Cringe,       // *cringe*, *cringes*
-            MotionCommand.CrossArmsState, // *crossarms*, *cross arms*
-            MotionCommand.SitCrossleggedState, // *crosslegs*, *cross legs*, *getcomfortable*
-            MotionCommand.Cry,          // *cries*, *cry*, *sad*
-            MotionCommand.CurtseyState, // *curtsey*
-            MotionCommand.SmackHead,    // *doh*, *smackhead*, *smack head*, *smackshead*, *smacks head*, *v8*
-            MotionCommand.Shoo,         // *goaway*, *go away*, *shoo*, *shoos*
-            MotionCommand.HaveASeatState, // *haveaseat*, *have a seat*, *offerseat*, *offer seat*
-            MotionCommand.HeartyLaugh,  // *heartylaugh*, *hearty laugh*, *lol*
-            MotionCommand.Laugh,        // *heh*, *hehe*, *hehehe*, *laugh*, *laughs*
-            MotionCommand.Helper,       // *helper*
-            MotionCommand.ScratchHeadState, // *hmm*, *hmmm*, *hmmmm*
-            MotionCommand.KneelState,   // *kneel*, *kneels*
-            MotionCommand.Knock,        // *knock*
-            MotionCommand.LeanState,    // *lean*
-            MotionCommand.ScanHorizon,  // *lookout*, *peer*, *scan*, *scanhorizon*, *scan horizon*
-            MotionCommand.MeditateState, // *meditate*
-            MotionCommand.MimeDrink,    // *drink*, *drinks*, *mimedrink*, *mime drink*
-            MotionCommand.MimeEat,      // *eat*, *eats*, *mimeeat*, *mime eat*
-            MotionCommand.Mock,         // *mock*, *point and laugh*, *rofl*
-            MotionCommand.HaveASeat,    // *musicalchair*, *musical chair*
-            MotionCommand.Nod,          // *nod*, *nods*, *yes*
-            MotionCommand.NudgeLeft,    // *nudgeleft*, *nudge left*
-            MotionCommand.NudgeRight,   // *nudgeright*, *nudge right*
-            MotionCommand.PossumState,  // *playdead*, *play dead*, *playpossum*, *play possum*, *possum*
-            MotionCommand.PleadState,   // *plead*, *pleads*
-            MotionCommand.PointState,   // *point* *points*
-            MotionCommand.PointDown,    // *pointdown*, *point down*
-            MotionCommand.PointDownState, // *pointingdown*, *pointing down*, *pointsdown*, *points down*
-            MotionCommand.PointLeft,    // *pointleft*, *point left*
-            MotionCommand.PointLeftState, // *pointingleft*, *pointing left*, *pointsleft*, *points left*
-            MotionCommand.PointRight,   // *pointright*, *point right* 
-            MotionCommand.PointRightState, // *pointingright*, *pointing right*, *pointsright*, *points right*
-            MotionCommand.PrayState,    // *pray*
-            MotionCommand.ReadState,    // *read*, *readabook*, *read a book*, *readsomething*, *read something*
-            MotionCommand.SaluteState,  // *salute*, *salutes*
-            MotionCommand.ScratchHead,  // *scratch head*
-            MotionCommand.ShakeFist,    // *shakefist*, *shake fist*
-            MotionCommand.ShakeHead,    // *no*, *shake head*
-            MotionCommand.Shiver,       // *cold*, *shiver*, *shivers*
-            MotionCommand.Shrug,        // *dunno*, *shrug*, *shrugs*
-            MotionCommand.SitState,     // *sit*, *sits*, *sitdown*, *sit down*, *sitsdown*, *sits down*
-            MotionCommand.SlouchState,  // *slouch*, *slouches*
-            MotionCommand.SnowAngelState, // *snowangel*, *snow angel*
-            MotionCommand.Spit,         // *spit*, *spits*
-            MotionCommand.YawnStretch,  // *stretch*, *stretches*, *yawn*, *yawns*
-            MotionCommand.SurrenderState, // *surrender*, *surrenders*
-            MotionCommand.TalktotheHandState, // *talktothehand*, *talk to the hand*
-            MotionCommand.TapFootState, // *tapfoot*, *tap foot*, *taps foot*, *tapping foot*, *wait*
-            MotionCommand.Teapot,       // *teapot*
-            MotionCommand.ThinkerState, // *think*, *thinker*
-            MotionCommand.WarmHands,    // *warm hands*
-            MotionCommand.Wave,         // *wave*, *waves*
-            MotionCommand.WaveState,    // *waving*
-            MotionCommand.WaveHigh,     // *wavehigh*, *wave high*, *waveshigh*, *waves high*
-            MotionCommand.WaveLow,      // *wavelow*, *wave low*, *waveslow*, *waves low*
-            MotionCommand.WoahState,    // *woah*
-            MotionCommand.WindedState,  // *winded*
-            MotionCommand.YMCA,         // *ymca*
+            MotionCommand.AFKState,             // *afk*, *away from keyboard*, *away*
+            MotionCommand.AkimboState,          // *akimbo*, *heroic*, *super*
+            MotionCommand.AtEaseState,          // *at ease*, *atease*
+            MotionCommand.ATOYOT,               // *atoyot*
+            MotionCommand.Beckon,               // *beckon*, *beckons*, *come here*, *come*, *comehere*
+            MotionCommand.BeSeeingYou,          // *bcingu*, *bcinu*, *be seeing you*, *beseeingyou*
+            MotionCommand.BlowKiss,             // *blow kiss*, *blowkiss*, *kiss*, *kisses*
+            MotionCommand.BowDeepState,         // *bow deep*, *bow*, *bowdeep*, *bows*
+            MotionCommand.Cheer,                // *cheer*, *happy*, *joy*, *whoo hoo*, *woo hoo*, *woo-hoo*, *yay*, *yeppie*
+            MotionCommand.ClapHands,            // *applause*, *clap hands*, *clap*, *claphands*, *claps*
+            MotionCommand.ClapHandsState,       // *clapping hands*, *clapping*
+            MotionCommand.Cringe,               // *cower*, *cringe*, *cringes*, *flinch*
+            MotionCommand.CrossArmsState,       // *cross arms*, *crossarms*
+            MotionCommand.Cry,                  // *cries*, *cry*, *sad*
+            MotionCommand.CurtseyState,         // *curtsey*, *curtsy*
+            MotionCommand.DrudgeDance,          // *dance step*, *dancestep*
+            MotionCommand.DrudgeDanceState,     // *crazy dance*, *crazydance*, *dance crazy*, *dance like a drudge*, *dance*, *dancecrazy*, *drudge dance*, *drudgedance*
+            MotionCommand.HaveASeat,            // *musical chair*, *musicalchair*
+            MotionCommand.HaveASeatState,       // *have a seat*, *haveaseat*, *offer seat*, *offerseat*
+            MotionCommand.HeartyLaugh,          // *big laugh*, *biglaugh*, *hearty laugh*, *heartylaugh*, *lol*
+            MotionCommand.Helper,               // *available*, *helper*
+            MotionCommand.KneelState,           // *kneel*, *kneels*
+            MotionCommand.Knock,                // *knock*
+            MotionCommand.Laugh,                // *ha ha*, *ha*, *hah hah*, *hah*, *haha*, *ha-ha*, *hah-hah*, *he he*, *heh heh*, *heh*, *hehe*, *he-he*, *hehehe*, *heh-heh*, *laugh*, *laughs*, *roflmao*
+            MotionCommand.LeanState,            // *lean*
+            MotionCommand.MeditateState,        // *meditate*, *pray kneel*, *praykneel*
+            MotionCommand.MimeDrink,            // *drink*, *drinks*, *mime drink*, *mime drinking*, *mimedrink*, *mimedrinking*
+            MotionCommand.MimeEat,              // *eat*, *eats*, *mime eat*, *mime eating*, *mimeeat*, *mimeeating*
+            MotionCommand.Mock,                 // *mock*, *point and laugh*, *pointandlaugh*, *rofl*
+            MotionCommand.Nod,                  // *k*, *nod*, *nods*, *ok*, *okay*, *yes*
+            MotionCommand.NudgeLeft,            // *nudge left*, *nudgeleft*
+            MotionCommand.NudgeRight,           // *nudge right*, *nudgeright*
+            MotionCommand.PleadState,           // *grovel*, *grovels*, *plead*, *pleads*, *please*
+            MotionCommand.PointDown,            // *point down*, *pointdown*
+            MotionCommand.PointDownState,       // *point down state*, *pointdownstate*, *pointing down*, *pointingdown*, *points down*, *pointsdown*
+            MotionCommand.PointLeft,            // *point left*, *pointleft*
+            MotionCommand.PointLeftState,       // *gauche*, *point left state*, *pointing left*, *pointleftstate*, *points left*
+            MotionCommand.PointRight,           // *point right*, *pointright*
+            MotionCommand.PointRightState,      // *droit*, *point right state*, *pointing right*, *pointrightstate*, *points right*
+            MotionCommand.PointState,           // *point*, *points*, *there*
+            MotionCommand.PossumState,          // *opossum*, *play dead*, *play possum*, *playdead*, *playpossum*, *possum*
+            MotionCommand.PrayState,            // *pray*
+            MotionCommand.ReadState,            // *read a book*, *read something*, *read*, *readabook*, *readsomething*
+            MotionCommand.SaluteState,          // *salute*, *salutes*, *yes sir*, *yessir*
+            MotionCommand.ScanHorizon,          // *lookout*, *peer*, *scan horizon*, *scan*, *scanhorizon*
+            MotionCommand.ScratchHead,          // *huh?*, *scratch head*, *scratches head*
+            MotionCommand.ScratchHeadState,     // *hmm*, *hmmm*, *hmmmm*, *itchy*, *scratching head*, *scratching*, *scratchinghead*
+            MotionCommand.ShakeFist,            // *angry*, *shake fist*, *shakefist*, *shakes fist*
+            MotionCommand.ShakeFistState,       // *getting angry*, *shaking fist*, *shakingfist*
+            MotionCommand.ShakeHead,            // *no*, *nope*, *shake head*, *shakes head*
+            MotionCommand.Shiver,               // *brrr*, *cold*, *shiver*, *shivers*, *shudder*, *shudders*
+            MotionCommand.Shoo,                 // *go away*, *goaway*, *shoo*, *shoos*
+            MotionCommand.Shrug,                // *beats me*, *beatsme*, *dunno*, *got me*, *gotme*, *i don't know*, *i dunno*, *idontknow*, *idunno*, *shrug*, *shrugs*
+            MotionCommand.SitBackState,         // *getreallycomfortable*, *sit back*, *sitback*, *sits back*, *sitting back*
+            MotionCommand.SitCrossleggedState,  // *cross leg*, *cross legs*, *crossleg*, *crosslegs*, *getcomfortable*, *sit cross legged*, *sitcrosslegged*, *sits cross legged*, *sitting cross legged*, *sitting crosslegged*
+            MotionCommand.SitState,             // *asseoir*, *sit down*, *sit*, *sitdown*, *sits down*, *sits*, *sitsdown*, *sitting*
+            MotionCommand.SlouchState,          // *slouch*, *slouches*
+            MotionCommand.SmackHead,            // *doh!*, *doh*, *oops*, *slap head*, *slaphead*, *smack head*, *smackhead*, *smacks head*, *smackshead*, *v8*
+            MotionCommand.SnowAngelState,       // *snow angel*, *snowangel*
+            MotionCommand.Spit,                 // *spit*, *spits*
+            MotionCommand.SurrenderState,       // *give up*, *giveup*, *surrender*, *surrenders*
+            MotionCommand.TalktotheHandState,   // *talk to hand*, *talk to the hand*, *talktohand*, *talktothehand*
+            MotionCommand.TapFootState,         // *tap foot*, *tapfoot*, *tapping foot*, *tappingfoot*, *taps foot*, *wait*
+            MotionCommand.Teapot,               // *i'm a little teapot*, *teapot*
+            MotionCommand.ThinkerState,         // *think*, *thinker*
+            MotionCommand.WarmHands,            // *blow hands*, *blow in hands*, *blow on hands*, *warm hands*, *warm up hands*
+            MotionCommand.Wave,                 // *hello*, *hi*, *howdy*, *wave*, *wave1*, *waves*
+            MotionCommand.WaveHigh,             // *wave high*, *wave2*, *wavehigh*, *waves high*, *waveshigh*
+            MotionCommand.WaveLow,              // *wave low*, *wave3*, *wavelow*, *waves low*, *waveslow*
+            MotionCommand.WaveState,            // *waving hand*, *waving*
+            MotionCommand.WindedState,          // *winded*
+            MotionCommand.WoahState,            // *stop*, *stops*, *whoa*, *woah*
+            MotionCommand.YawnStretch,          // *stretch*, *stretches*, *tired*, *yawn*, *yawns*
+            MotionCommand.YMCA,                 // *ymca*
         };
     }
 }
