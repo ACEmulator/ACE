@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
@@ -23,6 +24,30 @@ namespace ACE.Server.Entity
 
         public const uint ArmorLayeringToolTop = 42724;
         public const uint ArmorLayeringToolBottom = 42726;
+
+        // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets
+        private static Dictionary<uint, int> ArmorOverlayIcons = new Dictionary<uint, int>{
+            {22551, 100673784}, // Atlatl Tattoo
+            {22552, 100673758}, // Axe Tattoo
+            {22553, 100673759}, // Bow Tattoo
+            {22554, 100673762}, // Crossbow Tattoo
+            {22555, 100673763}, // Dagger Tattoo
+            {22556, 100673774}, // Mace Tattoo
+            {22557, 100673775}, // Magic Defense Tattoo
+            {22558, 100673777}, // Mana Conversion Tattoo
+            {22559, 100673778}, // Melee Defense Tattoo
+            {22560, 100673779}, // Missile Defense Tattoo
+            {22561, 100673781}, // Spear Tattoo
+            {22562, 100673782}, // Staff Tattoo
+            {22563, 100673783}, // Sword Tattoo
+            {22564, 100673785}, // Unarmed Tattoo
+            {31394, 100691319}, // Circle of Raven Might
+
+            {37187, 100690144}, // Olthoi Alduressa Gauntlets
+            {37207, 100690146}, // Olthoi Alduressa Boots
+            {41198, 100690144}, // Gauntlets of Darkness
+            {41201, 100690146}, // Sollerets of Darkness
+        };
 
         // thanks for phenyl naphthylamine for a lot the initial work here!
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
@@ -449,13 +474,15 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyString.Name, source.Name);
             player.UpdateProperty(target, PropertyString.LongDesc, source.LongDesc);
 
-            // Retail did not update these. Guessing any item, if any, that used these wasn't actually able to be tailored. - OptimShi
             player.UpdateProperty(target, PropertyFloat.Shade2, source.Shade2);
             player.UpdateProperty(target, PropertyFloat.Shade3, source.Shade3);
             player.UpdateProperty(target, PropertyFloat.Shade4, source.Shade4);
 
+            if (ArmorOverlayIcons.ContainsKey(target.WeenieClassId))
+                player.UpdateProperty(target, PropertyDataId.IconOverlay, null);
 
         }
+
         public static void UpdateWeaponProps(Player player, WorldObject source, WorldObject target)
         {
             player.UpdateProperty(target, PropertyInt.PaletteTemplate, source.PaletteTemplate);
@@ -472,6 +499,10 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyFloat.Translucency, source.Translucency);
             player.UpdateProperty(target, PropertyString.Name, source.Name);
             player.UpdateProperty(target, PropertyString.LongDesc, source.LongDesc);
+
+            player.UpdateProperty(target, PropertyFloat.Shade2, source.Shade2);
+            player.UpdateProperty(target, PropertyFloat.Shade3, source.Shade3);
+            player.UpdateProperty(target, PropertyFloat.Shade4, source.Shade4);
 
         }
 
