@@ -724,6 +724,9 @@ namespace ACE.Entity.Enum.Properties
                     return System.Enum.GetName(typeof(ParentLocation), value);
                 case PropertyInt.HouseStatus:
                     return System.Enum.GetName(typeof(HouseStatus), value);
+
+                case PropertyInt.UseCreatesContractId:
+                    return System.Enum.GetName(typeof(ContractId), value);
             }
 
             return null;
