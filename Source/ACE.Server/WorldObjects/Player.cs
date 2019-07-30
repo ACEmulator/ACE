@@ -38,6 +38,8 @@ namespace ACE.Server.WorldObjects
 
         public QuestManager QuestManager;
 
+        public ContractManager ContractManager;
+
         public bool LastContact = true;
         public bool IsJumping = false;
 
@@ -134,31 +136,15 @@ namespace ACE.Server.WorldObjects
 
             QuestManager = new QuestManager(this);
 
-            ConfirmationManager = new ConfirmationManager(this);
+            ContractManager = new ContractManager(this);
 
-            LastUseTracker = new Dictionary<int, DateTime>();
+            ConfirmationManager = new ConfirmationManager(this);
 
             LootPermission = new Dictionary<ObjectGuid, DateTime>();
 
             Squelches = new SquelchDB();
 
             return; // todo
-            /* todo fix for new EF model
-            TrackedContracts = new Dictionary<uint, ContractTracker>();
-            // Load the persisted tracked contracts into the working dictionary on player object.
-            foreach (var trackedContract in AceObject.TrackedContracts)
-            {
-                ContractTracker loadContract = new ContractTracker(trackedContract.Value.ContractId, Guid.Full)
-                {
-                    DeleteContract = trackedContract.Value.DeleteContract,
-                    SetAsDisplayContract = trackedContract.Value.SetAsDisplayContract,
-                    Stage = trackedContract.Value.Stage,
-                    TimeWhenDone = trackedContract.Value.TimeWhenDone,
-                    TimeWhenRepeats = trackedContract.Value.TimeWhenRepeats
-                };
-
-                TrackedContracts.Add(trackedContract.Key, loadContract);
-            }*/
 
             // =======================================
             // This code was taken from the old Load()
@@ -196,12 +182,6 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
-
-        /// <summary>
-        /// This tracks the contract tracker objects
-        /// </summary>
-        public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
-
 
         public MotionStance stance = MotionStance.NonCombat;
 
@@ -569,47 +549,6 @@ namespace ACE.Server.WorldObjects
             }
             Session.Network.EnqueueSend(new GameMessageObjDescEvent(wo));
         }
-
-
-        /// <summary>
-        /// This method is part of the contract tracking functions.   This is used to remove or abandon a contract.
-        /// The method validates the id passed from the client against the portal.dat file, then sends the appropriate
-        /// response to the client to remove the item from the quest panel. Og II
-        /// </summary>
-        /// <param name="contractId">This is the contract id passed to us from the client that we want to remove.</param>
-        public void HandleActionAbandonContract(uint contractId)
-        {
-            ContractTracker contractTracker = new ContractTracker(contractId, Guid.Full)
-            {
-                Stage = 0,
-                TimeWhenDone = 0,
-                TimeWhenRepeats = 0,
-                DeleteContract = 1,
-                SetAsDisplayContract = 0
-            };
-
-            GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(Session, contractTracker);
-            /* todo fix for new EF model
-            AceContractTracker contract = new AceContractTracker();
-            if (TrackedContracts.ContainsKey(contractId))
-                contract = TrackedContracts[contractId].SnapShotOfAceContractTracker();
-
-            TrackedContracts.Remove(contractId);
-            LastUseTracker.Remove((int)contractId);
-            AceObject.TrackedContracts.Remove(contractId);
-
-            DatabaseManager.Shard.DeleteContract(contract, deleteSuccess =>
-            {
-                if (deleteSuccess)
-                    log.Info($"ContractId {contractId:X} successfully deleted");
-                else
-                    log.Error($"Unable to delete contractId {contractId:X} ");
-            });
-
-            Session.Network.EnqueueSend(contractMsg);*/
-        }
-
-
 
         public void HandleActionApplySoundEffect(Sound sound)
         {

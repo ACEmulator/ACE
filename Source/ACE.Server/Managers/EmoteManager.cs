@@ -98,9 +98,9 @@ namespace ACE.Server.Managers
 
                 case EmoteType.AddContract:
 
-                    //if (player != null)
-                        //Contracts werent in emote table
-                        //player.AddContract(emote.Stat);
+                    // Contracts werent in emote table for 16py, guessing that Stat was used to hold id for contract.
+                    if (player != null && emote.Stat.HasValue && emote.Stat.Value > 0)
+                        player.ContractManager.Add(emote.Stat.Value);
                     break;
 
                 case EmoteType.AdminSpam:
@@ -426,11 +426,7 @@ namespace ACE.Server.Managers
                 case EmoteType.InqContractsFull:
 
                     // not part of the game at PY16?
-                    //if (player != null)
-                    //{
-                    //    var contracts = player.TrackedContracts;
-                    //    InqCategory(contracts.Count != 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
-                    //}
+                    ExecuteEmoteSet(player != null && player.ContractManager.IsFull ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     break;
 
                 case EmoteType.InqEvent:
@@ -892,7 +888,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.RemoveContract:
 
-                    if (player != null)
+                    if (player != null && emote.Stat.HasValue && emote.Stat.Value > 0)
                         player.HandleActionAbandonContract((uint)emote.Stat);
                     break;
 

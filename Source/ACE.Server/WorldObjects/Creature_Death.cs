@@ -310,7 +310,7 @@ namespace ACE.Server.WorldObjects
                     else
                         droppedItems.Add(wo);
 
-                    corpse.DoCantripLogging(killer, wo);
+                    DoCantripLogging(killer, wo);
                 }
             }
 
@@ -350,6 +350,28 @@ namespace ACE.Server.WorldObjects
             }
 
             return droppedItems;
+        }
+
+        public void DoCantripLogging(WorldObject killer, WorldObject wo)
+        {
+            var epicCantrips = wo.EpicCantrips;
+            var legendaryCantrips = wo.LegendaryCantrips;
+
+            if (epicCantrips.Count > 0)
+                log.Info($"[EPIC] {Name} ({Guid}) generated item with {epicCantrips.Count} epic{(epicCantrips.Count > 1 ? "s" : "")} - {wo.Name} ({wo.Guid}) - {GetSpellList(epicCantrips)} - killed by {killer.Name} ({killer.Guid})");
+
+            if (legendaryCantrips.Count > 0)
+                log.Info($"[LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer.Name} ({killer.Guid})");
+        }
+
+        public static string GetSpellList(List<BiotaPropertiesSpellBook> spellbook)
+        {
+            var spells = new List<Server.Entity.Spell>();
+
+            foreach (var spell in spellbook)
+                spells.Add(new Server.Entity.Spell(spell.Spell, false));
+
+            return string.Join(", ", spells.Select(i => i.Name));
         }
     }
 }

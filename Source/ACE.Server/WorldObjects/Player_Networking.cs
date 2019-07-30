@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
 
             SendInventoryAndWieldedItems();
 
-            // SendContractTrackerTable(); todo fix for new ef not use aceobj
+            SendContractTrackerTable();
         }
 
         /// <summary>
@@ -126,12 +126,10 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        /// <summary>
-        /// This method is used to take our persisted tracked contracts and send them on to the client. Pg II
-        /// </summary>
         public void SendContractTrackerTable()
         {
-            Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session, TrackedContracts.Select(x => x.Value).ToList()));
+            if (ContractManager.Contracts.Count > 0)
+                Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session));
         }
 
         /// <summary>
