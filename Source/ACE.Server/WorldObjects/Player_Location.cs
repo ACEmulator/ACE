@@ -452,7 +452,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(updateCombatMode);
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the PK Arena.", ChatMessageType.Recall), LocalBroadcastRange, true);
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the PK Arena.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
             EnqueueBroadcastMotion(motionPkArenaRecall);
 
             var startPos = new Position(Location);
@@ -529,7 +529,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(updateCombatMode);
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the PKL Arena.", ChatMessageType.Recall), LocalBroadcastRange, true);
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the PKL Arena.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
             EnqueueBroadcastMotion(motionPkArenaRecall);
 
             var startPos = new Position(Location);
