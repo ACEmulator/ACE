@@ -73,7 +73,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public void HandleActionModifyCharacterSquelch(bool squelch, uint playerGuid, string playerName, ChatMessageType messageType)
         {
-            Console.WriteLine($"{Player.Name}.HandleActionModifyCharacterSquelch({squelch}, {playerGuid:X8}, {playerName}, {messageType})");
+            //Console.WriteLine($"{Player.Name}.HandleActionModifyCharacterSquelch({squelch}, {playerGuid:X8}, {playerName}, {messageType})");
 
             if (messageType != ChatMessageType.AllChannels && !IsLegalChannel(messageType))
             {
@@ -198,7 +198,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public void HandleActionModifyAccountSquelch(bool squelch, string playerName)
         {
-            Console.WriteLine($"{Player.Name}.HandleActionModifyAccountSquelch({squelch}, {playerName})");
+            //Console.WriteLine($"{Player.Name}.HandleActionModifyAccountSquelch({squelch}, {playerName})");
 
             if (string.IsNullOrWhiteSpace(playerName)) return;
 
@@ -258,7 +258,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public void HandleActionModifyGlobalSquelch(bool squelch, ChatMessageType messageType)
         {
-            Console.WriteLine($"{Player.Name}.HandleActionModifyGlobalSquelch({squelch}, {messageType})");
+            //Console.WriteLine($"{Player.Name}.HandleActionModifyGlobalSquelch({squelch}, {messageType})");
 
             var mask = messageType.ToMask();
 
