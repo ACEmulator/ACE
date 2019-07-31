@@ -69,7 +69,7 @@ namespace ACE.Server.WorldObjects
             if (LastRequestedDatabaseSave == DateTime.MinValue)
                 LastRequestedDatabaseSave = DateTime.UtcNow;
 
-            if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow)
+            if (LastRequestedDatabaseSave.AddSeconds(PlayerSaveIntervalSecs) <= DateTime.UtcNow)
                 SavePlayerToDatabase();
 
             base.Heartbeat(currentUnixTime);

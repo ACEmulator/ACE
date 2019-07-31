@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 
 namespace ACE.Server.Network.Structure
@@ -76,6 +78,17 @@ namespace ACE.Server.Network.Structure
                 for (var i = 0; i < CommandListLength; i++)
                     Commands.Add(new MotionItem(moveToState.WorldObject, reader));
             }
+        }
+
+        public bool HasSoulEmote()
+        {
+            if ((Flags & RawMotionFlags.ForwardCommand) != 0 && SoulEmote.SoulEmotes.Contains(ForwardCommand))
+                return true;
+
+            if (CommandListLength > 0 && SoulEmote.SoulEmotes.Contains(Commands[0].MotionCommand))
+                return true;
+
+            return false;
         }
     }
 }

@@ -155,8 +155,11 @@ namespace ACE.Server.WorldObjects
                 TryCreateInInventoryWithNetworking(salvageBag);
 
             // send network messages
-            foreach (var kvp in salvageResults.GetMessages())
-                Session.Network.EnqueueSend(new GameEventSalvageOperationsResult(Session, kvp.Key, kvp.Value));
+            if (!SquelchManager.Squelches.Contains(this, ChatMessageType.Salvaging))
+            {
+                foreach (var kvp in salvageResults.GetMessages())
+                    Session.Network.EnqueueSend(new GameEventSalvageOperationsResult(Session, kvp.Key, kvp.Value));
+            }
         }
 
         public void AddSalvage(List<WorldObject> salvageBags, WorldObject item, SalvageResults salvageResults)

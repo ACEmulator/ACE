@@ -47,6 +47,7 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
         public virtual DbSet<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
         public virtual DbSet<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
+        public virtual DbSet<CharacterPropertiesSquelch> CharacterPropertiesSquelch { get; set; }
         public virtual DbSet<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
         public virtual DbSet<ConfigPropertiesBoolean> ConfigPropertiesBoolean { get; set; }
         public virtual DbSet<ConfigPropertiesDouble> ConfigPropertiesDouble { get; set; }
@@ -1447,6 +1448,27 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.CharacterPropertiesSpellBar)
                     .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_spellbar");
+            });
+
+            modelBuilder.Entity<CharacterPropertiesSquelch>(entity =>
+            {
+                entity.HasKey(e => new { e.CharacterId, e.SquelchCharacterId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("character_properties_squelch");
+
+                entity.Property(e => e.CharacterId).HasColumnName("character_Id");
+
+                entity.Property(e => e.SquelchCharacterId).HasColumnName("squelch_Character_Id");
+
+                entity.Property(e => e.SquelchAccountId).HasColumnName("squelch_Account_Id");
+
+                entity.Property(e => e.Type).HasColumnName("type");
+
+                entity.HasOne(d => d.Character)
+                    .WithMany(p => p.CharacterPropertiesSquelch)
+                    .HasForeignKey(d => d.CharacterId)
+                    .HasConstraintName("squelch_character_Id_constraint");
             });
 
             modelBuilder.Entity<CharacterPropertiesTitleBook>(entity =>
