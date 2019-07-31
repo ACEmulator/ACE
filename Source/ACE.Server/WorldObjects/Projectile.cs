@@ -78,12 +78,7 @@ namespace ACE.Server.WorldObjects
                             }
                         }
                         else
-                        {
-                            if (!targetPlayer.UnderLifestoneProtection)
-                                targetPlayer.Session.Network.EnqueueSend(new GameEventEvasionDefenderNotification(targetPlayer.Session, sourceCreature.Name));
-
-                            Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MissileDefense), sourceCreature.GetCreatureSkill(sourceCreature.GetCurrentAttackSkill()).Current);
-                        }
+                            targetPlayer.OnEvade(sourceCreature, CombatType.Missile);
                     }
                     else
                     {

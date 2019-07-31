@@ -100,7 +100,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         var fellowshipMembers = session.Player.Fellowship.GetFellowshipMembers();
 
                         foreach (var fellowmember in fellowshipMembers.Values)
-                            if (fellowmember.Session != session && !fellowmember.Squelches.Contains(session.Player))
+                            if (fellowmember.Session != session && !fellowmember.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Fellowship))
                                 fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, groupChatType, session.Player.Name, message));
                             else
                                 session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
@@ -126,7 +126,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         {
                             var vassalPlayer = PlayerManager.GetOnlinePlayer(vassalGuid);
 
-                            if (vassalPlayer != null && !vassalPlayer.Squelches.Contains(session.Player))
+                            if (vassalPlayer != null && !vassalPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                                 vassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(vassalPlayer.Session, groupChatType, session.Player.Name, message));
                         }
                         session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
@@ -150,7 +150,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         var patronPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Patron.PlayerGuid);
 
-                        if (patronPlayer != null && !patronPlayer.Squelches.Contains(session.Player))
+                        if (patronPlayer != null && !patronPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                             patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, groupChatType, session.Player.Name, message));
 
                         session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
@@ -174,7 +174,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         var monarchPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Monarch.PlayerGuid);
 
-                        if (monarchPlayer != null && !monarchPlayer.Squelches.Contains(session.Player))
+                        if (monarchPlayer != null && !monarchPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                             monarchPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Monarch, session.Player.Name, message));
 
                         session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
@@ -198,7 +198,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         var patronPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Patron.PlayerGuid);
 
-                        if (patronPlayer != null && !patronPlayer.Squelches.Contains(session.Player))
+                        if (patronPlayer != null && !patronPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                             patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, Channel.Patron, session.Player.Name, message));
 
                         foreach (var covassalGuid in session.Player.AllegianceNode.Patron.Vassals.Keys)
@@ -211,7 +211,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             {
                                 var covassalPlayer = PlayerManager.GetOnlinePlayer(covassalGuid);
 
-                                if (covassalPlayer != null && !covassalPlayer.Squelches.Contains(session.Player))
+                                if (covassalPlayer != null && !covassalPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                                     covassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(covassalPlayer.Session, groupChatType, session.Player.Name, message));
                             }
                         }
@@ -239,7 +239,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         {
                             // is this allegiance member online?
                             var online = PlayerManager.GetOnlinePlayer(member);
-                            if (online == null || online.Squelches.Contains(session.Player))
+                            if (online == null || online.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                                 continue;
 
                             online.Session.Network.EnqueueSend(new GameEventChannelBroadcast(online.Session, groupChatType, session.Player.Name, message));

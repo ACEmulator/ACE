@@ -1137,7 +1137,7 @@ namespace ACE.Server.WorldObjects
         /// Sends network messages to all Players who currently know about this object
         /// within a maximum range
         /// </summary>
-        public void EnqueueBroadcast(GameMessage msg, float range, bool useSquelch = false)
+        public void EnqueueBroadcast(GameMessage msg, float range, ChatMessageType? squelchType = null)
         {
             if (PhysicsObj == null || CurrentLandblock == null) return;
 
@@ -1154,7 +1154,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
-                if (self != null && useSquelch && player.Squelches.Contains(self))
+                if (self != null && squelchType != null && player.SquelchManager.Squelches.Contains(self, squelchType.Value))
                     continue;
 
                 if (isDungeon && Location.Landblock != player.Location.Landblock)

@@ -13,6 +13,7 @@ namespace ACE.Database.Models.Shard
             CharacterPropertiesQuestRegistry = new HashSet<CharacterPropertiesQuestRegistry>();
             CharacterPropertiesShortcutBar = new HashSet<CharacterPropertiesShortcutBar>();
             CharacterPropertiesSpellBar = new HashSet<CharacterPropertiesSpellBar>();
+            CharacterPropertiesSquelch = new HashSet<CharacterPropertiesSquelch>();
             CharacterPropertiesTitleBook = new HashSet<CharacterPropertiesTitleBook>();
         }
 
@@ -37,6 +38,7 @@ namespace ACE.Database.Models.Shard
         public virtual ICollection<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
         public virtual ICollection<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
         public virtual ICollection<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
+        public virtual ICollection<CharacterPropertiesSquelch> CharacterPropertiesSquelch { get; set; }
         public virtual ICollection<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
     }
 }
