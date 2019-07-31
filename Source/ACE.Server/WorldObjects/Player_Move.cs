@@ -274,7 +274,7 @@ namespace ACE.Server.WorldObjects
 
             var msg = Strings.GetFallMessage(damageTaken, Health.MaxValue);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
+            SendMessage(msg, ChatMessageType.Combat);
 
             if (Health.Current <= 0)
             {

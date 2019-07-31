@@ -1,5 +1,4 @@
-using System.Linq;
-
+using System;
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -55,6 +54,11 @@ namespace ACE.Server.WorldObjects
             // check if vassals earned XP while offline
             HandleAllegianceOnLogin();
             HandleHouseOnLogin();
+
+            // retail appeared to send the squelch list very early,
+            // even before the CreatePlayer, but doing it here
+            if (SquelchManager.HasSquelches)
+                SquelchManager.SendSquelchDB();
 
             AuditItemSpells();
 
@@ -169,6 +173,10 @@ namespace ACE.Server.WorldObjects
             RequestedLocation = pos;
         }
 
+        //public DateTime LastSoulEmote;
+
+        //private static TimeSpan SoulEmoteTime = TimeSpan.FromSeconds(2);
+
         public void BroadcastMovement(MoveToState moveToState)
         {
             var state = moveToState.RawMotionState;
@@ -195,10 +203,19 @@ namespace ACE.Server.WorldObjects
                     CurrentMotionState.SetForwardCommand(state.Commands[0].MotionCommand);
             }
 
+            /*if (state.HasSoulEmote())
+            {
+                // prevent soul emote spam / bug where client sends multiples
+                var elapsed = DateTime.UtcNow - LastSoulEmote;
+                if (elapsed < SoulEmoteTime) return;
+
+                LastSoulEmote = DateTime.UtcNow;
+            }*/
+
             var movementData = new MovementData(this, moveToState);
 
             var movementEvent = new GameMessageUpdateMotion(this, movementData);
-            EnqueueBroadcast(movementEvent);    // shouldn't need to go to originating player?
+            EnqueueBroadcast(false, movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
             CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
