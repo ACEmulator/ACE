@@ -75,7 +75,7 @@ namespace ACE.Server.Network.Handlers
                             continue;
 
                         // is this member booted / gagged?
-                        if (allegiance.IsFiltered(member) || online.Squelches.Contains(session.Player)) continue;
+                        if (allegiance.IsFiltered(member) || online.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance)) continue;
 
                         // does this player have allegiance chat filtered?
                         if (!online.GetCharacterOption(CharacterOption.ListenToAllegianceChat)) continue;
@@ -95,7 +95,7 @@ namespace ACE.Server.Network.Handlers
                             channelID == TurbineChatChannel.Society && !recipient.GetCharacterOption(CharacterOption.ListenToSocietyChat))
                             continue;
 
-                        if (recipient.Squelches.Contains(session.Player))
+                        if (recipient.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.AllChannels))
                             continue;
 
                         recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);

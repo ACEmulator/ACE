@@ -879,14 +879,15 @@ namespace ACE.Server.WorldObjects
             // Dirty Fighting! <Player> delivers a <sic> Unbalancing Blow to <target>!
             //var article = spellBase.Name.StartsWithVowel() ? "an" : "a";
 
-            var msg = new GameMessageSystemChat($"Dirty Fighting! {Name} delivers a {spell.Name} to {target.Name}!", ChatMessageType.Combat);
+            var msg = $"Dirty Fighting! {Name} delivers a {spell.Name} to {target.Name}!";
 
             var playerSource = this as Player;
             var playerTarget = target as Player;
+
             if (playerSource != null)
-                playerSource.Session.Network.EnqueueSend(msg);
+                playerSource.SendMessage(msg, ChatMessageType.Combat, this);
             if (playerTarget != null)
-                playerTarget.Session.Network.EnqueueSend(msg);
+                playerTarget.SendMessage(msg, ChatMessageType.Combat, this);
         }
 
         /// <summary>

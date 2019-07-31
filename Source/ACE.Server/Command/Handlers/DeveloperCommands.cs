@@ -2310,7 +2310,7 @@ namespace ACE.Server.Command.Handlers
             if (target != null && target is Player player)
             {
                 if (player.Session != null)
-                    player.Session.LogOffPlayer();
+                    player.Session.LogOffPlayer(true);
                 else
                     player.LogOut();
 
