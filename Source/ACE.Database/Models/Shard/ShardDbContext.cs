@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -1468,7 +1468,7 @@ namespace ACE.Database.Models.Shard
                 entity.HasOne(d => d.Character)
                     .WithMany(p => p.CharacterPropertiesSquelch)
                     .HasForeignKey(d => d.CharacterId)
-                    .HasConstraintName("character_Id_contraint");
+                    .HasConstraintName("character_Id_constraint");
             });
 
             modelBuilder.Entity<CharacterPropertiesTitleBook>(entity =>
