@@ -1489,6 +1489,81 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        // =====================================
+        // BiotaPropertiesAllegiance
+        // =====================================
+
+        public static List<BiotaPropertiesAllegiance> GetAllegiance(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesAllegiance.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static void AddOrUpdateAllegiance(this Biota biota, uint characterId, bool isBanned, bool approvedVassal, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var entity = biota.BiotaPropertiesAllegiance.FirstOrDefault(x => x.CharacterId == characterId);
+                rwLock.EnterWriteLock();
+                try
+                {
+                    if (entity == null)
+                    {
+                        entity = new BiotaPropertiesAllegiance { CharacterId = characterId, Banned = isBanned, ApprovedVassal = approvedVassal };
+                        biota.BiotaPropertiesAllegiance.Add(entity);
+                    }
+                    else
+                    {
+                        entity.Banned = isBanned;
+                        entity.ApprovedVassal = approvedVassal;
+                    }
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static bool TryRemoveAllegiance(this Biota biota, uint characterId, out BiotaPropertiesAllegiance entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = biota.BiotaPropertiesAllegiance.FirstOrDefault(x => x.CharacterId == characterId);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        biota.BiotaPropertiesAllegiance.Remove(entity);
+                        entity.Character = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
 
         // =====================================
         // Clone
