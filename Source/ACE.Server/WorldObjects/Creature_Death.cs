@@ -176,15 +176,23 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var sw1 = new System.Diagnostics.Stopwatch();
-            sw1.Start();
-            var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
-            var prefix = "Corpse";
-            sw1.Stop();
-            if (sw1.Elapsed.Seconds >= 1)
-                log.Warn($"Creature_Death CreateCorpse() CreateNewWorldObject took: {sw1.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
+            var sw1a = new System.Diagnostics.Stopwatch();
+            sw1a.Start();
+            var cachedWeenie = DatabaseManager.World.GetCachedWeenie("corpse");
+            sw1a.Stop();
+            if (sw1a.Elapsed.Seconds >= 1)
+                log.Warn($"Creature_Death CreateCorpse() GetCachedWeenie took: {sw1a.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
 
-            if (TreasureCorpse)
+            var sw1b = new System.Diagnostics.Stopwatch();
+            sw1b.Start();
+            var corpse = WorldObjectFactory.CreateNewWorldObject(cachedWeenie) as Corpse;
+            sw1b.Stop();
+            if (sw1b.Elapsed.Seconds >= 1)
+                log.Warn($"Creature_Death CreateCorpse() CreateNewWorldObject took: {sw1b.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
+
+            var prefix = "Corpse";
+
+                if (TreasureCorpse)
             {
                 // Hardcoded values from PCAPs of Treasure Pile Corpses, everything else lines up exactly with existing corpse weenie
                 corpse.SetupTableId  = 0x02000EC4;
