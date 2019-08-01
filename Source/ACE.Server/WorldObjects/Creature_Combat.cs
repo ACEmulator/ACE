@@ -34,17 +34,26 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public double LastWeaponSwap;
 
+        public float SetCombatMode(CombatMode combatMode)
+        {
+            return SetCombatMode(combatMode, out var _);
+        }
+
         /// <summary>
         /// Switches a player or creature to a new combat stance
         /// </summary>
-        public float SetCombatMode(CombatMode combatMode)
+        public float SetCombatMode(CombatMode combatMode, out float queueTime)
         {
-            //Console.WriteLine($"SetCombatMode({combatMode})");
-
             // check if combat stance actually needs switching
             var combatStance = GetCombatStance();
+
+            //Console.WriteLine($"{Name}.SetCombatMode({combatMode}), CombatStance: {combatStance}");
+
             if (combatMode != CombatMode.NonCombat && CurrentMotionState.Stance == combatStance)
+            {
+                queueTime = 0.0f;
                 return 0.0f;
+            }
 
             if (CombatMode == CombatMode.Missile)
                 HideAmmo();
@@ -72,7 +81,8 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            var queueTime = HandleStanceQueue(animLength);
+            queueTime = HandleStanceQueue(animLength);
+
             //Console.WriteLine($"SetCombatMode(): queueTime({queueTime}) + animLength({animLength})");
             return queueTime + animLength;
         }
@@ -241,7 +251,7 @@ namespace ACE.Server.WorldObjects
             if (caster != null)
                 return MotionStance.Magic;
 
-            var weapon = GetEquippedWeapon();
+            var weapon = GetEquippedWeapon(true);
             var dualWield = GetDualWieldWeapon();
             var shield = GetEquippedShield();
 
