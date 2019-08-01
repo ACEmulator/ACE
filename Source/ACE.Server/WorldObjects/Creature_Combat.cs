@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+
 using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -15,6 +16,11 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         public CombatMode CombatMode { get; private set; }
+
+        /// <summary>
+        /// The list of combat maneuvers performable by this creature
+        /// </summary>
+        public DatLoader.FileTypes.CombatManeuverTable CombatTable { get; set; }
 
         public DamageHistory DamageHistory;
 

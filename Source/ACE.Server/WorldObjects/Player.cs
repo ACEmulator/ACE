@@ -8,6 +8,7 @@ using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -133,6 +134,8 @@ namespace ACE.Server.WorldObjects
                 if (AdvocateLevel > 4)
                     IsPsr = true; // Enable AdvocateTeleport via MapClick
             }
+
+            CombatTable = DatManager.PortalDat.ReadFromDat<CombatManeuverTable>(CombatTableDID.Value);
 
             QuestManager = new QuestManager(this);
 
