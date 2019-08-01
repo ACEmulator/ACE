@@ -267,7 +267,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the melee swing animation - based on weapon,
         /// current stance, power bar, and attack height
         /// </summary>
-        public MotionCommand GetSwingAnimation()
+        public override MotionCommand GetSwingAnimation()
         {
             if (IsDualWieldAttack)
                 DualWieldAlternate = !DualWieldAlternate;
