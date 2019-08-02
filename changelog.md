@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-08-02
+[Ripley]
+* Swap out some properties relating to Local Signals for more specific one found in property buckets.
+
 ### 2019-07-31
 [gmriggs]
 * Improved squelch system
