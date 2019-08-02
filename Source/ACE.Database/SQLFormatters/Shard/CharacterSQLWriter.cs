@@ -32,10 +32,10 @@ namespace ACE.Database.SQLFormatters.Shard
 
             writer.WriteLine(output);
 
-            if (input.CharacterPropertiesContract != null && input.CharacterPropertiesContract.Count > 0)
+            if (input.CharacterPropertiesContractRegistry != null && input.CharacterPropertiesContractRegistry.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.Id, input.CharacterPropertiesContract.OrderBy(r => r.ContractId).ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.CharacterPropertiesContractRegistry.OrderBy(r => r.ContractId).ToList(), writer);
             }
 
             if (input.CharacterPropertiesFillCompBook != null && input.CharacterPropertiesFillCompBook.Count > 0)
@@ -75,11 +75,11 @@ namespace ACE.Database.SQLFormatters.Shard
             }
         }
 
-        public void CreateSQLINSERTStatement(uint characterId, IList<CharacterPropertiesContract> input, StreamWriter writer)
+        public void CreateSQLINSERTStatement(uint characterId, IList<CharacterPropertiesContractRegistry> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `character_properties_contract` (`character_Id`, `contract_Id`, `version`, `stage`, `time_When_Done`, `time_When_Repeats`, `delete_Contract`, `set_As_Display_Contract`)");
+            writer.WriteLine("INSERT INTO `character_properties_contract` (`character_Id`, `contract_Id`, `delete_Contract`, `set_As_Display_Contract`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{characterId}, {input[i].ContractId}, {input[i].Version}, {input[i].Stage}, {input[i].TimeWhenDone}, {input[i].TimeWhenRepeats}, {input[i].DeleteContract}, {input[i].SetAsDisplayContract})");
+            var lineGenerator = new Func<int, string>(i => $"{characterId}, {input[i].ContractId}, {input[i].DeleteContract}, {input[i].SetAsDisplayContract})");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }

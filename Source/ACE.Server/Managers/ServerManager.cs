@@ -113,7 +113,7 @@ namespace ACE.Server.Managers
 
             // logout each player
             foreach (var player in PlayerManager.GetAllOnline())
-                player.Session.LogOffPlayer();
+                player.Session.LogOffPlayer(true);
 
             log.Info("Waiting for all players to log off...");
 

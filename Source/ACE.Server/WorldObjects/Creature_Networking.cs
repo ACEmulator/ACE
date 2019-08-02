@@ -89,11 +89,12 @@ namespace ACE.Server.WorldObjects
             var noLayer = armorItems.Where(x => x.TopLayerPriority == null).OrderBy(x => x.VisualClothingPriority);
             var bottom = armorItems.Where(x => x.TopLayerPriority == false).OrderBy(x => x.VisualClothingPriority);
             var sortedArmorItems = bottom.Concat(noLayer).Concat(top).ToList();
-            //var sortedArmorItems = GetSortedEquippedItems(armorItems);
-
 
             // Clothing and Cloaks do not have a tailoring/reduction issue to worry about. What you see is what you get, so we can use ClothingPriority only to get this data.
-            var clothesAndCloaks = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Cloak)) != 0).OrderBy(x => x.ClothingPriority);
+            var clothesAndCloaks = EquippedObjects.Values
+                                .Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Cloak)) != 0)
+                                .Where(x => (x.CurrentWieldedLocation & (EquipMask.FootWear)) == 0) // FootWear is included in the ArmorItems above
+                                .OrderBy(x => x.ClothingPriority);
 
             var eo = clothesAndCloaks.Concat(sortedArmorItems).ToList();
 

@@ -10,6 +10,6 @@ namespace ACE.Database.Models.Shard
         public int Spell { get; set; }
         public float Probability { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

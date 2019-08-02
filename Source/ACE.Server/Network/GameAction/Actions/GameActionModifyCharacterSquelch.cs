@@ -14,7 +14,7 @@ namespace ACE.Server.Network.GameAction.Actions
             var playerName = message.Payload.ReadString16L();
             var messageType = (ChatMessageType)message.Payload.ReadUInt32();
 
-            session.Player.HandleActionModifyCharacterSquelch(squelch, playerGuid, playerName, messageType);
+            session.Player.SquelchManager.HandleActionModifyCharacterSquelch(squelch, playerGuid, playerName, messageType);
         }
     }
 }

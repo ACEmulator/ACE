@@ -1,8 +1,6 @@
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Factories;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories

@@ -420,7 +420,7 @@ namespace ACE.Server.WorldObjects
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (!string.IsNullOrWhiteSpace(spellWords) && !isWeaponSpell)
-                EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange);
+                EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange, ChatMessageType.Spellcasting);
 
             var spellChain = new ActionChain();
             var castSpeed = 2.0f;   // hardcoded for player spell casting?
@@ -741,7 +741,7 @@ namespace ACE.Server.WorldObjects
                                     // 'fails to affect'?
                                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {creatureTarget.Name} with {spell.Name}", ChatMessageType.Magic));
 
-                                    if (targetPlayer != null)
+                                    if (targetPlayer != null && !targetPlayer.SquelchManager.Squelches.Contains(player, ChatMessageType.Magic))
                                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} fails to affect you with {spell.Name}", ChatMessageType.Magic));
                                 }
                             }
@@ -779,7 +779,7 @@ namespace ACE.Server.WorldObjects
                                 // 'fails to affect'?
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {creatureTarget.Name} with {spell.Name}", ChatMessageType.Magic));
 
-                                if (targetPlayer != null)
+                                if (targetPlayer != null && !targetPlayer.SquelchManager.Squelches.Contains(player, ChatMessageType.Magic))
                                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} fails to affect you with {spell.Name}", ChatMessageType.Magic));
                             }
                         }
@@ -880,7 +880,7 @@ namespace ACE.Server.WorldObjects
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (!string.IsNullOrWhiteSpace(spellWords))
-                EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic), LocalBroadcastRange);
+                EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange, ChatMessageType.Spellcasting);
 
             ActionChain spellChain = new ActionChain();
             var castSpeed = 2.0f;   // hardcoded for player spell casting?

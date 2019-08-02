@@ -11,6 +11,9 @@ namespace ACE.Server.Network.Structure
     /// </summary>
     public static class PackableHashTable
     {
+        /// <summary>
+        /// Deprecated
+        /// </summary>
         public static void WriteHeader(BinaryWriter writer, int numEntries)
         {
             var numBits = GetNumBits(numEntries);

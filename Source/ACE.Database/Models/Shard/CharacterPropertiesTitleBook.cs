@@ -9,6 +9,6 @@ namespace ACE.Database.Models.Shard
         public uint CharacterId { get; set; }
         public uint TitleId { get; set; }
 
-        public Character Character { get; set; }
+        public virtual Character Character { get; set; }
     }
 }

@@ -9,6 +9,6 @@ namespace ACE.Database.Models.Shard
         public uint ShortcutBarIndex { get; set; }
         public uint ShortcutObjectId { get; set; }
 
-        public Character Character { get; set; }
+        public virtual Character Character { get; set; }
     }
 }

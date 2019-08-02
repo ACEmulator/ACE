@@ -517,7 +517,7 @@ namespace ACE.Server.Managers
             {
                 foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
                 {
-                    if (!player.Squelches.Contains(sender) || ignoreSquelch)
+                    if (!player.SquelchManager.Squelches.Contains(sender) || ignoreSquelch)
                         player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, sender.Guid == player.Guid ? "" : sender.Name, message));
                 }
             }

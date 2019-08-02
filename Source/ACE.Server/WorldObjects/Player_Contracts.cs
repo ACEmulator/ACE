@@ -1,16 +1,11 @@
-using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public bool AddContract(uint contractID)
+        public void HandleActionAbandonContract(uint contractId)
         {
-            if (TrackedContracts.ContainsKey(contractID))
-                return false;
-
-            TrackedContracts.Add(contractID, new ContractTracker(contractID, Guid.Full));
-            return true;
+            ContractManager.Abandon(contractId);
         }
     }
 }

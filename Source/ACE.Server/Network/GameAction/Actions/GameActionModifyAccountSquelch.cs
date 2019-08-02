@@ -11,7 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
             var squelch = Convert.ToBoolean(message.Payload.ReadUInt32());
             var playerName = message.Payload.ReadString16L();
 
-            session.Player.HandleActionModifyAccountSquelch(squelch, playerName);
+            session.Player.SquelchManager.HandleActionModifyAccountSquelch(squelch, playerName);
         }
     }
 }

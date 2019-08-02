@@ -322,6 +322,9 @@ namespace ACE.Server.Entity
                     break;
 
                 case ArmorLowerReductionTool:
+                    // Can't reduce Chest Armor to anything but chest!
+                    if (validLocations.HasFlag(EquipMask.ChestArmor))
+                        break;
 
                     if (validLocations.HasFlag(EquipMask.UpperArmArmor))
                     {
@@ -341,7 +344,6 @@ namespace ACE.Server.Entity
                     break;
 
                 case ArmorMiddleReductionTool:
-
                     if (validLocations.HasFlag(EquipMask.UpperLegArmor))
                     {
                         player.UpdateProperty(target, PropertyInt.ValidLocations, (int)EquipMask.UpperLegArmor);

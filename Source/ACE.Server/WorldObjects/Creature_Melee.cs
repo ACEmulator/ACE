@@ -54,11 +54,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public AttackType GetWeaponAttackType(WorldObject weapon)
         {
-            var attackType = AttackType.Undef;     // unarmed?
-            if (weapon != null)
-                attackType = (AttackType)(weapon.GetProperty(PropertyInt.AttackType) ?? 0);
+            if (weapon == null)
+                return AttackType.Undef;
 
-            return attackType;
+            return weapon.W_AttackType;
         }
 
         /// <summary>
