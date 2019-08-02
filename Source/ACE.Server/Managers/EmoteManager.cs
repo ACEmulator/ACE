@@ -1497,7 +1497,7 @@ namespace ACE.Server.Managers
             ExecuteEmoteSet(EmoteCategory.ReceiveLocalSignal, message, player);
         }
 
-        public bool HasAntennas => WorldObject.Biota.BiotaPropertiesEmote.Count(x => x.Category == (int)EmoteCategory.ReceiveLocalSignal) > 0;
+        //public bool HasAntennas => WorldObject.Biota.BiotaPropertiesEmote.Count(x => x.Category == (int)EmoteCategory.ReceiveLocalSignal) > 0;
 
         /// <summary>
         /// Call this function when WorldObject is being used via a proxy object, e.g.: Hooker on a Hook
