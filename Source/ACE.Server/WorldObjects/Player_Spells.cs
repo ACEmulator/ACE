@@ -476,5 +476,56 @@ namespace ACE.Server.WorldObjects
             });
             actionChain.EnqueueChain();
         }
+
+        public void AuditItemSpells()
+        {
+            // cleans up bugged chars with dangling item set spells
+            // from previous bugs
+
+            // get active item enchantments
+            var enchantments = Biota.GetEnchantments(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
+
+            foreach (var enchantment in enchantments)
+            {
+                // if this item is not equipped, remove enchantment
+                if (!EquippedObjects.TryGetValue(new ObjectGuid(enchantment.CasterObjectId), out var item))
+                {
+                    var spell = new Spell(enchantment.SpellId, false);
+                    log.Error($"{Name}.AuditItemSpells(): removing spell {spell.Name} from non-equipped item");
+
+                    EnchantmentManager.Dispel(enchantment);
+                    continue;
+                }
+
+                // is this item part of a set?
+                if (!item.HasItemSet)
+                    continue;
+
+                // get all of the equipped items in this set
+                var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
+
+                // get all of the spells currently active from this set
+                var currentSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+
+                // get all of the spells possible for this item set
+                var possibleSpells = GetSpellSetAll((EquipmentSet)item.EquipmentSetId);
+
+                // get the difference between them
+                var inactiveSpells = possibleSpells.Except(currentSpells).ToList();
+
+                // remove any item set spells that shouldn't be active
+                foreach (var inactiveSpell in inactiveSpells)
+                {
+                    var removeSpells = enchantments.Where(i => i.SpellSetId == (uint)item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
+
+                    foreach (var removeSpell in removeSpells)
+                    {
+                        log.Error($"{Name}.AuditItemSpells(): removing spell {inactiveSpell.Name} from {item.EquipmentSetId}");
+
+                        EnchantmentManager.Dispel(removeSpell);
+                    }
+                }
+            }
+        }
     }
 }

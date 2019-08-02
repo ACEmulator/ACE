@@ -339,6 +339,9 @@ namespace ACE.Server.WorldObjects
             // check lifestone protection
             if (targetPlayer != null && targetPlayer.UnderLifestoneProtection)
             {
+                if (sourcePlayer != null)
+                    sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Lifestone's magic protects {targetPlayer.Name} from the attack!", ChatMessageType.Magic));
+
                 targetPlayer.HandleLifestoneProtection();
                 return null;
             }
@@ -577,14 +580,18 @@ namespace ACE.Server.WorldObjects
                     var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}", ChatMessageType.Magic);
                     var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
 
-                    player.Session.Network.EnqueueSend(attackerMsg, updateHealth);
+                    if (!player.SquelchManager.Squelches.Contains(target, ChatMessageType.Magic))
+                        player.Session.Network.EnqueueSend(attackerMsg);
+
+                    player.Session.Network.EnqueueSend(updateHealth);
                 }
 
                 if (targetPlayer != null)
                 {
                     var critProt = critDefended ? " Your Critical Protection augmentation allows you to avoid a critical hit!" : "";
 
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}", ChatMessageType.Magic));
+                    if (!targetPlayer.SquelchManager.Squelches.Contains(ProjectileSource, ChatMessageType.Magic))
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}", ChatMessageType.Magic));
                 }
             }
             else

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 
 namespace ACE.Server.Network.Structure
@@ -118,6 +120,17 @@ namespace ACE.Server.Network.Structure
         public bool HasMovement()
         {
             return (Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.TurnCommand | RawMotionFlags.SideStepCommand)) != 0;
+        }
+
+        public bool HasSoulEmote()
+        {
+            if ((Flags & RawMotionFlags.ForwardCommand) != 0 && SoulEmote.SoulEmotes.Contains(ForwardCommand))
+                return true;
+
+            if (CommandListLength > 0 && SoulEmote.SoulEmotes.Contains(Commands[0].MotionCommand))
+                return true;
+
+            return false;
         }
     }
 }

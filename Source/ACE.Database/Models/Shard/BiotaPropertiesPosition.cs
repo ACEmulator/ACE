@@ -17,6 +17,6 @@ namespace ACE.Database.Models.Shard
         public float AnglesY { get; set; }
         public float AnglesZ { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

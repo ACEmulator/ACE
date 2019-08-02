@@ -14,6 +14,6 @@ namespace ACE.Database.Models.Shard
         public float Shade { get; set; }
         public bool TryToBond { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

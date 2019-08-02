@@ -45,7 +45,7 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Constructs a new QuestManager for a Player
+        /// Constructs a new QuestManager for a Fellowship
         /// </summary>
         public QuestManager(Fellowship fellowship)
         {
@@ -127,15 +127,29 @@ namespace ACE.Server.Managers
                     info.CharacterId = Fellowship.FellowshipLeaderGuid;
                 if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): added quest");
                 Quests.Add(info);
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
+                }
             }
             else
             {
+                if (IsMaxSolves(questName))
+                {
+                    if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): can not update existing quest. IsMaxSolves({questName}) is true.");
+                    return;
+                }
+
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted++;
                 if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                }
             }
         }
 
@@ -164,7 +178,11 @@ namespace ACE.Server.Managers
                     info.CharacterId = Fellowship.FellowshipLeaderGuid;
                 if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({questFormat}): initialized quest to {info.NumTimesCompleted}");
                 Quests.Add(info);
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
+                }
             }
             else
             {
@@ -172,7 +190,11 @@ namespace ACE.Server.Managers
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted = questCompletions;
                 if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                }
             }
         }
 
@@ -263,7 +285,11 @@ namespace ACE.Server.Managers
             foreach (var quest in quests)
             {
                 Quests.Remove(quest);
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
+                }
             }
         }
 
@@ -279,7 +305,11 @@ namespace ACE.Server.Managers
             foreach (var quest in quests)
             {
                 Quests.Remove(quest);
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
+                }
             }
         }
 
