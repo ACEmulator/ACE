@@ -220,7 +220,7 @@ namespace ACE.Server.Entity
             target.ClothingBase = source.ClothingBase;
             target.PaletteBaseId = source.PaletteBaseId;
             target.Shade = source.Shade;
-            target.DefaultScale = source.DefaultScale;
+            target.ObjScale = source.ObjScale;
             target.Translucency = source.Translucency;
 
             target.Name = source.Name;
@@ -497,7 +497,7 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyDataId.ClothingBase, source.ClothingBase);
             player.UpdateProperty(target, PropertyDataId.PaletteBase, source.PaletteBaseId);
             player.UpdateProperty(target, PropertyFloat.Shade, source.Shade);
-            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.DefaultScale);
+            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
             player.UpdateProperty(target, PropertyFloat.Translucency, source.Translucency);
             player.UpdateProperty(target, PropertyString.Name, source.Name);
             player.UpdateProperty(target, PropertyString.LongDesc, source.LongDesc);
