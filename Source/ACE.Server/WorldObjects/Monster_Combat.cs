@@ -49,11 +49,6 @@ namespace ACE.Server.WorldObjects
         public bool IsDead => Health.Current <= 0;
 
         /// <summary>
-        /// The list of combat maneuvers performable by this monster
-        /// </summary>
-        public CombatManeuverTable CombatTable;
-
-        /// <summary>
         /// A list of possible attack heights for this monster,
         /// as determined by the combat maneuvers table
         /// </summary>
@@ -66,7 +61,7 @@ namespace ACE.Server.WorldObjects
                 if (CombatTable == null) return null;
 
                 if (_attackHeights == null)
-                    _attackHeights = CombatTable.CMT.Select(m => (AttackHeight)m.AttackHeight).Distinct().ToList();
+                    _attackHeights = CombatTable.CMT.Select(m => m.AttackHeight).Distinct().ToList();
 
                 return _attackHeights;
             }
