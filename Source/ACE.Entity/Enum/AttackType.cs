@@ -27,6 +27,8 @@ namespace ACE.Entity.Enum
         DoubleStrike        = DoubleSlash | DoubleThrust | OffhandDoubleSlash | OffhandDoubleThrust,
         TripleStrike        = TripleSlash | TripleThrust | OffhandTripleSlash | OffhandTripleThrust,
 
+        Offhand             = OffhandThrust | OffhandSlash | OffhandDoubleSlash | OffhandTripleSlash | OffhandDoubleThrust | OffhandTripleThrust,
+
         MultiStrike         = DoubleStrike | TripleStrike
     }
 }

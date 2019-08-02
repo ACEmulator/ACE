@@ -745,6 +745,12 @@ namespace ACE.Server.WorldObjects
 
             var attackType = W_AttackType;
 
+            if ((attackType & AttackType.Offhand) != 0)
+            {
+                log.Warn($"{Name} ({Guid}, {WeenieClassId}).GetAttackType(): {attackType}");
+                attackType &= ~AttackType.Offhand;
+            }
+
             if (stance == MotionStance.DualWieldCombat)
             {
                 if (attackType.HasFlag(AttackType.TripleThrust | AttackType.TripleSlash))
@@ -811,6 +817,12 @@ namespace ACE.Server.WorldObjects
         public AttackType GetOffhandAttackType(MotionStance stance, float powerLevel)
         {
             var attackType = W_AttackType;
+
+            if ((attackType & AttackType.Offhand) != 0)
+            {
+                log.Warn($"{Name} ({Guid}, {WeenieClassId}).GetOffhandAttackType(): {attackType}");
+                attackType &= ~AttackType.Offhand;
+            }
 
             if (attackType.HasFlag(AttackType.TripleThrust | AttackType.TripleSlash))
             {
