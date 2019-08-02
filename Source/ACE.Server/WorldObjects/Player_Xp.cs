@@ -408,6 +408,8 @@ namespace ACE.Server.WorldObjects
             var newItemLevel = item.ItemLevel.Value;
             if (newItemLevel > prevItemLevel)
             {
+                OnItemLevelUp(item, prevItemLevel);
+
                 var actionChain = new ActionChain();
                 actionChain.AddAction(this, () =>
                 {
@@ -415,9 +417,6 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                     EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
-
-                    OnItemLevelUp(item, prevItemLevel);
-
                 });
                 actionChain.EnqueueChain();
             }

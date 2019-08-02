@@ -731,9 +731,9 @@ namespace ACE.Server.Entity
 
         public void EmitSignal(Player player, string message)
         {
-            foreach (var wo in worldObjects.Values.Where(w => w.EmoteManager.HasAntennas).ToList())
+            foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
-                if (player.IsWithinUseRadiusOf(wo, wo.UseRadius ?? 0))
+                if (player.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
                     //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
                     wo.EmoteManager.OnLocalSignal(player, message);

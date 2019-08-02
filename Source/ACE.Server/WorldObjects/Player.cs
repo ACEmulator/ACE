@@ -8,6 +8,7 @@ using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -38,6 +39,8 @@ namespace ACE.Server.WorldObjects
 
         public QuestManager QuestManager;
 
+        public ContractManager ContractManager;
+
         public bool LastContact = true;
         public bool IsJumping = false;
         public DateTime LastJumpTime = DateTime.MinValue;
@@ -46,9 +49,9 @@ namespace ACE.Server.WorldObjects
         public ACE.Entity.Position LastGroundPos;
         public ACE.Entity.Position SnapPos;
 
-        public SquelchDB Squelches;
-
         public ConfirmationManager ConfirmationManager;
+
+        public SquelchManager SquelchManager;
 
         public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
 
@@ -137,35 +140,21 @@ namespace ACE.Server.WorldObjects
                     IsPsr = true; // Enable AdvocateTeleport via MapClick
             }
 
+            CombatTable = DatManager.PortalDat.ReadFromDat<CombatManeuverTable>(CombatTableDID.Value);
+
             QuestManager = new QuestManager(this);
+
+            ContractManager = new ContractManager(this);
 
             ConfirmationManager = new ConfirmationManager(this);
 
-            LastUseTracker = new Dictionary<int, DateTime>();
-
             LootPermission = new Dictionary<ObjectGuid, DateTime>();
 
-            Squelches = new SquelchDB();
+            SquelchManager = new SquelchManager(this);
 
             MagicState = new MagicState(this);
 
             return; // todo
-            /* todo fix for new EF model
-            TrackedContracts = new Dictionary<uint, ContractTracker>();
-            // Load the persisted tracked contracts into the working dictionary on player object.
-            foreach (var trackedContract in AceObject.TrackedContracts)
-            {
-                ContractTracker loadContract = new ContractTracker(trackedContract.Value.ContractId, Guid.Full)
-                {
-                    DeleteContract = trackedContract.Value.DeleteContract,
-                    SetAsDisplayContract = trackedContract.Value.SetAsDisplayContract,
-                    Stage = trackedContract.Value.Stage,
-                    TimeWhenDone = trackedContract.Value.TimeWhenDone,
-                    TimeWhenRepeats = trackedContract.Value.TimeWhenRepeats
-                };
-
-                TrackedContracts.Add(trackedContract.Key, loadContract);
-            }*/
 
             // =======================================
             // This code was taken from the old Load()
@@ -203,12 +192,6 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
-
-        /// <summary>
-        /// This tracks the contract tracker objects
-        /// </summary>
-        public Dictionary<uint, ContractTracker> TrackedContracts { get; set; }
-
 
         public MotionStance stance = MotionStance.NonCombat;
 
@@ -271,7 +254,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
-            if (!success && player != null)
+            if (!success && player != null && !player.SquelchManager.Squelches.Contains(this, ChatMessageType.Appraisal))
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
 
             // pooky logic - handle monsters attacking on appraisal
@@ -378,9 +361,9 @@ namespace ACE.Server.WorldObjects
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
-        public bool LogOut(bool clientSessionTerminatedAbruptly = false)
+        public bool LogOut(bool clientSessionTerminatedAbruptly = false, bool forceImmediate = false)
         {
-            if (PKLogoutActive)
+            if (PKLogoutActive && !forceImmediate)
             {
                 var pkTimer = PropertyManager.GetLong("pk_timer").Item;
                 return TimedLogout(pkTimer, clientSessionTerminatedAbruptly, WeenieError.YouHaveBeenInPKBattleTooRecently);
@@ -589,47 +572,6 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageObjDescEvent(wo));
         }
 
-
-        /// <summary>
-        /// This method is part of the contract tracking functions.   This is used to remove or abandon a contract.
-        /// The method validates the id passed from the client against the portal.dat file, then sends the appropriate
-        /// response to the client to remove the item from the quest panel. Og II
-        /// </summary>
-        /// <param name="contractId">This is the contract id passed to us from the client that we want to remove.</param>
-        public void HandleActionAbandonContract(uint contractId)
-        {
-            ContractTracker contractTracker = new ContractTracker(contractId, Guid.Full)
-            {
-                Stage = 0,
-                TimeWhenDone = 0,
-                TimeWhenRepeats = 0,
-                DeleteContract = 1,
-                SetAsDisplayContract = 0
-            };
-
-            GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(Session, contractTracker);
-            /* todo fix for new EF model
-            AceContractTracker contract = new AceContractTracker();
-            if (TrackedContracts.ContainsKey(contractId))
-                contract = TrackedContracts[contractId].SnapShotOfAceContractTracker();
-
-            TrackedContracts.Remove(contractId);
-            LastUseTracker.Remove((int)contractId);
-            AceObject.TrackedContracts.Remove(contractId);
-
-            DatabaseManager.Shard.DeleteContract(contract, deleteSuccess =>
-            {
-                if (deleteSuccess)
-                    log.Info($"ContractId {contractId:X} successfully deleted");
-                else
-                    log.Error($"Unable to delete contractId {contractId:X} ");
-            });
-
-            Session.Network.EnqueueSend(contractMsg);*/
-        }
-
-
-
         public void HandleActionApplySoundEffect(Sound sound)
         {
             PlaySound(sound, Guid);
@@ -721,7 +663,7 @@ namespace ACE.Server.WorldObjects
         public void HandleActionTalk(string message)
         {
             if (!IsGagged)
-                EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, true);
+                EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
             else
                 SendGagError();
         }
@@ -911,9 +853,12 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void SendMessage(string msg)
+        public void SendMessage(string msg, ChatMessageType type = ChatMessageType.Broadcast, WorldObject source = null)
         {
-            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            if (SquelchManager.IsLegalChannel(type) && SquelchManager.Squelches.Contains(source, type))
+                return;
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, type));
         }
 
         public void HandleActionEnterPkLite()
@@ -931,7 +876,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast));
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast), LocalBroadcastRange);
 
             // perform pk lite entry motion / effect
             var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
@@ -952,114 +897,6 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
-        }
-
-        public void HandleActionModifyCharacterSquelch(bool squelch, uint playerGuid, string playerName, ChatMessageType messageType)
-        {
-            //Console.WriteLine($"{Name}.HandleActionModifyCharacterSquelch({squelch}, {playerGuid:X8}, {playerName}, {messageType})");
-
-            IPlayer player;
-
-            if (playerGuid != 0)
-            {
-                player = PlayerManager.FindByGuid(new ObjectGuid(playerGuid));
-
-                if (player == null)
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Couldn't find player to squelch.", ChatMessageType.Broadcast));
-                    return;
-                }
-            }
-            else
-            {
-                player = PlayerManager.FindByName(playerName);
-
-                if (player == null)
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
-                    return;
-                }
-            }
-
-            if (player.Guid == Guid)
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
-                return;
-            }
-
-            if (squelch)
-            {
-                if (Squelches.Characters.ContainsKey(player.Guid))
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already squelched.", ChatMessageType.Broadcast));
-                    return;
-                }
-
-                Squelches.Characters.Add(player.Guid, new SquelchInfo(messageType, player.Name, false));
-
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been squelched.", ChatMessageType.Broadcast));
-            }
-            else
-            {
-                if (!Squelches.Characters.Remove(player.Guid))
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not squelched.", ChatMessageType.Broadcast));
-                    return;
-                }
-
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been unsquelched.", ChatMessageType.Broadcast));
-            }
-
-            Session.Network.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
-        }
-
-        public void HandleActionModifyAccountSquelch(bool squelch, string playerName)
-        {
-            //Console.WriteLine($"{Name}.HandleActionModifyAccountSquelch({squelch}, {playerName})");
-
-            var player = PlayerManager.GetOnlinePlayer(playerName);
-
-            if (player == null)
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
-                return;
-            }
-
-            if (player.Guid == Guid)
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
-                return;
-            }
-
-            if (squelch)
-            {
-                if (Squelches.Accounts.ContainsKey(player.Session.Account))
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is already squelched.", ChatMessageType.Broadcast));
-                    return;
-                }
-
-                Squelches.Accounts.Add(player.Session.Account, player.Guid.Full);
-
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been squelched.", ChatMessageType.Broadcast));
-            }
-            else
-            {
-                if (!Squelches.Accounts.Remove(player.Session.Account))
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is not squelched.", ChatMessageType.Broadcast));
-                    return;
-                }
-
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been unsquelched.", ChatMessageType.Broadcast));
-            }
-
-            Session.Network.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
-        }
-
-        public void HandleActionModifyGlobalSquelch(bool squelch, ChatMessageType messageType)
-        {
-            //Console.WriteLine($"{Name}.HandleActionModifyGlobalSquelch({squelch}, {messageType})");
         }
     }
 }

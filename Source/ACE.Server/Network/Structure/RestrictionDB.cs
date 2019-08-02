@@ -46,7 +46,7 @@ namespace ACE.Server.Network.Structure
 
             if (owner == null)
             {
-                Console.WriteLine($"RestrictionDB({house.HouseInstance.Value}): couldn't find house owner {house.HouseOwner.Value}");
+                Console.WriteLine($"RestrictionDB({house.HouseInstance:X8}): couldn't find house owner {house.HouseOwner:X8}");
                 return;
             }
 

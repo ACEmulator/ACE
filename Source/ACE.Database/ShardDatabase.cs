@@ -673,12 +673,13 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                .Include(r => r.CharacterPropertiesContract)
+                .Include(r => r.CharacterPropertiesContractRegistry)
                 .Include(r => r.CharacterPropertiesFillCompBook)
                 .Include(r => r.CharacterPropertiesFriendList)
                 .Include(r => r.CharacterPropertiesQuestRegistry)
                 .Include(r => r.CharacterPropertiesShortcutBar)
                 .Include(r => r.CharacterPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesSquelch)
                 .Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Name == name && !r.IsDeleted);
 
@@ -695,12 +696,13 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var results = context.Character
-                .Include(r => r.CharacterPropertiesContract)
+                .Include(r => r.CharacterPropertiesContractRegistry)
                 .Include(r => r.CharacterPropertiesFillCompBook)
                 .Include(r => r.CharacterPropertiesFriendList)
                 .Include(r => r.CharacterPropertiesQuestRegistry)
                 .Include(r => r.CharacterPropertiesShortcutBar)
                 .Include(r => r.CharacterPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesSquelch)
                 .Include(r => r.CharacterPropertiesTitleBook)
                 .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
                 .ToList();

@@ -124,7 +124,6 @@ namespace ACE.Server.Managers
                 CachedBooleanSettings[key].Modify(newVal);
             else
                 CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal, DefaultPropertyManager.DefaultBooleanProperties[key].Description);
-
             return true;
         }
 
@@ -175,7 +174,6 @@ namespace ACE.Server.Managers
                 CachedLongSettings[key].Modify(newVal);
             else
                 CachedLongSettings[key] = new ConfigurationEntry<long>(true, newVal, DefaultPropertyManager.DefaultLongProperties[key].Description);
-
             return true;
         }
 
@@ -274,7 +272,6 @@ namespace ACE.Server.Managers
                 CachedStringSettings[key].Modify(newVal);
             else
                 CachedStringSettings[key] = new ConfigurationEntry<string>(true, newVal, DefaultPropertyManager.DefaultStringProperties[key].Description);
-
             return true;
         }
 
@@ -354,7 +351,7 @@ namespace ACE.Server.Managers
 
             // first, check for variables updated on the server-side. Write those to the DB.
             // then, compare variables to DB and update from DB as necessary. (needs to minimize r/w)
-            
+
             WriteBoolToDB();
             WriteLongToDB();
             WriteDoubleToDB();
@@ -493,10 +490,11 @@ namespace ACE.Server.Managers
                 ("gateway_ties_summonable", new Property<bool>(true, "if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail")),
                 ("house_purchase_requirements", new Property<bool>(true, "")),
                 ("house_rent_enabled", new Property<bool>(true, "If FALSE then rent is not required")),
-                ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),                     
+                ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),
                 ("override_encounter_spawn_rates", new Property<bool>(false, "if enabled, landblock encounter spawns are overidden by double properties below.")),
                 ("player_receive_immediate_save", new Property<bool>(false, "if enabled, when the player receives items from an NPC, they will be saved immediately")),
                 ("pk_server", new Property<bool>(false, "set this to TRUE for darktide servers")),
+                ("pkl_server", new Property<bool>(false, "set this to TRUE for pink servers")),
                 ("quest_info_enabled", new Property<bool>(false, "toggles the /myquests player command")),
                 ("salvage_handle_overages", new Property<bool>(false, "in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost")),
                 ("spellcast_recoil_queue", new Property<bool>(false, "if true, players can queue the next spell to cast during recoil animation")),
@@ -516,7 +514,8 @@ namespace ACE.Server.Managers
                 ("max_chars_per_account", new Property<long>(11, "retail defaults to 11, client supports up to 20")),
                 ("pk_timer", new Property<long>(20, "the number of seconds where a player cannot perform certain actions (ie. teleporting) after becoming involved in a PK battle")),
                 ("logout_timer", new Property<long>(0, "the number of seconds until a player can logout")),
-                ("logout_timer_level_restriction", new Property<long>(0, "the level at which it will force players to have logout timers"))
+                ("logout_timer_level_restriction", new Property<long>(0, "the level at which it will force players to have logout timers")),
+                ("player_save_interval", new Property<long>(300, "the number of seconds between automatic player saves"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =

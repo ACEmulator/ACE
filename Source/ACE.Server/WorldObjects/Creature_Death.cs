@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -161,7 +163,7 @@ namespace ACE.Server.WorldObjects
         {
             if (NoCorpse)
             {
-                var loot = GenerateTreasure(null);
+                var loot = GenerateTreasure(killer, null);
 
                 foreach(var item in loot)
                 {
@@ -258,7 +260,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 corpse.IsMonster = true;
-                GenerateTreasure(corpse);
+                GenerateTreasure(killer, corpse);
                 if (killer is Player && (Level >= 100 || Level >= killer.Level + 5))
                 {
                     CanGenerateRare = true;
@@ -293,7 +295,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Transfers generated treasure from creature to corpse
         /// </summary>
-        private List<WorldObject> GenerateTreasure(Corpse corpse)
+        private List<WorldObject> GenerateTreasure(WorldObject killer, Corpse corpse)
         {
             var droppedItems = new List<WorldObject>();
 
@@ -307,6 +309,8 @@ namespace ACE.Server.WorldObjects
                         corpse.TryAddToInventory(wo);
                     else
                         droppedItems.Add(wo);
+
+                    DoCantripLogging(killer, wo);
                 }
             }
 
@@ -346,6 +350,28 @@ namespace ACE.Server.WorldObjects
             }
 
             return droppedItems;
+        }
+
+        public void DoCantripLogging(WorldObject killer, WorldObject wo)
+        {
+            var epicCantrips = wo.EpicCantrips;
+            var legendaryCantrips = wo.LegendaryCantrips;
+
+            if (epicCantrips.Count > 0)
+                log.Info($"[EPIC] {Name} ({Guid}) generated item with {epicCantrips.Count} epic{(epicCantrips.Count > 1 ? "s" : "")} - {wo.Name} ({wo.Guid}) - {GetSpellList(epicCantrips)} - killed by {killer.Name} ({killer.Guid})");
+
+            if (legendaryCantrips.Count > 0)
+                log.Info($"[LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer.Name} ({killer.Guid})");
+        }
+
+        public static string GetSpellList(List<BiotaPropertiesSpellBook> spellbook)
+        {
+            var spells = new List<Server.Entity.Spell>();
+
+            foreach (var spell in spellbook)
+                spells.Add(new Server.Entity.Spell(spell.Spell, false));
+
+            return string.Join(", ", spells.Select(i => i.Name));
         }
     }
 }

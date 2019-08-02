@@ -1290,7 +1290,7 @@ namespace ACE.Server.Managers
             creature.DamageHistory.OnHeal((uint)healAmount);
 
             if (creature is Player player)
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You receive {healAmount} points of periodic healing.", ChatMessageType.Combat));
+                player.SendMessage($"You receive {healAmount} points of periodic healing.", ChatMessageType.Combat);
         }
 
         /// <summary>

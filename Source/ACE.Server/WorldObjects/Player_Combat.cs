@@ -145,10 +145,14 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (targetPlayer != null && targetPlayer.UnderLifestoneProtection)
+                if (damageEvent.LifestoneProtection)
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"The Lifestone's magic protects {target.Name} from the attack!", ChatMessageType.Magic));
-                else
+
+                else if (!SquelchManager.Squelches.Contains(target, ChatMessageType.CombatSelf))
                     Session.Network.EnqueueSend(new GameEventEvasionAttackerNotification(Session, target.Name));
+
+                if (targetPlayer != null)
+                    targetPlayer.OnEvade(this, damageEvent.CombatType);
             }
 
             if (damageEvent.HasDamage && target.IsAlive)
@@ -156,7 +160,8 @@ namespace ACE.Server.WorldObjects
                 // notify attacker
                 var intDamage = (uint)Math.Round(damageEvent.Damage);
 
-                Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, damageEvent.AttackConditions));
+                if (!SquelchManager.Squelches.Contains(this, ChatMessageType.CombatSelf))
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, damageEvent.AttackConditions));
 
                 // splatter effects
                 if (targetPlayer == null)
@@ -271,7 +276,8 @@ namespace ACE.Server.WorldObjects
             else
                 UpdateVitalDelta(Stamina, -1);
 
-            Session.Network.EnqueueSend(new GameEventEvasionDefenderNotification(Session, attacker.Name));
+            if (!SquelchManager.Squelches.Contains(attacker, ChatMessageType.CombatEnemy))
+                Session.Network.EnqueueSend(new GameEventEvasionDefenderNotification(Session, attacker.Name));
 
             var creature = attacker as Creature;
             if (creature == null) return;
@@ -402,8 +408,8 @@ namespace ACE.Server.WorldObjects
             //{
                 var nether = damageType == DamageType.Nether ? "nether " : "";
                 var chatMessageType = damageType == DamageType.Nether ? ChatMessageType.Magic : ChatMessageType.Combat;
-                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", chatMessageType);
-                Session.Network.EnqueueSend(text);
+                var text = $"You receive {amount} points of periodic {nether}damage.";
+                SendMessage(text, chatMessageType);
             //}
 
             // splatter effects
@@ -476,8 +482,8 @@ namespace ACE.Server.WorldObjects
             // send network messages
             if (source is Creature creature)
             {
-                var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, attackConditions);
-                Session.Network.EnqueueSend(text);
+                if (!SquelchManager.Squelches.Contains(source, ChatMessageType.CombatEnemy))
+                    Session.Network.EnqueueSend(new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, attackConditions));
 
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));

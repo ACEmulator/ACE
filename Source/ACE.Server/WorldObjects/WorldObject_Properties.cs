@@ -2387,11 +2387,16 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                var pk_server = PropertyManager.GetBool("pk_server").Item;
-                if (this is Player && pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
-                    return PlayerKillerStatus.PK;
-                else
-                    return _playerKillerStatus;
+                if (this is Player)
+                {
+                    var pk_server = PropertyManager.GetBool("pk_server").Item;
+                    var pkl_server = PropertyManager.GetBool("pkl_server").Item;
+                    if ((pk_server || pkl_server) && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
+                    {
+                        return pkl_server ? PlayerKillerStatus.PKLite : PlayerKillerStatus.PK;
+                    }
+                }
+                return _playerKillerStatus;
             }
             set => _playerKillerStatus = value;
         }
@@ -2747,6 +2752,18 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.RemainingLifespan);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.RemainingLifespan); else SetProperty(PropertyInt.RemainingLifespan, value.Value); }
+        }
+
+        public bool HearLocalSignals
+        {
+            get => (GetProperty(PropertyInt.HearLocalSignals) ?? 0) != 0;
+            set { if (!value) RemoveProperty(PropertyInt.HearLocalSignals); else SetProperty(PropertyInt.HearLocalSignals, 1); }
+        }
+
+        public int HearLocalSignalsRadius
+        {
+            get => GetProperty(PropertyInt.HearLocalSignalsRadius) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.HearLocalSignalsRadius); else SetProperty(PropertyInt.HearLocalSignalsRadius, value); }
         }
 
         /// <summary>

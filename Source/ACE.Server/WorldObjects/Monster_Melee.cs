@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
             // for sword combat, they have double and triple strikes (dagger / two-handed only?)
             var weapon = GetEquippedMeleeWeapon();
 
-            var stanceManeuvers = CombatTable.CMT.Where(m => m.Style == (MotionCommand)CurrentMotionState.Stance).ToList();
+            var stanceManeuvers = CombatTable.CMT.Where(m => m.Style == CurrentMotionState.Stance).ToList();
 
             if (stanceManeuvers.Count == 0)
                 return null;
@@ -165,14 +165,14 @@ namespace ACE.Server.WorldObjects
 
                 // todo: use motion mapping, avoid string search
 
-                if (motion.Contains("Slash") && (weapon == null || (weapon.MAttackType & (AttackType.Slash | AttackType.DoubleSlash | AttackType.TripleSlash)) == 0))
+                if (motion.Contains("Slash") && (weapon == null || (weapon.W_AttackType & (AttackType.Slash | AttackType.DoubleSlash | AttackType.TripleSlash)) == 0))
                     continue;
-                if (motion.Contains("Thrust") && (weapon == null || (weapon.MAttackType & (AttackType.Thrust | AttackType.DoubleThrust | AttackType.TripleThrust)) == 0))
+                if (motion.Contains("Thrust") && (weapon == null || (weapon.W_AttackType & (AttackType.Thrust | AttackType.DoubleThrust | AttackType.TripleThrust)) == 0))
                     continue;
 
-                if (motion.StartsWith("Double") && (weapon == null || (weapon.MAttackType & AttackType.DoubleStrike) == 0))
+                if (motion.StartsWith("Double") && (weapon == null || (weapon.W_AttackType & AttackType.DoubleStrike) == 0))
                     continue;
-                if (motion.StartsWith("Triple") && (weapon == null || (weapon.MAttackType & AttackType.TripleStrike) == 0))
+                if (motion.StartsWith("Triple") && (weapon == null || (weapon.W_AttackType & AttackType.TripleStrike) == 0))
                     continue;
 
                 // ensure combat maneuver exists for this monster's motion table
