@@ -382,23 +382,35 @@ namespace ACE.Server.WorldObjects
         {
             if (PKLogoutActive)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
-
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(20.0f);
-                actionChain.AddAction(this, () =>
-                {
-                    LogOut_Inner(clientSessionTerminatedAbruptly);
-                    Session.logOffRequestTime = DateTime.UtcNow;
-                });
-                actionChain.EnqueueChain();
-                return false;
+                var pkTimer = PropertyManager.GetLong("pk_timer").Item;
+                return TimedLogout(pkTimer, clientSessionTerminatedAbruptly, WeenieError.YouHaveBeenInPKBattleTooRecently);
             }
+
+            var logoutTimer = PropertyManager.GetLong("logout_timer").Item;
+            var logoutLevelRestriction = PropertyManager.GetLong("logout_timer_level_restriction").Item;
+            
+            if (logoutTimer > 0 && this.Level >= logoutLevelRestriction)
+                return TimedLogout(logoutTimer, clientSessionTerminatedAbruptly, WeenieError.YouChickenOut);
 
             LogOut_Inner(clientSessionTerminatedAbruptly);
 
             return true;
+        }
+
+        public bool TimedLogout(long timeInSeconds = 0, bool clientSessionTerminatedAbruptly = false, WeenieError weenieError = WeenieError.YouHaveBeenInPKBattleTooRecently)
+        {
+            Session.Network.EnqueueSend(new GameEventWeenieError(Session, weenieError));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Logging out in {timeInSeconds}s...", ChatMessageType.Magic));
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds((float)timeInSeconds);
+            actionChain.AddAction(this, () =>
+            {
+                LogOut_Inner(clientSessionTerminatedAbruptly);
+                Session.logOffRequestTime = DateTime.UtcNow;
+            });
+            actionChain.EnqueueChain();
+            return false;
         }
 
         public void LogOut_Inner(bool clientSessionTerminatedAbruptly = false)

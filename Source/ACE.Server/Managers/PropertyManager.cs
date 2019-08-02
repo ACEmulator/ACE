@@ -505,7 +505,8 @@ namespace ACE.Server.Managers
                 ("universal_masteries", new Property<bool>(true, "if TRUE, matches end of retail masteries - players wielding almost any weapon get +5 DR, except if the weapon \"seems tough to master\". " +
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
-                ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world."))
+                ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world.")),
+                ("global_pk_kill_messages", new Property<bool>(false, "enable this to make PK kills a global death message."))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<long>> DefaultLongProperties =
@@ -513,7 +514,9 @@ namespace ACE.Server.Managers
                 ("char_delete_time", new Property<long>(3600, "the amount of time in seconds a deleted character can be restored")),
                 ("mansion_min_rank", new Property<long>(6, "overrides the default allegiance rank required to own a mansion")),
                 ("max_chars_per_account", new Property<long>(11, "retail defaults to 11, client supports up to 20")),
-                ("pk_timer", new Property<long>(20, "the number of seconds where a player cannot perform certain actions (ie. teleporting) after becoming involved in a PK battle"))
+                ("pk_timer", new Property<long>(20, "the number of seconds where a player cannot perform certain actions (ie. teleporting) after becoming involved in a PK battle")),
+                ("logout_timer", new Property<long>(0, "the number of seconds until a player can logout")),
+                ("logout_timer_level_restriction", new Property<long>(0, "the level at which it will force players to have logout timers"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
