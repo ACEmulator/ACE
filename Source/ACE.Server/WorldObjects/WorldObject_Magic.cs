@@ -36,7 +36,6 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
-
             if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
                 return;
 
@@ -873,7 +872,7 @@ namespace ACE.Server.WorldObjects
                         {
                             if (targetPlayer.PKTimerActive)
                             {
-                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                                 break;
                             }
 
