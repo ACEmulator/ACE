@@ -239,8 +239,7 @@ namespace ACE.Server.WorldObjects
 
         public void ClearFogColor()
         {
-            //if (currentFogColor != EnvironChangeType.Clear)
-                SetFogColor(EnvironChangeType.Clear);
+            SetFogColor(EnvironChangeType.Clear);
         }
 
         public void SendEnvironChange(EnvironChangeType environChangeType)

@@ -572,7 +572,7 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"{Name}.Teleport() - Sending to {newPosition.ToLOCString()}");
 
-            // Check currentFogColor set for player.
+            // Check currentFogColor set for player. If LandblockManager.GlobalFogColor is set, don't bother checking, dungeons didn't clear like this on retail worlds.
             // if not clear, reset to clear before portaling in case portaling to dungeon (no current way to fast check unloaded landblock for IsDungeon or current FogColor)
             // client doesn't respond to any change inside dungeons, and only queues for change if in dungeon, executing change upon next teleport
             // so if we delay teleport long enough to ensure clear arrives before teleport, we don't get fog carrying over into dungeon.
@@ -651,8 +651,6 @@ namespace ACE.Server.WorldObjects
                 actionChain.EnqueueChain();
                 return;
             }
-
-            //SetFogColor(CurrentLandblock.FogColor);
 
             // set materialize physics state
             // this takes the player from pink bubbles -> fully materialized
