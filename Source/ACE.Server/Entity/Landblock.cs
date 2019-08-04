@@ -1031,10 +1031,10 @@ namespace ACE.Server.Entity
             if (environChangeType.IsSound())
             {
                 SendEnvironChange(environChangeType);
-            }
 
-            foreach (var lb in Adjacents)
-                lb.SendEnvironChange(environChangeType);
+                foreach (var lb in Adjacents)
+                    lb.SendEnvironChange(environChangeType);
+            }
         }
 
         public void SendEnvironChange(EnvironChangeType environChangeType)
