@@ -1012,7 +1012,7 @@ namespace ACE.Server.Entity
 
         public void SetFogColor(EnvironChangeType environChangeType)
         {
-            if (environChangeType >= EnvironChangeType.Clear && environChangeType <= EnvironChangeType.BlackFog2)
+            if (environChangeType.IsFog())
             {
                 FogColor = environChangeType;
 
@@ -1028,7 +1028,7 @@ namespace ACE.Server.Entity
 
         public void SendEnvironSound(EnvironChangeType environChangeType)
         {
-            if (environChangeType >= EnvironChangeType.RoarSound)
+            if (environChangeType.IsSound())
             {
                 SendEnvironChange(environChangeType);
             }
@@ -1049,7 +1049,7 @@ namespace ACE.Server.Entity
         {
             foreach (var player in players)
             {
-                if (FogColor >= EnvironChangeType.Clear && FogColor <= EnvironChangeType.BlackFog2)
+                if (FogColor.IsFog())
                 {
                     player.SetFogColor(FogColor);
                 }
@@ -1062,7 +1062,7 @@ namespace ACE.Server.Entity
 
         public void DoEnvironChange(EnvironChangeType environChangeType)
         {
-            if (environChangeType >= EnvironChangeType.Clear && environChangeType <= EnvironChangeType.BlackFog2)
+            if (environChangeType.IsFog())
                 SetFogColor(environChangeType);
             else
                 SendEnvironSound(environChangeType);

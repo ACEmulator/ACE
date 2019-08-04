@@ -451,7 +451,7 @@ namespace ACE.Server.Managers
 
         public static void SetGlobalFogColor(EnvironChangeType environChangeType)
         {
-            if (environChangeType >= EnvironChangeType.Clear && environChangeType <= EnvironChangeType.BlackFog2)
+            if (environChangeType.IsFog())
             {
                 if (environChangeType == EnvironChangeType.Clear)
                     GlobalFogColor = null;
@@ -467,7 +467,7 @@ namespace ACE.Server.Managers
 
         public static void SendGlobalEnvironSound(EnvironChangeType environChangeType)
         {
-            if (environChangeType >= EnvironChangeType.RoarSound)
+            if (environChangeType.IsSound())
             {
                 foreach (var landblock in loadedLandblocks)
                 {
@@ -478,7 +478,7 @@ namespace ACE.Server.Managers
 
         public static void DoEnvironChange(EnvironChangeType environChangeType)
         {
-            if (environChangeType >= EnvironChangeType.Clear && environChangeType <= EnvironChangeType.BlackFog2)
+            if (environChangeType.IsFog())
                 SetGlobalFogColor(environChangeType);
             else
                 SendGlobalEnvironSound(environChangeType);
