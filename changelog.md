@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2019-08-03
+[Ripley]
+* Add support for AdminEnvirons
+  - Wired up support commands `setlbenviron` and `setglobalenviron`
+  - `setglobalenviron` is operates exactly as seen in retail worlds. in that it affects all players globally throughout the world, including bug with dungeons.
+  - `setlbenviron` operates differently in that it localizes effect to landblock and immediate adjacent landblocks for area-based events.
+
 ### 2019-08-02
 [Ripley]
 * Swap out some properties relating to Local Signals for more specific one found in property buckets.
