@@ -452,7 +452,10 @@ namespace ACE.Server.WorldObjects
             var homeDistSq = Vector3.DistanceSquared(globalHomePos, globalPos);
 
             if (homeDistSq > homeRadiusSq)
+            {
+                EmoteManager.OnHomeSick(AttackTarget);
                 MoveToHome();
+            }
         }
 
         public void MoveToHome()
