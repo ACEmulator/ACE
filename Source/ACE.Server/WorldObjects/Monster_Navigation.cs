@@ -476,7 +476,7 @@ namespace ACE.Server.WorldObjects
 
             NextCancelTime = Timers.RunningTime + 5.0f;
 
-            MoveTo(home, RunRate);
+            MoveTo(home, RunRate, false);
 
             var mvp = GetMovementParameters();
             mvp.DistanceToObject = 0.6f;
