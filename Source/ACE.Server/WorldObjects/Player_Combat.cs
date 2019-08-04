@@ -835,5 +835,49 @@ namespace ACE.Server.WorldObjects
         public bool PKLogoutActive => IsPKType && Time.GetUnixTime() - LastPkAttackTimestamp < PKLogoffTimer.TotalSeconds;
 
         public bool IsPKType => PlayerKillerStatus == PlayerKillerStatus.PK || PlayerKillerStatus == PlayerKillerStatus.PKLite;
+
+        /// <summary>
+        /// Returns the damage type for the currently equipped weapon / ammo
+        /// </summary>
+        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
+        public override DamageType GetDamageType(bool multiple = false)
+        {
+            // player override
+            var weapon = GetEquippedWeapon();
+            var ammo = GetEquippedAmmo();
+
+            // TODO: handle gauntlets / boots
+            if (weapon == null)
+                return DamageType.Bludgeon;
+
+            var combatType = GetCombatType();
+
+            var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
+
+            var damageType = damageSource.W_DamageType;
+
+            // return multiple damage types
+            if (multiple || !damageType.IsMultiDamage())
+                return damageType;
+
+            // get single damage type
+            if (damageType == (DamageType.Pierce | DamageType.Slash))
+            {
+                if ((AttackType & AttackType.Punches) != 0)
+                {
+                    if (PowerLevel < ThrustThreshold)
+                        return DamageType.Pierce;
+                    else
+                        return DamageType.Slash;
+                }
+
+                if ((AttackType & AttackType.Thrusts) != 0)
+                    return DamageType.Pierce;
+                else
+                    return DamageType.Slash;
+            }
+
+            return damageType.SelectDamageType();
+        }
     }
 }

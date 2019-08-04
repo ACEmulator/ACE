@@ -831,51 +831,6 @@ namespace ACE.Server.WorldObjects
             return baseDamageMod;
         }
 
-        /// <summary>
-        /// Returns the damage type for the currently equipped weapon / ammo
-        /// </summary>
-        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
-        public virtual DamageType GetDamageType(bool multiple = false)
-        {
-            var creature = this as Creature;
-            if (creature == null)
-            {
-                Console.WriteLine("WorldObject.GetDamageType(): null creature");
-                return DamageType.Undef;
-            }
-
-            var weapon = creature.GetEquippedWeapon();
-            var ammo = creature.GetEquippedAmmo();
-
-            if (weapon == null)
-                return DamageType.Bludgeon;
-
-            DamageType damageTypes;
-            var attackType = creature.GetCombatType();
-            if (attackType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher)
-                damageTypes = (DamageType)(weapon.GetProperty(PropertyInt.DamageType) ?? 0);
-            else
-                damageTypes = (DamageType)(ammo.GetProperty(PropertyInt.DamageType) ?? 0);
-
-            // returning multiple damage types
-            if (multiple) return damageTypes;
-
-            // get single damage type
-            var motion = creature.CurrentMotionState.MotionState.ForwardCommand.ToString();
-            foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
-            {
-                if ((damageTypes & damageType) != 0)
-                {
-                    // handle multiple damage types
-                    if (damageType == DamageType.Slash && motion.Contains("Thrust"))
-                        continue;
-
-                    return damageType;
-                }
-            }
-            return damageTypes;
-        }
-
         public bool IsDestroyed { get; private set; }
 
         /// <summary>

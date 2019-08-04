@@ -736,7 +736,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private static readonly float ThrustThreshold = 0.25f;
+        public static readonly float ThrustThreshold = 0.25f;
 
         public AttackType GetAttackType(MotionStance stance, float powerLevel, bool offhand)
         {
