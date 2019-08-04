@@ -451,7 +451,7 @@ namespace ACE.Server.WorldObjects
 
             var homeDistSq = Vector3.DistanceSquared(globalHomePos, globalPos);
 
-            if (homeDistSq > homeRadiusSq)
+            if (homeDistSq > HomeRadiusSq)
             {
                 EmoteManager.OnHomeSick(AttackTarget);
                 MoveToHome();
