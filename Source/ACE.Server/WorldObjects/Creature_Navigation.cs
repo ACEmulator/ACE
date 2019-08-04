@@ -304,7 +304,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends a network message for moving a creature to a new position
         /// </summary>
-        public void MoveTo(Position position, float runRate = 1.0f)
+        public void MoveTo(Position position, float runRate = 1.0f, bool setLoc = true)
         {
             var motion = new Motion(this, position);
             motion.MovementType = MovementType.MoveToPosition;
@@ -323,7 +323,8 @@ namespace ACE.Server.WorldObjects
                 motion.MoveToParameters.MovementParameters &= ~MovementParams.CanRun;
 
             // todo: use better movement system
-            Location = new Position(position);
+            if (setLoc)
+                Location = new Position(position);
 
             EnqueueBroadcastMotion(motion);
         }
