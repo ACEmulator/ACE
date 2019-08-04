@@ -3035,7 +3035,7 @@ namespace ACE.Server.Command.Handlers
                 msg += name + "\n";
 
             msg += "Notes about above list:\n";
-            msg += "Clear resets to default.\nAll options ending with Fog are continuous.\nAll options ending with Fog2 are continuous and blank radar.\nAll options ending with Sound play once and do not repeat";
+            msg += "Clear resets to default.\nAll options ending with Fog are continuous.\nAll options ending with Fog2 are continuous and blank radar.\nAll options ending with Sound play once and do not repeat.";
 
             return msg;
         }
