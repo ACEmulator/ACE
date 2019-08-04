@@ -577,7 +577,7 @@ namespace ACE.Server.WorldObjects
             // client doesn't respond to any change inside dungeons, and only queues for change if in dungeon, executing change upon next teleport
             // so if we delay teleport long enough to ensure clear arrives before teleport, we don't get fog carrying over into dungeon.
 
-            if (currentFogColor != EnvironChangeType.Clear && !LandblockManager.GlobalFogColor.HasValue)
+            if (currentFogColor.HasValue && currentFogColor != EnvironChangeType.Clear && !LandblockManager.GlobalFogColor.HasValue)
             {
                 var delayTelport = new ActionChain();
                 delayTelport.AddAction(this, () => ClearFogColor());

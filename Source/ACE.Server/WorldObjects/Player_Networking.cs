@@ -225,6 +225,9 @@ namespace ACE.Server.WorldObjects
 
         public void SetFogColor(EnvironChangeType fogColor)
         {
+            if (fogColor == EnvironChangeType.Clear && !currentFogColor.HasValue)
+                return;                
+
             if (LandblockManager.GlobalFogColor.HasValue && currentFogColor != fogColor)
             {
                 currentFogColor = LandblockManager.GlobalFogColor;
@@ -235,6 +238,9 @@ namespace ACE.Server.WorldObjects
                 currentFogColor = fogColor;
                 SendEnvironChange(currentFogColor.Value);
             }
+
+            if (currentFogColor == EnvironChangeType.Clear)
+                currentFogColor = null;
         }
 
         public void ClearFogColor()
