@@ -2554,5 +2554,16 @@ namespace ACE.Server.Command.Handlers
             session.Player.SetHouseOwner(slumlord);
             session.Player.GiveDeed();
         }
+
+        [CommandHandler("targetloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleTargetLoc(Session session, params string[] parameters)
+        {
+            var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (wo == null)
+                return;
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {wo.Location.ToLOCString()}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj.Position}", ChatMessageType.Broadcast));
+        }
     }
 }

@@ -1046,5 +1046,43 @@ namespace ACE.Server.WorldObjects
             }
             return false;
         }
+
+        /// <summary>
+        /// Returns the damage type for the currently equipped weapon / ammo
+        /// </summary>
+        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
+        public virtual DamageType GetDamageType(bool multiple = false)
+        {
+            // old method, keeping intact for monsters
+            var weapon = GetEquippedWeapon();
+            var ammo = GetEquippedAmmo();
+
+            if (weapon == null)
+                return DamageType.Bludgeon;
+
+            var combatType = GetCombatType();
+
+            var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
+
+            var damageTypes = damageSource.W_DamageType;
+
+            // returning multiple damage types
+            if (multiple) return damageTypes;
+
+            // get single damage type
+            var motion = CurrentMotionState.MotionState.ForwardCommand.ToString();
+            foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
+            {
+                if ((damageTypes & damageType) != 0)
+                {
+                    // handle multiple damage types
+                    if (damageType == DamageType.Slash && motion.Contains("Thrust"))
+                        continue;
+
+                    return damageType;
+                }
+            }
+            return damageTypes;
+        }
     }
 }

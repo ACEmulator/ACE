@@ -16,6 +16,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -570,6 +571,23 @@ namespace ACE.Server.WorldObjects
             newPosition.PositionZ += 0.005f * (ObjScale ?? 1.0f);
 
             //Console.WriteLine($"{Name}.Teleport() - Sending to {newPosition.ToLOCString()}");
+
+            // Check currentFogColor set for player. If LandblockManager.GlobalFogColor is set, don't bother checking, dungeons didn't clear like this on retail worlds.
+            // if not clear, reset to clear before portaling in case portaling to dungeon (no current way to fast check unloaded landblock for IsDungeon or current FogColor)
+            // client doesn't respond to any change inside dungeons, and only queues for change if in dungeon, executing change upon next teleport
+            // so if we delay teleport long enough to ensure clear arrives before teleport, we don't get fog carrying over into dungeon.
+
+            if (currentFogColor.HasValue && currentFogColor != EnvironChangeType.Clear && !LandblockManager.GlobalFogColor.HasValue)
+            {
+                var delayTelport = new ActionChain();
+                delayTelport.AddAction(this, () => ClearFogColor());
+                delayTelport.AddDelaySeconds(1);
+                delayTelport.AddAction(this, () => Teleport(_newPosition));
+
+                delayTelport.EnqueueChain();
+
+                return;
+            }
 
             Teleporting = true;
             LastTeleportTime = DateTime.UtcNow;
