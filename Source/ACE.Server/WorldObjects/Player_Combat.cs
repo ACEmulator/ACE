@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+
 using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
@@ -289,16 +291,26 @@ namespace ACE.Server.WorldObjects
 
         public BaseDamageMod GetBaseDamageMod()
         {
-            var attackType = GetCombatType();
-            var damageSource = attackType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
+            var combatType = GetCombatType();
+            var damageSource = combatType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
 
             if (damageSource == null)
             {
-                var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
-                return new BaseDamageMod(baseDamage);
+                if (AttackType == AttackType.Punch)
+                    damageSource = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    damageSource = FootArmor;
+
+                // no weapon, no hand or foot armor
+                if (damageSource == null)
+                {
+                    var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
+                    return new BaseDamageMod(baseDamage);
+                }
+                else
+                    return damageSource.GetDamageMod(this, damageSource);
             }
-            else
-                return damageSource.GetDamageMod(this);
+            return damageSource.GetDamageMod(this);
         }
 
         public override float GetPowerMod(WorldObject weapon)
@@ -843,14 +855,27 @@ namespace ACE.Server.WorldObjects
         public override DamageType GetDamageType(bool multiple = false)
         {
             // player override
+            var combatType = GetCombatType();
+
             var weapon = GetEquippedWeapon();
             var ammo = GetEquippedAmmo();
 
-            // TODO: handle gauntlets / boots
+            if (weapon == null && combatType == CombatType.Melee)
+            {
+                // handle gauntlets/ boots
+                if (AttackType == AttackType.Punch)
+                    weapon = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    weapon = FootArmor;
+                else
+                {
+                    log.Warn($"{Name}.GetDamageType(): no weapon, AttackType={AttackType}");
+                    return DamageType.Undef;
+                }
+            }
+
             if (weapon == null)
                 return DamageType.Bludgeon;
-
-            var combatType = GetCombatType();
 
             var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
 
@@ -879,5 +904,9 @@ namespace ACE.Server.WorldObjects
 
             return damageType.SelectDamageType();
         }
+
+        public WorldObject HandArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Hands) != 0);
+
+        public WorldObject FootArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Feet) != 0);
     }
 }

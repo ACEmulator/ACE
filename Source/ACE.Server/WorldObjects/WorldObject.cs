@@ -821,10 +821,12 @@ namespace ACE.Server.WorldObjects
         /// Returns the modified damage for a weapon,
         /// with the wielder enchantments taken into account
         /// </summary>
-        public BaseDamageMod GetDamageMod(Creature wielder)
+        public BaseDamageMod GetDamageMod(Creature wielder, WorldObject weapon = null)
         {
             var baseDamage = GetBaseDamage();
-            var weapon = wielder.GetEquippedWeapon();
+
+            if (weapon == null)
+                weapon = wielder.GetEquippedWeapon();
 
             var baseDamageMod = new BaseDamageMod(baseDamage, wielder, weapon);
 
