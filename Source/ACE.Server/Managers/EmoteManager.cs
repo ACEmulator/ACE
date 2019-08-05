@@ -1497,7 +1497,15 @@ namespace ACE.Server.Managers
             ExecuteEmoteSet(EmoteCategory.ReceiveLocalSignal, message, player);
         }
 
-        public bool HasAntennas => WorldObject.Biota.BiotaPropertiesEmote.Count(x => x.Category == (int)EmoteCategory.ReceiveLocalSignal) > 0;
+        /// <summary>
+        /// Called when monster exceeds the maximum distance from home position
+        /// </summary>
+        public void OnHomeSick(WorldObject attackTarget)
+        {
+            ExecuteEmoteSet(EmoteCategory.Homesick, null, attackTarget);
+        }
+
+        //public bool HasAntennas => WorldObject.Biota.BiotaPropertiesEmote.Count(x => x.Category == (int)EmoteCategory.ReceiveLocalSignal) > 0;
 
         /// <summary>
         /// Call this function when WorldObject is being used via a proxy object, e.g.: Hooker on a Hook

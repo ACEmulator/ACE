@@ -129,6 +129,22 @@ namespace ACE.Server.Entity
         private readonly TimeSpan last1hClearInteval = TimeSpan.FromHours(1);
         private DateTime last1hClear;
 
+        private EnvironChangeType fogColor;
+
+        public EnvironChangeType FogColor
+        {
+            get
+            {
+                if (LandblockManager.GlobalFogColor.HasValue)
+                    return LandblockManager.GlobalFogColor.Value;
+                else
+                    return fogColor;
+            }
+            set
+            {
+                fogColor = value;
+            }
+        }
 
         public Landblock(LandblockId id)
         {
@@ -685,6 +701,9 @@ namespace ACE.Server.Entity
             // broadcast to nearby players
             wo.NotifyPlayers();
 
+            if (wo is Player player)
+                player.SetFogColor(FogColor);
+
             return true;
         }
 
@@ -731,9 +750,9 @@ namespace ACE.Server.Entity
 
         public void EmitSignal(Player player, string message)
         {
-            foreach (var wo in worldObjects.Values.Where(w => w.EmoteManager.HasAntennas).ToList())
+            foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
-                if (player.IsWithinUseRadiusOf(wo, wo.UseRadius ?? 0))
+                if (player.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
                     //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
                     wo.EmoteManager.OnLocalSignal(player, message);
@@ -990,5 +1009,63 @@ namespace ACE.Server.Entity
         }
 
         public List<House> Houses = new List<House>();
+
+        public void SetFogColor(EnvironChangeType environChangeType)
+        {
+            if (environChangeType.IsFog())
+            {
+                FogColor = environChangeType;
+
+                foreach (var lb in Adjacents)
+                    lb.FogColor = environChangeType;
+
+                foreach(var player in players)
+                {
+                    player.SetFogColor(FogColor);
+                }
+            }
+        }
+
+        public void SendEnvironSound(EnvironChangeType environChangeType)
+        {
+            if (environChangeType.IsSound())
+            {
+                SendEnvironChange(environChangeType);
+
+                foreach (var lb in Adjacents)
+                    lb.SendEnvironChange(environChangeType);
+            }
+        }
+
+        public void SendEnvironChange(EnvironChangeType environChangeType)
+        {
+            foreach (var player in players)
+            {
+                player.SendEnvironChange(environChangeType);
+            }
+        }
+
+        public void SendCurrentEnviron()
+        {
+            foreach (var player in players)
+            {
+                if (FogColor.IsFog())
+                {
+                    player.SetFogColor(FogColor);
+                }
+                else
+                {
+                    player.SendEnvironChange(FogColor);
+                }
+            }
+        }
+
+        public void DoEnvironChange(EnvironChangeType environChangeType)
+        {
+            if (environChangeType.IsFog())
+                SetFogColor(environChangeType);
+            else
+                SendEnvironSound(environChangeType);
+        }
     }
 }
