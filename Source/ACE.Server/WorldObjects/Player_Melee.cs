@@ -261,72 +261,37 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
+        private static readonly float KickThreshold = 0.75f;
+
+        public AttackType AttackType { get; set; }
+
         /// <summary>
-        /// Returns the melee swing animation, based on current stance and weapon
+        /// Returns the melee swing animation - based on weapon,
+        /// current stance, power bar, and attack height
         /// </summary>
         public override MotionCommand GetSwingAnimation()
         {
-            MotionCommand motion = new MotionCommand();
+            if (IsDualWieldAttack)
+                DualWieldAlternate = !DualWieldAlternate;
 
-            switch (CurrentMotionState.Stance)
+            var offhand = IsDualWieldAttack && !DualWieldAlternate;
+
+            var weapon = GetEquippedMeleeWeapon();
+
+            if (weapon != null)
             {
-                case MotionStance.SwordCombat:
-                case MotionStance.SwordShieldCombat:
-                case MotionStance.TwoHandedSwordCombat:
-                case MotionStance.TwoHandedStaffCombat:
-                case MotionStance.DualWieldCombat:
-                    {
-                        // handle dual wielding weapon alternating
-                        if (IsDualWieldAttack) DualWieldAlternate = !DualWieldAlternate;
-
-                        var weapon = GetEquippedMeleeWeapon();
-                        var attackType = GetWeaponAttackType(weapon);
-
-                        var action = PowerLevel < 0.33f && attackType.HasFlag(AttackType.Thrust) || !attackType.HasFlag(AttackType.Slash) ? "Thrust" : "Slash";
-
-                        // handle multistrike weapons
-                        action = MultiStrike(attackType, action);
-
-                        if (IsDualWieldAttack && !DualWieldAlternate)
-                            action = "Offhand" + action;
-
-                        // this is very strange:
-                        // sword + no shield has slash, but not thrust
-                        // sword + shield has thrust, but not slash...
-                        if (CurrentMotionState.Stance == MotionStance.SwordCombat)
-                        {
-                            if (action.Contains("Double") || action.Contains("Triple"))
-                                action = action.Replace("Thrust", "Slash");
-                        }
-                        else if (CurrentMotionState.Stance == MotionStance.SwordShieldCombat)
-                        {
-                            if (action.Contains("Double") || action.Contains("Triple"))
-                                action = action.Replace("Slash", "Thrust");
-                        }
-
-                        Enum.TryParse(action + GetAttackHeight(), out motion);
-                        return motion;
-                    }
-                case MotionStance.HandCombat:
-                default:
-                    {
-                        // is the player holding a weapon?
-                        var weapon = GetEquippedMeleeWeapon();
-
-                        // no weapon: power range 1-3
-                        // unarmed weapon: power range 1-2
-                        if (weapon == null)
-                            Enum.TryParse("Attack" + GetAttackHeight() + (int)GetPowerRange(), out motion);
-                        else
-                            Enum.TryParse("Attack" + GetAttackHeight() + Math.Min((int)GetPowerRange(), 2), out motion);
-
-                        // AttackHigh1 was deprecated in retail
-                        if (motion == MotionCommand.AttackHigh1)
-                            motion = MotionCommand.AttackHigh2;
-
-                        return motion;
-                    }
+                AttackType = weapon.GetAttackType(CurrentMotionState.Stance, PowerLevel, offhand);
             }
+            else
+            {
+                AttackType = PowerLevel > KickThreshold ? AttackType.Kick : AttackType.Punch;
+            }
+
+            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType);
+
+            //Console.WriteLine($"{motion}");
+
+            return motion;
         }
 
         public bool IsStickyDistance(WorldObject target)

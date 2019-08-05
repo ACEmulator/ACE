@@ -100,9 +100,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the currently equipped primary weapon
         /// </summary>
-        public WorldObject GetEquippedWeapon()
+        public WorldObject GetEquippedWeapon(bool forceMainHand = false)
         {
-            var meleeWeapon = GetEquippedMeleeWeapon();
+            var meleeWeapon = GetEquippedMeleeWeapon(forceMainHand);
             return meleeWeapon ?? GetEquippedMissileWeapon();
         }
 

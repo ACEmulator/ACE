@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+
 using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -16,6 +17,11 @@ namespace ACE.Server.WorldObjects
     {
         public CombatMode CombatMode { get; private set; }
 
+        /// <summary>
+        /// The list of combat maneuvers performable by this creature
+        /// </summary>
+        public DatLoader.FileTypes.CombatManeuverTable CombatTable { get; set; }
+
         public DamageHistory DamageHistory;
 
         /// <summary>
@@ -28,17 +34,26 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public double LastWeaponSwap;
 
+        public float SetCombatMode(CombatMode combatMode)
+        {
+            return SetCombatMode(combatMode, out var _);
+        }
+
         /// <summary>
         /// Switches a player or creature to a new combat stance
         /// </summary>
-        public float SetCombatMode(CombatMode combatMode)
+        public float SetCombatMode(CombatMode combatMode, out float queueTime)
         {
-            //Console.WriteLine($"SetCombatMode({combatMode})");
-
             // check if combat stance actually needs switching
             var combatStance = GetCombatStance();
+
+            //Console.WriteLine($"{Name}.SetCombatMode({combatMode}), CombatStance: {combatStance}");
+
             if (combatMode != CombatMode.NonCombat && CurrentMotionState.Stance == combatStance)
+            {
+                queueTime = 0.0f;
                 return 0.0f;
+            }
 
             if (CombatMode == CombatMode.Missile)
                 HideAmmo();
@@ -66,7 +81,8 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            var queueTime = HandleStanceQueue(animLength);
+            queueTime = HandleStanceQueue(animLength);
+
             //Console.WriteLine($"SetCombatMode(): queueTime({queueTime}) + animLength({animLength})");
             return queueTime + animLength;
         }
@@ -235,7 +251,7 @@ namespace ACE.Server.WorldObjects
             if (caster != null)
                 return MotionStance.Magic;
 
-            var weapon = GetEquippedWeapon();
+            var weapon = GetEquippedWeapon(true);
             var dualWield = GetDualWieldWeapon();
             var shield = GetEquippedShield();
 
@@ -1029,6 +1045,44 @@ namespace ACE.Server.WorldObjects
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Returns the damage type for the currently equipped weapon / ammo
+        /// </summary>
+        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
+        public virtual DamageType GetDamageType(bool multiple = false)
+        {
+            // old method, keeping intact for monsters
+            var weapon = GetEquippedWeapon();
+            var ammo = GetEquippedAmmo();
+
+            if (weapon == null)
+                return DamageType.Bludgeon;
+
+            var combatType = GetCombatType();
+
+            var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
+
+            var damageTypes = damageSource.W_DamageType;
+
+            // returning multiple damage types
+            if (multiple) return damageTypes;
+
+            // get single damage type
+            var motion = CurrentMotionState.MotionState.ForwardCommand.ToString();
+            foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
+            {
+                if ((damageTypes & damageType) != 0)
+                {
+                    // handle multiple damage types
+                    if (damageType == DamageType.Slash && motion.Contains("Thrust"))
+                        continue;
+
+                    return damageType;
+                }
+            }
+            return damageTypes;
         }
     }
 }

@@ -7,6 +7,7 @@ namespace ACE.Database.Models.Shard
     {
         public Character()
         {
+            BiotaPropertiesAllegiance = new HashSet<BiotaPropertiesAllegiance>();
             CharacterPropertiesContractRegistry = new HashSet<CharacterPropertiesContractRegistry>();
             CharacterPropertiesFillCompBook = new HashSet<CharacterPropertiesFillCompBook>();
             CharacterPropertiesFriendList = new HashSet<CharacterPropertiesFriendList>();
@@ -32,6 +33,7 @@ namespace ACE.Database.Models.Shard
         public uint HairTexture { get; set; }
         public uint DefaultHairTexture { get; set; }
 
+        public virtual ICollection<BiotaPropertiesAllegiance> BiotaPropertiesAllegiance { get; set; }
         public virtual ICollection<CharacterPropertiesContractRegistry> CharacterPropertiesContractRegistry { get; set; }
         public virtual ICollection<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
         public virtual ICollection<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }

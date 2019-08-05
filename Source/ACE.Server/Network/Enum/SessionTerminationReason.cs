@@ -25,7 +25,8 @@ namespace ACE.Server.Network.Enum
         ClientConnectionFailure,
         SendToSocketException,
         WorldClosed,
-        AbnormalSequenceReceived
+        AbnormalSequenceReceived,
+        AccountLoggedIn
     }
     public static class SessionTerminationReasonHelper
     {
@@ -34,7 +35,7 @@ namespace ACE.Server.Network.Enum
             "",
             "PacketHeader Disconnect",
             "Account Information Invalid",
-            "AccountSelectCallback threw an exception.",
+            "AccountSelectCallback threw an exception",
             "Network Timeout",
             "client sent network error disconnect",
             "Account Booted",
@@ -42,13 +43,14 @@ namespace ACE.Server.Network.Enum
             "Pong sent, closing connection.",
             "Not Authorized: No password or GlsTicket included in login request",
             "Not Authorized: Account Not Found",
-            "Account In Use: Found another session already logged in for this account.",
-            "Not Authorized: Password does not match.",
+            "Account In Use: Found another session already logged in for this account",
+            "Not Authorized: Password does not match",
             "Not Authorized: GlsTicket is not implemented to process login request",
             "Client connection failure",
             "MainSocket.SendTo exception occured",
             "World is closed",
-            "Client supplied an abnormal sequence"
+            "Client supplied an abnormal sequence",
+            "Account was logged in, booting currently connected account in favor of new connection"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {
