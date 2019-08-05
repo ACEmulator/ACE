@@ -167,7 +167,9 @@ namespace ACE.Server.WorldObjects
                 CreateCorpse(topDamager);
                 TeleportOnDeath();      // enter portal space
                 SetLifestoneProtection();
-                SetMinimumTimeSincePK();
+
+                if (IsPKDeath(topDamager))
+                    SetMinimumTimeSincePK();
             });
 
             dieChain.EnqueueChain();
