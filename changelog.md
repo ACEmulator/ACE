@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-08-04
+[Ripley]
+* Update AuthenticationHandler to boot oldest connection to account when new one connects with valid login/password.
+ - Added new server configurable property `account_login_boots_in_use`, enabled by default retail rule.
+
 ### 2019-08-03
 [Ripley]
 * Add support for AdminEnvirons
