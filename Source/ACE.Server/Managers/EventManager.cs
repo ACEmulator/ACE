@@ -125,6 +125,14 @@ namespace ACE.Server.Managers
         {
             e = e.ToLower();
 
+            if (e == "EventIsPKWorld".ToLower()) // special event
+            {
+                if (PropertyManager.GetBool("pk_server").Item)
+                    return GameEventState.On;
+                else
+                    return GameEventState.Off;
+            }
+
             if (!Events.TryGetValue(e, out Event evnt))
                 return GameEventState.Undef;
 
