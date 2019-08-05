@@ -25,8 +25,10 @@ namespace ACE.Server.Entity
         public const uint ArmorLayeringToolTop = 42724;
         public const uint ArmorLayeringToolBottom = 42726;
 
-        // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets
+        // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets or Boots)
+        // There are other examples not here, like some stamped shields that might need to be added, as well.
         private static Dictionary<uint, int> ArmorOverlayIcons = new Dictionary<uint, int>{
+            // These are from cache.bin 
             {22551, 100673784}, // Atlatl Tattoo
             {22552, 100673758}, // Axe Tattoo
             {22553, 100673759}, // Bow Tattoo
@@ -43,6 +45,11 @@ namespace ACE.Server.Entity
             {22564, 100673785}, // Unarmed Tattoo
             {31394, 100691319}, // Circle of Raven Might
 
+            // These items were stampable and could have had a number of different icons
+            {25811, 0}, // Shield of Power
+            {25843, 0}, // Nefane Shield
+
+            // From pcaps
             {37187, 100690144}, // Olthoi Alduressa Gauntlets
             {37207, 100690146}, // Olthoi Alduressa Boots
             {41198, 100690144}, // Gauntlets of Darkness
@@ -202,6 +209,11 @@ namespace ACE.Server.Entity
             target.Shade2 = source.Shade2;
             target.Shade3 = source.Shade3;
             target.Shade4 = source.Shade4;
+
+            // If this source item is one of the icons that contains an icon overlay as part of it, we will stash that icon in the
+            // IconOverlaySecondary slot (it is unused) to be applied on the next step.
+            if (ArmorOverlayIcons.ContainsKey(source.WeenieClassId) && source.IconOverlayId.HasValue)
+                target.SetProperty(PropertyDataId.IconOverlaySecondary, (uint)source.IconOverlayId);
         }
 
         /// <summary>
@@ -480,8 +492,14 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyFloat.Shade3, source.Shade3);
             player.UpdateProperty(target, PropertyFloat.Shade4, source.Shade4);
 
+            // If the item we are replacing is one of our preset icons with an overlay, we need to remove it.
             if (ArmorOverlayIcons.ContainsKey(target.WeenieClassId))
                 player.UpdateProperty(target, PropertyDataId.IconOverlay, null);
+
+            // If the source item has an icon stashed in the Secondary Overlay, it's because we put it there!
+            // Apply this overlay if the target does not already have one.
+            if (source.GetProperty(PropertyDataId.IconOverlaySecondary).HasValue && !target.IconOverlayId.HasValue)
+                player.UpdateProperty(target, PropertyDataId.IconOverlay, source.GetProperty(PropertyDataId.IconOverlaySecondary));
 
         }
 
