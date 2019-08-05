@@ -220,5 +220,37 @@ namespace ACE.Server.WorldObjects
             // TODO: use real motion / animation system from physics
             CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
         }
+
+        private EnvironChangeType? currentFogColor;
+
+        public void SetFogColor(EnvironChangeType fogColor)
+        {
+            if (fogColor == EnvironChangeType.Clear && !currentFogColor.HasValue)
+                return;                
+
+            if (LandblockManager.GlobalFogColor.HasValue && currentFogColor != fogColor)
+            {
+                currentFogColor = LandblockManager.GlobalFogColor;
+                SendEnvironChange(currentFogColor.Value);
+            }
+            else if (currentFogColor != fogColor)
+            {
+                currentFogColor = fogColor;
+                SendEnvironChange(currentFogColor.Value);
+            }
+
+            if (currentFogColor == EnvironChangeType.Clear)
+                currentFogColor = null;
+        }
+
+        public void ClearFogColor()
+        {
+            SetFogColor(EnvironChangeType.Clear);
+        }
+
+        public void SendEnvironChange(EnvironChangeType environChangeType)
+        {
+            Session.Network.EnqueueSend(new GameMessageAdminEnvirons(Session, environChangeType));
+        }
     }
 }

@@ -8,6 +8,7 @@ using log4net;
 
 using ACE.Common;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
 
@@ -444,6 +445,43 @@ namespace ACE.Server.Managers
                 foreach (var landblock in loadedLandblocks)
                     AddToDestructionQueue(landblock);
             }
+        }
+
+        public static EnvironChangeType? GlobalFogColor;
+
+        public static void SetGlobalFogColor(EnvironChangeType environChangeType)
+        {
+            if (environChangeType.IsFog())
+            {
+                if (environChangeType == EnvironChangeType.Clear)
+                    GlobalFogColor = null;
+                else
+                    GlobalFogColor = environChangeType;
+
+                foreach (var landblock in loadedLandblocks)
+                {
+                    landblock.SendCurrentEnviron();
+                }
+            }
+        }
+
+        public static void SendGlobalEnvironSound(EnvironChangeType environChangeType)
+        {
+            if (environChangeType.IsSound())
+            {
+                foreach (var landblock in loadedLandblocks)
+                {
+                    landblock.SendEnvironChange(environChangeType);
+                }
+            }
+        }
+
+        public static void DoEnvironChange(EnvironChangeType environChangeType)
+        {
+            if (environChangeType.IsFog())
+                SetGlobalFogColor(environChangeType);
+            else
+                SendGlobalEnvironSound(environChangeType);
         }
     }
 }

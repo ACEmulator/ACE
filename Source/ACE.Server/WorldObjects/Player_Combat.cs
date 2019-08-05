@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+
 using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
@@ -289,16 +291,26 @@ namespace ACE.Server.WorldObjects
 
         public BaseDamageMod GetBaseDamageMod()
         {
-            var attackType = GetCombatType();
-            var damageSource = attackType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
+            var combatType = GetCombatType();
+            var damageSource = combatType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
 
             if (damageSource == null)
             {
-                var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
-                return new BaseDamageMod(baseDamage);
+                if (AttackType == AttackType.Punch)
+                    damageSource = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    damageSource = FootArmor;
+
+                // no weapon, no hand or foot armor
+                if (damageSource == null)
+                {
+                    var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
+                    return new BaseDamageMod(baseDamage);
+                }
+                else
+                    return damageSource.GetDamageMod(this, damageSource);
             }
-            else
-                return damageSource.GetDamageMod(this);
+            return damageSource.GetDamageMod(this);
         }
 
         public override float GetPowerMod(WorldObject weapon)
@@ -835,5 +847,66 @@ namespace ACE.Server.WorldObjects
         public bool PKLogoutActive => IsPKType && Time.GetUnixTime() - LastPkAttackTimestamp < PKLogoffTimer.TotalSeconds;
 
         public bool IsPKType => PlayerKillerStatus == PlayerKillerStatus.PK || PlayerKillerStatus == PlayerKillerStatus.PKLite;
+
+        /// <summary>
+        /// Returns the damage type for the currently equipped weapon / ammo
+        /// </summary>
+        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
+        public override DamageType GetDamageType(bool multiple = false)
+        {
+            // player override
+            var combatType = GetCombatType();
+
+            var weapon = GetEquippedWeapon();
+            var ammo = GetEquippedAmmo();
+
+            if (weapon == null && combatType == CombatType.Melee)
+            {
+                // handle gauntlets/ boots
+                if (AttackType == AttackType.Punch)
+                    weapon = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    weapon = FootArmor;
+                else
+                {
+                    log.Warn($"{Name}.GetDamageType(): no weapon, AttackType={AttackType}");
+                    return DamageType.Undef;
+                }
+            }
+
+            if (weapon == null)
+                return DamageType.Bludgeon;
+
+            var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
+
+            var damageType = damageSource.W_DamageType;
+
+            // return multiple damage types
+            if (multiple || !damageType.IsMultiDamage())
+                return damageType;
+
+            // get single damage type
+            if (damageType == (DamageType.Pierce | DamageType.Slash))
+            {
+                if ((AttackType & AttackType.Punches) != 0)
+                {
+                    if (PowerLevel < ThrustThreshold)
+                        return DamageType.Pierce;
+                    else
+                        return DamageType.Slash;
+                }
+
+                if ((AttackType & AttackType.Thrusts) != 0)
+                    return DamageType.Pierce;
+                else
+                    return DamageType.Slash;
+            }
+
+            return damageType.SelectDamageType();
+        }
+
+        public WorldObject HandArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Hands) > 0);
+
+        public WorldObject FootArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Feet) > 0);
     }
 }

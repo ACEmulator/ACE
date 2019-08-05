@@ -2754,6 +2754,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.RemainingLifespan); else SetProperty(PropertyInt.RemainingLifespan, value.Value); }
         }
 
+        public bool HearLocalSignals
+        {
+            get => (GetProperty(PropertyInt.HearLocalSignals) ?? 0) != 0;
+            set { if (!value) RemoveProperty(PropertyInt.HearLocalSignals); else SetProperty(PropertyInt.HearLocalSignals, 1); }
+        }
+
+        public int HearLocalSignalsRadius
+        {
+            get => GetProperty(PropertyInt.HearLocalSignalsRadius) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.HearLocalSignalsRadius); else SetProperty(PropertyInt.HearLocalSignalsRadius, value); }
+        }
+
         /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.
         /// </summary>
