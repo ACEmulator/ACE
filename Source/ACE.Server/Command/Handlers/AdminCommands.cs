@@ -2993,9 +2993,16 @@ namespace ACE.Server.Command.Handlers
             }
 
             if (environChange.IsFog())
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Setting Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblock, to EnvironChangeType.{environChange.ToString()}.", ChatMessageType.Broadcast));
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Setting Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblocks, to EnvironChangeType.{environChange.ToString()}.", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} set Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblocks, to EnvironChangeType.{environChange.ToString()}.");
+            }
             else
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Sending EnvironChangeType.{environChange.ToString()} to all players on Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblock.", ChatMessageType.Broadcast));
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Sending EnvironChangeType.{environChange.ToString()} to all players on Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblocks.", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} sent EnvironChangeType.{environChange.ToString()} to all players on Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblocks.");
+            }
+
             session.Player.CurrentLandblock?.DoEnvironChange(environChange);
         }
 
@@ -3022,9 +3029,16 @@ namespace ACE.Server.Command.Handlers
             }
 
             if (environChange.IsFog())
+            {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Setting all landblocks to EnvironChangeType.{environChange.ToString()} .", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} set all landblocks to EnvironChangeType.{environChange.ToString()} .");
+            }
             else
+            {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Sending EnvironChangeType.{environChange.ToString()} to all players on all Landblocks.", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} sent EnvironChangeType.{environChange.ToString()} to all players on all Landblocks.");
+            }
+
             LandblockManager.DoEnvironChange(environChange);
         }
 

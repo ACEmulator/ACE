@@ -813,6 +813,7 @@ namespace ACE.Server.WorldObjects
 
                         var questSolve = false;
                         var isFromMyCorpse = false;
+                        var isFromAPlayerCorpse = false;
                         var isFromMyHook = false;
                         var isFromMyStorage = false;
 
@@ -840,6 +841,9 @@ namespace ACE.Server.WorldObjects
                                     questSolve = true;
                             }
                         }
+
+                        if (itemRootOwner is Corpse && itemRootOwner.Level.HasValue)
+                            isFromAPlayerCorpse = true;
 
                         if (DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement))
                         {
@@ -870,6 +874,12 @@ namespace ACE.Server.WorldObjects
 
                                 if (questSolve)
                                     QuestManager.Update(item.Quest);
+
+                                if (isFromAPlayerCorpse)
+                                {
+                                    log.Info($"{Name} (0x{Guid.ToString()}) picked up {item.Name} (0x{item.Guid.ToString()}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid.ToString()})");
+                                    item.SaveBiotaToDatabase();
+                                }
                             }
                         }
 
