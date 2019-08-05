@@ -1077,7 +1077,7 @@ namespace ACE.Server.WorldObjects
                     Teleport(rootHouse.BootSpot.Location);
                     break;
                 }
-                if (rootHouse.HouseOwner == null && rootHouse.HouseType != ACE.Entity.Enum.HouseType.Apartment && CurrentLandblock.IsDungeon)
+                if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.IsDungeon)
                 {
                     Teleport(rootHouse.BootSpot.Location);
                     break;
@@ -1264,7 +1264,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (allegianceHouse.HouseType < ACE.Entity.Enum.HouseType.Villa)
+            if (allegianceHouse.HouseType < HouseType.Villa)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchsHouseIsNotAMansionOrVilla));
                 return;
