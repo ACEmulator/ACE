@@ -848,6 +848,34 @@ namespace ACE.Server.WorldObjects
 
         public bool IsPKType => PlayerKillerStatus == PlayerKillerStatus.PK || PlayerKillerStatus == PlayerKillerStatus.PKLite;
 
+        public bool CheckHouseRestrictions(Player player)
+        {
+            if (Location.Cell == player.Location.Cell)
+                return true;
+
+            // dealing with outdoor cell equivalents at this point, if applicable
+            var cell = CurrentLandblock.IsDungeon ? Location.Cell : Location.GetOutdoorCell();
+            var playerCell = player.CurrentLandblock.IsDungeon ? player.Location.Cell : player.Location.GetOutdoorCell();
+
+            if (cell == playerCell)
+                return true;
+
+            HouseCell.HouseCells.TryGetValue(cell, out var id);
+            HouseCell.HouseCells.TryGetValue(playerCell, out var playerId);
+
+            // pass if both of these players aren't in a house cell
+            if (id == 0 && playerId == 0)
+                return true;
+
+            // fail if only 1 of these players is in a house cell
+            if (id == 0 || playerId == 0)
+                return false;
+
+            // both players are in different house cells (outdoor equivalents)
+            // normally this would be a fail, except for 1 case: mansion wcids matching up
+            return HouseCell.MansionCells.TryGetValue(cell, out var wcid) && HouseCell.MansionCells.TryGetValue(playerCell, out var playerWcid) && wcid == playerWcid;
+        }
+
         /// <summary>
         /// Returns the damage type for the currently equipped weapon / ammo
         /// </summary>
