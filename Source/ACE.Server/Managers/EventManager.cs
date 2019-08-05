@@ -38,6 +38,9 @@ namespace ACE.Server.Managers
         {
             e = e.ToLower();
 
+            if (e == "EventIsPKWorld".ToLower()) // special event
+                return false;
+
             if (!Events.TryGetValue(e, out Event evnt))
                 return false;
 
@@ -53,8 +56,6 @@ namespace ACE.Server.Managers
 
                 if (Debug)
                     Console.WriteLine($"Starting event {evnt.Name}");
-
-                return true;
             }
 
             return true;
@@ -63,6 +64,9 @@ namespace ACE.Server.Managers
         public static bool StopEvent(string e)
         {
             e = e.ToLower();
+
+            if (e == "EventIsPKWorld".ToLower()) // special event
+                return false;
 
             if (!Events.TryGetValue(e, out Event evnt))
                 return false;
@@ -79,8 +83,6 @@ namespace ACE.Server.Managers
 
                 if (Debug)
                     Console.WriteLine($"Stopping event {evnt.Name}");
-
-                return true;
             }
 
             return true;
@@ -89,6 +91,14 @@ namespace ACE.Server.Managers
         public static bool IsEventStarted(string e)
         {
             e = e.ToLower();
+
+            if (e == "EventIsPKWorld".ToLower()) // special event
+            {
+                if (PropertyManager.GetBool("pk_server").Item)
+                    return true;
+                else
+                    return false;
+            }
 
             if (!Events.TryGetValue(e, out Event evnt))
                 return false;

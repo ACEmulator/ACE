@@ -13,6 +13,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
+using ACE.Server.Managers;
 
 namespace ACE.Server.Factories
 {
@@ -83,7 +84,7 @@ namespace ACE.Server.Factories
             player.Character.DefaultHairTexture = sex.GetDefaultHairTexture(characterCreateInfo.Apperance.HairStyle);
             // HeadObject can be null if we're dealing with GearKnight or Olthoi
             var headObject = sex.GetHeadObject(characterCreateInfo.Apperance.HairStyle);
-            if(headObject != null)
+            if (headObject != null)
                 player.SetProperty(PropertyDataId.HeadObject, (uint)headObject);
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
@@ -208,7 +209,7 @@ namespace ACE.Server.Factories
                         return CreateResult.FailedToTrainSkill;
                 }
                 else if (sac == SkillAdvancementClass.Untrained)
-                    player.UntrainSkill((Skill) i, 0);
+                    player.UntrainSkill((Skill)i, 0);
             }
 
             var isDualWieldTrainedOrSpecialized = player.Skills[Skill.DualWield].AdvancementClass > SkillAdvancementClass.Untrained;
@@ -382,6 +383,12 @@ namespace ACE.Server.Factories
             player.Sanctuary = new Position(player.Location);
 
             player.SetProperty(PropertyBool.RecallsDisabled, true);
+
+            if (PropertyManager.GetBool("pk_server").Item)
+            {
+                player.SetProperty(PropertyFloat.MinimumTimeSincePk, -Player.TemporaryNPKTime.TotalSeconds);
+                player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+            }
 
             if (player is Sentinel || player is Admin)
             {

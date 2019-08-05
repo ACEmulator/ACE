@@ -4,6 +4,8 @@
 [Ripley]
 * Add immediate save to items being picked up from player corpses to avoid falling into void if server crashes before next player save.
 * Updated more logging relating to corpses for history tracking.
+* Fix issue with EventIsPKWorld.
+* Add in NPK grace-period for newly created characters on PK worlds.
 
 ### 2019-08-04
 [Ripley]

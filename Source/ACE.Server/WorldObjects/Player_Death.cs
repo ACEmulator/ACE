@@ -528,7 +528,7 @@ namespace ACE.Server.WorldObjects
             var msg = $"{Name} dropped items on corpse: ";
 
             foreach (var dropItem in dropItems)
-                msg += $"{(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? dropItem.StackSize.Value.ToString("X0") + " " + dropItem.GetPluralName() : dropItem.Name)} (0x{dropItem.Guid}){(dropItem.WeenieClassId == 273 && PropertyManager.GetBool("corpse_destroy_pyreals").Item ? $" which {(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? "were" : "was")} destroyed" : "")}, ";
+                msg += $"{(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? dropItem.StackSize.Value.ToString("N0") + " " + dropItem.GetPluralName() : dropItem.Name)} (0x{dropItem.Guid}){(dropItem.WeenieClassId == 273 && PropertyManager.GetBool("corpse_destroy_pyreals").Item ? $" which {(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? "were" : "was")} destroyed" : "")}, ";
 
             msg = msg.Substring(0, msg.Length - 2);
 
@@ -888,7 +888,7 @@ namespace ACE.Server.WorldObjects
 
         public void PK_DeathTick()
         {
-            if (MinimumTimeSincePk == null)
+            if (MinimumTimeSincePk == null || RecallsDisabled)
                 return;
 
             MinimumTimeSincePk += CachedHeartbeatInterval;
