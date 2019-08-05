@@ -872,6 +872,9 @@ namespace ACE.Server.WorldObjects
                     log.Warn($"{Name}.GetDamageType(): no weapon, AttackType={AttackType}");
                     return DamageType.Undef;
                 }
+
+                if (weapon != null && weapon.W_DamageType == DamageType.Undef)
+                    return DamageType.Bludgeon;
             }
 
             if (weapon == null)
@@ -880,6 +883,12 @@ namespace ACE.Server.WorldObjects
             var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
 
             var damageType = damageSource.W_DamageType;
+
+            if (damageType == DamageType.Undef)
+            {
+                log.Warn($"{Name}.GetDamageType(): {damageSource} ({damageSource.Guid}, {damageSource.WeenieClassId}): no DamageType");
+                return DamageType.Bludgeon;
+            }
 
             // return multiple damage types
             if (multiple || !damageType.IsMultiDamage())
