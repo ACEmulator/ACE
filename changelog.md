@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-08-05
+[Ripley]
+* Add immediate save to items being picked up from player corpses to avoid falling into void if server crashes before next player save.
+* Updated more logging relating to corpses for history tracking.
+
 ### 2019-08-04
 [Ripley]
 * Update AuthenticationHandler to boot oldest connection to account when new one connects with valid login/password.

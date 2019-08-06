@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (sourcePlayer != null)
                 {
-                    // player damage monster
+                    // player damage monster or player
                     damageEvent = sourcePlayer.DamageTarget(targetCreature, WorldObject);
 
                     if (damageEvent != null && damageEvent.HasDamage)
