@@ -362,6 +362,18 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Removes rare gem enchantments
+        /// Called when a player is tagged for PK combat
+        /// </summary>
+        public virtual void RemoveRareEnchantments()
+        {
+            var rareSpellIds = System.Enum.GetValues(typeof(RareEnchantment));
+
+            WorldObject.Biota.RemoveEnchantmentsById(rareSpellIds, WorldObject.BiotaDatabaseLock);
+            WorldObject.ChangesDetected = true;
+        }
+
+        /// <summary>
         /// Returns the vitae enchantment
         /// </summary>
         public BiotaPropertiesEnchantmentRegistry GetVitae()
