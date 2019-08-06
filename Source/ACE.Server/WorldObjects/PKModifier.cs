@@ -1,3 +1,4 @@
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -33,7 +34,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            CurrentMotionState = new Motion(MotionStance.Invalid);
+            CurrentMotionState = new Motion(MotionStance.NonCombat);
 
             if (PkLevelModifier == -1)
                 ObjectDescriptionFlags |= ObjectDescriptionFlag.NpkSwitch;
@@ -42,12 +43,58 @@ namespace ACE.Server.WorldObjects
                 ObjectDescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
         }
 
-        /// <summary>
-        /// This is raised by Player.HandleActionUseItem.<para />
-        /// The item does not exist in the players possession.<para />
-        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
-        /// When this is called, it should be assumed that the player is within range.
-        /// </summary>
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
+        {
+            if (!(activator is Player player))
+                return new ActivationResult(false);
+
+            if (player.PkLevelModifier > 1 || PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item)
+            {
+                if (!string.IsNullOrWhiteSpace(GetProperty(PropertyString.UsePkServerError)))
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UsePkServerError), ChatMessageType.Broadcast));
+
+                return new ActivationResult(false);
+            }
+
+            if (player.PlayerKillerStatus == PlayerKillerStatus.PKLite)
+            {
+                if (!string.IsNullOrWhiteSpace(GetProperty(PropertyString.UsePkServerError)))
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UsePkServerError), ChatMessageType.Broadcast));
+
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("Player Killer Lites may not change their PK status.", ChatMessageType.Broadcast)); // not sure how retail handled this case
+
+                return new ActivationResult(false);
+            }
+
+            if (player.Teleporting)
+                return new ActivationResult(false);
+
+            if (player.IsBusy)
+                return new ActivationResult(false);
+
+            if (player.IsAdvocate || player.AdvocateQuest || player.AdvocateState)
+            {
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.AdvocatesCannotChangePKStatus));
+            }
+
+            if (player.MinimumTimeSincePk != null)
+            {
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.CannotChangePKStatusWhileRecovering));
+            }
+
+            if (PkLevelModifier == -1 && player.PkLevelModifier == 1 && (Time.GetUnixTime() - player.PkTimestamp) < MinimumTimeSincePk)
+            {
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouFeelAHarshDissonance));
+            }
+
+            if (IsBusy)
+            {
+                return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
+            }
+
+            return new ActivationResult(true);
+        }
+
         public override void ActOnUse(WorldObject activator)
         {
             if (!(activator is Player player))
@@ -59,26 +106,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (player.IsAdvocate || player.AdvocateQuest || player.AdvocateState)
-            {
-                // Advocates cannot change their PK status
-                if (PkLevelModifier == 1)
-                    return; // maybe send error msg to tell PK to ask another advocate to @remove them (or maybe make the @remove command support self removal)
-
-                // letting it fall through for the NpkSwitch because it will not change status and error properly.
-            }
-
-            if (player.PkLevelModifier > 1 || PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item)
-            {
-                if (!string.IsNullOrWhiteSpace(GetProperty(PropertyString.UsePkServerError)))
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UsePkServerError), ChatMessageType.Broadcast));
-
-                return;
-            }
-
-            //if (player.PkLevelModifier == 0) // wrong check but if PkTimestamp(? maybe different timestamp) + MINIMUM_TIME_SINCE_PK_FLOAT < Time.GetUnixTimestamp proceed else fail
-            //{
-            if (player.PkLevelModifier != PkLevelModifier)
+            if ((player.PkLevelModifier == 0 && PkLevelModifier == 1) || (player.PkLevelModifier == 1 && PkLevelModifier == -1))
             {
                 IsBusy = true;
 
@@ -97,7 +125,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddAction(player, () =>
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
-                    player.PkLevelModifier = PkLevelModifier;
+                    player.PkLevelModifier += PkLevelModifier;
 
                     if (player.PkLevelModifier == 1)
                         player.PlayerKillerStatus = PlayerKillerStatus.PK;
@@ -113,16 +141,43 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (UseTargetFailureAnimation != MotionCommand.Invalid)
-                    EnqueueBroadcastMotion(new Motion(this, UseTargetFailureAnimation));
+                IsBusy = true;
 
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
+                var actionChain = new ActionChain();
+
+                if (UseTargetFailureAnimation != MotionCommand.Invalid)
+                {
+                    var useMotion = UseTargetFailureAnimation;
+                    EnqueueBroadcastMotion(new Motion(this, useMotion));
+
+                    var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+                    var useTime = motionTable.GetAnimationLength(useMotion);
+
+                    player.LastUseTime += useTime;
+
+                    actionChain.AddDelaySeconds(useTime);
+                }
+
+                actionChain.AddAction(player, () =>
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
+
+                    Reset();
+                });
+
+                actionChain.EnqueueChain();
             }
         }
 
         public void Reset()
         {
             IsBusy = false;
+        }
+
+        public double? MinimumTimeSincePk
+        {
+            get => GetProperty(PropertyFloat.MinimumTimeSincePk);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.MinimumTimeSincePk); else SetProperty(PropertyFloat.MinimumTimeSincePk, value.Value); }
         }
     }
 }

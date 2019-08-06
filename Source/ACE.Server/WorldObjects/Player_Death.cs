@@ -13,6 +13,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -155,6 +156,12 @@ namespace ACE.Server.WorldObjects
                 var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
                 EnchantmentManager.RemoveAllEnchantments();
                 Session.Network.EnqueueSend(msgPurgeEnchantments);
+            }
+
+            if (IsPKDeath(topDamager))
+            {
+                if (topDamager is Player pkPlayer)
+                    pkPlayer.PkTimestamp = Time.GetUnixTime();
             }
 
             // wait for the death animation to finish
@@ -895,6 +902,12 @@ namespace ACE.Server.WorldObjects
 
             if (MinimumTimeSincePk < TemporaryNPKTime.TotalSeconds)
                 return;
+
+            if (PkLevelModifier != 1)
+            {
+                MinimumTimeSincePk = null;
+                return;
+            }
 
             PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
             PlayerKillerStatus |= PlayerKillerStatus.PK;
