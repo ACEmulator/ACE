@@ -559,7 +559,7 @@ namespace ACE.Server.WorldObjects
             if (Location == null)
                 return false;
 
-            if (HouseType == ACE.Entity.Enum.HouseType.Apartment)
+            if (HouseType == HouseType.Apartment)
                 return player.Location.Cell == Location.Cell;
 
             if (player.Location.GetOutdoorCell() == Location.GetOutdoorCell())

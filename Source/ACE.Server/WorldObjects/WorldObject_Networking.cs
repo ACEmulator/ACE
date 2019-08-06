@@ -163,7 +163,7 @@ namespace ACE.Server.WorldObjects
                 // if mansion, send house owner from master copy
                 var houseOwner = HouseOwner;
                 var house = this as House;
-                if (house != null && house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                if (house != null && house.HouseType == HouseType.Mansion)
                     houseOwner = house.LinkedHouses[0].HouseOwner;
 
                 writer.Write(houseOwner ?? 0);
@@ -175,14 +175,14 @@ namespace ACE.Server.WorldObjects
 
                 // if house object is in dungeon,
                 // send the permissions from the outdoor house
-                if (house.HouseType != ACE.Entity.Enum.HouseType.Apartment && house.CurrentLandblock.IsDungeon)
+                if (house.HouseType != HouseType.Apartment && house.CurrentLandblock.IsDungeon)
                 {
                     house = house.RootHouse;
                 }
                 else
                 {
                     // if mansion, send permissions from master copy
-                    if (house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    if (house.HouseType == HouseType.Mansion)
                         house = house.LinkedHouses[0];
                 }
 
