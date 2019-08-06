@@ -124,6 +124,12 @@ namespace ACE.Server.Managers
                 CachedBooleanSettings[key].Modify(newVal);
             else
                 CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal, DefaultPropertyManager.DefaultBooleanProperties[key].Description);
+
+            if (key == "pk_server" || key == "pkl_server")
+            {
+                PlayerManager.UpdatePKStatusForAllPlayers(key, newVal);
+            }
+
             return true;
         }
 

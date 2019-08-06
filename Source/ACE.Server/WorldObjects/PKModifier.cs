@@ -7,6 +7,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -52,9 +53,9 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return;
 
-            if (AllowedActivator != null)
+            if (IsBusy)
             {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is already in use by someone else!"));
+                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
                 return;
             }
 
@@ -67,11 +68,19 @@ namespace ACE.Server.WorldObjects
                 // letting it fall through for the NpkSwitch because it will not change status and error properly.
             }
 
+            if (player.PkLevelModifier > 1 || PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item)
+            {
+                if (!string.IsNullOrWhiteSpace(GetProperty(PropertyString.UsePkServerError)))
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UsePkServerError), ChatMessageType.Broadcast));
+
+                return;
+            }
+
             //if (player.PkLevelModifier == 0) // wrong check but if PkTimestamp(? maybe different timestamp) + MINIMUM_TIME_SINCE_PK_FLOAT < Time.GetUnixTimestamp proceed else fail
             //{
             if (player.PkLevelModifier != PkLevelModifier)
             {
-                AllowedActivator = ObjectGuid.Invalid.Full;
+                IsBusy = true;
 
                 var useMotion = UseTargetSuccessAnimation != MotionCommand.Invalid ? UseTargetSuccessAnimation : MotionCommand.Twitch1;
                 EnqueueBroadcastMotion(new Motion(this, useMotion));
@@ -113,7 +122,7 @@ namespace ACE.Server.WorldObjects
 
         public void Reset()
         {
-            AllowedActivator = null;
+            IsBusy = false;
         }
     }
 }
