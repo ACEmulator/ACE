@@ -6,6 +6,7 @@
 * Updated more logging relating to corpses for history tracking.
 * Fix issue with EventIsPKWorld.
 * Add in NPK grace-period for newly created characters on PK worlds.
+* Improve handling for world type switches, NPK to PK, PK to NPK, etc.
 
 ### 2019-08-04
 [Ripley]
