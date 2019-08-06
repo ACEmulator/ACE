@@ -585,10 +585,11 @@ namespace ACE.Server.Managers
                         foreach (var player in GetAllOffline())
                         {
                             player.SetProperty(PropertyInt.PlayerKillerStatus, (int) PlayerKillerStatus.PK);
+                            player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
                             player.SetProperty(PropertyInt.PkLevelModifier, 1);
                         }
 
-                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Player Killer world. All players are now Player Killers.", ChatMessageType.WorldBroadcast));
+                        BroadcastToAll(new GameMessageSystemChat($"This world has been changed to a Player Killer world. All players will become Player Killers in {Player.TemporaryNPKTime.TotalSeconds} seconds.", ChatMessageType.WorldBroadcast));
                     }
                     else
                     {

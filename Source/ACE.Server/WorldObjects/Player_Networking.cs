@@ -264,7 +264,8 @@ namespace ACE.Server.WorldObjects
                     PkLevelModifier = -1;
                     break;
                 case PlayerKillerStatus.PK:
-                    PlayerKillerStatus = PlayerKillerStatus.PK;
+                    PlayerKillerStatus = PlayerKillerStatus.NPK;
+                    MinimumTimeSincePk = 0;
                     //werror = WeenieError.YouArePKAgain;
                     PkLevelModifier = 1;
                     break;
