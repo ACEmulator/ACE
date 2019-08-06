@@ -612,7 +612,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     case "npk":
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.NPK;
-                        session.Player.PkLevelModifier = -1;
+                        session.Player.PkLevelModifier = 0;
                         break;
                     case "pk":
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.PK;
@@ -2525,7 +2525,14 @@ namespace ACE.Server.Command.Handlers
             {
                 var boolVal = bool.Parse(paramters[1]);
                 if (PropertyManager.ModifyBool(paramters[0], boolVal))
+                {
                     CommandHandlerHelper.WriteOutputInfo(session, "Bool property successfully updated!");
+
+                    if (paramters[0] == "pk_server" || paramters[0] == "pkl_server")
+                    {
+                        PlayerManager.UpdatePKStatusForAllPlayers(paramters[0], boolVal);
+                    }
+                }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown bool property was not updated. Type showprops for a list of properties.");
             }

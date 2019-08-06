@@ -259,24 +259,26 @@ namespace ACE.Server.WorldObjects
             switch (playerKillerStatus)
             {
                 case PlayerKillerStatus.NPK:
-                    PlayerKillerStatus = PlayerKillerStatus.NPK;
-                    //werror = WeenieError.YouAreNonPKAgain;
-                    PkLevelModifier = -1;
-                    break;
                 case PlayerKillerStatus.PK:
                     PlayerKillerStatus = PlayerKillerStatus.NPK;
                     MinimumTimeSincePk = 0;
-                    //werror = WeenieError.YouArePKAgain;
-                    PkLevelModifier = 1;
+                    //werror = WeenieError.YouAreNonPKAgain;
+                    //PkLevelModifier = -1;
                     break;
-                case PlayerKillerStatus.PKLite:
-                    PkLevelModifier = 2;
-                    //werror = WeenieError.YouAreNowPKLite;
+                //case PlayerKillerStatus.PK:
+                    //PlayerKillerStatus = PlayerKillerStatus.NPK;
+                    //MinimumTimeSincePk = 0;
+                    //werror = WeenieError.YouArePKAgain;
+                    //PkLevelModifier = 1;
+                    //break;
+                case PlayerKillerStatus.PKLite:                    
                     PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                    //werror = WeenieError.YouAreNowPKLite;
+                    //PkLevelModifier = 2;
                     break;
                 case PlayerKillerStatus.Free:
-                    PkLevelModifier = 3;
                     PlayerKillerStatus = PlayerKillerStatus.Free;
+                    //PkLevelModifier = 3;
                     break;
             }
 

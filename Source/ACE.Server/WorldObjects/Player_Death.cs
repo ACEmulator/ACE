@@ -881,8 +881,8 @@ namespace ACE.Server.WorldObjects
             var prevStatus = PlayerKillerStatus;
 
             MinimumTimeSincePk = 0;
-            PlayerKillerStatus &= ~PlayerKillerStatus.PK;
-            PlayerKillerStatus |= PlayerKillerStatus.NPK;
+            //PlayerKillerStatus &= ~PlayerKillerStatus.PK;
+            PlayerKillerStatus = PlayerKillerStatus.NPK;
 
             if ((prevStatus & PlayerKillerStatus.PK) != 0)
             {
@@ -903,18 +903,48 @@ namespace ACE.Server.WorldObjects
             if (MinimumTimeSincePk < TemporaryNPKTime.TotalSeconds)
                 return;
 
-            if (PkLevelModifier != 1)
-            {
+            //if (PkLevelModifier != 1)
+            //{
                 MinimumTimeSincePk = null;
-                return;
+            //    return;
+            //}
+
+            var werror = WeenieError.None;
+            switch (PkLevelModifier)
+            {
+                case 0:
+                    if (PropertyManager.GetBool("pk_server").Item)
+                        goto case 1;
+                    return;
+                case 1:
+                    //PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
+                    PlayerKillerStatus = PlayerKillerStatus.PK;
+                    werror = WeenieError.YouArePKAgain;
+                    break;
+                //case 2:
+                //    //PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
+                //    PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                //    werror = WeenieError.YouAreNowPKLite;
+                //    break;
             }
 
-            PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
-            PlayerKillerStatus |= PlayerKillerStatus.PK;
-            MinimumTimeSincePk = null;
+            //if (PropertyManager.GetBool("pk_server").Item)
+            //{
+            //    PlayerKillerStatus = PlayerKillerStatus.PK;
+            //    werror = WeenieError.YouArePKAgain;
+            //}
+            //else if (PropertyManager.GetBool("pkl_server").Item)
+            //{
+            //    PlayerKillerStatus = PlayerKillerStatus.PKLite;
+            //    werror = WeenieError.YouAreNowPKLite;
+            //}
+
+            //PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
+            //PlayerKillerStatus |= PlayerKillerStatus.PK;
+            //MinimumTimeSincePk = null;
 
             EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
-            Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouArePKAgain));
+            Session.Network.EnqueueSend(new GameEventWeenieError(Session, werror));
         }
 
         public List<WorldObject> GetSlipperyItems()

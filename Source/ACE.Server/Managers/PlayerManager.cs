@@ -584,9 +584,9 @@ namespace ACE.Server.Managers
 
                         foreach (var player in GetAllOffline())
                         {
-                            player.SetProperty(PropertyInt.PlayerKillerStatus, (int) PlayerKillerStatus.PK);
+                            player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
                             player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
-                            player.SetProperty(PropertyInt.PkLevelModifier, 1);
+                            //player.SetProperty(PropertyInt.PkLevelModifier, 1);
                         }
 
                         BroadcastToAll(new GameMessageSystemChat($"This world has been changed to a Player Killer world. All players will become Player Killers in {Player.TemporaryNPKTime.TotalSeconds} seconds.", ChatMessageType.WorldBroadcast));
@@ -599,7 +599,8 @@ namespace ACE.Server.Managers
                         foreach (var player in GetAllOffline())
                         {
                             player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
-                            player.SetProperty(PropertyInt.PkLevelModifier, 0);
+                            player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
+                            //player.SetProperty(PropertyInt.PkLevelModifier, 0);
                         }
 
                         BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non Player Killers.", ChatMessageType.WorldBroadcast));
@@ -616,7 +617,7 @@ namespace ACE.Server.Managers
                         foreach (var player in GetAllOffline())
                         {
                             player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PK);
-                            player.SetProperty(PropertyInt.PkLevelModifier, 2);
+                            //player.SetProperty(PropertyInt.PkLevelModifier, 2);
                         }
 
                         BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Player Killer Lite world. All players are now Player Killer Lites.", ChatMessageType.WorldBroadcast));
@@ -629,7 +630,8 @@ namespace ACE.Server.Managers
                         foreach (var player in GetAllOffline())
                         {
                             player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
-                            player.SetProperty(PropertyInt.PkLevelModifier, 0);
+                            player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
+                            //player.SetProperty(PropertyInt.PkLevelModifier, 0);
                         }
 
                         BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non Player Killers.", ChatMessageType.WorldBroadcast));
