@@ -369,7 +369,7 @@ namespace ACE.Server.Managers
         {
             var rareSpellIds = System.Enum.GetValues(typeof(RareEnchantment));
 
-            WorldObject.Biota.RemoveEnchantmentsById(rareSpellIds, WorldObject.BiotaDatabaseLock);
+            //WorldObject.Biota.RemoveEnchantmentsById(rareSpellIds, WorldObject.BiotaDatabaseLock);
             WorldObject.ChangesDetected = true;
         }
 
