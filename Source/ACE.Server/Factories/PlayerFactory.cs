@@ -386,7 +386,7 @@ namespace ACE.Server.Factories
 
             if (PropertyManager.GetBool("pk_server").Item)
             {
-                player.SetProperty(PropertyFloat.MinimumTimeSincePk, -Player.TemporaryNPKTime.TotalSeconds);
+                player.SetProperty(PropertyFloat.MinimumTimeSincePk, -PropertyManager.GetDouble("pk_respite_timer").Item);
                 player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
             }
 
