@@ -104,6 +104,7 @@ namespace ACE.Server.WorldObjects
             if (player.PkLevelModifier == 1 && PkLevelModifier == -1 && (Time.GetUnixTime() - player.PkTimestamp) < MinimumTimeSincePk)
             {
                 IsBusy = true;
+                player.IsBusy = true;
 
                 var actionChain = new ActionChain();
 
@@ -123,7 +124,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddAction(player, () =>
                 {
                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFeelAHarshDissonance));
-
+                    player.IsBusy = false;
                     Reset();
                 });
 
@@ -135,6 +136,7 @@ namespace ACE.Server.WorldObjects
             if ((player.PkLevelModifier == 0 && PkLevelModifier == 1) || (player.PkLevelModifier == 1 && PkLevelModifier == -1))
             {
                 IsBusy = true;
+                player.IsBusy = true;
 
                 var useMotion = UseTargetSuccessAnimation != MotionCommand.Invalid ? UseTargetSuccessAnimation : MotionCommand.Twitch1;
                 EnqueueBroadcastMotion(new Motion(this, useMotion));
@@ -160,7 +162,7 @@ namespace ACE.Server.WorldObjects
 
                     player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
                     //player.ApplySoundEffects(Sound.Open); // in pcaps, but makes no sound/has no effect. ?
-
+                    player.IsBusy = false;
                     Reset();
                 });
 
