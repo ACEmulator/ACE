@@ -603,7 +603,7 @@ namespace ACE.Server.Managers
                             //player.SetProperty(PropertyInt.PkLevelModifier, 0);
                         }
 
-                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non Player Killers.", ChatMessageType.WorldBroadcast));
+                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non-Player Killers.", ChatMessageType.WorldBroadcast));
                     }
                     break;
                 case "pkl_server":
@@ -616,11 +616,12 @@ namespace ACE.Server.Managers
 
                         foreach (var player in GetAllOffline())
                         {
-                            player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PK);
+                            player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                            player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
                             //player.SetProperty(PropertyInt.PkLevelModifier, 2);
                         }
 
-                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Player Killer Lite world. All players are now Player Killer Lites.", ChatMessageType.WorldBroadcast));
+                        BroadcastToAll(new GameMessageSystemChat($"This world has been changed to a Player Killer Lite world. All players will become Player Killer Lites in {Player.TemporaryNPKTime.TotalSeconds} seconds.", ChatMessageType.WorldBroadcast));
                     }
                     else
                     {
@@ -634,7 +635,7 @@ namespace ACE.Server.Managers
                             //player.SetProperty(PropertyInt.PkLevelModifier, 0);
                         }
 
-                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non Player Killers.", ChatMessageType.WorldBroadcast));
+                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non-Player Killers.", ChatMessageType.WorldBroadcast));
                     }
                     break;
             }

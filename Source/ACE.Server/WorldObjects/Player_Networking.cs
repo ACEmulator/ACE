@@ -260,6 +260,7 @@ namespace ACE.Server.WorldObjects
             {
                 case PlayerKillerStatus.NPK:
                 case PlayerKillerStatus.PK:
+                case PlayerKillerStatus.PKLite:
                     PlayerKillerStatus = PlayerKillerStatus.NPK;
                     MinimumTimeSincePk = 0;
                     //werror = WeenieError.YouAreNonPKAgain;
@@ -271,11 +272,11 @@ namespace ACE.Server.WorldObjects
                     //werror = WeenieError.YouArePKAgain;
                     //PkLevelModifier = 1;
                     //break;
-                case PlayerKillerStatus.PKLite:                    
-                    PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                //case PlayerKillerStatus.PKLite:                    
+                    //PlayerKillerStatus = PlayerKillerStatus.PKLite;
                     //werror = WeenieError.YouAreNowPKLite;
                     //PkLevelModifier = 2;
-                    break;
+                    //break;
                 case PlayerKillerStatus.Free:
                     PlayerKillerStatus = PlayerKillerStatus.Free;
                     //PkLevelModifier = 3;

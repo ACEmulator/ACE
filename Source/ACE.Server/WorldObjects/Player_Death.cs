@@ -158,12 +158,6 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(msgPurgeEnchantments);
             }
 
-            if (IsPKDeath(topDamager))
-            {
-                if (topDamager is Player pkPlayer)
-                    pkPlayer.PkTimestamp = Time.GetUnixTime();
-            }
-
             // wait for the death animation to finish
             var dieChain = new ActionChain();
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead);
@@ -175,8 +169,14 @@ namespace ACE.Server.WorldObjects
                 TeleportOnDeath();      // enter portal space
                 SetLifestoneProtection();
 
+                //if (IsPKDeath(topDamager) || (PropertyManager.GetBool("pkl_server").Item && !PropertyManager.GetBool("pk_server").Item))
                 if (IsPKDeath(topDamager))
+                {
+                    if (topDamager is Player pkPlayer)
+                        pkPlayer.PkTimestamp = Time.GetUnixTime();
+
                     SetMinimumTimeSincePK();
+                }
             });
 
             dieChain.EnqueueChain();
@@ -875,7 +875,8 @@ namespace ACE.Server.WorldObjects
 
         public void SetMinimumTimeSincePK()
         {
-            if ((PlayerKillerStatus & PlayerKillerStatus.PK) == 0 && MinimumTimeSincePk == null)
+            //if ((PlayerKillerStatus & PlayerKillerStatus.PK) == 0 && MinimumTimeSincePk == null)
+            if (PlayerKillerStatus == PlayerKillerStatus.PK && MinimumTimeSincePk == null)
                 return;
 
             var prevStatus = PlayerKillerStatus;
@@ -884,10 +885,16 @@ namespace ACE.Server.WorldObjects
             //PlayerKillerStatus &= ~PlayerKillerStatus.PK;
             PlayerKillerStatus = PlayerKillerStatus.NPK;
 
-            if ((prevStatus & PlayerKillerStatus.PK) != 0)
+            //if ((prevStatus & PlayerKillerStatus.PK) != 0)
+            if (prevStatus == PlayerKillerStatus.PK)
             {
                 EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreTemporarilyNoLongerPK));
+            }
+            else if (prevStatus == PlayerKillerStatus.NPK)
+            {
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
             }
         }
 
@@ -915,17 +922,21 @@ namespace ACE.Server.WorldObjects
                 case 0:
                     if (PropertyManager.GetBool("pk_server").Item)
                         goto case 1;
+                    else if (PropertyManager.GetBool("pkl_server").Item)
+                        goto case 2;
                     return;
                 case 1:
+                    if (!PropertyManager.GetBool("pk_server").Item && PropertyManager.GetBool("pkl_server").Item)
+                        goto case 2;
                     //PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
                     PlayerKillerStatus = PlayerKillerStatus.PK;
                     werror = WeenieError.YouArePKAgain;
                     break;
-                //case 2:
-                //    //PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
-                //    PlayerKillerStatus = PlayerKillerStatus.PKLite;
-                //    werror = WeenieError.YouAreNowPKLite;
-                //    break;
+                case 2:
+                    //PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
+                    PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                    werror = WeenieError.YouAreNowPKLite;
+                    break;
             }
 
             //if (PropertyManager.GetBool("pk_server").Item)
