@@ -2524,6 +2524,15 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var boolVal = bool.Parse(paramters[1]);
+
+                var prevState = PropertyManager.GetBool(paramters[0]);
+
+                if (prevState.Item == boolVal && !string.IsNullOrWhiteSpace(prevState.Description))
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Bool property is already {boolVal} for {paramters[0]}!");
+                    return;
+                }
+
                 if (PropertyManager.ModifyBool(paramters[0], boolVal))
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, "Bool property successfully updated!");
