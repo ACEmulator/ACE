@@ -385,8 +385,13 @@ namespace ACE.Server.Factories
             player.SetProperty(PropertyBool.RecallsDisabled, true);
 
             if (PropertyManager.GetBool("pk_server").Item)
+                player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PK);
+            else if (PropertyManager.GetBool("pkl_server").Item)
+                player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+
+            if ((PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item) && PropertyManager.GetBool("pk_server_safe_training_academy").Item)
             {
-                player.SetProperty(PropertyFloat.MinimumTimeSincePk, -PropertyManager.GetDouble("pk_respite_timer").Item);
+                player.SetProperty(PropertyFloat.MinimumTimeSincePk, PropertyManager.GetDouble("pk_new_character_grace_period").Item);
                 player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
             }
 
