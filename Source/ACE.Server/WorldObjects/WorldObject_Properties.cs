@@ -2377,30 +2377,6 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.PkLevelModifier); else SetProperty(PropertyInt.PkLevelModifier, value); }
         }
 
-        //private PlayerKillerStatus _playerKillerStatus
-        //{
-        //    get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? PlayerKillerStatus.NPK;
-        //    set { SetProperty(PropertyInt.PlayerKillerStatus, (int)value); }
-        //}
-
-        //public PlayerKillerStatus PlayerKillerStatus
-        //{
-        //    get
-        //    {
-        //        if (this is Player)
-        //        {
-        //            var pk_server = PropertyManager.GetBool("pk_server").Item;
-        //            var pkl_server = PropertyManager.GetBool("pkl_server").Item;
-        //            if ((pk_server || pkl_server) && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
-        //            {
-        //                return pkl_server ? PlayerKillerStatus.PKLite : PlayerKillerStatus.PK;
-        //            }
-        //        }
-        //        return _playerKillerStatus;
-        //    }
-        //    set => _playerKillerStatus = value;
-        //}
-
         public PlayerKillerStatus PlayerKillerStatus
         {
             get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? PlayerKillerStatus.NPK;
