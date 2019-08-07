@@ -82,11 +82,6 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.CannotChangePKStatusWhileRecovering));
             }
 
-            if (PkLevelModifier == -1 && player.PkLevelModifier == 1 && (Time.GetUnixTime() - player.PkTimestamp) < MinimumTimeSincePk)
-            {
-                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouFeelAHarshDissonance));
-            }
-
             if (IsBusy)
             {
                 return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
@@ -103,6 +98,37 @@ namespace ACE.Server.WorldObjects
             if (IsBusy)
             {
                 player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
+                return;
+            }
+
+            if (player.PkLevelModifier == 1 && PkLevelModifier == -1 && (Time.GetUnixTime() - player.PkTimestamp) < MinimumTimeSincePk)
+            {
+                IsBusy = true;
+
+                var actionChain = new ActionChain();
+
+                if (UseTargetFailureAnimation != MotionCommand.Invalid)
+                {
+                    var useMotion = UseTargetFailureAnimation;
+                    EnqueueBroadcastMotion(new Motion(this, useMotion));
+
+                    var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+                    var useTime = motionTable.GetAnimationLength(useMotion);
+
+                    player.LastUseTime += useTime;
+
+                    actionChain.AddDelaySeconds(useTime);
+                }
+
+                actionChain.AddAction(player, () =>
+                {
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFeelAHarshDissonance));
+
+                    Reset();
+                });
+
+                actionChain.EnqueueChain();
+
                 return;
             }
 
@@ -133,6 +159,7 @@ namespace ACE.Server.WorldObjects
                         player.PlayerKillerStatus = PlayerKillerStatus.NPK;
 
                     player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
+                    //player.ApplySoundEffects(Sound.Open); // in pcaps, but makes no sound/has no effect. ?
 
                     Reset();
                 });
@@ -140,33 +167,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.EnqueueChain();
             }
             else
-            {
-                IsBusy = true;
-
-                var actionChain = new ActionChain();
-
-                if (UseTargetFailureAnimation != MotionCommand.Invalid)
-                {
-                    var useMotion = UseTargetFailureAnimation;
-                    EnqueueBroadcastMotion(new Motion(this, useMotion));
-
-                    var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-                    var useTime = motionTable.GetAnimationLength(useMotion);
-
-                    player.LastUseTime += useTime;
-
-                    actionChain.AddDelaySeconds(useTime);
-                }
-
-                actionChain.AddAction(player, () =>
-                {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
-
-                    Reset();
-                });
-
-                actionChain.EnqueueChain();
-            }
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
         }
 
         public void Reset()
