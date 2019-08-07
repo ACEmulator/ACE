@@ -177,6 +177,10 @@ namespace ACE.Server.WorldObjects
 
                     SetMinimumTimeSincePK();
                 }
+                else if (IsPKLiteDeath(topDamager))
+                {
+                    SetMinimumTimeSincePK();
+                }
             });
 
             dieChain.EnqueueChain();
