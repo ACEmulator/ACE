@@ -896,7 +896,7 @@ namespace ACE.Server.WorldObjects
 
         public void PK_DeathTick()
         {
-            if (MinimumTimeSincePk == null || (PropertyManager.GetBool("pk_server_safe_training_academy").Item  && RecallsDisabled))
+            if (MinimumTimeSincePk == null || (PropertyManager.GetBool("pk_server_safe_training_academy").Item && RecallsDisabled))
                 return;
 
             if (PkLevelModifier == 0 && !PropertyManager.GetBool("pk_server").Item && !PropertyManager.GetBool("pkl_server").Item)
