@@ -165,6 +165,7 @@ namespace ACE.Server.WorldObjects
 
             dieChain.AddAction(this, () =>
             {
+                var currentLocation = new Position(Location);
                 CreateCorpse(topDamager);
                 TeleportOnDeath();      // enter portal space
                 SetLifestoneProtection();
@@ -173,6 +174,15 @@ namespace ACE.Server.WorldObjects
                 {
                     if (topDamager is Player pkPlayer)
                         pkPlayer.PkTimestamp = Time.GetUnixTime();
+
+                    var globalPKDe = $"{topDamager.Name} has defeated {Name}!";
+
+                    if ((currentLocation.Cell & 0xFFFF) < 0x100)
+                        globalPKDe += $" The kill occured at {currentLocation.GetMapCoordStr()}";
+
+                    globalPKDe += "\n[PKDe]";
+
+                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalPKDe, ChatMessageType.Broadcast));
 
                     SetMinimumTimeSincePK();
                 }
