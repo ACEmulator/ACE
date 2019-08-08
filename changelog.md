@@ -1,5 +1,22 @@
 # ACEmulator Change Log
 
+### 2019-08-05
+[Ripley]
+* Add immediate save to items being picked up from player corpses to avoid falling into void if server crashes before next player save.
+* Updated more logging relating to corpses for history tracking.
+
+### 2019-08-04
+[Ripley]
+* Update AuthenticationHandler to boot oldest connection to account when new one connects with valid login/password.
+ - Added new server configurable property `account_login_boots_in_use`, enabled by default retail rule.
+
+### 2019-08-03
+[Ripley]
+* Add support for AdminEnvirons
+  - Wired up support commands `setlbenviron` and `setglobalenviron`
+  - `setglobalenviron` is operates exactly as seen in retail worlds. in that it affects all players globally throughout the world, including bug with dungeons.
+  - `setlbenviron` operates differently in that it localizes effect to landblock and immediate adjacent landblocks for area-based events.
+
 ### 2019-08-02
 [Ripley]
 * Swap out some properties relating to Local Signals for more specific one found in property buckets.

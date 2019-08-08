@@ -181,6 +181,10 @@ namespace ACE.Server.WorldObjects
                 // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
                 if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
+
+                // Ensure not attacking across housing boundary
+                if (!player.CheckHouseRestrictions(targetPlayer))
+                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_AcrossHouseBoundary, WeenieErrorWithString._FailsToAffectYouAcrossHouseBoundary };
             }
             return null;
         }
@@ -873,7 +877,7 @@ namespace ACE.Server.WorldObjects
                         {
                             if (targetPlayer.PKTimerActive)
                             {
-                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                                 break;
                             }
 
@@ -897,7 +901,7 @@ namespace ACE.Server.WorldObjects
                         {
                             if (targetPlayer.PKTimerActive)
                             {
-                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                                 break;
                             }
 

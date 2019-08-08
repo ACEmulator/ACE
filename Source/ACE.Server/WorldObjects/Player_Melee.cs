@@ -263,6 +263,8 @@ namespace ACE.Server.WorldObjects
 
         private static readonly float KickThreshold = 0.75f;
 
+        public AttackType AttackType { get; set; }
+
         /// <summary>
         /// Returns the melee swing animation - based on weapon,
         /// current stance, power bar, and attack height
@@ -276,18 +278,16 @@ namespace ACE.Server.WorldObjects
 
             var weapon = GetEquippedMeleeWeapon();
 
-            var attackType = new AttackType();
-
             if (weapon != null)
             {
-                attackType = weapon.GetAttackType(CurrentMotionState.Stance, PowerLevel, offhand);
+                AttackType = weapon.GetAttackType(CurrentMotionState.Stance, PowerLevel, offhand);
             }
             else
             {
-                attackType = PowerLevel > KickThreshold ? AttackType.Kick : AttackType.Punch;
+                AttackType = PowerLevel > KickThreshold ? AttackType.Kick : AttackType.Punch;
             }
 
-            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, attackType);
+            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType);
 
             //Console.WriteLine($"{motion}");
 

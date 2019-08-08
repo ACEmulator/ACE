@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -16,6 +16,7 @@ namespace ACE.Database.Models.Shard
         }
 
         public virtual DbSet<Biota> Biota { get; set; }
+        public virtual DbSet<BiotaPropertiesAllegiance> BiotaPropertiesAllegiance { get; set; }
         public virtual DbSet<BiotaPropertiesAnimPart> BiotaPropertiesAnimPart { get; set; }
         public virtual DbSet<BiotaPropertiesAttribute> BiotaPropertiesAttribute { get; set; }
         public virtual DbSet<BiotaPropertiesAttribute2nd> BiotaPropertiesAttribute2nd { get; set; }
@@ -93,6 +94,39 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("weenie_Type")
                     .HasColumnType("int(5)")
                     .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<BiotaPropertiesAllegiance>(entity =>
+            {
+                entity.HasKey(e => new { e.AllegianceId, e.CharacterId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("biota_properties_allegiance");
+
+                entity.HasIndex(e => e.CharacterId)
+                    .HasName("FK_allegiance_character_Id");
+
+                entity.Property(e => e.AllegianceId).HasColumnName("allegiance_Id");
+
+                entity.Property(e => e.CharacterId).HasColumnName("character_Id");
+
+                entity.Property(e => e.ApprovedVassal)
+                    .HasColumnName("approved_Vassal")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.Banned)
+                    .HasColumnName("banned")
+                    .HasColumnType("bit(1)");
+
+                entity.HasOne(d => d.Allegiance)
+                    .WithMany(p => p.BiotaPropertiesAllegiance)
+                    .HasForeignKey(d => d.AllegianceId)
+                    .HasConstraintName("FK_allegiance_biota_Id");
+
+                entity.HasOne(d => d.Character)
+                    .WithMany(p => p.BiotaPropertiesAllegiance)
+                    .HasForeignKey(d => d.CharacterId)
+                    .HasConstraintName("FK_allegiance_character_Id");
             });
 
             modelBuilder.Entity<BiotaPropertiesAnimPart>(entity =>

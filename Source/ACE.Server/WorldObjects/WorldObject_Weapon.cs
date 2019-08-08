@@ -736,7 +736,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private static readonly float ThrustThreshold = 0.25f;
+        public static readonly float ThrustThreshold = 0.25f;
 
         public AttackType GetAttackType(MotionStance stance, float powerLevel, bool offhand)
         {
@@ -744,6 +744,12 @@ namespace ACE.Server.WorldObjects
                 return GetOffhandAttackType(stance, powerLevel);
 
             var attackType = W_AttackType;
+
+            if ((attackType & AttackType.Offhand) != 0)
+            {
+                log.Warn($"{Name} ({Guid}, {WeenieClassId}).GetAttackType(): {attackType}");
+                attackType &= ~AttackType.Offhand;
+            }
 
             if (stance == MotionStance.DualWieldCombat)
             {
@@ -811,6 +817,12 @@ namespace ACE.Server.WorldObjects
         public AttackType GetOffhandAttackType(MotionStance stance, float powerLevel)
         {
             var attackType = W_AttackType;
+
+            if ((attackType & AttackType.Offhand) != 0)
+            {
+                log.Warn($"{Name} ({Guid}, {WeenieClassId}).GetOffhandAttackType(): {attackType}");
+                attackType &= ~AttackType.Offhand;
+            }
 
             if (attackType.HasFlag(AttackType.TripleThrust | AttackType.TripleSlash))
             {

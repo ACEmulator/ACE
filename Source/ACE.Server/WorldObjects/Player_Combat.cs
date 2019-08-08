@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
@@ -289,16 +292,26 @@ namespace ACE.Server.WorldObjects
 
         public BaseDamageMod GetBaseDamageMod()
         {
-            var attackType = GetCombatType();
-            var damageSource = attackType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
+            var combatType = GetCombatType();
+            var damageSource = combatType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
 
             if (damageSource == null)
             {
-                var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
-                return new BaseDamageMod(baseDamage);
+                if (AttackType == AttackType.Punch)
+                    damageSource = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    damageSource = FootArmor;
+
+                // no weapon, no hand or foot armor
+                if (damageSource == null)
+                {
+                    var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
+                    return new BaseDamageMod(baseDamage);
+                }
+                else
+                    return damageSource.GetDamageMod(this, damageSource);
             }
-            else
-                return damageSource.GetDamageMod(this);
+            return damageSource.GetDamageMod(this);
         }
 
         public override float GetPowerMod(WorldObject weapon)
@@ -835,5 +848,126 @@ namespace ACE.Server.WorldObjects
         public bool PKLogoutActive => IsPKType && Time.GetUnixTime() - LastPkAttackTimestamp < PKLogoffTimer.TotalSeconds;
 
         public bool IsPKType => PlayerKillerStatus == PlayerKillerStatus.PK || PlayerKillerStatus == PlayerKillerStatus.PKLite;
+
+        public bool CheckHouseRestrictions(Player player)
+        {
+            if (Location.Cell == player.Location.Cell)
+                return true;
+
+            // dealing with outdoor cell equivalents at this point, if applicable
+            var cell = CurrentLandblock.IsDungeon ? Location.Cell : Location.GetOutdoorCell();
+            var playerCell = player.CurrentLandblock.IsDungeon ? player.Location.Cell : player.Location.GetOutdoorCell();
+
+            if (cell == playerCell)
+                return true;
+
+            HouseCell.HouseCells.TryGetValue(cell, out var houseGuid);
+            HouseCell.HouseCells.TryGetValue(playerCell, out var playerHouseGuid);
+
+            // pass if both of these players aren't in a house cell
+            if (houseGuid == 0 && playerHouseGuid == 0)
+                return true;
+
+            var houses = new HashSet<House>();
+            CheckHouseRestrictions_GetHouse(houseGuid, houses);
+            player.CheckHouseRestrictions_GetHouse(playerHouseGuid, houses);
+
+            foreach (var house in houses)
+            {
+                if (!house.HasPermission(this) || !house.HasPermission(player))
+                    return false;
+            }
+            return true;
+        }
+
+        public void CheckHouseRestrictions_GetHouse(uint houseGuid, HashSet<House> houses)
+        {
+            if (houseGuid == 0)
+                return;
+
+            var house = CurrentLandblock.GetObject(houseGuid) as House;
+            if (house != null)
+            {
+                var rootHouse = house.LinkedHouses.Count > 0 ? house.LinkedHouses[0] : house;
+
+                if (rootHouse.HouseOwner == null || rootHouse.OpenStatus || houses.Contains(rootHouse))
+                    return;
+
+                //Console.WriteLine($"{Name}.CheckHouseRestrictions_GetHouse({houseGuid:X8}): found root house {house.Name} ({house.HouseId})");
+                houses.Add(rootHouse);
+            }
+            else
+                log.Error($"{Name}.CheckHouseRestrictions_GetHouse({houseGuid:X8}): couldn't find house from {CurrentLandblock.Id.Raw:X8}");
+        }
+
+        /// <summary>
+        /// Returns the damage type for the currently equipped weapon / ammo
+        /// </summary>
+        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
+        public override DamageType GetDamageType(bool multiple = false)
+        {
+            // player override
+            var combatType = GetCombatType();
+
+            var weapon = GetEquippedWeapon();
+            var ammo = GetEquippedAmmo();
+
+            if (weapon == null && combatType == CombatType.Melee)
+            {
+                // handle gauntlets/ boots
+                if (AttackType == AttackType.Punch)
+                    weapon = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    weapon = FootArmor;
+                else
+                {
+                    log.Warn($"{Name}.GetDamageType(): no weapon, AttackType={AttackType}");
+                    return DamageType.Undef;
+                }
+
+                if (weapon != null && weapon.W_DamageType == DamageType.Undef)
+                    return DamageType.Bludgeon;
+            }
+
+            if (weapon == null)
+                return DamageType.Bludgeon;
+
+            var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
+
+            var damageType = damageSource.W_DamageType;
+
+            if (damageType == DamageType.Undef)
+            {
+                log.Warn($"{Name}.GetDamageType(): {damageSource} ({damageSource.Guid}, {damageSource.WeenieClassId}): no DamageType");
+                return DamageType.Bludgeon;
+            }
+
+            // return multiple damage types
+            if (multiple || !damageType.IsMultiDamage())
+                return damageType;
+
+            // get single damage type
+            if (damageType == (DamageType.Pierce | DamageType.Slash))
+            {
+                if ((AttackType & AttackType.Punches) != 0)
+                {
+                    if (PowerLevel < ThrustThreshold)
+                        return DamageType.Pierce;
+                    else
+                        return DamageType.Slash;
+                }
+
+                if ((AttackType & AttackType.Thrusts) != 0)
+                    return DamageType.Pierce;
+                else
+                    return DamageType.Slash;
+            }
+
+            return damageType.SelectDamageType();
+        }
+
+        public WorldObject HandArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Hands) > 0);
+
+        public WorldObject FootArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Feet) > 0);
     }
 }

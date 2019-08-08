@@ -313,8 +313,8 @@ namespace ACE.Server.Managers
             LoadPlayer(vassal);
 
             // maintain approved vassals list
-            if (allegiance != null && allegiance.ApprovedVassals != null && allegiance.ApprovedVassals.Contains(vassal.Guid))
-                allegiance.ApprovedVassals.Remove(vassal.Guid);
+            if (allegiance != null && allegiance.HasApprovedVassal(vassal.Guid.Full))
+                allegiance.RemoveApprovedVassal(vassal.Guid.Full);
         }
 
         /// <summary>
