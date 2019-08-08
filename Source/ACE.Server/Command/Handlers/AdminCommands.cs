@@ -612,19 +612,19 @@ namespace ACE.Server.Command.Handlers
                 {
                     case "npk":
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.NPK;
-                        session.Player.PkLevelModifier = 0;
+                        session.Player.PkLevel = PKLevel.NPK;
                         break;
                     case "pk":
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.PK;
-                        session.Player.PkLevelModifier = 1;
+                        session.Player.PkLevel = PKLevel.PK;
                         break;
                     case "pkl":
-                        session.Player.PkLevelModifier = 2;
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                        session.Player.PkLevel = PKLevel.NPK;
                         break;
                     case "free":
-                        session.Player.PkLevelModifier = 3;
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.Free;
+                        session.Player.PkLevel = PKLevel.Free;
                         break;
                 }
                 session.Player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(session.Player, PropertyInt.PlayerKillerStatus, (int)session.Player.PlayerKillerStatus));

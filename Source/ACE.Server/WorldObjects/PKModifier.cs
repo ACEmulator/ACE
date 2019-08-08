@@ -32,14 +32,17 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        public bool IsPKSwitch  => PkLevelModifier ==  1;
+        public bool IsNPKSwitch => PkLevelModifier == -1;
+
         private void SetEphemeralValues()
         {
             CurrentMotionState = new Motion(MotionStance.NonCombat);
 
-            if (PkLevelModifier == -1)
+            if (IsNPKSwitch)
                 ObjectDescriptionFlags |= ObjectDescriptionFlag.NpkSwitch;
 
-            if (PkLevelModifier == 1)
+            if (IsPKSwitch)
                 ObjectDescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
         }
 
@@ -48,7 +51,7 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (player.PkLevelModifier > 1 || PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item)
+            if (player.PkLevel > PKLevel.PK || PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item)
             {
                 if (!string.IsNullOrWhiteSpace(GetProperty(PropertyString.UsePkServerError)))
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UsePkServerError), ChatMessageType.Broadcast));
@@ -101,7 +104,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (player.PkLevelModifier == 1 && PkLevelModifier == -1 && (Time.GetUnixTime() - player.PkTimestamp) < MinimumTimeSincePk)
+            if (player.PkLevel == PKLevel.PK && IsNPKSwitch && (Time.GetUnixTime() - player.PkTimestamp) < MinimumTimeSincePk)
             {
                 IsBusy = true;
                 player.IsBusy = true;
@@ -133,7 +136,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if ((player.PkLevelModifier == 0 && PkLevelModifier == 1) || (player.PkLevelModifier == 1 && PkLevelModifier == -1))
+            if ((player.PkLevel == PKLevel.NPK && IsPKSwitch) || (player.PkLevel == PKLevel.PK && IsNPKSwitch))
             {
                 IsBusy = true;
                 player.IsBusy = true;
@@ -155,7 +158,7 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
                     player.PkLevelModifier += PkLevelModifier;
 
-                    if (player.PkLevelModifier == 1)
+                    if (player.PkLevel == PKLevel.PK)
                         player.PlayerKillerStatus = PlayerKillerStatus.PK;
                     else
                         player.PlayerKillerStatus = PlayerKillerStatus.NPK;

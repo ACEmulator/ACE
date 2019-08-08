@@ -1187,7 +1187,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public CoverageMask? VisualClothingPriority
         {
-            get { if((CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority) != null) { return (CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority); } else {return (CoverageMask?)GetProperty(PropertyInt.ClothingPriority); }; }
+            get { if ((CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority) != null) { return (CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority); } else { return (CoverageMask?)GetProperty(PropertyInt.ClothingPriority); }; }
             set { if (!value.HasValue) RemoveProperty(PropertyInt.VisualClothingPriority); else SetProperty(PropertyInt.VisualClothingPriority, (int)value.Value); }
         }
         /// <summary>
@@ -1406,7 +1406,7 @@ namespace ACE.Server.WorldObjects
         public uint? IconUnderlayId
         {
             get => GetProperty(PropertyDataId.IconUnderlay);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value);  }
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value); }
         }
 
         public int? CooldownId
@@ -2136,37 +2136,37 @@ namespace ACE.Server.WorldObjects
             get { return GetPosition(PositionType.Destination); }
             set { SetPosition(PositionType.Destination, value); }
         }
-        
+
         public Position Instantiation
         {
             get { return GetPosition(PositionType.Instantiation); }
             set { SetPosition(PositionType.Instantiation, value); }
         }
-       
+
         public Position Sanctuary
         {
             get { return GetPosition(PositionType.Sanctuary); }
             set { SetPosition(PositionType.Sanctuary, value); }
         }
-        
+
         public Position Home
         {
             get { return GetPosition(PositionType.Home); }
             set { SetPosition(PositionType.Home, value); }
         }
-        
+
         public Position ActivationMove
         {
             get { return GetPosition(PositionType.ActivationMove); }
             set { SetPosition(PositionType.ActivationMove, value); }
         }
-        
+
         public Position Target
         {
             get { return GetPosition(PositionType.Target); }
             set { SetPosition(PositionType.Target, value); }
         }
-        
+
         public Position LinkedPortalOne
         {
             get { return GetPosition(PositionType.LinkedPortalOne); }
@@ -2369,6 +2369,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.RequestedAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.RequestedAppraisalTarget); else SetProperty(PropertyInstanceId.RequestedAppraisalTarget, value.Value); }
+        }
+
+        public PKLevel PkLevel
+        {
+            get => (PKLevel)PkLevelModifier;
+            set => PkLevelModifier = (int)value;
         }
 
         public int PkLevelModifier

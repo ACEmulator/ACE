@@ -923,21 +923,21 @@ namespace ACE.Server.WorldObjects
             MinimumTimeSincePk = null;
 
             var werror = WeenieError.None;
-            switch (PkLevelModifier)
+            switch (PkLevel)
             {
-                case 0:
+                case PKLevel.NPK:
                     if (PropertyManager.GetBool("pk_server").Item)
-                        goto case 1;
+                        goto case PKLevel.PK;
                     else if (PropertyManager.GetBool("pkl_server").Item)
-                        goto case 2;
+                        goto case PKLevel.PKLite;
                     return;
-                case 1:
+                case PKLevel.PK:
                     if (!PropertyManager.GetBool("pk_server").Item && PropertyManager.GetBool("pkl_server").Item)
-                        goto case 2;
+                        goto case PKLevel.PKLite;
                     PlayerKillerStatus = PlayerKillerStatus.PK;
                     werror = WeenieError.YouArePKAgain;
                     break;
-                case 2:
+                case PKLevel.PKLite:
                     PlayerKillerStatus = PlayerKillerStatus.PKLite;
                     werror = WeenieError.YouAreNowPKLite;
                     break;
