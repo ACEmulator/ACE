@@ -173,7 +173,10 @@ namespace ACE.Server.WorldObjects
                 if (IsPKDeath(topDamager))
                 {
                     if (topDamager is Player pkPlayer)
+                    {
                         pkPlayer.PkTimestamp = Time.GetUnixTime();
+                        pkPlayer.PlayerKillsPk++;
+                    }
 
                     var globalPKDe = $"{topDamager.Name} has defeated {Name}!";
 
@@ -189,6 +192,7 @@ namespace ACE.Server.WorldObjects
                 else if (IsPKLiteDeath(topDamager))
                 {
                     SetMinimumTimeSincePK();
+                    topDamager.PlayerKillsPkl++;
                 }
             });
 
