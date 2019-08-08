@@ -82,6 +82,7 @@ namespace ACE.Server.Entity
             WindupTurn = false;
             CastTurn = false;
             CastTurnStarted = false;
+            CastGesture = MotionCommand.Invalid;
 
             CastSpellParams = null;
         }
@@ -89,6 +90,20 @@ namespace ACE.Server.Entity
         public void SetCastParams(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
         {
             CastSpellParams = new CastSpellParams(spell, isWeaponSpell, manaUsed, target, status);
+        }
+
+        public override string ToString()
+        {
+            var str = $"Player: {Player.Name} ({Player.Guid})\n";
+            str += $"IsCasting: {IsCasting}\n";
+            str += $"CastMotionDone: {CastMotionDone}\n";
+            str += $"WindupTurn: {WindupTurn}\n";
+            str += $"CastTurn: {CastTurn}\n";
+            str += $"CastTurnStarted: {CastTurnStarted}\n";
+            str += $"Launched: {Launched} \n";
+            str += $"CastSpellParams: {CastSpellParams}\n";
+            str += $"CastGesture: {CastGesture}";
+            return str;
         }
     }
 }
