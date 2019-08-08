@@ -702,6 +702,7 @@ namespace ACE.Database
                 .Include(r => r.CharacterPropertiesQuestRegistry)
                 .Include(r => r.CharacterPropertiesShortcutBar)
                 .Include(r => r.CharacterPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesSquelch)
                 .Include(r => r.CharacterPropertiesTitleBook)
                 .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
                 .ToList();
