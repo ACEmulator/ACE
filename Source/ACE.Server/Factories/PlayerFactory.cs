@@ -391,7 +391,7 @@ namespace ACE.Server.Factories
 
             if ((PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item) && PropertyManager.GetBool("pk_server_safe_training_academy").Item)
             {
-                player.SetProperty(PropertyFloat.MinimumTimeSincePk, PropertyManager.GetDouble("pk_new_character_grace_period").Item);
+                player.SetProperty(PropertyFloat.MinimumTimeSincePk, -PropertyManager.GetDouble("pk_new_character_grace_period").Item);
                 player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
             }
 
