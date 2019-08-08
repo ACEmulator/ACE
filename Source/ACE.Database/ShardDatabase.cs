@@ -159,7 +159,6 @@ namespace ACE.Database
             BiotaPropertiesString               = 0x200000,
             BiotaPropertiesTextureMap           = 0x400000,
             HousePermission                     = 0x800000,
-            BiotaPropertiesAllegiance           = 0x1000000,
         }
 
         private static void SetBiotaPopulatedCollections(Biota biota)
@@ -190,7 +189,6 @@ namespace ACE.Database
             if (biota.BiotaPropertiesString != null && biota.BiotaPropertiesString.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesString;
             if (biota.BiotaPropertiesTextureMap != null && biota.BiotaPropertiesTextureMap.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesTextureMap;
             if (biota.HousePermission != null && biota.HousePermission.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.HousePermission;
-            if (biota.BiotaPropertiesAllegiance != null && biota.BiotaPropertiesAllegiance.Count > 0) populatedCollectionFlags |= PopulatedCollectionFlags.BiotaPropertiesAllegiance;
 
             biota.PopulatedCollectionFlags = (uint)populatedCollectionFlags;
         }
@@ -233,7 +231,6 @@ namespace ACE.Database
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesString)) biota.BiotaPropertiesString = context.BiotaPropertiesString.Where(r => r.ObjectId == biota.Id).ToList();
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesTextureMap)) biota.BiotaPropertiesTextureMap = context.BiotaPropertiesTextureMap.Where(r => r.ObjectId == biota.Id).ToList();
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.HousePermission)) biota.HousePermission = context.HousePermission.Where(r => r.HouseId == biota.Id).ToList();
-            if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAllegiance)) biota.BiotaPropertiesAllegiance = context.BiotaPropertiesAllegiance.Where(r => r.AllegianceId == biota.Id).ToList();
 
             return biota;
         }
@@ -705,7 +702,6 @@ namespace ACE.Database
                 .Include(r => r.CharacterPropertiesQuestRegistry)
                 .Include(r => r.CharacterPropertiesShortcutBar)
                 .Include(r => r.CharacterPropertiesSpellBar)
-                .Include(r => r.CharacterPropertiesSquelch)
                 .Include(r => r.CharacterPropertiesTitleBook)
                 .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
                 .ToList();
