@@ -1149,6 +1149,21 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static void RemoveEnchantmentsById(this Biota biota, IEnumerable<int> spellsToRemove, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+               var enchantments = biota.BiotaPropertiesEnchantmentRegistry.Where(e => spellsToRemove.Contains(e.SpellId)).ToList();
+
+                foreach (var enchantment in enchantments)
+                    biota.BiotaPropertiesEnchantmentRegistry.Remove(enchantment);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
 
         // =====================================
         // BiotaPropertiesSkill

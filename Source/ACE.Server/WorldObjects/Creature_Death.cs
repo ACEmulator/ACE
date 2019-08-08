@@ -13,6 +13,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Riptide;
 
 namespace ACE.Server.WorldObjects
 {
@@ -60,6 +61,7 @@ namespace ACE.Server.WorldObjects
 
                 // todo: verify message type
                 playerKiller.Session.Network.EnqueueSend(new GameMessageSystemChat(killerMsg, ChatMessageType.Broadcast));
+                GlobalEventManager.OnPKDeath(playerKiller, this as Player, deathMessage);
             }
             return deathMessage;
         }
