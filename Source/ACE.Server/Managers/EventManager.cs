@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using log4net;
@@ -25,7 +26,7 @@ namespace ACE.Server.Managers
 
             foreach(var evnt in events)
             {
-                Events.Add(evnt.Name.ToLower(), evnt);
+                Events.Add(evnt.Name, evnt);
 
                 if (evnt.State == (int)GameEventState.On)
                     StartEvent(evnt.Name);
@@ -36,12 +37,12 @@ namespace ACE.Server.Managers
 
         public static bool StartEvent(string e)
         {
-            e = e.ToLower();
-
-            if (e == "EventIsPKWorld".ToLower()) // special event
+            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
                 return false;
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
+
+            if (evnt == null)
                 return false;
 
             var state = (GameEventState)evnt.State;
@@ -63,12 +64,12 @@ namespace ACE.Server.Managers
 
         public static bool StopEvent(string e)
         {
-            e = e.ToLower();
-
-            if (e == "EventIsPKWorld".ToLower()) // special event
+            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
                 return false;
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
+
+            if (evnt == null)
                 return false;
 
             var state = (GameEventState)evnt.State;
@@ -90,9 +91,7 @@ namespace ACE.Server.Managers
 
         public static bool IsEventStarted(string e)
         {
-            e = e.ToLower();
-
-            if (e == "EventIsPKWorld".ToLower()) // special event
+            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
             {
                 if (PropertyManager.GetBool("pk_server").Item)
                     return true;
@@ -100,7 +99,9 @@ namespace ACE.Server.Managers
                     return false;
             }
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
+
+            if (evnt == null)
                 return false;
 
             return evnt.State == (int)GameEventState.On;
@@ -108,9 +109,9 @@ namespace ACE.Server.Managers
 
         public static bool IsEventEnabled(string e)
         {
-            e = e.ToLower();
+            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            if (evnt == null)
                 return false;
 
             return evnt.State == (int)GameEventState.Enabled || evnt.State == (int)GameEventState.On || evnt.State == (int)GameEventState.Off;
@@ -118,14 +119,17 @@ namespace ACE.Server.Managers
 
         public static bool IsEventAvailable(string e)
         {
-            return Events.ContainsKey(e.ToLower());
+            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
+
+            if (evnt == null)
+                return false;
+
+            return true;
         }
 
         public static GameEventState GetEventStatus(string e)
         {
-            e = e.ToLower();
-
-            if (e == "EventIsPKWorld".ToLower()) // special event
+            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
             {
                 if (PropertyManager.GetBool("pk_server").Item)
                     return GameEventState.On;
@@ -133,7 +137,9 @@ namespace ACE.Server.Managers
                     return GameEventState.Off;
             }
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
+
+            if (evnt == null)
                 return GameEventState.Undef;
 
             return (GameEventState)evnt.State;
