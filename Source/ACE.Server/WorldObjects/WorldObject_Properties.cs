@@ -2754,6 +2754,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.HearLocalSignalsRadius); else SetProperty(PropertyInt.HearLocalSignalsRadius, value); }
         }
 
+        public string TinkerLog
+        {
+            get => GetProperty(PropertyString.TinkerLog);
+            set { if (value == null) RemoveProperty(PropertyString.TinkerLog); else SetProperty(PropertyString.TinkerLog, value); }
+        }
+        
         public int? CreatureKills
         {
             get => GetProperty(PropertyInt.CreatureKills);

@@ -92,7 +92,9 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         AllegianceCastellanTitle        = 9005,
         [ServerOnly]
-        GodState                        = 9006
+        GodState                        = 9006,
+        [ServerOnly]
+        TinkerLog                       = 9007,
     }
 
     public static class PropertyStringExtensions
