@@ -422,7 +422,20 @@ namespace ACE.Server.WorldObjects
                 // TODO: investigate this more, difference for GetAngle() between ACE and ac physics engine
                 var angle = 0.0f;
                 if (target != this)
-                    angle = Math.Abs(GetAngle_Physics2(target));
+                {
+                    if (target.CurrentLandblock == null)
+                    {
+                        FindObject(target.Guid.Full, SearchLocations.Everywhere, out _, out var rootOwner, out _);
+
+                        if (rootOwner == null)
+                            log.Error($"{Name}.DoCastSpell({spell.Name}, {isWeaponSpell}, {manaUsed}, {target.Name} ({target.Guid}), {castingPreCheckStatus}) - couldn't find rootTarget");
+
+                        else if (rootOwner != this)
+                            angle = Math.Abs(GetAngle_Physics2(rootOwner));
+                    }
+                    else
+                        angle = Math.Abs(GetAngle_Physics2(target));
+                }
 
                 if (angle > MaxAngle)
                 {
