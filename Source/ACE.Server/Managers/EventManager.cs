@@ -17,7 +17,7 @@ namespace ACE.Server.Managers
 
         static EventManager()
         {
-            Events = new Dictionary<string, Event>();
+            Events = new Dictionary<string, Event>(StringComparer.OrdinalIgnoreCase);
         }
 
         public static void Initialize()
@@ -40,9 +40,7 @@ namespace ACE.Server.Managers
             if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
                 return false;
 
-            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
-
-            if (evnt == null)
+            if (!Events.TryGetValue(e, out Event evnt))
                 return false;
 
             var state = (GameEventState)evnt.State;
@@ -67,9 +65,7 @@ namespace ACE.Server.Managers
             if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
                 return false;
 
-            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
-
-            if (evnt == null)
+            if (!Events.TryGetValue(e, out Event evnt))
                 return false;
 
             var state = (GameEventState)evnt.State;
@@ -99,9 +95,7 @@ namespace ACE.Server.Managers
                     return false;
             }
 
-            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
-
-            if (evnt == null)
+            if (!Events.TryGetValue(e, out Event evnt))
                 return false;
 
             return evnt.State == (int)GameEventState.On;
@@ -109,9 +103,7 @@ namespace ACE.Server.Managers
 
         public static bool IsEventEnabled(string e)
         {
-            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
-
-            if (evnt == null)
+            if (!Events.TryGetValue(e, out Event evnt))
                 return false;
 
             return evnt.State == (int)GameEventState.Enabled || evnt.State == (int)GameEventState.On || evnt.State == (int)GameEventState.Off;
@@ -119,9 +111,7 @@ namespace ACE.Server.Managers
 
         public static bool IsEventAvailable(string e)
         {
-            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
-
-            if (evnt == null)
+            if (!Events.TryGetValue(e, out Event evnt))
                 return false;
 
             return true;
@@ -137,9 +127,7 @@ namespace ACE.Server.Managers
                     return GameEventState.Off;
             }
 
-            var evnt = Events.FirstOrDefault(ev => ev.Key.Equals(e, StringComparison.OrdinalIgnoreCase)).Value;
-
-            if (evnt == null)
+            if (!Events.TryGetValue(e, out Event evnt))
                 return GameEventState.Undef;
 
             return (GameEventState)evnt.State;
