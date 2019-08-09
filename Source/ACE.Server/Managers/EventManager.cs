@@ -110,10 +110,7 @@ namespace ACE.Server.Managers
 
         public static bool IsEventAvailable(string e)
         {
-            if (!Events.TryGetValue(e, out Event evnt))
-                return false;
-
-            return true;
+            return Events.ContainsKey(e);
         }
 
         public static GameEventState GetEventStatus(string e)
