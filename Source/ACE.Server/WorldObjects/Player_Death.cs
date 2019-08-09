@@ -32,6 +32,26 @@ namespace ACE.Server.WorldObjects
         /// <param name="damageType">The damage type for the death message</param>
         public override DeathMessage OnDeath(WorldObject lastDamager, DamageType damageType, bool criticalHit = false)
         {
+            if (DamageHistory.TopDamager is Player pkPlayer)
+            {
+                if (IsPKDeath(pkPlayer))
+                {
+                    pkPlayer.PkTimestamp = Time.GetUnixTime();
+                    pkPlayer.PlayerKillsPk++;
+
+                    var globalPKDe = $"{lastDamager.Name} has defeated {Name}!";
+
+                    if ((Location.Cell & 0xFFFF) < 0x100)
+                        globalPKDe += $" The kill occured at {Location.GetMapCoordStr()}";
+
+                    globalPKDe += "\n[PKDe]";
+
+                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalPKDe, ChatMessageType.Broadcast));
+                }
+                else if (IsPKLiteDeath(pkPlayer))
+                    pkPlayer.PlayerKillsPkl++;
+            }
+
             var deathMessage = base.OnDeath(lastDamager, damageType, criticalHit);
 
             if (lastDamager != null)
@@ -161,35 +181,12 @@ namespace ACE.Server.WorldObjects
 
             dieChain.AddAction(this, () =>
             {
-                var currentLocation = new Position(Location);
                 CreateCorpse(topDamager);
                 TeleportOnDeath();      // enter portal space
                 SetLifestoneProtection();
 
-                if (IsPKDeath(topDamager))
-                {
-                    if (topDamager is Player pkPlayer)
-                    {
-                        pkPlayer.PkTimestamp = Time.GetUnixTime();
-                        pkPlayer.PlayerKillsPk++;
-                    }
-
-                    var globalPKDe = $"{topDamager.Name} has defeated {Name}!";
-
-                    if ((currentLocation.Cell & 0xFFFF) < 0x100)
-                        globalPKDe += $" The kill occured at {currentLocation.GetMapCoordStr()}";
-
-                    globalPKDe += "\n[PKDe]";
-
-                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalPKDe, ChatMessageType.Broadcast));
-
+                if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
                     SetMinimumTimeSincePK();
-                }
-                else if (IsPKLiteDeath(topDamager))
-                {
-                    SetMinimumTimeSincePK();
-                    topDamager.PlayerKillsPkl++;
-                }
             });
 
             dieChain.EnqueueChain();
