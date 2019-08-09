@@ -126,10 +126,6 @@ namespace ACE.Server.WorldObjects
             var deathAnim = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
             EnqueueBroadcastMotion(deathAnim);
 
-            // killer death message = last damager
-            var killerMsg = lastDamager != null ? " to " + lastDamager.Name : "";
-            var currentDeathMessage = $"died{killerMsg}.";
-
             // create network messages for player death
             var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, 0);
 
