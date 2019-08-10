@@ -1,11 +1,14 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -31,33 +34,66 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            CurrentMotionState = new Motion(MotionStance.NonCombat);
         }
 
-        /// <summary>
-        /// This is raised by Player.HandleActionUseItem.<para />
-        /// The item does not exist in the players possession.<para />
-        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
-        /// When this is called, it should be assumed that the player is within range.
-        /// </summary>
-        public override void ActOnUse(WorldObject worldObject)
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
-            var player = worldObject as Player;
-            if (player == null) return;
+            if (!(activator is Player player))
+                return new ActivationResult(false);
 
-            if (AllowedActivator != null)
+            if (player.Teleporting)
+                return new ActivationResult(false);
+
+            if (player.IsBusy)
+                return new ActivationResult(false);
+
+            if (IsBusy)
             {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is already in use by someone else!"));
+                return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
+            }
+
+            return new ActivationResult(true);
+        }
+
+        public override void ActOnUse(WorldObject activator)
+        {
+            if (!(activator is Player player))
+                return;
+
+            if (IsBusy)
+            {
+                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
                 return;
             }
 
-            if (player.AdvocateQuest || player.PkLevelModifier != -1 || player.WeenieType == WeenieType.Admin || player.WeenieType == WeenieType.Sentinel) // PlayerKillers, Admins and Sentinels can't be Advocates.
-            {
+            IsBusy = true;
+            player.IsBusy = true;
+
+            if (player.AdvocateQuest || player.PkLevel != PKLevel.NPK || player is Admin || player.WeenieType == WeenieType.Admin || player is Sentinel || player.WeenieType == WeenieType.Sentinel) // PlayerKillers, Admins and Sentinels can't be Advocates.
+            {                                
+                var actionChain = new ActionChain();
+
                 var failMotion = UseTargetFailureAnimation != MotionCommand.Invalid ? UseTargetFailureAnimation : MotionCommand.Twitch2;
-                EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, failMotion));
+                EnqueueBroadcastMotion(new Motion(this, failMotion));
+
+                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+                var useTime = motionTable.GetAnimationLength(failMotion);
+
+                player.LastUseTime += useTime;
+
+                actionChain.AddDelaySeconds(useTime);
+
+                actionChain.AddAction(player, () =>
+                {
+                    player.IsBusy = false;
+                    Reset();
+                });
+
+                actionChain.EnqueueChain();
+
                 return;
             }
-
-            AllowedActivator = ObjectGuid.Invalid.Full;
 
             var faneTimer = new ActionChain();
 
@@ -77,61 +113,35 @@ namespace ACE.Server.WorldObjects
             var successTime = EnqueueMotion(faneTimer, successMotion);
             player.LastUseTime += successTime;
 
-            faneTimer.AddAction(player, () => Bestow(player));
+            faneTimer.AddAction(player, () =>
+            {
+                player.AdvocateQuest = true;
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
+
+                if (UseCreateItem != null)
+                {
+                    var useCreateItem = WorldObjectFactory.CreateNewWorldObject(UseCreateItem.Value);
+
+                    if (useCreateItem != null)
+                        player.TryCreateInInventoryWithNetworking(useCreateItem);
+                }
+
+                if (PropertyManager.GetBool("advocate_fane_auto_bestow").Item)
+                    Advocate.Bestow(player, (int)PropertyManager.GetDouble("advocate_fane_auto_bestow_level").Item);
+            });
+
+            faneTimer.AddAction(player, () =>
+            {
+                player.IsBusy = false;
+                Reset();
+            });
 
             faneTimer.EnqueueChain();
         }
 
-        public void Bestow(Player player)
-        {
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
-            player.AdvocateQuest = true;
-
-            if (UseCreateItem != null)
-            {
-                var useCreateItem = WorldObjectFactory.CreateNewWorldObject(UseCreateItem.Value);
-
-                if (useCreateItem != null)
-                    player.TryCreateInInventoryWithNetworking(useCreateItem);
-            }
-
-            // This stuff did not occur automatically IIRC, it was based on someone Advocate Level 2 or above issuing a bestow command. This is here temp likely
-            if (!player.AdvocateLevel.HasValue)
-                player.AdvocateLevel = 1;
-
-            player.IsAdvocate = true;
-
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AdvocateLevel, player.AdvocateLevel ?? 1));
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(player, PropertyBool.IsAdvocate, player.IsAdvocate));
-
-            var advocateChannels = Channel.Help | Channel.Abuse | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3;
-
-            if (player.ChannelsActive == null)
-                player.ChannelsActive = advocateChannels;
-            else
-                player.ChannelsActive |= advocateChannels;
-
-            if (player.ChannelsAllowed == null)
-                player.ChannelsAllowed = advocateChannels | Channel.TownChans;
-            else
-                player.ChannelsAllowed |= advocateChannels | Channel.TownChans;
-
-            var useCreateBook = WorldObjectFactory.CreateNewWorldObject("bookadvocateinstructions");
-
-            if (useCreateBook != null)
-                player.TryCreateInInventoryWithNetworking(useCreateBook);
-
-            var useCreateAegis = WorldObjectFactory.CreateNewWorldObject($"shieldadvocate{player.AdvocateLevel.Value}");
-
-            if (useCreateAegis != null)
-                player.TryCreateInInventoryWithNetworking(useCreateAegis);
-
-            Reset();
-        }
-
         public void Reset()
         {
-            AllowedActivator = null;
+            IsBusy = false;
         }
     }
 }

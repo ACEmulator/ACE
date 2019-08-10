@@ -82,6 +82,9 @@ namespace ACE.Server.WorldObjects
             if (topDamager != null)
                 KillerId = topDamager.Guid.Full;
 
+            if (topDamager is Player)
+                topDamager.CreatureKills++;
+
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
             //IsMonster = false;
 

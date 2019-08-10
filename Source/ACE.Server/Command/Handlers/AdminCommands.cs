@@ -612,19 +612,19 @@ namespace ACE.Server.Command.Handlers
                 {
                     case "npk":
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.NPK;
-                        session.Player.PkLevelModifier = -1;
+                        session.Player.PkLevel = PKLevel.NPK;
                         break;
                     case "pk":
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.PK;
-                        session.Player.PkLevelModifier = 1;
+                        session.Player.PkLevel = PKLevel.PK;
                         break;
                     case "pkl":
-                        session.Player.PkLevelModifier = 2;
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                        session.Player.PkLevel = PKLevel.NPK;
                         break;
                     case "free":
-                        session.Player.PkLevelModifier = 3;
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.Free;
+                        session.Player.PkLevel = PKLevel.Free;
                         break;
                 }
                 session.Player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(session.Player, PropertyInt.PlayerKillerStatus, (int)session.Player.PlayerKillerStatus));
@@ -1141,7 +1141,7 @@ namespace ACE.Server.Command.Handlers
                             }
 
                             var weenie = DatabaseManager.World.GetCachedWeenie(item.WeenieClassId);
-                            msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,7:P2} - {item.WeenieClassId,5} - {weenie.ClassName} - {weenie.GetProperty(PropertyString.Name)}\n";
+                            msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,7:P2} - {item.WeenieClassId,5} - {(weenie != null ? weenie.ClassName : "Item not found in DB")} - {(weenie != null ? weenie.GetProperty(PropertyString.Name) : "Item not found in DB")}\n";
                         }
                     }
                     else
@@ -2524,8 +2524,24 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var boolVal = bool.Parse(paramters[1]);
+
+                var prevState = PropertyManager.GetBool(paramters[0]);
+
+                if (prevState.Item == boolVal && !string.IsNullOrWhiteSpace(prevState.Description))
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Bool property is already {boolVal} for {paramters[0]}!");
+                    return;
+                }
+
                 if (PropertyManager.ModifyBool(paramters[0], boolVal))
+                {
                     CommandHandlerHelper.WriteOutputInfo(session, "Bool property successfully updated!");
+
+                    if (paramters[0] == "pk_server" || paramters[0] == "pkl_server")
+                    {
+                        PlayerManager.UpdatePKStatusForAllPlayers(paramters[0], boolVal);
+                    }
+                }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown bool property was not updated. Type showprops for a list of properties.");
             }

@@ -2295,6 +2295,10 @@ namespace ACE.Server.Physics
             enter_cell(newCell);
             RequestPos.ObjCellID = newCell.ID;
 
+            // sync location for initial CO
+            if (entering_world)
+                WeenieObj.WorldObject.SyncLocation();
+
             // handle self
             if (IsPlayer)
             {
@@ -2316,10 +2320,17 @@ namespace ACE.Server.Physics
             }
         }
 
+        private bool entering_world;
+
         public bool enter_world(Position pos)
         {
+            entering_world = true;
+
             store_position(pos);
-            return enter_world(true);
+            var result = enter_world(true);
+
+            entering_world = false;
+            return result;
         }
 
         public bool enter_world(bool slide)

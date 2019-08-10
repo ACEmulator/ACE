@@ -4,6 +4,12 @@
 [Ripley]
 * Add immediate save to items being picked up from player corpses to avoid falling into void if server crashes before next player save.
 * Updated more logging relating to corpses for history tracking.
+* Fix issue with EventIsPKWorld.
+* Add in NPK grace-period for newly created characters on PK worlds and optional enabling via `pk_server_safe_training_academy` configurable
+* Improve handling for world type switches, NPK to PK, PK to NPK, etc.
+* Improve handling for player pk status switching and timeouts.
+* Added `pk_new_character_grace_period` and `pk_respite_timer` configuration options.
+* Restored global PK death messages, player configurable via "Listen to PK deaths messages." character option.
 
 ### 2019-08-04
 [Ripley]

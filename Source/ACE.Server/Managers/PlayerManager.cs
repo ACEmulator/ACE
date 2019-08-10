@@ -8,6 +8,7 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
@@ -569,6 +570,71 @@ namespace ACE.Server.Managers
         {
             foreach (var player in GetAllOnline().Where(p => p.Session.AccessLevel < AccessLevel.Advocate))
                 player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, "The world is now closed"), null, "The world is now closed");
+        }
+
+        public static void UpdatePKStatusForAllPlayers(string worldType, bool enabled)
+        {
+            switch (worldType)
+            {
+                case "pk_server":
+                    if (enabled)
+                    {
+                        foreach (var player in GetAllOnline())
+                            player.SetPlayerKillerStatus(PlayerKillerStatus.PK, true);
+
+                        foreach (var player in GetAllOffline())
+                        {
+                            player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                            player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
+                        }
+
+                        BroadcastToAll(new GameMessageSystemChat($"This world has been changed to a Player Killer world. All players will become Player Killers in {PropertyManager.GetDouble("pk_respite_timer").Item} seconds.", ChatMessageType.WorldBroadcast));
+                    }
+                    else
+                    {
+                        foreach (var player in GetAllOnline())
+                            player.SetPlayerKillerStatus(PlayerKillerStatus.NPK, true);
+
+                        foreach (var player in GetAllOffline())
+                        {
+                            player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                            player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
+                        }
+
+                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non-Player Killers.", ChatMessageType.WorldBroadcast));
+                    }
+                    break;
+                case "pkl_server":
+                    if (PropertyManager.GetBool("pk_server").Item)
+                        return;
+                    if (enabled)
+                    {
+                        foreach (var player in GetAllOnline())
+                            player.SetPlayerKillerStatus(PlayerKillerStatus.PKLite, true);
+
+                        foreach (var player in GetAllOffline())
+                        {
+                            player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                            player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
+                        }
+
+                        BroadcastToAll(new GameMessageSystemChat($"This world has been changed to a Player Killer Lite world. All players will become Player Killer Lites in {PropertyManager.GetDouble("pk_respite_timer").Item} seconds.", ChatMessageType.WorldBroadcast));
+                    }
+                    else
+                    {
+                        foreach (var player in GetAllOnline())
+                            player.SetPlayerKillerStatus(PlayerKillerStatus.NPK, true);
+
+                        foreach (var player in GetAllOffline())
+                        {
+                            player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                            player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
+                        }
+
+                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non-Player Killers.", ChatMessageType.WorldBroadcast));
+                    }
+                    break;
+            }
         }
     }
 }

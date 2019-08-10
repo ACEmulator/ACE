@@ -859,6 +859,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreCloIcons); else SetProperty(PropertyBool.IgnoreCloIcons, value.Value); }
         }
 
+        public bool? Dyable
+        {
+            get => GetProperty(PropertyBool.Dyable);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Dyable); else SetProperty(PropertyBool.Dyable, value.Value); }
+        }
+
         public virtual ACE.Entity.ObjDesc CalculateObjDesc()
         {
             if (this is Hook hook && hook.HasItem)

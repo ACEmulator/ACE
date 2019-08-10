@@ -47,6 +47,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyFloat.LastPkAttackTimestamp); else SetProperty(PropertyFloat.LastPkAttackTimestamp, value); }
         }
 
+        public double PkTimestamp
+        {
+            get => GetProperty(PropertyFloat.PkTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.PkTimestamp); else SetProperty(PropertyFloat.PkTimestamp, value); }
+        }
+
         /// <summary>
         /// Returns the current attack skill for the player
         /// </summary>
@@ -848,6 +854,12 @@ namespace ACE.Server.WorldObjects
         public bool PKLogoutActive => IsPKType && Time.GetUnixTime() - LastPkAttackTimestamp < PKLogoffTimer.TotalSeconds;
 
         public bool IsPKType => PlayerKillerStatus == PlayerKillerStatus.PK || PlayerKillerStatus == PlayerKillerStatus.PKLite;
+
+        public bool IsPK => PlayerKillerStatus == PlayerKillerStatus.PK;
+
+        public bool IsPKL => PlayerKillerStatus == PlayerKillerStatus.PKLite;
+
+        public bool IsNPK => PlayerKillerStatus == PlayerKillerStatus.NPK;
 
         public bool CheckHouseRestrictions(Player player)
         {
