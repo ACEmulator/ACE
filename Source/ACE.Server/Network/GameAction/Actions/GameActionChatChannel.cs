@@ -66,7 +66,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message);
+                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
                     }
                     break;
                 case Channel.Sentinel:
@@ -78,7 +78,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message);
+                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
                     }
                     break;
                 case Channel.Help:
