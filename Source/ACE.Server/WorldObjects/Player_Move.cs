@@ -258,7 +258,7 @@ namespace ACE.Server.WorldObjects
 
         public void TakeDamage_Falling(float amount)
         {
-            if (Invincible) return;
+            if (IsDead || Invincible) return;
 
             // handle lifestone protection?
             if (UnderLifestoneProtection)
