@@ -254,6 +254,21 @@ namespace ACE.Server.Network.Structure
                 }
             }
 
+            if (wo is ManaStone)
+            {
+                var useMesage = "";
+
+                if (wo.ItemCurMana.HasValue)
+                    useMesage = "Use on a magic item to give the stone's stored Mana to that item.";
+                else
+                    useMesage = "Use on a magic item to destroy that item and drain its Mana.";
+
+                if (PropertiesString.ContainsKey(PropertyString.Use))
+                    PropertiesString.Remove(PropertyString.Use);
+
+                PropertiesString.Add(PropertyString.Use, useMesage);
+            }
+
             BuildFlags();
         }
 

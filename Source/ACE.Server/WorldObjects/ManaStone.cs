@@ -169,6 +169,9 @@ namespace ACE.Server.WorldObjects
                             ItemCurMana = null;
                             SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
                         }
+
+                        if (UnlimitedUse && ItemMaxMana.HasValue)
+                            ItemCurMana = ItemMaxMana;
                     }
                 }
                 else if (target.ItemMaxMana.HasValue && target.ItemMaxMana.Value > 0)
