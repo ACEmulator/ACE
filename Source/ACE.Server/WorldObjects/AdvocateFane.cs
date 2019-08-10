@@ -113,8 +113,6 @@ namespace ACE.Server.WorldObjects
             var successTime = EnqueueMotion(faneTimer, successMotion);
             player.LastUseTime += successTime;
 
-            //faneTimer.AddAction(player, () => Bestow(player));
-
             faneTimer.AddAction(player, () =>
             {
                 player.AdvocateQuest = true;
