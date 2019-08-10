@@ -90,6 +90,12 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
 
+                    if (advocateLevel == player.AdvocateLevel)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{playerToFind.Name}'s Advocate rank is already at level {advocateLevel}.", ChatMessageType.Broadcast));
+                        return;
+                    }
+
                     if (!Advocate.CanAcceptAdvocateItems(player, advocateLevel))
                     {
                         session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot change {playerToFind.Name}'s Advocate status because they do not have capacity for the advocate items.", ChatMessageType.Broadcast));
