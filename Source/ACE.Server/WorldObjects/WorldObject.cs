@@ -198,13 +198,18 @@ namespace ACE.Server.WorldObjects
             }
 
             //Console.WriteLine($"AddPhysicsObj: success: {Name} ({Guid})");
-            Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
-            Location.Pos = PhysicsObj.Position.Frame.Origin;
-            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+            SyncLocation();
 
             SetPosition(PositionType.Home, new Position(Location));
 
             return true;
+        }
+
+        public void SyncLocation()
+        {
+            Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
+            Location.Pos = PhysicsObj.Position.Frame.Origin;
+            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
         }
 
         private void InitializePropertyDictionaries()
@@ -962,7 +967,7 @@ namespace ACE.Server.WorldObjects
 
         public static readonly float LocalBroadcastRange = 96.0f;
 
-        public SetPosition ScatterPos;
+        public SetPosition ScatterPos { get; set; }
 
         public DestinationType DestinationType;
 
