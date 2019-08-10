@@ -271,6 +271,8 @@ namespace ACE.Server.Entity
                 {
                     wo.RegenerationInterval = PropertyManager.GetDouble("encounter_regen_interval").Item;
 
+                    wo.ReinitializeHeartbeats();
+
                     foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
                     {
                         profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
