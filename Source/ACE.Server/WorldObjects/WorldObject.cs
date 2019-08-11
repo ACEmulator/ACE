@@ -248,6 +248,7 @@ namespace ACE.Server.WorldObjects
                 BiotaPropertySpells[x.Spell] = x;
 
             // Remove doubled up proc/use spells from spell book (incorrect data)
+            // TODO: remove the following lines when database doesn't have goofed up data ?
             if (ProcSpell.HasValue && Biota.SpellIsKnown((int)ProcSpell, BiotaDatabaseLock))
                 Biota.TryRemoveKnownSpell((int)ProcSpell.Value, out _, BiotaDatabaseLock, BiotaPropertySpells);
             if (SpellDID.HasValue && Biota.SpellIsKnown((int)SpellDID, BiotaDatabaseLock))
