@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
 
             var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
 
-            log.Info(nearbyMsg);
+            log.Debug(nearbyMsg);
 
             var excludePlayers = new List<Player>();
             if (lastDamager is Player lastDamagerPlayer)
@@ -545,7 +545,7 @@ namespace ACE.Server.WorldObjects
 
             msg = msg.Substring(0, msg.Length - 2);
 
-            log.Info(msg);
+            log.Debug(msg);
         }
 
         /// <summary>
