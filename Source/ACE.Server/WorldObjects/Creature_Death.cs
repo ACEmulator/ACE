@@ -164,9 +164,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected void CreateCorpse(WorldObject killer)
         {
-            var sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
-            try { 
             if (NoCorpse)
             {
                 var loot = GenerateTreasure(killer, null);
@@ -179,23 +176,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var sw1a = new System.Diagnostics.Stopwatch();
-            sw1a.Start();
             var cachedWeenie = DatabaseManager.World.GetCachedWeenie("corpse");
-            sw1a.Stop();
-            if (sw1a.Elapsed.Seconds >= 1)
-                log.Warn($"Creature_Death CreateCorpse() GetCachedWeenie took: {sw1a.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
 
-            var sw1b = new System.Diagnostics.Stopwatch();
-            sw1b.Start();
             var corpse = WorldObjectFactory.CreateNewWorldObject(cachedWeenie) as Corpse;
-            sw1b.Stop();
-            if (sw1b.Elapsed.Seconds >= 1)
-                log.Warn($"Creature_Death CreateCorpse() CreateNewWorldObject took: {sw1b.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
 
             var prefix = "Corpse";
 
-                if (TreasureCorpse)
+            if (TreasureCorpse)
             {
                 // Hardcoded values from PCAPs of Treasure Pile Corpses, everything else lines up exactly with existing corpse weenie
                 corpse.SetupTableId  = 0x02000EC4;
@@ -291,12 +278,7 @@ namespace ACE.Server.WorldObjects
             if (CanGenerateRare && killer != null)
                 corpse.GenerateRare(killer);
 
-            var sw2 = new System.Diagnostics.Stopwatch();
-            sw2.Start();
             corpse.EnterWorld();
-            sw2.Stop();
-            if (sw2.Elapsed.Seconds >= 1)
-                log.Warn($"Creature_Death CreateCorpse() EnterWorld took: {sw2.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
 
             if (this is Player p)
             {
@@ -308,13 +290,6 @@ namespace ACE.Server.WorldObjects
 
             if (saveCorpse)
                 corpse.SaveBiotaToDatabase();
-            }
-            finally
-            {
-                sw.Stop();
-                if (sw.Elapsed.Seconds >= 1)
-                    log.Warn($"Creature_Death CreateCorpse() took: {sw.Elapsed.TotalSeconds} - 0x{Guid}:{Name}");
-            }
         }
 
         public bool CanGenerateRare
