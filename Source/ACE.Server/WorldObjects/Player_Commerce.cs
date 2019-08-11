@@ -35,13 +35,11 @@ namespace ACE.Server.WorldObjects
 
         private List<WorldObject> CreatePayoutCoinStacks(int amount)
         {
-            const uint coinWeenieId = 273;
-
             var coinStacks = new List<WorldObject>();
 
             while (amount > 0)
             {
-                var currencyStack = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
+                var currencyStack = WorldObjectFactory.CreateNewWorldObject("coinstack");
 
                 // payment contains a max stack
                 if (currencyStack.MaxStackSize <= amount)
@@ -71,16 +69,13 @@ namespace ACE.Server.WorldObjects
 
             if (item != null)
             {
-                var isVendorService = item.GetProperty(PropertyBool.VendorService) ?? false;
+                var isVendorService = item.IsVendorService();
                 if (isVendorService)
                     return 0;
 
-                var weenieType = (WeenieType)item.Type;
+                isContainer = item.IsContainer();
 
-                isContainer = item.GetProperty(PropertyBool.RequiresBackpackSlot) ?? false || weenieType == WeenieType.Container;
-
-                var isStackable = weenieType == WeenieType.Stackable || weenieType == WeenieType.Food || weenieType == WeenieType.Coin || weenieType == WeenieType.CraftTool
-                    || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
+                var isStackable = item.IsStackable();
 
                 var itemStackUnitEncumbrance = isStackable ? (item.GetProperty(PropertyInt.StackUnitEncumbrance).HasValue ? item.GetProperty(PropertyInt.StackUnitEncumbrance) ?? 0 : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0) : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0;
                 var itemStackMaxStackSize = isStackable ? item.GetProperty(PropertyInt.MaxStackSize) ?? 1 : 1;
@@ -127,7 +122,7 @@ namespace ACE.Server.WorldObjects
             List<WorldObject> cost = new List<WorldObject>();
             uint payment = 0;
 
-            WorldObject changeobj = WorldObjectFactory.CreateNewWorldObject(273);
+            WorldObject changeobj = WorldObjectFactory.CreateNewWorldObject("coinstack");
             uint change = 0;
 
             foreach (WorldObject wo in currency)
