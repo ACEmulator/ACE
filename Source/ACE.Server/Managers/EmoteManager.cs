@@ -253,12 +253,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.DeleteSelf:
 
-                    var destroyChain = new ActionChain();
-                    destroyChain.AddAction(WorldObject, () => WorldObject.ApplyVisualEffects(PlayScript.Destroy));
-                    delay = 3.0f;
-                    destroyChain.AddDelaySeconds(delay);
-                    destroyChain.AddAction(WorldObject, () => WorldObject.Destroy());
-                    destroyChain.EnqueueChain();
+                    WorldObject.Destroy();
 
                     break;
 
