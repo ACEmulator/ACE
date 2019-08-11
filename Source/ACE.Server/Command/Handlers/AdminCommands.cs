@@ -1909,24 +1909,27 @@ namespace ACE.Server.Command.Handlers
                     return;
             }
 
+            CreatureVital maxVital = new CreatureVital(creature, maxAttr);
+            maxVital.Ranks = (uint)Math.Clamp(maxVital.Ranks + delta, 1, uint.MaxValue);
+            creature.UpdateVital(maxVital, maxVital.MaxValue);
+
+            CreatureVital vital = new CreatureVital(creature, vitalAttr);
+            vital.Ranks = (uint)Math.Clamp(vital.Ranks + delta, 1, uint.MaxValue);
+            creature.UpdateVital(vital, maxVital.MaxValue);
+
             if (creature is Player)
             {
                 Player player = creature as Player;
-                CreatureVital playerVital = player.Vitals[maxAttr];
-                playerVital.Ranks = (uint)Math.Clamp(playerVital.Ranks + delta, 1, uint.MaxValue);
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(player, playerVital.Vital, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
-            }
-            else
-            {
-                CreatureVital maxVital = new CreatureVital(creature, maxAttr);
-                maxVital.Ranks = (uint)Math.Clamp(maxVital.Ranks + delta, 1, uint.MaxValue);
-                creature.UpdateVital(maxVital, maxVital.MaxValue);
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(player, maxVital.Vital, maxVital.Ranks, maxVital.StartingValue, maxVital.ExperienceSpent, maxVital.Current));
             }
 
             creature.SetMaxVitals();
 
             // save changes
-            creature.SaveBiotaToDatabase();
+            if (creature is Player || creature.IsDynamicThatShouldPersistToShard())
+            {
+                creature.SaveBiotaToDatabase();
+            }
         }
 
         [CommandHandler("modifyskill", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts the skill for the last appraised mob/player", "<skillName> <delta>")]
@@ -1953,11 +1956,19 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            CreatureSkill creatureSkill = creature.GetCreatureSkill(skill);
-            creatureSkill.Ranks = (ushort)Math.Clamp(creatureSkill.Base + delta, 0, (Int32)ushort.MaxValue);
+            CreatureSkill creatureSkill = creature is Player ? creature.Skills[skill] : creature.GetCreatureSkill(skill);
+            creatureSkill.InitLevel = (ushort)Math.Clamp(creatureSkill.InitLevel + delta, 0, (Int32)ushort.MaxValue);
 
             // save changes
-            creature.SaveBiotaToDatabase();
+            if (creature is Player || creature.IsDynamicThatShouldPersistToShard())
+            {
+                creature.SaveBiotaToDatabase();
+            }
+            if (creature is Player)
+            {
+                Player player = creature as Player;
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, creatureSkill.Skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, creatureSkill.ExperienceSpent));
+            }
         }
 
         // heal
