@@ -59,11 +59,11 @@ namespace ACE.Server.WorldObjects
             return coinStacks;
         }
 
-        public int PreCheckItem(uint weenieClassId, int amount, int playerFreeContainerSlots, int playerFreeInventorySlots, int playerFreeAvailableBurden, out int requiredEncumbrance, out bool isContainer)
+        public int PreCheckItem(uint weenieClassId, int amount, int playerFreeContainerSlots, int playerFreeInventorySlots, int playerFreeAvailableBurden, out int requiredEncumbrance, out bool requiresBackpackSlot)
         {
             var itemStacks = 0;
             requiredEncumbrance = 0;
-            isContainer = false;
+            requiresBackpackSlot = false;
 
             var item = DatabaseManager.World.GetCachedWeenie(weenieClassId);
 
@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
                 if (isVendorService)
                     return 0;
 
-                isContainer = item.RequiresBackPackSlot();
+                requiresBackpackSlot = item.RequiresBackpackSlot();
 
                 var isStackable = item.IsStackable();
 
