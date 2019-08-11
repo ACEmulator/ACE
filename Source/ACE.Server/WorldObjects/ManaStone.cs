@@ -164,7 +164,7 @@ namespace ACE.Server.WorldObjects
                         var msg = $"The Mana Stone gives {itemsGivenMana.Values.Sum():N0} points of mana to the following items: {itemsGivenMana.Select(c => c.Key.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
-                        if (!DoDestroyDiceRoll(player) & !UnlimitedUse)
+                        if (!DoDestroyDiceRoll(player) && !UnlimitedUse)
                         {
                             ItemCurMana = null;
                             SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
@@ -192,7 +192,7 @@ namespace ACE.Server.WorldObjects
                         var msg = $"The Mana Stone gives {manaToPour:N0} points of mana to the {target.Name}.";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
-                        if (!DoDestroyDiceRoll(player) & !UnlimitedUse)
+                        if (!DoDestroyDiceRoll(player) && !UnlimitedUse)
                         {
                             ItemCurMana = null;
                             SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
