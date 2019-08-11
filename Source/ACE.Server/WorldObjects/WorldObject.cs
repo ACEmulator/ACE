@@ -246,6 +246,12 @@ namespace ACE.Server.WorldObjects
 
             foreach (var x in Biota.BiotaPropertiesSpellBook)
                 BiotaPropertySpells[x.Spell] = x;
+
+            // Remove doubled up proc/use spells from spell book (incorrect data)
+            if (ProcSpell.HasValue && Biota.SpellIsKnown((int)ProcSpell, BiotaDatabaseLock))
+                Biota.TryRemoveKnownSpell((int)ProcSpell.Value, out _, BiotaDatabaseLock, BiotaPropertySpells);
+            if (SpellDID.HasValue && Biota.SpellIsKnown((int)SpellDID, BiotaDatabaseLock))
+                Biota.TryRemoveKnownSpell((int)SpellDID.Value, out _, BiotaDatabaseLock, BiotaPropertySpells);
         }
 
         private void SetEphemeralValues()
