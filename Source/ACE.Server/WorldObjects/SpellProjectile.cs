@@ -521,12 +521,12 @@ namespace ACE.Server.WorldObjects
             {
                 if (Spell.Name.Contains("Blight"))
                 {
-                    percent = (float)damage / targetPlayer.Mana.MaxValue;
+                    percent = (float)damage / target.Mana.MaxValue;
                     amount = (uint)-target.UpdateVitalDelta(target.Mana, (int)-Math.Round(damage.Value));
                 }
                 else
                 {
-                    percent = (float)damage / targetPlayer.Stamina.MaxValue;
+                    percent = (float)damage / target.Stamina.MaxValue;
                     amount = (uint)-target.UpdateVitalDelta(target.Stamina, (int)-Math.Round(damage.Value));
                 }
             }
