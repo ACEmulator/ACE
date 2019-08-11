@@ -515,7 +515,7 @@ namespace ACE.Database.Models.World
                 || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem  || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
         }
 
-        public static bool IsContainer(this Weenie weenie)
+        public static bool RequiresBackPackSlot(this Weenie weenie)
         {
             var requiresBackPackSlot = weenie.GetProperty(PropertyBool.RequiresBackpackSlot) ?? false;
 
