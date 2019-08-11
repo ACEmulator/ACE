@@ -252,5 +252,24 @@ namespace ACE.Server.WorldObjects
         {
             Session.Network.EnqueueSend(new GameMessageAdminEnvirons(Session, environChangeType));
         }
+
+        public void SetPlayerKillerStatus(PlayerKillerStatus playerKillerStatus, bool broadcast = false)
+        {
+            switch (playerKillerStatus)
+            {
+                case PlayerKillerStatus.NPK:
+                case PlayerKillerStatus.PK:
+                case PlayerKillerStatus.PKLite:
+                    PlayerKillerStatus = PlayerKillerStatus.NPK;
+                    MinimumTimeSincePk = 0;
+                    break;
+                case PlayerKillerStatus.Free:
+                    PlayerKillerStatus = PlayerKillerStatus.Free;
+                    break;
+            }
+
+            if (broadcast)
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
+        }
     }
 }

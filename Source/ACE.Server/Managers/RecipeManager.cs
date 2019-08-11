@@ -508,7 +508,13 @@ namespace ACE.Server.Managers
 
             // increase # of times tinkered, if appropriate
             if (incItemTinkered)
+            {
                 target.NumTimesTinkered++;
+
+                if (target.TinkerLog != null)
+                    target.TinkerLog += ",";
+                target.TinkerLog += (int)materialType;
+            }
         }
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
