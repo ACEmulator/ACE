@@ -250,9 +250,15 @@ namespace ACE.Server.WorldObjects
             // Remove doubled up proc/use spells from spell book (incorrect data)
             // TODO: remove the following lines when database doesn't have goofed up data ?
             if (ProcSpell.HasValue && Biota.SpellIsKnown((int)ProcSpell, BiotaDatabaseLock))
+            {
+                log.Warn($"{Name}.InitializePropertyDictionaries({Name} ({Guid}, wcid {WeenieClassId})) - spellbook contains {ProcSpell.Value} which is the same as its ProcSpell, removing.");
                 Biota.TryRemoveKnownSpell((int)ProcSpell.Value, out _, BiotaDatabaseLock, BiotaPropertySpells);
+            }
             if (SpellDID.HasValue && Biota.SpellIsKnown((int)SpellDID, BiotaDatabaseLock))
+            {
+                log.Warn($"{Name}.InitializePropertyDictionaries({Name} ({Guid}, wcid {WeenieClassId})) - spellbook contains {SpellDID.Value} which is the same as its SpellDID, removing.");
                 Biota.TryRemoveKnownSpell((int)SpellDID.Value, out _, BiotaDatabaseLock, BiotaPropertySpells);
+            }
         }
 
         private void SetEphemeralValues()
