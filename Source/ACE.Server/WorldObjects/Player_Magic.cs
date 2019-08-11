@@ -443,18 +443,18 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            var castGesture = spell.Formula.CastGesture;
+            if (isWeaponSpell && caster.UseUserAnimation != 0)
+                castGesture = caster.UseUserAnimation;
+
             // cast spell
             spellChain.AddAction(this, () =>
             {
-                var castGesture = spell.Formula.CastGesture;
-                if (isWeaponSpell && caster.UseUserAnimation != 0)
-                    castGesture = caster.UseUserAnimation;
-
                 var motionCastSpell = new Motion(MotionStance.Magic, castGesture, castSpeed);
                 EnqueueBroadcastMotion(motionCastSpell);
             });
 
-            var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed, isWeaponSpell);
+            var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed, isWeaponSpell ? (MotionCommand?)castGesture : null);
             spellChain.AddDelaySeconds(castingDelay);
 
             bool movedTooFar = false;

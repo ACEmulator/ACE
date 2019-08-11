@@ -11,6 +11,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -519,6 +520,10 @@ namespace ACE.Server.WorldObjects
 
         public static List<BiotaPropertiesCreateList> CreateListSelect(List<BiotaPropertiesCreateList> createList)
         {
+            var trophy_drop_rate = PropertyManager.GetDouble("trophy_drop_rate").Item;
+            if (trophy_drop_rate != 1.0)
+                return CreateListSelect(createList, (float)trophy_drop_rate);
+
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var totalProbability = 0.0f;
             var rngSelected = false;
@@ -543,6 +548,54 @@ namespace ACE.Server.WorldObjects
                     }
 
                     var probability = shadeOrProbability;
+
+                    totalProbability += probability;
+
+                    if (rngSelected || rng > totalProbability)
+                        continue;
+
+                    rngSelected = true;
+                }
+
+                results.Add(item);
+            }
+
+            return results;
+        }
+
+        public static List<BiotaPropertiesCreateList> CreateListSelect(List<BiotaPropertiesCreateList> _createList, float dropRateMod)
+        {
+            var createList = new CreateList(_createList);
+            CreateListSetModifier modifier = null;
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            var totalProbability = 0.0f;
+            var rngSelected = false;
+
+            var results = new List<BiotaPropertiesCreateList>();
+
+            for (var i = 0; i < _createList.Count; i++)
+            {
+                var item = _createList[i];
+
+                var destinationType = (DestinationType)item.DestinationType;
+                var useRNG = destinationType.HasFlag(DestinationType.Treasure) && item.Shade != 0;
+
+                var shadeOrProbability = item.Shade;
+
+                if (useRNG)
+                {
+                    // handle sets in 0-1 chunks
+                    if (totalProbability == 0.0f || totalProbability >= 1.0f)
+                    {
+                        totalProbability = 0.0f;
+                        rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                        rngSelected = false;
+
+                        modifier = createList.GetSetModifier(i, dropRateMod);
+                    }
+
+                    var probability = shadeOrProbability * (item.WeenieClassId != 0 ? modifier.TrophyMod : modifier.NoneMod);
 
                     totalProbability += probability;
 

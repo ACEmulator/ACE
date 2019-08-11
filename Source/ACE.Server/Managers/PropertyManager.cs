@@ -124,6 +124,7 @@ namespace ACE.Server.Managers
                 CachedBooleanSettings[key].Modify(newVal);
             else
                 CachedBooleanSettings[key] = new ConfigurationEntry<bool>(true, newVal, DefaultPropertyManager.DefaultBooleanProperties[key].Description);
+
             return true;
         }
 
@@ -477,24 +478,26 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, Property<bool>> DefaultBooleanProperties =
             DictOf(
-                ("account_login_boots_in_use", new Property<bool>(true, "if FALSE, oldest connection to account is not booted when new connection occurs.")),
+                ("account_login_boots_in_use", new Property<bool>(true, "if FALSE, oldest connection to account is not booted when new connection occurs")),
                 ("advanced_combat_pets", new Property<bool>(false, "(non-retail function) If enabled, Combat Pets can cast spells")),
-                ("assess_creature_mod", new Property<bool>(false, "(non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed.")),
+                ("advocate_fane_auto_bestow", new Property<bool>(false, "If enabled, Advocate Fane will automatically bestow new advocates to advocate_fane_auto_bestow_level")),
+                ("assess_creature_mod", new Property<bool>(false, "(non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed")),
                 ("fellow_kt_killer", new Property<bool>(true, "if FALSE, fellowship kill tasks will share with the fellowship, even if the killer doesn't have the quest")),
                 ("fellow_kt_landblock", new Property<bool>(false, "if TRUE, fellowship kill tasks will share with landblock range (192 distance radius, or entire dungeon)")),
                 ("fellow_quest_bonus", new Property<bool>(false, "if TRUE, applies EvenShare formula to fellowship quest reward XP (300% max bonus, defaults to false in retail)")),
                 ("house_per_char", new Property<bool>(false, "if TRUE, allows 1 house per char instead of 1 house per account")),
-                ("iou_trades", new Property<bool>(false, "(non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on.")),
+                ("iou_trades", new Property<bool>(false, "(non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on")),
                 ("chess_enabled", new Property<bool>(true, "if FALSE then chess will be disabled")),
                 ("corpse_decay_tick_logging", new Property<bool>(false, "If ENABLED then player corpse ticks will be logged")),
                 ("corpse_destroy_pyreals", new Property<bool>(true, "If FALSE then pyreals will not be completely destroyed on player death")),
                 ("gateway_ties_summonable", new Property<bool>(true, "if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail")),
-                ("house_purchase_requirements", new Property<bool>(true, "")),
+                ("house_purchase_requirements", new Property<bool>(true, "if disabled, requirements to purchase/rent house are not checked")),
                 ("house_rent_enabled", new Property<bool>(true, "If FALSE then rent is not required")),
                 ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),                     
                 ("override_encounter_spawn_rates", new Property<bool>(false, "if enabled, landblock encounter spawns are overidden by double properties below.")),
                 ("player_receive_immediate_save", new Property<bool>(false, "if enabled, when the player receives items from an NPC, they will be saved immediately")),
                 ("pk_server", new Property<bool>(false, "set this to TRUE for darktide servers")),
+                ("pk_server_safe_training_academy", new Property<bool>(false, "set this to TRUE to disable pk fighting in training academy and time to exit starter town safely")),
                 ("pkl_server", new Property<bool>(false, "set this to TRUE for pink servers")),
                 ("quest_info_enabled", new Property<bool>(false, "toggles the /myquests player command")),
                 ("salvage_handle_overages", new Property<bool>(false, "in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost")),
@@ -503,7 +506,7 @@ namespace ACE.Server.Managers
                 ("universal_masteries", new Property<bool>(true, "if TRUE, matches end of retail masteries - players wielding almost any weapon get +5 DR, except if the weapon \"seems tough to master\". " +
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
-                ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world."))
+                ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<long>> DefaultLongProperties =
@@ -517,6 +520,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
             DictOf(
+                ("advocate_fane_auto_bestow_level", new Property<double>(1, "the level that advocates are automatically bestowed by Advocate Fane if advocate_fane_auto_bestow is true")),
                 ("minor_cantrip_drop_rate", new Property<double>(1.0, "Modifier for minor cantrip drop rate, 1 being normal")),
                 ("major_cantrip_drop_rate", new Property<double>(1.0, "Modifier for major cantrip drop rate, 1 being normal")),
                 ("epic_cantrip_drop_rate", new Property<double>(1.0, "Modifier for epic cantrip drop rate, 1 being normal")),
@@ -524,8 +528,11 @@ namespace ACE.Server.Managers
                 ("aetheria_drop_rate", new Property<double>(1.0, "Modifier for Aetheria drop rate, 1 being normal")),
                 ("chess_ai_start_time", new Property<double>(-1.0, "the number of seconds for the chess ai to start. defaults to -1 (disabled)")),
                 ("encounter_delay", new Property<double>(1800, "the number of seconds a generator profile for regions is delayed from returning to free slots")),
-                ("encounter_regen_interval", new Property<double>(600, "the number of seconds a generator for regions at which spawns its next set of objects.")),
+                ("encounter_regen_interval", new Property<double>(600, "the number of seconds a generator for regions at which spawns its next set of objects")),
                 ("luminance_modifier", new Property<double>(1.0, "scales the amount of luminance received by players")),
+                ("pk_new_character_grace_period", new Property<double>(300, "the number of seconds, in addition to pk_respite_timer, that a player killer is set to non-player killer status after first exiting training academy")),
+                ("pk_respite_timer", new Property<double>(300, "the number of seconds that a player killer is set to non-player killer status after dying to another player killer")),
+                ("trophy_drop_rate", new Property<double>(1.0, "Modifier for trophies dropped on creature death")),
                 ("vendor_unique_rot_time", new Property<double>(300, "the number of seconds before unique items sold to vendors disappear")),
                 ("vitae_penalty", new Property<double>(0.05, "the amount of vitae penalty a player gets per death")),
                 ("vitae_penalty_max", new Property<double>(0.40, "the maximum vitae penalty a player can have")),
@@ -534,7 +541,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, Property<String>> DefaultStringProperties =
             DictOf(
-                ("content_folder", new Property<string>(".\\Content", "for content creators to live edit weenies. defaults to Content in the netcoreapp2.1 folder")),
+                ("content_folder", new Property<string>(".\\Content", "for content creators to live edit weenies. defaults to Content in the netcoreapp2.2 folder")),
                 ("popup_header", new Property<string>("Welcome to Asheron's Call!", "Welcome message displayed when you log in")),
                 ("popup_welcome", new Property<string>("To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.", "Welcome message popup in training halls")),
                 ("popup_motd", new Property<string>("", "Popup message of the day")),
