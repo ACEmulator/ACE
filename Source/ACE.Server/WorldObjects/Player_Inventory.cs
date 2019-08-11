@@ -291,25 +291,8 @@ namespace ACE.Server.WorldObjects
                     if (item.HasProcSpell((uint)spell.Spell))
                         continue;
 
-                    if (ProcSpell.HasValue && spell.Spell == ProcSpell.Value)
-                    {
-                        var _spell = new Spell(spell.Spell, false);
-                        log.Warn($"{Name}.TryEquipObjectWithNetworking({item.Name} ({item.Guid}, wcid {item.WeenieClassId})) - spellbook contains {spell.Spell} which is the same as its ProcSpell({ProcSpell.Value}), skipping..");
+                    if (item.ProcSpell.HasValue && spell.Spell == item.ProcSpell.Value || item.SpellDID.HasValue && spell.Spell == item.SpellDID.Value)
                         continue;
-                    }
-
-                    if (SpellDID.HasValue && spell.Spell == SpellDID.Value)
-                    {
-                        var _spell = new Spell(spell.Spell, false);
-                        log.Warn($"{Name}.TryEquipObjectWithNetworking({item.Name} ({item.Guid}, wcid {item.WeenieClassId})) - spellbook contains {spell.Spell} which is the same as its SpellDID({SpellDID.Value}), skipping..");
-                        continue;
-                    }
-
-                    if (spell.Probability < 2.0f)
-                    {
-                        var _spell = new Spell(spell.Spell, false);
-                        log.Warn($"{Name}.TryEquipObjectWithNetworking({item.Name} ({item.Guid}, wcid {item.WeenieClassId})) - spellbook contains {_spell.Name} probability {spell.Probability}, less than expected default of 2.0, casting anyway.");
-                    }
 
                     var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
                     if (enchantmentStatus.Success)
