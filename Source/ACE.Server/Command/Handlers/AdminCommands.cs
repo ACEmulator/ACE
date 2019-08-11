@@ -22,6 +22,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network.Enum;
+using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
 
@@ -1863,6 +1864,100 @@ namespace ACE.Server.Command.Handlers
             // output: You are now a magic god!!!
 
             ChatPacket.SendServerMessage(session, "You are now a magic god!!!", ChatMessageType.Broadcast);
+        }
+
+        
+        [CommandHandler("modifyvital", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts the maximum vital attribute for the last appraised mob/player and restores full vitals", "<Health|Stamina|Mana> <delta>")]
+        public static void HandleModifyVital(Session session, params string[] parameters)
+        {
+            var lastAppraised = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (lastAppraised == null || !(lastAppraised is Creature)) return;
+            var creature = lastAppraised as Creature;
+
+            if (parameters.Length < 2)
+            {
+                ChatPacket.SendServerMessage(session, "Usage: modifyvital <Invalid vital type, valid values are: Health,Stamina,Mana", ChatMessageType.Broadcast);
+                return;
+            }
+
+            // determine the vital type
+            if (!Enum.TryParse(parameters[0], out PropertyAttribute2nd vitalAttr)) {
+                ChatPacket.SendServerMessage(session, "Invalid vital type, valid values are: Health,Stamina,Mana", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (!Int32.TryParse(parameters[1], out int delta))
+            {
+                ChatPacket.SendServerMessage(session, "Invalid vital value, values must be valid integers", ChatMessageType.Broadcast);
+                return;
+            }
+
+            PropertyAttribute2nd maxAttr;
+            switch (vitalAttr)
+            {
+                case PropertyAttribute2nd.Health:
+                    maxAttr = PropertyAttribute2nd.MaxHealth;
+                    break;
+                case PropertyAttribute2nd.Stamina:
+                    maxAttr = PropertyAttribute2nd.MaxStamina;
+                    break;
+                case PropertyAttribute2nd.Mana:
+                    maxAttr = PropertyAttribute2nd.MaxMana;
+                    break;
+                default:
+                    ChatPacket.SendServerMessage(session, "Unexpected vital type, valid values are: Health,Stamina,Mana", ChatMessageType.Broadcast);
+                    return;
+            }
+
+            if (creature is Player)
+            {
+                Player player = creature as Player;
+                CreatureVital playerVital = player.Vitals[maxAttr];
+                playerVital.Ranks = (uint)Math.Clamp(playerVital.Ranks + delta, 1, uint.MaxValue);
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(player, playerVital.Vital, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+            }
+            else
+            {
+                CreatureVital maxVital = new CreatureVital(creature, maxAttr);
+                maxVital.Ranks = (uint)Math.Clamp(maxVital.Ranks + delta, 1, uint.MaxValue);
+                creature.UpdateVital(maxVital, maxVital.MaxValue);
+            }
+
+            creature.SetMaxVitals();
+
+            // save changes
+            creature.SaveBiotaToDatabase();
+        }
+
+        [CommandHandler("modifyskill", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts the skill for the last appraised mob/player", "<skillName> <delta>")]
+        public static void HandleModifySkill(Session session, params string[] parameters)
+        {
+            var lastAppraised = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (lastAppraised == null || !(lastAppraised is Creature)) return;
+            var creature = lastAppraised as Creature;
+
+            if (parameters.Length < 2)
+            {
+                ChatPacket.SendServerMessage(session, "Usage: modifyskill <skillName> <delta>: missing skillId and/or delta", ChatMessageType.Broadcast);
+                return;
+            }
+            if (!Enum.TryParse(parameters[0], out Skill skill))
+            {
+                String[] names = Enum.GetNames(typeof(Skill));
+                ChatPacket.SendServerMessage(session, "Invalid skillName, must be a valid skill name (without spaces, with capitalization), valid values are: " + String.Join(", ", names), ChatMessageType.Broadcast);
+                return;
+            }
+            if (!Int32.TryParse(parameters[1], out int delta))
+            {
+                ChatPacket.SendServerMessage(session, "Invalid delta, must be a valid integer", ChatMessageType.Broadcast);
+                return;
+            }
+
+            CreatureSkill creatureSkill = creature.GetCreatureSkill(skill);
+            creatureSkill.Ranks = (ushort)Math.Clamp(creatureSkill.Base + delta, 0, (Int32)ushort.MaxValue);
+
+            // save changes
+            creature.SaveBiotaToDatabase();
         }
 
         // heal
