@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -346,6 +347,52 @@ namespace ACE.Server.Entity
             Scenery = Entity.Scenery.Load(this);
         }
 
+        public void TickPhysics(double tickTime, ConcurrentBag<WorldObject> movedObjects)
+        {
+            foreach (WorldObject wo in GetWorldObjectsForPhysicsHandling())
+            {
+                // set to TRUE if object changes landblock
+                var landblockUpdate = false;
+
+                // detect player movement
+                // TODO: handle players the same as everything else
+                if (wo is Player player)
+                {
+                    wo.InUpdate = true;
+
+                    var newPosition = HandlePlayerPhysics(player);
+
+                    // update position through physics engine
+                    if (newPosition != null)
+                        landblockUpdate = wo.UpdatePlayerPhysics(newPosition);
+
+                    wo.InUpdate = false;
+                }
+                else
+                    landblockUpdate = wo.UpdateObjectPhysics();
+
+                if (landblockUpdate)
+                    movedObjects.Add(wo);
+            }
+        }
+
+        /// <summary>
+        /// Detects if player has moved through ForcedLocation or RequestedLocation
+        /// </summary>
+        private static Position HandlePlayerPhysics(Player player)
+        {
+            Position newPosition = null;
+
+            if (player.ForcedLocation != null)
+                newPosition = player.ForcedLocation;
+            else if (player.RequestedLocation != null)
+                newPosition = player.RequestedLocation;
+
+            if (newPosition != null)
+                player.ClearRequestedPositions();
+
+            return newPosition;
+        }
         public void Tick(double currentUnixTime)
         {
             Monitor1h.RegisterEventStart();

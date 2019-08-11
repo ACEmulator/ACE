@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+
 using log4net;
 
 using ACE.Common;
@@ -182,35 +183,78 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void Tick()
+        private static void CheckIfLandblockGroupsNeedRecalculating()
         {
-            if (threadSeparatedLandblockGroupsNeedsRecalculating)
+            if (!threadSeparatedLandblockGroupsNeedsRecalculating)
+                return;
+
+            lock (landblockMutex)
             {
-                lock (landblockMutex)
+                threadSeparatedLandblockGroups.Clear();
+
+                var landblocksAdded = new HashSet<Landblock>(loadedLandblocks.Count);
+
+                foreach (var loadedLandblock in loadedLandblocks)
                 {
-                    threadSeparatedLandblockGroups.Clear();
-
-                    var landblocksAdded = new HashSet<Landblock>(loadedLandblocks.Count);
-
-                    foreach (var loadedLandblock in loadedLandblocks)
+                    if (!landblocksAdded.Contains(loadedLandblock))
                     {
-                        if (!landblocksAdded.Contains(loadedLandblock))
-                        {
-                            var workingSet = new List<Landblock>();
+                        var workingSet = new List<Landblock>();
 
-                            AddLandblockToLandblockGroup(landblocksAdded, workingSet, loadedLandblock);
+                        AddLandblockToLandblockGroup(landblocksAdded, workingSet, loadedLandblock);
 
-                            threadSeparatedLandblockGroups.Add(workingSet);
-                        }
+                        threadSeparatedLandblockGroups.Add(workingSet);
                     }
+                }
 
-                    // Debugging
-                    if (landblocksAdded.Count != loadedLandblocks.Count)
-                        log.Error($"landblocksAdded.Count ({landblocksAdded.Count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
+                // Debugging
+                if (landblocksAdded.Count != loadedLandblocks.Count)
+                    log.Error($"landblocksAdded.Count ({landblocksAdded.Count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
 
-                    threadSeparatedLandblockGroupsNeedsRecalculating = false;
+                threadSeparatedLandblockGroupsNeedsRecalculating = false;
+            }
+        }
+
+        /// <summary>
+        /// Processes physics objects in all active landblocks for updating
+        /// </summary>
+        public static void TickPhysics(double tickTime)
+        {
+            CheckIfLandblockGroupsNeedRecalculating();
+
+            var movedObjects = new ConcurrentBag<WorldObject>();
+
+            if (false && MultiThreadedLandblockGroupTicking) // Disabled for now...
+            {
+                Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup =>
+                {
+                    foreach (var landblock in landblockGroup)
+                        landblock.TickPhysics(tickTime, movedObjects);
+                });
+            }
+            else
+            {
+                foreach (var landblockGroup in threadSeparatedLandblockGroups)
+                {
+                    foreach (var landblock in landblockGroup)
+                        landblock.TickPhysics(tickTime, movedObjects);
                 }
             }
+
+            // iterate through objects that have changed landblocks
+            foreach (var movedObject in movedObjects)
+            {
+                // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
+                if (movedObject.Location == null)
+                    continue;
+
+                // assume adjacency move here?
+                RelocateObjectForPhysics(movedObject, true);
+            }
+        }
+
+        public static void Tick()
+        {
+            CheckIfLandblockGroupsNeedRecalculating();
 
             if (MultiThreadedLandblockGroupTicking)
             {
@@ -451,7 +495,7 @@ namespace ACE.Server.Managers
             if (pSync)
             {
                 var pLandblock = Physics.Common.LScape.get_landblock(landblock.Id.Raw | 0xFFFF);
-                pLandblock.get_adjacents(true);
+                pLandblock.get_adjacents(true); // TODO: change this to a new function rebuild_adjacents
             }
 
             if (traverse)
