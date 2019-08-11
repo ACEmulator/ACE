@@ -263,10 +263,7 @@ namespace ACE.Server.Network.Structure
                 else
                     useMessage = "Use on a magic item to destroy that item and drain its Mana.";
 
-                if (PropertiesString.ContainsKey(PropertyString.Use))
-                    PropertiesString.Remove(PropertyString.Use);
-
-                PropertiesString.Add(PropertyString.Use, useMessage);
+                PropertiesString[PropertyString.Use] = useMessage;
             }
 
             BuildFlags();
