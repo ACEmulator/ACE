@@ -291,7 +291,7 @@ namespace ACE.Server.WorldObjects
                     if (item.HasProcSpell((uint)spell.Spell))
                         continue;
 
-                    if (item.ProcSpell.HasValue && spell.Spell == item.ProcSpell.Value || item.SpellDID.HasValue && spell.Spell == item.SpellDID.Value)
+                    if (spell.Spell == item.ProcSpell || spell.Spell == item.SpellDID)
                         continue;
 
                     var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
