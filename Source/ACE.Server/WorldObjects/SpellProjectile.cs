@@ -323,9 +323,8 @@ namespace ACE.Server.WorldObjects
         /// Calculates the damage for a spell projectile
         /// Used by war magic, void magic, and life magic projectiles
         /// </summary>
-        public double? CalculateDamage(WorldObject _source, Creature target, ref bool criticalHit, ref bool critDefended)
+        public double? CalculateDamage(WorldObject source, Creature target, ref bool criticalHit, ref bool critDefended)
         {
-            var source = _source as Creature;
             var sourcePlayer = source as Player;
             var targetPlayer = target as Player;
 
@@ -360,7 +359,7 @@ namespace ACE.Server.WorldObjects
                 attackSkill = sourceCreature.GetCreatureSkill(Spell.School);
 
             // critical hit
-            var critical = GetWeaponMagicCritFrequencyModifier(source, attackSkill, target);
+            var critical = GetWeaponMagicCritFrequencyModifier(sourceCreature, attackSkill, target);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
                 if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
@@ -383,10 +382,10 @@ namespace ACE.Server.WorldObjects
             if (isPVP && Spell.IsHarmful)
                 Player.UpdatePKTimers(sourcePlayer, targetPlayer);
 
-            var elementalDmgBonus = GetCasterElementalDamageModifier(source, target, Spell.DamageType);
+            var elementalDmgBonus = GetCasterElementalDamageModifier(sourceCreature, target, Spell.DamageType);
 
             // Possible 2x + damage bonus for the slayer property
-            var slayerBonus = GetWeaponCreatureSlayerModifier(source, target);
+            var slayerBonus = GetWeaponCreatureSlayerModifier(sourceCreature, target);
 
             // life magic projectiles: ie., martyr's hecatomb
             if (Spell.School == MagicSchool.LifeMagic)
@@ -396,7 +395,7 @@ namespace ACE.Server.WorldObjects
                 // could life magic projectiles crit?
                 // if so, did they use the same 1.5x formula as war magic, instead of 2.0x?
                 if (criticalHit)
-                    damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritDamageMod(source, attackSkill, target);
+                    damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
                 finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * shieldMod;
                 return finalDamage;
@@ -411,7 +410,7 @@ namespace ACE.Server.WorldObjects
                     else   // PvE: 50% of the MAX damage added to normal damage roll
                         damageBonus = Spell.MaxDamage * 0.5f;
 
-                    var critDamageMod = GetWeaponCritDamageMod(source, attackSkill, target);
+                    var critDamageMod = GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
                     damageBonus *= critDamageMod;
                 }
@@ -424,7 +423,7 @@ namespace ACE.Server.WorldObjects
                     // per retail stats, level 8 difficulty is capped to 350 instead of 400
                     // without this, level 7s have the potential to deal more damage than level 8s
                     var difficulty = Math.Min(Spell.Power, 350);
-                    var magicSkill = source.GetCreatureSkill(Spell.School).Current;
+                    var magicSkill = sourcePlayer.GetCreatureSkill(Spell.School).Current;
 
                     if (magicSkill > difficulty)
                     {
@@ -437,7 +436,7 @@ namespace ACE.Server.WorldObjects
                 }
                 var baseDamage = ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
 
-                var weaponResistanceMod = GetWeaponResistanceModifier(source, attackSkill, Spell.DamageType);
+                var weaponResistanceMod = GetWeaponResistanceModifier(sourceCreature, attackSkill, Spell.DamageType);
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
                 finalDamage *= target.GetResistanceMod(resistanceType, null, weaponResistanceMod)
@@ -517,18 +516,15 @@ namespace ACE.Server.WorldObjects
             var sneakAttackMod = 1.0f;
 
             // handle life projectiles for stamina / mana
-            if (Spell.School == MagicSchool.LifeMagic && (Spell.Name.Contains("Blight") || Spell.Name.Contains("Tenacity")))
+            if (Spell.Category == SpellCategory.StaminaLowering)
             {
-                if (Spell.Name.Contains("Blight"))
-                {
-                    percent = (float)damage / targetPlayer.Mana.MaxValue;
-                    amount = (uint)-target.UpdateVitalDelta(target.Mana, (int)-Math.Round(damage.Value));
-                }
-                else
-                {
-                    percent = (float)damage / targetPlayer.Stamina.MaxValue;
-                    amount = (uint)-target.UpdateVitalDelta(target.Stamina, (int)-Math.Round(damage.Value));
-                }
+                percent = (float)damage / target.Stamina.MaxValue;
+                amount = (uint)-target.UpdateVitalDelta(target.Stamina, (int)-Math.Round(damage.Value));
+            }
+            else if (Spell.Category == SpellCategory.ManaLowering)
+            {
+                percent = (float)damage / target.Mana.MaxValue;
+                amount = (uint)-target.UpdateVitalDelta(target.Mana, (int)-Math.Round(damage.Value));
             }
             else
             {
@@ -577,21 +573,35 @@ namespace ACE.Server.WorldObjects
                 {
                     var critProt = critDefended ? " Your target's Critical Protection augmentation allows them to avoid your critical hit!" : "";
 
-                    var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}", ChatMessageType.Magic);
-                    var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
+                    var attackerMsg = $"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}";
+
+                    // could these crit / sneak attack?
+                    if (Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering)
+                    {
+                        var vital = Spell.Category == SpellCategory.StaminaLowering ? "stamina" : "mana";
+                        attackerMsg = $"With {Spell.Name} you drain {amount} points of {vital} from {target.Name}.";
+                    }
 
                     if (!player.SquelchManager.Squelches.Contains(target, ChatMessageType.Magic))
-                        player.Session.Network.EnqueueSend(attackerMsg);
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(attackerMsg, ChatMessageType.Magic));
 
-                    player.Session.Network.EnqueueSend(updateHealth);
+                    player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                 }
 
                 if (targetPlayer != null)
                 {
                     var critProt = critDefended ? " Your Critical Protection augmentation allows you to avoid a critical hit!" : "";
 
+                    var defenderMsg = $"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}";
+
+                    if (Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering)
+                    {
+                        var vital = Spell.Category == SpellCategory.StaminaLowering ? "stamina" : "mana";
+                        defenderMsg = $"{ProjectileSource.Name} casts {Spell.Name} and drains {amount} points of your {vital}.";
+                    }
+
                     if (!targetPlayer.SquelchManager.Squelches.Contains(ProjectileSource, ChatMessageType.Magic))
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}", ChatMessageType.Magic));
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(defenderMsg, ChatMessageType.Magic));
                 }
             }
             else

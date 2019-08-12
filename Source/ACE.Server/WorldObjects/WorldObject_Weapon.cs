@@ -233,7 +233,7 @@ namespace ACE.Server.WorldObjects
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (weapon == null)
+            if (wielder == null || weapon == null)
                 return defaultMagicCritFrequency;
 
             var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultMagicCritFrequency);
@@ -266,7 +266,7 @@ namespace ACE.Server.WorldObjects
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (weapon == null)
+            if (wielder == null || weapon == null)
                 return defaultCritMultiplier;
 
             var critDamageMod = (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritMultiplier);
@@ -301,7 +301,7 @@ namespace ACE.Server.WorldObjects
 
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (weapon == null)
+            if (wielder == null || weapon == null)
                 return modifier;
 
             if (weapon.GetProperty(PropertyInt.SlayerCreatureType) != null && target != null)
@@ -323,7 +323,7 @@ namespace ACE.Server.WorldObjects
         {
             var weapon = GetWeapon(wielder as Player);
 
-            if (!(weapon is Caster) || weapon.W_DamageType != damageType)
+            if (wielder == null || !(weapon is Caster) || weapon.W_DamageType != damageType)
                 return 1.0f;
 
             var elementalDamageMod = weapon.ElementalDamageMod ?? 1.0f;
@@ -376,7 +376,7 @@ namespace ACE.Server.WorldObjects
 
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (weapon == null)
+            if (wielder == null || weapon == null)
                 return defaultBonusModifier;
 
             var weaponResistanceModifierType = weapon.GetProperty(PropertyInt.ResistanceModifierType) ?? (int)DamageType.Undef;

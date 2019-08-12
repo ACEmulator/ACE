@@ -71,6 +71,14 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Should only be used by Landblocks
+        /// </summary>
+        public void ReinitializeHeartbeats()
+        {
+            InitializeHeartbeats();
+        }
+
+        /// <summary>
         /// Called every ~5 seconds for WorldObject base
         /// </summary>
         public virtual void Heartbeat(double currentUnixTime)

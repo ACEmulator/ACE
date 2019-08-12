@@ -5,6 +5,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -248,7 +249,19 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         var spell = new Spell(gen.SpellDID ?? 0);
-                        TryCastSpell(spell, this, null, false, false);
+                        if (!spell.NotFound)
+                        {
+                            var preCastTime = vendor.PreCastMotion(this);
+
+                            var castChain = new ActionChain();
+                            castChain.AddDelaySeconds(preCastTime);
+                            castChain.AddAction(vendor, () =>
+                            {
+                                vendor.TryCastSpell(spell, this, vendor);
+                                vendor.PostCastMotion();
+                            });
+                            castChain.EnqueueChain();
+                        }
                     }
                 }
 

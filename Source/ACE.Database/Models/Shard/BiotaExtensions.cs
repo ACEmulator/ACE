@@ -1304,7 +1304,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, out bool spellAdded)
+        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, out bool spellAdded, float probability = 2.0f)
         {
             rwLock.EnterUpgradeableReadLock();
             try
@@ -1319,7 +1319,7 @@ namespace ACE.Database.Models.Shard
                 rwLock.EnterWriteLock();
                 try
                 {
-                    entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Object = biota };
+                    entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Probability = probability, Object = biota };
                     biota.BiotaPropertiesSpellBook.Add(entity);
                     spellAdded = true;
                     return entity;
@@ -1335,7 +1335,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache, out bool spellAdded)
+        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache, out bool spellAdded, float probability = 2.0f)
         {
             rwLock.EnterUpgradeableReadLock();
             try
@@ -1349,7 +1349,7 @@ namespace ACE.Database.Models.Shard
                 rwLock.EnterWriteLock();
                 try
                 {
-                    var entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Object = biota };
+                    var entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Probability = probability, Object = biota };
                     biota.BiotaPropertiesSpellBook.Add(entity);
 
                     cache[spell] = entity;
