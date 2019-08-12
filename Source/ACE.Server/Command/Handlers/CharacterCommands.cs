@@ -144,6 +144,7 @@ namespace ACE.Server.Command.Handlers
                 player.CharacterChangesDetected = true;                
                 player.Session.LogOffPlayer(true);
                 PlayerManager.HandlePlayerDelete(player.Character.Id);
+                PlayerManager.ProcessDeletedPlayer(player.Character.Id);
             }
             else
             {
@@ -153,6 +154,7 @@ namespace ACE.Server.Command.Handlers
                 character.IsDeleted = true;
                 DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
                 PlayerManager.HandlePlayerDelete(character.Id);
+                PlayerManager.ProcessDeletedPlayer(character.Id);
             }
 
 
