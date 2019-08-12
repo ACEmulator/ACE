@@ -81,7 +81,7 @@ namespace ACE.Server
 
             if (PropertyManager.GetBool("auto_purge_deleted_characters_on_startup").Item)
             {
-                log.Info($"Purging deleted characters older than {PropertyManager.GetDouble("auto_purge_safe_days").Item} days ({DateTime.UtcNow.AddDays(-(int)PropertyManager.GetDouble("auto_purge_safe_days").Item).ToLocalTime()}...");
+                log.Info($"Purging deleted characters, and their possessions, older than {PropertyManager.GetDouble("auto_purge_safe_days").Item} days ({DateTime.UtcNow.AddDays(-(int)PropertyManager.GetDouble("auto_purge_safe_days").Item).ToLocalTime()}...");
                 DatabaseManager.Shard.PurgeCharacters((int)PropertyManager.GetDouble("").Item, out var numberOfCharactersPurged);
                 log.Info($"Purged {numberOfCharactersPurged:N0} deleted characters.");
             }

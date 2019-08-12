@@ -522,7 +522,7 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
             DictOf(
                 ("advocate_fane_auto_bestow_level", new Property<double>(1, "the level that advocates are automatically bestowed by Advocate Fane if advocate_fane_auto_bestow is true")),
-                ("auto_purge_safe_days", new Property<double>(30, "the number of days a character, and posessessions, is safe from automatic, irretrievable purge")),
+                ("auto_purge_safe_days", new Property<double>(30, "the number of days a character, and possessions, is safe from automatic, irretrievable purge")),
                 ("minor_cantrip_drop_rate", new Property<double>(1.0, "Modifier for minor cantrip drop rate, 1 being normal")),
                 ("major_cantrip_drop_rate", new Property<double>(1.0, "Modifier for major cantrip drop rate, 1 being normal")),
                 ("epic_cantrip_drop_rate", new Property<double>(1.0, "Modifier for epic cantrip drop rate, 1 being normal")),
