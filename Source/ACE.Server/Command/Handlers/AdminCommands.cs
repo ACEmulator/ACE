@@ -1385,7 +1385,7 @@ namespace ACE.Server.Command.Handlers
             string predefName = null;
             if (parameters.Length > 1)
             {
-                predefName = String.Join(" ", parameters, 1, parameters.Length - 1);
+                predefName = String.Join(" ", parameters, 2, parameters.Length - 2);
             }
 
             WorldObject first = null;
