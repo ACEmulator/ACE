@@ -1376,9 +1376,9 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"count must be an integer value", ChatMessageType.Broadcast));
                 return;
             }
-            if (count < 1 || count > Int32.MaxValue)
+            if (count < 1 || count > ushort.MaxValue)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"count must be a between 1 and {Int32.MaxValue}", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"count must be a between 1 and {ushort.MaxValue}", ChatMessageType.Broadcast));
                 return;
             }
 
