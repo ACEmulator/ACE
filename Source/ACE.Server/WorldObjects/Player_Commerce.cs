@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
                 if (isVendorService)
                     return 0;
 
-                requiresBackpackSlot = item.RequiresBackpackSlot();
+                requiresBackpackSlot = item.RequiresBackpackSlotOrIsContainer();
 
                 var isStackable = item.IsStackable();
 
