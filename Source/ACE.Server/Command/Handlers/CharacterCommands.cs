@@ -43,7 +43,7 @@ namespace ACE.Server.Command.Handlers
 
         // erasecharacter characterid
         [CommandHandler("erasecharacter", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Erases a deleted character from the database",
+            "Erases a deleted character, and its possessions, from the database",
             "characterId\n" +
             "Given the ID of a deleted character, this command erases that character from the database.  (You can find the ID of a deleted character using the @finger command.)\n" +
             "Can only erase deleted characters, characters not deleted are not safe to be erased with this command.")]
@@ -77,10 +77,10 @@ namespace ACE.Server.Command.Handlers
             }   
         }
 
-        // erasecharacter characterid
+        // purgecharacters days
         [CommandHandler("purgecharacters", AccessLevel.Admin, CommandHandlerFlag.None, 0,
-            "Purges all deleted characters from the database",
-            "(days)\n" +
+            "Purges all deleted characters, and their possessions, from the database",
+            "(days) - any characters deleted this number days ago will be purged.\n" +
             "If no parameter is specified, all deleted characters older than 30 days are purged.")]
         public static void HandleCharacterPurge(Session session, params string[] parameters)
         {
