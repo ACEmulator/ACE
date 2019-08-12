@@ -897,7 +897,7 @@ namespace ACE.Database
             var result = context.Character
                 .FirstOrDefault(r => r.Id == characterId);
 
-            if (result != null && result.DeleteTime > 0)
+            if (result != null && (result.DeleteTime > 0 || result.IsDeleted))
                 return true;
 
             return false;
@@ -916,7 +916,7 @@ namespace ACE.Database
                 .Include(r => r.CharacterPropertiesSpellBar)
                 .Include(r => r.CharacterPropertiesSquelch)
                 .Include(r => r.CharacterPropertiesTitleBook)
-                .FirstOrDefault(r => r.Id == characterId && r.DeleteTime > 0);
+                .FirstOrDefault(r => r.Id == characterId && (r.DeleteTime > 0 || r.IsDeleted));
 
             if (character == null)
             {
