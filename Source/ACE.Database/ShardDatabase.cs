@@ -889,5 +889,99 @@ namespace ACE.Database
                 return query.FirstOrDefault();
             }
         }
+
+        public bool CanEraseCharacter(uint characterId)
+        {
+            var context = new ShardDbContext();
+
+            var result = context.Character
+                //.Include(r => r.CharacterPropertiesContract)
+                //.Include(r => r.CharacterPropertiesFillCompBook)
+                //.Include(r => r.CharacterPropertiesFriendList)
+                //.Include(r => r.CharacterPropertiesQuestRegistry)
+                //.Include(r => r.CharacterPropertiesShortcutBar)
+                //.Include(r => r.CharacterPropertiesSpellBar)
+                //.Include(r => r.CharacterPropertiesTitleBook)
+                .FirstOrDefault(r => r.Id == characterId);
+
+            if (result != null && result.IsDeleted)
+                return true;
+
+            return false;
+        }
+
+        public bool EraseCharacter(uint characterId)
+        {
+            var context = new ShardDbContext();
+
+            var character = context.Character
+                .Include(r => r.CharacterPropertiesContractRegistry)
+                .Include(r => r.CharacterPropertiesFillCompBook)
+                .Include(r => r.CharacterPropertiesFriendList)
+                .Include(r => r.CharacterPropertiesQuestRegistry)
+                .Include(r => r.CharacterPropertiesShortcutBar)
+                .Include(r => r.CharacterPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesSquelch)
+                .Include(r => r.CharacterPropertiesTitleBook)
+                .FirstOrDefault(r => r.Id == characterId && r.IsDeleted);
+
+            if (character == null)
+            {
+                Console.WriteLine($"ShardDatabase.EraseCharacter({characterId}): couldn't find character");
+
+                return false;
+            }
+            else
+            {
+                var possessions = GetPossessedBiotasInParallel(character.Id);
+
+                FreeBiotaAndDisposeContexts(possessions.Inventory);
+
+                FreeBiotaAndDisposeContexts(possessions.WieldedItems);
+
+                foreach (var item in possessions.Inventory)
+                    context.Remove(item);
+
+                foreach (var item in possessions.WieldedItems)
+                    context.Remove(item);
+
+                context.Remove(character);
+
+                log.Info($"Character {character.Name} (0x{character.Id:X8}) - deleted at {Common.Time.GetDateTimeFromTimestamp(character.DeleteTime).ToLocalTime()} - has been erased.");
+
+                context.SaveChanges();
+            }
+
+            return true;
+        }
+
+        public bool PurgeCharacters(int daysLimiter, out int numberOfCharactersPurged)
+        {
+            numberOfCharactersPurged = 0;
+
+            var deleteLimit = Common.Time.GetUnixTime(DateTime.UtcNow.AddDays(-daysLimiter));
+
+            var context = new ShardDbContext();
+
+            var results = context.Character
+                //.Include(r => r.CharacterPropertiesContract)
+                //.Include(r => r.CharacterPropertiesFillCompBook)
+                //.Include(r => r.CharacterPropertiesFriendList)
+                //.Include(r => r.CharacterPropertiesQuestRegistry)
+                //.Include(r => r.CharacterPropertiesShortcutBar)
+                //.Include(r => r.CharacterPropertiesSpellBar)
+                //.Include(r => r.CharacterPropertiesTitleBook)
+                .Where(r => r.IsDeleted && r.DeleteTime < deleteLimit)
+                .AsNoTracking()
+                .ToList();
+
+            foreach(var result in results)
+            {
+                if (EraseCharacter(result.Id))
+                    numberOfCharactersPurged++;
+            }
+
+            return true;
+        }
     }
 }
