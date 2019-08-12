@@ -1848,15 +1848,15 @@ namespace ACE.Server.Command.Handlers
                         switch (i)
                         {
                             case int n when (n <= 5):
-                                currentPlayer.SetProperty((PropertyInt)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                                currentPlayer.SetProperty((PropertyInt)uint.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
                                 i += 2;
                                 break;
                             case int n when (n <= 9):
-                                currentPlayer.SetProperty((PropertyInt64)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                                currentPlayer.SetProperty((PropertyInt64)uint.Parse(returnStringArr[i]), long.Parse(returnStringArr[i + 1]));
                                 i += 2;
                                 break;
                             case int n when (n <= 33):
-                                var playerAttr = currentPlayer.Attributes[(PropertyAttribute)int.Parse(returnStringArr[i])];
+                                var playerAttr = currentPlayer.Attributes[(PropertyAttribute)uint.Parse(returnStringArr[i])];
                                 playerAttr.StartingValue = uint.Parse(returnStringArr[i + 1]);
                                 playerAttr.Ranks = uint.Parse(returnStringArr[i + 2]);
                                 playerAttr.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
@@ -1875,7 +1875,7 @@ namespace ACE.Server.Command.Handlers
                             case int n when (n <= 238):
                                 var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
                                 playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
-                                playerSkill.AdvancementClass = (SkillAdvancementClass)int.Parse(returnStringArr[i + 2]);
+                                playerSkill.AdvancementClass = (SkillAdvancementClass)uint.Parse(returnStringArr[i + 2]);
                                 playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
                                 playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
                                 currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill.Skill, playerSkill.AdvancementClass, playerSkill.Ranks, playerSkill.InitLevel, playerSkill.ExperienceSpent));
