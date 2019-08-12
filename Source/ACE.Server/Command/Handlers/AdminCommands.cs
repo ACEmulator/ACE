@@ -1270,27 +1270,40 @@ namespace ACE.Server.Command.Handlers
         public const uint WEENIE_MAX = 199999;
         // create wclassid (number)
         [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an object in the world.", "wclassid (string or number)")]
+            "Creates an object in the world.", "wclassid (string or number), amount to spawn")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
+            int palette = 0;
+            bool hasPalette = false;
+            float shade = 0;
+            bool hasShade = false;
+            ushort numToSpawn = 1;
+            List<WorldObject> weeniesToSpawn = new List<WorldObject>();
+
             string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
             {
-                if (weenieClassId < 1 && weenieClassId > WEENIE_MAX)
+                if (weenieClassId < 1 || weenieClassId > WEENIE_MAX)
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
                     return;
                 }
             }
-            int palette = 0;
-            bool hasPalette = false;
-            float shade = 0;
-            bool hasShade = false;
-            int stackSize = 1;
+
             if (parameters.Length > 1)
             {
-                if (!int.TryParse(parameters[1], out palette))
+                var isValidStackSize = ushort.TryParse(parameters[1], out numToSpawn);
+                if (!isValidStackSize || numToSpawn == 0)
+                { 
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be number between {ushort.MinValue} - {ushort.MaxValue}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            if (parameters.Length > 2)
+            {
+                if (!int.TryParse(parameters[2], out palette))
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
                     return;
@@ -1298,7 +1311,8 @@ namespace ACE.Server.Command.Handlers
                 else
                     hasPalette = true;
             }
-            if (parameters.Length > 2)
+
+            if (parameters.Length > 3)
             {
                 if (!float.TryParse(parameters[2], out shade))
                 {
@@ -1308,59 +1322,75 @@ namespace ACE.Server.Command.Handlers
                 else
                     hasShade = true;
             }
-            if (parameters.Length > 3)
-                if (!int.TryParse(parameters[3], out stackSize))
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
-                    return;
-                }
-
-            WorldObject loot;
+            
+            WorldObject weenieToBeSpawned;
             if (wcid)
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+                weenieToBeSpawned = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
             else
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
+            {
+                weenieToBeSpawned = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
+                weenieClassId = weenieToBeSpawned.WeenieClassId;
+            }
 
-            // todo: set the stackSize here
-
-            if (loot == null)
+            if (weenieToBeSpawned == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
                 return;
             }
 
-            if (loot is House)
+            if (weenieToBeSpawned is House)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
                 return;
             }
 
-            if (hasPalette)
-                loot.PaletteTemplate = palette;
-            if (hasShade)
-                loot.Shade = shade;
+            if (numToSpawn != 1)
+            {
+                if (weenieToBeSpawned.WeenieType is WeenieType.Stackable)
+                {
+                    if (weenieToBeSpawned.MaxStackSize != null && numToSpawn > weenieToBeSpawned.MaxStackSize)
+                        weenieToBeSpawned.SetStackSize(weenieToBeSpawned.MaxStackSize);
+                    else if (weenieToBeSpawned.MaxStackSize != null && numToSpawn <= weenieToBeSpawned.MaxStackSize)
+                        weenieToBeSpawned.SetStackSize(numToSpawn);
 
-            if (!loot.TimeToRot.HasValue)
-                loot.TimeToRot = Double.MaxValue;
+                    weeniesToSpawn.Add(weenieToBeSpawned);
+                }
 
-            //LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
-            //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-            //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            if (loot.WeenieType == WeenieType.Creature)
-                loot.Location = session.Player.Location.InFrontOf(5f, true);
+                if (weenieToBeSpawned.WeenieType is WeenieType.Creature)
+                {
+                    weeniesToSpawn.Add(weenieToBeSpawned);
+                    for (int i = 1; i < numToSpawn; i++)
+                    {
+                        weeniesToSpawn.Add(WorldObjectFactory.CreateNewWorldObject(weenieClassId));
+                    }
+                }
+            }
             else
-                loot.Location = session.Player.Location.InFrontOf((loot.UseRadius ?? 2) > 2 ? loot.UseRadius.Value : 2);
+            {
+                weeniesToSpawn.Add(weenieToBeSpawned);
+            }
 
-            loot.Location.LandblockId = new LandblockId(loot.Location.GetCell());
+            foreach (var w in weeniesToSpawn)
+            {
+                if (hasPalette)
+                    w.PaletteTemplate = palette;
+                if (hasShade)
+                    w.Shade = shade;
 
-            //Console.WriteLine($"Spawning {loot.Name} @ {loot.Location.Cell:X8} - {loot.Location.Pos}");
-            LastSpawnPos = loot.Location;
+                if (!w.TimeToRot.HasValue)
+                    w.TimeToRot = Double.MaxValue;
 
-            //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            //LandblockManager.AddObject(loot);
-            loot.EnterWorld();
+                if (w.WeenieType == WeenieType.Creature)
+                    w.Location = session.Player.Location.InFrontOf(5f, true);
+                else
+                    w.Location = session.Player.Location.InFrontOf((w.UseRadius ?? 2) > 2 ? w.UseRadius.Value : 2);
 
-            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {loot.Name} (0x{loot.Guid:X8}) at {loot.Location.ToLOCString()}.");
+                w.Location.LandblockId = new LandblockId(w.Location.GetCell());
+
+                LastSpawnPos = w.Location;
+                w.EnterWorld();
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {w.Name} (0x{w.Guid:X8}) at {w.Location.ToLOCString()}.");
+            }
         }
 
         // ci wclassid (number)
