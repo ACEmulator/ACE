@@ -169,7 +169,7 @@ namespace ACE.Server.Network.Structure
 
                 if (slumLord.HouseOwner.HasValue && slumLord.HouseOwner.Value > 0)
                 {
-                    longDesc = $"The current maintenance has {(slumLord.IsRentPaid() ? "" : "not ")}been paid.\n";
+                    longDesc = $"The current maintenance has {(slumLord.IsRentPaid() || !PropertyManager.GetBool("house_rent_enabled").Item ? "" : "not ")}been paid.\n";
 
                     PropertiesInt.Clear();
                 }
