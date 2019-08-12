@@ -79,6 +79,15 @@ namespace ACE.Server
             log.Info("Starting PropertyManager...");
             PropertyManager.Initialize();
 
+            if (PropertyManager.GetBool("auto_purge_deleted_characters_on_startup").Item)
+            {
+                log.Info($"Purging deleted characters older than {PropertyManager.GetDouble("auto_purge_safe_days").Item} days ({DateTime.UtcNow.AddDays(-(int)PropertyManager.GetDouble("auto_purge_safe_days").Item).ToLocalTime()}...");
+                DatabaseManager.Shard.PurgeCharacters((int)PropertyManager.GetDouble("").Item, out var numberOfCharactersPurged);
+                log.Info($"Purged {numberOfCharactersPurged:N0} deleted characters.");
+            }
+            else
+                log.Info("Automatic Purging of deleted characters is Disabled...");
+
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
