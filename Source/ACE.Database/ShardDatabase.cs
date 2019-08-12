@@ -995,6 +995,19 @@ namespace ACE.Database
 
                 foreach(var item in results)
                 {
+                    if (item.WeenieClassId == 1 || item.WeenieClassId == 4 || item.WeenieClassId == 3648)
+                        continue; // Skip Known Player Weenies/Biotas.
+
+                    if (item.WeenieType == (int)WeenieType.Creature || item.WeenieType == (int)WeenieType.Admin || item.WeenieType == (int)WeenieType.Sentinel)
+                    {
+                        var character = context.Character
+                            .AsNoTracking()
+                            .FirstOrDefault(c => c.Id == item.Id);
+
+                        if (character != null)
+                            continue; // Skip Confirmed Character Biotas.
+                    }
+
                     var delete = false;
                     var deleteReason = "";
 
@@ -1029,9 +1042,6 @@ namespace ACE.Database
                         delete = true;
                         deleteReason = $"OwnerIID (0x{ownerIID.Value}) was not found in database.";
                     }
-
-                    if (item.WeenieClassId == 1 || item.WeenieClassId == 4 || item.WeenieClassId == 3648)
-                        delete = false;
 
                     if (delete)
                     {
