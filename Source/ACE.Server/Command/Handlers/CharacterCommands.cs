@@ -1,8 +1,13 @@
 using System;
 using System.Globalization;
+using System.Threading;
+using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -113,6 +118,45 @@ namespace ACE.Server.Command.Handlers
 
             if (DatabaseManager.Shard.PurgeCharacters(days, out var numberOfCharactersPurged))
                 CommandHandlerHelper.WriteOutputInfo(session, $"Purged {numberOfCharactersPurged:N0} deleted characters, older than {days} days ({DateTime.UtcNow.AddDays(-days).ToLocalTime()}).", ChatMessageType.Broadcast);
+        }
+
+        // deletecharacter character name
+        [CommandHandler("deletecharacter", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Deletes a character and removes it from players restore list",
+            "[character name]\n" +
+            "Given the name of a character, this command deletes that character, booting it if in game, and removes it from character's restore list.  (You can find then name a character using the @finger command.)\n")]
+        public static void HandleCharacterForcedDelete(Session session, params string[] parameters)
+        {
+            var characterName = string.Join(" ", parameters);
+
+            var foundPlayer = PlayerManager.FindByName(characterName, out var isOnline);
+
+            if (foundPlayer == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"There is no character named {characterName} in the database.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (isOnline && foundPlayer is Player player)
+            {
+                player.Character.DeleteTime = (ulong)Time.GetUnixTime();
+                player.Character.IsDeleted = true;
+                player.CharacterChangesDetected = true;                
+                player.Session.LogOffPlayer(true);
+                PlayerManager.HandlePlayerDelete(player.Character.Id);
+            }
+            else
+            {
+                var character = DatabaseManager.Shard.GetCharacterByName(foundPlayer.Name);
+
+                character.DeleteTime = (ulong)Time.GetUnixTime();                
+                character.IsDeleted = true;
+                DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
+                PlayerManager.HandlePlayerDelete(character.Id);
+            }
+
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Successfully {(isOnline ? "booted and " : "")}deleted character {foundPlayer.Name} (0x{foundPlayer.Guid}).", ChatMessageType.Broadcast);
         }
     }
 }
