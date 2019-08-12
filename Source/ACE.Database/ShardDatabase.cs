@@ -897,7 +897,7 @@ namespace ACE.Database
             var result = context.Character
                 .FirstOrDefault(r => r.Id == characterId);
 
-            if (result != null && result.IsDeleted)
+            if (result != null && result.DeleteTime > 0)
                 return true;
 
             return false;
@@ -916,7 +916,7 @@ namespace ACE.Database
                 .Include(r => r.CharacterPropertiesSpellBar)
                 .Include(r => r.CharacterPropertiesSquelch)
                 .Include(r => r.CharacterPropertiesTitleBook)
-                .FirstOrDefault(r => r.Id == characterId && r.IsDeleted);
+                .FirstOrDefault(r => r.Id == characterId && r.DeleteTime > 0);
 
             if (character == null)
             {
@@ -961,7 +961,7 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var results = context.Character
-                .Where(r => r.IsDeleted && r.DeleteTime < deleteLimit)
+                .Where(r => r.DeleteTime < deleteLimit)
                 .AsNoTracking()
                 .ToList();
 
