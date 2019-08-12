@@ -81,18 +81,34 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("purgecharacters", AccessLevel.Admin, CommandHandlerFlag.None, 0,
             "Purges all deleted characters, and their possessions, from the database",
             "(days) - any characters deleted this number days ago will be purged.\n" +
+            "[confirm] - you must type confirm at the end of the command to execute.\n" +
             "If no parameter is specified, all deleted characters older than 30 days are purged.")]
         public static void HandleCharacterPurge(Session session, params string[] parameters)
         {
             var days = 30;
 
+            var confirmed = false;
+
             if (parameters.Length > 0)
             {
-                if (!int.TryParse(parameters[0], out days))
+                if (parameters[0] != "confirm" && !int.TryParse(parameters[0], out days))
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} is not a valid number for days.", ChatMessageType.Broadcast);
                     return;
                 }
+                else if (parameters[0] == "confirm")
+                    confirmed = true;
+            }
+
+            if (parameters.Length > 1 && parameters[1] == "confirm")
+            {
+                confirmed = true;
+            }
+
+            if (!confirmed)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"you must type confirm at the end of this command to execute. EX: purgecharacters {days} confirm", ChatMessageType.Broadcast);
+                return;
             }
 
             if (DatabaseManager.Shard.PurgeCharacters(days, out var numberOfCharactersPurged))
