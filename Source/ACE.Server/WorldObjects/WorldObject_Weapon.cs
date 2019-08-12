@@ -803,6 +803,10 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.Thrust;
                 }
+
+                // stiletto only has double thrust?
+                else if (attackType.HasFlag(AttackType.DoubleThrust))
+                    attackType = AttackType.Thrust;
             }
             if (attackType.HasFlag(AttackType.Thrust | AttackType.Slash))
             {
@@ -859,6 +863,11 @@ namespace ACE.Server.WorldObjects
 
                     case AttackType.Punch:
                         attackType = AttackType.OffhandPunch;
+                        break;
+
+                    // stiletto
+                    case AttackType.DoubleThrust:
+                        attackType = AttackType.OffhandDoubleThrust;
                         break;
                 }
             }
