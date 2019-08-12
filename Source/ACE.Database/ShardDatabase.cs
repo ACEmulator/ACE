@@ -895,13 +895,6 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                //.Include(r => r.CharacterPropertiesContract)
-                //.Include(r => r.CharacterPropertiesFillCompBook)
-                //.Include(r => r.CharacterPropertiesFriendList)
-                //.Include(r => r.CharacterPropertiesQuestRegistry)
-                //.Include(r => r.CharacterPropertiesShortcutBar)
-                //.Include(r => r.CharacterPropertiesSpellBar)
-                //.Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Id == characterId);
 
             if (result != null && result.IsDeleted)
@@ -927,12 +920,14 @@ namespace ACE.Database
 
             if (character == null)
             {
-                Console.WriteLine($"ShardDatabase.EraseCharacter({characterId}): couldn't find character");
-
                 return false;
             }
             else
             {
+                var player = GetBiota(character.Id);
+
+                FreeBiotaAndDisposeContext(player);
+
                 var possessions = GetPossessedBiotasInParallel(character.Id);
 
                 FreeBiotaAndDisposeContexts(possessions.Inventory);
@@ -944,6 +939,8 @@ namespace ACE.Database
 
                 foreach (var item in possessions.WieldedItems)
                     context.Remove(item);
+
+                context.Remove(player);
 
                 context.Remove(character);
 
@@ -964,13 +961,6 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var results = context.Character
-                //.Include(r => r.CharacterPropertiesContract)
-                //.Include(r => r.CharacterPropertiesFillCompBook)
-                //.Include(r => r.CharacterPropertiesFriendList)
-                //.Include(r => r.CharacterPropertiesQuestRegistry)
-                //.Include(r => r.CharacterPropertiesShortcutBar)
-                //.Include(r => r.CharacterPropertiesSpellBar)
-                //.Include(r => r.CharacterPropertiesTitleBook)
                 .Where(r => r.IsDeleted && r.DeleteTime < deleteLimit)
                 .AsNoTracking()
                 .ToList();
