@@ -1355,14 +1355,17 @@ namespace ACE.Server.Command.Handlers
 
                     weeniesToSpawn.Add(weenieToBeSpawned);
                 }
-
-                if (weenieToBeSpawned.WeenieType is WeenieType.Creature)
+                else if (weenieToBeSpawned.WeenieType is WeenieType.Creature)
                 {
                     weeniesToSpawn.Add(weenieToBeSpawned);
                     for (int i = 1; i < numToSpawn; i++)
                     {
                         weeniesToSpawn.Add(WorldObjectFactory.CreateNewWorldObject(weenieClassId));
                     }
+                }
+                else
+                {
+                    weeniesToSpawn.Add(weenieToBeSpawned);
                 }
             }
             else
