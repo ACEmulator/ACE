@@ -124,7 +124,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("deletecharacter", AccessLevel.Admin, CommandHandlerFlag.None, 1,
             "Deletes a character and removes it from players restore list",
             "[character name]\n" +
-            "Given the name of a character, this command deletes that character, booting it if in game, and removes it from character's restore list.  (You can find then name a character using the @finger command.)\n")]
+            "Given the name of a character, this command deletes that character, booting it if in game, and removes it from character's restore list.  (You can find the name for a character using the @finger command.)\n")]
         public static void HandleCharacterForcedDelete(Session session, params string[] parameters)
         {
             var characterName = string.Join(" ", parameters);
