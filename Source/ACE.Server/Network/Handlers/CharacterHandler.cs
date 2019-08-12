@@ -206,16 +206,16 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (PlayerManager.GetOfflinePlayer(guid) == null)
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(guid);
+
+            if (offlinePlayer == null)
             {
                 // This would likely only happen if the account tried to log in a character that didn't exist.
                 session.SendCharacterError(CharacterError.EnterGameGeneric);
                 return;
             }
 
-            var offlinePlayer = PlayerManager.GetOfflinePlayer(guid);
-
-            if (offlinePlayer == null || offlinePlayer.IsDeleted || offlinePlayer.IsPendingDeletion)
+            if (offlinePlayer.IsDeleted || offlinePlayer.IsPendingDeletion)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
                 return;
