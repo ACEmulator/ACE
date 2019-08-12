@@ -973,5 +973,80 @@ namespace ACE.Database
 
             return true;
         }
+
+        public bool PurgeOrphanedBiotas(out int numberOfBiotasPurged)
+        {
+            numberOfBiotasPurged = 0;
+
+            var context = new ShardDbContext();
+
+            var results = context.Biota
+                .Include(r => r.BiotaPropertiesIID)
+                .Include(r => r.BiotaPropertiesPosition)
+                .Include(r => r.BiotaPropertiesString)
+                .ToList();
+
+            if (results == null)
+            {
+                return false;
+            }
+            else
+            {
+
+                foreach(var item in results)
+                {
+                    var delete = false;
+                    var deleteReason = "";
+
+                    var nameString = item.BiotaPropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name);
+
+                    var ownerIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Owner);
+                    var containerIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Container);
+                    var wielderIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Wielder);
+
+                    var locationPosition = item.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (int)PositionType.Location);
+
+                    if (containerIID == null && wielderIID == null && locationPosition == null)
+                    {
+                        delete = true;
+                        deleteReason = "ContainerIID, WielderIID, and Location was null";
+                    }
+
+                    if (containerIID != null && results.Where(r => r.Id == containerIID.Value).Count() == 0)
+                    {
+                        delete = true;
+                        deleteReason = $"ContainerIID (0x{containerIID.Value}) was not found in database.";
+                    }
+
+                    if (wielderIID != null && results.Where(r => r.Id == wielderIID.Value).Count() == 0)
+                    {
+                        delete = true;
+                        deleteReason = $"WielderIID (0x{wielderIID.Value}) was not found in database.";
+                    }
+
+                    if (ownerIID != null && results.Where(r => r.Id == ownerIID.Value).Count() == 0)
+                    {
+                        delete = true;
+                        deleteReason = $"OwnerIID (0x{ownerIID.Value}) was not found in database.";
+                    }
+
+                    if (item.WeenieClassId == 1 || item.WeenieClassId == 4 || item.WeenieClassId == 3648)
+                        delete = false;
+
+                    if (delete)
+                    {
+                        context.Remove(item);
+
+                        log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) has been purged. Reason: {deleteReason}");
+
+                        context.SaveChanges();
+
+                        numberOfBiotasPurged++;
+                    }
+                }
+            }
+
+            return true;
+        }
     }
 }

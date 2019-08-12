@@ -387,6 +387,10 @@ namespace ACE.Database
             return _wrappedDatabase.PurgeCharacters(daysLimiter, out numberOfCharactersPurged);
         }
 
+        public bool PurgeOrphanedBiotas(out int numberOfBiotasPurged)
+        {
+            return _wrappedDatabase.PurgeOrphanedBiotas(out numberOfBiotasPurged);
+        }
 
 
         // ******************************************************************* OLD CODE BELOW ********************************

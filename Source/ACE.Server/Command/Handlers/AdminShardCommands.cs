@@ -6,6 +6,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Database;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -178,6 +179,17 @@ namespace ACE.Server.Command.Handlers
                 WorldManager.Open(session == null ? null : session.Player);
             else if (close)
                 WorldManager.Close(session == null ? null : session.Player, bootPlayers);
+        }
+
+        // purgeorphans
+        [CommandHandler("purgeorphans", AccessLevel.Admin, CommandHandlerFlag.None, 0,
+            "Purges all orphaned objects found in the database")]
+        public static void HandlePurgeOrphans(Session session, params string[] parameters)
+        {
+            if (DatabaseManager.Shard.PurgeOrphanedBiotas(out var numberOfBiotasPurged))
+                CommandHandlerHelper.WriteOutputInfo(session, $"Purged {numberOfBiotasPurged:N0} orphaned biotas.", ChatMessageType.Broadcast);
+            else
+                CommandHandlerHelper.WriteOutputInfo(session, $"Purged of orphaned biotas failed.", ChatMessageType.Broadcast);
         }
     }
 }
