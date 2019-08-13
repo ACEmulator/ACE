@@ -255,7 +255,7 @@ namespace ACE.Server.WorldObjects
 
         public void TakeDamage_Falling(float amount)
         {
-            if (Invincible) return;
+            if (IsDead || Invincible) return;
 
             // handle lifestone protection?
             if (UnderLifestoneProtection)
@@ -274,7 +274,7 @@ namespace ACE.Server.WorldObjects
 
             var msg = Strings.GetFallMessage(damageTaken, Health.MaxValue);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
+            SendMessage(msg, ChatMessageType.Combat);
 
             if (Health.Current <= 0)
             {

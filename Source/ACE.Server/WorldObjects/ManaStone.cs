@@ -98,8 +98,9 @@ namespace ACE.Server.WorldObjects
                         //The Mana Stone drains 4,482 points of mana from the Pantaloons.
                         //The Pantaloons is destroyed.
 
-                        ItemCurMana = (int)Math.Round(Efficiency.Value * target.ItemCurMana.Value);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Mana Stone drains {ItemCurMana.Value:N0} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
+                        var manaDrained = (int)Math.Round(Efficiency.Value * target.ItemCurMana.Value);
+                        ItemCurMana = manaDrained;
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Mana Stone drains {ItemCurMana:N0} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
                         SetUiEffect(player, ACE.Entity.Enum.UiEffects.Magical);
                     }
                 }
@@ -163,11 +164,14 @@ namespace ACE.Server.WorldObjects
                         var msg = $"The Mana Stone gives {itemsGivenMana.Values.Sum():N0} points of mana to the following items: {itemsGivenMana.Select(c => c.Key.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
-                        if (!DoDestroyDiceRoll(player))
+                        if (!DoDestroyDiceRoll(player) && !UnlimitedUse)
                         {
                             ItemCurMana = null;
                             SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
                         }
+
+                        if (UnlimitedUse && ItemMaxMana.HasValue)
+                            ItemCurMana = ItemMaxMana;
                     }
                 }
                 else if (target.ItemMaxMana.HasValue && target.ItemMaxMana.Value > 0)
@@ -188,7 +192,7 @@ namespace ACE.Server.WorldObjects
                         var msg = $"The Mana Stone gives {manaToPour:N0} points of mana to the {target.Name}.";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
-                        if (!DoDestroyDiceRoll(player))
+                        if (!DoDestroyDiceRoll(player) && !UnlimitedUse)
                         {
                             ItemCurMana = null;
                             SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
@@ -209,14 +213,13 @@ namespace ACE.Server.WorldObjects
             if (DestroyChance == 0)
                 return false;
 
-            // TODO: special handling for "Eternal Mana Charge"
             var dice = ThreadSafeRandom.Next(0.0f, 1.0f);
 
             if (dice < DestroyChance)
             {
                 player.TryConsumeFromInventoryWithNetworking(this);
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} is destroyed.", ChatMessageType.Broadcast));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Mana Stone is destroyed.", ChatMessageType.Broadcast));
                     return true;
                 }
             }

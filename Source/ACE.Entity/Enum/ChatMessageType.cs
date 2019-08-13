@@ -277,4 +277,15 @@ namespace ACE.Entity.Enum
         /// </summary>
         AdminTell           = 0x1F,
     }
+
+    public static class ChatMessageTypeExtensions
+    {
+        public static SquelchMask ToMask(this ChatMessageType type)
+        {
+            if (type == ChatMessageType.AllChannels)
+                return SquelchMask.AllChannels;
+            else
+                return (SquelchMask)(1 << (int)type);
+        }
+    }
 }

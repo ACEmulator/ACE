@@ -1304,7 +1304,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, out bool spellAdded)
+        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, out bool spellAdded, float probability = 2.0f)
         {
             rwLock.EnterUpgradeableReadLock();
             try
@@ -1319,7 +1319,7 @@ namespace ACE.Database.Models.Shard
                 rwLock.EnterWriteLock();
                 try
                 {
-                    entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Object = biota };
+                    entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Probability = probability, Object = biota };
                     biota.BiotaPropertiesSpellBook.Add(entity);
                     spellAdded = true;
                     return entity;
@@ -1335,7 +1335,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache, out bool spellAdded)
+        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache, out bool spellAdded, float probability = 2.0f)
         {
             rwLock.EnterUpgradeableReadLock();
             try
@@ -1349,7 +1349,7 @@ namespace ACE.Database.Models.Shard
                 rwLock.EnterWriteLock();
                 try
                 {
-                    var entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Object = biota };
+                    var entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Probability = probability, Object = biota };
                     biota.BiotaPropertiesSpellBook.Add(entity);
 
                     cache[spell] = entity;
@@ -1489,6 +1489,81 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        // =====================================
+        // BiotaPropertiesAllegiance
+        // =====================================
+
+        public static List<BiotaPropertiesAllegiance> GetAllegiance(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesAllegiance.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static void AddOrUpdateAllegiance(this Biota biota, uint characterId, bool isBanned, bool approvedVassal, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var entity = biota.BiotaPropertiesAllegiance.FirstOrDefault(x => x.CharacterId == characterId);
+                rwLock.EnterWriteLock();
+                try
+                {
+                    if (entity == null)
+                    {
+                        entity = new BiotaPropertiesAllegiance { CharacterId = characterId, Banned = isBanned, ApprovedVassal = approvedVassal };
+                        biota.BiotaPropertiesAllegiance.Add(entity);
+                    }
+                    else
+                    {
+                        entity.Banned = isBanned;
+                        entity.ApprovedVassal = approvedVassal;
+                    }
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static bool TryRemoveAllegiance(this Biota biota, uint characterId, out BiotaPropertiesAllegiance entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = biota.BiotaPropertiesAllegiance.FirstOrDefault(x => x.CharacterId == characterId);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        biota.BiotaPropertiesAllegiance.Remove(entity);
+                        entity.Character = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
 
         // =====================================
         // Clone

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -16,6 +16,7 @@ namespace ACE.Database.Models.Shard
         }
 
         public virtual DbSet<Biota> Biota { get; set; }
+        public virtual DbSet<BiotaPropertiesAllegiance> BiotaPropertiesAllegiance { get; set; }
         public virtual DbSet<BiotaPropertiesAnimPart> BiotaPropertiesAnimPart { get; set; }
         public virtual DbSet<BiotaPropertiesAttribute> BiotaPropertiesAttribute { get; set; }
         public virtual DbSet<BiotaPropertiesAttribute2nd> BiotaPropertiesAttribute2nd { get; set; }
@@ -47,6 +48,7 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
         public virtual DbSet<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
         public virtual DbSet<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
+        public virtual DbSet<CharacterPropertiesSquelch> CharacterPropertiesSquelch { get; set; }
         public virtual DbSet<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
         public virtual DbSet<ConfigPropertiesBoolean> ConfigPropertiesBoolean { get; set; }
         public virtual DbSet<ConfigPropertiesDouble> ConfigPropertiesDouble { get; set; }
@@ -92,6 +94,39 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("weenie_Type")
                     .HasColumnType("int(5)")
                     .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<BiotaPropertiesAllegiance>(entity =>
+            {
+                entity.HasKey(e => new { e.AllegianceId, e.CharacterId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("biota_properties_allegiance");
+
+                entity.HasIndex(e => e.CharacterId)
+                    .HasName("FK_allegiance_character_Id");
+
+                entity.Property(e => e.AllegianceId).HasColumnName("allegiance_Id");
+
+                entity.Property(e => e.CharacterId).HasColumnName("character_Id");
+
+                entity.Property(e => e.ApprovedVassal)
+                    .HasColumnName("approved_Vassal")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.Banned)
+                    .HasColumnName("banned")
+                    .HasColumnType("bit(1)");
+
+                entity.HasOne(d => d.Allegiance)
+                    .WithMany(p => p.BiotaPropertiesAllegiance)
+                    .HasForeignKey(d => d.AllegianceId)
+                    .HasConstraintName("FK_allegiance_biota_Id");
+
+                entity.HasOne(d => d.Character)
+                    .WithMany(p => p.BiotaPropertiesAllegiance)
+                    .HasForeignKey(d => d.CharacterId)
+                    .HasConstraintName("FK_allegiance_character_Id");
             });
 
             modelBuilder.Entity<BiotaPropertiesAnimPart>(entity =>
@@ -1447,6 +1482,27 @@ namespace ACE.Database.Models.Shard
                     .WithMany(p => p.CharacterPropertiesSpellBar)
                     .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_spellbar");
+            });
+
+            modelBuilder.Entity<CharacterPropertiesSquelch>(entity =>
+            {
+                entity.HasKey(e => new { e.CharacterId, e.SquelchCharacterId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("character_properties_squelch");
+
+                entity.Property(e => e.CharacterId).HasColumnName("character_Id");
+
+                entity.Property(e => e.SquelchCharacterId).HasColumnName("squelch_Character_Id");
+
+                entity.Property(e => e.SquelchAccountId).HasColumnName("squelch_Account_Id");
+
+                entity.Property(e => e.Type).HasColumnName("type");
+
+                entity.HasOne(d => d.Character)
+                    .WithMany(p => p.CharacterPropertiesSquelch)
+                    .HasForeignKey(d => d.CharacterId)
+                    .HasConstraintName("squelch_character_Id_constraint");
             });
 
             modelBuilder.Entity<CharacterPropertiesTitleBook>(entity =>

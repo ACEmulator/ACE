@@ -279,10 +279,10 @@ namespace ACE.Server.Managers
 
                 // send local broadcast
                 if (incItemTinkered)
-                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange);
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
             }
             else if (incItemTinkered)
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
             CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
@@ -508,7 +508,13 @@ namespace ACE.Server.Managers
 
             // increase # of times tinkered, if appropriate
             if (incItemTinkered)
+            {
                 target.NumTimesTinkered++;
+
+                if (target.TinkerLog != null)
+                    target.TinkerLog += ",";
+                target.TinkerLog += (int)materialType;
+            }
         }
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)

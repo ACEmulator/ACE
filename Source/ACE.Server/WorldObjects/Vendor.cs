@@ -382,9 +382,9 @@ namespace ACE.Server.WorldObjects
 
             foreach (ItemProfile item in filteredlist)
             {
-                var itemAmount = player.PreCheckItem(item.WeenieClassId, (int)item.Amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemIsContainer);
+                var itemAmount = player.PreCheckItem(item.WeenieClassId, (int)item.Amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
 
-                if (itemIsContainer)
+                if (itemRequiresBackpackSlot)
                 {
                     playerFreeContainerSlots -= itemAmount;
                     playerAvailableBurden -= itemEncumberance;

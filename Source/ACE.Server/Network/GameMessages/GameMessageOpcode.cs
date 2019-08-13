@@ -35,6 +35,7 @@ namespace ACE.Server.Network.GameMessages
         PrivateUpdateVital              = 0x02E7,
         PublicUpdateVital               = 0x02E8,
         PrivateUpdateAttribute2ndLevel  = 0x02E9,
+        AdminEnvirons                   = 0xEA60,
         PositionAndMovement             = 0xF619,
         ObjDescEvent                    = 0xF625,
         CharacterCreateResponse         = 0xF643,

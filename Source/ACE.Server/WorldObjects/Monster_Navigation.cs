@@ -411,8 +411,32 @@ namespace ACE.Server.WorldObjects
             Sticky = false;
         }
 
-        public static float HomeDist = 192.0f;
-        public static float HomeDistSq = HomeDist * HomeDist;
+        /// <summary>
+        /// The maximum distance a monster can travel outside of its home position
+        /// </summary>
+        public double? HomeRadius
+        {
+            get => GetProperty(PropertyFloat.HomeRadius);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.HomeRadius); else SetProperty(PropertyFloat.HomeRadius, value.Value); }
+        }
+
+        public static float DefaultHomeRadius = 192.0f;
+        public static float DefaultHomeRadiusSq = DefaultHomeRadius * DefaultHomeRadius;
+
+        private float? homeRadiusSq;
+
+        public float HomeRadiusSq
+        {
+            get
+            {
+                if (homeRadiusSq == null)
+                {
+                    var homeRadius = HomeRadius ?? DefaultHomeRadius;
+                    homeRadiusSq = (float)(homeRadius * homeRadius);
+                }
+                return homeRadiusSq.Value;
+            }
+        }
 
         public void CheckMissHome()
         {
@@ -427,8 +451,11 @@ namespace ACE.Server.WorldObjects
 
             var homeDistSq = Vector3.DistanceSquared(globalHomePos, globalPos);
 
-            if (homeDistSq > HomeDistSq)
+            if (homeDistSq > HomeRadiusSq)
+            {
+                EmoteManager.OnHomeSick(AttackTarget);
                 MoveToHome();
+            }
         }
 
         public void MoveToHome()
@@ -449,7 +476,7 @@ namespace ACE.Server.WorldObjects
 
             NextCancelTime = Timers.RunningTime + 5.0f;
 
-            MoveTo(home, RunRate);
+            MoveTo(home, RunRate, false);
 
             var mvp = GetMovementParameters();
             mvp.DistanceToObject = 0.6f;

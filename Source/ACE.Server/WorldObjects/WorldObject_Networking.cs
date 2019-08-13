@@ -163,7 +163,7 @@ namespace ACE.Server.WorldObjects
                 // if mansion, send house owner from master copy
                 var houseOwner = HouseOwner;
                 var house = this as House;
-                if (house != null && house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                if (house != null && house.HouseType == HouseType.Mansion)
                     houseOwner = house.LinkedHouses[0].HouseOwner;
 
                 writer.Write(houseOwner ?? 0);
@@ -175,14 +175,14 @@ namespace ACE.Server.WorldObjects
 
                 // if house object is in dungeon,
                 // send the permissions from the outdoor house
-                if (house.HouseType != ACE.Entity.Enum.HouseType.Apartment && house.CurrentLandblock.IsDungeon)
+                if (house.HouseType != HouseType.Apartment && house.CurrentLandblock.IsDungeon)
                 {
                     house = house.RootHouse;
                 }
                 else
                 {
                     // if mansion, send permissions from master copy
-                    if (house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    if (house.HouseType == HouseType.Mansion)
                         house = house.LinkedHouses[0];
                 }
 
@@ -871,6 +871,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreCloIcons); else SetProperty(PropertyBool.IgnoreCloIcons, value.Value); }
         }
 
+        public bool? Dyable
+        {
+            get => GetProperty(PropertyBool.Dyable);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Dyable); else SetProperty(PropertyBool.Dyable, value.Value); }
+        }
+
         public virtual ACE.Entity.ObjDesc CalculateObjDesc()
         {
             if (this is Hook hook && hook.HasItem)
@@ -1137,7 +1143,7 @@ namespace ACE.Server.WorldObjects
         /// Sends network messages to all Players who currently know about this object
         /// within a maximum range
         /// </summary>
-        public void EnqueueBroadcast(GameMessage msg, float range, bool useSquelch = false)
+        public void EnqueueBroadcast(GameMessage msg, float range, ChatMessageType? squelchType = null)
         {
             if (PhysicsObj == null || CurrentLandblock == null) return;
 
@@ -1154,7 +1160,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var player in PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
             {
-                if (self != null && useSquelch && player.Squelches.Contains(self))
+                if (self != null && squelchType != null && player.SquelchManager.Squelches.Contains(self, squelchType.Value))
                     continue;
 
                 if (isDungeon && Location.Landblock != player.Location.Landblock)

@@ -1051,5 +1051,11 @@ namespace ACE.Server.WorldObjects
             get => (AetheriaBitfield)(GetProperty(PropertyInt.AetheriaBitfield) ?? 0);
             set { if (value == 0) RemoveProperty(PropertyInt.AetheriaBitfield); else SetProperty(PropertyInt.AetheriaBitfield, (int)value); }
         }
+
+        public SquelchMask SquelchGlobal
+        {
+            get => (SquelchMask)(GetProperty(PropertyInt.SquelchGlobal) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.SquelchGlobal); else SetProperty(PropertyInt.SquelchGlobal, (int)value); }
+        }
     }
 }

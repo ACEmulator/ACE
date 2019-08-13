@@ -36,7 +36,7 @@ namespace ACE.Server.Network.GameAction.Actions
             if (session.Player != targetPlayer)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {targetPlayer.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
 
-            if (targetPlayer.Squelches.Contains(session.Player))
+            if (targetPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Tell))
             {
                 session.Network.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.MessageBlocked_,$"{target} has you squelched."));
                 //log.Warn($"Tell from {session.Player.Name} (0x{session.Player.Guid.ToString()}) to {targetPlayer.Name} (0x{targetPlayer.Guid.ToString()}) blocked due to squelch");

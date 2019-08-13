@@ -591,8 +591,9 @@ namespace ACE.Entity.Enum.Properties
         /// Used to store the calculated Clothing Priority for use with armor reduced items and items like Over-Robes.
         /// </summary>
         [Ephemeral][ServerOnly]
-        VisualClothingPriority = 9013,
-
+        VisualClothingPriority                  = 9013,
+        [ServerOnly]
+        SquelchGlobal                           = 9014,
     }
 
     public static class PropertyIntExtensions

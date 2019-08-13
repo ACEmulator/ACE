@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -96,18 +97,24 @@ namespace ACE.Server.WorldObjects.Entity
 
                 uint total = StartingValue + Ranks + attr;
 
+                // apply multiplicative enchantments first
                 var multiplier = creature.EnchantmentManager.GetVitalMod_Multiplier(this);
-                var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
 
-                total = (uint)Math.Round(total * multiplier + additives);
+                var fTotal = total * multiplier;
 
                 if (creature is Player player)
                 {
                     var vitae = player.Vitae;
 
                     if (vitae != 1.0f)
-                        total = (uint)Math.Round(total * vitae);
+                        fTotal *= vitae;
                 }
+
+                // then additives
+                var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
+
+                total = (uint)(fTotal + additives).Round();
+
                 return total;
             }
         }

@@ -140,10 +140,13 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (NetworkManager.Find(account.AccountName) != null)
+            if (!PropertyManager.GetBool("account_login_boots_in_use").Item)
             {
-                session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.ServerCrash1));
-                return;
+                if (NetworkManager.Find(account.AccountName) != null)
+                {
+                    session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.ServerCrash1));
+                    return;
+                }
             }
 
             if (loginRequest.NetAuthType == NetAuthType.AccountPassword)
@@ -161,6 +164,16 @@ namespace ACE.Server.Network.Handlers
                     // exponential duration of lockout for targeted account
 
                     return;
+                }
+
+                if (PropertyManager.GetBool("account_login_boots_in_use").Item)
+                {
+                    var previouslyConnectedAccount = NetworkManager.Find(account.AccountName);
+
+                    if (previouslyConnectedAccount != null)
+                    {
+                        previouslyConnectedAccount.Terminate(SessionTerminationReason.AccountLoggedIn, new GameMessageCharacterError(CharacterError.Logon));
+                    }
                 }
 
                 if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)

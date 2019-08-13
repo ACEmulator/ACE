@@ -612,19 +612,19 @@ namespace ACE.Server.Command.Handlers
                 {
                     case "npk":
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.NPK;
-                        session.Player.PkLevelModifier = -1;
+                        session.Player.PkLevel = PKLevel.NPK;
                         break;
                     case "pk":
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.PK;
-                        session.Player.PkLevelModifier = 1;
+                        session.Player.PkLevel = PKLevel.PK;
                         break;
                     case "pkl":
-                        session.Player.PkLevelModifier = 2;
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                        session.Player.PkLevel = PKLevel.NPK;
                         break;
                     case "free":
-                        session.Player.PkLevelModifier = 3;
                         session.Player.PlayerKillerStatus = PlayerKillerStatus.Free;
+                        session.Player.PkLevel = PKLevel.Free;
                         break;
                 }
                 session.Player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(session.Player, PropertyInt.PlayerKillerStatus, (int)session.Player.PlayerKillerStatus));
@@ -1141,7 +1141,7 @@ namespace ACE.Server.Command.Handlers
                             }
 
                             var weenie = DatabaseManager.World.GetCachedWeenie(item.WeenieClassId);
-                            msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,7:P2} - {item.WeenieClassId,5} - {weenie.ClassName} - {weenie.GetProperty(PropertyString.Name)}\n";
+                            msg += $"{((DestinationType)item.DestinationType).ToString()}: {item.Shade,7:P2} - {item.WeenieClassId,5} - {(weenie != null ? weenie.ClassName : "Item not found in DB")} - {(weenie != null ? weenie.GetProperty(PropertyString.Name) : "Item not found in DB")}\n";
                         }
                     }
                     else
@@ -1268,21 +1268,57 @@ namespace ACE.Server.Command.Handlers
         public static Position LastSpawnPos;
 
         public const uint WEENIE_MAX = 199999;
-        // create wclassid (number)
-        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an object in the world.", "wclassid (string or number)")]
-        public static void HandleCreate(Session session, params string[] parameters)
+
+        static WorldObject CreateObjectForCommand(Session session, string weenieClassDescription)
         {
-            string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
             {
                 if (weenieClassId < 1 && weenieClassId > WEENIE_MAX)
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
-                    return;
+                    return null;
                 }
             }
+
+            WorldObject obj;
+            if (wcid)
+                obj = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+            else
+                obj = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
+
+            if (obj == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
+                return null;
+            }
+            if (obj is House)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
+                return null;
+            }
+
+            if (!obj.TimeToRot.HasValue)
+                obj.TimeToRot = Double.MaxValue;
+
+            if (obj.WeenieType == WeenieType.Creature)
+                obj.Location = session.Player.Location.InFrontOf(5f, true);
+            else
+                obj.Location = session.Player.Location.InFrontOf((obj.UseRadius ?? 2) > 2 ? obj.UseRadius.Value : 2);
+
+            obj.Location.LandblockId = new LandblockId(obj.Location.GetCell());
+
+            LastSpawnPos = obj.Location;
+
+            return obj;
+        }
+
+        // create wclassid (number)
+        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object in the world.", "wclassid (string or number)")]
+        public static void HandleCreate(Session session, params string[] parameters)
+        {
+            string weenieClassDescription = parameters[0];
             int palette = 0;
             bool hasPalette = false;
             float shade = 0;
@@ -1315,52 +1351,68 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-            WorldObject loot;
-            if (wcid)
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
-            else
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
-
-            // todo: set the stackSize here
-
-            if (loot == null)
+            WorldObject obj = CreateObjectForCommand(session, weenieClassDescription);
+            if (obj == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
+                // should have already emitted an error message
                 return;
             }
-
-            if (loot is House)
-            {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
-                return;
-            }
-
             if (hasPalette)
-                loot.PaletteTemplate = palette;
+                obj.PaletteTemplate = palette;
             if (hasShade)
-                loot.Shade = shade;
+                obj.Shade = shade;
 
-            if (!loot.TimeToRot.HasValue)
-                loot.TimeToRot = Double.MaxValue;
+            obj.EnterWorld();
 
-            //LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
-            //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-            //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            if (loot.WeenieType == WeenieType.Creature)
-                loot.Location = session.Player.Location.InFrontOf(5f, true);
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {obj.Name} (0x{obj.Guid:X8}) at {obj.Location.ToLOCString()}.");
+        }
+
+        [CommandHandler("createnamed", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3,
+            "Creates a named object in the world.", "<wclassid(string or number)> <count> <name ... >")]
+        public static void HandleCreateNamed(Session session, params string[] parameters)
+        {
+            if (!Int32.TryParse(parameters[1], out int count))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"count must be an integer value", ChatMessageType.Broadcast));
+                return;
+            }
+            if (count < 1 || count > ushort.MaxValue)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"count must be a between 1 and {ushort.MaxValue}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            string predefName = null;
+            if (parameters.Length > 1)
+            {
+                predefName = String.Join(" ", parameters, 2, parameters.Length - 2);
+            }
+
+            WorldObject first = null;
+            for (int i = 0; i < count; i++)
+            {
+                WorldObject obj = CreateObjectForCommand(session, parameters[0]);
+                if (obj == null)
+                {
+                    // should have already emitted an error message
+                    return;
+                }
+                if (first == null)
+                {
+                    first = obj;
+                }
+
+                // Rename object if specified
+                if (predefName != null)
+                    obj.Name = predefName;
+
+                obj.EnterWorld();
+            }
+
+            if (count == 1)
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {first.Name} (0x{first.Guid:X8}) at {first.Location.ToLOCString()}.");
             else
-                loot.Location = session.Player.Location.InFrontOf((loot.UseRadius ?? 2) > 2 ? loot.UseRadius.Value : 2);
-
-            loot.Location.LandblockId = new LandblockId(loot.Location.GetCell());
-
-            //Console.WriteLine($"Spawning {loot.Name} @ {loot.Location.Cell:X8} - {loot.Location.Pos}");
-            LastSpawnPos = loot.Location;
-
-            //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            //LandblockManager.AddObject(loot);
-            loot.EnterWorld();
-
-            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {loot.Name} (0x{loot.Guid:X8}) at {loot.Location.ToLOCString()}.");
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {count}x {first.Name} at {first.Location.ToLOCString()}.");
         }
 
         // ci wclassid (number)
@@ -1368,8 +1420,6 @@ namespace ACE.Server.Command.Handlers
         public static void HandleCI(Session session, params string[] parameters)
         {
             string weenieClassDescription = parameters[0];
-            bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
-
             ushort stackSize = 0;
             if (parameters.Length > 1)
             {
@@ -1381,51 +1431,54 @@ namespace ACE.Server.Command.Handlers
                 }
             }
 
-            if (parameters.Length > 2 && !int.TryParse(parameters[2], out int palette))
+            bool hasPalette = false;
+            int palette = 0;
+            bool hasShade = false;
+            float shade = 0f;
+            if (parameters.Length > 2)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
-                return;
+                if (!int.TryParse(parameters[2], out palette))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
+                    return;
+                }
+                else
+                    hasPalette = true;
+            }
+            if (parameters.Length > 3)
+            {
+                if (!float.TryParse(parameters[3], out shade))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
+                    return;
+                }
+                else
+                    hasShade = true;
             }
 
-            if (parameters.Length > 3 && !float.TryParse(parameters[3], out float shade))
+            WorldObject obj = CreateObjectForCommand(session, weenieClassDescription);
+            if (obj == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
-                return;
-            }
-            
-
-            WorldObject loot;
-            if (wcid)
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
-            else
-                loot = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
-
-            if (loot == null)
-            {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
-                return;
-            }
-
-            if (loot is House)
-            {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
+                // already sent an error message
                 return;
             }
 
             if (stackSize != 0)
             {
-                if (loot.MaxStackSize != null && stackSize > loot.MaxStackSize)
-                    loot.SetStackSize(loot.MaxStackSize);
-                else if (loot.MaxStackSize != null && stackSize <= loot.MaxStackSize)
-                    loot.SetStackSize(stackSize);
+                if (obj.MaxStackSize != null && stackSize > obj.MaxStackSize)
+                    obj.SetStackSize(obj.MaxStackSize);
+                else if (obj.MaxStackSize != null && stackSize <= obj.MaxStackSize)
+                    obj.SetStackSize(stackSize);
             }
-            
 
-            // todo set the palette, shade here
+            if (hasPalette)
+                obj.PaletteTemplate = palette;
+            if (hasShade)
+                obj.Shade = shade;
 
-            session.Player.TryCreateInInventoryWithNetworking(loot);
+            session.Player.TryCreateInInventoryWithNetworking(obj);
 
-            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {loot.Name} (0x{loot.Guid:X8}) in their inventory.");
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {obj.Name} (0x{obj.Guid:X8}) in their inventory.");
         }
 
         [CommandHandler("crack", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Cracks the most recently appraised locked target.", "[. open it too]")]
@@ -1795,15 +1848,15 @@ namespace ACE.Server.Command.Handlers
                         switch (i)
                         {
                             case int n when (n <= 5):
-                                currentPlayer.SetProperty((PropertyInt)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                                currentPlayer.SetProperty((PropertyInt)uint.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
                                 i += 2;
                                 break;
                             case int n when (n <= 9):
-                                currentPlayer.SetProperty((PropertyInt64)int.Parse(returnStringArr[i]), int.Parse(returnStringArr[i + 1]));
+                                currentPlayer.SetProperty((PropertyInt64)uint.Parse(returnStringArr[i]), long.Parse(returnStringArr[i + 1]));
                                 i += 2;
                                 break;
                             case int n when (n <= 33):
-                                var playerAttr = currentPlayer.Attributes[(PropertyAttribute)int.Parse(returnStringArr[i])];
+                                var playerAttr = currentPlayer.Attributes[(PropertyAttribute)uint.Parse(returnStringArr[i])];
                                 playerAttr.StartingValue = uint.Parse(returnStringArr[i + 1]);
                                 playerAttr.Ranks = uint.Parse(returnStringArr[i + 2]);
                                 playerAttr.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
@@ -1822,7 +1875,7 @@ namespace ACE.Server.Command.Handlers
                             case int n when (n <= 238):
                                 var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
                                 playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
-                                playerSkill.AdvancementClass = (SkillAdvancementClass)int.Parse(returnStringArr[i + 2]);
+                                playerSkill.AdvancementClass = (SkillAdvancementClass)uint.Parse(returnStringArr[i + 2]);
                                 playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
                                 playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
                                 currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill.Skill, playerSkill.AdvancementClass, playerSkill.Ranks, playerSkill.InitLevel, playerSkill.ExperienceSpent));
@@ -2524,8 +2577,24 @@ namespace ACE.Server.Command.Handlers
             try
             {
                 var boolVal = bool.Parse(paramters[1]);
+
+                var prevState = PropertyManager.GetBool(paramters[0]);
+
+                if (prevState.Item == boolVal && !string.IsNullOrWhiteSpace(prevState.Description))
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Bool property is already {boolVal} for {paramters[0]}!");
+                    return;
+                }
+
                 if (PropertyManager.ModifyBool(paramters[0], boolVal))
+                {
                     CommandHandlerHelper.WriteOutputInfo(session, "Bool property successfully updated!");
+
+                    if (paramters[0] == "pk_server" || paramters[0] == "pkl_server")
+                    {
+                        PlayerManager.UpdatePKStatusForAllPlayers(paramters[0], boolVal);
+                    }
+                }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown bool property was not updated. Type showprops for a list of properties.");
             }
@@ -2968,6 +3037,90 @@ namespace ACE.Server.Command.Handlers
             salvageBag.NumItemsInMaterial = numItemsInMaterial;
 
             session.Player.TryCreateInInventoryWithNetworking(salvageBag);
+        }
+
+        [CommandHandler("setlbenviron", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Sets or clears your current landblock's environment option",
+            "(name or id of EnvironChangeType)\nleave blank to reset to default.\nlist to get a complete list of options.")]
+        public static void HandleSetLBEnviron(Session session, params string[] parameters)
+        {
+            EnvironChangeType environChange = EnvironChangeType.Clear;
+
+            if (parameters.Length > 0)
+            {
+                if (parameters[0] == "list")
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat(EnvironListMsg(), ChatMessageType.Broadcast));
+                    return;
+                }
+
+                if (Enum.TryParse(parameters[0], true, out environChange))
+                {
+                    if (!Enum.IsDefined(typeof(EnvironChangeType), environChange))
+                        environChange = EnvironChangeType.Clear;
+                }
+            }
+
+            if (environChange.IsFog())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Setting Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblocks, to EnvironChangeType.{environChange.ToString()}.", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} set Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblocks, to EnvironChangeType.{environChange.ToString()}.");
+            }
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Sending EnvironChangeType.{environChange.ToString()} to all players on Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblocks.", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} sent EnvironChangeType.{environChange.ToString()} to all players on Landblock (0x{session.Player.CurrentLandblock.Id.Landblock:X4}), including direct adjacent landblocks.");
+            }
+
+            session.Player.CurrentLandblock?.DoEnvironChange(environChange);
+        }
+
+        [CommandHandler("setglobalenviron", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Sets or clears server's global environment option",
+            "(name or id of EnvironChangeType)\nleave blank to reset to default.\nlist to get a complete list of options.")]
+        public static void HandleSetGlobalEnviron(Session session, params string[] parameters)
+        {
+            EnvironChangeType environChange = EnvironChangeType.Clear;
+
+            if (parameters.Length > 0)
+            {
+                if (parameters[0] == "list")
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat(EnvironListMsg(), ChatMessageType.Broadcast));
+                    return;
+                }
+
+                if (Enum.TryParse(parameters[0], true, out environChange))
+                {
+                    if (!Enum.IsDefined(typeof(EnvironChangeType), environChange))
+                        environChange = EnvironChangeType.Clear;
+                }
+            }
+
+            if (environChange.IsFog())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Setting all landblocks to EnvironChangeType.{environChange.ToString()} .", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} set all landblocks to EnvironChangeType.{environChange.ToString()} .");
+            }
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Sending EnvironChangeType.{environChange.ToString()} to all players on all Landblocks.", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} sent EnvironChangeType.{environChange.ToString()} to all players on all Landblocks.");
+            }
+
+            LandblockManager.DoEnvironChange(environChange);
+        }
+
+        private static string EnvironListMsg()
+        {
+            var msg = "Complete list of EnvironChangeType:\n";
+            foreach (var name in Enum.GetNames(typeof(EnvironChangeType)))
+                msg += name + "\n";
+
+            msg += "Notes about above list:\n";
+            msg += "Clear resets to default.\nAll options ending with Fog are continuous.\nAll options ending with Fog2 are continuous and blank radar.\nAll options ending with Sound play once and do not repeat.";
+
+            return msg;
         }
     }
 }

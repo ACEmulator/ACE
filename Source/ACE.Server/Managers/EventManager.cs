@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using log4net;
@@ -16,7 +17,7 @@ namespace ACE.Server.Managers
 
         static EventManager()
         {
-            Events = new Dictionary<string, Event>();
+            Events = new Dictionary<string, Event>(StringComparer.OrdinalIgnoreCase);
         }
 
         public static void Initialize()
@@ -25,7 +26,7 @@ namespace ACE.Server.Managers
 
             foreach(var evnt in events)
             {
-                Events.Add(evnt.Name.ToLower(), evnt);
+                Events.Add(evnt.Name, evnt);
 
                 if (evnt.State == (int)GameEventState.On)
                     StartEvent(evnt.Name);
@@ -36,7 +37,8 @@ namespace ACE.Server.Managers
 
         public static bool StartEvent(string e)
         {
-            e = e.ToLower();
+            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
+                return false;
 
             if (!Events.TryGetValue(e, out Event evnt))
                 return false;
@@ -53,8 +55,6 @@ namespace ACE.Server.Managers
 
                 if (Debug)
                     Console.WriteLine($"Starting event {evnt.Name}");
-
-                return true;
             }
 
             return true;
@@ -62,7 +62,8 @@ namespace ACE.Server.Managers
 
         public static bool StopEvent(string e)
         {
-            e = e.ToLower();
+            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
+                return false;
 
             if (!Events.TryGetValue(e, out Event evnt))
                 return false;
@@ -79,8 +80,6 @@ namespace ACE.Server.Managers
 
                 if (Debug)
                     Console.WriteLine($"Stopping event {evnt.Name}");
-
-                return true;
             }
 
             return true;
@@ -88,7 +87,12 @@ namespace ACE.Server.Managers
 
         public static bool IsEventStarted(string e)
         {
-            e = e.ToLower();
+            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
+            {
+                var serverPkState = PropertyManager.GetBool("pk_server").Item;
+
+                return serverPkState;
+            }
 
             if (!Events.TryGetValue(e, out Event evnt))
                 return false;
@@ -98,8 +102,6 @@ namespace ACE.Server.Managers
 
         public static bool IsEventEnabled(string e)
         {
-            e = e.ToLower();
-
             if (!Events.TryGetValue(e, out Event evnt))
                 return false;
 
@@ -108,12 +110,18 @@ namespace ACE.Server.Managers
 
         public static bool IsEventAvailable(string e)
         {
-            return Events.ContainsKey(e.ToLower());
+            return Events.ContainsKey(e);
         }
 
         public static GameEventState GetEventStatus(string e)
         {
-            e = e.ToLower();
+            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
+            {
+                if (PropertyManager.GetBool("pk_server").Item)
+                    return GameEventState.On;
+                else
+                    return GameEventState.Off;
+            }
 
             if (!Events.TryGetValue(e, out Event evnt))
                 return GameEventState.Undef;

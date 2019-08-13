@@ -7,6 +7,7 @@ namespace ACE.Database.Models.Shard
     {
         public Biota()
         {
+            BiotaPropertiesAllegiance = new HashSet<BiotaPropertiesAllegiance>();
             BiotaPropertiesAnimPart = new HashSet<BiotaPropertiesAnimPart>();
             BiotaPropertiesAttribute = new HashSet<BiotaPropertiesAttribute>();
             BiotaPropertiesAttribute2nd = new HashSet<BiotaPropertiesAttribute2nd>();
@@ -38,6 +39,7 @@ namespace ACE.Database.Models.Shard
         public uint PopulatedCollectionFlags { get; set; }
 
         public virtual BiotaPropertiesBook BiotaPropertiesBook { get; set; }
+        public virtual ICollection<BiotaPropertiesAllegiance> BiotaPropertiesAllegiance { get; set; }
         public virtual ICollection<BiotaPropertiesAnimPart> BiotaPropertiesAnimPart { get; set; }
         public virtual ICollection<BiotaPropertiesAttribute> BiotaPropertiesAttribute { get; set; }
         public virtual ICollection<BiotaPropertiesAttribute2nd> BiotaPropertiesAttribute2nd { get; set; }

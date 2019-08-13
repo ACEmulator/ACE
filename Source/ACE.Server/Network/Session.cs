@@ -173,11 +173,11 @@ namespace ACE.Server.Network
         /// <summary>
         /// Log off the player normally
         /// </summary>
-        public void LogOffPlayer()
+        public void LogOffPlayer(bool forceImmediate = false)
         {
             if (logOffRequestTime == DateTime.MinValue)
             {
-                var result = Player.LogOut();
+                var result = Player.LogOut(false, forceImmediate);
 
                 if (result)
                     logOffRequestTime = DateTime.UtcNow;

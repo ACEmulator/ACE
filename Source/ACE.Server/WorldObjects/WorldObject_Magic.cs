@@ -181,6 +181,10 @@ namespace ACE.Server.WorldObjects
                 // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
                 if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
+
+                // Ensure not attacking across housing boundary
+                if (!player.CheckHouseRestrictions(targetPlayer))
+                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_AcrossHouseBoundary, WeenieErrorWithString._FailsToAffectYouAcrossHouseBoundary };
             }
             return null;
         }
@@ -330,13 +334,17 @@ namespace ACE.Server.WorldObjects
             {
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetCreature.Name} resists your spell", ChatMessageType.Magic));
+                    if (!player.SquelchManager.Squelches.Contains(targetCreature, ChatMessageType.Magic))
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetCreature.Name} resists your spell", ChatMessageType.Magic));
+
                     player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
                 }
 
                 if (targetPlayer != null)
                 {
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {Name}", ChatMessageType.Magic));
+                    if (!targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {Name}", ChatMessageType.Magic));
+
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSound(targetPlayer.Guid, Sound.ResistSpell, 1.0f));
 
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
@@ -676,8 +684,8 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            if (targetMsg != null)
-                (target as Player).Session.Network.EnqueueSend(targetMsg);
+            if (targetMsg != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+                targetPlayer.Session.Network.EnqueueSend(targetMsg);
 
             enchantmentStatus.Success = true;
 
@@ -869,7 +877,7 @@ namespace ACE.Server.WorldObjects
                         {
                             if (targetPlayer.PKTimerActive)
                             {
-                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                                 break;
                             }
 
@@ -893,7 +901,7 @@ namespace ACE.Server.WorldObjects
                         {
                             if (targetPlayer.PKTimerActive)
                             {
-                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                                 break;
                             }
 
@@ -1329,7 +1337,7 @@ namespace ACE.Server.WorldObjects
             if (playerTarget == null && target.Wielder is Player wielder)
                 playerTarget = wielder;
 
-            if (playerTarget != null && playerTarget != this)
+            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
             {
                 var targetName = target == playerTarget ? "you" : target.Name;
 

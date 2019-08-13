@@ -7,12 +7,14 @@ namespace ACE.Database.Models.Shard
     {
         public Character()
         {
+            BiotaPropertiesAllegiance = new HashSet<BiotaPropertiesAllegiance>();
             CharacterPropertiesContractRegistry = new HashSet<CharacterPropertiesContractRegistry>();
             CharacterPropertiesFillCompBook = new HashSet<CharacterPropertiesFillCompBook>();
             CharacterPropertiesFriendList = new HashSet<CharacterPropertiesFriendList>();
             CharacterPropertiesQuestRegistry = new HashSet<CharacterPropertiesQuestRegistry>();
             CharacterPropertiesShortcutBar = new HashSet<CharacterPropertiesShortcutBar>();
             CharacterPropertiesSpellBar = new HashSet<CharacterPropertiesSpellBar>();
+            CharacterPropertiesSquelch = new HashSet<CharacterPropertiesSquelch>();
             CharacterPropertiesTitleBook = new HashSet<CharacterPropertiesTitleBook>();
         }
 
@@ -31,12 +33,14 @@ namespace ACE.Database.Models.Shard
         public uint HairTexture { get; set; }
         public uint DefaultHairTexture { get; set; }
 
+        public virtual ICollection<BiotaPropertiesAllegiance> BiotaPropertiesAllegiance { get; set; }
         public virtual ICollection<CharacterPropertiesContractRegistry> CharacterPropertiesContractRegistry { get; set; }
         public virtual ICollection<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
         public virtual ICollection<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
         public virtual ICollection<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
         public virtual ICollection<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
         public virtual ICollection<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
+        public virtual ICollection<CharacterPropertiesSquelch> CharacterPropertiesSquelch { get; set; }
         public virtual ICollection<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
     }
 }
