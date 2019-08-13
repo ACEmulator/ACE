@@ -1425,7 +1425,6 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"count must be a between 1 and {ushort.MaxValue}", ChatMessageType.Broadcast));
                 return;
             }
-
             string predefName = null;
             if (parameters.Length > 1)
             {
