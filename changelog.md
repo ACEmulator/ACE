@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-08-12
+[OptimShi]
+* Fixed some reported issues with the visual display of different layered armor.
+
 ### 2019-08-05
 [Ripley]
 * Add immediate save to items being picked up from player corpses to avoid falling into void if server crashes before next player save.
