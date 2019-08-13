@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -14,6 +16,8 @@ namespace ACE.Server.Entity
 {
     public class DamageEvent
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // factors:
         // - lifestone protection
         // - evade
@@ -173,6 +177,12 @@ namespace ACE.Server.Entity
             else
                 GetBaseDamage(attacker, CombatManeuver);
 
+            if (DamageType == DamageType.Undef)
+            {
+                log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
+                GeneralFailure = true;
+            }
+
             if (GeneralFailure) return 0.0f;
 
             // get damage modifiers
@@ -298,7 +308,7 @@ namespace ACE.Server.Entity
         {
             if (DamageSource.ItemType == ItemType.MissileWeapon)
             {
-                DamageType = (DamageType)DamageSource.GetProperty(PropertyInt.DamageType);
+                DamageType = DamageSource.W_DamageType;
 
                 // handle prismatic arrows
                 if (DamageType == DamageType.Base)
