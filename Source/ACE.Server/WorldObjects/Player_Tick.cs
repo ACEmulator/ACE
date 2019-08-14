@@ -318,6 +318,8 @@ namespace ACE.Server.WorldObjects
             // possible bug: while teleporting, client can still send AutoPos packets from old landblock
             if (Teleporting && !forceUpdate) return false;
 
+            var success = true;
+
             if (PhysicsObj != null)
             {
                 var distSq = Location.SquaredDistanceTo(newPosition);
@@ -348,7 +350,7 @@ namespace ACE.Server.WorldObjects
                     if (curCell != null)
                     {
                         PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
-                        PhysicsObj.update_object_server();
+                        success = PhysicsObj.update_object_server();
 
                         if (PhysicsObj.CurCell == null)
                             PhysicsObj.CurCell = curCell;
@@ -369,6 +371,8 @@ namespace ACE.Server.WorldObjects
 
             // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
             if (Teleporting && !forceUpdate) return true;
+
+            if (!success) return false;
 
             //var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
             var landblockUpdate = CurrentLandblock != null && CurrentLandblock.Id.Landblock != newPosition.Cell >> 16;
