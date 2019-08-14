@@ -1358,7 +1358,7 @@ namespace ACE.Server.Command.Handlers
 
             weenieToSpawn = CreateObjectForCommand(session, weenieClassDescription);
 
-            // Only allows for spawning multiple weenies of type create or stackable.
+            // Only allows for spawning multiple weenies of type creature or stackable.
             // Other weenie types that could be useful to spawn multiples can be added to the else if clause.
             // The number of creatures to spawn will be limited by the physics engine.
             if (weenieToSpawn != null && numToSpawn == 1)
