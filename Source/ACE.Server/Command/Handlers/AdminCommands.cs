@@ -1315,7 +1315,11 @@ namespace ACE.Server.Command.Handlers
 
         // create wclassid (number)
         [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an object or objects in the world.", "wclassid (string or number), Amount to Spawn (default:1)")]
+            "Creates an object or objects in the world.",
+            "wclassid (string or number), Amount to Spawn (optional [default:1]), Palette (optional), Shade (optional)\n" +
+            "This will attempt to spawn the weenie you specify. If you include an amount to spawn parameter it will attempt to spawn that many of the weenie.\n" +
+            "Stackable items will spawn in stacks of their max stack size. All spawns will be limited by the physics engine placement algorithim which may prevent the number you specify from actually spawning." +
+            "Be careful with large numbers, especially with ethereal weenies...")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
             string weenieClassDescription = parameters[0];
@@ -1323,15 +1327,15 @@ namespace ACE.Server.Command.Handlers
             bool hasPalette = false;
             float shade = 0;
             bool hasShade = false;
-            ushort numToSpawn = 1;
+            int numToSpawn = 1;
             WorldObject weenieToSpawn;
             List<WorldObject> weeniesToSpawn = new List<WorldObject>();
 
             if (parameters.Length > 1)
             {
-                if (!ushort.TryParse(parameters[1], out numToSpawn))
+                if (!int.TryParse(parameters[1], out numToSpawn))
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between {ushort.MinValue} - {ushort.MaxValue}.", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
                     return;
                 }
             }
@@ -1358,9 +1362,7 @@ namespace ACE.Server.Command.Handlers
 
             weenieToSpawn = CreateObjectForCommand(session, weenieClassDescription);
 
-            // Only allows for spawning multiple weenies of type creature or stackable.
-            // Other weenie types that could be useful to spawn multiples can be added to the else if clause.
-            // The number of creatures to spawn will be limited by the physics engine.
+            // The number of weenies to spawn will be limited by the physics engine.
             if (weenieToSpawn != null && numToSpawn == 1)
             {
                 weeniesToSpawn.Add(weenieToSpawn);
@@ -1370,24 +1372,32 @@ namespace ACE.Server.Command.Handlers
                 if (weenieToSpawn.WeenieType is WeenieType.Stackable)
                 {
                     if (weenieToSpawn.MaxStackSize != null && numToSpawn > weenieToSpawn.MaxStackSize)
-                        weenieToSpawn.SetStackSize(weenieToSpawn.MaxStackSize);
-                    else if (weenieToSpawn.MaxStackSize != null && numToSpawn <= weenieToSpawn.MaxStackSize)
-                        weenieToSpawn.SetStackSize(numToSpawn);
-                    weeniesToSpawn.Add(weenieToSpawn);
-                }
-                else if (weenieToSpawn.WeenieType is WeenieType.Creature)   // add other multi spawnable weenie types here
-                {
-                    weeniesToSpawn.Add(weenieToSpawn);
-                    for (int i = 1; i < numToSpawn; i++)
                     {
-                        weeniesToSpawn.Add(CreateObjectForCommand(session, weenieClassDescription));
+                        int numWeeniesRequired = (numToSpawn / (int)weenieToSpawn.MaxStackSize);
+                        int lastStackAmount = numToSpawn % (int)weenieToSpawn.MaxStackSize;
+                        for (int i = 0; i < numWeeniesRequired; i++)
+                        {
+                            weeniesToSpawn.Add(CreateObjectForCommand(session, weenieClassDescription));
+                        }
+                        foreach (var w in weeniesToSpawn)
+                        {
+                            w.SetStackSize(weenieToSpawn.MaxStackSize);
+                        }
+                        weenieToSpawn.SetStackSize(lastStackAmount);
+                        weeniesToSpawn.Add(weenieToSpawn);
+                    }
+                    else if (weenieToSpawn.MaxStackSize != null && numToSpawn <= weenieToSpawn.MaxStackSize)
+                    {
+                        weenieToSpawn.SetStackSize(numToSpawn);
+                        weeniesToSpawn.Add(weenieToSpawn);
                     }
                 }
                 else
                 {
-                    // currently if the weenie type is not stackable or creature it will default here and only spawn one
-                    numToSpawn = 1;
-                    weeniesToSpawn.Add(weenieToSpawn);
+                    for (int i = 0; i < numToSpawn; i++)
+                    {
+                        weeniesToSpawn.Add(CreateObjectForCommand(session, weenieClassDescription));
+                    }
                 }
             }
             else
