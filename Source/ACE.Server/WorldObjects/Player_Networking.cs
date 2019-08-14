@@ -19,6 +19,7 @@ namespace ACE.Server.WorldObjects
         public void PlayerEnterWorld()
         {
             PlayerManager.SwitchPlayerFromOfflineToOnline(this);
+            Teleporting = true;
 
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
