@@ -2298,7 +2298,8 @@ namespace ACE.Server.Physics
             entering_world = true;
 
             store_position(pos);
-            var result = enter_world(true);
+            bool slide = ProjectileTarget == null || WeenieObj.WorldObject is SpellProjectile;
+            var result = enter_world(slide);
 
             entering_world = false;
             return result;
