@@ -186,10 +186,13 @@ namespace ACE.Server.Command.Handlers
             "Purges all orphaned objects found in the database")]
         public static void HandlePurgeOrphans(Session session, params string[] parameters)
         {
-            if (DatabaseManager.Shard.PurgeOrphanedBiotas(out var numberOfBiotasPurged))
-                CommandHandlerHelper.WriteOutputInfo(session, $"Purged {numberOfBiotasPurged:N0} orphaned biotas.", ChatMessageType.Broadcast);
-            else
-                CommandHandlerHelper.WriteOutputInfo(session, $"Purged of orphaned biotas failed.", ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, $"Command WIP.", ChatMessageType.Broadcast);
+            return;
+
+            //if (DatabaseManager.Shard.PurgeOrphanedBiotas(out var numberOfBiotasPurged))
+            //    CommandHandlerHelper.WriteOutputInfo(session, $"Purged {numberOfBiotasPurged:N0} orphaned biotas.", ChatMessageType.Broadcast);
+            //else
+            //    CommandHandlerHelper.WriteOutputInfo(session, $"Purged of orphaned biotas failed.", ChatMessageType.Broadcast);
         }
     }
 }

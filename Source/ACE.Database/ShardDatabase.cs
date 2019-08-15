@@ -593,10 +593,13 @@ namespace ACE.Database
                 {
                     var biota = GetBiota(result.ObjectId);
 
+                    if (biota == null)
+                        continue;
+
                     // Filter out objects that are in a container
                     if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 2 && r.Value != 0) != null)
                         continue;
-
+                       
                     // Filter out wielded objects
                     if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 3 && r.Value != 0) != null)
                         continue;
@@ -626,6 +629,9 @@ namespace ACE.Database
                 Parallel.ForEach(results, result =>
                 {
                     var biota = GetBiota(result.ObjectId);
+
+                    if (biota == null)
+                        return;
 
                     // Filter out objects that are in a container
                     if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 2 && r.Value != 0) != null)
@@ -978,268 +984,332 @@ namespace ACE.Database
         {
             numberOfBiotasPurged = 0;
 
-            var context = new ShardDbContext();
+            // WIP code, not ready for production
+            return false;
 
-            var results = context.Biota
-                .Include(r => r.BiotaPropertiesAllegiance)
-                .Include(r => r.BiotaPropertiesIID)
-                //.Include(r => r.BiotaPropertiesInt)
-                .Include(r => r.BiotaPropertiesPosition)
-                .Include(r => r.BiotaPropertiesString)
-                .ToList();
+            //var context = new ShardDbContext();
 
-            if (results == null)
-            {
-                return false;
-            }
-            else
-            {
+            //var totalNumBiotas = context.Biota.Count();
 
-                foreach(var item in results)
-                {
-                    var delete = false;
-                    var deleteReason = "";
+            ////var results = context.Biota
+            ////    .Include(r => r.BiotaPropertiesAllegiance)
+            ////    .Include(r => r.BiotaPropertiesIID)
+            ////    //.Include(r => r.BiotaPropertiesInt)
+            ////    .Include(r => r.BiotaPropertiesPosition)
+            ////    .Include(r => r.BiotaPropertiesString)
+            ////    .Take(10000)
+            ////    .ToList();
 
-                    var nameString = item.BiotaPropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name);
-
-                    if (item.WeenieType == (int)WeenieType.Creature || item.WeenieType == (int)WeenieType.Admin || item.WeenieType == (int)WeenieType.Sentinel)
-                    {
-                        var character = context.Character
-                            .AsNoTracking()
-                            .FirstOrDefault(c => c.Id == item.Id);
-
-                        if (character == null)
-                        {
-                            if (item.WeenieClassId == 1 || item.WeenieClassId == 4 || item.WeenieClassId == 3648)
-                            {
-                                delete = true;
-                                deleteReason = "Player Biota did not have matching Character entry.";
-                            }
-                        }
-                    }                    
-
-                    if (item.WeenieType == (int)WeenieType.House || item.WeenieType == (int)WeenieType.SlumLord || item.WeenieType == (int)WeenieType.HousePortal
-                        || item.WeenieType == (int)WeenieType.Hook || item.WeenieType == (int)WeenieType.Storage)
-                    {
-                        var houseOwnerIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.HouseOwner);
-
-                        if (houseOwnerIID != null)
-                        {
-                            var character = context.Character
-                                .AsNoTracking()
-                                .FirstOrDefault(c => c.Id == houseOwnerIID.Value && c.DeleteTime == 0 && !c.IsDeleted);
-
-                            if (character == null)
-                            {
-                                item.BiotaPropertiesIID.Remove(houseOwnerIID);
-
-                                if (item.WeenieType == (int)WeenieType.SlumLord)
-                                {
-                                    if (nameString.Value.EndsWith("Apartment"))
-                                        nameString.Value = "Apartment";
-                                    else if (nameString.Value.EndsWith("Cottage"))
-                                        nameString.Value = "Cottage";
-                                    else if (nameString.Value.EndsWith("Villa"))
-                                        nameString.Value = "Villa";
-                                    else if (nameString.Value.EndsWith("Mansion"))
-                                        nameString.Value = "Mansion";
-                                }
-
-                                log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) has been altered. Reason: HouseOwnerIID (0x{houseOwnerIID.Value:X8}) was not found in database");
-
-                                context.SaveChanges();
-
-                                continue;
-                            }
-                        }
-                    }
-
-                    if (item.WeenieType == (int)WeenieType.Allegiance)
-                    {
-                        var amonarchIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Monarch);
-
-                        if (amonarchIID != null)
-                        {
-                            var character = context.Character
-                                .AsNoTracking()
-                                .FirstOrDefault(c => c.Id == amonarchIID.Value && c.DeleteTime == 0 && !c.IsDeleted);
-
-                            if (character == null)
-                            {
-                                delete = true;
-                                deleteReason = $"Allegiance Biota had a MonarchIID (0x{amonarchIID.Value:X8}) that was not found in database.";
-                            }
-                        }
-                        else
-                        {
-                            delete = true;
-                            deleteReason = "Allegiance Biota did not have a MonarchIID entry.";
-                        }
-                    }
+            ////var results = context.Biota
+            ////    .Include(r => r.BiotaPropertiesAllegiance)
+            ////    .Include(r => r.BiotaPropertiesIID)
+            ////    .Include(r => r.BiotaPropertiesInt)
+            ////    .Include(r => r.BiotaPropertiesPosition)
+            ////    .Include(r => r.BiotaPropertiesString)
+            ////    .Take(10000)
+            ////    .AsNoTracking()
+            ////    .ToList();
 
 
-                    var ownerIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Owner);
-                    var containerIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Container);
-                    var wielderIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Wielder);
+            //for (var skip = 0; skip < totalNumBiotas; skip = skip + 1000) //skip = Math.Min(totalNumBiotas, skip + 1000))
+            //{
+            //    var results = context.Biota
+            //        .Include(r => r.BiotaPropertiesAllegiance)
+            //        .Include(r => r.BiotaPropertiesIID)
+            //        //.Include(r => r.BiotaPropertiesInt)
+            //        .Include(r => r.BiotaPropertiesPosition)
+            //        .Include(r => r.BiotaPropertiesString)
+            //        .Skip(skip)
+            //        .Take(1000)
+            //        .ToList();
 
-                    var locationPosition = item.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (int)PositionType.Location);
+            //    //if (results == null)
+            //    //{
+            //    //    return false;
+            //    //}
+            //    //else
+            //    if (results != null)
+            //    {
 
-                    if (item.WeenieType != (int)WeenieType.Allegiance && containerIID == null && wielderIID == null && locationPosition == null)
-                    {
-                        delete = true;
-                        deleteReason = "ContainerIID, WielderIID, and Location was null";
-                    }
+            //        foreach (var item in results)
+            //        {
+            //            var delete = false;
+            //            var deleteReason = "";
 
-                    if (containerIID != null && results.Where(r => r.Id == containerIID.Value).Count() == 0)
-                    {
-                        delete = true;
-                        deleteReason = $"ContainerIID (0x{containerIID.Value:X8}) was not found in database.";
-                    }
+            //            var nameString = item.BiotaPropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name);
 
-                    if (wielderIID != null && results.Where(r => r.Id == wielderIID.Value).Count() == 0)
-                    {
-                        delete = true;
-                        deleteReason = $"WielderIID (0x{wielderIID.Value:X8}) was not found in database.";
-                    }
+            //            var creationInt = item.BiotaPropertiesInt.FirstOrDefault(i => i.Type == (int)PropertyInt.CreationTimestamp);
 
-                    if (ownerIID != null && results.Where(r => r.Id == ownerIID.Value).Count() == 0)
-                    {
-                        delete = true;
-                        deleteReason = $"OwnerIID (0x{ownerIID.Value:X8}) was not found in database.";
-                    }
+            //            //var creationTS = DateTime.MinValue;
 
-                    if (!delete)
-                    {
-                        var monarchIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Monarch);
-                        if (monarchIID != null)
-                        {
-                            var character = context.Character
-                                .AsNoTracking()
-                                .FirstOrDefault(c => c.Id == monarchIID.Value && c.DeleteTime == 0 && !c.IsDeleted);
+            //            //if (creationInt != null)
+            //            //{
+            //            //    creationTS = Common.Time.GetDateTimeFromTimestamp(creationInt.Value);
+            //            //}
 
-                            if (character == null)
-                            {
-                                item.BiotaPropertiesIID.Remove(monarchIID);
+            //            if (item.WeenieType == (int)WeenieType.Creature || item.WeenieType == (int)WeenieType.Admin || item.WeenieType == (int)WeenieType.Sentinel)
+            //            {
+            //                var character = context.Character
+            //                    .AsNoTracking()
+            //                    .FirstOrDefault(c => c.Id == item.Id);
 
-                                log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) has been altered. Reason: MonarchIID (0x{monarchIID.Value:X8}) was not found in database");
+            //                if (character == null)
+            //                {
+            //                    if (item.WeenieClassId == 1 || item.WeenieClassId == 4 || item.WeenieClassId == 3648)
+            //                    {
+            //                        delete = true;
+            //                        deleteReason = "Player Biota did not have matching Character entry.";
+            //                    }
+            //                }
+            //            }
 
-                                context.SaveChanges();
-                            }
-                        }
+            //            if (item.WeenieType == (int)WeenieType.House || item.WeenieType == (int)WeenieType.SlumLord || item.WeenieType == (int)WeenieType.HousePortal
+            //                || item.WeenieType == (int)WeenieType.Hook || item.WeenieType == (int)WeenieType.Storage)
+            //            {
+            //                var houseOwnerIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.HouseOwner);
 
-                        var patronIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Patron);
-                        if (patronIID != null)
-                        {
-                            var character = context.Character
-                                .AsNoTracking()
-                                .FirstOrDefault(c => c.Id == patronIID.Value && c.DeleteTime == 0 && !c.IsDeleted);
+            //                if (houseOwnerIID != null)
+            //                {
+            //                    var character = context.Character
+            //                        .AsNoTracking()
+            //                        .FirstOrDefault(c => c.Id == houseOwnerIID.Value && c.DeleteTime == 0 && !c.IsDeleted);
 
-                            if (character == null)
-                            {
-                                item.BiotaPropertiesIID.Remove(patronIID);
+            //                    if (character == null)
+            //                    {
+            //                        item.BiotaPropertiesIID.Remove(houseOwnerIID);
 
-                                log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) has been altered. Reason: PatronIID (0x{patronIID.Value:X8}) was not found in database");
+            //                        if (item.WeenieType == (int)WeenieType.SlumLord)
+            //                        {
+            //                            if (nameString.Value.EndsWith("Apartment"))
+            //                                nameString.Value = "Apartment";
+            //                            else if (nameString.Value.EndsWith("Cottage"))
+            //                                nameString.Value = "Cottage";
+            //                            else if (nameString.Value.EndsWith("Villa"))
+            //                                nameString.Value = "Villa";
+            //                            else if (nameString.Value.EndsWith("Mansion"))
+            //                                nameString.Value = "Mansion";
+            //                        }
 
-                                context.SaveChanges();
-                            }
-                        }
+            //                        log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) has been altered. Reason: HouseOwnerIID (0x{houseOwnerIID.Value:X8}) was not found in database");
 
-                        var allegianceIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Allegiance);
-                        if (allegianceIID != null)
-                        {
-                            var allegiance = context.Biota
-                                .AsNoTracking()
-                                .FirstOrDefault(c => c.Id == allegianceIID.Value);
+            //                        context.SaveChanges();
 
-                            if (allegiance == null)
-                            {
-                                item.BiotaPropertiesIID.Remove(allegianceIID);
+            //                        continue;
+            //                    }
+            //                }
+            //            }
 
-                                log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) has been altered. Reason: AllegianceIID (0x{allegianceIID.Value:X8}) was not found in database");
+            //            if (item.WeenieType == (int)WeenieType.Allegiance)
+            //            {
+            //                var amonarchIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Monarch);
 
-                                context.SaveChanges();
-                            }
-                        }
-                    }
+            //                if (amonarchIID != null)
+            //                {
+            //                    var character = context.Character
+            //                        .AsNoTracking()
+            //                        .FirstOrDefault(c => c.Id == amonarchIID.Value && c.DeleteTime == 0 && !c.IsDeleted);
 
-                    if (delete)
-                    {
-                        context.Remove(item);
+            //                    if (character == null)
+            //                    {
+            //                        delete = true;
+            //                        deleteReason = $"Allegiance Biota had a MonarchIID (0x{amonarchIID.Value:X8}) that was not found in database.";
+            //                    }
+            //                }
+            //                else
+            //                {
+            //                    delete = true;
+            //                    deleteReason = "Allegiance Biota did not have a MonarchIID entry.";
+            //                }
+            //            }
 
-                        log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) - WCID: {item.WeenieClassId} | WeenieType: {(WeenieType)item.WeenieType} - has been purged. Reason: {deleteReason}");
 
-                        context.SaveChanges();
+            //            var ownerIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Owner);
+            //            var containerIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Container);
+            //            var wielderIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Wielder);
 
-                        numberOfBiotasPurged++;
-                    }
-                }
+            //            var locationPosition = item.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (int)PositionType.Location);
 
-                var charResults = context.Character
-                    //.Include(r => r.CharacterPropertiesContractRegistry)
-                    //.Include(r => r.CharacterPropertiesFillCompBook)
-                    .Include(r => r.CharacterPropertiesFriendList)
-                   // .Include(r => r.CharacterPropertiesQuestRegistry)
-                    .Include(r => r.CharacterPropertiesShortcutBar)
-                    //.Include(r => r.CharacterPropertiesSpellBar)
-                    .Include(r => r.CharacterPropertiesSquelch)
-                    //.Include(r => r.CharacterPropertiesTitleBook)
-                    .ToList();
+            //            if (item.WeenieType != (int)WeenieType.Allegiance && containerIID == null && wielderIID == null && locationPosition == null)
+            //            {
+            //                delete = true;
+            //                deleteReason = "ContainerIID, WielderIID, and Location was null";
+            //            }
 
-                foreach(var item in charResults)
-                {
-                    foreach(var friend in item.CharacterPropertiesFriendList.ToList())
-                    {
-                        var character = context.Character
-                            .AsNoTracking()
-                            .FirstOrDefault(c => c.Id == friend.FriendId && c.DeleteTime == 0 && !c.IsDeleted);
+            //            if (containerIID != null && results.Where(r => r.Id == containerIID.Value).Count() == 0)
+            //            {
+            //                var biota = context.Biota
+            //                        .AsNoTracking()
+            //                        .FirstOrDefault(b => b.Id == containerIID.Value);
 
-                        if (character == null)
-                        {
-                            item.CharacterPropertiesFriendList.Remove(friend);
+            //                if (biota == null)
+            //                {
+            //                    delete = true;
+            //                    deleteReason = $"ContainerIID (0x{containerIID.Value:X8}) was not found in database.";
+            //                }
+            //            }
 
-                            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Friend (0x{friend.FriendId:X8}) was not found in database");
+            //            if (wielderIID != null)
+            //            {
+            //                var biota = context.Biota
+            //                        .AsNoTracking()
+            //                        .FirstOrDefault(b => b.Id == wielderIID.Value);
 
-                            context.SaveChanges();
-                        }
-                    }
+            //                if (biota == null)
+            //                {
+            //                    delete = true;
+            //                    deleteReason = $"WielderIID (0x{wielderIID.Value:X8}) was not found in database.";
+            //                }
+            //            }
 
-                    foreach (var shortcut in item.CharacterPropertiesShortcutBar.ToList())
-                    {
-                        var biota = context.Biota
-                            .AsNoTracking()
-                            .FirstOrDefault(b => b.Id == shortcut.ShortcutObjectId);
+            //            if (ownerIID != null)
+            //            {
+            //                var biota = context.Biota
+            //                        .AsNoTracking()
+            //                        .FirstOrDefault(b => b.Id == ownerIID.Value);
 
-                        if (biota == null)
-                        {
-                            item.CharacterPropertiesShortcutBar.Remove(shortcut);
+            //                if (biota == null)
+            //                {
+            //                    delete = true;
+            //                    deleteReason = $"OwnerIID (0x{ownerIID.Value:X8}) was not found in database.";
+            //                }
+            //            }
 
-                            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Shortcut (0x{shortcut.ShortcutObjectId:X8}) was not found in database");
+            //            if (!delete)
+            //            {
+            //                var monarchIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Monarch);
+            //                if (monarchIID != null)
+            //                {
+            //                    var character = context.Character
+            //                        .AsNoTracking()
+            //                        .FirstOrDefault(c => c.Id == monarchIID.Value && c.DeleteTime == 0 && !c.IsDeleted);
 
-                            context.SaveChanges();
-                        }
-                    }
+            //                    if (character == null)
+            //                    {
+            //                        item.BiotaPropertiesIID.Remove(monarchIID);
 
-                    foreach (var squelch in item.CharacterPropertiesSquelch.ToList())
-                    {
-                        var character = context.Character
-                            .AsNoTracking()
-                            .FirstOrDefault(c => c.Id == squelch.SquelchCharacterId && c.DeleteTime == 0 && !c.IsDeleted);
+            //                        log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) has been altered. Reason: MonarchIID (0x{monarchIID.Value:X8}) was not found in database");
 
-                        if (character != null)
-                            continue; // Skip Confirmed Character Biotas.
-                        else
-                        {
-                            item.CharacterPropertiesSquelch.Remove(squelch);
+            //                        context.SaveChanges();
+            //                    }
+            //                }
 
-                            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Squelched Character (0x{squelch.SquelchCharacterId:X8}) was not found in database");
+            //                var patronIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Patron);
+            //                if (patronIID != null)
+            //                {
+            //                    var character = context.Character
+            //                        .AsNoTracking()
+            //                        .FirstOrDefault(c => c.Id == patronIID.Value && c.DeleteTime == 0 && !c.IsDeleted);
 
-                            context.SaveChanges();
-                        }
-                    }
-                }
-            }
+            //                    if (character == null)
+            //                    {
+            //                        item.BiotaPropertiesIID.Remove(patronIID);
 
-            return true;
+            //                        log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) has been altered. Reason: PatronIID (0x{patronIID.Value:X8}) was not found in database");
+
+            //                        context.SaveChanges();
+            //                    }
+            //                }
+
+            //                var allegianceIID = item.BiotaPropertiesIID.FirstOrDefault(i => i.Type == (int)PropertyInstanceId.Allegiance);
+            //                if (allegianceIID != null)
+            //                {
+            //                    var allegiance = context.Biota
+            //                        .AsNoTracking()
+            //                        .FirstOrDefault(c => c.Id == allegianceIID.Value);
+
+            //                    if (allegiance == null)
+            //                    {
+            //                        item.BiotaPropertiesIID.Remove(allegianceIID);
+
+            //                        log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) has been altered. Reason: AllegianceIID (0x{allegianceIID.Value:X8}) was not found in database");
+
+            //                        context.SaveChanges();
+            //                    }
+            //                }
+            //            }
+
+            //            if (delete)
+            //            {
+            //                context.Remove(item);
+
+            //                log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) - WCID: {item.WeenieClassId} | WeenieType: {(WeenieType)item.WeenieType} - has been purged. Reason: {deleteReason}");
+            //                //log.Info($"Biota for {nameString.Value} (0x{item.Id:X8}) - WCID: {item.WeenieClassId} | WeenieType: {(WeenieType)item.WeenieType} | CreationTimestamp: {creationTS.ToLocalTime()} - has been purged. Reason: {deleteReason}");
+
+            //                context.SaveChanges();
+
+            //                numberOfBiotasPurged++;
+            //            }
+            //        }
+
+            //    }
+
+            //}
+
+            //var charResults = context.Character
+            //            //.Include(r => r.CharacterPropertiesContractRegistry)
+            //            //.Include(r => r.CharacterPropertiesFillCompBook)
+            //            .Include(r => r.CharacterPropertiesFriendList)
+            //            // .Include(r => r.CharacterPropertiesQuestRegistry)
+            //            .Include(r => r.CharacterPropertiesShortcutBar)
+            //            //.Include(r => r.CharacterPropertiesSpellBar)
+            //            .Include(r => r.CharacterPropertiesSquelch)
+            //            //.Include(r => r.CharacterPropertiesTitleBook)
+            //            .ToList();
+
+            //foreach (var item in charResults)
+            //{
+            //    foreach (var friend in item.CharacterPropertiesFriendList.ToList())
+            //    {
+            //        var character = context.Character
+            //            .AsNoTracking()
+            //            .FirstOrDefault(c => c.Id == friend.FriendId && c.DeleteTime == 0 && !c.IsDeleted);
+
+            //        if (character == null)
+            //        {
+            //            item.CharacterPropertiesFriendList.Remove(friend);
+
+            //            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Friend (0x{friend.FriendId:X8}) was not found in database");
+
+            //            context.SaveChanges();
+            //        }
+            //    }
+
+            //    foreach (var shortcut in item.CharacterPropertiesShortcutBar.ToList())
+            //    {
+            //        var biota = context.Biota
+            //            .AsNoTracking()
+            //            .FirstOrDefault(b => b.Id == shortcut.ShortcutObjectId);
+
+            //        if (biota == null)
+            //        {
+            //            item.CharacterPropertiesShortcutBar.Remove(shortcut);
+
+            //            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Shortcut (0x{shortcut.ShortcutObjectId:X8}) was not found in database");
+
+            //            context.SaveChanges();
+            //        }
+            //    }
+
+            //    foreach (var squelch in item.CharacterPropertiesSquelch.ToList())
+            //    {
+            //        var character = context.Character
+            //            .AsNoTracking()
+            //            .FirstOrDefault(c => c.Id == squelch.SquelchCharacterId && c.DeleteTime == 0 && !c.IsDeleted);
+
+            //        if (character != null)
+            //            continue; // Skip Confirmed Character Biotas.
+            //        else
+            //        {
+            //            item.CharacterPropertiesSquelch.Remove(squelch);
+
+            //            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Squelched Character (0x{squelch.SquelchCharacterId:X8}) was not found in database");
+
+            //            context.SaveChanges();
+            //        }
+            //    }
+            //}
+
+            //return true;
         }
     }
 }

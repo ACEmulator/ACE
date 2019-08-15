@@ -46,12 +46,12 @@ namespace ACE.Server.Command.Handlers
             }));
         }
 
-        // erasecharacter characterid
-        [CommandHandler("erasecharacter", AccessLevel.Admin, CommandHandlerFlag.None, 1,
-            "Erases a deleted character, and its possessions, from the database",
+        // purgecharacter characterid
+        [CommandHandler("purgecharacter", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Purges a deleted character, and its possessions, from the database",
             "characterId\n" +
-            "Given the ID of a deleted character, this command erases that character from the database.  (You can find the ID of a deleted character using the @finger command.)\n" +
-            "Can only erase deleted characters, characters not deleted are not safe to be erased with this command.")]
+            "Given the ID of a deleted character, this command purges that character data from the database.  (You can find the ID of a deleted character using the @finger command.)\n" +
+            "Can only purge deleted characters! Characters that have not first been deleted cannot be purged with this command.")]
         public static void HandleCharacterErase(Session session, params string[] parameters)
         {
             var charId = parameters[0];
