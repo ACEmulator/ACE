@@ -362,17 +362,17 @@ namespace ACE.Server.WorldObjects
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
-                Velocity.Serialize(writer);
+                writer.Write(Velocity.Value);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
             {
-                Acceleration.Serialize(writer);
+                writer.Write(Acceleration.Value);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
             {
-                Omega.Serialize(writer);
+                writer.Write(Omega.Value);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)

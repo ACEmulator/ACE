@@ -1350,7 +1350,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates the Magic projectile spells for Life, War, and Void Magic
         /// </summary>
-        private SpellProjectile CreateSpellProjectile(Spell spell, WorldObject target = null, uint lifeProjectileDamage = 0, Position origin = null, AceVector3 velocity = null)
+        private SpellProjectile CreateSpellProjectile(Spell spell, WorldObject target = null, uint lifeProjectileDamage = 0, Position origin = null, Vector3? velocity = null)
         {
             SpellProjectile spellProjectile = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
             spellProjectile.Setup(spell.Id);
@@ -1555,7 +1555,7 @@ namespace ACE.Server.WorldObjects
         private List<SpellProjectile> CreateRingProjectiles(Spell spell, uint lifeProjectileDamage = 0)
         {
             Vector3 originOffset = GetRingOriginOffset(spell);
-            AceVector3 velocity = GetRingVelocity(spell);
+            Vector3 velocity = GetRingVelocity(spell);
 
             var spellProjectiles = GetSpreadProjectiles(spell, originOffset: originOffset, velocity: velocity, lifeProjectileDamage: lifeProjectileDamage);
 
@@ -1579,22 +1579,22 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Gets the default velocity for a ring spell projectile.
         /// </summary>
-        private AceVector3 GetRingVelocity(Spell spell)
+        private Vector3 GetRingVelocity(Spell spell)
         {
             if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233)
-                return new AceVector3(0f, 2f, 0);
+                return new Vector3(0, 2, 0);
             if (spell.Id == 6320) // Ring of Skulls II
-                return new AceVector3(0, 15, 0);
+                return new Vector3(0, 15, 0);
             if (spell.Id == 3818) // Curse of Raven Fury
-                return new AceVector3(0, 10, 0);
+                return new Vector3(0, 10, 0);
 
-            return new AceVector3(0, 0, 0);
+            return Vector3.Zero;
         }
 
         /// <summary>
         /// Creates a list of spell projectiles which use spread angles (Blast or Ring spells).
         /// </summary>
-        private List<SpellProjectile> GetSpreadProjectiles(Spell spell, WorldObject target = null, Vector3? originOffset = null, AceVector3 velocity = null, uint lifeProjectileDamage = 0)
+        private List<SpellProjectile> GetSpreadProjectiles(Spell spell, WorldObject target = null, Vector3? originOffset = null, Vector3? velocity = null, uint lifeProjectileDamage = 0)
         {
             var spellProjectiles = new List<SpellProjectile>();
 
@@ -1607,8 +1607,8 @@ namespace ACE.Server.WorldObjects
                 centerProjectile = CreateSpellProjectile(spell, target);
                 var localOrigin = RotatePosition(centerProjectile.Location.Pos, Location.Rotation);
                 originOffset = new Vector3(0, Math.Abs(localOrigin.Y - casterLocalOrigin.Y), 0);
-                var localVelocity = RotatePosition(centerProjectile.Velocity.Get(), Location.Rotation);
-                velocity = new AceVector3(localVelocity.X, localVelocity.Y, localVelocity.Z);
+                var localVelocity = RotatePosition(centerProjectile.Velocity.Value, Location.Rotation);
+                velocity = localVelocity;
             }
             else // Ring spells
             {
@@ -1627,9 +1627,8 @@ namespace ACE.Server.WorldObjects
                 projOrigin.SetPosition(Vector3.Transform(casterLocalOrigin + (Vector3) originOffset,
                     Location.Rotation));
                 projOrigin.LandblockId = new LandblockId(projOrigin.GetCell());
-                var globalVelocity = Vector3.Transform(velocity.Get(),
-                    Location.Rotation);
-                centerProjectile = CreateSpellProjectile(spell, origin: projOrigin, velocity: new AceVector3(globalVelocity.X, globalVelocity.Y, globalVelocity.Z), lifeProjectileDamage: lifeProjectileDamage);
+                var globalVelocity = Vector3.Transform(velocity.Value, Location.Rotation);
+                centerProjectile = CreateSpellProjectile(spell, origin: projOrigin, velocity: globalVelocity, lifeProjectileDamage: lifeProjectileDamage);
             }
 
             spellProjectiles.Add(centerProjectile);
@@ -1661,11 +1660,11 @@ namespace ACE.Server.WorldObjects
                 projOrigin.LandblockId = new LandblockId(projOrigin.GetCell());
                 // Make sure Z component matches the center projectile
                 projOrigin.PositionZ = centerProjectile.Location.PositionZ;
-                var localProjVelocity = Vector3.Transform(velocity.Get(), localProjRotation);
+                var localProjVelocity = Vector3.Transform(velocity.Value, localProjRotation);
                 var globalProjVelocity = Vector3.Transform(localProjVelocity, this.Location.Rotation);
                 spellProjectiles.Add(
                     CreateSpellProjectile(spell, origin: projOrigin,
-                    velocity: new AceVector3(globalProjVelocity.X, globalProjVelocity.Y, globalProjVelocity.Z), lifeProjectileDamage: lifeProjectileDamage
+                    velocity: globalProjVelocity, lifeProjectileDamage: lifeProjectileDamage
                 ));
             }
 
@@ -1766,17 +1765,17 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Get the velocity for wall spell projectiles.
         /// </summary>
-        private AceVector3 GetWallProjectileVelocity(Spell spell)
+        private Vector3 GetWallProjectileVelocity(Spell spell)
         {
             // The Slithering Flames spell does in fact slither slower than other wall spells
-            var velocity = (spell.Id == 1841) ? new Vector3(0, 3f, 0) : new Vector3(0, 4f, 0);
+            var velocity = (spell.Id == 1841) ? new Vector3(0, 3, 0) : new Vector3(0, 4, 0);
 
             if (spell.Name.Equals("Rolling Death"))
                 velocity = new Vector3(0, 2, 0);
 
             velocity = Vector3.Transform(velocity, Location.Rotation);
 
-            return new AceVector3(velocity.X, velocity.Y, velocity.Z);
+            return velocity;
         }
 
         /// <summary>
@@ -1805,16 +1804,16 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Calculates the velocity to launch the projectile from origin to dest
         /// </summary>
-        private AceVector3 GetSpellProjectileVelocity(Vector3 origin, WorldObject target, Vector3 dest, float speed, bool useGravity, out float time)
+        private Vector3 GetSpellProjectileVelocity(Vector3 origin, WorldObject target, Vector3 dest, float speed, bool useGravity, out float time)
         {
             var targetVelocity = Vector3.Zero;
             if (!useGravity)    // no target tracking for arc spells
-                targetVelocity = target.PhysicsObj.CachedVelocity;
+                targetVelocity = target.PhysicsObj.CachedVelocity;      // TODO: change to instantaneous velocity?
 
             var gravity = useGravity ? PhysicsGlobals.Gravity : 0;
             Trajectory.solve_ballistic_arc_lateral(origin, speed, dest, targetVelocity, gravity, out Vector3 velocity, out time, out var impactPoint);
 
-            return new AceVector3(velocity.X, velocity.Y, velocity.Z);
+            return velocity;
         }
 
         /// <summary>

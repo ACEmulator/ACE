@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Database;
@@ -637,11 +638,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.Translucency); else SetProperty(PropertyFloat.Translucency, value.Value); }
         }
 
-        public AceVector3 Velocity = null;
+        public Vector3? Velocity = null;
 
-        public AceVector3 Acceleration { get; set; }
+        public Vector3? Acceleration = null;
 
-        public AceVector3 Omega = null;
+        public Vector3? Omega = null;
 
         public SetupModel CSetup => DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
 
