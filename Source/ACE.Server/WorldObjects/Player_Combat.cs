@@ -867,8 +867,8 @@ namespace ACE.Server.WorldObjects
                 return true;
 
             // dealing with outdoor cell equivalents at this point, if applicable
-            var cell = CurrentLandblock.IsDungeon ? Location.Cell : Location.GetOutdoorCell();
-            var playerCell = player.CurrentLandblock.IsDungeon ? player.Location.Cell : player.Location.GetOutdoorCell();
+            var cell = (CurrentLandblock?.IsDungeon ?? false) ? Location.Cell : Location.GetOutdoorCell();
+            var playerCell = (player.CurrentLandblock?.IsDungeon ?? false) ? player.Location.Cell : player.Location.GetOutdoorCell();
 
             if (cell == playerCell)
                 return true;
