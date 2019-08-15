@@ -1,4 +1,6 @@
 using System;
+using System.Numerics;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -6,7 +8,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
@@ -104,7 +105,7 @@ namespace ACE.Server.WorldObjects
             if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
             {
                 AlignPath = false;
-                Omega = new AceVector3(12.56637f, 0f, 0f);
+                Omega = new Vector3(12.56637f, 0, 0);
             }
         }
 
@@ -630,9 +631,9 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.Position.Frame.Origin = pos;
             PhysicsObj.Position.Frame.Orientation = rotation;
 
-            var velocity = Velocity.Get();
+            var velocity = Velocity;
             //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
-            PhysicsObj.Velocity = velocity;
+            PhysicsObj.Velocity = velocity.Value;
             if (target != null)
                 PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
