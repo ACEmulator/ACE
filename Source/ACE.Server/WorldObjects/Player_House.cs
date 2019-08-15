@@ -355,6 +355,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 HandleActionQueryHouse();
+                house.UpdateRestrictionDB();
 
                 // boot anyone who may have been wandering around inside...
                 HandleActionBootAll(false);
@@ -823,15 +824,9 @@ namespace ACE.Server.WorldObjects
 
             house.HouseHooksVisible = visible;
 
-            var state = PhysicsState.Ethereal | PhysicsState.IgnoreCollisions;
-            if (!visible) state |= PhysicsState.NoDraw;
-
             foreach (var hook in house.Hooks.Where(i => i.Inventory.Count == 0))
             {
-                var setState = new GameMessageSetState(hook, state);
-                var update = new GameMessagePublicUpdatePropertyBool(hook, PropertyBool.UiHidden, !visible);
-
-                house.EnqueueBroadcast(setState, update);
+                hook.UpdateHookVisibility();
             }
 
             // if house has dungeon, repeat this process
@@ -842,10 +837,7 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var hook in dungeonHouse.Hooks.Where(i => i.Inventory.Count == 0))
                 {
-                    var setState = new GameMessageSetState(hook, state);
-                    var update = new GameMessagePublicUpdatePropertyBool(hook, PropertyBool.UiHidden, !visible);
-
-                    dungeonHouse.EnqueueBroadcast(setState, update);
+                    hook.UpdateHookVisibility();
                 }
             }
 
