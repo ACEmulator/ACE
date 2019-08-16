@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 
 using log4net;
 
@@ -305,8 +306,7 @@ namespace ACE.Server.Network.Managers
             {
                 // The session tick outbound processes pending actions and handles outgoing messages
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
-                foreach (var s in sessionMap)
-                    s?.TickOutbound();
+                Parallel.ForEach(sessionMap, s => s?.TickOutbound());
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
