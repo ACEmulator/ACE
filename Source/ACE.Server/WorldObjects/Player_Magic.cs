@@ -556,10 +556,12 @@ namespace ACE.Server.WorldObjects
 
         public void FinishCast(WeenieError useDone)
         {
+            MagicState.OnCastDone();
+
             var queue = PropertyManager.GetBool("spellcast_recoil_queue").Item;
 
-            if (queue)
-                MagicState.OnCastDone();
+            if (!queue)
+                IsBusy = true;
 
             // return to magic ready stance
             var actionChain = new ActionChain();
@@ -567,7 +569,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 if (!queue)
-                    MagicState.OnCastDone();
+                    IsBusy = false;
 
                 SendUseDoneEvent(useDone);
 
