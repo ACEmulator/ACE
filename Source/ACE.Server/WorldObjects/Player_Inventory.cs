@@ -2252,6 +2252,8 @@ namespace ACE.Server.WorldObjects
 
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+
+                            item.Destroy();
                         }
                         else
                         {

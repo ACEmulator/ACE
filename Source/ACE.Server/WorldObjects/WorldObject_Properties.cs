@@ -1724,6 +1724,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CreationTimestamp); else SetProperty(PropertyInt.CreationTimestamp, value.Value); }
         }
 
+        public double? ReleasedTimestamp
+        {
+            get => GetProperty(PropertyFloat.ReleasedTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ReleasedTimestamp); else SetProperty(PropertyFloat.ReleasedTimestamp, value.Value); }
+        }
+
+        public double? CheckpointTimestamp
+        {
+            get => GetProperty(PropertyFloat.CheckpointTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CheckpointTimestamp); else SetProperty(PropertyFloat.CheckpointTimestamp, value.Value); }
+        }
+
         public bool UseBackpackSlot => WeenieType == WeenieType.Container || RequiresPackSlot;
 
         public int? PlacementPosition
