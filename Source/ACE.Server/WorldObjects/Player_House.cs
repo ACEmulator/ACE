@@ -345,6 +345,8 @@ namespace ACE.Server.WorldObjects
 
             SaveBiotaToDatabase();
 
+            house.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(house, PropertyInstanceId.HouseOwner, new ObjectGuid(house.HouseOwner ?? 0)));
+
             house.SaveBiotaToDatabase();
             slumlord.SaveBiotaToDatabase();
 
@@ -1066,9 +1068,13 @@ namespace ACE.Server.WorldObjects
 
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
-                    Teleport(rootHouse.BootSpot.Location);
-                    break;
+                    if (!rootHouse.IsOpen || (rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.IsDungeon))
+                    {
+                        Teleport(rootHouse.BootSpot.Location);
+                        break;
+                    }
                 }
+
                 if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.IsDungeon)
                 {
                     Teleport(rootHouse.BootSpot.Location);

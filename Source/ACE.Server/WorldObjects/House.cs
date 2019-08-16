@@ -640,7 +640,7 @@ namespace ACE.Server.WorldObjects
 
             var nearbyPlayers = PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
-                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictions), new GameMessageUpdateObject(this));
+                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictions));
         }
 
         public void ClearRestrictions()
