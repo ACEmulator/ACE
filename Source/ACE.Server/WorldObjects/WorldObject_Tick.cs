@@ -198,7 +198,7 @@ namespace ACE.Server.WorldObjects
         /// <returns>TRUE if object moves to a different landblock</returns>
         public bool UpdatePlayerPhysics(ACE.Entity.Position newPosition, bool forceUpdate = false)
         {
-            //Console.WriteLine($"UpdatePlayerPhysics: {newPosition.Cell:X8}, {newPosition.Pos}");
+            //Console.WriteLine($"{Name}.UpdatePlayerPhysics({newPosition}, {forceUpdate}, {Teleporting})");
 
             var player = this as Player;
 
@@ -208,10 +208,13 @@ namespace ACE.Server.WorldObjects
             // possible bug: while teleporting, client can still send AutoPos packets from old landblock
             if (Teleporting && !forceUpdate) return false;
 
+            var success = true;
+
             if (PhysicsObj != null)
             {
-                var dist = (newPosition.Pos - PhysicsObj.Position.Frame.Origin).Length();
-                if (dist > PhysicsGlobals.EPSILON)
+                var distSq = Location.SquaredDistanceTo(newPosition);
+
+                if (distSq > PhysicsGlobals.EpsilonSq)
                 {
                     var curCell = LScape.get_landcell(newPosition.Cell);
                     if (curCell != null)
@@ -220,7 +223,7 @@ namespace ACE.Server.WorldObjects
                         //PhysicsObj.change_cell_server(curCell);
 
                         PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
-                        PhysicsObj.update_object_server();
+                        success = PhysicsObj.update_object_server();
 
                         if (PhysicsObj.CurCell == null)
                             PhysicsObj.CurCell = curCell;
@@ -241,6 +244,8 @@ namespace ACE.Server.WorldObjects
 
             // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
             if (Teleporting && !forceUpdate) return true;
+
+            if (!success) return false;
 
             var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
             Location = newPosition;

@@ -40,7 +40,7 @@ namespace ACE.Entity.Enum
 
         PortalMagicTarget                   = Portal | LifeStone,
         LockableMagicTarget                 = Misc | Container,
-        Vestements                          = Armor | Clothing,
+        Vestments                           = Armor | Clothing,
         Weapon                              = MeleeWeapon | MissileWeapon,
         WeaponOrCaster                      = MeleeWeapon | MissileWeapon | Caster,
         Item                                = MeleeWeapon | Armor | Clothing | Jewelry | Food | Money | Misc | MissileWeapon | Container |

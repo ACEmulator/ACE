@@ -1274,9 +1274,9 @@ namespace ACE.Server.Command.Handlers
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
             {
-                if (weenieClassId < 1 && weenieClassId > WEENIE_MAX)
+                if (weenieClassId < 1 || weenieClassId > WEENIE_MAX)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id. Must be a number between 1 and {WEENIE_MAX}.", ChatMessageType.Broadcast));
                     return null;
                 }
             }
@@ -1315,7 +1315,11 @@ namespace ACE.Server.Command.Handlers
 
         // create wclassid (number)
         [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an object in the world.", "wclassid (string or number)")]
+            "Creates an object or objects in the world.",
+            "wclassid (string or number), Amount to Spawn (optional [default:1]), Palette (optional), Shade (optional)\n" +
+            "This will attempt to spawn the weenie you specify. If you include an amount to spawn parameter it will attempt to spawn that many of the weenie.\n" +
+            "Stackable items will spawn in stacks of their max stack size. All spawns will be limited by the physics engine placement algorithim which may prevent the number you specify from actually spawning." +
+            "Be careful with large numbers, especially with ethereal weenies...")]
         public static void HandleCreate(Session session, params string[] parameters)
         {
             string weenieClassDescription = parameters[0];
@@ -1323,48 +1327,98 @@ namespace ACE.Server.Command.Handlers
             bool hasPalette = false;
             float shade = 0;
             bool hasShade = false;
-            int stackSize = 1;
+            int numToSpawn = 1;
+            WorldObject weenieToSpawn;
+            List<WorldObject> weeniesToSpawn = new List<WorldObject>();
+
             if (parameters.Length > 1)
             {
-                if (!int.TryParse(parameters[1], out palette))
+                if (!int.TryParse(parameters[1], out numToSpawn))
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            if (parameters.Length > 2)
+            {
+                if (!int.TryParse(parameters[2], out palette))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Palette must be number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
                     return;
                 }
                 else
                     hasPalette = true;
             }
-            if (parameters.Length > 2)
+            if (parameters.Length > 3)
             {
-                if (!float.TryParse(parameters[2], out shade))
+                if (!float.TryParse(parameters[3], out shade))
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Shade must be number between {float.MinValue} - {float.MaxValue}.", ChatMessageType.Broadcast));
                     return;
                 }
                 else
                     hasShade = true;
             }
-            if (parameters.Length > 3)
-                if (!int.TryParse(parameters[3], out stackSize))
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
-                    return;
-                }
 
-            WorldObject obj = CreateObjectForCommand(session, weenieClassDescription);
-            if (obj == null)
+            weenieToSpawn = CreateObjectForCommand(session, weenieClassDescription);
+
+            // The number of weenies to spawn will be limited by the physics engine.
+            if (weenieToSpawn != null && numToSpawn == 1)
             {
-                // should have already emitted an error message
+                weeniesToSpawn.Add(weenieToSpawn);
+            }
+            else if (weenieToSpawn != null && numToSpawn > 1)
+            {
+                if (weenieToSpawn.WeenieType is WeenieType.Stackable)
+                {
+                    if (weenieToSpawn.MaxStackSize != null && numToSpawn > weenieToSpawn.MaxStackSize)
+                    {
+                        int numWeeniesRequired = (numToSpawn / (int)weenieToSpawn.MaxStackSize);
+                        int lastStackAmount = numToSpawn % (int)weenieToSpawn.MaxStackSize;
+                        for (int i = 0; i < numWeeniesRequired; i++)
+                        {
+                            weeniesToSpawn.Add(CreateObjectForCommand(session, weenieClassDescription));
+                        }
+                        foreach (var w in weeniesToSpawn)
+                        {
+                            w.SetStackSize(weenieToSpawn.MaxStackSize);
+                        }
+                        weenieToSpawn.SetStackSize(lastStackAmount);
+                        weeniesToSpawn.Add(weenieToSpawn);
+                    }
+                    else if (weenieToSpawn.MaxStackSize != null && numToSpawn <= weenieToSpawn.MaxStackSize)
+                    {
+                        weenieToSpawn.SetStackSize(numToSpawn);
+                        weeniesToSpawn.Add(weenieToSpawn);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < numToSpawn; i++)
+                    {
+                        weeniesToSpawn.Add(CreateObjectForCommand(session, weenieClassDescription));
+                    }
+                }
+            }
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"No object was created.", ChatMessageType.Broadcast));
                 return;
             }
-            if (hasPalette)
-                obj.PaletteTemplate = palette;
-            if (hasShade)
-                obj.Shade = shade;
 
-            obj.EnterWorld();
+            foreach (var w in weeniesToSpawn)
+            {
+                if (hasPalette)
+                    w.PaletteTemplate = palette;
+                if (hasShade)
+                    w.Shade = shade;
+                w.EnterWorld();
+            }
 
-            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {obj.Name} (0x{obj.Guid:X8}) at {obj.Location.ToLOCString()}.");
+            if (numToSpawn > 1)
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {numToSpawn} {weenieToSpawn.Name} (0x{weenieToSpawn.Guid:X8}) near {weenieToSpawn.Location.ToLOCString()}.");
+            else
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {weenieToSpawn.Name} (0x{weenieToSpawn.Guid:X8}) at {weenieToSpawn.Location.ToLOCString()}.");
         }
 
         [CommandHandler("createnamed", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3,
@@ -1381,7 +1435,6 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"count must be a between 1 and {ushort.MaxValue}", ChatMessageType.Broadcast));
                 return;
             }
-
             string predefName = null;
             if (parameters.Length > 1)
             {

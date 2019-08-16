@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Database;
@@ -637,11 +638,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.Translucency); else SetProperty(PropertyFloat.Translucency, value.Value); }
         }
 
-        public AceVector3 Velocity = null;
+        public Vector3? Velocity = null;
 
-        public AceVector3 Acceleration { get; set; }
+        public Vector3? Acceleration = null;
 
-        public AceVector3 Omega = null;
+        public Vector3? Omega = null;
 
         public SetupModel CSetup => DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
 
@@ -1721,6 +1722,18 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.CreationTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CreationTimestamp); else SetProperty(PropertyInt.CreationTimestamp, value.Value); }
+        }
+
+        public double? ReleasedTimestamp
+        {
+            get => GetProperty(PropertyFloat.ReleasedTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ReleasedTimestamp); else SetProperty(PropertyFloat.ReleasedTimestamp, value.Value); }
+        }
+
+        public double? CheckpointTimestamp
+        {
+            get => GetProperty(PropertyFloat.CheckpointTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CheckpointTimestamp); else SetProperty(PropertyFloat.CheckpointTimestamp, value.Value); }
         }
 
         public bool UseBackpackSlot => WeenieType == WeenieType.Container || RequiresPackSlot;
