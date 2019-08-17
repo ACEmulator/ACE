@@ -896,7 +896,7 @@ namespace ACE.Database
             }
         }
 
-        public bool CanEraseCharacter(uint characterId)
+        public bool CanPurgeCharacter(uint characterId)
         {
             var context = new ShardDbContext();
 
@@ -909,7 +909,7 @@ namespace ACE.Database
             return false;
         }
 
-        public bool EraseCharacter(uint characterId)
+        public bool PurgeCharacter(uint characterId)
         {
             var context = new ShardDbContext();
 
@@ -950,7 +950,7 @@ namespace ACE.Database
 
                 context.Remove(character);
 
-                log.Info($"Character {character.Name} (0x{character.Id:X8}) - deleted at {Common.Time.GetDateTimeFromTimestamp(character.DeleteTime).ToLocalTime()} - has been erased.");
+                log.Info($"Character {character.Name} (0x{character.Id:X8}) - deleted at {Common.Time.GetDateTimeFromTimestamp(character.DeleteTime).ToLocalTime()} - has been purged.");
 
                 context.SaveChanges();
             }
@@ -973,7 +973,7 @@ namespace ACE.Database
 
             foreach(var result in results)
             {
-                if (EraseCharacter(result.Id))
+                if (PurgeCharacter(result.Id))
                     numberOfCharactersPurged++;
             }
 

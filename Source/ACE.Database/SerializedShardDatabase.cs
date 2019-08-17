@@ -372,14 +372,14 @@ namespace ACE.Database
             return _wrappedDatabase.GetAllegianceID(monarchID);
         }
 
-        public bool CanEraseCharacter(uint characterId)
+        public bool CanPurgeCharacter(uint characterId)
         {
-            return _wrappedDatabase.CanEraseCharacter(characterId);
+            return _wrappedDatabase.CanPurgeCharacter(characterId);
         }
 
-        public bool EraseCharacter(uint characterId)
+        public bool PurgeCharacter(uint characterId)
         {
-            return _wrappedDatabase.EraseCharacter(characterId);
+            return _wrappedDatabase.PurgeCharacter(characterId);
         }
 
         public bool PurgeCharacters(int daysLimiter, out int numberOfCharactersPurged)

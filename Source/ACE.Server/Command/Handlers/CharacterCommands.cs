@@ -65,9 +65,9 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (DatabaseManager.Shard.CanEraseCharacter(characterId))
+            if (DatabaseManager.Shard.CanPurgeCharacter(characterId))
             {
-                if (DatabaseManager.Shard.EraseCharacter(characterId))
+                if (DatabaseManager.Shard.PurgeCharacter(characterId))
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, $"Successfully erased character 0x{characterId:X8}.", ChatMessageType.Broadcast);
                 }
