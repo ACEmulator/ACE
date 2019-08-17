@@ -16,9 +16,33 @@
     },
     "DatFilesDirectory": "c:\\ACE\\",
     "ShutdownInterval": "60",
+
+    // ServerPerformanceMonitorAutoStart, default: false
+    // Development recommendation: true
+    // Server recommendation: true
+    // Enable this to use the functionality of the command: /serverperformance
+    // Additional overhead is added but it is minimal.
+    // This can greatly help you (and ACE developers) understand what sections of ACE are underperforming.
     "ServerPerformanceMonitorAutoStart": false,
+
+    // WorldDatabasePrecaching, default: false
+    // Development recommendation: false
+    // Server recommendation: true
+    // Enable this to cache the world database at startup.
+    // This will add about 1-2 minutes to server startup time and will consume about 1.7 GB of RAM
+    // With this disabled, caching happens on an as-requested basis and can cause the server to feel less responsive.
     "WorldDatabasePrecaching": false,
+
+    // LandblockPreloading, defaut: true
+    // Development recommendation: true
+    // Server recommendation: true
+    // This makes sure that perma-load landblocks are loaded.
+    // Perma-load lanblocks are landblocks that can contain server-wide mechanics and should always be active.
     "LandblockPreloading": true,
+
+    // PreloadedLandblock
+    // These are the default pre-loaded and perma-loaded landblocks.
+    // In most cases you should not need to adjust them.
     "PreloadedLandblocks": [
         {
             "Id": "E74EFFFF",
