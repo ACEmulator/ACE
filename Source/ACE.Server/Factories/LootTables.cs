@@ -1832,6 +1832,7 @@ namespace ACE.Server.Factories
             AmuliArmor,
             KoujiaArmor,
             TenassaArmor,
+            OverRobes,
             CovenantArmor,
             LoricaArmor,
             NariyidArmor,
@@ -1846,6 +1847,15 @@ namespace ACE.Server.Factories
             OlthoiKoujiaArmor,
             OlthoiAlduressaArmor
         }
+
+        public static readonly int[] OverRobes =
+        {
+            44799,  // Faran Over-robe
+            44800,  // Dho Vest and Over-robe
+            44801,  // Suikan Over-robe
+            44802,  // Vestiri Over-robe
+            44803   // Empyrean Over-robe
+        };
 
         public static readonly int[] MiscClothing =
         {
