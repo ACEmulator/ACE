@@ -171,14 +171,13 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
-        private static void AddLandblockToLandblockGroup(HashSet<Landblock> landblocksAdded, List<Landblock> workingSet, Landblock landblock)
+        private static void AddLandblockToLandblockGroup(HashSet<Landblock> landblocksAdded, List<Landblock> workingSet, Landblock workingLandblock)
         {
-            if (!landblocksAdded.Contains(landblock))
+            if (landblocksAdded.Add(workingLandblock))
             {
-                workingSet.Add(landblock);
-                landblocksAdded.Add(landblock);
+                workingSet.Add(workingLandblock);
 
-                foreach (var adjacent in landblock.Adjacents)
+                foreach (var adjacent in workingLandblock.Adjacents)
                     AddLandblockToLandblockGroup(landblocksAdded, workingSet, adjacent);
             }
         }
@@ -188,6 +187,10 @@ namespace ACE.Server.Managers
             if (!threadSeparatedLandblockGroupsNeedsRecalculating)
                 return;
 
+            // TODO: Change this so it's recalculated only when a landblock is added, not removed
+
+            var sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
             lock (landblockMutex)
             {
                 threadSeparatedLandblockGroups.Clear();
@@ -206,12 +209,88 @@ namespace ACE.Server.Managers
                     }
                 }
 
+                // Go through the landblock groups and see if any are close enough to be merged
+                // This helps avoid multi-threading issues when two different landblock groups try to interact with the same adjacent
+                //
+                // To make this as performant as possible, we break down each landblock group into it's outer most square.
+                // Then, we use these squares to determine if a group overlaps or is close enough to another group and should be merged
+                var groupBoundaries = new List<(List<Landblock> group, int xMin, int xMax, int yMin, int yMax, int xCenter, int yCenter, int width, int height)>();
+
+                foreach (var group in threadSeparatedLandblockGroups)
+                {
+                    if (group[0].IsDungeon)
+                        continue;
+
+                    var xMin = int.MaxValue;
+                    var xMax = int.MinValue;
+                    var yMin = int.MaxValue;
+                    var yMax = int.MinValue;
+
+                    foreach (var landblock in group)
+                    {
+                        if (landblock.Id.LandblockX < xMin) xMin = landblock.Id.LandblockX;
+                        if (landblock.Id.LandblockX > xMax) xMax = landblock.Id.LandblockX;
+                        if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
+                        if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
+                    }
+
+                    int xCenter = xMin + ((xMax - xMin) / 2);
+                    int yCenter = yMin + ((yMax - yMin) / 2);
+
+                    groupBoundaries.Add((group, xMin, xMax, yMin, yMax, xCenter, yCenter, xMax - xMin, yMax - yMin));
+                }
+
+                for (int i = groupBoundaries.Count - 1; i >= 0; i--)
+                {
+                    for (int j = 0; j < i; j++)
+                    {
+                        var distance = Math.Max(Math.Abs(groupBoundaries[i].xCenter - groupBoundaries[j].xCenter) - (groupBoundaries[i].width + groupBoundaries[j].width) / 2, Math.Abs(groupBoundaries[i].yCenter - groupBoundaries[j].yCenter) - (groupBoundaries[i].height + groupBoundaries[j].height) / 2);
+
+                        if (distance <= 10)
+                        {
+                            // We're close enough, copy i into j and remove i
+                            groupBoundaries[j].group.AddRange(groupBoundaries[i].group);
+
+                            threadSeparatedLandblockGroups.Remove(groupBoundaries[i].group);
+
+                            // j needs to be recalculated
+                            var xMin = int.MaxValue;
+                            var xMax = int.MinValue;
+                            var yMin = int.MaxValue;
+                            var yMax = int.MinValue;
+
+                            foreach (var landblock in groupBoundaries[j].group)
+                            {
+                                if (landblock.Id.LandblockX < xMin) xMin = landblock.Id.LandblockX;
+                                if (landblock.Id.LandblockX > xMax) xMax = landblock.Id.LandblockX;
+                                if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
+                                if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
+                            }
+
+                            int xCenter = xMin + ((xMax - xMin) / 2);
+                            int yCenter = yMin + ((yMax - yMin) / 2);
+
+                            groupBoundaries[j] = (groupBoundaries[j].group, xMin, xMax, yMin, yMax, xCenter, yCenter, xMax - xMin, yMax - yMin);
+
+                            break;
+                        }
+                    }
+                }
+
                 // Debugging
                 if (landblocksAdded.Count != loadedLandblocks.Count)
-                    log.Error($"landblocksAdded.Count ({landblocksAdded.Count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
+                    log.Error($"landblocksAdded.Count: ({landblocksAdded.Count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
+                var count = 0;
+                foreach (var group in threadSeparatedLandblockGroups)
+                    count += group.Count;
+                if (count != loadedLandblocks.Count)
+                    log.Error($"count ({count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
 
                 threadSeparatedLandblockGroupsNeedsRecalculating = false;
             }
+            sw.Stop();
+            if (sw.ElapsedMilliseconds > 1)
+                log.Warn($"sw.ElapsedMilliseconds: {sw.ElapsedMilliseconds}");
         }
 
         /// <summary>

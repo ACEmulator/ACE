@@ -41,7 +41,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Locking mechanism provides concurrent access to collections
         /// </summary>
-        private static readonly object landblockMutex = new object();
+        //private static readonly object landblockMutex = new object();
 
         public static float AdjacencyLoadRange { get; } = 96f;
         public static float OutdoorChatRange { get; } = 75f;
@@ -551,7 +551,7 @@ namespace ACE.Server.Entity
 
         private void ProcessPendingWorldObjectAdditionsAndRemovals()
         {
-            lock (landblockMutex)
+            //lock (landblockMutex)
             {
                 if (pendingAdditions.Count > 0)
                 {
@@ -750,7 +750,7 @@ namespace ACE.Server.Entity
                 }
             }
 
-            lock (landblockMutex)
+            //lock (landblockMutex)
             {
                 if (!worldObjects.ContainsKey(wo.Guid))
                     pendingAdditions[wo.Guid] = wo;
@@ -786,7 +786,7 @@ namespace ACE.Server.Entity
         {
             WorldObject wo;
 
-            lock (landblockMutex)
+            //lock (landblockMutex)
             {
                 if (worldObjects.TryGetValue(objectId, out wo))
                     pendingRemovals.Add(objectId);
@@ -869,7 +869,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public WorldObject GetObject(ObjectGuid guid, bool searchAdjacents = true)
         {
-            lock (landblockMutex)
+            //lock (landblockMutex)
             {
                 if (pendingRemovals.Contains(guid))
                     return null;
