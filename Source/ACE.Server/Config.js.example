@@ -37,12 +37,13 @@
     // Development recommendation: true
     // Server recommendation: true
     // This makes sure that perma-load landblocks are loaded.
-    // Perma-load lanblocks are landblocks that can contain server-wide mechanics and should always be active.
+    // Perma-load landblocks are landblocks that can contain server-wide mechanics and should always be active.
     "LandblockPreloading": true,
 
     // PreloadedLandblock
     // These are the default pre-loaded and perma-loaded landblocks.
     // In most cases you should not need to adjust them.
+    // This section requres LandblockPreloading to be true
     "PreloadedLandblocks": [
         {
             "Id": "E74EFFFF",
