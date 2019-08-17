@@ -829,6 +829,8 @@ namespace ACE.Server.WorldObjects
 
             IsDestroyed = true;
 
+            ReleasedTimestamp = Time.GetUnixTime();
+
             if (this is Container container)
             {
                 foreach (var item in container.Inventory.Values)
