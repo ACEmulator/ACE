@@ -97,7 +97,7 @@ namespace ACE.Server.WorldObjects
                     sourceCreature?.TryProcEquippedItems(targetCreature, false);
             }
 
-            WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, false);
+            WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, showError: !PhysicsObj.entering_world);
             PhysicsObj.set_active(false);
         }
 
@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine("Projectile.OnCollideEnvironment(" + Guid.Full.ToString("X8") + ")");
 
-            WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, false);
+            WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, showError: !PhysicsObj.entering_world);
             PhysicsObj.set_active(false);
 
             var player = ProjectileSource as Player;
