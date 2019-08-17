@@ -2295,7 +2295,7 @@ namespace ACE.Server.Physics
             }
         }
 
-        private bool entering_world;
+        public bool entering_world;
 
         public bool enter_world(Position pos)
         {

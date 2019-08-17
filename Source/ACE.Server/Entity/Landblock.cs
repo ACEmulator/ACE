@@ -742,10 +742,13 @@ namespace ACE.Server.Entity
                 if (!success)
                 {
                     wo.CurrentLandblock = null;
+
                     if (wo.Generator != null)
                         log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}");
-                    else
+
+                    else if (wo.ProjectileTarget == null)
                         log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name}");
+
                     return false;
                 }
             }
@@ -767,9 +770,9 @@ namespace ACE.Server.Entity
             return true;
         }
 
-        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
+        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false, bool showError = true)
         {
-            RemoveWorldObjectInternal(objectId, adjacencyMove, fromPickup);
+            RemoveWorldObjectInternal(objectId, adjacencyMove, fromPickup, showError);
         }
 
         /// <summary>
@@ -782,7 +785,7 @@ namespace ACE.Server.Entity
             RemoveWorldObjectInternal(objectId, adjacencyMove);
         }
 
-        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
+        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false, bool showError = true)
         {
             WorldObject wo;
 
@@ -792,7 +795,8 @@ namespace ACE.Server.Entity
                     pendingRemovals.Add(objectId);
                 else if (!pendingAdditions.Remove(objectId, out wo))
                 {
-                    log.Warn($"RemoveWorldObjectInternal: Couldn't find {objectId.Full:X8}");
+                    if (showError)
+                        log.Warn($"RemoveWorldObjectInternal: Couldn't find {objectId.Full:X8}");
                     return;
                 }
             }
