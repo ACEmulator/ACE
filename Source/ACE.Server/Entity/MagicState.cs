@@ -48,6 +48,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public MotionCommand CastGesture { get; set; }
 
+        public DateTime StartTime { get; set; }
+
         public MagicState(Player player)
         {
             Player = player;
@@ -65,6 +67,7 @@ namespace ACE.Server.Entity
             WindupTurn = false;
             CastTurn = false;
             CastTurnStarted = false;
+            StartTime = DateTime.UtcNow;
 
             if (Player.UnderLifestoneProtection)
                 Player.LifestoneProtectionDispel();
