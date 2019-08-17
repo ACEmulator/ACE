@@ -1,6 +1,8 @@
 using System;
 using System.Numerics;
 
+using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -16,12 +18,16 @@ namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Server.Entity.Spell Spell;
         public ProjectileSpellType SpellType { get; set; }
 
-        public Position SpawnPos;
+        public Position SpawnPos { get; set; }
         public float DistanceToTarget { get; set; }
         public uint LifeProjectileDamage { get; set; }
+
+        public SpellProjectileInfo Info { get; set; }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -236,7 +242,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnCollideEnvironment()
         {
-            //Console.WriteLine($"{Name}.OnCollideEnvironment()");
+            if (Info != null)
+            {
+                log.Info($"{Name}.OnCollideEnvironment()");
+                log.Info(Info);
+            }
+
             ProjectileImpact();
         }
 

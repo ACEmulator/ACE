@@ -1425,10 +1425,13 @@ namespace ACE.Server.WorldObjects
             }
 
             LandblockManager.AddObject(sp);
-            sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, ACE.Entity.Enum.PlayScript.Launch, sp.GetProjectileScriptIntensity(sp.SpellType)));
+            sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(sp.SpellType)));
 
             if (sp.ProjectileTarget == null || sp.PhysicsObj == null || sp.ProjectileTarget.PhysicsObj == null)
                 return;
+
+            if (Location.SquaredDistanceTo(sp.ProjectileTarget.Location) < 4.0f)
+                sp.Info = new SpellProjectileInfo(sp);
 
             // Detonate point-blank projectiles immediately
             var radsum = sp.ProjectileTarget.PhysicsObj.GetRadius() + sp.PhysicsObj.GetRadius();
