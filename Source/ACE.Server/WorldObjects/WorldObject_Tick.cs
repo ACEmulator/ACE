@@ -41,6 +41,12 @@ namespace ACE.Server.WorldObjects
             if (HeartbeatInterval == null)
                 HeartbeatInterval = 5.0f;
 
+            if (RegenerationInterval < 0)
+            {
+                log.Warn($"{Name} ({Guid}).InitializeHeartBeats() - RegenerationInterval {RegenerationInterval}, setting to 0");
+                RegenerationInterval = 0;
+            }
+
             CachedHeartbeatInterval = HeartbeatInterval ?? 0;
 
             if (CachedHeartbeatInterval > 0)
