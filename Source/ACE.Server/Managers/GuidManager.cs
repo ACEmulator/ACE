@@ -62,7 +62,7 @@ namespace ACE.Server.Managers
                         // Need to start allocating at current value in db +1
                         current++;
 
-                    log.Debug($"Player GUID Allocator current is now {current:X8} of {max:X8}");
+                    log.Debug($"{name} GUID Allocator current is now {current:X8} of {max:X8}");
 
                     if ((max - current) < LowIdLimit)
                         log.Warn($"Dangerously low on {name} GUIDs: {current:X8} of {max:X8}");
@@ -138,7 +138,7 @@ namespace ACE.Server.Managers
                         // Need to start allocating at current value in db +1
                         current++;
 
-                    log.Debug($"Dynamic GUID Allocator current is now {current:X8} of {max:X8}");
+                    log.Debug($"{name} GUID Allocator current is now {current:X8} of {max:X8}");
 
                     if ((max - current) < LowIdLimit)
                         log.Warn($"Dangerously low on {name} GUIDs: {current:X8} of {max:X8}");
@@ -159,7 +159,7 @@ namespace ACE.Server.Managers
                             uint total = 0;
                             foreach (var pair in availableIDs)
                                 total += (pair.end - pair.start) + 1;
-                            log.Debug($"Dynamic GUID Sequence gaps initialized with total availableIDs of {total:N0}");
+                            log.Debug($"{name} GUID Sequence gaps initialized with total availableIDs of {total:N0}");
                             done = true;
                             Monitor.Pulse(this);
                         }
@@ -204,7 +204,7 @@ namespace ACE.Server.Managers
                     {
                         if (!useSequenceGapExhaustedMessageDisplayed)
                         {
-                            log.Debug($"Dynamic GUID Sequence gaps exhausted. Any new, non-recycled GUID will be current + 1. current is now {current:X8}");
+                            log.Debug($"{name} GUID Sequence gaps exhausted. Any new, non-recycled GUID will be current + 1. current is now {current:X8}");
                             useSequenceGapExhaustedMessageDisplayed = true;
                         }
                     }
