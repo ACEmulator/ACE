@@ -12,7 +12,7 @@ namespace ACE.Server.Factories
             uint id = 0;
 
             if (tier < 1) tier = 1;
-            if (tier > 8) tier = 8;
+            if (tier > 7) tier = 7;
 
             int summoningEssenceIndex = ThreadSafeRandom.Next(0, LootTables.SummoningEssencesMatrix.Length - 1);
 

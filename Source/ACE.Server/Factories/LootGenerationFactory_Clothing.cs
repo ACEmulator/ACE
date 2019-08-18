@@ -8,8 +8,6 @@ namespace ACE.Server.Factories
     {
         private static WorldObject CreateArmor(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
-            int equipSetId = 0;
-
             int materialType = 0;
 
             int armorPiece = 0;
@@ -117,6 +115,11 @@ namespace ACE.Server.Factories
                 case (int)LootTables.ArmorType.TenassaArmor:
                     armorPiece = ThreadSafeRandom.Next(0, 2);
                     armorWeenie = LootTables.TenassaArmor[armorPiece];
+                    break;
+
+                case (int)LootTables.ArmorType.OverRobes:
+                    armorPiece = ThreadSafeRandom.Next(0, 4);
+                    armorWeenie = LootTables.OverRobes[armorPiece];
                     break;
 
                 case (int)LootTables.ArmorType.CovenantArmor:
@@ -261,15 +264,9 @@ namespace ACE.Server.Factories
             double shade = .1 * ThreadSafeRandom.Next(0, 9);
             wo.SetProperty(PropertyFloat.Shade, shade);
 
-            var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
+            wo = AssignArmorLevel(wo, tier, armorType);
 
-            if (baseArmorLevel > 0)
-            {
-                int adjustedArmorLevel = baseArmorLevel + GetArmorLevelModifier(tier, armorType);
-                wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
-            }
-
-            wo.SetProperty(PropertyInt.EquipmentSetId, equipSetId);
+            wo = AssignEquipmentSetId(wo, tier);
 
             if (isMagical)
                 wo = AssignMagic(wo, tier);
@@ -283,6 +280,16 @@ namespace ACE.Server.Factories
             }
 
             wo = RandomizeColor(wo);
+
+            return wo;
+        }
+
+        private static WorldObject AssignEquipmentSetId(WorldObject wo, int tier)
+        {
+            int equipSetId = 0;
+
+            if (tier > 6)
+                wo.SetProperty(PropertyInt.EquipmentSetId, equipSetId);
 
             return wo;
         }
@@ -407,12 +414,21 @@ namespace ACE.Server.Factories
             return wield;
         }
 
+        private static WorldObject AssignArmorLevel(WorldObject wo, int tier, int armorType)
+        {
+            var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
+
+            if (baseArmorLevel > 0)
+            {
+                int adjustedArmorLevel = baseArmorLevel + GetArmorLevelModifier(tier, armorType);
+                wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
+            }
+
+            return wo;
+        }
+
         private static int GetArmorLevelModifier(int tier, int armorType)
         {
-            // Olthoi Armor base weenies already have the full amount of AL
-            if (armorType > (int)LootTables.ArmorType.OlthoiKoujiaArmor)
-                return 0;
-
             if (armorType > (int)LootTables.ArmorType.HaebreanArmor
                     && armorType < (int)LootTables.ArmorType.OlthoiAlduressaArmor)
             {
