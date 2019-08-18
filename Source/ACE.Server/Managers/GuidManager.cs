@@ -236,6 +236,18 @@ namespace ACE.Server.Managers
                 lock (this)
                     recycledGuids.Enqueue(new Tuple<DateTime, uint>(DateTime.UtcNow, guid));
             }
+
+            public override string ToString()
+            {
+                lock (this)
+                {
+                    uint total = 0;
+                    foreach (var pair in availableIDs)
+                        total += (pair.end - pair.start) + 1;
+
+                    return $"DynamnicGuidAllocator: {name}, current: 0x{current:X8}, max: 0x{max:X8}, sequence gap GUIDs available: {total}, recycled GUIDs available: {recycledGuids.Count:N0}";
+                }
+            }
         }
 
         private static PlayerGuidAllocator playerAlloc;
@@ -292,6 +304,12 @@ namespace ACE.Server.Managers
         public static ObjectGuid NextDynamicGuid()
         {
             return new ObjectGuid(dynamicAlloc.Current());
+        }
+
+
+        public static string GetDynamicGuidDebugInfo()
+        {
+            return dynamicAlloc.ToString();
         }
     }
 }
