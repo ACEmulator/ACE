@@ -328,9 +328,10 @@ namespace ACE.Server.Factories
         /// <summary>
         /// This will create a new WorldObject with a new GUID.
         /// </summary>
-        public static WorldObject CreateNewWorldObject(Weenie weenie, bool asStuck = false)
+        /// <param name="forceStuckGuid">Guid will be created as a StuckGuid and not Dynamic as default</param>
+        public static WorldObject CreateNewWorldObject(Weenie weenie, bool forceStuckGuid = false)
         {
-            if (weenie.IsStuck() || asStuck)
+            if (weenie.IsStuck() || forceStuckGuid)
                 return CreateWorldObject(weenie, GuidManager.NewStuckGuid());
             else
                 return CreateWorldObject(weenie, GuidManager.NewDynamicGuid());
@@ -340,38 +341,41 @@ namespace ACE.Server.Factories
         /// This will create a new WorldObject with a new GUID.
         /// It will return null if weenieClassId was not found.
         /// </summary>
-        public static WorldObject CreateNewWorldObject(uint weenieClassId, bool asStuck = false)
+        /// <param name="forceStuckGuid">Guid will be created as a StuckGuid and not Dynamic as default</param>
+        public static WorldObject CreateNewWorldObject(uint weenieClassId, bool forceStuckGuid = false)
         {
             var weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
 
             if (weenie == null)
                 return null;
 
-            return CreateNewWorldObject(weenie, asStuck);
+            return CreateNewWorldObject(weenie, forceStuckGuid);
         }
 
         /// <summary>
         /// This will create a new WorldObject with a new GUID.
         /// It will return null if weenieClassName was not found.
         /// </summary>
-        public static WorldObject CreateNewWorldObject(string weenieClassName, bool asStuck = false)
+        /// <param name="forceStuckGuid">Guid will be created as a StuckGuid and not Dynamic as default</param>
+        public static WorldObject CreateNewWorldObject(string weenieClassName, bool forceStuckGuid = false)
         {
             var weenie = DatabaseManager.World.GetCachedWeenie(weenieClassName);
 
             if (weenie == null)
                 return null;
 
-            return CreateNewWorldObject(weenie.ClassId, asStuck);
+            return CreateNewWorldObject(weenie.ClassId, forceStuckGuid);
         }
 
         /// <summary>
         /// Creates a new WorldObject from a CreateList item
         /// </summary>
-        public static WorldObject CreateNewWorldObject(BiotaPropertiesCreateList item, bool asStuck = false)
+        /// <param name="forceStuckGuid">Guid will be created as a StuckGuid and not Dynamic as default</param>
+        public static WorldObject CreateNewWorldObject(BiotaPropertiesCreateList item, bool forceStuckGuid = false)
         {
             var isTreasure = (item.DestinationType & (int)DestinationType.Treasure) != 0;
 
-            var wo = CreateNewWorldObject(item.WeenieClassId, asStuck);
+            var wo = CreateNewWorldObject(item.WeenieClassId, forceStuckGuid);
 
             if (wo == null) return null;
 
