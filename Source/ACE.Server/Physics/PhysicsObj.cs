@@ -1735,7 +1735,7 @@ namespace ACE.Server.Physics
 
             if (ScriptManager != null) ScriptManager.UpdateScripts();
 
-            return CurCell?.ID >> 16 == requestCell >> 16;
+            return requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
         }
 
         public void UpdateAnimationInternal(double quantum)
