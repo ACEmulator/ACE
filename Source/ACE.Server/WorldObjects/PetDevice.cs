@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
+            var combatPet = new CombatPet(weenie, GuidManager.NewStuckGuid());
             if (combatPet == null)
             {
                 Console.WriteLine($"PetDevice.UseItem(): failed to create pet for wcid {wcid}");

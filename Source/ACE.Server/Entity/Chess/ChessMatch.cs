@@ -595,7 +595,7 @@ namespace ACE.Server.Entity.Chess
                     break;
             }
 
-            var wo = WorldObjectFactory.CreateNewWorldObject(weeniename);
+            var wo = WorldObjectFactory.CreateNewWorldObject(weeniename, true);
             //Console.WriteLine($"AddWeeniePiece: {weeniename}, {piece.Coord}, {frame.Origin}");
 
             // add to position, spawn

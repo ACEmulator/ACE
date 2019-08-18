@@ -328,49 +328,50 @@ namespace ACE.Server.Factories
         /// <summary>
         /// This will create a new WorldObject with a new GUID.
         /// </summary>
-        public static WorldObject CreateNewWorldObject(Weenie weenie)
+        public static WorldObject CreateNewWorldObject(Weenie weenie, bool asStuck = false)
         {
-            var worldObject = CreateWorldObject(weenie, GuidManager.NewDynamicGuid());
-
-            return worldObject;
+            if (weenie.IsStuck() || asStuck)
+                return CreateWorldObject(weenie, GuidManager.NewStuckGuid());
+            else
+                return CreateWorldObject(weenie, GuidManager.NewDynamicGuid());
         }
 
         /// <summary>
         /// This will create a new WorldObject with a new GUID.
         /// It will return null if weenieClassId was not found.
         /// </summary>
-        public static WorldObject CreateNewWorldObject(uint weenieClassId)
+        public static WorldObject CreateNewWorldObject(uint weenieClassId, bool asStuck = false)
         {
             var weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
 
             if (weenie == null)
                 return null;
 
-            return CreateNewWorldObject(weenie);
+            return CreateNewWorldObject(weenie, asStuck);
         }
 
         /// <summary>
         /// This will create a new WorldObject with a new GUID.
         /// It will return null if weenieClassName was not found.
         /// </summary>
-        public static WorldObject CreateNewWorldObject(string weenieClassName)
+        public static WorldObject CreateNewWorldObject(string weenieClassName, bool asStuck = false)
         {
             var weenie = DatabaseManager.World.GetCachedWeenie(weenieClassName);
 
             if (weenie == null)
                 return null;
 
-            return CreateNewWorldObject(weenie.ClassId);
+            return CreateNewWorldObject(weenie.ClassId, asStuck);
         }
 
         /// <summary>
         /// Creates a new WorldObject from a CreateList item
         /// </summary>
-        public static WorldObject CreateNewWorldObject(BiotaPropertiesCreateList item)
+        public static WorldObject CreateNewWorldObject(BiotaPropertiesCreateList item, bool asStuck = false)
         {
             var isTreasure = (item.DestinationType & (int)DestinationType.Treasure) != 0;
 
-            var wo = CreateNewWorldObject(item.WeenieClassId);
+            var wo = CreateNewWorldObject(item.WeenieClassId, asStuck);
 
             if (wo == null) return null;
 

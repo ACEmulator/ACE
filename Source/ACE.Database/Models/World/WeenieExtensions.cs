@@ -528,5 +528,12 @@ namespace ACE.Database.Models.World
 
             return vendorService;
         }
+
+        public static bool IsStuck(this Weenie weenie)
+        {
+            var stuck = weenie.GetProperty(PropertyBool.Stuck) ?? false;
+
+            return stuck;
+        }
     }
 }

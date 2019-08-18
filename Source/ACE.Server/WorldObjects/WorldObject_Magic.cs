@@ -1080,7 +1080,7 @@ namespace ACE.Server.WorldObjects
             if (portal == null || location == null)
                 return false;
 
-            var gateway = WorldObjectFactory.CreateNewWorldObject("portalgateway") as Portal;
+            var gateway = WorldObjectFactory.CreateNewWorldObject("portalgateway", true) as Portal;
             if (gateway == null) return false;
             gateway.Location = new Position(location);
             gateway.OriginalPortal = portalId;

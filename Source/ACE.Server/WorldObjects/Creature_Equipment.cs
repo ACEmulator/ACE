@@ -504,7 +504,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in items)
             {
-                var wo = WorldObjectFactory.CreateNewWorldObject(item);
+                var wo = WorldObjectFactory.CreateNewWorldObject(item, !((DestinationType)item.DestinationType).HasFlag(DestinationType.Treasure));
 
                 if (wo == null) continue;
 

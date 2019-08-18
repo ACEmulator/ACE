@@ -95,133 +95,133 @@ namespace ACE.Server.WorldObjects
 
             // Drudges
 
-            var drudgeRook1 = WorldObjectFactory.CreateNewWorldObject("drudgerook") as GamePiece;
+            var drudgeRook1 = WorldObjectFactory.CreateNewWorldObject("drudgerook", true) as GamePiece;
             drudgeRook1.Location = new Position(Location.Cell, Location.PositionX - 3.5f, Location.PositionY - 3.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgeRook1.EnterWorld();
 
-            var drudgeKnight1 = WorldObjectFactory.CreateNewWorldObject("drudgeknight") as GamePiece;
+            var drudgeKnight1 = WorldObjectFactory.CreateNewWorldObject("drudgeknight", true) as GamePiece;
             drudgeKnight1.Location = new Position(Location.Cell, Location.PositionX - 2.5f, Location.PositionY - 3.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgeKnight1.EnterWorld();
 
-            var drudgeBishop1 = WorldObjectFactory.CreateNewWorldObject("drudgebishop") as GamePiece;
+            var drudgeBishop1 = WorldObjectFactory.CreateNewWorldObject("drudgebishop", true) as GamePiece;
             drudgeBishop1.Location = new Position(Location.Cell, Location.PositionX - 1.5f, Location.PositionY - 3.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgeBishop1.EnterWorld();
 
-            var drudgeQueen = WorldObjectFactory.CreateNewWorldObject("drudgequeen") as GamePiece;
+            var drudgeQueen = WorldObjectFactory.CreateNewWorldObject("drudgequeen", true) as GamePiece;
             drudgeQueen.Location = new Position(Location.Cell, Location.PositionX - 0.5f, Location.PositionY - 3.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgeQueen.EnterWorld();
 
-            var drudgeKing = WorldObjectFactory.CreateNewWorldObject("drudgeking") as GamePiece;
+            var drudgeKing = WorldObjectFactory.CreateNewWorldObject("drudgeking", true) as GamePiece;
             drudgeKing.Location = new Position(Location.Cell, Location.PositionX + 0.5f, Location.PositionY - 3.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgeKing.EnterWorld();
 
-            var drudgeBishop2 = WorldObjectFactory.CreateNewWorldObject("drudgebishop") as GamePiece;
+            var drudgeBishop2 = WorldObjectFactory.CreateNewWorldObject("drudgebishop", true) as GamePiece;
             drudgeBishop2.Location = new Position(Location.Cell, Location.PositionX + 1.5f, Location.PositionY - 3.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgeBishop2.EnterWorld();
 
-            var drudgeKnight2 = WorldObjectFactory.CreateNewWorldObject("drudgeknight") as GamePiece;
+            var drudgeKnight2 = WorldObjectFactory.CreateNewWorldObject("drudgeknight", true) as GamePiece;
             drudgeKnight2.Location = new Position(Location.Cell, Location.PositionX + 2.5f, Location.PositionY - 3.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgeKnight2.EnterWorld();
 
-            var drudgeRook2 = WorldObjectFactory.CreateNewWorldObject("drudgerook") as GamePiece;
+            var drudgeRook2 = WorldObjectFactory.CreateNewWorldObject("drudgerook", true) as GamePiece;
             drudgeRook2.Location = new Position(Location.Cell, Location.PositionX + 3.5f, Location.PositionY - 3.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgeRook2.EnterWorld();
 
-            var drudgePawn1 = WorldObjectFactory.CreateNewWorldObject("drudgepawn") as GamePiece;
+            var drudgePawn1 = WorldObjectFactory.CreateNewWorldObject("drudgepawn", true) as GamePiece;
             drudgePawn1.Location = new Position(Location.Cell, Location.PositionX - 3.5f, Location.PositionY - 2.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgePawn1.EnterWorld();
 
-            var drudgePawn2 = WorldObjectFactory.CreateNewWorldObject("drudgepawn") as GamePiece;
+            var drudgePawn2 = WorldObjectFactory.CreateNewWorldObject("drudgepawn", true) as GamePiece;
             drudgePawn2.Location = new Position(Location.Cell, Location.PositionX - 2.5f, Location.PositionY - 2.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgePawn2.EnterWorld();
 
-            var drudgePawn3 = WorldObjectFactory.CreateNewWorldObject("drudgepawn") as GamePiece;
+            var drudgePawn3 = WorldObjectFactory.CreateNewWorldObject("drudgepawn", true) as GamePiece;
             drudgePawn3.Location = new Position(Location.Cell, Location.PositionX - 1.5f, Location.PositionY - 2.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgePawn3.EnterWorld();
 
-            var drudgePawn4 = WorldObjectFactory.CreateNewWorldObject("drudgepawn") as GamePiece;
+            var drudgePawn4 = WorldObjectFactory.CreateNewWorldObject("drudgepawn", true) as GamePiece;
             drudgePawn4.Location = new Position(Location.Cell, Location.PositionX - 0.5f, Location.PositionY - 2.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgePawn4.EnterWorld();
 
-            var drudgePawn5 = WorldObjectFactory.CreateNewWorldObject("drudgepawn") as GamePiece;
+            var drudgePawn5 = WorldObjectFactory.CreateNewWorldObject("drudgepawn", true) as GamePiece;
             drudgePawn5.Location = new Position(Location.Cell, Location.PositionX + 0.5f, Location.PositionY - 2.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgePawn5.EnterWorld();
 
-            var drudgePawn6 = WorldObjectFactory.CreateNewWorldObject("drudgepawn") as GamePiece;
+            var drudgePawn6 = WorldObjectFactory.CreateNewWorldObject("drudgepawn", true) as GamePiece;
             drudgePawn6.Location = new Position(Location.Cell, Location.PositionX + 1.5f, Location.PositionY - 2.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgePawn6.EnterWorld();
 
-            var drudgePawn7 = WorldObjectFactory.CreateNewWorldObject("drudgepawn") as GamePiece;
+            var drudgePawn7 = WorldObjectFactory.CreateNewWorldObject("drudgepawn", true) as GamePiece;
             drudgePawn7.Location = new Position(Location.Cell, Location.PositionX + 2.5f, Location.PositionY - 2.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgePawn7.EnterWorld();
 
-            var drudgePawn8 = WorldObjectFactory.CreateNewWorldObject("drudgepawn") as GamePiece;
+            var drudgePawn8 = WorldObjectFactory.CreateNewWorldObject("drudgepawn", true) as GamePiece;
             drudgePawn8.Location = new Position(Location.Cell, Location.PositionX + 3.5f, Location.PositionY - 2.5f, Location.PositionZ, 0, 0, 0, 1);
             drudgePawn8.EnterWorld();
 
             // Mosswarts
 
-            var mosswartRook1 = WorldObjectFactory.CreateNewWorldObject("mosswartrook") as GamePiece;
+            var mosswartRook1 = WorldObjectFactory.CreateNewWorldObject("mosswartrook", true) as GamePiece;
             mosswartRook1.Location = new Position(Location.Cell, Location.PositionX - 3.5f, Location.PositionY + 3.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartRook1.EnterWorld();
 
-            var mosswartKnight1 = WorldObjectFactory.CreateNewWorldObject("mosswartknight") as GamePiece;
+            var mosswartKnight1 = WorldObjectFactory.CreateNewWorldObject("mosswartknight", true) as GamePiece;
             mosswartKnight1.Location = new Position(Location.Cell, Location.PositionX - 2.5f, Location.PositionY + 3.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartKnight1.EnterWorld();
 
-            var mosswartBishop1 = WorldObjectFactory.CreateNewWorldObject("mosswartbishop") as GamePiece;
+            var mosswartBishop1 = WorldObjectFactory.CreateNewWorldObject("mosswartbishop", true) as GamePiece;
             mosswartBishop1.Location = new Position(Location.Cell, Location.PositionX - 1.5f, Location.PositionY + 3.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartBishop1.EnterWorld();
 
-            var mosswartQueen = WorldObjectFactory.CreateNewWorldObject("mosswartqueen") as GamePiece;
+            var mosswartQueen = WorldObjectFactory.CreateNewWorldObject("mosswartqueen", true) as GamePiece;
             mosswartQueen.Location = new Position(Location.Cell, Location.PositionX - 0.5f, Location.PositionY + 3.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartQueen.EnterWorld();
 
-            var mosswartKing = WorldObjectFactory.CreateNewWorldObject("mosswartking") as GamePiece;
+            var mosswartKing = WorldObjectFactory.CreateNewWorldObject("mosswartking", true) as GamePiece;
             mosswartKing.Location = new Position(Location.Cell, Location.PositionX + 0.5f, Location.PositionY + 3.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartKing.EnterWorld();
 
-            var mosswartBishop2 = WorldObjectFactory.CreateNewWorldObject("mosswartbishop") as GamePiece;
+            var mosswartBishop2 = WorldObjectFactory.CreateNewWorldObject("mosswartbishop", true) as GamePiece;
             mosswartBishop2.Location = new Position(Location.Cell, Location.PositionX + 1.5f, Location.PositionY + 3.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartBishop2.EnterWorld();
 
-            var mosswartKnight2 = WorldObjectFactory.CreateNewWorldObject("mosswartknight") as GamePiece;
+            var mosswartKnight2 = WorldObjectFactory.CreateNewWorldObject("mosswartknight", true) as GamePiece;
             mosswartKnight2.Location = new Position(Location.Cell, Location.PositionX + 2.5f, Location.PositionY + 3.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartKnight2.EnterWorld();
 
-            var mosswartRook2 = WorldObjectFactory.CreateNewWorldObject("mosswartrook") as GamePiece;
+            var mosswartRook2 = WorldObjectFactory.CreateNewWorldObject("mosswartrook", true) as GamePiece;
             mosswartRook2.Location = new Position(Location.Cell, Location.PositionX + 3.5f, Location.PositionY + 3.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartRook2.EnterWorld();
 
-            var mosswartPawn1 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn") as GamePiece;
+            var mosswartPawn1 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn", true) as GamePiece;
             mosswartPawn1.Location = new Position(Location.Cell, Location.PositionX - 3.5f, Location.PositionY + 2.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartPawn1.EnterWorld();
 
-            var mosswartPawn2 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn") as GamePiece;
+            var mosswartPawn2 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn", true) as GamePiece;
             mosswartPawn2.Location = new Position(Location.Cell, Location.PositionX - 2.5f, Location.PositionY + 2.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartPawn2.EnterWorld();
 
-            var mosswartPawn3 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn") as GamePiece;
+            var mosswartPawn3 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn", true) as GamePiece;
             mosswartPawn3.Location = new Position(Location.Cell, Location.PositionX - 1.5f, Location.PositionY + 2.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartPawn3.EnterWorld();
 
-            var mosswartPawn4 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn") as GamePiece;
+            var mosswartPawn4 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn", true) as GamePiece;
             mosswartPawn4.Location = new Position(Location.Cell, Location.PositionX - 0.5f, Location.PositionY + 2.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartPawn4.EnterWorld();
 
-            var mosswartPawn5 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn") as GamePiece;
+            var mosswartPawn5 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn", true) as GamePiece;
             mosswartPawn5.Location = new Position(Location.Cell, Location.PositionX + 0.5f, Location.PositionY + 2.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartPawn5.EnterWorld();
 
-            var mosswartPawn6 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn") as GamePiece;
+            var mosswartPawn6 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn", true) as GamePiece;
             mosswartPawn6.Location = new Position(Location.Cell, Location.PositionX + 1.5f, Location.PositionY + 2.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartPawn6.EnterWorld();
 
-            var mosswartPawn7 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn") as GamePiece;
+            var mosswartPawn7 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn", true) as GamePiece;
             mosswartPawn7.Location = new Position(Location.Cell, Location.PositionX + 2.5f, Location.PositionY + 2.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartPawn7.EnterWorld();
 
-            var mosswartPawn8 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn") as GamePiece;
+            var mosswartPawn8 = WorldObjectFactory.CreateNewWorldObject("mosswartpawn", true) as GamePiece;
             mosswartPawn8.Location = new Position(Location.Cell, Location.PositionX + 3.5f, Location.PositionY + 2.5f, Location.PositionZ, 0, 0, 1, 0);
             mosswartPawn8.EnterWorld();
 

@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
             {
-                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId, true);
 
                 if (wo != null)
                 {

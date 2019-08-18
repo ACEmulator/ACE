@@ -220,13 +220,58 @@ namespace ACE.Server.Managers
             }
         }
 
+        private class StuckGuidAllocator
+        {
+            private readonly uint max;
+            private readonly uint min;
+            private uint current;
+            private readonly string name;
+
+            public StuckGuidAllocator(uint min, uint max, string name)
+            {
+                this.max = max;
+
+                this.min = min;
+
+                current = min;
+
+                this.name = name;
+            }
+
+            public uint Alloc()
+            {
+                lock (this)
+                {
+                    if (current == max)
+                    {
+                        uint cur = current;
+                        current = min;
+
+                        return cur;
+                    }
+
+                    uint ret = current;
+                    current += 1;
+
+                    return ret;
+                }
+            }
+
+            public uint Current()
+            {
+                return current;
+            }
+        }
+
         private static PlayerGuidAllocator playerAlloc;
         private static DynamnicGuidAllocator dynamicAlloc;
+        private static StuckGuidAllocator stuckAlloc;
 
         public static void Initialize()
         {
             playerAlloc = new PlayerGuidAllocator(ObjectGuid.PlayerMin, ObjectGuid.PlayerMax, "player");
             dynamicAlloc = new DynamnicGuidAllocator(ObjectGuid.DynamicMin, ObjectGuid.DynamicMax, "dynamic");
+            stuckAlloc = new StuckGuidAllocator(ObjectGuid.StuckMin, ObjectGuid.StuckMax, "stuck");
         }
 
         /// <summary>
@@ -238,9 +283,9 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// These represent items are generated in the world.
+        /// These represent items that are generated in the world.
         /// Some of them will be saved to the Shard db.
-        /// They can be monsters, loot, etc..
+        /// They can be anything that can be picked up by a player.
         /// </summary>
         public static ObjectGuid NewDynamicGuid()
         {
@@ -256,7 +301,6 @@ namespace ACE.Server.Managers
             //dynamicAlloc.Recycle(guid.Full);
         }
 
-
         /// <summary>
         /// Returns GuidAllocator.Current which is the Next Guid to be Alloc'd for Players, to be used only for informational purposes.
         /// </summary>
@@ -271,6 +315,24 @@ namespace ACE.Server.Managers
         public static ObjectGuid NextDynamicGuid()
         {
             return new ObjectGuid(dynamicAlloc.Current());
+        }
+
+        /// <summary>
+        /// These represent items that are generated in the world and unable to be picked up by players.
+        /// None of them will be saved to the Shard db.
+        /// They can be monsters, spells, projectiles, vendor inventory, npc wieldables that do not drop, etc..
+        /// </summary>
+        public static ObjectGuid NewStuckGuid()
+        {
+            return new ObjectGuid(stuckAlloc.Alloc());
+        }
+
+        /// <summary>
+        /// Returns GuidAllocator.Current which is the Next Guid to be Alloc'd for Stuck Items, to be used only for informational purposes.
+        /// </summary>
+        public static ObjectGuid NextStuckGuid()
+        {
+            return new ObjectGuid(stuckAlloc.Current());
         }
     }
 }

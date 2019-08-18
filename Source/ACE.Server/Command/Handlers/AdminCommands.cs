@@ -2020,9 +2020,11 @@ namespace ACE.Server.Command.Handlers
 
             ObjectGuid nextItemGuid = GuidManager.NextDynamicGuid();
             ObjectGuid nextPlayerGuid = GuidManager.NextPlayerGuid();
+            ObjectGuid nextStuckGuid = GuidManager.NextStuckGuid();
 
             string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full):X})\n";
-            message += $"The next Player GUID to be allocated is expected to be: {nextPlayerGuid.Full} (0x{(nextPlayerGuid.Full):X})";
+            message += $"The next Player GUID to be allocated is expected to be: {nextPlayerGuid.Full} (0x{(nextPlayerGuid.Full):X})\n";
+            message += $"The next Stuck GUID to be allocated is expected to be: {nextStuckGuid.Full} (0x{(nextStuckGuid.Full):X})";
             var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
             session.Network.EnqueueSend(sysChatMsg);
         }

@@ -6,6 +6,7 @@ namespace ACE.Entity
         Player,
         Static,
         Dynamic,
+        Stuck
     }
 
     public struct ObjectGuid
@@ -22,6 +23,9 @@ namespace ACE.Entity
         public static uint PlayerMax { get; } = 0x5FFFFFFF;
 
         // 0x60000000 No PCAP'd GUID's in this range
+        // These represent items that are generated in the world. None of them will be saved to the Shard db, and none can be picked up by players.
+        public static uint StuckMin { get; } = 0x60000000;
+        public static uint StuckMax { get; } = 0x6FFFFFFF; // Ends at E because uint.Max is reserved for "invalid"
 
         // PY 16 has these ranges 0x70003000 - 0x7FADA053
         // They are organized by landblock where 0x7AABB000 is landblock AABB
@@ -29,13 +33,14 @@ namespace ACE.Entity
         public static uint StaticObjectMin { get; } = 0x70000000;
         public static uint StaticObjectMax { get; } = 0x7FFFFFFF;
 
-        // These represent items are generated in the world. Some of them will be saved to the Shard db.
+        // These represent items that are generated in the world. Some of them will be saved to the Shard db.
         public static uint DynamicMin { get; } = 0x80000000;
         public static uint DynamicMax { get; } = 0xFFFFFFFE; // Ends at E because uint.Max is reserved for "invalid"
 
         public static bool IsPlayer(uint guid) { return (guid >= PlayerMin && guid <= PlayerMax); }
         public static bool IsStatic(uint guid) { return (guid >= StaticObjectMin && guid <= StaticObjectMax); }
         public static bool IsDynamic(uint guid) { return (guid >= DynamicMin && guid <= DynamicMax); }
+        public static bool IsStuck(uint guid) { return (guid >= StuckMin && guid <= StuckMax); }
 
         public uint Full { get; }
         public uint Low => Full & 0xFFFFFF;
@@ -52,6 +57,8 @@ namespace ACE.Entity
                 Type = GuidType.Static;
             else if (IsDynamic(full))
                 Type = GuidType.Dynamic;
+            else if (IsStuck(full))
+                Type = GuidType.Stuck;
             else
                 Type = GuidType.Undef;
         }
@@ -69,6 +76,11 @@ namespace ACE.Entity
         public bool IsDynamic()
         {
             return Type == GuidType.Dynamic;
+        }
+
+        public bool IsStuck()
+        {
+            return Type == GuidType.Stuck;
         }
 
         public static bool operator ==(ObjectGuid g1, ObjectGuid g2)
