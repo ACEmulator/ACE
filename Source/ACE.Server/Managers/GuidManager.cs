@@ -62,8 +62,10 @@ namespace ACE.Server.Managers
                         // Need to start allocating at current value in db +1
                         current++;
 
+                    log.Debug($"Player GUID Allocator current is now {current:X8} of {max:X8}");
+
                     if ((max - current) < LowIdLimit)
-                        log.Warn($"Dangerously low on {name} GUIDs : {current:X} of {max:X}");
+                        log.Warn($"Dangerously low on {name} GUIDs: {current:X8} of {max:X8}");
                 }
 
                 this.name = name;
@@ -105,6 +107,8 @@ namespace ACE.Server.Managers
 
             private readonly Queue<Tuple<DateTime, uint>> recycledGuids = new Queue<Tuple<DateTime, uint>>();
 
+            private const int limitAvailableIDsReturnedInGetSequenceGaps = 10000000;
+            private bool useSequenceGapExhaustedMessageDisplayed;
             private LinkedList<(uint start, uint end)> availableIDs = new LinkedList<(uint start, uint end)>();
 
             public DynamnicGuidAllocator(uint min, uint max, string name)
@@ -134,8 +138,10 @@ namespace ACE.Server.Managers
                         // Need to start allocating at current value in db +1
                         current++;
 
+                    log.Debug($"Dynamic GUID Allocator current is now {current:X8} of {max:X8}");
+
                     if ((max - current) < LowIdLimit)
-                        log.Warn($"Dangerously low on {name} GUIDs : {current:X} of {max:X}");
+                        log.Warn($"Dangerously low on {name} GUIDs: {current:X8} of {max:X8}");
                 }
 
                 // Get available ids in the form of sequence gaps
@@ -145,11 +151,15 @@ namespace ACE.Server.Managers
                     // todo: The idea behind this number is to pull enough free id's from the database so that the server runs (under typical load) for at least the duration of a typical restart period, before new (higher) id's start being generated
                     // todo: The objective is to use available id's which helps prevent incrementing the current max.
                     bool done = false;
-                    Database.DatabaseManager.Shard.GetSequenceGaps(ObjectGuid.DynamicMin, 10000000, gaps =>
+                    Database.DatabaseManager.Shard.GetSequenceGaps(ObjectGuid.DynamicMin, limitAvailableIDsReturnedInGetSequenceGaps, gaps =>
                     {
                         lock (this)
                         {
                             availableIDs = new LinkedList<(uint start, uint end)>(gaps);
+                            uint total = 0;
+                            foreach (var pair in availableIDs)
+                                total += (pair.end - pair.start) + 1;
+                            log.Debug($"Dynamic GUID Sequence gaps initialized with total availableIDs of {total:N0}");
                             done = true;
                             Monitor.Pulse(this);
                         }
@@ -189,6 +199,14 @@ namespace ACE.Server.Managers
                             availableIDs.First.Value = (availableIDs.First.Value.start + 1, availableIDs.First.Value.end);
 
                         return id;
+                    }
+                    else
+                    {
+                        if (!useSequenceGapExhaustedMessageDisplayed)
+                        {
+                            log.Debug($"Dynamic GUID Sequence gaps exhausted. Any new, non-recycled GUID will be current + 1. current is now {current:X8}");
+                            useSequenceGapExhaustedMessageDisplayed = true;
+                        }
                     }
 
                     // Lastly, use an id that increments our max
@@ -253,6 +271,9 @@ namespace ACE.Server.Managers
         /// <param name="guid"></param>
         public static void RecycleDynamicGuid(ObjectGuid guid)
         {
+            // todo: fix this so things don't look funky to clients
+            // todo: What was reported was that items would spawn in looking like couches, or other dynamic items
+            // todo: Figure out how long the sequence gaps, then change the recycle limit to that threshold
             //dynamicAlloc.Recycle(guid.Full);
         }
 
