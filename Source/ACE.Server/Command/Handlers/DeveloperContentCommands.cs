@@ -291,6 +291,12 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
+            if (wo.Stuck)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenie.ClassId} - {weenie.ClassName} has PropertyBool.Stuck, cannot spawn as landblock instance", ChatMessageType.Broadcast));
+                return;
+            }
+
             // spawn as ethereal temporarily, to spawn directly on player position
             wo.Ethereal = true;
             wo.Location = new Position(loc);
