@@ -291,9 +291,9 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            if (wo.Stuck)
+            if (!wo.Stuck)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenie.ClassId} - {weenie.ClassName} has PropertyBool.Stuck, cannot spawn as landblock instance", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenie.ClassId} - {weenie.ClassName} is missing PropertyBool.Stuck, cannot spawn as landblock instance", ChatMessageType.Broadcast));
                 return;
             }
 
