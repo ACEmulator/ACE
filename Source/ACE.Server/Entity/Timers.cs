@@ -34,7 +34,7 @@ namespace ACE.Server.Entity
         public static DerethDateTime CurrentLoreTime => DerethDateTime.UtcNowToLoreTime;
 
         /// <summary>
-        /// Returns DerethDateTime.UtcNowToLoreTime
+        /// Returns current in game time, as seen on Map Panel, calculated from PortalYearTicks
         /// </summary>
         public static DerethDateTime CurrentInGameTime => new DerethDateTime(PortalYearTicks);
 
