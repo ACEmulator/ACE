@@ -464,7 +464,7 @@ namespace ACE.Server.WorldObjects
         {
             switch (GeneratorTimeType)
             {
-                // TODO: defined/night/day
+                // TODO: defined
                 case GeneratorTimeType.RealTime:
                     CheckRealTimeStatus();
                     break;
