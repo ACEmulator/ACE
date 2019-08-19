@@ -164,7 +164,7 @@ namespace ACE.Server.Command.Handlers
             var combinedByAverage = sortedBy5mAverage.Concat(sortedBy1hrAverage).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.AverageEventDuration, r.Monitor1h.AverageEventDuration)).Take(10);
 
             sb.Append($"Most Busy Landblock - By Average{'\n'}");
-            sb.Append($"~5m Hits   Avg  Long  Last  Tot - ~1h Hits   Avg  Long  Last  Tot - Location   Players  Creatures{'\n'}");
+            sb.Append($"~5m Hits   Avg  Long  Last - ~1h Hits   Avg  Long  Last - Location   Players  Creatures{'\n'}");
 
             foreach (var entry in combinedByAverage)
             {
@@ -177,8 +177,8 @@ namespace ACE.Server.Command.Handlers
                         creatures++;
                 }
 
-                sb.Append($"{entry.Monitor5m.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.AverageEventDuration:N4} {entry.Monitor5m.LongestEvent:N3} {entry.Monitor5m.LastEvent:N3} {((int)entry.Monitor5m.TotalSeconds).ToString().PadLeft(4)} - " +
-                          $"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} {((int)entry.Monitor1h.TotalSeconds).ToString().PadLeft(4)} - " +
+                sb.Append($"{entry.Monitor5m.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.AverageEventDuration:N4} {entry.Monitor5m.LongestEvent:N3} {entry.Monitor5m.LastEvent:N3} - " +
+                          $"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} - " +
                           $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
             }
 
@@ -188,7 +188,7 @@ namespace ACE.Server.Command.Handlers
             var combinedByLong = sortedBy5mLong.Concat(sortedBy1hrLong).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.LongestEvent, r.Monitor1h.LongestEvent)).Take(10);
 
             sb.Append($"Most Busy Landblock - By Longest{'\n'}");
-            sb.Append($"~5m Hits   Avg  Long  Last  Tot - ~1h Hits   Avg  Long  Last  Tot - Location   Players  Creatures{'\n'}");
+            sb.Append($"~5m Hits   Avg  Long  Last - ~1h Hits   Avg  Long  Last - Location   Players  Creatures{'\n'}");
 
             foreach (var entry in combinedByLong)
             {
@@ -201,8 +201,8 @@ namespace ACE.Server.Command.Handlers
                         creatures++;
                 }
 
-                sb.Append($"{entry.Monitor5m.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.AverageEventDuration:N4} {entry.Monitor5m.LongestEvent:N3} {entry.Monitor5m.LastEvent:N3} {((int)entry.Monitor5m.TotalSeconds).ToString().PadLeft(4)} - " +
-                          $"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} {((int)entry.Monitor1h.TotalSeconds).ToString().PadLeft(4)} - " +
+                sb.Append($"{entry.Monitor5m.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.AverageEventDuration:N4} {entry.Monitor5m.LongestEvent:N3} {entry.Monitor5m.LastEvent:N3} - " +
+                          $"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} - " +
                           $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
             }
 
