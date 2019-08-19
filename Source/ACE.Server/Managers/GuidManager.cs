@@ -245,7 +245,7 @@ namespace ACE.Server.Managers
                     foreach (var pair in availableIDs)
                         total += (pair.end - pair.start) + 1;
 
-                    return $"DynamnicGuidAllocator: {name}, current: 0x{current:X8}, max: 0x{max:X8}, sequence gap GUIDs available: {total}, recycled GUIDs available: {recycledGuids.Count:N0}";
+                    return $"DynamnicGuidAllocator: {name}, current: 0x{current:X8}, max: 0x{max:X8}, sequence gap GUIDs available: {total:N0}, recycled GUIDs available: {recycledGuids.Count:N0}";
                 }
             }
         }
