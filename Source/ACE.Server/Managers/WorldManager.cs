@@ -28,8 +28,6 @@ namespace ACE.Server.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static bool Concurrency = false;
-
         private static readonly PhysicsEngine Physics;
 
         public static bool WorldActive { get; private set; }
