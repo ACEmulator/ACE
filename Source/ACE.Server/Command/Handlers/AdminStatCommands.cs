@@ -46,6 +46,8 @@ namespace ACE.Server.Command.Handlers
 
             sb.Append($"Server Status:{'\n'}");
 
+            sb.Append($"Host Info: {Environment.OSVersion}, vCPU: {Environment.ProcessorCount}{'\n'}");
+
             var runTime = DateTime.Now - proc.StartTime;
             sb.Append($"Server Runtime: {(int)runTime.TotalHours}h {runTime.Minutes}m {runTime.Seconds}s{'\n'}");
 
