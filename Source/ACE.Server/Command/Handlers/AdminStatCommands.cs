@@ -158,7 +158,7 @@ namespace ACE.Server.Command.Handlers
             var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
 
             // Filter out landblocks that haven't recorded at least 1000 events
-            var sortedBy5mAverage = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor5m.AverageEventDuration).Take(10).ToList();
+            var sortedBy5mAverage = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 10).OrderByDescending(r => r.Monitor5m.AverageEventDuration).Take(10).ToList();
             var sortedBy1hrAverage = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.AverageEventDuration).Take(10).ToList();
 
             var combinedByAverage = sortedBy5mAverage.Concat(sortedBy1hrAverage).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.AverageEventDuration, r.Monitor1h.AverageEventDuration)).Take(10);
@@ -182,8 +182,8 @@ namespace ACE.Server.Command.Handlers
                           $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
             }
 
-            var sortedBy5mLong = loadedLandblocks.Where(r => r.Monitor5m.TotalEvents >= 1000).OrderByDescending(r => r.Monitor5m.LongestEvent).Take(10);
-            var sortedBy1hrLong = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.LongestEvent).Take(10);
+            var sortedBy5mLong = loadedLandblocks.OrderByDescending(r => r.Monitor5m.LongestEvent).Take(10);
+            var sortedBy1hrLong = loadedLandblocks.OrderByDescending(r => r.Monitor1h.LongestEvent).Take(10);
 
             var combinedByLong = sortedBy5mLong.Concat(sortedBy1hrLong).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.LongestEvent, r.Monitor1h.LongestEvent)).Take(10);
 
