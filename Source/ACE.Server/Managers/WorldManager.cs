@@ -364,18 +364,7 @@ namespace ACE.Server.Managers
 
             ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
 
-            // update positions through physics engine
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_LandblockManager_TickPhysics);
-            LandblockManager.TickPhysics(Timers.PortalYearTicks);
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_LandblockManager_TickPhysics);
-
-            // Tick all of our Landblocks and WorldObjects
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_LandblockManager_Tick);
-            LandblockManager.Tick();
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_LandblockManager_Tick);
-
-            // clean up inactive landblocks
-            LandblockManager.UnloadLandblocks();
+            LandblockManager.Tick(Timers.PortalYearTicks);
 
             HouseManager.Tick();
 

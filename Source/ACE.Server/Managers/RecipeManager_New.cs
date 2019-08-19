@@ -250,6 +250,10 @@ namespace ACE.Server.Managers
                     if (target.ItemType != ItemType.Armor || (target.ArmorLevel ?? 0) == 0 || target.Workmanship == null)
                         return null;
 
+                    // TODO: replace with PropertyInt.MeleeDefenseImbuedEffectTypeCache == 1 when data is updated
+                    if (source.MaterialType == MaterialType.Steel && !target.IsEnchantable)
+                        return null;
+
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 

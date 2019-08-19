@@ -214,7 +214,9 @@ namespace ACE.Server.Managers
                 //
                 // To make this as performant as possible, we break down each landblock group into it's outer most square.
                 // Then, we use these squares to determine if a group overlaps or is close enough to another group and should be merged
-                var groupBoundaries = new List<(List<Landblock> group, int xMin, int xMax, int yMin, int yMax, int xCenter, int yCenter, int width, int height)>();
+                var groupBoundaries =
+                    new List<(List<Landblock> group, int xMin, int xMax, int yMin, int yMax, int xCenter, int yCenter,
+                        int width, int height)>();
 
                 foreach (var group in threadSeparatedLandblockGroups)
                 {
@@ -244,7 +246,11 @@ namespace ACE.Server.Managers
                 {
                     for (int j = 0; j < i; j++)
                     {
-                        var distance = Math.Max(Math.Abs(groupBoundaries[i].xCenter - groupBoundaries[j].xCenter) - (groupBoundaries[i].width + groupBoundaries[j].width) / 2, Math.Abs(groupBoundaries[i].yCenter - groupBoundaries[j].yCenter) - (groupBoundaries[i].height + groupBoundaries[j].height) / 2);
+                        var distance = Math.Max(
+                            Math.Abs(groupBoundaries[i].xCenter - groupBoundaries[j].xCenter) -
+                            (groupBoundaries[i].width + groupBoundaries[j].width) / 2,
+                            Math.Abs(groupBoundaries[i].yCenter - groupBoundaries[j].yCenter) -
+                            (groupBoundaries[i].height + groupBoundaries[j].height) / 2);
 
                         if (distance <= 10)
                         {
@@ -270,7 +276,8 @@ namespace ACE.Server.Managers
                             int xCenter = xMin + ((xMax - xMin) / 2);
                             int yCenter = yMin + ((yMax - yMin) / 2);
 
-                            groupBoundaries[j] = (groupBoundaries[j].group, xMin, xMax, yMin, yMax, xCenter, yCenter, xMax - xMin, yMax - yMin);
+                            groupBoundaries[j] = (groupBoundaries[j].group, xMin, xMax, yMin, yMax, xCenter, yCenter,
+                                xMax - xMin, yMax - yMin);
 
                             break;
                         }
@@ -279,7 +286,8 @@ namespace ACE.Server.Managers
 
                 // Debugging
                 if (landblocksAdded.Count != loadedLandblocks.Count)
-                    log.Error($"landblocksAdded.Count: ({landblocksAdded.Count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
+                    log.Error(
+                        $"landblocksAdded.Count: ({landblocksAdded.Count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
                 var count = 0;
                 foreach (var group in threadSeparatedLandblockGroups)
                     count += group.Count;
@@ -288,15 +296,32 @@ namespace ACE.Server.Managers
 
                 threadSeparatedLandblockGroupsNeedsRecalculating = false;
             }
+
             sw.Stop();
             if (sw.ElapsedMilliseconds > 1)
                 log.Warn($"sw.ElapsedMilliseconds: {sw.ElapsedMilliseconds}");
         }
 
+        public static void Tick(double portalYearTicks)
+        {
+            // update positions through physics engine
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
+            TickPhysics(portalYearTicks);
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
+
+            // Tick all of our Landblocks and WorldObjects
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
+            Tick();
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
+
+            // clean up inactive landblocks
+            UnloadLandblocks();
+        }
+
         /// <summary>
         /// Processes physics objects in all active landblocks for updating
         /// </summary>
-        public static void TickPhysics(double tickTime)
+        private static void TickPhysics(double portalYearTicks)
         {
             CheckIfLandblockGroupsNeedRecalculating();
 
@@ -307,7 +332,7 @@ namespace ACE.Server.Managers
                 Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup =>
                 {
                     foreach (var landblock in landblockGroup)
-                        landblock.TickPhysics(tickTime, movedObjects);
+                        landblock.TickPhysics(portalYearTicks, movedObjects);
                 });
             }
             else
@@ -315,7 +340,7 @@ namespace ACE.Server.Managers
                 foreach (var landblockGroup in threadSeparatedLandblockGroups)
                 {
                     foreach (var landblock in landblockGroup)
-                        landblock.TickPhysics(tickTime, movedObjects);
+                        landblock.TickPhysics(portalYearTicks, movedObjects);
                 }
             }
 
@@ -331,7 +356,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void Tick()
+        private static void Tick()
         {
             CheckIfLandblockGroupsNeedRecalculating();
 

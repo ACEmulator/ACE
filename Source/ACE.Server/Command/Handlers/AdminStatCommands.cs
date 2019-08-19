@@ -46,6 +46,8 @@ namespace ACE.Server.Command.Handlers
 
             sb.Append($"Server Status:{'\n'}");
 
+            sb.Append($"Host Info: {Environment.OSVersion}, vCPU: {Environment.ProcessorCount}{'\n'}");
+
             var runTime = DateTime.Now - proc.StartTime;
             sb.Append($"Server Runtime: {(int)runTime.TotalHours}h {runTime.Minutes}m {runTime.Seconds}s{'\n'}");
 
@@ -158,12 +160,15 @@ namespace ACE.Server.Command.Handlers
             var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
 
             // Filter out landblocks that haven't recorded at least 1000 events
-            var sortedByAverage = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.AverageEventDuration).Take(10);
+            var sortedBy5mAverage = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 10).OrderByDescending(r => r.Monitor5m.AverageEventDuration).Take(10).ToList();
+            var sortedBy1hrAverage = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.AverageEventDuration).Take(10).ToList();
+
+            var combinedByAverage = sortedBy5mAverage.Concat(sortedBy1hrAverage).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.AverageEventDuration, r.Monitor1h.AverageEventDuration)).Take(10);
 
             sb.Append($"Most Busy Landblock - By Average{'\n'}");
-            sb.Append($"~1h Hits   Avg  Long  Last  Tot - Location   Players  Creatures{'\n'}");
+            sb.Append($"~5m Hits   Avg  Long  Last - ~1h Hits   Avg  Long  Last - Location   Players  Creatures{'\n'}");
 
-            foreach (var entry in sortedByAverage)
+            foreach (var entry in combinedByAverage)
             {
                 int players = 0, creatures = 0;
                 foreach (var worldObject in entry.GetAllWorldObjectsForDiagnostics())
@@ -174,16 +179,20 @@ namespace ACE.Server.Command.Handlers
                         creatures++;
                 }
 
-                sb.Append($"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} {((int)entry.Monitor1h.TotalSeconds).ToString().PadLeft(4)} - " +
-                    $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
+                sb.Append($"{entry.Monitor5m.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.AverageEventDuration:N4} {entry.Monitor5m.LongestEvent:N3} {entry.Monitor5m.LastEvent:N3} - " +
+                          $"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} - " +
+                          $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
             }
 
-            var sortedByLong = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.LongestEvent).Take(10);
+            var sortedBy5mLong = loadedLandblocks.OrderByDescending(r => r.Monitor5m.LongestEvent).Take(10);
+            var sortedBy1hrLong = loadedLandblocks.OrderByDescending(r => r.Monitor1h.LongestEvent).Take(10);
+
+            var combinedByLong = sortedBy5mLong.Concat(sortedBy1hrLong).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.LongestEvent, r.Monitor1h.LongestEvent)).Take(10);
 
             sb.Append($"Most Busy Landblock - By Longest{'\n'}");
-            sb.Append($"~1h Hits   Avg  Long  Last  Tot - Location   Players  Creatures{'\n'}");
+            sb.Append($"~5m Hits   Avg  Long  Last - ~1h Hits   Avg  Long  Last - Location   Players  Creatures{'\n'}");
 
-            foreach (var entry in sortedByLong)
+            foreach (var entry in combinedByLong)
             {
                 int players = 0, creatures = 0;
                 foreach (var worldObject in entry.GetAllWorldObjectsForDiagnostics())
@@ -194,7 +203,8 @@ namespace ACE.Server.Command.Handlers
                         creatures++;
                 }
 
-                sb.Append($"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} {((int)entry.Monitor1h.TotalSeconds).ToString().PadLeft(4)} - " +
+                sb.Append($"{entry.Monitor5m.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.AverageEventDuration:N4} {entry.Monitor5m.LongestEvent:N3} {entry.Monitor5m.LastEvent:N3} - " +
+                          $"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} - " +
                           $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
             }
 
