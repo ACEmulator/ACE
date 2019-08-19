@@ -571,7 +571,7 @@ namespace ACE.Server.Physics.Common
             }
         }
 
-        private List<Landblock> adjacents;
+        private List<Landblock> adjacents; // TODO: this needs thread safety
 
         /// <summary>
         /// Returns the list of adjacent landblocks
