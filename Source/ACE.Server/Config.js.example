@@ -14,7 +14,12 @@
       "PasswordHashWorkFactor": 8,
       "ForceWorkFactorMigration": true
     },
+
+    // The folder that contains AC DAT files (client_cell_1.dat, client_portal.dat, client_highres.dat, client_local_English.dat)
+    // Note that for servers running on Linux, the ~ home folder must be fully expanded, ie. /home/user/ace/, instead of ~/ace/
+    // Note that for servers running on Windows, a path like c:\ace\ MUST be entered as c:\\ace\\, replacing the single backslashes (\) with double backslashes (\\)
     "DatFilesDirectory": "c:\\ACE\\",
+
     "ShutdownInterval": "60",
 
     // ServerPerformanceMonitorAutoStart, default: false
@@ -43,7 +48,7 @@
     // PreloadedLandblock
     // These are the default pre-loaded and perma-loaded landblocks.
     // In most cases you should not need to adjust them.
-    // This section requres LandblockPreloading to be true
+    // This section requires LandblockPreloading to be true
     "PreloadedLandblocks": [
         {
             "Id": "E74EFFFF",
