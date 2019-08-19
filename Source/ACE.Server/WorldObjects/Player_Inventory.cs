@@ -1129,9 +1129,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!item.ValidLocations.HasValue || !item.ValidLocations.Value.HasFlag(wieldedLocation))
+            if (!item.ValidLocations.HasValue || item.ValidLocations == EquipMask.None)
             {
-                log.WarnFormat("Player 0x{0:X8}:{1} tried to wield item 0x{2:X8}:{3} to {4} (0x{4:X8}), not in item's validlocatiions {5} (0x{5:X8}).", Guid.Full, Name, item.Guid.Full, item.Name, wieldedLocation, item.ValidLocations);
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to wield item 0x{2:X8}:{3} to {4} (0x{4:X}), not in item's validlocatiions {5} (0x{5:X}).", Guid.Full, Name, item.Guid.Full, item.Name, wieldedLocation, item.ValidLocations ?? 0);
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.InvalidInventoryLocation));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
                 return;
