@@ -23,9 +23,8 @@ namespace ACE.Server.Managers
 
             // These are all found in WorldManager.UpdateGameWorld()
             UpdateGameWorld_Entire,
-            UpdateGameWorld_HandlePhysics,
-            UpdateGameWorld_RelocateObjectForPhysics,
-            UpdateGameWorld_landblock_Tick,
+            LandblockManager_TickPhysics,
+            LandblockManager_Tick,
 
             // These are all found in Landblock.Tick()
             Landblock_Tick_RunActions,
@@ -261,7 +260,7 @@ namespace ACE.Server.Managers
             AddMonitorOutputToStringBuilder(monitors5m[(int)MonitorType.UpdateGameWorld_Entire], monitors1h[(int)MonitorType.UpdateGameWorld_Entire], monitors24h[(int)MonitorType.UpdateGameWorld_Entire], MonitorType.UpdateGameWorld_Entire, sb);
 
             sb.Append($"Calls from WorldManager.UpdateGameWorld(){'\n'}");
-            for (int i = (int)MonitorType.UpdateGameWorld_HandlePhysics; i <= (int)MonitorType.UpdateGameWorld_landblock_Tick; i++)
+            for (int i = (int)MonitorType.LandblockManager_TickPhysics; i <= (int)MonitorType.LandblockManager_Tick; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
 
             sb.Append($"Calls from Landblock.Tick() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
