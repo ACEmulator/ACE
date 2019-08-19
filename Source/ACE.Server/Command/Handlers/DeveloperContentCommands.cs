@@ -12,6 +12,7 @@ using ACE.Database.Models.World;
 using ACE.Database.SQLFormatters.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -358,6 +359,101 @@ namespace ACE.Server.Command.Handlers.Processors
                 else
                     return highestLandblockInst.Guid + 1;
             }
+        }
+
+        [CommandHandler("export-json", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Exports a weenie from database to JSON file", "<wcid>")]
+        public static void HandleExportJson(Session session, params string[] parameters)
+        {
+            DirectoryInfo di = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+
+            if (!uint.TryParse(parameters[0], out var wcid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} not a valid wcid");
+                return;
+            }
+
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            if (weenie == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find weenie {wcid}");
+                return;
+            }
+
+            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.ClassId} - {weenie.ClassName} to json");
+                return;
+            }
+
+            var json_folder = $"{di.FullName}{sep}json{sep}weenies{sep}";
+
+            di = new DirectoryInfo(json_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            var json_filename = $"{weenie.ClassId} - {weenie.WeeniePropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name)?.Value}.json";
+
+            File.WriteAllText(json_folder + json_filename, json);
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Exported {json_folder}{json_filename}");
+        }
+
+        [CommandHandler("export-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Exports a weenie from database to SQL file", "<wcid>")]
+        public static void HandleExportSql(Session session, params string[] parameters)
+        {
+            DirectoryInfo di = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+
+            if (!uint.TryParse(parameters[0], out var wcid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} not a valid wcid");
+                return;
+            }
+
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            if (weenie == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find weenie {wcid}");
+                return;
+            }
+
+            var sql_folder = $"{di.FullName}{sep}sql{sep}weenies{sep}";
+
+            di = new DirectoryInfo(sql_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            var converter = new WeenieSQLWriter();
+
+            converter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+            converter.SpellNames = DatabaseManager.World.GetAllSpellNames();
+            converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
+            converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
+
+            var sql_filename = converter.GetDefaultFileName(weenie);
+
+            var writer = new StreamWriter(sql_folder + sql_filename);
+
+            try
+            {
+                converter.CreateSQLDELETEStatement(weenie, writer);
+                writer.WriteLine();
+                converter.CreateSQLINSERTStatement(weenie, writer);
+                writer.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.ClassId} - {weenie.ClassName}");
+                return;
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Exported {sql_folder}{sql_filename}");
         }
     }
 }
