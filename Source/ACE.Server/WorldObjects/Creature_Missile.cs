@@ -222,7 +222,7 @@ namespace ACE.Server.WorldObjects
             //var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.1020408163265306f;
             var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.0682547266398198f;
 
-            var strengthMod = SkillFormula.GetAttributeMod(Strength.Current);
+            var strengthMod = SkillFormula.GetAttributeMod((int)Strength.Current);
             var maxRange = Math.Min(missileRange * strengthMod, MissileRangeCap);
 
             // any kind of other caps for monsters specifically?

@@ -398,7 +398,7 @@ namespace ACE.Server.WorldObjects
             //var attribute = isBow || GetCurrentWeaponSkill() == Skill.FinesseWeapons ? Coordination : Strength;
             var attribute = isBow || weapon?.WeaponSkill == Skill.FinesseWeapons ? Coordination : Strength;
 
-            return SkillFormula.GetAttributeMod(attribute.Current, isBow);
+            return SkillFormula.GetAttributeMod((int)attribute.Current, isBow);
         }
 
         /// <summary>

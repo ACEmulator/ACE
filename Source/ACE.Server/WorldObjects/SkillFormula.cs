@@ -15,7 +15,7 @@ namespace ACE.Server.WorldObjects
 
         public static readonly float ArmorMod = 200.0f / 3.0f;
 
-        public static float GetAttributeMod(uint currentSkill, bool isBow = false)
+        public static float GetAttributeMod(int currentSkill, bool isBow = false)
         {
             var factor = isBow ? BowMod : DefaultMod;
 
