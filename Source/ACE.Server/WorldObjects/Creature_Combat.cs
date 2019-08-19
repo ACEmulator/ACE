@@ -1051,7 +1051,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the damage type for the currently equipped weapon / ammo
         /// </summary>
         /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
-        public virtual DamageType GetDamageType(bool multiple = false)
+        public virtual DamageType GetDamageType(bool multiple = false, CombatType? combatType = null)
         {
             // old method, keeping intact for monsters
             var weapon = GetEquippedWeapon();
@@ -1060,7 +1060,8 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return DamageType.Bludgeon;
 
-            var combatType = GetCombatType();
+            if (combatType == null)
+                combatType = GetCombatType();
 
             var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
 
