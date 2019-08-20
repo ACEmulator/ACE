@@ -10,6 +10,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
@@ -1230,7 +1231,7 @@ namespace ACE.Server.WorldObjects
         {            
             spell.Formula.GetPlayerFormula(this);
 
-            if (!SpellComponentsRequired) return true;
+            if (!PropertyManager.GetBool("spell_requires_spell_comps").Item && !SpellComponentsRequired) return true;
 
             var requiredComps = spell.Formula.CurrentFormula;
             if (requiredComps.Count == 0) return true;
