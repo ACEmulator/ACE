@@ -108,7 +108,7 @@ namespace ACE.Server.WorldObjects
 
         private void SendPropertyUpdatesAndOverrides()
         {
-            if (!PropertyManager.GetBool("spell_requires_spell_comps").Item)
+            if (!PropertyManager.GetBool("require_spell_comps").Item)
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(this, PropertyBool.SpellComponentsRequired, false));
         }
 

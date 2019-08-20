@@ -500,9 +500,9 @@ namespace ACE.Server.Managers
                 ("pk_server_safe_training_academy", new Property<bool>(false, "set this to TRUE to disable pk fighting in training academy and time to exit starter town safely")),
                 ("pkl_server", new Property<bool>(false, "set this to TRUE for pink servers")),
                 ("quest_info_enabled", new Property<bool>(false, "toggles the /myquests player command")),
+                ("require_spell_comps", new Property<bool>(true, "if FALSE spell components are no longer required to be in inventory to cast spells. defaults to enabled, as in retail")),
                 ("salvage_handle_overages", new Property<bool>(false, "in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost")),
                 ("show_dot_messages", new Property<bool>(false, "enabled, shows combat messages for DoT damage ticks. defaults to disabled, as in retail")),
-                ("require_spell_comps", new Property<bool>(true, "if FALSE spell components are no longer required to be in inventory to cast spells. defaults to enabled, as in retail")),
                 ("suicide_instant_death", new Property<bool>(false, "if enabled, @die command kills player instantly. defaults to disabled, as in retail")),
                 ("universal_masteries", new Property<bool>(true, "if TRUE, matches end of retail masteries - players wielding almost any weapon get +5 DR, except if the weapon \"seems tough to master\". " +
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
