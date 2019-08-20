@@ -393,10 +393,12 @@ namespace ACE.Server.WorldObjects
         /// <param name="attackType">Uses strength for melee, coordination for missile</param>
         public float GetAttributeMod(WorldObject weapon)
         {
-            if (weapon != null && weapon.IsBow)
-                return SkillFormula.GetAttributeMod(PropertyAttribute.Coordination, (int)Coordination.Current);
-            else
-                return SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)Strength.Current);
+            var isBow = weapon != null && weapon.IsBow;
+
+            //var attribute = isBow || GetCurrentWeaponSkill() == Skill.FinesseWeapons ? Coordination : Strength;
+            var attribute = isBow || weapon?.WeaponSkill == Skill.FinesseWeapons ? Coordination : Strength;
+
+            return SkillFormula.GetAttributeMod((int)attribute.Current, isBow);
         }
 
         /// <summary>
