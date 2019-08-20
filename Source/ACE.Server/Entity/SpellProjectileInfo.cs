@@ -22,10 +22,15 @@ namespace ACE.Server.Entity
 
             SpellProjectile = spellProjectile;
 
-            CasterPos = caster?.Location;
-            TargetPos = target?.Location;
+            if (caster?.Location != null)
+                CasterPos = new Position(caster.Location);
 
-            StartPos = spellProjectile.PhysicsObj.Position;
+            if (target?.Location != null)
+                TargetPos = new Position(target.Location);
+
+            if (spellProjectile.PhysicsObj.Position != null)
+                StartPos = new Physics.Common.Position(spellProjectile.PhysicsObj.Position);
+
             CachedVelocity = target?.PhysicsObj.CachedVelocity;
         }
 
