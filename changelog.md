@@ -4,7 +4,7 @@
 [Ripley]
 * Add global configuration for SpellComponentsRequired.
 * Add UseCreateItem + UseCreateQuantity support to Gems.
-* Update TakeItems msg to match retail messaging.
+* Update TakeItems msg to match retail messaging and support "Take All".
 
 ### 2019-08-19
 [Ripley]
