@@ -119,7 +119,9 @@ namespace ACE.Server.WorldObjects
                 var playerOutOfContainerSlots = false;
                 var playerExceedsAvailableBurden = false;
 
-                var itemStacks = player.PreCheckItem(UseCreateItem.Value, UseCreateQuantity ?? 1, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
+                var amount = UseCreateQuantity ?? 1;
+
+                var itemStacks = player.PreCheckItem(UseCreateItem.Value, amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
 
                 if (itemRequiresBackpackSlot)
                 {
@@ -151,15 +153,13 @@ namespace ACE.Server.WorldObjects
 
                 if (itemStacks > 0)
                 {
-                    var amount = UseCreateQuantity ?? 1;
-
                     while (amount > 0)
                     {
                         var item = WorldObjectFactory.CreateNewWorldObject(UseCreateItem.Value);
 
                         if (item is Stackable)
                         {
-                            // itemAmount contains a max stack
+                            // amount contains a max stack
                             if (item.MaxStackSize <= amount)
                             {
                                 item.SetStackSize(item.MaxStackSize);
