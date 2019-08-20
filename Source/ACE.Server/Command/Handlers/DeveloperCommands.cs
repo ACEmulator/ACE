@@ -2591,10 +2591,18 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj.Position}", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("remove-vitae", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("remove-vitae", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Removes vitae from last appraised player")]
         public static void HandleRemoveVitae(Session session, params string[] parameters)
         {
-            session.Player.EnchantmentManager.RemoveVitae();
+            var player = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
+
+            if (player == null)
+                player = session.Player;
+
+            player.EnchantmentManager.RemoveVitae();
+
+            if (player != session.Player)
+                session.Network.EnqueueSend(new GameMessageSystemChat("Removed vitae for {player.Name}", ChatMessageType.Broadcast));
         }
     }
 }
