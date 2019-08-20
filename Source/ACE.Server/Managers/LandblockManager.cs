@@ -40,6 +40,8 @@ namespace ACE.Server.Managers
 
         public static bool MultiThreadedLandblockGroupTicking = true;
 
+        private static readonly ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount * .34, 1) };
+
         private static bool threadSeparatedLandblockGroupsNeedsRecalculating = true;
 
         private static readonly List<List<Landblock>> threadSeparatedLandblockGroups = new List<List<Landblock>>();
@@ -329,7 +331,8 @@ namespace ACE.Server.Managers
 
             if (false && MultiThreadedLandblockGroupTicking) // Disabled for now...
             {
-                Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup =>
+                //Parallel.ForEach(threadSeparatedLandblockGroups, parallelOptions, landblockGroup =>
+                Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup => // TODO: Use all the threads during development to exaggerate issues
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.TickPhysics(portalYearTicks, movedObjects);
@@ -362,7 +365,8 @@ namespace ACE.Server.Managers
 
             if (MultiThreadedLandblockGroupTicking)
             {
-                Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup =>
+                //Parallel.ForEach(threadSeparatedLandblockGroups, parallelOptions, landblockGroup =>
+                Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup => // TODO: Use all the threads during development to exaggerate issues
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.Tick(Time.GetUnixTime());
