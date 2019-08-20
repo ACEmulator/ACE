@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 using log4net;
 
@@ -23,7 +20,6 @@ using ACE.Server.Network.Managers;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 
-using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
@@ -31,8 +27,6 @@ namespace ACE.Server.Managers
     public static class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        public static bool Concurrency = false;
 
         private static readonly PhysicsEngine Physics;
 
@@ -372,33 +366,7 @@ namespace ACE.Server.Managers
 
             ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
 
-            // update positions through physics engine
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_HandlePhysics);
-            var movedObjects = HandlePhysics(Timers.PortalYearTicks);
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_HandlePhysics);
-
-            // iterate through objects that have changed landblocks
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_RelocateObjectForPhysics);
-            foreach (var movedObject in movedObjects)
-            {
-                // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                if (movedObject.Location == null) continue;
-
-                // assume adjacency move here?
-                LandblockManager.RelocateObjectForPhysics(movedObject, true);
-            }
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_RelocateObjectForPhysics);
-
-            // Tick all of our Landblocks and WorldObjects
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
-            var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
-
-            foreach (var landblock in loadedLandblocks)
-                landblock.Tick(Time.GetUnixTime());
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
-
-            // clean up inactive landblocks
-            LandblockManager.UnloadLandblocks();
+            LandblockManager.Tick(Timers.PortalYearTicks);
 
             HouseManager.Tick();
 
@@ -411,49 +379,5 @@ namespace ACE.Server.Managers
         /// Function to begin ending the operations inside of an active world.
         /// </summary>
         public static void StopWorld() { pendingWorldStop = true; }
-
-        /// <summary>
-        /// Processes physics objects in all active landblocks for updating
-        /// </summary>
-        private static IEnumerable<WorldObject> HandlePhysics(double timeTick)
-        {
-            ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
-            try
-            {
-                var activeLandblocks = LandblockManager.GetActiveLandblocks();
-
-                if (Concurrency)
-                {
-                    // Access ActiveLandblocks should be safe here, but sometimes crashes with
-                    // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
-                    Parallel.ForEach(activeLandblocks, landblock =>
-                    {
-                        HandlePhysicsLandblock(landblock, timeTick, movedObjects);
-                    });
-                }
-                else
-                {
-                    foreach (var landblock in activeLandblocks)
-                        HandlePhysicsLandblock(landblock, timeTick, movedObjects);
-                }
-            }
-            catch (Exception e)
-            {
-                log.Error(e);
-            }
-            return movedObjects;
-        }
-
-        private static void HandlePhysicsLandblock(Landblock landblock, double timeTick, ConcurrentQueue<WorldObject> movedObjects)
-        {
-            foreach (WorldObject wo in landblock.GetWorldObjectsForPhysicsHandling())
-            {
-                // set to TRUE if object changes landblock
-                var landblockUpdate = wo.UpdateObjectPhysics();
-
-                if (landblockUpdate)
-                    movedObjects.Enqueue(wo);
-            }
-        }
     }
 }

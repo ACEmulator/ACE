@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+
 using log4net;
 
 using ACE.Common;
@@ -125,6 +127,9 @@ namespace ACE.Server.Entity
         public List<ModelMesh> Scenery { get; private set; }
 
 
+        public readonly RateMonitor Monitor5m = new RateMonitor();
+        private readonly TimeSpan last5mClearInteval = TimeSpan.FromMinutes(5);
+        private DateTime last5mClear;
         public readonly RateMonitor Monitor1h = new RateMonitor();
         private readonly TimeSpan last1hClearInteval = TimeSpan.FromHours(1);
         private DateTime last1hClear;
@@ -348,9 +353,28 @@ namespace ACE.Server.Entity
             Scenery = Entity.Scenery.Load(this);
         }
 
+        public void TickPhysics(double portalYearTicks, ConcurrentBag<WorldObject> movedObjects)
+        {
+            Monitor5m.RegisterEventStart();
+            Monitor1h.RegisterEventStart();
+
+            foreach (WorldObject wo in GetWorldObjectsForPhysicsHandling())
+            {
+                // set to TRUE if object changes landblock
+                var landblockUpdate = wo.UpdateObjectPhysics();
+
+                if (landblockUpdate)
+                    movedObjects.Add(wo);
+            }
+
+            Monitor5m.PauseEvent();
+            Monitor1h.PauseEvent();
+        }
+
         public void Tick(double currentUnixTime)
         {
-            Monitor1h.RegisterEventStart();
+            Monitor5m.ResumeEvent();
+            Monitor1h.ResumeEvent();
 
             ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
             actionQueue.RunActions();
@@ -488,7 +512,14 @@ namespace ACE.Server.Entity
             }
             ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_Database_Save);
 
+            Monitor5m.RegisterEventEnd();
             Monitor1h.RegisterEventEnd();
+
+            if (DateTime.UtcNow - last5mClear >= last5mClearInteval)
+            {
+                Monitor5m.ClearEventHistory();
+                last5mClear = DateTime.UtcNow;
+            }
 
             if (DateTime.UtcNow - last1hClear >= last1hClearInteval)
             {

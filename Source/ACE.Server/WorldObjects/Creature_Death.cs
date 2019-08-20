@@ -100,8 +100,8 @@ namespace ACE.Server.WorldObjects
 
             dieChain.AddAction(this, () =>
             {
-                Destroy();
                 CreateCorpse(topDamager);
+                Destroy();
             });
 
             dieChain.EnqueueChain();
@@ -347,10 +347,13 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 if (TryDequipObjectWithBroadcasting(item.Guid, out var wo, out var wieldedLocation))
-                    TryAddToInventory(wo);
+                    EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid));
 
                 if (corpse != null)
+                {
                     corpse.TryAddToInventory(item);
+                    EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, corpse.Guid), new GameMessagePickupEvent(item));
+                }
                 else
                     droppedItems.Add(item);
             }

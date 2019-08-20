@@ -155,6 +155,54 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
+        public static void Tick(double portalYearTicks)
+        {
+            // update positions through physics engine
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
+            TickPhysics(portalYearTicks);
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
+
+            // Tick all of our Landblocks and WorldObjects
+            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
+            Tick();
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
+
+            // clean up inactive landblocks
+            UnloadLandblocks();
+        }
+
+        /// <summary>
+        /// Processes physics objects in all active landblocks for updating
+        /// </summary>
+        private static void TickPhysics(double portalYearTicks)
+        {
+            var activeLandblocks = GetActiveLandblocks();
+
+            var movedObjects = new ConcurrentBag<WorldObject>();
+
+            foreach (var landblock in activeLandblocks)
+                landblock.TickPhysics(portalYearTicks, movedObjects);
+
+            // iterate through objects that have changed landblocks
+            foreach (var movedObject in movedObjects)
+            {
+                // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
+                if (movedObject.Location == null)
+                    continue;
+
+                // assume adjacency move here?
+                RelocateObjectForPhysics(movedObject, true);
+            }
+        }
+
+        private static void Tick()
+        {
+            var loadedLandblocks = GetLoadedLandblocks();
+
+            foreach (var landblock in loadedLandblocks)
+                landblock.Tick(Time.GetUnixTime());
+        }
+
         /// <summary>
         /// Adds a WorldObject to the landblock defined by the object's location
         /// </summary>

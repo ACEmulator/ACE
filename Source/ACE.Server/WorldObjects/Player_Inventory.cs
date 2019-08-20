@@ -675,7 +675,7 @@ namespace ACE.Server.WorldObjects
             if (!item.Guid.IsDynamic() || item is Creature || item.Stuck)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't move that!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
                 return;
             }
@@ -1114,6 +1114,14 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!item.Guid.IsDynamic() || item is Creature || item.Stuck)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
             if (rootOwner != this && !HasEnoughBurdenToAddToInventory(item))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
@@ -1121,8 +1129,23 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!item.ValidLocations.HasValue || item.ValidLocations == EquipMask.None)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to wield item 0x{2:X8}:{3} to {4} (0x{4:X}), not in item's validlocatiions {5} (0x{5:X}).", Guid.Full, Name, item.Guid.Full, item.Name, wieldedLocation, item.ValidLocations ?? 0);
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.InvalidInventoryLocation));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
             if (rootOwner != this) // Item is on the landscape, or in a landblock chest
             {
+                if (CombatMode != CombatMode.NonCombat)
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Cannot pick that up and wield it while not at peace!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                    return;
+                }
+
                 CreateMoveToChain(rootOwner ?? item, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
@@ -1525,6 +1548,14 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!stack.Guid.IsDynamic() || stack.Stuck)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
             if (stackRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(stack))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
@@ -1794,6 +1825,14 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!sourceStack.Guid.IsDynamic() || sourceStack.Stuck)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, sourceStack.Guid.Full, sourceStack.Name);
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                return;
+            }
+
             if (sourceStackRootOwner != this && targetStackRootOwner == this && !HasEnoughBurdenToAddToInventory(sourceStack))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
@@ -1805,6 +1844,14 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target stack not found!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                return;
+            }
+
+            if (!targetStack.Guid.IsDynamic() || targetStack.Stuck)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, targetStack.Guid.Full, targetStack.Name);
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeToGuid));
                 return;
             }
 
