@@ -355,7 +355,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual void RemoveAllEnchantments()
         {
-            var spellsToExclude = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock).Where(i => i.Duration == -1).Select(i => i.SpellId);
+            // exclude cooldowns and enchantments from items
+            var spellsToExclude = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock).Where(i => i.Duration == -1 || i.SpellId > short.MaxValue).Select(i => i.SpellId);
 
             WorldObject.Biota.RemoveAllEnchantments(spellsToExclude, WorldObject.BiotaDatabaseLock);
             WorldObject.ChangesDetected = true;
