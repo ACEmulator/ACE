@@ -43,6 +43,9 @@ namespace ACE.Server.WorldObjects
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
+            // Update or override certain properties sent to client.
+            SendPropertyUpdatesAndOverrides();
+
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
             UpdateChatChannels();
 
@@ -101,6 +104,12 @@ namespace ACE.Server.WorldObjects
             SendInventoryAndWieldedItems();
 
             SendContractTrackerTable();
+        }
+
+        private void SendPropertyUpdatesAndOverrides()
+        {
+            if (!PropertyManager.GetBool("require_spell_comps").Item)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(this, PropertyBool.SpellComponentsRequired, false));
         }
 
         /// <summary>
