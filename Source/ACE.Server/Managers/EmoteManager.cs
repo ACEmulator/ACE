@@ -889,7 +889,9 @@ namespace ACE.Server.Managers
 
                 case EmoteType.RemoveVitaePenalty:
 
-                    if (player != null) player.VitaeCpPool = 0;     // TODO: call full path
+                    if (player != null)
+                        player.EnchantmentManager.RemoveVitae();
+
                     break;
 
                 case EmoteType.ResetHomePosition:

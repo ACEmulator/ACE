@@ -2590,5 +2590,11 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {wo.Location.ToLOCString()}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj.Position}", ChatMessageType.Broadcast));
         }
+
+        [CommandHandler("remove-vitae", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleRemoveVitae(Session session, params string[] parameters)
+        {
+            session.Player.EnchantmentManager.RemoveVitae();
+        }
     }
 }
