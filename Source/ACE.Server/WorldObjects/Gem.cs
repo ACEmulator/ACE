@@ -1,21 +1,15 @@
 using System;
-using System.Diagnostics;
 
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Managers;
-using ACE.Server.Network;
-using ACE.Server.Network.Structure;
+using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Database;
-using ACE.Server.Factories;
 
 namespace ACE.Server.WorldObjects
 {
@@ -95,7 +89,7 @@ namespace ACE.Server.WorldObjects
                 TryCastSpell(spell, player, this);
             }
 
-            if (UseCreateContractId.HasValue && UseCreateContractId > 0)
+            if (UseCreateContractId > 0)
             {
                 if (!player.ContractManager.Add(UseCreateContractId.Value))
                     return;
@@ -103,7 +97,7 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} accepted. Click on the quill icon in the lower right corner to open your contract tab to view your active contracts.", ChatMessageType.Broadcast));
             }
 
-            if (UseCreateItem.HasValue && UseCreateItem > 0)
+            if (UseCreateItem > 0)
             {
                 //if (DatabaseManager.World.GetCachedWeenie(UseCreateItem.Value) is null)
                 //{
