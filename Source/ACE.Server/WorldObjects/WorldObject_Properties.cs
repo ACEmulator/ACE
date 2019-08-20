@@ -2639,6 +2639,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyDataId.UseCreateItem); else SetProperty(PropertyDataId.UseCreateItem, value.Value); }
         }
 
+        public int? UseCreateQuantity
+        {
+            get => GetProperty(PropertyInt.UseCreateQuantity);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.UseCreateQuantity); else SetProperty(PropertyInt.UseCreateQuantity, value.Value); }
+        }
+
         public int? ResistLockpick
         {
             get => GetProperty(PropertyInt.ResistLockpick);
