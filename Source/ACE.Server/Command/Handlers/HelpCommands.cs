@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using ACE.Entity.Enum;
 using ACE.Server.Network;
@@ -74,10 +75,10 @@ namespace ACE.Server.Command.Handlers
         }
 
         // acecommands
-        [CommandHandler("acecommands", AccessLevel.Player, CommandHandlerFlag.None, 0, "Lists all commands.")]
+        [CommandHandler("acecommands", AccessLevel.Player, CommandHandlerFlag.None, 0, "Lists all commands.", "<access level>")]
         public static void HandleACECommands(Session session, params string[] parameters)
         {
-            List<String> commandList = new List<string>();
+            var commandList = new List<string>();
 
             var msgHeader = "Note: You may substitute a forward slash (/) for the at symbol (@).\n"
                           + "For more information, type @acehelp < command >.\n";
@@ -85,29 +86,32 @@ namespace ACE.Server.Command.Handlers
             if (session == null)            
                 Console.WriteLine("For more information, type acehelp < command >.");
 
-            foreach (var command in CommandManager.GetCommands())
+            var accessLevel = session != null ? session.AccessLevel : AccessLevel.Admin;
+            var exact = false;
+
+            if (parameters.Length > 0)
             {
-                if (session != null)
+                var param = parameters[0];
+                if (Enum.TryParse(param, true, out accessLevel))
                 {
-                    if (command.Attribute.Flags == CommandHandlerFlag.ConsoleInvoke) // Skip Console Commands
-                        continue;
-                    if (session.AccessLevel < command.Attribute.Access) // Skip Commands which are higher than your current access level
-                        continue;
-
-                    commandList.Add(string.Format("@{0} - {1}", command.Attribute.Command, command.Attribute.Description));
-                }
-                else
-                {
-                    if (command.Attribute.Flags == CommandHandlerFlag.RequiresWorld) // Skip Commands that only work in game
-                        continue;
-
-                    commandList.Add(string.Format("{0} - {1}", command.Attribute.Command, command.Attribute.Description));
+                    if (session != null && accessLevel > session.AccessLevel)
+                        accessLevel = session.AccessLevel;
+                    else
+                        exact = true;
                 }
             }
 
-            commandList.Sort();
+            var restrict = session != null ? CommandHandlerFlag.ConsoleInvoke : CommandHandlerFlag.RequiresWorld;
 
-            var msg = string.Join("\n", commandList.ToArray());
+            var commands = from cmd in CommandManager.GetCommands()
+                           where (exact ? cmd.Attribute.Access == accessLevel : cmd.Attribute.Access <= accessLevel) && cmd.Attribute.Flags != restrict
+                           orderby cmd.Attribute.Command
+                           select cmd;
+
+            foreach (var command in commands)
+                commandList.Add(string.Format("@{0} - {1}", command.Attribute.Command, command.Attribute.Description));
+
+            var msg = string.Join("\n", commandList);
 
             if (session != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat(msgHeader + msg, ChatMessageType.Broadcast));
