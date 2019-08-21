@@ -196,9 +196,9 @@ namespace ACE.Server.Entity
                 if (HasItem(player, item.Value))
                     continue;
 
-                var itemAmount = player.PreCheckItem(item.Value, 1, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemIsContainer);
+                var itemAmount = player.PreCheckItem(item.Value, 1, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
 
-                if (itemIsContainer)
+                if (itemRequiresBackpackSlot)
                 {
                     playerFreeContainerSlots -= itemAmount;
                     playerAvailableBurden -= itemEncumberance;
@@ -247,9 +247,9 @@ namespace ACE.Server.Entity
                 }
             }
 
-            var aegisAmount = player.PreCheckItem(AdvocateItems["shieldadvocate" + advocateLevel], 1, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var aegisEncumberance, out bool aegisIsContainer);
+            var aegisAmount = player.PreCheckItem(AdvocateItems["shieldadvocate" + advocateLevel], 1, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var aegisEncumberance, out bool aegisRequiresBackpackSlot);
 
-            if (aegisIsContainer)
+            if (aegisRequiresBackpackSlot)
             {
                 playerFreeContainerSlots -= aegisAmount;
                 playerAvailableBurden -= aegisEncumberance;

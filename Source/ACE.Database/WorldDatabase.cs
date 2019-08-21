@@ -50,6 +50,8 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
 
+        private readonly ConcurrentDictionary<string, uint> weenieClassNameToClassIdCache = new ConcurrentDictionary<string, uint>();
+
         /// <summary>
         /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
@@ -132,6 +134,9 @@ namespace ACE.Database
                 return GetWeenie(context, weenieClassId);
         }
 
+        /// <summary>
+        /// This will also update the weenie ClassName to ClassId cache cache.
+        /// </summary>
         public uint GetWeenieClassId(string weenieClassName)
         {
             using (var context = new WorldDbContext())
@@ -141,7 +146,11 @@ namespace ACE.Database
                     .FirstOrDefault(r => r.ClassName == weenieClassName);
 
                 if (result != null)
+                {
+                    weenieClassNameToClassIdCache[weenieClassName] = result.ClassId;
+
                     return result.ClassId;
+                }
 
                 return 0;
             }
@@ -169,6 +178,7 @@ namespace ACE.Database
         public void ClearWeenieCache()
         {
             weenieCache.Clear();
+            weenieClassNameToClassIdCache.Clear();
         }
 
         /// <summary>
@@ -192,15 +202,12 @@ namespace ACE.Database
         /// </summary>
         public Weenie GetCachedWeenie(string weenieClassName)
         {
-            foreach (var weenie in weenieCache.Values)
-            {
-                if (weenie != null && weenie.ClassName == weenieClassName)
-                    return weenie;
-            }
+            if (weenieClassNameToClassIdCache.TryGetValue(weenieClassName, out var value))
+                return GetCachedWeenie(value); // This will add the result into the weenieCache
 
             var weenieClassId = GetWeenieClassId(weenieClassName);
 
-            return GetWeenie(weenieClassId); // This will add the result into the weenieCache
+            return GetCachedWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
         private readonly ConcurrentDictionary<int, List<Weenie>> weenieCacheByType = new ConcurrentDictionary<int, List<Weenie>>();

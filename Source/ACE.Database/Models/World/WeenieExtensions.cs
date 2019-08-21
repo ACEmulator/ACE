@@ -506,5 +506,27 @@ namespace ACE.Database.Models.World
 
             return biota;
         }
+
+        public static bool IsStackable(this Weenie weenie)
+        {
+            var weenieType = (WeenieType)weenie.Type;
+
+            return weenieType == WeenieType.Stackable      || weenieType == WeenieType.Food || weenieType == WeenieType.Coin       || weenieType == WeenieType.CraftTool
+                || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem  || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
+        }
+
+        public static bool RequiresBackpackSlotOrIsContainer(this Weenie weenie)
+        {
+            var requiresBackPackSlot = weenie.GetProperty(PropertyBool.RequiresBackpackSlot) ?? false;
+
+            return requiresBackPackSlot || weenie.Type == (int)WeenieType.Container;
+        }
+
+        public static bool IsVendorService(this Weenie weenie)
+        {
+            var vendorService = weenie.GetProperty(PropertyBool.VendorService) ?? false;
+
+            return vendorService;
+        }
     }
 }
