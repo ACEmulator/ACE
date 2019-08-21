@@ -138,6 +138,7 @@ namespace ACE.Server.Entity
         public readonly RateMonitor Monitor1h = new RateMonitor();
         private readonly TimeSpan last1hClearInteval = TimeSpan.FromHours(1);
         private DateTime last1hClear;
+        private bool monitorsRequireEventStart = true;
 
         private EnvironChangeType fogColor;
 
@@ -362,6 +363,7 @@ namespace ACE.Server.Entity
         {
             Monitor5m.RegisterEventStart();
             Monitor1h.RegisterEventStart();
+            monitorsRequireEventStart = false;
 
             foreach (WorldObject wo in GetWorldObjectsForPhysicsHandling())
             {
@@ -413,8 +415,16 @@ namespace ACE.Server.Entity
 
         public void Tick(double currentUnixTime)
         {
-            Monitor5m.ResumeEvent();
-            Monitor1h.ResumeEvent();
+            if (monitorsRequireEventStart)
+            {
+                Monitor5m.RegisterEventStart();
+                Monitor1h.RegisterEventStart();
+            }
+            else
+            {
+                Monitor5m.ResumeEvent();
+                Monitor1h.ResumeEvent();
+            }
 
             ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
             actionQueue.RunActions();
@@ -554,6 +564,7 @@ namespace ACE.Server.Entity
 
             Monitor5m.RegisterEventEnd();
             Monitor1h.RegisterEventEnd();
+            monitorsRequireEventStart = true;
 
             if (DateTime.UtcNow - last5mClear >= last5mClearInteval)
             {
