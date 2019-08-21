@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-08-21
+[Ripley]
+* Update Aetheria and how ProcSpell is displayed for SpellBook
+* Apply shard update script `2019-08-21-00-Fix_Aetheria_SpellBook.sql` to remove unneeded spellbook entries.
+
 ### 2019-08-20
 [Ripley]
 * Add global configuration for SpellComponentsRequired.
