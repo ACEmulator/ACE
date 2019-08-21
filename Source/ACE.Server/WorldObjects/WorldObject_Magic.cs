@@ -890,6 +890,13 @@ namespace ACE.Server.WorldObjects
                                 targetPlayer.AdjustDungeon(teleportDest);
 
                                 targetPlayer.Teleport(teleportDest);
+
+                                if (itemCaster == null)
+                                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been teleported.", ChatMessageType.Magic));
+                                else if (targetPlayer != itemCaster && !(itemCaster is Gem))
+                                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{itemCaster.Name} teleports you with {spell.Name}.", ChatMessageType.Magic));
+                                else if (itemCaster is Gem)
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.ITeleported));
                             });
                             portalSendingChain.EnqueueChain();
                         }
@@ -919,6 +926,13 @@ namespace ACE.Server.WorldObjects
                                     fellow.AdjustDungeon(teleportDest);
 
                                     fellow.Teleport(teleportDest);
+
+                                    if (itemCaster == null)
+                                        fellow.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been teleported.", ChatMessageType.Magic));
+                                    else if (fellow != itemCaster && !(itemCaster is Gem))
+                                        fellow.Session.Network.EnqueueSend(new GameMessageSystemChat($"{itemCaster.Name} teleports you with {spell.Name}.", ChatMessageType.Magic));
+                                    else if (itemCaster is Gem)
+                                        fellow.Session.Network.EnqueueSend(new GameEventWeenieError(fellow.Session, WeenieError.ITeleported));
                                 });
                             }
                             portalSendingChain.EnqueueChain();
