@@ -75,7 +75,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // acecommands
-        [CommandHandler("acecommands", AccessLevel.Player, CommandHandlerFlag.None, 0, "Lists all commands.", "<access level>")]
+        [CommandHandler("acecommands", AccessLevel.Player, CommandHandlerFlag.None, 0, "Lists all commands.", "<access level or search>")]
         public static void HandleACECommands(Session session, params string[] parameters)
         {
             var commandList = new List<string>();
@@ -88,23 +88,25 @@ namespace ACE.Server.Command.Handlers
 
             var accessLevel = session != null ? session.AccessLevel : AccessLevel.Admin;
             var exact = false;
+            string search = null;
 
             if (parameters.Length > 0)
             {
                 var param = parameters[0];
-                if (Enum.TryParse(param, true, out accessLevel))
+                if (Enum.TryParse(param, true, out AccessLevel pAccessLevel) && pAccessLevel < accessLevel)
                 {
-                    if (session != null && accessLevel > session.AccessLevel)
-                        accessLevel = session.AccessLevel;
-                    else
-                        exact = true;
+                    accessLevel = pAccessLevel;
+                    exact = true;
                 }
+                else
+                    search = param;
             }
 
             var restrict = session != null ? CommandHandlerFlag.ConsoleInvoke : CommandHandlerFlag.RequiresWorld;
 
             var commands = from cmd in CommandManager.GetCommands()
                            where (exact ? cmd.Attribute.Access == accessLevel : cmd.Attribute.Access <= accessLevel) && cmd.Attribute.Flags != restrict
+                           && (search != null ? $"{cmd.Attribute.Access} {cmd.Attribute.Command} {cmd.Attribute.Description}".Contains(search, StringComparison.OrdinalIgnoreCase) : true)
                            orderby cmd.Attribute.Command
                            select cmd;
 
