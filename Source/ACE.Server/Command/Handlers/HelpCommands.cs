@@ -93,7 +93,7 @@ namespace ACE.Server.Command.Handlers
             if (parameters.Length > 0)
             {
                 var param = parameters[0];
-                if (Enum.TryParse(param, true, out AccessLevel pAccessLevel) && pAccessLevel < accessLevel)
+                if (Enum.TryParse(param, true, out AccessLevel pAccessLevel) && pAccessLevel <= accessLevel)
                 {
                     accessLevel = pAccessLevel;
                     exact = true;
