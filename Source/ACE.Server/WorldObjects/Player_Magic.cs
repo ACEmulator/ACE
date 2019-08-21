@@ -1068,7 +1068,7 @@ namespace ACE.Server.WorldObjects
         {
             spell.Formula.GetPlayerFormula(this);
 
-            if (!SpellComponentsRequired)
+            if (!SpellComponentsRequired || !PropertyManager.GetBool("require_spell_comps").Item)
                 return true;
 
             var requiredComps = spell.Formula.GetRequiredComps();

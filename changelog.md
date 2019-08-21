@@ -1,8 +1,53 @@
 # ACEmulator Change Log
 
+### 2019-08-21
+[Ripley]
+* Update Aetheria and how ProcSpell is displayed for SpellBook
+* Apply shard update script `2019-08-21-00-Fix_Aetheria_SpellBook.sql` to remove unneeded spellbook entries.
+
+### 2019-08-20
+[Ripley]
+* Add global configuration for SpellComponentsRequired.
+* Add UseCreateItem + UseCreateQuantity support to Gems.
+* Update TakeItems msg to match retail messaging and support "Take All".
+
+### 2019-08-19
+[Ripley]
+* Fix issue with creatures dropping their wieldables to corpses.
+* Fix some bugs with Pickup and Wield.
+
+### 2019-08-18
+[Ripley]
+* Add support for Day/Night GeneratorTimeType generators.
+* Fixed issue with accounts that own monarch-only housing to now allow the other characters to swear allegiance.
+
+### 2019-08-16
+[Ripley]
+* Fixed issue with invisible hooks on relinks (buy/abandon): bool/physicsstate mis-matches.
+* Fixed issue with RDB on house buy: missing InstanceIID update.
+* Fixed issue with logging into open houses: missing IsOpen check.
+* Added Destroy() for items given to NPCs that are of AiAcceptEverything type
+
 ### 2019-08-12
 [OptimShi]
 * Fixed some reported issues with the visual display of different layered armor.
+
+[Ripley]
+* Updated PreCheckItem to be more specific about inventory/container slots.
+
+### 2019-08-11
+[Ripley]
+* Updated ManaStone objects use message.
+* Fixed issue with UnlimitedUse ManaStones.
+* Fixed issue with IsDecayable and TimeToRot.
+* Restored Casting motion to Vendors that have VendorServices.
+* Fix data desync issue with BiotaPropertiesSpellBook Probability.
+
+### 2019-08-10
+[Ripley]
+* Wire up `bestow` and `remove` for advocate system.
+* Updated several misc Advocate systems.
+* Fixed issue with encounter overrides not applying to cached value.
 
 ### 2019-08-05
 [Ripley]

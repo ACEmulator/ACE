@@ -1275,9 +1275,9 @@ namespace ACE.Server.WorldObjects
             AddEnchantmentResult addResult;
             var aetheriaProc = false;
 
-            if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell.HasValue && caster.ProcSpell.Value == spell.Id)
+            if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell == spell.Id)
             {
-                caster = target.CurrentLandblock?.GetObject(caster.WielderId.Value);
+                caster = this;
                 addResult = target.EnchantmentManager.Add(spell, caster, equip);
                 aetheriaProc = true;
             }

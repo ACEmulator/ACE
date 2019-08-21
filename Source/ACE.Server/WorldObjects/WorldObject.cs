@@ -82,6 +82,8 @@ namespace ACE.Server.WorldObjects
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
 
+        public WorldObject ProjectileLauncher;
+
         public WorldObject Wielder;
 
         public WorldObject() { }

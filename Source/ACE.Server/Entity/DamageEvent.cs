@@ -143,11 +143,11 @@ namespace ACE.Server.Entity
             Attacker = attacker;
             Defender = defender;
 
-            CombatType = attacker.GetCombatType();
+            CombatType = damageSource.ProjectileSource == null ? attacker.GetCombatType() : CombatType.Missile;
 
             DamageSource = damageSource;
 
-            Weapon = attacker.GetEquippedWeapon();
+            Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedWeapon() : damageSource.ProjectileLauncher;
 
             AttackType = attacker.GetAttackType(Weapon, CombatManeuver);
             AttackHeight = attacker.AttackHeight ?? AttackHeight.Medium;
@@ -313,9 +313,8 @@ namespace ACE.Server.Entity
                 // handle prismatic arrows
                 if (DamageType == DamageType.Base)
                 {
-                    var weapon = attacker.GetEquippedWeapon();
-                    if (weapon != null && weapon.W_DamageType != DamageType.Undef)
-                        DamageType = weapon.W_DamageType;
+                    if (Weapon != null && Weapon.W_DamageType != DamageType.Undef)
+                        DamageType = Weapon.W_DamageType;
                     else
                         DamageType = DamageType.Pierce;
                 }
@@ -324,7 +323,7 @@ namespace ACE.Server.Entity
                 DamageType = attacker.GetDamageType();
 
             // TODO: combat maneuvers for player?
-            BaseDamageMod = attacker.GetBaseDamageMod();
+            BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
 
             if (DamageSource.ItemType == ItemType.MissileWeapon)
                 BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(attacker, DamageType);
@@ -347,7 +346,7 @@ namespace ACE.Server.Entity
             BaseDamageMod = attacker.GetBaseDamage(AttackPart);
             BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
-            DamageType = attacker.GetDamageType(AttackPart);
+            DamageType = attacker.GetDamageType(AttackPart, CombatType);
 
             if (attacker is CombatPet combatPet)
                 DamageType = combatPet.DamageType;
