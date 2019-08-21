@@ -70,12 +70,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a projectile from player to target
         /// </summary>
-        public WorldObject LaunchProjectile(WorldObject ammo, WorldObject target, out float time)
+        public WorldObject LaunchProjectile(WorldObject weapon, WorldObject ammo, WorldObject target, out float time)
         {
             var proj = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
 
             proj.ProjectileSource = this;
             proj.ProjectileTarget = target;
+
+            proj.ProjectileLauncher = weapon;
 
             var matchIndoors = Location.Indoors == target.Location.Indoors;
             var origin = matchIndoors ? Location.ToGlobal() : Location.Pos;
