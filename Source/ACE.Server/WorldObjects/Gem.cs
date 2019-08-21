@@ -1,17 +1,13 @@
 using System;
-using System.Diagnostics;
 
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Managers;
-using ACE.Server.Network;
-using ACE.Server.Network.Structure;
+using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -93,12 +89,93 @@ namespace ACE.Server.WorldObjects
                 TryCastSpell(spell, player, this);
             }
 
-            if (UseCreateContractId.HasValue && UseCreateContractId > 0)
+            if (UseCreateContractId > 0)
             {
                 if (!player.ContractManager.Add(UseCreateContractId.Value))
                     return;
                 else // this wasn't in retail, but the lack of feedback when using a contract gem just seems jarring so...
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} accepted. Click on the quill icon in the lower right corner to open your contract tab to view your active contracts.", ChatMessageType.Broadcast));
+            }
+
+            if (UseCreateItem > 0)
+            {
+                //if (DatabaseManager.World.GetCachedWeenie(UseCreateItem.Value) is null)
+                //{
+                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "Unable to create object, WCID is not in database !")); // custom error
+                //    return;
+                //}
+
+                var playerFreeInventorySlots = player.GetFreeInventorySlots();
+                var playerFreeContainerSlots = player.GetFreeContainerSlots();
+                var playerAvailableBurden = player.GetAvailableBurden();
+
+                var playerOutOfInventorySlots = false;
+                var playerOutOfContainerSlots = false;
+                var playerExceedsAvailableBurden = false;
+
+                var amount = UseCreateQuantity ?? 1;
+
+                var itemStacks = player.PreCheckItem(UseCreateItem.Value, amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
+
+                if (itemRequiresBackpackSlot)
+                {
+                    playerFreeContainerSlots -= itemStacks;
+                    playerAvailableBurden -= itemEncumberance;
+
+                    playerOutOfContainerSlots = playerFreeContainerSlots < 0;
+                }
+                else
+                {
+                    playerFreeInventorySlots -= itemStacks;
+                    playerAvailableBurden -= itemEncumberance;
+
+                    playerOutOfInventorySlots = playerFreeInventorySlots < 0;
+                }
+
+                playerExceedsAvailableBurden = playerAvailableBurden < 0;
+
+                if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
+                {
+                    if (playerExceedsAvailableBurden)
+                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to use that!"));
+                    else if (playerOutOfInventorySlots)
+                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
+                    else //if (playerOutOfContainerSlots)
+                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+                    return;
+                }
+
+                if (itemStacks > 0)
+                {
+                    while (amount > 0)
+                    {
+                        var item = WorldObjectFactory.CreateNewWorldObject(UseCreateItem.Value);
+
+                        if (item is Stackable)
+                        {
+                            // amount contains a max stack
+                            if (item.MaxStackSize <= amount)
+                            {
+                                item.SetStackSize(item.MaxStackSize);
+                                amount -= item.MaxStackSize.Value;
+                            }
+                            else // not a full stack
+                            {
+                                item.SetStackSize(amount);
+                                amount -= amount;
+                            }
+                        }
+                        else
+                            amount -= 1;
+
+                        player.TryCreateInInventoryWithNetworking(item);
+                    }
+                }
+                else
+                {
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Unable to use {Name} at this time!"));
+                    return;
+                }
             }
 
             if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)

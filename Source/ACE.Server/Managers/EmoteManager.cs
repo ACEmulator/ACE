@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -21,6 +22,7 @@ using ACE.Server.WorldObjects;
 using log4net;
 
 using Position = ACE.Entity.Position;
+using Spell = ACE.Server.Entity.Spell;
 
 namespace ACE.Server.Managers
 {
@@ -889,7 +891,9 @@ namespace ACE.Server.Managers
 
                 case EmoteType.RemoveVitaePenalty:
 
-                    if (player != null) player.VitaeCpPool = 0;     // TODO: call full path
+                    if (player != null)
+                        player.EnchantmentManager.RemoveVitae();
+
                     break;
 
                 case EmoteType.ResetHomePosition:
@@ -1061,16 +1065,32 @@ namespace ACE.Server.Managers
                 case EmoteType.TakeItems:
 
                     if (player != null)
-                        if (player.TryConsumeFromInventoryWithNetworking(emote.WeenieClassId ?? 0, emote.StackSize ?? 0))
+                    {
+                        var weenieItemToTake = emote.WeenieClassId ?? 0;
+                        var amountToTake = emote.StackSize ?? 0;
+
+                        if (weenieItemToTake == 0)
                         {
-                            var itemTaken = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(emote.WeenieClassId ?? 0), ObjectGuid.Invalid);
+                            log.Warn($"EmoteManager.Excute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.WeenieClassId: {weenieItemToTake}");
+                            break;
+                        }
+
+                        if (amountToTake < -1 || amountToTake == 0)
+                        {
+                            log.Warn($"EmoteManager.Excute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.StackSize: {amountToTake}");
+                            break;
+                        }
+
+                        if (player.TryConsumeFromInventoryWithNetworking(weenieItemToTake, amountToTake == -1 ? int.MaxValue : amountToTake))
+                        {
+                            var itemTaken = DatabaseManager.World.GetCachedWeenie(weenieItemToTake);
                             if (itemTaken != null)
                             {
-                                var msg = $"You hand over {emote.StackSize ?? 1} of your {itemTaken.GetPluralName()}.";
+                                var msg = $"You hand over {(player.GetNumInventoryItemsOfWCID(itemTaken.ClassId) == 0 ? "all" : amountToTake.ToString())} of your {itemTaken.GetPluralName()}.";
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                             }
                         }
-
+                    }
                     break;
 
                 case EmoteType.TeachSpell:

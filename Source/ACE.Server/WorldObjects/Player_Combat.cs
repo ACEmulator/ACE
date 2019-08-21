@@ -296,12 +296,9 @@ namespace ACE.Server.WorldObjects
             Proficiency.OnSuccessUse(this, defenseSkill, difficulty);
         }
 
-        public BaseDamageMod GetBaseDamageMod()
+        public BaseDamageMod GetBaseDamageMod(WorldObject damageSource)
         {
-            var combatType = GetCombatType();
-            var damageSource = combatType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
-
-            if (damageSource == null)
+            if (damageSource == this)
             {
                 if (AttackType == AttackType.Punch)
                     damageSource = HandArmor;
@@ -916,10 +913,11 @@ namespace ACE.Server.WorldObjects
         /// Returns the damage type for the currently equipped weapon / ammo
         /// </summary>
         /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
-        public override DamageType GetDamageType(bool multiple = false)
+        public override DamageType GetDamageType(bool multiple = false, CombatType? combatType = null)
         {
             // player override
-            var combatType = GetCombatType();
+            if (combatType == null)
+                combatType = GetCombatType();
 
             var weapon = GetEquippedWeapon();
             var ammo = GetEquippedAmmo();

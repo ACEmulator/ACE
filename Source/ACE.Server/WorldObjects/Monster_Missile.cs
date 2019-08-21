@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
 
                 if (AttackTarget != null)
                 {
-                    var projectile = LaunchProjectile(ammo, AttackTarget, out targetTime);
+                    var projectile = LaunchProjectile(weapon, ammo, AttackTarget, out targetTime);
                     UpdateAmmoAfterLaunch(ammo);
                 }
             });

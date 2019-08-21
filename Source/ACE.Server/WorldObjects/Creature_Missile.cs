@@ -70,12 +70,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a projectile from player to target
         /// </summary>
-        public WorldObject LaunchProjectile(WorldObject ammo, WorldObject target, out float time)
+        public WorldObject LaunchProjectile(WorldObject weapon, WorldObject ammo, WorldObject target, out float time)
         {
             var proj = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
 
             proj.ProjectileSource = this;
             proj.ProjectileTarget = target;
+
+            proj.ProjectileLauncher = weapon;
 
             var matchIndoors = Location.Indoors == target.Location.Indoors;
             var origin = matchIndoors ? Location.ToGlobal() : Location.Pos;
@@ -222,7 +224,7 @@ namespace ACE.Server.WorldObjects
             //var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.1020408163265306f;
             var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.0682547266398198f;
 
-            var strengthMod = SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)Strength.Current);
+            var strengthMod = SkillFormula.GetAttributeMod((int)Strength.Current);
             var maxRange = Math.Min(missileRange * strengthMod, MissileRangeCap);
 
             // any kind of other caps for monsters specifically?
