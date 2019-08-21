@@ -112,7 +112,7 @@ namespace ACE.Server.WorldObjects
                 UpdateVitalDelta(Stamina, -staminaCost);
 
                 float targetTime = 0.0f;
-                var projectile = LaunchProjectile(ammo, target, out targetTime);
+                var projectile = LaunchProjectile(weapon, ammo, target, out targetTime);
                 UpdateAmmoAfterLaunch(ammo);
             });
 
