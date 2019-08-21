@@ -106,10 +106,19 @@ namespace ACE.Server.WorldObjects
 
         protected override void OnInitialInventoryLoadCompleted()
         {
-            var hidden = Inventory.Count == 0 && !(House.HouseHooksVisible ?? true);
+            var hidden = !(House.HouseHooksVisible ?? true);
 
-            NoDraw = hidden;
-            UiHidden = hidden;
+            Ethereal = !HasItem;
+            if (!HasItem)
+            {
+                NoDraw = hidden;
+                UiHidden = hidden;
+            }
+            else
+            {
+                NoDraw = false;
+                UiHidden = false;
+            }
 
             if (Inventory.Count > 0)
                 OnAddItem();
@@ -132,6 +141,7 @@ namespace ACE.Server.WorldObjects
 
             NoDraw = false;
             UiHidden = false;
+            Ethereal = false;
 
             SetupTableId = item.SetupTableId;
             MotionTableId = item.MotionTableId;
@@ -179,6 +189,10 @@ namespace ACE.Server.WorldObjects
             ObjScale = hook.ObjScale;
             Name = hook.Name;
 
+            NoDraw = false;
+            UiHidden = false;
+            Ethereal = true;
+
             if (MotionTableId == 0)
                 CurrentMotionState = null;
 
@@ -205,6 +219,28 @@ namespace ACE.Server.WorldObjects
                     case ACE.Entity.Enum.HookType.Roof:
                         return MotionCommand.Pickup20;
                 }
+            }
+        }
+
+        public void UpdateHookVisibility()
+        {
+            if (!HasItem)
+            {
+                if (!(House.HouseHooksVisible ?? false))
+                {
+                    NoDraw = true;
+                    UiHidden = true;
+                    Ethereal = true;
+                }
+                else
+                {
+                    NoDraw = false;
+                    UiHidden = false;
+                    Ethereal = true;
+                }
+
+                EnqueueBroadcastPhysicsState();
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.UiHidden, UiHidden));
             }
         }
     }

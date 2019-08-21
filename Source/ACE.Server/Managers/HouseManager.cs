@@ -423,15 +423,15 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Handles the eviction process for a player house
         /// </summary>
-        private static void HandleEviction(PlayerHouse playerHouse)
+        private static void HandleEviction(PlayerHouse playerHouse, bool force = false)
         {
-            HandleEviction(playerHouse.House, playerHouse.PlayerGuid);
+            HandleEviction(playerHouse.House, playerHouse.PlayerGuid, false, force);
         }
 
         /// <summary>
         /// Handles the eviction process for a player house
         /// </summary>
-        public static void HandleEviction(House house, uint playerGuid, bool multihouse = false)
+        public static void HandleEviction(House house, uint playerGuid, bool multihouse = false, bool force = false)
         {
             // clear out slumlord inventory
             var slumlord = house.SlumLord;
@@ -439,7 +439,7 @@ namespace ACE.Server.Managers
 
             var player = PlayerManager.FindByGuid(playerGuid, out bool isOnline);
 
-            if (!PropertyManager.GetBool("house_rent_enabled", true).Item && !multihouse)
+            if (!PropertyManager.GetBool("house_rent_enabled", true).Item && !multihouse && !force)
             {
                 // rent disabled, push forward
                 var purchaseTime = (uint)(player.HousePurchaseTimestamp ?? 0);
@@ -634,7 +634,7 @@ namespace ACE.Server.Managers
             {
                 playerHouse.House = house;
 
-                HandleEviction(playerHouse);
+                HandleEviction(playerHouse, true);
 
                 RemoveRentQueue(house.Guid.Full);
             });

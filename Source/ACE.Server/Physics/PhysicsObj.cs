@@ -1642,15 +1642,17 @@ namespace ACE.Server.Physics
             return Math.Max(dx, dy);
         }
 
-        public void UpdateObjectInternalServer(double quantum)
+        public bool UpdateObjectInternalServer(double quantum)
         {
             //var offsetFrame = new AFrame();
             //UpdatePhysicsInternal((float)quantum, ref offsetFrame);
             if (GetBlockDist(Position, RequestPos) > 1)
             {
                 Console.WriteLine($"WARNING: failed transition for {Name} from {Position} to {RequestPos}\n");
-                return;
+                return false;
             }
+
+            var requestCell = RequestPos.ObjCellID;
 
             var transit = transition(Position, RequestPos, false);
             if (transit != null)
@@ -1672,6 +1674,8 @@ namespace ACE.Server.Physics
             if (ParticleManager != null) ParticleManager.UpdateParticles();
 
             if (ScriptManager != null) ScriptManager.UpdateScripts();
+
+            return requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
         }
 
         public void UpdateAnimationInternal(double quantum)
@@ -2291,14 +2295,15 @@ namespace ACE.Server.Physics
             }
         }
 
-        private bool entering_world;
+        public bool entering_world;
 
         public bool enter_world(Position pos)
         {
             entering_world = true;
 
             store_position(pos);
-            var result = enter_world(true);
+            bool slide = ProjectileTarget == null || WeenieObj.WorldObject is SpellProjectile;
+            var result = enter_world(slide);
 
             entering_world = false;
             return result;
@@ -4066,15 +4071,16 @@ namespace ACE.Server.Physics
                 Console.WriteLine($"{(MotionCommand)motion.Motion}");
         }
 
-        public void update_object_server(bool forcePos = true)
+        public bool update_object_server(bool forcePos = true)
         {
             var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
 
             var wo = WeenieObj.WorldObject;
+            var success = true;
             if (wo != null && !wo.Teleporting)
-                UpdateObjectInternalServer(deltaTime);
+                success = UpdateObjectInternalServer(deltaTime);
 
-            if (forcePos)
+            if (forcePos && success)
                 set_current_pos(RequestPos);
 
             // temp for players
@@ -4082,6 +4088,8 @@ namespace ACE.Server.Physics
                 CachedVelocity = Vector3.Zero;
 
             UpdateTime = PhysicsTimer.CurrentTime;
+
+            return success;
         }
 
         public void update_position()

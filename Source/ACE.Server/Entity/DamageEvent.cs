@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -14,6 +16,8 @@ namespace ACE.Server.Entity
 {
     public class DamageEvent
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // factors:
         // - lifestone protection
         // - evade
@@ -139,11 +143,11 @@ namespace ACE.Server.Entity
             Attacker = attacker;
             Defender = defender;
 
-            CombatType = attacker.GetCombatType();
+            CombatType = damageSource.ProjectileSource == null ? attacker.GetCombatType() : CombatType.Missile;
 
             DamageSource = damageSource;
 
-            Weapon = attacker.GetEquippedWeapon();
+            Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedWeapon() : damageSource.ProjectileLauncher;
 
             AttackType = attacker.GetAttackType(Weapon, CombatManeuver);
             AttackHeight = attacker.AttackHeight ?? AttackHeight.Medium;
@@ -172,6 +176,12 @@ namespace ACE.Server.Entity
                 GetBaseDamage(playerAttacker, CombatManeuver);
             else
                 GetBaseDamage(attacker, CombatManeuver);
+
+            if (DamageType == DamageType.Undef)
+            {
+                log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
+                GeneralFailure = true;
+            }
 
             if (GeneralFailure) return 0.0f;
 
@@ -298,14 +308,13 @@ namespace ACE.Server.Entity
         {
             if (DamageSource.ItemType == ItemType.MissileWeapon)
             {
-                DamageType = (DamageType)DamageSource.GetProperty(PropertyInt.DamageType);
+                DamageType = DamageSource.W_DamageType;
 
                 // handle prismatic arrows
                 if (DamageType == DamageType.Base)
                 {
-                    var weapon = attacker.GetEquippedWeapon();
-                    if (weapon != null && weapon.W_DamageType != DamageType.Undef)
-                        DamageType = weapon.W_DamageType;
+                    if (Weapon != null && Weapon.W_DamageType != DamageType.Undef)
+                        DamageType = Weapon.W_DamageType;
                     else
                         DamageType = DamageType.Pierce;
                 }
@@ -314,7 +323,7 @@ namespace ACE.Server.Entity
                 DamageType = attacker.GetDamageType();
 
             // TODO: combat maneuvers for player?
-            BaseDamageMod = attacker.GetBaseDamageMod();
+            BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
 
             if (DamageSource.ItemType == ItemType.MissileWeapon)
                 BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(attacker, DamageType);
@@ -337,7 +346,7 @@ namespace ACE.Server.Entity
             BaseDamageMod = attacker.GetBaseDamage(AttackPart);
             BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
-            DamageType = attacker.GetDamageType(AttackPart);
+            DamageType = attacker.GetDamageType(AttackPart, CombatType);
 
             if (attacker is CombatPet combatPet)
                 DamageType = combatPet.DamageType;

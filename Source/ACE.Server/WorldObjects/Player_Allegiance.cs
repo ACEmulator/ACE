@@ -322,11 +322,11 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // ensure this player doesn't own a mansion
-            if (House != null && House.HouseType == HouseType.Mansion)
+            // ensure this player doesn't own a monarch-only house
+            if (House != null && House.SlumLord.HouseRequiresMonarch && House.HouseOwner == Guid.Full)
             {
                 //Console.WriteLine(Name + "monarch tried to pledge allegiance, already owns a mansion");
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear allegiance while owning a mansion.", ChatMessageType.Broadcast));
+                //Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear allegiance while owning a mansion.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.CannotSwearAllegianceWhileOwningMansion));
                 return false;
             }

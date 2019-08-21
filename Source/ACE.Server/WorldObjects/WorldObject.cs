@@ -81,6 +81,8 @@ namespace ACE.Server.WorldObjects
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
 
+        public WorldObject ProjectileLauncher;
+
         public WorldObject Wielder;
 
         public WorldObject() { }
@@ -853,6 +855,8 @@ namespace ACE.Server.WorldObjects
             }
 
             IsDestroyed = true;
+
+            ReleasedTimestamp = Time.GetUnixTime();
 
             if (this is Container container)
             {

@@ -96,6 +96,7 @@ namespace ACE.Entity.Enum.Properties
         IgnoreMagicResist                = 65,
         IgnoreMagicArmor                 = 66,
         AiAllowTrade                     = 67,
+        [SendOnLogin]
         SpellComponentsRequired          = 68,
         IsSellable                       = 69,
         IgnoreShieldsBySkill             = 70,

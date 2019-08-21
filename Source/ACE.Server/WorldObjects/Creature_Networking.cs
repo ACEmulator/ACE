@@ -79,7 +79,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // get all the Armor Items so we can calculate their priority
-            var armorItems = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & EquipMask.Armor) != 0).ToList();
+            var armorItems = EquippedObjects.Values.Where(x => (x.ItemType == ItemType.Armor)).ToList();
             foreach (var w in armorItems)
                 w.setVisualClothingPriority();
 
@@ -90,10 +90,8 @@ namespace ACE.Server.WorldObjects
             var bottom = armorItems.Where(x => x.TopLayerPriority == false).OrderBy(x => x.VisualClothingPriority);
             var sortedArmorItems = bottom.Concat(noLayer).Concat(top).ToList();
 
-            // Clothing and Cloaks do not have a tailoring/reduction issue to worry about. What you see is what you get, so we can use ClothingPriority only to get this data.
             var clothesAndCloaks = EquippedObjects.Values
-                                .Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Cloak)) != 0)
-                                .Where(x => (x.CurrentWieldedLocation & (EquipMask.FootWear)) == 0) // FootWear is included in the ArmorItems above
+                                .Where(x => (x.ItemType == ItemType.Clothing)) // FootWear & HandWear is included in the ArmorItems above
                                 .OrderBy(x => x.ClothingPriority);
 
             var eo = clothesAndCloaks.Concat(sortedArmorItems).ToList();
@@ -147,15 +145,12 @@ namespace ACE.Server.WorldObjects
                         foreach (CloObjectEffect t in clothingBaseEffect.CloObjectEffects)
                         {
                             byte partNum = (byte)t.Index;
-                            if (objDesc.AnimPartChanges.FirstOrDefault(c => c.PartIndex == (byte)t.Index && c.PartID == t.ModelId) == null)
-                                objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });
-                            //AddModel((byte)t.Index, (ushort)t.ModelId);
                             coverage.Add(partNum);
+
+                            objDesc.AddAnimPartChange(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });
+
                             foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                            {
-                                if (objDesc.TextureChanges.FirstOrDefault(c => c.PartIndex == (byte)t.Index && c.OldTexture == t1.OldTexture && c.NewTexture == t1.NewTexture) == null)
-                                    objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
-                            }
+                                objDesc.AddTextureChange(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
                         }
 
                         if (item.ClothingSubPalEffects.Count > 0)

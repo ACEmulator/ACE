@@ -148,6 +148,7 @@ namespace ACE.Server.Managers
                 //case WeenieClassName.W_MATERIALGRANITE50_CLASS:
                 case WeenieClassName.W_MATERIALGRANITE100_CLASS:
                 case WeenieClassName.W_MATERIALGRANITE_CLASS:
+                case WeenieClassName.W_MATERIALGRANITEPATHWARDEN_CLASS:
                 //case WeenieClassName.W_MATERIALVELVET100_CLASS:
                 case WeenieClassName.W_MATERIALVELVET_CLASS:
 
@@ -234,6 +235,7 @@ namespace ACE.Server.Managers
                 //case WeenieClassName.W_MATERIALSTEEL50_CLASS:
                 case WeenieClassName.W_MATERIALSTEEL100_CLASS:
                 case WeenieClassName.W_MATERIALSTEEL_CLASS:
+                case WeenieClassName.W_MATERIALSTEELPATHWARDEN_CLASS:
                 case WeenieClassName.W_MATERIALALABASTER_CLASS:
                 case WeenieClassName.W_MATERIALBRONZE_CLASS:
                 case WeenieClassName.W_MATERIALMARBLE_CLASS:
@@ -246,6 +248,10 @@ namespace ACE.Server.Managers
 
                     // ensure armor w/ workmanship
                     if (target.ItemType != ItemType.Armor || (target.ArmorLevel ?? 0) == 0 || target.Workmanship == null)
+                        return null;
+
+                    // TODO: replace with PropertyInt.MeleeDefenseImbuedEffectTypeCache == 1 when data is updated
+                    if (source.MaterialType == MaterialType.Steel && !target.IsEnchantable)
                         return null;
 
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
@@ -344,6 +350,8 @@ namespace ACE.Server.Managers
             { WeenieClassName.W_MATERIALIRON_CLASS,            3853 },
             { WeenieClassName.W_MATERIALGRANITE100_CLASS,      3852 },
             { WeenieClassName.W_MATERIALGRANITE_CLASS,         3852 },
+            { WeenieClassName.W_MATERIALGRANITEPATHWARDEN_CLASS, 3852 },
+
             //{ WeenieClassName.W_MATERIALVELVET100_CLASS,       3861 },
             { WeenieClassName.W_MATERIALVELVET_CLASS,          3861 },
 
@@ -362,6 +370,8 @@ namespace ACE.Server.Managers
             //{ WeenieClassName.W_MATERIALSTEEL50_CLASS,         3860 },
             { WeenieClassName.W_MATERIALSTEEL100_CLASS,        3860 },
             { WeenieClassName.W_MATERIALSTEEL_CLASS,           3860 },
+            { WeenieClassName.W_MATERIALSTEELPATHWARDEN_CLASS, 3860 },
+
             { WeenieClassName. W_MATERIALALABASTER_CLASS,      3846 },
             { WeenieClassName.W_MATERIALBRONZE_CLASS,          3849 },
             { WeenieClassName.W_MATERIALMARBLE_CLASS,          3856 },

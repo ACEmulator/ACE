@@ -767,6 +767,14 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.DoubleThrust;
                 }
+                // stiletto
+                else if (attackType.HasFlag(AttackType.DoubleThrust))
+                {
+                    if (powerLevel >= ThrustThreshold)
+                        attackType = AttackType.DoubleThrust;
+                    else
+                        attackType = AttackType.Thrust;
+                }
             }
             else if (stance == MotionStance.SwordShieldCombat)
             {
@@ -778,7 +786,7 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.Thrust;
                 }
-                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash))
+                else if ((attackType & (AttackType.DoubleThrust | AttackType.DoubleSlash)) != 0)
                 {
                     if (powerLevel >= ThrustThreshold)
                         attackType = AttackType.DoubleThrust;
@@ -803,6 +811,10 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.Thrust;
                 }
+
+                // stiletto only has double thrust?
+                else if (attackType.HasFlag(AttackType.DoubleThrust))
+                    attackType = AttackType.Thrust;
             }
             if (attackType.HasFlag(AttackType.Thrust | AttackType.Slash))
             {
@@ -837,6 +849,14 @@ namespace ACE.Server.WorldObjects
                     attackType = AttackType.OffhandDoubleSlash;
                 else
                     attackType = AttackType.OffhandDoubleThrust;
+            }
+            // stiletto
+            else if (attackType.HasFlag(AttackType.DoubleThrust))
+            {
+                if (powerLevel >= ThrustThreshold)
+                    attackType = AttackType.OffhandDoubleThrust;
+                else
+                    attackType = AttackType.OffhandThrust;
             }
             else if (attackType.HasFlag(AttackType.Thrust | AttackType.Slash))
             {

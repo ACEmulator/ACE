@@ -1,3 +1,5 @@
+using System.Numerics;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -36,7 +38,7 @@ namespace ACE.Server.WorldObjects
             // unanimated objects will float in the air, and not be affected by gravity
             // unless we give it a bit of velocity to start
             // fixes floating storage chests
-            Velocity = new AceVector3(0.0f, 0.0f, 0.5f);
+            Velocity = new Vector3(0, 0, 0.5f);
         }
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)
