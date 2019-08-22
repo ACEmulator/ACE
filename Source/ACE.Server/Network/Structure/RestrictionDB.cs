@@ -26,12 +26,14 @@ namespace ACE.Server.Network.Structure
 
         public RestrictionDB(House house)
         {
+            Table = new Dictionary<ObjectGuid, uint>();
+
+            if (house == null) return;
+
             OpenStatus = Convert.ToUInt32(house.OpenStatus);
 
             if (house.MonarchId != null)
                 MonarchID = new ObjectGuid(house.MonarchId.Value);      // for allegiance guest/storage access
-
-            Table = new Dictionary<ObjectGuid, uint>();
 
             foreach (var guest in house.Guests)
             {
