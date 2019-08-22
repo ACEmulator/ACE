@@ -1,3 +1,10 @@
+/*========================================*/
+/* v1 (null) -> v2 */
+/* fixes bugged base AL */
+/*========================================*/
+
+USE ace_shard;
+
 /* 37187 Olthoi Alduressa Gauntlets */
 UPDATE biota_properties_int bint
 INNER JOIN biota ON bint.object_Id=biota.id
@@ -273,3 +280,104 @@ INSERT INTO biota_properties_int (object_Id, `type`, value)
 SELECT biota.id, 124, 2 FROM biota
 LEFT JOIN biota_properties_int version ON version.object_Id=biota.id AND version.`type`=124
 WHERE biota.weenie_Class_Id=37299 AND version.value IS NULL;
+
+/*========================================*/
+/* v2 -> v3 */
+/* fixes alduressa bugged bonus al */
+/*========================================*/
+
+/* 37187 Olthoi Alduressa Gauntlets */
+UPDATE biota_properties_int bint
+INNER JOIN biota ON bint.object_Id=biota.id
+INNER JOIN biota_properties_int version ON version.object_Id=biota.id AND version.`type`=124
+SET bint.value = bint.value - 240
+WHERE biota.weenie_Class_Id=37187 AND bint.`type`=28 AND version.value=2;
+
+UPDATE biota_properties_int version
+INNER JOIN biota on version.object_Id=biota.id
+SET version.value = 3
+WHERE biota.weenie_Class_Id=37187 AND version.`type`=124 AND version.value=2;
+
+/* 37195 Olthoi Alduressa Helm */
+UPDATE biota_properties_int bint
+INNER JOIN biota ON bint.object_Id=biota.id
+INNER JOIN biota_properties_int version ON version.object_Id=biota.id AND version.`type`=124
+SET bint.value = bint.value - 240
+WHERE biota.weenie_Class_Id=37195 AND bint.`type`=28 AND version.value=2;
+
+UPDATE biota_properties_int version
+INNER JOIN biota on version.object_Id=biota.id
+SET version.value = 3
+WHERE biota.weenie_Class_Id=37195 AND version.`type`=124 AND version.value=2;
+
+/* 37200 Olthoi Alduressa Leggings */
+UPDATE biota_properties_int bint
+INNER JOIN biota ON bint.object_Id=biota.id
+INNER JOIN biota_properties_int version ON version.object_Id=biota.id AND version.`type`=124
+SET bint.value = bint.value - 240
+WHERE biota.weenie_Class_Id=37200 AND bint.`type`=28 AND version.value=2;
+
+UPDATE biota_properties_int version
+INNER JOIN biota on version.object_Id=biota.id
+SET version.value = 3
+WHERE biota.weenie_Class_Id=37200 AND version.`type`=124 AND version.value=2;
+
+/* 37207 Olthoi Alduressa Boots */
+UPDATE biota_properties_int bint
+INNER JOIN biota ON bint.object_Id=biota.id
+INNER JOIN biota_properties_int version ON version.object_Id=biota.id AND version.`type`=124
+SET bint.value = bint.value - 240
+WHERE biota.weenie_Class_Id=37207 AND bint.`type`=28 AND version.value=2;
+
+UPDATE biota_properties_int version
+INNER JOIN biota on version.object_Id=biota.id
+SET version.value = 3
+WHERE biota.weenie_Class_Id=37207 AND version.`type`=124 AND version.value=2;
+
+/* 37217 Olthoi Alduressa Coat */
+UPDATE biota_properties_int bint
+INNER JOIN biota ON bint.object_Id=biota.id
+INNER JOIN biota_properties_int version ON version.object_Id=biota.id AND version.`type`=124
+SET bint.value = bint.value - 240
+WHERE biota.weenie_Class_Id=37217 AND bint.`type`=28 AND version.value=2;
+
+UPDATE biota_properties_int version
+INNER JOIN biota on version.object_Id=biota.id
+SET version.value = 3
+WHERE biota.weenie_Class_Id=37217 AND version.`type`=124 AND version.value=2;
+
+/*============================*/
+/* ensure world is synced up  */
+/*============================*/
+
+USE ace_world;
+
+/* 37187 Olthoi Alduressa Gauntlets */
+UPDATE weenie_properties_int version
+INNER JOIN weenie ON version.object_Id=weenie.class_Id
+SET version.value = 3
+WHERE weenie.class_Id=37187 and version.`type`=124 and version.value = 2;
+
+/* 37195 Olthoi Alduressa Helm */
+UPDATE weenie_properties_int version
+INNER JOIN weenie ON version.object_Id=weenie.class_Id
+SET version.value = 3
+WHERE weenie.class_Id=37195 and version.`type`=124 and version.value = 2;
+
+/* 37200 Olthoi Alduressa Leggings */
+UPDATE weenie_properties_int version
+INNER JOIN weenie ON version.object_Id=weenie.class_Id
+SET version.value = 3
+WHERE weenie.class_Id=37200 and version.`type`=124 and version.value = 2;
+
+/* 37207 Olthoi Alduressa Boots */
+UPDATE weenie_properties_int version
+INNER JOIN weenie ON version.object_Id=weenie.class_Id
+SET version.value = 3
+WHERE weenie.class_Id=37207 and version.`type`=124 and version.value = 2;
+
+/* 37217 Olthoi Alduressa Coat */
+UPDATE weenie_properties_int version
+INNER JOIN weenie ON version.object_Id=weenie.class_Id
+SET version.value = 3
+WHERE weenie.class_Id=37217 and version.`type`=124 and version.value = 2;
