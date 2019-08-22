@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
             return houseData;
         }
 
-        public static House Load(uint houseGuid)
+        public static House Load(uint houseGuid, bool isBasement = false)
         {
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
 
@@ -125,6 +125,9 @@ namespace ACE.Server.WorldObjects
                 linkedHouse.ActivateLinks(instances, new List<Biota>() { biota }, linkedHouses[0]);
 
             var house = (House)linkedHouses[0];
+
+            if (isBasement)
+                return house;
 
             // load slumlord biota for rent
             if (house.SlumLord == null)
@@ -434,12 +437,17 @@ namespace ACE.Server.WorldObjects
             {
                 if (_dungeonHouseGuid == null)
                 {
-                    var housePortals = GetHousePortals();
-
-                    if (housePortals.Count == 0)
+                    if (DungeonLandblockID == 0)
                         return 0;
 
-                    _dungeonHouseGuid = housePortals[0].Id;
+                    var landblock = (ushort)((DungeonLandblockID >> 16) & 0xFFFF);
+
+                    var basementGuid = DatabaseManager.World.GetBasementHouseGuid(landblock);
+
+                    if (basementGuid == 0)
+                        return 0;
+
+                    _dungeonHouseGuid = basementGuid;
 
                 }
                 return _dungeonHouseGuid.Value;
@@ -557,7 +565,7 @@ namespace ACE.Server.WorldObjects
             var isLoaded = LandblockManager.IsLoaded(landblockId);
 
             if (!isLoaded)
-                return null;
+                return House.Load(DungeonHouseGuid, true);
 
             var loaded = LandblockManager.GetLandblock(landblockId, false);
             var wos = loaded.GetWorldObjectsForPhysicsHandling();

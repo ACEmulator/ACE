@@ -837,10 +837,15 @@ namespace ACE.Server.WorldObjects
                 var dungeonHouse = house.GetDungeonHouse();
                 if (dungeonHouse == null) return;
 
+                dungeonHouse.HouseHooksVisible = visible;
+
                 foreach (var hook in dungeonHouse.Hooks.Where(i => i.Inventory.Count == 0))
                 {
                     hook.UpdateHookVisibility();
                 }
+
+                if (dungeonHouse.CurrentLandblock == null)
+                    dungeonHouse.SaveBiotaToDatabase();
             }
 
             if (house.CurrentLandblock == null)
