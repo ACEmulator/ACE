@@ -103,7 +103,7 @@ namespace ACE.Server.WorldObjects
                 new GameEventItemServerSaysContainId(Session, item, container),
                 new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-            if (item.WeenieType == WeenieType.Coin)
+            if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                 UpdateCoinValue();
 
             item.SaveBiotaToDatabase();
