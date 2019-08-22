@@ -497,7 +497,7 @@ namespace ACE.Database
                 var result = context.LandblockInstance
                     .AsNoTracking()
                     .Where(r => r.Landblock == landblock
-                            && r.WeenieClassId != 11730 /* Exclude HousePortal */
+                            && r.WeenieClassId != 11730 /* Exclude House Portal */
                             && r.WeenieClassId != 278   /* Exclude Door */
                             && r.WeenieClassId != 568   /* Exclude Door (entry) */
                             && !r.IsLinkChild)
