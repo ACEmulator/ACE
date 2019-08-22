@@ -46,7 +46,8 @@ namespace ACE.Server.Network.Structure
             // add in players on house owner's account
             var owner = PlayerManager.FindByGuid(house.HouseOwner.Value);
 
-            if (owner == null)
+            // added for people deleting accounts from their account db...
+            if (owner == null || owner.Account == null)
             {
                 Console.WriteLine($"RestrictionDB({house.HouseInstance:X8}): couldn't find house owner {house.HouseOwner:X8}");
                 return;
