@@ -400,7 +400,16 @@ namespace ACE.Server.WorldObjects
 
         public void DoCastSpell(MagicState _state)
         {
-            var state = _state.CastSpellParams;
+            var state = _state?.CastSpellParams;
+
+            if (state == null)
+            {
+                log.Warn($"{Name}.DoCastSpell(): null state detected");
+                log.Warn(_state);
+
+                // send UseDone?
+                SendUseDoneEvent(WeenieError.BadCast);
+            }
 
             DoCastSpell(state.Spell, state.IsWeaponSpell, state.ManaUsed, state.Target, state.Status);
         }
