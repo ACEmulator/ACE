@@ -2247,7 +2247,7 @@ namespace ACE.Server.WorldObjects
         {
             if (target == null || item == null) return;
 
-            if (PropertyManager.GetBool("iou_trades").Item && item.Name == "IOU" && item.WeenieType == WeenieType.Book && target.Name == "Town Crier")
+            if (item.Name == "IOU" && item.WeenieType == WeenieType.Book && target.Name == "Town Crier")
             {
                 HandleIOUTurnIn(target, item);
                 return;
@@ -2327,11 +2327,18 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {iouToTurnIn.NameWithMaterial}.", ChatMessageType.Broadcast));
             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, iouToTurnIn.Guid.Full, WeenieError.TradeAiRefuseEmote));
 
-            if (iouToTurnIn is Book book)
+            if (!PropertyManager.GetBool("iou_trades").Item)
+            {
+                //Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Hmm... Something isn't quite right with this IOU. I can't seem to make out what its for. I'm sorry!", this, ChatMessageType.Tell));
+                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
+                return;
+            }
+
+            if (iouToTurnIn is Book book && book.ScribeName == "ACEmulator" && book.ScribeAccount == "prewritten")
             {
                 var page = book.GetPage(0);
 
-                if (page != null)
+                if (page != null && page.AuthorName == "ACEmulator" && page.AuthorAccount == "prewritten" && page.AuthorId == uint.MaxValue)
                 {
                     var pageText = page.PageText;
 
