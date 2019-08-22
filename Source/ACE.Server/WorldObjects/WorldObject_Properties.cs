@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Database;
@@ -637,11 +638,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.Translucency); else SetProperty(PropertyFloat.Translucency, value.Value); }
         }
 
-        public AceVector3 Velocity = null;
+        public Vector3? Velocity = null;
 
-        public AceVector3 Acceleration { get; set; }
+        public Vector3? Acceleration = null;
 
-        public AceVector3 Omega = null;
+        public Vector3? Omega = null;
 
         public SetupModel CSetup => DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
 
@@ -1187,7 +1188,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public CoverageMask? VisualClothingPriority
         {
-            get { if((CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority) != null) { return (CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority); } else {return (CoverageMask?)GetProperty(PropertyInt.ClothingPriority); }; }
+            get { if ((CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority) != null) { return (CoverageMask?)GetProperty(PropertyInt.VisualClothingPriority); } else { return (CoverageMask?)GetProperty(PropertyInt.ClothingPriority); }; }
             set { if (!value.HasValue) RemoveProperty(PropertyInt.VisualClothingPriority); else SetProperty(PropertyInt.VisualClothingPriority, (int)value.Value); }
         }
         /// <summary>
@@ -1195,7 +1196,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void setVisualClothingPriority()
         {
-            if (ClothingBase.HasValue && (CurrentWieldedLocation & EquipMask.Armor) != 0)
+            if (ClothingBase.HasValue && (CurrentWieldedLocation & (EquipMask.Armor | EquipMask.HandWear)) != 0)
             {
                 ClothingTable item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)ClothingBase);
                 VisualClothingPriority = item.GetVisualPriority();
@@ -1406,7 +1407,7 @@ namespace ACE.Server.WorldObjects
         public uint? IconUnderlayId
         {
             get => GetProperty(PropertyDataId.IconUnderlay);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value);  }
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconUnderlay); else SetProperty(PropertyDataId.IconUnderlay, value.Value); }
         }
 
         public int? CooldownId
@@ -1721,6 +1722,18 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.CreationTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CreationTimestamp); else SetProperty(PropertyInt.CreationTimestamp, value.Value); }
+        }
+
+        public double? ReleasedTimestamp
+        {
+            get => GetProperty(PropertyFloat.ReleasedTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ReleasedTimestamp); else SetProperty(PropertyFloat.ReleasedTimestamp, value.Value); }
+        }
+
+        public double? CheckpointTimestamp
+        {
+            get => GetProperty(PropertyFloat.CheckpointTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CheckpointTimestamp); else SetProperty(PropertyFloat.CheckpointTimestamp, value.Value); }
         }
 
         public bool UseBackpackSlot => WeenieType == WeenieType.Container || RequiresPackSlot;
@@ -2136,37 +2149,37 @@ namespace ACE.Server.WorldObjects
             get { return GetPosition(PositionType.Destination); }
             set { SetPosition(PositionType.Destination, value); }
         }
-        
+
         public Position Instantiation
         {
             get { return GetPosition(PositionType.Instantiation); }
             set { SetPosition(PositionType.Instantiation, value); }
         }
-       
+
         public Position Sanctuary
         {
             get { return GetPosition(PositionType.Sanctuary); }
             set { SetPosition(PositionType.Sanctuary, value); }
         }
-        
+
         public Position Home
         {
             get { return GetPosition(PositionType.Home); }
             set { SetPosition(PositionType.Home, value); }
         }
-        
+
         public Position ActivationMove
         {
             get { return GetPosition(PositionType.ActivationMove); }
             set { SetPosition(PositionType.ActivationMove, value); }
         }
-        
+
         public Position Target
         {
             get { return GetPosition(PositionType.Target); }
             set { SetPosition(PositionType.Target, value); }
         }
-        
+
         public Position LinkedPortalOne
         {
             get { return GetPosition(PositionType.LinkedPortalOne); }
@@ -2371,34 +2384,22 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.RequestedAppraisalTarget); else SetProperty(PropertyInstanceId.RequestedAppraisalTarget, value.Value); }
         }
 
-        public int PkLevelModifier
+        public PKLevel PkLevel
         {
-            get => GetProperty(PropertyInt.PkLevelModifier) ?? -1;
-            set { if (value == -1) RemoveProperty(PropertyInt.PkLevelModifier); else SetProperty(PropertyInt.PkLevelModifier, value); }
+            get => (PKLevel)PkLevelModifier;
+            set => PkLevelModifier = (int)value;
         }
 
-        private PlayerKillerStatus _playerKillerStatus
+        public int PkLevelModifier
         {
-            get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? PlayerKillerStatus.NPK;
-            set { SetProperty(PropertyInt.PlayerKillerStatus, (int)value); }
+            get => GetProperty(PropertyInt.PkLevelModifier) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.PkLevelModifier); else SetProperty(PropertyInt.PkLevelModifier, value); }
         }
 
         public PlayerKillerStatus PlayerKillerStatus
         {
-            get
-            {
-                if (this is Player)
-                {
-                    var pk_server = PropertyManager.GetBool("pk_server").Item;
-                    var pkl_server = PropertyManager.GetBool("pkl_server").Item;
-                    if ((pk_server || pkl_server) && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
-                    {
-                        return pkl_server ? PlayerKillerStatus.PKLite : PlayerKillerStatus.PK;
-                    }
-                }
-                return _playerKillerStatus;
-            }
-            set => _playerKillerStatus = value;
+            get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? PlayerKillerStatus.NPK;
+            set { SetProperty(PropertyInt.PlayerKillerStatus, (int)value); }
         }
 
         public CloakStatus CloakStatus
@@ -2638,6 +2639,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyDataId.UseCreateItem); else SetProperty(PropertyDataId.UseCreateItem, value.Value); }
         }
 
+        public int? UseCreateQuantity
+        {
+            get => GetProperty(PropertyInt.UseCreateQuantity);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.UseCreateQuantity); else SetProperty(PropertyInt.UseCreateQuantity, value.Value); }
+        }
+
         public int? ResistLockpick
         {
             get => GetProperty(PropertyInt.ResistLockpick);
@@ -2764,6 +2771,30 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.HearLocalSignalsRadius) ?? 0;
             set { if (value == 0) RemoveProperty(PropertyInt.HearLocalSignalsRadius); else SetProperty(PropertyInt.HearLocalSignalsRadius, value); }
+        }
+
+        public string TinkerLog
+        {
+            get => GetProperty(PropertyString.TinkerLog);
+            set { if (value == null) RemoveProperty(PropertyString.TinkerLog); else SetProperty(PropertyString.TinkerLog, value); }
+        }
+        
+        public int? CreatureKills
+        {
+            get => GetProperty(PropertyInt.CreatureKills);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CreatureKills); else SetProperty(PropertyInt.CreatureKills, value.Value); }
+        }
+
+        public int? PlayerKillsPk
+        {
+            get => GetProperty(PropertyInt.PlayerKillsPk);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PlayerKillsPk); else SetProperty(PropertyInt.PlayerKillsPk, value.Value); }
+        }
+
+        public int? PlayerKillsPkl
+        {
+            get => GetProperty(PropertyInt.PlayerKillsPkl);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PlayerKillsPkl); else SetProperty(PropertyInt.PlayerKillsPkl, value.Value); }
         }
 
         /// <summary>

@@ -169,7 +169,7 @@ namespace ACE.Server.Network.Structure
 
                 if (slumLord.HouseOwner.HasValue && slumLord.HouseOwner.Value > 0)
                 {
-                    longDesc = $"The current maintenance has {(slumLord.IsRentPaid() ? "" : "not ")}been paid.\n";
+                    longDesc = $"The current maintenance has {(slumLord.IsRentPaid() || !PropertyManager.GetBool("house_rent_enabled").Item ? "" : "not ")}been paid.\n";
 
                     PropertiesInt.Clear();
                 }
@@ -252,6 +252,18 @@ namespace ACE.Server.Network.Structure
 
                     BuildHookProfile(hookedItem);
                 }
+            }
+
+            if (wo is ManaStone)
+            {
+                var useMessage = "";
+
+                if (wo.ItemCurMana.HasValue)
+                    useMessage = "Use on a magic item to give the stone's stored Mana to that item.";
+                else
+                    useMessage = "Use on a magic item to destroy that item and drain its Mana.";
+
+                PropertiesString[PropertyString.Use] = useMessage;
             }
 
             BuildFlags();
@@ -370,7 +382,10 @@ namespace ACE.Server.Network.Structure
             if (wo.SpellDID.HasValue)
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)wo.SpellDID.Value, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
 
-            foreach ( var biotaPropertiesSpellBook in wo.Biota.BiotaPropertiesSpellBook.Where(i => i.Spell != wo.SpellDID))
+            if (wo.ProcSpell.HasValue)
+                SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)wo.ProcSpell.Value, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
+
+            foreach ( var biotaPropertiesSpellBook in wo.Biota.BiotaPropertiesSpellBook.Where(i => i.Spell != wo.SpellDID && i.Spell != wo.ProcSpell))
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)biotaPropertiesSpellBook.Spell, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
         }
 

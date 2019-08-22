@@ -14,11 +14,41 @@
       "PasswordHashWorkFactor": 8,
       "ForceWorkFactorMigration": true
     },
+
+    // The folder that contains AC DAT files (client_cell_1.dat, client_portal.dat, client_highres.dat, client_local_English.dat)
+    // Note that for servers running on Linux, the ~ home folder must be fully expanded, ie. /home/user/ace/, instead of ~/ace/
+    // Note that for servers running on Windows, a path like c:\ace\ MUST be entered as c:\\ace\\, replacing the single backslashes (\) with double backslashes (\\)
     "DatFilesDirectory": "c:\\ACE\\",
+
     "ShutdownInterval": "60",
+
+    // ServerPerformanceMonitorAutoStart, default: false
+    // Development recommendation: true
+    // Server recommendation: true
+    // Enable this to use the functionality of the command: /serverperformance
+    // Additional overhead is added but it is minimal.
+    // This can greatly help you (and ACE developers) understand what sections of ACE are underperforming.
     "ServerPerformanceMonitorAutoStart": false,
+
+    // WorldDatabasePrecaching, default: false
+    // Development recommendation: false
+    // Server recommendation: true
+    // Enable this to cache the world database at startup.
+    // This will add about 1-2 minutes to server startup time and will consume about 1.7 GB of RAM
+    // With this disabled, caching happens on an as-requested basis and can cause the server to feel less responsive.
     "WorldDatabasePrecaching": false,
+
+    // LandblockPreloading, defaut: true
+    // Development recommendation: true
+    // Server recommendation: true
+    // This makes sure that perma-load landblocks are loaded.
+    // Perma-load landblocks are landblocks that can contain server-wide mechanics and should always be active.
     "LandblockPreloading": true,
+
+    // PreloadedLandblock
+    // These are the default pre-loaded and perma-loaded landblocks.
+    // In most cases you should not need to adjust them.
+    // This section requires LandblockPreloading to be true
     "PreloadedLandblocks": [
         {
             "Id": "E74EFFFF",

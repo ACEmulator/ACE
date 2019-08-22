@@ -229,12 +229,12 @@ namespace ACE.Server.WorldObjects
             MaxRange = 0.0f;
         }
 
-        public DamageType GetDamageType(BiotaPropertiesBodyPart attackPart)
+        public DamageType GetDamageType(BiotaPropertiesBodyPart attackPart, CombatType? combatType = null)
         {
             var weapon = GetEquippedWeapon();
 
             if (weapon != null)
-                return GetDamageType();
+                return GetDamageType(false, combatType);
             else
             {
                 var damageType = (DamageType)attackPart.DType;
