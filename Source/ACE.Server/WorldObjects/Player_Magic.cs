@@ -409,6 +409,8 @@ namespace ACE.Server.WorldObjects
 
                 // send UseDone?
                 SendUseDoneEvent(WeenieError.BadCast);
+
+                return;
             }
 
             DoCastSpell(state.Spell, state.IsWeaponSpell, state.ManaUsed, state.Target, state.Status);
