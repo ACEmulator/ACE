@@ -442,7 +442,7 @@ namespace ACE.Server.WorldObjects
 
                     var landblock = (ushort)((DungeonLandblockID >> 16) & 0xFFFF);
 
-                    var basementGuid = DatabaseManager.World.GetBasementHouseGuid(landblock);
+                    var basementGuid = DatabaseManager.World.GetCachedBasementHouseGuid(landblock);
 
                     if (basementGuid == 0)
                         return 0;

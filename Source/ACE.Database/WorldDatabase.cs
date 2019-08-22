@@ -487,7 +487,7 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<ushort, uint> cachedBasementHouseGuids = new ConcurrentDictionary<ushort, uint>();
 
-        public uint GetBasementHouseGuid(ushort landblock)
+        public uint GetCachedBasementHouseGuid(ushort landblock)
         {
             if (cachedBasementHouseGuids.TryGetValue(landblock, out var value))
                 return value;
