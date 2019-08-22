@@ -429,15 +429,17 @@ namespace ACE.Server.Factories
 
         private static int GetArmorLevelModifier(int tier, int armorType)
         {
-            if (armorType > (int)LootTables.ArmorType.HaebreanArmor
-                    && armorType < (int)LootTables.ArmorType.OlthoiAlduressaArmor)
+            if (armorType >= (int)LootTables.ArmorType.OlthoiArmor && armorType <= (int)LootTables.ArmorType.OlthoiAlduressaArmor)
             {
                 switch (tier)
                 {
                     case 7:
                         return ThreadSafeRandom.Next(0, 40);
-                    default:
+                    case 8:
                         return ThreadSafeRandom.Next(160, 200);
+
+                    default:
+                        return 0;
                 }
             }
 
