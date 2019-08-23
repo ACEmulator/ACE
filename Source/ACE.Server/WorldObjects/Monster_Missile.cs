@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
             });
 
             // will ammo be depleted?
-            if (ammo.StackSize == 1)
+            if (ammo.StackSize == null || ammo.StackSize <= 1)
             {
                 // compare monsters: lugianmontokrenegade /  sclavusse / zombielichtowerarcher
                 actionChain.EnqueueChain();
