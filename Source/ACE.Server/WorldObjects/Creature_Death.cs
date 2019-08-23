@@ -100,8 +100,8 @@ namespace ACE.Server.WorldObjects
 
             dieChain.AddAction(this, () =>
             {
-                Destroy();
                 CreateCorpse(topDamager);
+                Destroy();
             });
 
             dieChain.EnqueueChain();
@@ -176,7 +176,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
+            var cachedWeenie = DatabaseManager.World.GetCachedWeenie("corpse");
+
+            var corpse = WorldObjectFactory.CreateNewWorldObject(cachedWeenie) as Corpse;
+
             var prefix = "Corpse";
 
             if (TreasureCorpse)
@@ -344,10 +347,13 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 if (TryDequipObjectWithBroadcasting(item.Guid, out var wo, out var wieldedLocation))
-                    TryAddToInventory(wo);
+                    EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid));
 
                 if (corpse != null)
+                {
                     corpse.TryAddToInventory(item);
+                    EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, corpse.Guid), new GameMessagePickupEvent(item));
+                }
                 else
                     droppedItems.Add(item);
             }
@@ -361,10 +367,10 @@ namespace ACE.Server.WorldObjects
             var legendaryCantrips = wo.LegendaryCantrips;
 
             if (epicCantrips.Count > 0)
-                log.Info($"[EPIC] {Name} ({Guid}) generated item with {epicCantrips.Count} epic{(epicCantrips.Count > 1 ? "s" : "")} - {wo.Name} ({wo.Guid}) - {GetSpellList(epicCantrips)} - killed by {killer.Name} ({killer.Guid})");
+                log.Info($"[EPIC] {Name} ({Guid}) generated item with {epicCantrips.Count} epic{(epicCantrips.Count > 1 ? "s" : "")} - {wo.Name} ({wo.Guid}) - {GetSpellList(epicCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
 
             if (legendaryCantrips.Count > 0)
-                log.Info($"[LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer.Name} ({killer.Guid})");
+                log.Info($"[LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
         }
 
         public static string GetSpellList(List<BiotaPropertiesSpellBook> spellbook)

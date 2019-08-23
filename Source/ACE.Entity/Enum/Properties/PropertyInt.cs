@@ -259,7 +259,7 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         HousePurchaseTimestamp                   = 199,
         RedirectableEquippedArmorCount           = 200,
-        MeleedefenseImbuedEffectTypeCache        = 201,
+        MeleeDefenseImbuedEffectTypeCache        = 201,
         MissileDefenseImbuedEffectTypeCache      = 202,
         MagicDefenseImbuedEffectTypeCache        = 203,
         ElementalDamageBonus                     = 204,

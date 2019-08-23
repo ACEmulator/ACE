@@ -1832,6 +1832,7 @@ namespace ACE.Server.Factories
             AmuliArmor,
             KoujiaArmor,
             TenassaArmor,
+            OverRobes,
             CovenantArmor,
             LoricaArmor,
             NariyidArmor,
@@ -1847,28 +1848,41 @@ namespace ACE.Server.Factories
             OlthoiAlduressaArmor
         }
 
+        public static readonly int[] OverRobes =
+        {
+            44799,  // Faran Over-robe
+            44800,  // Dho Vest and Over-robe
+            44801,  // Suikan Over-robe
+            44802,  // Vestiri Over-robe
+            44803   // Empyrean Over-robe
+        };
+
         public static readonly int[] MiscClothing =
         {
             107, // Sollerets
             117, // Breeches
             118, // Cloth Cap
             119, // Cowl
-            120, // Quilted Drawers
             121, // Cloth gloves
-            126, // Leggings
+            124, // Gloves
             127, // Pants
             128, // Qafiya
             129, // Sandals
+            130, // Shirt
             132, // Shoes
             133, // Slippers
             134, // Tunic
             135, // Turban
             2587, // Shirt
+            2588, // Flared Shirt
             2589, // Smock
+            2590, // Baggy Shirt
+            2591, // Puffy Shirt
             2592, // Tunic
             2593, // Tunic
             2594, // Tunic
             2595, // Tunic
+            2596, // Doublet
             2597, // Pants
             2598, // Pants
             2599, // Trousers
@@ -1879,10 +1893,7 @@ namespace ACE.Server.Factories
             2604, // Breeches
             5894, // Fez
             5901, // Kasa
-            5905, // Hood
             7897, // Steel Toed Boots
-            12254, // Pants
-            14798, // Empyrean Pants
             28605, // Beret
             28606, // Viamontian Pants
             28607, // Lace Shirt
@@ -1891,11 +1902,6 @@ namespace ACE.Server.Factories
             28610, // Loafers
             28611, // Viamontian Laced Boots
             28612, // bandana
-            28609, // Toga
-            31236, // Beret
-            31237, // Loafers
-            31238, // Viamontian Leggings
-            31239, // Poet's Shirt
             44975  // Hood
         };
 
@@ -1938,26 +1944,29 @@ namespace ACE.Server.Factories
             91, // Kite Shield
             92, // Large Kite Shield
             93, // Round Shield
+            94, // Large Round Shield
             95 // Round Tower Shield
         };
 
         public static readonly int[] LeatherArmor =
         {
             25636,
-            25640,
-            25639,
-            25641,
-            25638,
-            25651,
-            25642,
             25637,
-            25648,
+            25638,
+            25639,
+            25640,
+            25641,
+            25642,
             25643,
-            25650,
-            25647,
-            25645,
-            25652,
             25644,
+            25645,
+            25646, // Long Leather Gauntlets
+            25647,
+            25648,
+            25649, // Leather Shirt
+            25650,
+            25651,
+            25652,
             25661
         };
 
@@ -1972,7 +1981,6 @@ namespace ACE.Server.Factories
             53,
             59,
             63,
-            68,
             68,
             89,
             99,
@@ -2036,6 +2044,7 @@ namespace ACE.Server.Factories
             54,
             64,
             69,
+			78,   // Kote
             2437,
             90,
             106,

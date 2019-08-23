@@ -210,10 +210,20 @@ namespace ACE.Server.WorldObjects
                 wo.CurrentMotionState = new Motion(MotionStance.Invalid, MotionCommand.On);
 
             // the inventory items haven't been loaded yet
-            if (wo is Hook && !(HouseHooksVisible ?? true))
+            if (wo is Hook hook)
             {
-                wo.NoDraw = true;
-                wo.UiHidden = true;
+                if (hook.HasItem)
+                {
+                    hook.NoDraw = false;
+                    hook.UiHidden = false;
+                    hook.Ethereal = false;
+                }
+                else if (!(HouseHooksVisible ?? true))
+                {
+                    hook.NoDraw = true;
+                    hook.UiHidden = true;
+                    hook.Ethereal = true;
+                }
             }
 
             //if (wo.IsLinkSpot)
@@ -231,7 +241,7 @@ namespace ACE.Server.WorldObjects
             //}
 
             //if (HouseOwner != null)
-                //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId:X8}, owner: {HouseOwner:X8}, instance: {HouseInstance:X8}");
+            //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId:X8}, owner: {HouseOwner:X8}, instance: {HouseInstance:X8}");
         }
 
         public override void UpdateLinkProperties(WorldObject wo)

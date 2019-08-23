@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects.Entity
         }
 
         /// <summary>
-        /// Returns the Base Value for a Creature's attribute, for Players this is set durring Character Creation 
+        /// Returns the Base Value for a Creature's attribute, for Players this is set during Character Creation 
         /// </summary>
         public uint StartingValue
         {

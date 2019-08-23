@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -54,6 +54,8 @@ namespace ACE.Server.WorldObjects
             ChangesDetected = false;
 
             if (enqueueSave)
+            {
+                CheckpointTimestamp = Time.GetUnixTime();
                 //DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
                 DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, result =>
                 {
@@ -66,6 +68,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 });
+            }
         }
 
         /// <summary>

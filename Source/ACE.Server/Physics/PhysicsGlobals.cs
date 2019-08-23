@@ -8,6 +8,8 @@ namespace ACE.Server.Physics
     {
         public static readonly float EPSILON = 0.00019999999f;
 
+        public static readonly float EpsilonSq = EPSILON * EPSILON;
+
         public static readonly float Gravity = -9.8000002f;
 
         public static readonly float DefaultFriction = 0.94999999f;
