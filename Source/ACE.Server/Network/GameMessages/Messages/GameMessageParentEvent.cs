@@ -11,8 +11,8 @@ namespace ACE.Server.Network.GameMessages.Messages
         {
             Writer.WriteGuid(parent.Guid);
             Writer.WriteGuid(child.Guid);
-            Writer.Write(parentLocation != null ? (int)parentLocation : (int)child.ParentLocation);
-            Writer.Write(placement != null ? (int)placement : (int)child.Placement);
+            Writer.Write(parentLocation != null ? (int)parentLocation : (int?)child.ParentLocation ?? 0);
+            Writer.Write(placement != null ? (int)placement : (int?)child.Placement ?? 0);
             Writer.Write(parent.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
             Writer.Write(child.Sequences.GetNextSequence(SequenceType.ObjectPosition));
         }
