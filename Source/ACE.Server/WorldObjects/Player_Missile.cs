@@ -138,8 +138,8 @@ namespace ACE.Server.WorldObjects
             var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
             //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
-                (int)ACE.Entity.Enum.Placement.RightHandCombat)));
+            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
+                ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.AddDelaySeconds(linkTime);
 

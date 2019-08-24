@@ -1,3 +1,4 @@
+using ACE.Entity.Enum;
 using ACE.Server.Network.Sequence;
 using ACE.Server.WorldObjects;
 
@@ -5,16 +6,15 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageParentEvent : GameMessage
     {
-        public GameMessageParentEvent(WorldObject player, WorldObject targetItem, int childLocation, int placementId)
+        public GameMessageParentEvent(WorldObject parent, WorldObject child, ParentLocation? parentLocation = null, Placement? placement = null)
             : base(GameMessageOpcode.ParentEvent, GameMessageGroup.SmartboxQueue)
         {
-            // Fix File Name
-            Writer.Write(player.Guid.Full);
-            Writer.Write(targetItem.Guid.Full);
-            Writer.Write(childLocation);
-            Writer.Write(placementId);
-            Writer.Write(player.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
-            Writer.Write(targetItem.Sequences.GetNextSequence(SequenceType.ObjectPosition));
+            Writer.WriteGuid(parent.Guid);
+            Writer.WriteGuid(child.Guid);
+            Writer.Write(parentLocation != null ? (int)parentLocation : (int)child.ParentLocation);
+            Writer.Write(placement != null ? (int)placement : (int)child.Placement);
+            Writer.Write(parent.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
+            Writer.Write(child.Sequences.GetNextSequence(SequenceType.ObjectPosition));
         }
     }
 }
