@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
             });
 
             // ammo remaining?
-            if (ammo.StackSize == 1)
+            if (ammo.StackSize == null || ammo.StackSize <= 1)
             {
                 actionChain.AddAction(this, () =>
                 {
@@ -191,7 +191,7 @@ namespace ACE.Server.WorldObjects
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
 
-            if (ammo.StackSize == 1)
+            if (ammo.StackSize == null || ammo.StackSize <= 1)
                 TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);
             else
                 TryConsumeFromInventoryWithNetworking(ammo, 1);
