@@ -1340,7 +1340,7 @@ namespace ACE.Server.WorldObjects
                 if (IsInChildLocation(item))
                 {
                     ResetChild(item);
-                    EnqueueBroadcast(new GameMessageParentEvent(this, item, (int?)item.ParentLocation ?? 0, (int?)item.Placement ?? 0));
+                    EnqueueBroadcast(new GameMessageParentEvent(this, item));
 
                     // handle swapping dual-wielded weapons
                     if (IsDoubleSend)
