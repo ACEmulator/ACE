@@ -1,8 +1,13 @@
 # ACEmulator Change Log
 
+### 2019-08-22
+[Ripley]
+* Update IOU handling code.
+* Fix issue CoinValue client desync.
+
 ### 2019-08-21
 [Ripley]
-* Update Aetheria and how ProcSpell is displayed for SpellBook
+* Update Aetheria and how ProcSpell is displayed for SpellBook.
 * Apply shard update script `2019-08-21-00-Fix_Aetheria_SpellBook.sql` to remove unneeded spellbook entries.
 
 ### 2019-08-20
@@ -26,7 +31,7 @@
 * Fixed issue with invisible hooks on relinks (buy/abandon): bool/physicsstate mis-matches.
 * Fixed issue with RDB on house buy: missing InstanceIID update.
 * Fixed issue with logging into open houses: missing IsOpen check.
-* Added Destroy() for items given to NPCs that are of AiAcceptEverything type
+* Added Destroy() for items given to NPCs that are of AiAcceptEverything type.
 
 ### 2019-08-12
 [OptimShi]

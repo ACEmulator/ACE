@@ -1271,7 +1271,8 @@ namespace ACE.Server.Command.Handlers
 
         public static Position LastSpawnPos;
 
-        public const uint WEENIE_MAX = 199999;
+        // ??
+        public const uint WEENIE_MAX = uint.MaxValue;
 
         static WorldObject CreateObjectForCommand(Session session, string weenieClassDescription)
         {

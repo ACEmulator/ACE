@@ -863,7 +863,7 @@ namespace ACE.Server.WorldObjects
                             // targeting a creature, try to redirect to primary weapon
                             var weapon = targetCreature.GetEquippedWeapon() ?? targetCreature.GetEquippedWand();
 
-                            if (weapon != null)
+                            if (weapon != null && weapon.IsEnchantable)
                             {
                                 enchantmentStatus = ItemMagic(weapon, spell);
 
