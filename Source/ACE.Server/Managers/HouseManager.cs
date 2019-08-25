@@ -473,15 +473,17 @@ namespace ACE.Server.Managers
                     dungeonHouse.HouseOwnerName = null;
 
                     dungeonHouse.UpdateLinks();
-                    dungeonHouse.RemoveBiotaFromDatabase();
-                    dungeonHouse.ChangesDetected = false;
+                    dungeonHouse.SaveBiotaToDatabase();
+                    //dungeonHouse.RemoveBiotaFromDatabase();
+                    //dungeonHouse.ChangesDetected = false;
 
                     dungeonHouse.ClearRestrictions();
                 }
             }
 
-            house.RemoveBiotaFromDatabase();
-            house.ChangesDetected = false;
+            house.SaveBiotaToDatabase();
+            //house.RemoveBiotaFromDatabase();
+            //house.ChangesDetected = false;
 
             // player slumlord 'off' animation
             slumlord.Off();
@@ -489,8 +491,9 @@ namespace ACE.Server.Managers
             // reset slumlord name
             slumlord.SetAndBroadcastName();
 
-            slumlord.RemoveBiotaFromDatabase();
-            slumlord.ChangesDetected = false;
+            slumlord.SaveBiotaToDatabase();
+            //slumlord.RemoveBiotaFromDatabase();
+            //slumlord.ChangesDetected = false;
 
             // if evicting a multihouse owner's previous house,
             // no update for player properties
@@ -536,7 +539,7 @@ namespace ACE.Server.Managers
             onlinePlayer.House = null;
 
             // send text message
-            onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
+            onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You've been evicted from your house!", ChatMessageType.Broadcast));
             onlinePlayer.RemoveDeed();
 
             onlinePlayer.SaveBiotaToDatabase();

@@ -215,9 +215,9 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine("Slumlord.OnRemoveItem()");
 
-            // Here we explicitly remove the payment from the database to avoid storing unneeded objects.
-
-            removedItem.Destroy();
+            // Here we explicitly remove the payment from the database to avoid storing unneeded objects and free guid.
+            if (!removedItem.IsDestroyed)
+                removedItem.Destroy();
         }
     }
 }

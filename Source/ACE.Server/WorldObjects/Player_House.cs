@@ -228,15 +228,17 @@ namespace ACE.Server.WorldObjects
                         dungeonHouse.HouseOwnerName = null;
 
                         dungeonHouse.UpdateLinks();
-                        dungeonHouse.RemoveBiotaFromDatabase();
-                        dungeonHouse.ChangesDetected = false;
+                        dungeonHouse.SaveBiotaToDatabase();
+                        //dungeonHouse.RemoveBiotaFromDatabase();
+                        //dungeonHouse.ChangesDetected = false;
 
                         dungeonHouse.ClearRestrictions();
                     }
                 }
 
-                house.RemoveBiotaFromDatabase();
-                house.ChangesDetected = false;
+                house.SaveBiotaToDatabase();
+                //house.RemoveBiotaFromDatabase();
+                //house.ChangesDetected = false;
 
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
@@ -246,8 +248,9 @@ namespace ACE.Server.WorldObjects
                 // reset slumlord name
                 slumlord.SetAndBroadcastName();
 
-                slumlord.RemoveBiotaFromDatabase();
-                slumlord.ChangesDetected = false;
+                slumlord.SaveBiotaToDatabase();
+                //slumlord.RemoveBiotaFromDatabase();
+                //slumlord.ChangesDetected = false;
             }
 
             HouseId = null;
