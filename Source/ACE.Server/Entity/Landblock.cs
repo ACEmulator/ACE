@@ -39,11 +39,6 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// Locking mechanism provides concurrent access to collections
-        /// </summary>
-        //private static readonly object landblockMutex = new object();
-
         public static float AdjacencyLoadRange { get; } = 96f;
         public static float OutdoorChatRange { get; } = 75f;
         public static float IndoorChatRange { get; } = 25f;
@@ -581,46 +576,43 @@ namespace ACE.Server.Entity
 
         private void ProcessPendingWorldObjectAdditionsAndRemovals()
         {
-            //lock (landblockMutex)
+            if (pendingAdditions.Count > 0)
             {
-                if (pendingAdditions.Count > 0)
+                foreach (var kvp in pendingAdditions)
                 {
-                    foreach (var kvp in pendingAdditions)
-                    {
-                        worldObjects[kvp.Key] = kvp.Value;
+                    worldObjects[kvp.Key] = kvp.Value;
 
-                        if (kvp.Value is Player player)
-                            players.Add(player);
-                        else if (kvp.Value is Creature creature)
-                            sortedCreaturesByNextTick.AddLast(creature);
+                    if (kvp.Value is Player player)
+                        players.Add(player);
+                    else if (kvp.Value is Creature creature)
+                        sortedCreaturesByNextTick.AddLast(creature);
 
-                        InsertWorldObjectIntoSortedHeartbeatList(kvp.Value);
-                        InsertWorldObjectIntoSortedGeneratorUpdateList(kvp.Value);
-                        InsertWorldObjectIntoSortedGeneratorRegenerationList(kvp.Value);
-                    }
-
-                    pendingAdditions.Clear();
+                    InsertWorldObjectIntoSortedHeartbeatList(kvp.Value);
+                    InsertWorldObjectIntoSortedGeneratorUpdateList(kvp.Value);
+                    InsertWorldObjectIntoSortedGeneratorRegenerationList(kvp.Value);
                 }
 
-                if (pendingRemovals.Count > 0)
+                pendingAdditions.Clear();
+            }
+
+            if (pendingRemovals.Count > 0)
+            {
+                foreach (var objectGuid in pendingRemovals)
                 {
-                    foreach (var objectGuid in pendingRemovals)
+                    if (worldObjects.Remove(objectGuid, out var wo))
                     {
-                        if (worldObjects.Remove(objectGuid, out var wo))
-                        {
-                            if (wo is Player player)
-                                players.Remove(player);
-                            else if (wo is Creature creature)
-                                sortedCreaturesByNextTick.Remove(creature);
+                        if (wo is Player player)
+                            players.Remove(player);
+                        else if (wo is Creature creature)
+                            sortedCreaturesByNextTick.Remove(creature);
 
-                            sortedWorldObjectsByNextHeartbeat.Remove(wo);
-                            sortedGeneratorsByNextGeneratorUpdate.Remove(wo);
-                            sortedGeneratorsByNextRegeneration.Remove(wo);
-                        }
+                        sortedWorldObjectsByNextHeartbeat.Remove(wo);
+                        sortedGeneratorsByNextGeneratorUpdate.Remove(wo);
+                        sortedGeneratorsByNextRegeneration.Remove(wo);
                     }
-
-                    pendingRemovals.Clear();
                 }
+
+                pendingRemovals.Clear();
             }
         }
 
@@ -783,13 +775,10 @@ namespace ACE.Server.Entity
                 }
             }
 
-            //lock (landblockMutex)
-            {
-                if (!worldObjects.ContainsKey(wo.Guid))
-                    pendingAdditions[wo.Guid] = wo;
-                else
-                    pendingRemovals.Remove(wo.Guid);
-            }
+            if (!worldObjects.ContainsKey(wo.Guid))
+                pendingAdditions[wo.Guid] = wo;
+            else
+                pendingRemovals.Remove(wo.Guid);
 
             // broadcast to nearby players
             wo.NotifyPlayers();
@@ -817,18 +806,13 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false, bool showError = true)
         {
-            WorldObject wo;
-
-            //lock (landblockMutex)
+            if (worldObjects.TryGetValue(objectId, out var wo))
+                pendingRemovals.Add(objectId);
+            else if (!pendingAdditions.Remove(objectId, out wo))
             {
-                if (worldObjects.TryGetValue(objectId, out wo))
-                    pendingRemovals.Add(objectId);
-                else if (!pendingAdditions.Remove(objectId, out wo))
-                {
-                    if (showError)
-                        log.Warn($"RemoveWorldObjectInternal: Couldn't find {objectId.Full:X8}");
-                    return;
-                }
+                if (showError)
+                    log.Warn($"RemoveWorldObjectInternal: Couldn't find {objectId.Full:X8}");
+                return;
             }
 
             wo.CurrentLandblock = null;
@@ -903,14 +887,11 @@ namespace ACE.Server.Entity
         /// </summary>
         public WorldObject GetObject(ObjectGuid guid, bool searchAdjacents = true)
         {
-            //lock (landblockMutex)
-            {
-                if (pendingRemovals.Contains(guid))
-                    return null;
+            if (pendingRemovals.Contains(guid))
+                return null;
 
-                if (worldObjects.TryGetValue(guid, out var worldObject) || pendingAdditions.TryGetValue(guid, out worldObject))
-                    return worldObject;
-            }
+            if (worldObjects.TryGetValue(guid, out var worldObject) || pendingAdditions.TryGetValue(guid, out worldObject))
+                return worldObject;
 
             if (searchAdjacents)
             {
