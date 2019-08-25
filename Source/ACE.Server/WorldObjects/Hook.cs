@@ -214,11 +214,8 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcast(new GameMessageUpdateObject(this));
 
-            if (Inventory.Count < 1)
-            {
-                // Here we explicitly save the storage to the database to prevent property desync.
-                SaveBiotaToDatabase();
-            }
+            // Here we explicitly save the storage to the database to prevent property desync.
+            SaveBiotaToDatabase();
         }
 
         public override MotionCommand MotionPickup
