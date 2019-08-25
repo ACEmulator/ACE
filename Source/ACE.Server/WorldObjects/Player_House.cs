@@ -224,7 +224,10 @@ namespace ACE.Server.WorldObjects
                 {
                     var dungeonHouse = house.GetDungeonHouse();
                     if (dungeonHouse != null)
+                    {
                         dungeonHouse.UpdateLinks();
+                        dungeonHouse.SaveBiotaToDatabase();
+                    }
                 }
 
                 // player slumlord 'off' animation

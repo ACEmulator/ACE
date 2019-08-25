@@ -469,7 +469,10 @@ namespace ACE.Server.Managers
             {
                 var dungeonHouse = house.GetDungeonHouse();
                 if (dungeonHouse != null)
+                {
                     dungeonHouse.UpdateLinks();
+                    dungeonHouse.SaveBiotaToDatabase();
+                }
             }
 
             // player slumlord 'off' animation
