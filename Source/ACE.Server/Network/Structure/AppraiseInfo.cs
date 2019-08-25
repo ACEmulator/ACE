@@ -249,6 +249,10 @@ namespace ACE.Server.Network.Structure
                     {
                         PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.ShortDesc];
                     }
+                    else
+                    {
+                        PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.Name];
+                    }
 
                     BuildHookProfile(hookedItem);
                 }
