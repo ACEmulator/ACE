@@ -138,6 +138,11 @@ namespace ACE.Server.WorldObjects
             NumDeaths++;
             suicideInProgress = false;
 
+            // TODO: instead of setting IsBusy here,
+            // eventually all of the places that check for states such as IsBusy || Teleporting
+            // might want to use a common function, and IsDead should return a separate error
+            IsBusy = true;
+
             // killer = top damager for looting rights
             if (topDamager != null)
                 KillerId = topDamager.Guid.Full;
@@ -187,6 +192,8 @@ namespace ACE.Server.WorldObjects
 
                 if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
                     SetMinimumTimeSincePK();
+
+                IsBusy = false;
             });
 
             dieChain.EnqueueChain();

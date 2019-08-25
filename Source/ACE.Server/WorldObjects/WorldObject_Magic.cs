@@ -890,6 +890,8 @@ namespace ACE.Server.WorldObjects
                                 targetPlayer.AdjustDungeon(teleportDest);
 
                                 targetPlayer.Teleport(teleportDest);
+
+                                targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
                             });
                             portalSendingChain.EnqueueChain();
                         }
@@ -919,6 +921,8 @@ namespace ACE.Server.WorldObjects
                                     fellow.AdjustDungeon(teleportDest);
 
                                     fellow.Teleport(teleportDest);
+
+                                    fellow.SendTeleportedViaMagicMessage(itemCaster, spell);
                                 });
                             }
                             portalSendingChain.EnqueueChain();
@@ -1276,9 +1280,9 @@ namespace ACE.Server.WorldObjects
             AddEnchantmentResult addResult;
             var aetheriaProc = false;
 
-            if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell.HasValue && caster.ProcSpell.Value == spell.Id)
+            if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell == spell.Id)
             {
-                caster = target.CurrentLandblock?.GetObject(caster.WielderId.Value);
+                caster = this;
                 addResult = target.EnchantmentManager.Add(spell, caster, equip);
                 aetheriaProc = true;
             }

@@ -665,6 +665,16 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcastPhysicsState();
         }
 
+        public void SendTeleportedViaMagicMessage(WorldObject itemCaster, Server.Entity.Spell spell)
+        {
+            if (itemCaster == null)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been teleported.", ChatMessageType.Magic));
+            else if (this != itemCaster && !(itemCaster is Gem))
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{itemCaster.Name} teleports you with {spell.Name}.", ChatMessageType.Magic));
+            else if (itemCaster is Gem)
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ITeleported));
+        }
+
         public void NotifyLandblocks()
         {
             // the original implementations of this were done on landblock heartbeat,

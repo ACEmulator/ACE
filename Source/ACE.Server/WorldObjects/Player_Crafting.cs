@@ -185,11 +185,13 @@ namespace ACE.Server.WorldObjects
                 var added = TryAddSalvage(salvageBag, item, remaining);
                 remaining -= added;
 
+                // https://asheron.fandom.com/wiki/Salvaging/Value_Pre2013
+
                 // increase value of salvage bag - salvage skill is a factor,
                 // if bags aren't being combined here
                 var valueFactor = (float)added / amountProduced;
                 if (item.ItemType != ItemType.TinkeringMaterial)
-                    valueFactor *= GetCreatureSkill(Skill.Salvaging).Current / 387.0f;  // TODO: take augs into account
+                    valueFactor *= GetCreatureSkill(Skill.Salvaging).Current / 387.0f * (1.0f + 0.25f * AugmentationBonusSalvage);
 
                 var addedValue = (int)Math.Round((item.Value ?? 0) * valueFactor);
 
@@ -286,19 +288,12 @@ namespace ACE.Server.WorldObjects
             var highestTinkeringSkill = GetMaxSkill(TinkeringSkills);
             var highestTrainedTinkeringSkill = highestTinkeringSkill.AdvancementClass >= SkillAdvancementClass.Trained ? highestTinkeringSkill.Current : 0;
 
-            var salvageMultiplier = Math.Max(0.6f, salvageSkill / 225.0f);
-            var tinkeringMultiplier = Math.Max(0.6f, highestTrainedTinkeringSkill / 225.0f);
-
             // take augs into account for salvaging only
-            var augMod = 1.0f;
-            if (AugmentationBonusSalvage > 0)
-                augMod += AugmentationBonusSalvage * 0.25f;
+            var salvageAmount = CalcNumUnits((int)salvageSkill, workmanship, AugmentationBonusSalvage) * stackSize;
+            var tinkeringAmount = CalcNumUnits((int)highestTrainedTinkeringSkill, workmanship, 0);
 
-            var fSalvageAmount = workmanship * salvageMultiplier * stackSize * augMod;
-            var fTinkeringAmount = workmanship * tinkeringMultiplier * stackSize;
-
-            var salvageAmount = fSalvageAmount.Round();
-            var tinkeringAmount = Math.Min(fTinkeringAmount.Round(), (int)Math.Round(salvageItem.Workmanship ?? 1.0f));
+            // cap tinkeringAmount to item workmanship
+            tinkeringAmount = Math.Min(tinkeringAmount, (int)Math.Round(salvageItem.Workmanship ?? 1.0f)) * stackSize;
 
             // choose the best one
             var addStructure = Math.Max(salvageAmount, tinkeringAmount);
@@ -308,10 +303,22 @@ namespace ACE.Server.WorldObjects
             message = salvageResults.GetMessage(salvageItem.MaterialType ?? ACE.Entity.Enum.MaterialType.Unknown, skill);
             message.Amount += (uint)addStructure;
 
-            if (skill == Skill.Salvaging && augMod > 1.0f)
-                message.AugBonus += (int)Math.Round(fSalvageAmount - fSalvageAmount / augMod);
-
             return addStructure;
+        }
+
+        /// <summary>
+        /// Calculates the number of units returned from a salvaging operation
+        /// </summary>
+        /// <param name="skill">The current salvaging or highest trained tinkering skill for the player</param>
+        /// <param name="workmanship">The workmanship of the item being salvaged</param>
+        /// <param name="numAugs">The AugmentationBonusSalvage for the player</param>
+        /// <returns></returns>
+        public static int CalcNumUnits(int skill, float workmanship, int numAugs)
+        {
+            // https://web.archive.org/web/20170130213649/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage_old.htm
+            // https://web.archive.org/web/20170130194012/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage.htm
+
+            return 1 + (int)Math.Floor(skill / 194.0f * workmanship * (1.0f + 0.25f * numAugs));
         }
 
         public WorldObject GetSalvageBag(MaterialType materialType, List<WorldObject> salvageBags)

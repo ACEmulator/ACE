@@ -52,7 +52,6 @@ namespace ACE.Server.Entity
         public float Workmanship;
         public int NumItemsInMaterial;
         public Skill Skill;
-        public int AugBonus;
 
         public SalvageMessage(MaterialType materialType, Skill skill)
         {

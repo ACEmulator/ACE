@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
             });
 
             // ammo remaining?
-            if (ammo.StackSize == 1)
+            if (ammo.StackSize == null || ammo.StackSize <= 1)
             {
                 actionChain.AddAction(this, () =>
                 {
@@ -138,8 +138,8 @@ namespace ACE.Server.WorldObjects
             var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
             //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
-                (int)ACE.Entity.Enum.Placement.RightHandCombat)));
+            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
+                ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.AddDelaySeconds(linkTime);
 
@@ -191,7 +191,7 @@ namespace ACE.Server.WorldObjects
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
 
-            if (ammo.StackSize == 1)
+            if (ammo.StackSize == null || ammo.StackSize <= 1)
                 TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);
             else
                 TryConsumeFromInventoryWithNetworking(ammo, 1);

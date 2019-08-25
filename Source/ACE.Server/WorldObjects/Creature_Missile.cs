@@ -46,7 +46,7 @@ namespace ACE.Server.WorldObjects
                 delayChain.AddDelaySeconds(0.001f);     // ensuring this message gets sent after player broadcasts above...
                 delayChain.AddAction(this, () =>
                 {
-                    EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
+                    EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand, ACE.Entity.Enum.Placement.RightHandCombat));
                 });
                 delayChain.EnqueueChain();
             });
@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
 
-            if (ammo.StackSize == 1)
+            if (ammo.StackSize == null || ammo.StackSize <= 1)
             {
                 TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
                 ammo.Destroy();

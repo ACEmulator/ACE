@@ -26,12 +26,14 @@ namespace ACE.Server.Network.Structure
 
         public RestrictionDB(House house)
         {
+            Table = new Dictionary<ObjectGuid, uint>();
+
+            if (house == null) return;
+
             OpenStatus = Convert.ToUInt32(house.OpenStatus);
 
             if (house.MonarchId != null)
                 MonarchID = new ObjectGuid(house.MonarchId.Value);      // for allegiance guest/storage access
-
-            Table = new Dictionary<ObjectGuid, uint>();
 
             foreach (var guest in house.Guests)
             {
@@ -44,7 +46,8 @@ namespace ACE.Server.Network.Structure
             // add in players on house owner's account
             var owner = PlayerManager.FindByGuid(house.HouseOwner.Value);
 
-            if (owner == null)
+            // added for people deleting accounts from their account db...
+            if (owner == null || owner.Account == null)
             {
                 Console.WriteLine($"RestrictionDB({house.HouseInstance:X8}): couldn't find house owner {house.HouseOwner:X8}");
                 return;
