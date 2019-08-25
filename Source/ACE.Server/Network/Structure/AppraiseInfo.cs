@@ -603,7 +603,7 @@ namespace ACE.Server.Network.Structure
         private void BuildHookProfile(WorldObject hookedItem)
         {
             HookProfile = new HookProfile();
-            if (hookedItem.Inscription != null)
+            if (hookedItem.Inscribable)
                 HookProfile.Flags |= HookFlags.Inscribable;
             if (hookedItem is Healer)
                 HookProfile.Flags |= HookFlags.IsHealer;
