@@ -605,20 +605,16 @@ namespace ACE.Server.Network.Structure
             HookProfile = new HookProfile();
             if (hookedItem.Inscription != null)
                 HookProfile.Flags |= HookFlags.Inscribable;
+            if (hookedItem is Healer)
+                HookProfile.Flags |= HookFlags.IsHealer;
+            if (hookedItem is Food)
+                HookProfile.Flags |= HookFlags.IsFood;
+            if (hookedItem is Lockpick)
+                HookProfile.Flags |= HookFlags.IsLockpick;
             if (hookedItem.ValidLocations != null)
-                HookProfile.ValidLocations = (uint)hookedItem.ValidLocations;
-
-            // This only handles basic Arrow, Quarrels and Darts. It does not, for instance, handle Crystal Arrows.
-            // How were those handled?
+                HookProfile.ValidLocations = hookedItem.ValidLocations.Value;
             if (hookedItem.AmmoType != null)
-            {
-                if ((hookedItem.AmmoType & AmmoType.Arrow) != 0)
-                    HookProfile.AmmoType |= HookAmmoType.Arrow;
-                if ((hookedItem.AmmoType & AmmoType.Bolt) != 0)
-                    HookProfile.AmmoType |= HookAmmoType.Bolt;
-                if ((hookedItem.AmmoType & AmmoType.Atlatl) != 0)
-                    HookProfile.AmmoType |= HookAmmoType.Dart;
-            }
+                HookProfile.AmmoType = hookedItem.AmmoType.Value;
         }
 
         /// <summary>
