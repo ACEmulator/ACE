@@ -87,27 +87,25 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        /// <summary>
-        /// This will return true of the object was being tracked and has successfully been removed.
-        /// </summary>
-        public bool RemoveTrackedObject(WorldObject worldObject, bool fromPickup)
+        public void RemoveTrackedObject(WorldObject wo, bool fromPickup)
         {
-            //Console.WriteLine($"Player {Name} - RemoveTrackedObject({remove})");
+            //log.Info($"{Name}.RemoveTrackedObject({wo.Name} ({wo.Guid}), {fromPickup})");
 
-            if (fromPickup && !worldObject.WielderId.HasValue)
-                Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
-            else if (fromPickup && worldObject.WielderId.HasValue)
-                Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject), new GameMessageParentEvent(worldObject.Wielder, worldObject, (int)worldObject.ParentLocation, (int)worldObject.Placement));
+            if (fromPickup)
+            {
+                Session.Network.EnqueueSend(new GameMessagePickupEvent(wo));
+
+                if (wo.WielderId != null && (wo.ParentLocation ?? 0) != 0)
+                    Session.Network.EnqueueSend(new GameMessageParentEvent(wo.Wielder, wo));
+            }
             else
-                Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(wo));
 
-            if (worldObject is Creature creature)
+            if (wo is Creature creature)
             {
                 foreach (var wieldedItem in creature.EquippedObjects.Values)
                     RemoveTrackedEquippedObject(creature, wieldedItem);
             }
-
-            return true;
         }
 
 
