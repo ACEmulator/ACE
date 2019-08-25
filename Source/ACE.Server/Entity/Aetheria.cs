@@ -194,7 +194,7 @@ namespace ACE.Server.Entity
             // rng select a surge spell
             var surgeSpell = (SpellId)ThreadSafeRandom.Next(5204, 5208);
 
-            target.Biota.GetOrAddKnownSpell((int)surgeSpell, target.BiotaDatabaseLock, target.BiotaPropertySpells, out _);
+            //target.Biota.GetOrAddKnownSpell((int)surgeSpell, target.BiotaDatabaseLock, target.BiotaPropertySpells, out _);
 
             target.SetProperty(PropertyDataId.ProcSpell, (uint)surgeSpell);
             //target.SetProperty(PropertyFloat.ProcSpellRate, 0.05f);   // proc rate for aetheria?

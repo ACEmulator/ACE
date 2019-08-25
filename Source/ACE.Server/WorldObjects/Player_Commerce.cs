@@ -361,6 +361,14 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
+                if (item.Value < 1)
+                {
+                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} has no value and cannot be sold.")); // retail message did not include item name, leaving in that for now.
+
+                    continue;
+                }
+
                 sellList.Add(item);
             }
 

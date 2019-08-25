@@ -13,13 +13,10 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write((uint)skill);
             Writer.Write(0);    // not salvagable item guid list?
             Writer.Write(messages.Count);
-            var augBonus = 0;
             foreach (var message in messages)
-            {
                 Writer.Write(new SalvageResult(message));
-                augBonus += message.AugBonus;
-            }
-            Writer.Write(augBonus);
+
+            Writer.Write(skill == Skill.Salvaging ? session.Player.AugmentationBonusSalvage * 25 : 0);
         }
     }
 }

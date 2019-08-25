@@ -74,12 +74,13 @@ namespace ACE.Server.Network.Structure
                 //foreach (var officer in allegiance.Officers)
                     //officers.Add(officer.Key, (AllegianceOfficerLevel)officer.Value.Player.AllegianceOfficerRank);
 
-                if (allegiance.HasCustomTitles)
+                // not in retail packets, breaks decal
+                /*if (allegiance.HasCustomTitles)
                 {
                     officerTitles.Add(allegiance.GetOfficerTitle(AllegianceOfficerLevel.Speaker));
                     officerTitles.Add(allegiance.GetOfficerTitle(AllegianceOfficerLevel.Seneschal));
                     officerTitles.Add(allegiance.GetOfficerTitle(AllegianceOfficerLevel.Castellan));
-                }
+                }*/
 
                 allegianceName = allegiance.AllegianceName ?? allegiance.Monarch.Player.Name;
                 //motd = allegiance.AllegianceMotd ?? "";
