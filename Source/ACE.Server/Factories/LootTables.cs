@@ -9,87 +9,87 @@ namespace ACE.Server.Factories
     public static class LootTables
     {
         /// <summary>
-        /// The following data is materialID/material value modifier
+        /// A mapping of MaterialTypes to value modifiers
         /// </summary>
         private static Dictionary<int, double> materialModifier = new Dictionary<int, double>()
-                                            {
-                                                {1, 1}, //ceramic
-                                                {2, 1.5}, //pocelain
-                                                {3, 1}, //cloth
-                                                {4, 1}, //linen
-                                                {5, 1.4}, // satin
-                                                {6, 1.8}, //silk
-                                                {7, 1.8}, //velvet
-                                                {8, 1}, //wool
-                                                {10, 1.2}, //agate
-                                                {11, 1.4}, //amber
-                                                {12, 1.6}, //amethyst
-                                                {13, 1.8}, //aquamarine
-                                                {14, 1.2}, //azurite
-                                                {15, 1.6}, //black garnet
-                                                {16, 2}, //black opal
-                                                {17, 1.4}, //bloodstone
-                                                {18, 1.4}, //carnelian
-                                                {19, 1.4}, //citrine
-                                                {20, 2.5}, //diamond
-                                                {21, 1.2}, //emerald
-                                                {22, 2}, //fire opal
-                                                {23, 1}, //green garnet
-                                                {24, 1.6}, //green jade
-                                                {25, 1.4}, //hematite
-                                                {26, 2}, //imperial topaz
-                                                {27, 1.6}, //jet
-                                                {28, 1.2}, //lapis lazuli
-                                                {29, 2}, //lavender jade
-                                                {30, 1.2}, //malachite
-                                                {31, 1.4}, //moonstone
-                                                {32, 1.4}, //onyx
-                                                {33, 1.2}, //opal
-                                                {34, 1.8}, //peridot
-                                                {35, 1}, //red garnet
-                                                {36, 2}, //red jade
-                                                {37, 1.4}, //rose quartz
-                                                {38, 2.5}, //ruby
-                                                {39, 2.5}, //sapphire
-                                                {40, 1.2}, //smokey quartz
-                                                {41, 2}, //sunstone
-                                                {42, 1.2}, //tiger eye
-                                                {43, 1.6}, //tourmaline
-                                                {44, 1.2}, //turquoise
-                                                {45, 1.6}, //white jade
-                                                {46, 1.2}, //white quartz
-                                                {47, 2}, //white sapphire
-                                                {48, 1.6}, //yellow garnet
-                                                {49, 2}, //yellow topaz
-                                                {50, 1.5}, //zircon
-                                                {51, 1}, //ivory
-                                                {52, 1}, //leather
-                                                {53, 1.2}, //amerodillo
-                                                {54, 1.2}, //gromnie
-                                                {55, 1.2}, //reedshark hide
-                                                {56, 1}, //metal
-                                                {57, 1.2}, //brass
-                                                {58, 1.2}, //bronze
-                                                {59, 1.1}, //copper
-                                                {60, 1.8}, //gold
-                                                {61, 1.3}, //iron
-                                                {62, 2.0}, //pyreal
-                                                {63, 1.6}, //silver
-                                                {64, 1.4}, //steel
-                                                {65, 1}, //stone
-                                                {70, 1}, //sandstone
-                                                {67, 1.2}, //granite
-                                                {66, 1.4}, //alabaster
-                                                {68, 1.6}, //marble
-                                                {69, 1.8}, //obsidian
-                                                {71, 2}, //serpentine
-                                                {72, 1}, //wood
-                                                {76, 1}, //pine
-                                                {77, 1.2}, //teak
-                                                {75, 1.4}, //oak
-                                                {74, 1.8}, //mahogany
-                                                {73, 2.0} //ebony
-                                            };
+        {
+            { 1,  1.0 }, // Ceramic
+            { 2,  1.5 }, // Porcelain
+            { 3,  1.0 }, // Cloth ====
+            { 4,  1.0 }, // Linen
+            { 5,  1.4 }, // Satin
+            { 6,  1.8 }, // Silk
+            { 7,  1.8 }, // Velvet
+            { 8,  1.0 }, // Wool
+            { 10, 1.2 }, // Agate
+            { 11, 1.4 }, // Amber
+            { 12, 1.6 }, // Amethyst
+            { 13, 1.8 }, // Aquamarine
+            { 14, 1.2 }, // Azurite
+            { 15, 1.6 }, // Black Garnet
+            { 16, 2.0 }, // Black Opal
+            { 17, 1.4 }, // Bloodstone
+            { 18, 1.4 }, // Carnelian
+            { 19, 1.4 }, // Citrine
+            { 20, 2.5 }, // Diamond
+            { 21, 1.2 }, // Emerald
+            { 22, 2.0 }, // Fire Opal
+            { 23, 1.0 }, // Green Garnet
+            { 24, 1.6 }, // Green Jade
+            { 25, 1.4 }, // Hematite
+            { 26, 2.0 }, // Imperial Topaz
+            { 27, 1.6 }, // Jet
+            { 28, 1.2 }, // Lapis Lazuli
+            { 29, 2.0 }, // Lavender Jade
+            { 30, 1.2 }, // Malachite
+            { 31, 1.4 }, // Moonstone
+            { 32, 1.4 }, // Onyx
+            { 33, 1.2 }, // Opal
+            { 34, 1.8 }, // Peridot
+            { 35, 1.0 }, // Red Garnet
+            { 36, 2.0 }, // Red Jade
+            { 37, 1.4 }, // Rose Quartz
+            { 38, 2.5 }, // Ruby
+            { 39, 2.5 }, // Sapphire
+            { 40, 1.2 }, // Smokey Quartz
+            { 41, 2.0 }, // Sunstone
+            { 42, 1.2 }, // Tiger Eye
+            { 43, 1.6 }, // Tourmaline
+            { 44, 1.2 }, // Turquoise
+            { 45, 1.6 }, // White Jade
+            { 46, 1.2 }, // White Quartz
+            { 47, 2.0 }, // White Sapphire
+            { 48, 1.6 }, // Yellow Garnet
+            { 49, 2.0 }, // Yellow Topaz
+            { 50, 1.5 }, // Zircon
+            { 51, 1.0 }, // Ivory
+            { 52, 1.0 }, // Leather
+            { 53, 1.2 }, // Armoredillo Hide
+            { 54, 1.2 }, // Gromnie Hide
+            { 55, 1.2 }, // Reedshark Hide
+            { 56, 1.0 }, // Metal ====
+            { 57, 1.2 }, // Brass
+            { 58, 1.2 }, // Bronze
+            { 59, 1.1 }, // Copper
+            { 60, 1.8 }, // Gold
+            { 61, 1.3 }, // Iron
+            { 62, 2.0 }, // Pyreal
+            { 63, 1.6 }, // Silver
+            { 64, 1.4 }, // Steel
+            { 65, 1.0 }, // Stone ====
+            { 66, 1.4 }, // Alabaster
+            { 67, 1.2 }, // Granite
+            { 68, 1.6 }, // Marble
+            { 69, 1.8 }, // Obsidian
+            { 70, 1.0 }, // Sandstone
+            { 71, 2.0 }, // Serpentine
+            { 72, 1.0 }, // Wood ====
+            { 73, 2.0 }, // Ebony
+            { 74, 1.8 }, // Mahogany
+            { 75, 1.4 }, // Oak
+            { 76, 1.0 }, // Pine
+            { 77, 1.2 }, // Teak
+        };
 
         public static double getMaterialValueModifier(WorldObject wo)
         {
@@ -112,50 +112,50 @@ namespace ACE.Server.Factories
         }
 
         public static Dictionary<int, int> gemValues = new Dictionary<int, int>()
-                                            {
-                                                {10, 100}, //agate
-                                                {11, 500}, //amber
-                                                {12, 1000}, //amethyst
-                                                {13, 2500}, //aquamarine
-                                                {14, 100}, //azurite
-                                                {15, 1000}, //black garnet
-                                                {16, 5000}, //black opal
-                                                {17, 500}, //bloodstone
-                                                {18, 500}, //carnelian
-                                                {19, 500}, //citrine
-                                                {20, 10000}, //diamond
-                                                {21, 10000}, //emerald
-                                                {22, 5000}, //fire opal
-                                                {23, 2500}, //green garnet
-                                                {24, 1000}, //green jade
-                                                {25, 500}, //hematite
-                                                {26, 5000}, //imperial topaz
-                                                {27, 1000}, //jet
-                                                {28, 100}, //lapis lazuli
-                                                {29, 5000}, //lavender jade
-                                                {30, 100}, //malachite
-                                                {31, 500}, //moonstone
-                                                {32, 500}, //onyx
-                                                {33, 2500}, //opal
-                                                {34, 2500}, //peridot
-                                                {35, 1000}, //red garnet
-                                                {36, 5000}, //red jade
-                                                {37, 500}, //rose quartz
-                                                {38, 10000}, //ruby
-                                                {39, 10000}, //sapphire
-                                                {40, 100}, //smokey quartz
-                                                {41, 5000}, //sunstone
-                                                {42, 100}, //tiger eye
-                                                {43, 1000}, //tourmaline
-                                                {44, 100}, //turquoise
-                                                {45, 1000}, //white jade
-                                                {46, 100}, //white quartz
-                                                {47, 5000}, //white sapphire
-                                                {48, 1000}, //yellow garnet
-                                                {49, 2500}, //yellow topaz
-                                                {50, 1000}, //zircon
-                                                {51, 100} //ivory
-                                            };
+        {
+            { 10, 100 },    // Agate
+            { 11, 500 },    // Amber
+            { 12, 1000 },   // Amethyst
+            { 13, 2500 },   // Aquamarine
+            { 14, 100 },    // Azurite
+            { 15, 1000 },   // Black Garnet
+            { 16, 5000 },   // Black Opal
+            { 17, 500 },    // Bloodstone
+            { 18, 500 },    // Carnelian
+            { 19, 500 },    // Citrine
+            { 20, 10000 },  // Diamond
+            { 21, 10000 },  // Emerald
+            { 22, 5000 },   // Fire Opal
+            { 23, 2500 },   // Green Garnet
+            { 24, 1000 },   // Green Jade
+            { 25, 500 },    // Hematite
+            { 26, 5000 },   // Imperial Topaz
+            { 27, 1000 },   // Jet
+            { 28, 100 },    // Lapis Lazuli
+            { 29, 5000 },   // Lavender Jade
+            { 30, 100 },    // Malachite
+            { 31, 500 },    // Moonstone
+            { 32, 500 },    // Onyx
+            { 33, 2500 },   // Opal
+            { 34, 2500 },   // Peridot
+            { 35, 1000 },   // Red Garnet
+            { 36, 5000 },   // Red Jade
+            { 37, 500 },    // Rose Quartz
+            { 38, 10000 },  // Ruby
+            { 39, 10000 },  // Sapphire
+            { 40, 100 },    // Smokey Quartz
+            { 41, 5000 },   // Sunstone
+            { 42, 100 },    // Tiger Eye
+            { 43, 1000 },   // Tourmaline
+            { 44, 100 },    // Turquoise
+            { 45, 1000 },   // White Jade
+            { 46, 100 },    // White Quartz
+            { 47, 5000 },   // White Sapphire
+            { 48, 1000 },   // Yellow Garnet
+            { 49, 2500 },   // Yellow Topaz
+            { 50, 1000 },   // Zircon
+            { 51, 100 }     // Ivory
+        };
 
         public static readonly int[][] SummoningEssencesMatrix =
         {
@@ -1034,50 +1034,51 @@ namespace ACE.Server.Factories
 
         public static readonly int[] WarWallScrollSpells = { 1839, 1840, 1841, 1842, 1843, 1844, 1845 };
 
-        public static readonly Dictionary<int, String> gemNames = new Dictionary<int, String>()
-                                                            {
-                                                                {10, "Agate"},
-                                                                {11, "Amber"},
-                                                                {12, "Amethyst"},
-                                                                {13, "Aquamarine"},
-                                                                {14, "Azurite"},
-                                                                {15, "Black Garnet"},
-                                                                {16, "Black Opal"},
-                                                                {17, "Bloodstone"},
-                                                                {18, "Carnelian"},
-                                                                {19, "Citrine"},
-                                                                {20, "Diamond"},
-                                                                {21, "Emerald"},
-                                                                {22, "Fire Opal"},
-                                                                {23, "Green Garnet"},
-                                                                {24, "Green Jade"},
-                                                                {25, "Hematite"},
-                                                                {26, "Imperial Topaz"},
-                                                                {27, "Jet"},
-                                                                {28, "Lapis Lazuli"},
-                                                                {29, "Lavender Jade"},
-                                                                {30, "Malachite"},
-                                                                {31, "Moonstone"},
-                                                                {32, "Onyx"},
-                                                                {33, "Opal"},
-                                                                {34, "Peridot"},
-                                                                {35, "Red Garnet"},
-                                                                {36, "Red Jade"},
-                                                                {37, "Rose Quartz"},
-                                                                {38, "Ruby"},
-                                                                {39, "Sapphire"},
-                                                                {40, "Smokey Quartz"},
-                                                                {41, "Sunstone"},
-                                                                {42, "Tiger Eye"},
-                                                                {43, "Tourmaline"},
-                                                                {44, "Turquoise"},
-                                                                {45, "White Jade"},
-                                                                {46, "White Quartz"},
-                                                                {47, "White Sapphire"},
-                                                                {48, "Yellow Garnet"},
-                                                                {49, "Yellow Topaz"},
-                                                                {50, "Zircon"}
-                                                            };
+        // TODO: replace with GetMaterialName()
+        public static readonly Dictionary<int, string> gemNames = new Dictionary<int, string>()
+        {
+            { 10, "Agate" },
+            { 11, "Amber" },
+            { 12, "Amethyst" },
+            { 13, "Aquamarine" },
+            { 14, "Azurite" },
+            { 15, "Black Garnet" },
+            { 16, "Black Opal" },
+            { 17, "Bloodstone" },
+            { 18, "Carnelian" },
+            { 19, "Citrine" },
+            { 20, "Diamond" },
+            { 21, "Emerald" },
+            { 22, "Fire Opal" },
+            { 23, "Green Garnet" },
+            { 24, "Green Jade" },
+            { 25, "Hematite" },
+            { 26, "Imperial Topaz" },
+            { 27, "Jet" },
+            { 28, "Lapis Lazuli" },
+            { 29, "Lavender Jade" },
+            { 30, "Malachite" },
+            { 31, "Moonstone" },
+            { 32, "Onyx" },
+            { 33, "Opal" },
+            { 34, "Peridot" },
+            { 35, "Red Garnet" },
+            { 36, "Red Jade" },
+            { 37, "Rose Quartz" },
+            { 38, "Ruby" },
+            { 39, "Sapphire" },
+            { 40, "Smokey Quartz" },
+            { 41, "Sunstone" },
+            { 42, "Tiger Eye" },
+            { 43, "Tourmaline" },
+            { 44, "Turquoise" },
+            { 45, "White Jade" },
+            { 46, "White Quartz" },
+            { 47, "White Sapphire" },
+            { 48, "Yellow Garnet" },
+            { 49, "Yellow Topaz" },
+            { 50, "Zircon" }
+        };
 
         public static readonly int[][] ArmorSpells =
         {
@@ -1859,382 +1860,381 @@ namespace ACE.Server.Factories
 
         public static readonly int[] MiscClothing =
         {
-            107, // Sollerets
-            117, // Breeches
-            118, // Cloth Cap
-            119, // Cowl
-            120, // Quilted Drawers
-            121, // Cloth gloves
-            126, // Leggings
-            127, // Pants
-            128, // Qafiya
-            129, // Sandals
-            132, // Shoes
-            133, // Slippers
-            134, // Tunic
-            135, // Turban
-            2587, // Shirt
-            2589, // Smock
-            2592, // Tunic
-            2593, // Tunic
-            2594, // Tunic
-            2595, // Tunic
-            2597, // Pants
-            2598, // Pants
-            2599, // Trousers
-            2600, // Pantaloons
-            2601, // Pants
-            2602, // Breeches
-            2603, // Breeches
-            2604, // Breeches
-            5894, // Fez
-            5901, // Kasa
-            5905, // Hood
-            7897, // Steel Toed Boots
-            12254, // Pants
-            14798, // Empyrean Pants
-            28605, // Beret
-            28606, // Viamontian Pants
-            28607, // Lace Shirt
-            28608, // Poet's Shirt
-            28609, // Vest
-            28610, // Loafers
-            28611, // Viamontian Laced Boots
-            28612, // bandana
-            28609, // Toga
-            31236, // Beret
-            31237, // Loafers
-            31238, // Viamontian Leggings
-            31239, // Poet's Shirt
-            44975  // Hood
+            107,    // Sollerets
+            117,    // Breeches
+            118,    // Cloth Cap
+            119,    // Cowl
+            121,    // Cloth gloves
+            124,    // Gloves
+            127,    // Pants
+            128,    // Qafiya
+            129,    // Sandals
+            130,    // Shirt
+            132,    // Shoes
+            133,    // Slippers
+            134,    // Tunic
+            135,    // Turban
+            2587,   // Shirt
+            2588,   // Flared Shirt
+            2589,   // Smock
+            2590,   // Baggy Shirt
+            2591,   // Puffy Shirt
+            2592,   // Tunic
+            2593,   // Tunic
+            2594,   // Tunic
+            2595,   // Tunic
+            2596,   // Doublet
+            2597,   // Pants
+            2598,   // Pants
+            2599,   // Trousers
+            2600,   // Pantaloons
+            2601,   // Pants
+            2602,   // Breeches
+            2603,   // Breeches
+            2604,   // Breeches
+            5894,   // Fez
+            5901,   // Kasa
+            7897,   // Steel Toed Boots
+            28605,  // Beret
+            28606,  // Viamontian Pants
+            28607,  // Lace Shirt
+            28608,  // Poet's Shirt
+            28609,  // Vest
+            28610,  // Loafers
+            28611,  // Viamontian Laced Boots
+            28612,  // Bandana
+            44975   // Hood
         };
 
         public static readonly int[] ringItems =
         {
-            297,    // ring type 1
-            624     // ring type 2
+            297,    // Ring - Type 1
+            624     // Ring - Type 2
         };
 
         public static readonly int[] braceletItems =
         {
-            295,    // bracelet
-            621     // heavy bracelet
+            295,    // Bracelet
+            621     // Heavy Bracelet
         };
 
         public static readonly int[] necklaceItems =
         {
-            294,    // amulet
-            622,    // necklace
-            623,    // heavy necklace
-            2367    // gorget
+            294,    // Amulet
+            622,    // Necklace
+            623,    // Heavy Necklace
+            2367    // Gorget
         };
 
         public static readonly int[] Helms =
         {
-            46, // Metal Cap
-            8489, // Heaume
-            75, // Helmet
-            76, // Horned Helm
-            77, // Kabuton
-            296, // Crown
-            550, // Baigha
-            8488, // Armet
-            31865 // Circlet
+            46,     // Metal Cap
+            75,     // Helmet
+            76,     // Horned Helm
+            77,     // Kabuton
+            296,    // Crown
+            550,    // Baigha
+            8488,   // Armet
+            8489,   // Heaume
+            31865   // Circlet
         };
 
         public static readonly int[] Shields =
         {
-            44, // Buckler
-            91, // Kite Shield
-            92, // Large Kite Shield
-            93, // Round Shield
-            95 // Round Tower Shield
+            44,     // Buckler
+            91,     // Kite Shield
+            92,     // Large Kite Shield
+            93,     // Round Shield
+            94,     // Large Round Shield
+            95      // Round Tower Shield
         };
 
         public static readonly int[] LeatherArmor =
         {
-            25636,
-            25640,
-            25639,
-            25641,
-            25638,
-            25651,
-            25642,
-            25637,
-            25648,
-            25643,
-            25650,
-            25647,
-            25645,
-            25652,
-            25644,
-            25661
+            25636,  // Leather Helm
+            25637,  // Leather Bracers
+            25638,  // Leather Vest
+            25639,  // Leather Jerkin
+            25640,  // Leather Cowl
+            25641,  // Leather Cuirass
+            25642,  // Leather Gauntlets
+            25643,  // Leather Girth
+            25644,  // Leather Greaves
+            25645,  // Leather Leggings
+            25646,  // Long Leather Gauntlets
+            25647,  // Leather Pants
+            25648,  // Leather Pauldrons
+            25649,  // Leather Shirt
+            25650,  // Leather Shorts
+            25651,  // Leather Sleeves
+            25652,  // Leather Tassets
+            25661   // Leather Boots
         };
 
         public static readonly int[] StuddedLeatherArmor =
         {
-            554,
-            116,
-            38,
-            42,
-            48,
-            723,
-            53,
-            59,
-            63,
-            68,
-            68,
-            89,
-            99,
-            105,
-            112
+            38,     // Studded Leather Bracers
+            42,     // Studded Leather Breastplate
+            48,     // Studded Leather Coat
+            53,     // Studded Leather Cuirass
+            59,     // Studded Leather Gauntlets
+            63,     // Studded Leather Girth
+            68,     // Studded Leather Greaves
+            89,     // Studded Leather Pauldrons
+            99,     // Studded Leather Shirt
+            105,    // Studded Leather Sleeves
+            112,    // Studded Leather Tassets
+            116,    // Studded Leather Boots
+            554,    // Studded Leather Bassinet
+            723     // Studded Leather Cowl
         };
 
         public static readonly int[] ChainmailArmor =
         {
-            35,
-            413,
-            414,
-            85,
-            55,
-            415,
-            2605,
-            71,
-            80,
-            416,
-            96,
-            101,
-            108
+            35,     // Chainmail Basinet
+            55,     // Chainmail Gauntlets
+            71,     // Chainmail Hauberk
+            80,     // Chainmail Leggings
+            85,     // Chainmail Coif
+            96,     // Chainmail Shirt
+            101,    // Chainmail Sleeves
+            108,    // Chainmail Tassets
+            413,    // Chainmail Bracers
+            414,    // Chainmail Breastplate
+            415,    // Chainmail Girth
+            416,    // Chainmail Pauldrons
+            2605    // Chainmail Greaves
         };
 
         public static readonly int[] PlatemailArmor =
         {
-            40,
-            51,
-            57,
-            61,
-            66,
-            72,
-            82,
-            87,
-            103,
-            110,
-            114
+            40,     // Platemail Breastplate
+            51,     // Platemail Cuirass
+            57,     // Platemail Gauntlets
+            61,     // Platemail Girth
+            66,     // Platemail Greaves
+            72,     // Platemail Hauberk
+            82,     // Platemail Leggings
+            87,     // Platemail Pauldrons
+            103,    // Platemail Sleeves
+            110,    // Platemail Tassets
+            114     // Platemail Vambraces
         };
 
         public static readonly int[] ScalemailArmor =
         {
-            552,
-            37,
-            41,
-            793,
-            52,
-            58,
-            62,
-            67,
-            73,
-            83,
-            88,
-            98,
-            104,
-            111
-};
+            37,     // Scalemail Bracers
+            41,     // Scalemail Breastplate
+            52,     // Scalemail Cuirass
+            58,     // Scalemail Gauntlets
+            62,     // Scalemail Girth
+            67,     // Scalemail Greaves
+            73,     // Scalemail Hauberk
+            83,     // Scalemail Leggings
+            88,     // Scalemail Pauldrons
+            98,     // Scalemail Shirt
+            104,    // Scalemail Sleeves
+            111,    // Scalemail Tassets
+            552,    // Scalemail Bassinet
+            793     // Scalemail Coif
+        };
 
         public static readonly int[] YoroiArmor =
         {
-            43,
-            54,
-            64,
-            69,
-            2437,
-            90,
-            106,
-            113
+            43,     // Yoroi Breastplate
+            54,     // Yoroi Cuirass
+            64,     // Yoroi Girth
+            69,     // Yoroi Greaves
+            78,     // Kote
+            90,     // Yoroi Pauldrons
+            106,    // Yoroi Sleeves
+            113,    // Yoroi Tassets
+            2437    // Yoroi Leggings
         };
 
         public static readonly int[] DiforsaArmor =
         {
-            28627,
-            28628,
-            28630,
-            28632,
-            28633,
-            28634,
-            30948,
-            28618,
-            28621,
-            28623,
-            30949,
-            28625,
-            28626
+            28618,  // Diforsa Helm
+            28621,  // Diforsa Leggings
+            28623,  // Diforsa Pauldrons
+            28625,  // Diforsa Sollerets
+            28626,  // Diforsa Tassets
+            28627,  // Diforsa Bracers
+            28628,  // Diforsa Breastplate
+            28630,  // Diforsa Cuirass
+            28632,  // Diforsa Gauntlets
+            28633,  // Diforsa Girth
+            28634,  // Diforsa Greaves
+            30948,  // Diforsa Hauberk
+            30949,  // Diforsa Sleeves
         };
 
         public static readonly int[] CeldonArmor =
         {
-            6044,
-            6043,
-            6045,
-            6048
+            6043,   // Celdon Girth
+            6044,   // Celdon Breastplate
+            6045,   // Celdon Leggings
+            6048    // Celdon Sleeves
         };
 
         public static readonly int[] AmuliArmor =
         {
-            6046,
-            6047
+            6046,   // Amuli Coat
+            6047    // Amuli Leggings
         };
 
         public static readonly int[] KoujiaArmor =
         {
-            6003,
-            6004,
-            6005
+            6003,   // Koujia Breastplate
+            6004,   // Koujia Leggings
+            6005    // Koujia Sleeves
         };
 
         public static readonly int[] TenassaArmor =
         {
-            31026,
-            28622,
-            28624
+            28622,  // Tenassa Leggings
+            28624,  // Tenassa Sleeves
+            31026   // Tenassa Breastplate
         };
 
         public static readonly int[] CovenantArmor =
         {
-            21150, // Sollerets
-            21152, // Breastplate
-            21153, // Gauntlets
-            21154, // Girth
-            21155, // Greaves
-            21156, // Helm
-            21157, // Pauldrons
-            21159, // Tassets
-            21151, // Bracers
-            21158  // Shield
+            21150,  // Covenant Sollerets
+            21151,  // Covenant Bracers
+            21152,  // Covenant Breastplate
+            21153,  // Covenant Gauntlets
+            21154,  // Covenant Girth
+            21155,  // Covenant Greaves
+            21156,  // Covenant Helm
+            21157,  // Covenant Pauldrons
+            21158,  // Covenant Shield
+            21159   // Covenant Tassets
         };
 
         public static readonly int[] LoricaArmor =
         {
-            27220,
-            27221,
-            27222,
-            27223,
-            27224,
-            27225
+            27220,  // Lorica Boots
+            27221,  // Lorica Breastplate
+            27222,  // Lorica Gauntlets
+            27223,  // Lorica Helm
+            27224,  // Lorica Leggings
+            27225   // Lorica Sleeves
         };
 
         public static readonly int[] NariyidArmor =
         {
-            27226,
-            27227,
-            27228,
-            27229,
-            27230,
-            27231,
-            27232
+            27226,  // Nariyid Boots
+            27227,  // Nariyid Breastplate
+            27228,  // Nariyid Gauntlets
+            27229,  // Nariyid Girth
+            27230,  // Nariyid Helm
+            27231,  // Nariyid Leggings
+            27232   // Nariyid Sleeves
         };
 
         public static readonly int[] ChiranArmor =
         {
-            27215,
-            27216,
-            27217,
-            27218,
-            27219
+            27215,  // Chiran Coat
+            27216,  // Chiran Gauntlets
+            27217,  // Chiran Helm
+            27218,  // Chiran Leggings
+            27219   // Chiran Sandals
         };
 
         public static readonly int[] AlduressaArmor =
         {
-            30950,
-            28629,
-            30951,
-            28617,
-            28620
-};
+            28617,  // Alduressa Helm
+            28620,  // Alduressa Leggings
+            28629,  // Alduressa Coat
+            30950,  // Alduressa Boots
+            30951   // Alduressa Gauntlets
+        };
 
         public static readonly int[] KnorrAcademyArmor =
         {
-            43053,
-            43048,
-            43049,
-            43051,
-            43068,
-            43052,
-            43054,
-            43055
+            43048,  // Knorr Academy Breastplate
+            43049,  // Knorr Academy Gauntlets
+            43051,  // Knorr Academy Greaves
+            43052,  // Knorr Academy Pauldrons
+            43053,  // Knorr Academy Boots
+            43054,  // Knorr Academy Tassets
+            43055,  // Knorr Academy Vambraces
+            43068   // Knorr Academy Helm
         };
 
         public static readonly int[] SedgemailLeatherArmor =
         {
-            43829,
-            43830,
-            43831,
-            43832,
-            43833,
-            43828
+            43828,  // Sedgemail Leather Vest
+            43829,  // Sedgemail Leather Cowl
+            43830,  // Sedgemail Leather Gauntlets
+            43831,  // Sedgemail Leather Pants
+            43832,  // Sedgemail Leather Shoes
+            43833   // Sedgemail Leather Sleeves
         };
 
         public static readonly int[] HaebreanArmor =
         {
-            42755,
-            42749,
-            42750,
-            42751,
-            42752,
-            42753,
-            42754,
-            42756,
-            42757
+            42749,  // Haebrean Breastplate
+            42750,  // Haebrean Gauntlets
+            42751,  // Haebrean Girth
+            42752,  // Haebrean Greaves
+            42753,  // Haebrean Helm
+            42754,  // Haebrean Pauldrons
+            42755,  // Haebrean Boots
+            42756,  // Haebrean Tassets
+            42757   // Haebrean Vambraces
         };
 
         public static readonly int[] OlthoiArmor =
         {
-            37211, // Shoes
-            37216, // Breastplate
-            37191, // Gauntlets
-            37193, // Girth
-            37194, // Greaves
-            37199, // Helm
-            37204, // Pauldrons
-            37212, // Tassets
-            37213, // Bracers
-            37291  // Shield
+            37191,  // Olthoi Gauntlets
+            37193,  // Olthoi Girth
+            37194,  // Olthoi Greaves
+            37199,  // Olthoi Helm
+            37204,  // Olthoi Pauldrons
+            37211,  // Olthoi Shoes
+            37212,  // Olthoi Tassets
+            37213,  // Olthoi Bracers
+            37216,  // Olthoi Breastplate
+            37291   // Olthoi Shield
         };
 
         public static readonly int[] OlthoiAmuliArmor =
         {
-            37208,
-            37299,
-            37188,
-            37201,
-            37196
+            37188,  // Olthoi Amuli Gauntlets
+            37196,  // Olthoi Amuli Helm
+            37201,  // Olthoi Amuli Leggings
+            37208,  // Olthoi Amuli Sollerets
+            37299   // Olthoi Amuli Coat
         };
 
         public static readonly int[] OlthoiCeldonArmor =
         {
-            37209,
-            37214,
-            37189,
-            37202,
-            37192,
-            37205,
-            37197
+            37189,  // Olthoi Celdon Gauntlets
+            37192,  // Olthoi Celdon Girth
+            37197,  // Olthoi Celdon Helm
+            37202,  // Olthoi Celdon Leggings
+            37205,  // Olthoi Celdon Sleeves
+            37209,  // Olthoi Celdon Sollerets
+            37214   // Olthoi Celdon Breastplate
         };
 
         public static readonly int[] OlthoiKoujiaArmor =
         {
-            37215,
-            37190,
-            37203,
-            37206,
-            37198
+            37190,  // Olthoi Koujia Gauntlets
+            37198,  // Olthoi Koujia Kabuton
+            37203,  // Olthoi Koujia Leggings
+            37206,  // Olthoi Koujia Sleeves
+            37215   // Olthoi Koujia Breastplate
         };
 
         public static readonly int[] OlthoiAlduressaArmor =
         {
-            37207,
-            37217,
-            37187,
-            37200,
-            37195
+            37187,  // Olthoi Alduressa Gauntlets
+            37195,  // Olthoi Alduressa Helm
+            37200,  // Olthoi Alduressa Leggings
+            37207,  // Olthoi Alduressa Boots
+            37217   // Olthoi Alduressa Coat
         };
 
         // for logging epic/legendary drops
@@ -2258,6 +2258,43 @@ namespace ACE.Server.Factories
                 foreach (var category in cantripTable)
                     table.Add(category[tier]);
             }
+        }
+
+        private static Dictionary<ArmorType, int[]> armorTypeMap = new Dictionary<ArmorType, int[]>()
+        {
+            { ArmorType.MiscClothing,          MiscClothing },
+            { ArmorType.Helms,                 Helms },
+            { ArmorType.Shields,               Shields },
+            { ArmorType.LeatherArmor,          LeatherArmor },
+            { ArmorType.StuddedLeatherArmor,   StuddedLeatherArmor },
+            { ArmorType.ChainmailArmor,        ChainmailArmor },
+            { ArmorType.PlatemailArmor,        PlatemailArmor },
+            { ArmorType.ScalemailArmor,        ScalemailArmor },
+            { ArmorType.YoroiArmor,            YoroiArmor },
+            { ArmorType.DiforsaArmor,          DiforsaArmor },
+            { ArmorType.CeldonArmor,           CeldonArmor },
+            { ArmorType.AmuliArmor,            AmuliArmor },
+            { ArmorType.KoujiaArmor,           KoujiaArmor },
+            { ArmorType.TenassaArmor,          TenassaArmor },
+            { ArmorType.OverRobes,             OverRobes },
+            { ArmorType.CovenantArmor,         CovenantArmor },
+            { ArmorType.LoricaArmor,           LoricaArmor },
+            { ArmorType.NariyidArmor,          NariyidArmor },
+            { ArmorType.ChiranArmor,           ChiranArmor },
+            { ArmorType.AlduressaArmor,        AlduressaArmor },
+            { ArmorType.KnorrAcademyArmor,     KnorrAcademyArmor },
+            { ArmorType.SedgemailLeatherArmor, SedgemailLeatherArmor },
+            { ArmorType.HaebreanArmor,         HaebreanArmor },
+            { ArmorType.OlthoiArmor,           OlthoiArmor },
+            { ArmorType.OlthoiAmuliArmor,      OlthoiAmuliArmor },
+            { ArmorType.OlthoiCeldonArmor,     OlthoiCeldonArmor },
+            { ArmorType.OlthoiKoujiaArmor,     OlthoiKoujiaArmor },
+            { ArmorType.OlthoiAlduressaArmor,  OlthoiAlduressaArmor }
+        };
+
+        public static int[] GetLootTable(ArmorType armorType)
+        {
+            return armorTypeMap[armorType];
         }
     }
 }
