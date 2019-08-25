@@ -465,6 +465,13 @@ namespace ACE.Server.Managers
             // relink
             house.UpdateLinks();
 
+            if (house.HasDungeon)
+            {
+                var dungeonHouse = house.GetDungeonHouse();
+                if (dungeonHouse != null)
+                    dungeonHouse.UpdateLinks();
+            }
+
             // player slumlord 'off' animation
             var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
 
