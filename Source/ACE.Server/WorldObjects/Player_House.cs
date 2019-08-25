@@ -220,22 +220,6 @@ namespace ACE.Server.WorldObjects
                 // relink
                 house.UpdateLinks();
 
-                if (house.HasDungeon)
-                {
-                    var dungeonHouse = house.GetDungeonHouse();
-                    if (dungeonHouse != null)
-                    {
-                        dungeonHouse.HouseOwner = null;
-                        dungeonHouse.MonarchId = null;
-                        dungeonHouse.HouseOwnerName = null;
-
-                        dungeonHouse.UpdateLinks();
-                        dungeonHouse.SaveBiotaToDatabase();
-
-                        dungeonHouse.ClearRestrictions();
-                    }
-                }
-
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
                 slumlord.ClearInventory(true);
@@ -345,21 +329,6 @@ namespace ACE.Server.WorldObjects
 
             // relink
             house.UpdateLinks();
-
-            if (house.HasDungeon)
-            {
-                var dungeonHouse = house.GetDungeonHouse();
-                if (dungeonHouse != null)
-                {
-                    dungeonHouse.HouseOwner = Guid.Full;
-                    dungeonHouse.HouseOwnerName = Name;
-
-                    dungeonHouse.UpdateLinks();
-                    dungeonHouse.SaveBiotaToDatabase();
-                    
-                    dungeonHouse.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(dungeonHouse, PropertyInstanceId.HouseOwner, new ObjectGuid(dungeonHouse.HouseOwner ?? 0)));
-                }
-            }
 
             // notify client w/ HouseID
             Session.Network.EnqueueSend(new GameMessageSystemChat("Congratulations!  You now own this dwelling.", ChatMessageType.Broadcast));

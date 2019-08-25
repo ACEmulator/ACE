@@ -465,22 +465,6 @@ namespace ACE.Server.Managers
             // relink
             house.UpdateLinks();
 
-            if (house.HasDungeon)
-            {
-                var dungeonHouse = house.GetDungeonHouse();
-                if (dungeonHouse != null)
-                {
-                    dungeonHouse.HouseOwner = null;
-                    dungeonHouse.MonarchId = null;
-                    dungeonHouse.HouseOwnerName = null;
-
-                    dungeonHouse.UpdateLinks();
-                    dungeonHouse.SaveBiotaToDatabase();
-
-                    dungeonHouse.ClearRestrictions();
-                }
-            }
-
             // player slumlord 'off' animation
             slumlord.Off();
 
