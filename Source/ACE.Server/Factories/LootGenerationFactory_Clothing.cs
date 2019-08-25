@@ -46,11 +46,11 @@ namespace ACE.Server.Factories
 
             var armorType = (LootTables.ArmorType)ThreadSafeRandom.Next((int)minType, (int)maxType);
 
-            var table = LootTables.GetLootTable(armorType);
+            int[] table = LootTables.GetLootTable(armorType);
 
-            var rng = ThreadSafeRandom.Next(0, table.Length - 1);
+            int rng = ThreadSafeRandom.Next(0, table.Length - 1);
 
-            var armorWeenie = table[rng];
+            int armorWeenie = table[rng];
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)armorWeenie);
 
