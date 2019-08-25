@@ -237,6 +237,7 @@ namespace ACE.Server.Network.Structure
                     baseDescString = "This hook is owned by " + wo.ParentLink.HouseOwnerName + ". "; //if house is owned, display this text
                 }
 
+                var containsString = "";
                 if (hook.Inventory.Count == 1)
                 {
                     WorldObject hookedItem = hook.Inventory.First().Value;
@@ -244,21 +245,30 @@ namespace ACE.Server.Network.Structure
                     // Hooked items have a custom "description", containing the desc of the sub item and who the owner of the house is (if any)
                     BuildProfile(hookedItem, examiner, success);
 
+                    containsString = "It contains: \n";
+
                     if (PropertiesString.ContainsKey(PropertyString.LongDesc) && PropertiesString[PropertyString.LongDesc] != null)
                     {
-                        PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.LongDesc];
+                        containsString += PropertiesString[PropertyString.LongDesc];
                     }
                     else if (PropertiesString.ContainsKey(PropertyString.ShortDesc) && PropertiesString[PropertyString.ShortDesc] != null)
                     {
-                        PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.ShortDesc];
+                        containsString += PropertiesString[PropertyString.ShortDesc];
                     }
                     else
                     {
-                        PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.Name];
+                        containsString += PropertiesString[PropertyString.Name];
                     }
 
                     BuildHookProfile(hookedItem);
                 }
+
+                if (PropertiesString.ContainsKey(PropertyString.LongDesc) && PropertiesString[PropertyString.LongDesc] != null)
+                    PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
+                else if (PropertiesString.ContainsKey(PropertyString.ShortDesc) && PropertiesString[PropertyString.ShortDesc] != null)
+                    PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
+                else
+                    PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
             }
 
             if (wo is ManaStone)
