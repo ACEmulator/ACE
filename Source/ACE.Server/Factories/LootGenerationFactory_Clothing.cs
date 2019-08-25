@@ -62,7 +62,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.AppraisalItemSkill, 7);
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
 
-            var materialType = GetMaterialType(wo, tier);
+            int materialType = GetMaterialType(wo, tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
