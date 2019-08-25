@@ -273,7 +273,7 @@ namespace ACE.Server.WorldObjects
 
             var owner = PlayerManager.FindByGuid(HouseOwner.Value);
 
-            if (owner != null && owner.Account.AccountId == player.Account.AccountId)
+            if (owner != null && owner.Account != null && owner.Account.AccountId == player.Account.AccountId)
                 return true;
 
             // handle allegiance permissions
