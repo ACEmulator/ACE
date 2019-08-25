@@ -31,16 +31,12 @@ namespace ACE.Server.Factories
                     maxType = LootTables.ArmorType.HaebreanArmor;
                     break;
                 case 7:
-                    maxType = LootTables.ArmorType.OlthoiAlduressaArmor;
-                    break;
-
                 case 8:
                     maxType = LootTables.ArmorType.OlthoiAlduressaArmor;
 
                     // armor Mana Forge Chests don't include clothing type items
                     if (lootBias == LootBias.Armor)
                         minType = LootTables.ArmorType.Helms;
-
                     break;
             }
 
