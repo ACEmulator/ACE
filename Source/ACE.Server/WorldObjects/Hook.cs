@@ -171,7 +171,7 @@ namespace ACE.Server.WorldObjects
 
             item.EmoteManager.SetProxy(this);
 
-            // Here we explicilty save the hook to the database to prevent item loss.
+            // Here we explicitly save the hook to the database to prevent item loss.
             // If the player adds an item to the hook, and the server crashes before the hook has been saved, the item will be lost.
             SaveBiotaToDatabase();
 
@@ -216,7 +216,7 @@ namespace ACE.Server.WorldObjects
 
             if (Inventory.Count < 1)
             {
-                // Here we explicilty remove the hook from the database to avoid storing empty default objects.
+                // Here we explicitly remove the hook from the database to avoid storing empty default objects.
                 RemoveBiotaFromDatabase();
                 ChangesDetected = false; // This is changed to avoid a subsequent re-save back to shard.
             }
