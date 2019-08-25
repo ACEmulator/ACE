@@ -215,8 +215,6 @@ namespace ACE.Server.WorldObjects
                 house.HouseOwnerName = null;
                 house.ClearPermissions();
 
-                house.SaveBiotaToDatabase();
-
                 // relink
                 house.UpdateLinks();
 
@@ -225,26 +223,31 @@ namespace ACE.Server.WorldObjects
                     var dungeonHouse = house.GetDungeonHouse();
                     if (dungeonHouse != null)
                     {
+                        dungeonHouse.HouseOwner = null;
+                        dungeonHouse.MonarchId = null;
+                        dungeonHouse.HouseOwnerName = null;
+
                         dungeonHouse.UpdateLinks();
-                        dungeonHouse.SaveBiotaToDatabase();
+                        dungeonHouse.RemoveBiotaFromDatabase();
+                        dungeonHouse.ChangesDetected = false;
+
+                        dungeonHouse.ClearRestrictions();
                     }
                 }
 
+                house.RemoveBiotaFromDatabase();
+                house.ChangesDetected = false;
+
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
-                var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
-
-                slumlord.CurrentMotionState = off;
-                slumlord.EnqueueBroadcastMotion(off);
+                slumlord.ClearInventory(true);
+                slumlord.Off();
 
                 // reset slumlord name
-                var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
-                var wo = WorldObjectFactory.CreateWorldObject(weenie, ObjectGuid.Invalid);
-                slumlord.Name = wo.Name;
+                slumlord.SetAndBroadcastName();
 
-                slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
-
-                slumlord.SaveBiotaToDatabase();
+                slumlord.RemoveBiotaFromDatabase();
+                slumlord.ChangesDetected = false;
             }
 
             HouseId = null;
@@ -351,9 +354,12 @@ namespace ACE.Server.WorldObjects
                 var dungeonHouse = house.GetDungeonHouse();
                 if (dungeonHouse != null)
                 {
+                    dungeonHouse.HouseOwner = Guid.Full;
+                    dungeonHouse.HouseOwnerName = Name;
+
                     dungeonHouse.UpdateLinks();
                     dungeonHouse.SaveBiotaToDatabase();
-
+                    
                     dungeonHouse.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(dungeonHouse, PropertyInstanceId.HouseOwner, new ObjectGuid(dungeonHouse.HouseOwner ?? 0)));
                 }
             }
@@ -362,14 +368,13 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSystemChat("Congratulations!  You now own this dwelling.", ChatMessageType.Broadcast));
 
             // player slumlord 'on' animation
-            slumlord.EnqueueBroadcastMotion(new Motion(MotionStance.Invalid, MotionCommand.On));
+            slumlord.On();
 
             // set house name
-            slumlord.Name = $"{Name}'s {slumlord.Name}";
-            slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, slumlord.Name));
-           
-            slumlord.SaveBiotaToDatabase();
+            slumlord.SetAndBroadcastName(Name);
 
+            slumlord.SaveBiotaToDatabase();
+            
             SaveBiotaToDatabase();
 
             // set house data

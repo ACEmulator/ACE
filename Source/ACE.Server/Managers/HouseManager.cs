@@ -460,8 +460,6 @@ namespace ACE.Server.Managers
 
             house.ClearPermissions();
 
-            house.SaveBiotaToDatabase();
-
             // relink
             house.UpdateLinks();
 
@@ -470,24 +468,29 @@ namespace ACE.Server.Managers
                 var dungeonHouse = house.GetDungeonHouse();
                 if (dungeonHouse != null)
                 {
+                    dungeonHouse.HouseOwner = null;
+                    dungeonHouse.MonarchId = null;
+                    dungeonHouse.HouseOwnerName = null;
+
                     dungeonHouse.UpdateLinks();
-                    dungeonHouse.SaveBiotaToDatabase();
+                    dungeonHouse.RemoveBiotaFromDatabase();
+                    dungeonHouse.ChangesDetected = false;
+
+                    dungeonHouse.ClearRestrictions();
                 }
             }
 
-            // player slumlord 'off' animation
-            var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
+            house.RemoveBiotaFromDatabase();
+            house.ChangesDetected = false;
 
-            slumlord.CurrentMotionState = off;
-            slumlord.EnqueueBroadcastMotion(off);
+            // player slumlord 'off' animation
+            slumlord.Off();
 
             // reset slumlord name
-            var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
-            var wo = WorldObjectFactory.CreateWorldObject(weenie, ObjectGuid.Invalid);
-            slumlord.Name = wo.Name;
+            slumlord.SetAndBroadcastName();
 
-            slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
-            slumlord.SaveBiotaToDatabase();
+            slumlord.RemoveBiotaFromDatabase();
+            slumlord.ChangesDetected = false;
 
             // if evicting a multihouse owner's previous house,
             // no update for player properties

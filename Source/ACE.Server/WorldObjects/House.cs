@@ -202,12 +202,16 @@ namespace ACE.Server.WorldObjects
                 {
                     house = WorldObjectFactory.CreateWorldObject(biota) as House;
                     HouseOwner = house.HouseOwner;
+                    HouseOwnerName = house.HouseOwnerName;
                 }
             }
 
+            //Console.WriteLine($"House.SetLinkProperties({wo.Name}) (0x{wo.Guid}): WeenieType {wo.WeenieType} | HouseId:{house.HouseId} | HouseOwner: {house.HouseOwner} | HouseInstance: {house.HouseInstance} | HouseOwnerName: {house.HouseOwnerName}");
+            //Console.WriteLine($"House.SetLinkProperties({wo.Name}) (0x{wo.Guid}): WeenieType {wo.WeenieType} | HouseId:{house.HouseId} | HouseOwner: {house.HouseOwner} | HouseOwnerName: {house.HouseOwnerName}");
+
             wo.HouseId = house.HouseId;
             wo.HouseOwner = house.HouseOwner;
-            wo.HouseInstance = house.HouseInstance;
+            //wo.HouseInstance = house.HouseInstance;
             wo.HouseOwnerName = house.HouseOwnerName;
 
             if (house.HouseOwner != null && wo is SlumLord)
