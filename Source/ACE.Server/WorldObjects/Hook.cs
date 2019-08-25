@@ -218,7 +218,7 @@ namespace ACE.Server.WorldObjects
             {
                 // Here we explicilty remove the hook from the database to avoid storing empty default objects.
                 RemoveBiotaFromDatabase();
-                ChangesDetected = false;
+                ChangesDetected = false; // This is changed to avoid a subsequent re-save back to shard.
             }
         }
 
