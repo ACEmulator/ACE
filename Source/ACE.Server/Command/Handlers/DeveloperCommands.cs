@@ -415,7 +415,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Debug command to spawn the Barber UI
         /// </summary>
-        [CommandHandler("barbershop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("barbershop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Displays the barber ui")]
         public static void BarberShop(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameEventStartBarber(session));
@@ -950,7 +950,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Debug command to set player vitals to 1
         /// </summary>
-        [CommandHandler("harmself", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("harmself", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Sets all player vitals to 1")]
         public static void HarmSelf(Session session, params string[] parameters)
         {
             session.Player.UpdateVital(session.Player.Health, 1);
@@ -1450,7 +1450,7 @@ namespace ACE.Server.Command.Handlers
             Creature.ForcePos = enabled;
         }
 
-        [CommandHandler("lostest", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Tests for direct visibilty with latest appraised object", "lostest")]
+        [CommandHandler("lostest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Tests for direct visibilty with latest appraised object")]
         public static void HandleVisible(Session session, params string[] parameters)
         {
             // get the last appraised object
@@ -1513,7 +1513,7 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine(skill.Skill + ": " + skill.Current);
         }
 
-        [CommandHandler("givemana", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Gives mana to the last appraised object", "givemana <amount>")]
+        [CommandHandler("givemana", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Gives mana to the last appraised object", "<amount>")]
         public static void HandleGiveMana(Session session, params string[] parameters)
         {
             if (parameters.Length == 0) return;
@@ -1542,8 +1542,8 @@ namespace ACE.Server.Command.Handlers
             var dist = Vector3.Distance(sourcePos, targetPos);
             var dist2d = Vector2.Distance(new Vector2(sourcePos.X, sourcePos.Y), new Vector2(targetPos.X, targetPos.Y));
 
-            Console.WriteLine("Dist: " + dist);
-            Console.WriteLine("2D Dist: " + dist2d);
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Dist: {dist}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"2D Dist: {dist2d}", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -2015,13 +2015,13 @@ namespace ACE.Server.Command.Handlers
             session.Player.UpdateProperty(session.Player, PropertyInt.AetheriaBitfield, flags);
         }
 
-        [CommandHandler("debugchess", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Shows the chess move history for a player")]
+        [CommandHandler("debugchess", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the chess move history for a player")]
         public static void HandleDebugChess(Session session, params string[] parameters)
         {
             session.Player.ChessMatch?.DebugMove();
         }
 
-        [CommandHandler("debugboard", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Shows the current chess board state")]
+        [CommandHandler("debugboard", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the current chess board state")]
         public static void HandleDebugBoard(Session session, params string[] parameters)
         {
             session.Player.ChessMatch?.Logic?.DebugBoard();
@@ -2030,7 +2030,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Teleports directly to a dungeon by name or landblock
         /// </summary>
-        [CommandHandler("teledungeon", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "<dungeon name or landblock>")]
+        [CommandHandler("teledungeon", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleport to a dungeon", "<dungeon name or landblock>")]
         public static void HandleTeleDungeon(Session session, params string[] parameters)
         {
             var isBlock = true;
@@ -2200,7 +2200,7 @@ namespace ACE.Server.Command.Handlers
             log.Info($"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
         }
 
-        [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory. Syntax is \"lootgen (wcid) <tier>\"")]
+        [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory.", "<wcid> <tier>")]
         public static void HandleLootGen(Session session, params string[] parameters)
         {
             string weenieClassDescription = parameters[0];
@@ -2361,7 +2361,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// This is to add spells to items (whether loot or quest generated).  For making weapons to check damage from pcaps or other sources
         /// </summary>
-        [CommandHandler("additemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "/additemspell <spell id> - adds a spell to the last appraised item. Ex /additemspell 6089 - adds Legendary Bloodthirst")]
+        [CommandHandler("additemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Adds a spell to the last appraised item's spellbook.", "<spell id>")]
         public static void HandleAddItemSpell(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -2385,7 +2385,7 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("pktimer", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("pktimer", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Sets your PK timer to the current time")]
         public static void HandlePKTimer(Session session, params string[] parameters)
         {
             session.Player.UpdatePKTimer();
@@ -2393,7 +2393,7 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Updated PK timer", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("fellow-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("fellow-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows debug info for fellowships.")]
         public static void HandleFellowInfo(Session session, params string[] parameters)
         {
             var player = session.Player;
@@ -2543,7 +2543,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("purchase-house", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("purchase-house", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Instantly purchase the house for the last appraised covenant crystal.")]
         public static void HandlePurchaseHouse(Session session, params string[] parameters)
         {
             var slumlord = CommandHandlerHelper.GetLastAppraisedObject(session) as SlumLord;
@@ -2557,7 +2557,7 @@ namespace ACE.Server.Command.Handlers
             session.Player.GiveDeed();
         }
 
-        [CommandHandler("barrier-test", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("barrier-test", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows debug information for house barriers")]
         public static void HandleBarrierTest(Session session, params string[] parameters)
         {
             var cell = session.Player.Location.Cell;
@@ -2580,15 +2580,15 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine($"Barrier: {barrier}");
         }
 
-        [CommandHandler("targetloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("targetloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the location of the last appraised object")]
         public static void HandleTargetLoc(Session session, params string[] parameters)
         {
             var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (wo == null)
                 return;
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {wo.Location.ToLOCString()}", ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj.Position}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {wo.Location?.ToLOCString()}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj?.Position}", ChatMessageType.Broadcast));
         }
 
         [CommandHandler("remove-vitae", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Removes vitae from last appraised player")]

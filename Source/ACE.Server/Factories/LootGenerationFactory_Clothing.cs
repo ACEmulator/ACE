@@ -8,185 +8,45 @@ namespace ACE.Server.Factories
     {
         private static WorldObject CreateArmor(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
-            int materialType = 0;
-
-            int armorPiece = 0;
-            int armorType = 0;
-            int armorWeenie = 0;
+            var minType = LootTables.ArmorType.MiscClothing;
+            var maxType = new LootTables.ArmorType();
 
             switch (tier)
             {
                 case 1:
-                    armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.ChainmailArmor);
+                default:
+                    maxType = LootTables.ArmorType.ChainmailArmor;
                     break;
                 case 2:
-                    armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.DiforsaArmor);
+                    maxType = LootTables.ArmorType.DiforsaArmor;
                     break;
                 case 3:
-                    armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.CovenantArmor);
-                    break;
                 case 4:
-                    armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.CovenantArmor);
+                    maxType = LootTables.ArmorType.CovenantArmor;
                     break;
                 case 5:
-                    armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.AlduressaArmor);
+                    maxType = LootTables.ArmorType.AlduressaArmor;
                     break;
                 case 6:
-                    armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.HaebreanArmor);
+                    maxType = LootTables.ArmorType.HaebreanArmor;
                     break;
                 case 7:
-                    armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.OlthoiAlduressaArmor);
-                    break;
-                default:
-                    if (lootBias == LootBias.Armor) // Armor Mana Forge Chests don't include clothing type items
-                        armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.Helms, (int)LootTables.ArmorType.OlthoiAlduressaArmor);
-                    else
-                        armorType = ThreadSafeRandom.Next((int)LootTables.ArmorType.MiscClothing, (int)LootTables.ArmorType.OlthoiAlduressaArmor);
+                case 8:
+                    maxType = LootTables.ArmorType.OlthoiAlduressaArmor;
+
+                    // armor Mana Forge Chests don't include clothing type items
+                    if (lootBias == LootBias.Armor)
+                        minType = LootTables.ArmorType.Helms;
                     break;
             }
 
-            switch (armorType)
-            {
-                case (int)LootTables.ArmorType.MiscClothing:
-                    armorPiece = ThreadSafeRandom.Next(0, 47);
-                    armorWeenie = LootTables.MiscClothing[armorPiece];
-                    break;
+            var armorType = (LootTables.ArmorType)ThreadSafeRandom.Next((int)minType, (int)maxType);
 
-                case (int)LootTables.ArmorType.Helms:
-                    armorPiece = ThreadSafeRandom.Next(0, 8);
-                    armorWeenie = LootTables.Helms[armorPiece];
-                    break;
+            int[] table = LootTables.GetLootTable(armorType);
 
-                case (int)LootTables.ArmorType.Shields:
-                    armorPiece = ThreadSafeRandom.Next(0, 4);
-                    armorWeenie = LootTables.Shields[armorPiece];
-                    break;
+            int rng = ThreadSafeRandom.Next(0, table.Length - 1);
 
-                case (int)LootTables.ArmorType.LeatherArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 15);
-                    armorWeenie = LootTables.LeatherArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.StuddedLeatherArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 14);
-                    armorWeenie = LootTables.StuddedLeatherArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.ChainmailArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 12);
-                    armorWeenie = LootTables.ChainmailArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.PlatemailArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 10);
-                    armorWeenie = LootTables.PlatemailArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.ScalemailArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 13);
-                    armorWeenie = LootTables.ScalemailArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.YoroiArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 7);
-                    armorWeenie = LootTables.YoroiArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.DiforsaArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 12);
-                    armorWeenie = LootTables.DiforsaArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.CeldonArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 3);
-                    armorWeenie = LootTables.CeldonArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.AmuliArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 1);
-                    armorWeenie = LootTables.AmuliArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.KoujiaArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 2);
-                    armorWeenie = LootTables.KoujiaArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.TenassaArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 2);
-                    armorWeenie = LootTables.TenassaArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.OverRobes:
-                    armorPiece = ThreadSafeRandom.Next(0, 4);
-                    armorWeenie = LootTables.OverRobes[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.CovenantArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 9);
-                    armorWeenie = LootTables.CovenantArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.LoricaArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 5);
-                    armorWeenie = LootTables.LoricaArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.NariyidArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 6);
-                    armorWeenie = LootTables.NariyidArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.ChiranArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 4);
-                    armorWeenie = LootTables.ChiranArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.AlduressaArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 4);
-                    armorWeenie = LootTables.AlduressaArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.KnorrAcademyArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 7);
-                    armorWeenie = LootTables.KnorrAcademyArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.SedgemailLeatherArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 5);
-                    armorWeenie = LootTables.SedgemailLeatherArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.HaebreanArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 8);
-                    armorWeenie = LootTables.HaebreanArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.OlthoiArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 9);
-                    armorWeenie = LootTables.OlthoiArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.OlthoiAmuliArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 4);
-                    armorWeenie = LootTables.OlthoiAmuliArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.OlthoiCeldonArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 6);
-                    armorWeenie = LootTables.OlthoiCeldonArmor[armorPiece];
-                    break;
-
-                case (int)LootTables.ArmorType.OlthoiKoujiaArmor:
-                    armorPiece = ThreadSafeRandom.Next(0, 4);
-                    armorWeenie = LootTables.OlthoiKoujiaArmor[armorPiece];
-                    break;
-
-                default: // Olthoi Alduressa
-                    armorPiece = ThreadSafeRandom.Next(0, 4);
-                    armorWeenie = LootTables.OlthoiAlduressaArmor[armorPiece];
-                    break;
-            }
+            int armorWeenie = table[rng];
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)armorWeenie);
 
@@ -198,7 +58,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.AppraisalItemSkill, 7);
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
 
-            materialType = GetMaterialType(wo, tier);
+            int materialType = GetMaterialType(wo, tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
@@ -216,7 +76,7 @@ namespace ACE.Server.Factories
             wo.Value = value;
 
             int wield;
-            if (tier > 6 && armorType != (int)LootTables.ArmorType.CovenantArmor)
+            if (tier > 6 && armorType != LootTables.ArmorType.CovenantArmor)
             {
                 wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
                 wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
@@ -234,7 +94,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.WieldDifficulty, wield);
             }
 
-            if (armorType == (int)LootTables.ArmorType.CovenantArmor)
+            if (armorType == LootTables.ArmorType.CovenantArmor)
             {
                 Skill wieldSkill;
 
@@ -414,7 +274,7 @@ namespace ACE.Server.Factories
             return wield;
         }
 
-        private static WorldObject AssignArmorLevel(WorldObject wo, int tier, int armorType)
+        private static WorldObject AssignArmorLevel(WorldObject wo, int tier, LootTables.ArmorType armorType)
         {
             var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 
@@ -427,114 +287,148 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static int GetArmorLevelModifier(int tier, int armorType)
+        private static int GetArmorLevelModifier(int tier, LootTables.ArmorType armorType)
         {
-            if (armorType > (int)LootTables.ArmorType.HaebreanArmor
-                    && armorType < (int)LootTables.ArmorType.OlthoiAlduressaArmor)
+            // fixed in pending update synced w/ db
+            if (armorType > LootTables.ArmorType.HaebreanArmor && armorType < LootTables.ArmorType.OlthoiAlduressaArmor)
             {
                 switch (tier)
                 {
                     case 7:
                         return ThreadSafeRandom.Next(0, 40);
-                    default:
+
+                    case 8:
                         return ThreadSafeRandom.Next(160, 200);
+
+                    default:
+                        return 0;
                 }
             }
 
             switch (tier)
             {
                 case 1:
-                    if (armorType == (int)LootTables.ArmorType.StuddedLeatherArmor
-                            || armorType == (int)LootTables.ArmorType.Helms
-                            || armorType == (int)LootTables.ArmorType.Shields)
+                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
+                     || armorType == LootTables.ArmorType.Helms
+                     || armorType == LootTables.ArmorType.Shields)
                         return ThreadSafeRandom.Next(0, 27);
-                    else if (armorType == (int)LootTables.ArmorType.LeatherArmor
-                        || armorType == (int)LootTables.ArmorType.MiscClothing)
+
+                    else if (armorType == LootTables.ArmorType.LeatherArmor
+                          || armorType == LootTables.ArmorType.MiscClothing)
                         return ThreadSafeRandom.Next(0, 23);
+
                     else
                         return ThreadSafeRandom.Next(0, 40);
+
                 case 2:
-                    if (armorType == (int)LootTables.ArmorType.StuddedLeatherArmor
-                            || armorType == (int)LootTables.ArmorType.Helms
-                            || armorType == (int)LootTables.ArmorType.Shields)
+                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
+                     || armorType == LootTables.ArmorType.Helms
+                     || armorType == LootTables.ArmorType.Shields)
                         return ThreadSafeRandom.Next(27, 54);
-                    else if (armorType == (int)LootTables.ArmorType.LeatherArmor
-                        || armorType == (int)LootTables.ArmorType.MiscClothing)
+
+                    else if (armorType == LootTables.ArmorType.LeatherArmor
+                          || armorType == LootTables.ArmorType.MiscClothing)
                         return ThreadSafeRandom.Next(23, 46);
+
                     else
                         return ThreadSafeRandom.Next(40, 80);
+
                 case 3:
-                    if (armorType == (int)LootTables.ArmorType.StuddedLeatherArmor
-                            || armorType == (int)LootTables.ArmorType.Helms
-                            || armorType == (int)LootTables.ArmorType.Shields)
+                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
+                     || armorType == LootTables.ArmorType.Helms
+                     || armorType == LootTables.ArmorType.Shields)
                         return ThreadSafeRandom.Next(54, 81);
-                    else if (armorType == (int)LootTables.ArmorType.LeatherArmor
-                        || armorType == (int)LootTables.ArmorType.MiscClothing)
+
+                    else if (armorType == LootTables.ArmorType.LeatherArmor
+                          || armorType == LootTables.ArmorType.MiscClothing)
                         return ThreadSafeRandom.Next(46, 69);
-                    else if (armorType == (int)LootTables.ArmorType.CovenantArmor)
+
+                    else if (armorType == LootTables.ArmorType.CovenantArmor)
                         return ThreadSafeRandom.Next(90, 130);
+
                     else
                         return ThreadSafeRandom.Next(80, 120);
+
                 case 4:
-                    if (armorType == (int)LootTables.ArmorType.StuddedLeatherArmor
-                            || armorType == (int)LootTables.ArmorType.Helms
-                            || armorType == (int)LootTables.ArmorType.Shields)
+                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
+                     || armorType == LootTables.ArmorType.Helms
+                     || armorType == LootTables.ArmorType.Shields)
                         return ThreadSafeRandom.Next(81, 108);
-                    else if (armorType == (int)LootTables.ArmorType.LeatherArmor
-                        || armorType == (int)LootTables.ArmorType.MiscClothing)
+
+                    else if (armorType == LootTables.ArmorType.LeatherArmor
+                          || armorType == LootTables.ArmorType.MiscClothing)
                         return ThreadSafeRandom.Next(69, 92);
-                    else if (armorType == (int)LootTables.ArmorType.CovenantArmor)
+
+                    else if (armorType == LootTables.ArmorType.CovenantArmor)
                         return ThreadSafeRandom.Next(130, 170);
+
                     else
                         return ThreadSafeRandom.Next(120, 160);
+
                 case 5:
-                    if (armorType == (int)LootTables.ArmorType.StuddedLeatherArmor
-                            || armorType == (int)LootTables.ArmorType.Helms
-                            || armorType == (int)LootTables.ArmorType.Shields)
+                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
+                     || armorType == LootTables.ArmorType.Helms
+                     || armorType == LootTables.ArmorType.Shields)
                         return ThreadSafeRandom.Next(108, 135);
-                    else if (armorType == (int)LootTables.ArmorType.LeatherArmor
-                        || armorType == (int)LootTables.ArmorType.MiscClothing)
+
+                    else if (armorType == LootTables.ArmorType.LeatherArmor
+                          || armorType == LootTables.ArmorType.MiscClothing)
                         return ThreadSafeRandom.Next(92, 115);
-                    else if (armorType == (int)LootTables.ArmorType.CovenantArmor)
+
+                    else if (armorType == LootTables.ArmorType.CovenantArmor)
                         return ThreadSafeRandom.Next(170, 210);
+
                     else
                         return ThreadSafeRandom.Next(160, 200);
+
                 case 6:
-                    if (armorType == (int)LootTables.ArmorType.StuddedLeatherArmor
-                            || armorType == (int)LootTables.ArmorType.Helms
-                            || armorType == (int)LootTables.ArmorType.Shields)
+                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
+                     || armorType == LootTables.ArmorType.Helms
+                     || armorType == LootTables.ArmorType.Shields)
                         return ThreadSafeRandom.Next(135, 162);
-                    else if (armorType == (int)LootTables.ArmorType.LeatherArmor
-                        || armorType == (int)LootTables.ArmorType.MiscClothing)
+
+                    else if (armorType == LootTables.ArmorType.LeatherArmor
+                          || armorType == LootTables.ArmorType.MiscClothing)
                         return ThreadSafeRandom.Next(115, 138);
-                    else if (armorType == (int)LootTables.ArmorType.CovenantArmor)
+
+                    else if (armorType == LootTables.ArmorType.CovenantArmor)
                         return ThreadSafeRandom.Next(210, 250);
+
                     else
                         return ThreadSafeRandom.Next(200, 240);
+
                 case 7:
-                    if (armorType == (int)LootTables.ArmorType.StuddedLeatherArmor
-                            || armorType == (int)LootTables.ArmorType.Helms
-                            || armorType == (int)LootTables.ArmorType.Shields)
+                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
+                     || armorType == LootTables.ArmorType.Helms
+                     || armorType == LootTables.ArmorType.Shields)
                         return ThreadSafeRandom.Next(162, 189);
-                    else if (armorType == (int)LootTables.ArmorType.LeatherArmor
-                        || armorType == (int)LootTables.ArmorType.MiscClothing)
+
+                    else if (armorType == LootTables.ArmorType.LeatherArmor
+                          || armorType == LootTables.ArmorType.MiscClothing)
                         return ThreadSafeRandom.Next(138, 161);
-                    else if (armorType == (int)LootTables.ArmorType.CovenantArmor)
+
+                    else if (armorType == LootTables.ArmorType.CovenantArmor)
                         return ThreadSafeRandom.Next(250, 290);
+
                     else
                         return ThreadSafeRandom.Next(240, 280);
+
                 case 8:
-                    if (armorType == (int)LootTables.ArmorType.StuddedLeatherArmor
-                            || armorType == (int)LootTables.ArmorType.Helms
-                            || armorType == (int)LootTables.ArmorType.Shields)
+                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
+                     || armorType == LootTables.ArmorType.Helms
+                     || armorType == LootTables.ArmorType.Shields)
                         return ThreadSafeRandom.Next(189, 216);
-                    else if (armorType == (int)LootTables.ArmorType.LeatherArmor
-                        || armorType == (int)LootTables.ArmorType.MiscClothing)
+
+                    else if (armorType == LootTables.ArmorType.LeatherArmor
+                        || armorType == LootTables.ArmorType.MiscClothing)
                         return ThreadSafeRandom.Next(161, 184);
-                    else if (armorType == (int)LootTables.ArmorType.CovenantArmor)
+
+                    else if (armorType == LootTables.ArmorType.CovenantArmor)
                         return ThreadSafeRandom.Next(290, 330);
+
                     else
                         return ThreadSafeRandom.Next(280, 320);
+
                 default:
                     return 0;
             }
