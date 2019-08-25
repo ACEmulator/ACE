@@ -890,6 +890,8 @@ namespace ACE.Server.WorldObjects
                                 targetPlayer.AdjustDungeon(teleportDest);
 
                                 targetPlayer.Teleport(teleportDest);
+
+                                targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
                             });
                             portalSendingChain.EnqueueChain();
                         }
@@ -919,6 +921,8 @@ namespace ACE.Server.WorldObjects
                                     fellow.AdjustDungeon(teleportDest);
 
                                     fellow.Teleport(teleportDest);
+
+                                    fellow.SendTeleportedViaMagicMessage(itemCaster, spell);
                                 });
                             }
                             portalSendingChain.EnqueueChain();

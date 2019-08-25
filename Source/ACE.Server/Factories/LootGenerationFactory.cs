@@ -374,10 +374,7 @@ namespace ACE.Server.Factories
                         case 1:
                         case 2:
                         case 3:
-                            if (chance < 80)
-                                wield = 0;
-                            else
-                                wield = 290;
+                            wield = 0;
                             break;
                         case 4:
                             if (chance < 60)
