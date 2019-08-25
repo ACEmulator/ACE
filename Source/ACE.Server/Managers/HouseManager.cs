@@ -460,6 +460,8 @@ namespace ACE.Server.Managers
 
             house.ClearPermissions();
 
+            house.SaveBiotaToDatabase();
+
             // relink
             house.UpdateLinks();
 
@@ -474,16 +476,10 @@ namespace ACE.Server.Managers
 
                     dungeonHouse.UpdateLinks();
                     dungeonHouse.SaveBiotaToDatabase();
-                    //dungeonHouse.RemoveBiotaFromDatabase();
-                    //dungeonHouse.ChangesDetected = false;
 
                     dungeonHouse.ClearRestrictions();
                 }
             }
-
-            house.SaveBiotaToDatabase();
-            //house.RemoveBiotaFromDatabase();
-            //house.ChangesDetected = false;
 
             // player slumlord 'off' animation
             slumlord.Off();
@@ -492,8 +488,6 @@ namespace ACE.Server.Managers
             slumlord.SetAndBroadcastName();
 
             slumlord.SaveBiotaToDatabase();
-            //slumlord.RemoveBiotaFromDatabase();
-            //slumlord.ChangesDetected = false;
 
             // if evicting a multihouse owner's previous house,
             // no update for player properties

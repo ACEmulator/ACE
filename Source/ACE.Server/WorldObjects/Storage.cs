@@ -81,12 +81,8 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine("Storage.OnRemoveItem()");
 
-            if (Inventory.Count < 1) // Storage is empty
-            {
-                // Here we explicitly remove the storage from the database to avoid storing empty default objects.
-                RemoveBiotaFromDatabase();
-                ChangesDetected = false; // This is changed to avoid a subsequent re-save back to shard.
-            }
+            // Here we explicitly save the storage to the database to prevent property desync.
+            SaveBiotaToDatabase();
         }
     }
 }

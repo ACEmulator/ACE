@@ -216,9 +216,8 @@ namespace ACE.Server.WorldObjects
 
             if (Inventory.Count < 1)
             {
-                // Here we explicitly remove the hook from the database to avoid storing empty default objects.
-                RemoveBiotaFromDatabase();
-                ChangesDetected = false; // This is changed to avoid a subsequent re-save back to shard.
+                // Here we explicitly save the storage to the database to prevent property desync.
+                SaveBiotaToDatabase();
             }
         }
 
