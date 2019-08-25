@@ -219,28 +219,31 @@ namespace ACE.Server.Network.Structure
             {
                 // If the hook has any inventory, we need to send THOSE properties instead.
                 var hook = wo as Container;
+
+                string baseDescString = "";
+                if (wo.ParentLink.HouseOwner != null)
+                {
+                    // This is for backwards compatibility. This value was not set/saved in earlier versions.
+                    // It will get the player's name and save that to the HouseOwnerName property of the house. This is now done when a player purchases a house.
+                    if (wo.ParentLink.HouseOwnerName == null)
+                    {
+                        var houseOwnerPlayer = PlayerManager.FindByGuid((uint)wo.ParentLink.HouseOwner);
+                        if (houseOwnerPlayer != null)
+                        {
+                            wo.ParentLink.HouseOwnerName = houseOwnerPlayer.Name;
+                            wo.ParentLink.SaveBiotaToDatabase();
+                        }
+                    }
+                    baseDescString = "This hook is owned by " + wo.ParentLink.HouseOwnerName + ". "; //if house is owned, display this text
+                }
+
                 if (hook.Inventory.Count == 1)
                 {
                     WorldObject hookedItem = hook.Inventory.First().Value;
 
                     // Hooked items have a custom "description", containing the desc of the sub item and who the owner of the house is (if any)
                     BuildProfile(hookedItem, examiner, success);
-                    string baseDescString = "";
-                    if (wo.ParentLink.HouseOwner != null)
-                    {
-                        // This is for backwards compatibility. This value was not set/saved in earlier versions.
-                        // It will get the player's name and save that to the HouseOwnerName property of the house. This is now done when a player purchases a house.
-                        if(wo.ParentLink.HouseOwnerName == null)
-                        {
-                            var houseOwnerPlayer = PlayerManager.FindByGuid((uint)wo.ParentLink.HouseOwner);
-                            if(houseOwnerPlayer != null)
-                            {
-                                wo.ParentLink.HouseOwnerName = houseOwnerPlayer.Name;
-                                wo.ParentLink.SaveBiotaToDatabase();
-                            }
-                        }
-                        baseDescString = "This hook is owned by " + wo.ParentLink.HouseOwnerName + ". "; //if house is owned, display this text
-                    }
+
                     if (PropertiesString.ContainsKey(PropertyString.LongDesc) && PropertiesString[PropertyString.LongDesc] != null)
                     {
                         PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.LongDesc];
