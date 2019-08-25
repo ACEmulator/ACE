@@ -220,6 +220,13 @@ namespace ACE.Server.WorldObjects
                 // relink
                 house.UpdateLinks();
 
+                if (house.HasDungeon)
+                {
+                    var dungeonHouse = house.GetDungeonHouse();
+                    if (dungeonHouse != null)
+                        dungeonHouse.UpdateLinks();
+                }
+
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
                 var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
@@ -329,9 +336,24 @@ namespace ACE.Server.WorldObjects
             // set house properties
             house.HouseOwner = Guid.Full;
             house.HouseOwnerName = Name;
+            house.SaveBiotaToDatabase();
+
+            house.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(house, PropertyInstanceId.HouseOwner, new ObjectGuid(house.HouseOwner ?? 0)));
 
             // relink
             house.UpdateLinks();
+
+            if (house.HasDungeon)
+            {
+                var dungeonHouse = house.GetDungeonHouse();
+                if (dungeonHouse != null)
+                {
+                    dungeonHouse.UpdateLinks();
+                    dungeonHouse.SaveBiotaToDatabase();
+
+                    dungeonHouse.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(dungeonHouse, PropertyInstanceId.HouseOwner, new ObjectGuid(dungeonHouse.HouseOwner ?? 0)));
+                }
+            }
 
             // notify client w/ HouseID
             Session.Network.EnqueueSend(new GameMessageSystemChat("Congratulations!  You now own this dwelling.", ChatMessageType.Broadcast));
@@ -342,13 +364,10 @@ namespace ACE.Server.WorldObjects
             // set house name
             slumlord.Name = $"{Name}'s {slumlord.Name}";
             slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, slumlord.Name));
+           
+            slumlord.SaveBiotaToDatabase();
 
             SaveBiotaToDatabase();
-
-            house.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(house, PropertyInstanceId.HouseOwner, new ObjectGuid(house.HouseOwner ?? 0)));
-
-            house.SaveBiotaToDatabase();
-            slumlord.SaveBiotaToDatabase();
 
             // set house data
             // why has this changed? use callback?

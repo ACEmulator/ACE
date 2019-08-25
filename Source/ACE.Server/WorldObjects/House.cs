@@ -208,6 +208,7 @@ namespace ACE.Server.WorldObjects
             wo.HouseId = house.HouseId;
             wo.HouseOwner = house.HouseOwner;
             wo.HouseInstance = house.HouseInstance;
+            wo.HouseOwnerName = house.HouseOwnerName;
 
             if (house.HouseOwner != null && wo is SlumLord)
                 wo.CurrentMotionState = new Motion(MotionStance.Invalid, MotionCommand.On);
@@ -632,7 +633,7 @@ namespace ACE.Server.WorldObjects
 
             // TODO: handle this more gracefully: player in house dungeon,
             // but outdoor house landblock is unloaded, and player is evicted
-            if (CurrentLandblock != null && HasDungeon)
+            if (HasDungeon)
             {
                 var dungeonHouse = GetDungeonHouse();
                 if (dungeonHouse == null || dungeonHouse.PhysicsObj == null) return;
