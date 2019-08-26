@@ -880,6 +880,8 @@ namespace ACE.Server.WorldObjects
                 NotifyOfEvent(RegenerationType.Destruction);
 
             CurrentLandblock?.RemoveWorldObject(Guid);
+            if (CurrentLandblock == null)
+                EnqueueBroadcast(new GameMessageDeleteObject(this));
             RemoveBiotaFromDatabase();
 
             if (Guid.IsDynamic())
