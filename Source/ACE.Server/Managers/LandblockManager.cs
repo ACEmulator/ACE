@@ -38,21 +38,19 @@ namespace ACE.Server.Managers
         /// </summary>
         private static readonly HashSet<Landblock> loadedLandblocks = new HashSet<Landblock>();
 
-        public static bool MultiThreadedLandblockGroupTicking = true;
+        private static readonly List<LandblockGroup> landblockGroups = new List<LandblockGroup>();
+        private static bool landblockGroupsNeedsRecalculatingFromAddition = true;
+        private static bool landblockGroupsNeedsRecalculatingFromDungeonAddition = false;
 
+        public static bool MultiThreadedLandblockGroupTicking = true;
         private static readonly ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount * .34, 1) };
 
-        private static bool threadSeparatedLandblockGroupsNeedsRecalculatingFromAddition = true;
-        private static bool threadSeparatedLandblockGroupsNeedsRecalculatingFromRemoval = false;
-
-        private static readonly List<List<Landblock>> threadSeparatedLandblockGroups = new List<List<Landblock>>();
-
-        public static int ThreadSeparatedLandblockGroupsCount
+        public static int LandblockGroupsCount
         {
             get
             {
                 lock (landblockMutex)
-                    return threadSeparatedLandblockGroups.Count;
+                    return landblockGroups.Count;
             }
         }
 
@@ -174,48 +172,49 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
-        private static void AddLandblockToLandblockGroup(HashSet<Landblock> landblocksAdded, List<Landblock> workingSet, Landblock workingLandblock)
+        private static void AddLandblockToLandblockGroup(HashSet<Landblock> landblocksAdded, LandblockGroup workingGroup, Landblock workingLandblock)
         {
             if (landblocksAdded.Add(workingLandblock))
             {
-                workingSet.Add(workingLandblock);
+                if (!workingGroup.Add(workingLandblock))
+                    log.Error($"Failed to add landblock ({workingLandblock.Id}) to landblock group");
 
                 foreach (var adjacent in workingLandblock.Adjacents)
-                    AddLandblockToLandblockGroup(landblocksAdded, workingSet, adjacent);
+                    AddLandblockToLandblockGroup(landblocksAdded, workingGroup, adjacent);
             }
         }
 
         private static void CheckIfLandblockGroupsNeedRecalculating()
         {
-            if (!threadSeparatedLandblockGroupsNeedsRecalculatingFromAddition && !threadSeparatedLandblockGroupsNeedsRecalculatingFromRemoval)
+            if (!landblockGroupsNeedsRecalculatingFromAddition && !landblockGroupsNeedsRecalculatingFromDungeonAddition)
                 return;
-
-            // TODO: Change this so it's recalculated only when a landblock is added, not removed
 
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
 
             lock (landblockMutex)
             {
-                if (!threadSeparatedLandblockGroupsNeedsRecalculatingFromAddition && threadSeparatedLandblockGroupsNeedsRecalculatingFromRemoval)
+                if (landblockGroupsNeedsRecalculatingFromDungeonAddition && !landblockGroupsNeedsRecalculatingFromAddition)
                 {
-                    // If a landblock was removed and not added, all we have to do is go through our list and remove it manualy
-
-                    for (int i = threadSeparatedLandblockGroups.Count - 1; i >= 0; i--)
+                    foreach (var loadedLandblock in loadedLandblocks)
                     {
-                        for (int j = threadSeparatedLandblockGroups[i].Count - 1; j >= 0; j--)
+                        if (!loadedLandblock.IsDungeon)
+                            continue;
+
+                        foreach (var landblockGroup in landblockGroups)
                         {
-                            if (landblocks[threadSeparatedLandblockGroups[i][j].Id.LandblockX, threadSeparatedLandblockGroups[i][j].Id.LandblockY] == null)
-                                threadSeparatedLandblockGroups[i].RemoveAt(j);
+                            if (landblockGroup.IsDungeon && landblockGroup.Contains(loadedLandblock))
+                                goto next;
                         }
 
-                        if (threadSeparatedLandblockGroups.Count == 0)
-                            threadSeparatedLandblockGroups.RemoveAt(i);
+                        landblockGroups.Add(new LandblockGroup(loadedLandblock));
+
+                        next:;
                     }
                 }
                 else
                 {
-                    threadSeparatedLandblockGroups.Clear();
+                    landblockGroups.Clear();
 
                     var landblocksAdded = new HashSet<Landblock>(loadedLandblocks.Count);
 
@@ -223,11 +222,11 @@ namespace ACE.Server.Managers
                     {
                         if (!landblocksAdded.Contains(loadedLandblock))
                         {
-                            var workingSet = new List<Landblock>();
+                            var workingGroup = new LandblockGroup();
 
-                            AddLandblockToLandblockGroup(landblocksAdded, workingSet, loadedLandblock);
+                            AddLandblockToLandblockGroup(landblocksAdded, workingGroup, loadedLandblock);
 
-                            threadSeparatedLandblockGroups.Add(workingSet);
+                            landblockGroups.Add(workingGroup);
                         }
                     }
 
@@ -236,70 +235,20 @@ namespace ACE.Server.Managers
                     //
                     // To make this as performant as possible, we break down each landblock group into it's outer most square.
                     // Then, we use these squares to determine if a group overlaps or is close enough to another group and should be merged
-                    var groupBoundaries = new List<(List<Landblock> group, int xMin, int xMax, int yMin, int yMax, int xCenter, int yCenter, int width, int height)>();
 
-                    foreach (var group in threadSeparatedLandblockGroups)
-                    {
-                        if (group[0].IsDungeon)
-                            continue;
-
-                        var xMin = int.MaxValue;
-                        var xMax = int.MinValue;
-                        var yMin = int.MaxValue;
-                        var yMax = int.MinValue;
-
-                        foreach (var landblock in group)
-                        {
-                            if (landblock.Id.LandblockX < xMin) xMin = landblock.Id.LandblockX;
-                            if (landblock.Id.LandblockX > xMax) xMax = landblock.Id.LandblockX;
-                            if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
-                            if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
-                        }
-
-                        int xCenter = xMin + ((xMax - xMin) / 2);
-                        int yCenter = yMin + ((yMax - yMin) / 2);
-
-                        groupBoundaries.Add((group, xMin, xMax, yMin, yMax, xCenter, yCenter, xMax - xMin,
-                            yMax - yMin));
-                    }
-
-                    for (int i = groupBoundaries.Count - 1; i >= 0; i--)
+                    for (int i = landblockGroups.Count - 1; i >= 0; i--)
                     {
                         for (int j = 0; j < i; j++)
                         {
-                            var distance = Math.Max(
-                                Math.Abs(groupBoundaries[i].xCenter - groupBoundaries[j].xCenter) -
-                                (groupBoundaries[i].width + groupBoundaries[j].width) / 2,
-                                Math.Abs(groupBoundaries[i].yCenter - groupBoundaries[j].yCenter) -
-                                (groupBoundaries[i].height + groupBoundaries[j].height) / 2);
+                            var distance = landblockGroups[i].Distance(landblockGroups[j]);
 
                             if (distance <= 10)
                             {
                                 // We're close enough, copy i into j and remove i
-                                groupBoundaries[j].group.AddRange(groupBoundaries[i].group);
+                                foreach (var landblock in landblockGroups[i])
+                                    landblockGroups[j].Add(landblock);
 
-                                threadSeparatedLandblockGroups.Remove(groupBoundaries[i].group);
-
-                                // j needs to be recalculated
-                                var xMin = int.MaxValue;
-                                var xMax = int.MinValue;
-                                var yMin = int.MaxValue;
-                                var yMax = int.MinValue;
-
-                                foreach (var landblock in groupBoundaries[j].group)
-                                {
-                                    if (landblock.Id.LandblockX < xMin) xMin = landblock.Id.LandblockX;
-                                    if (landblock.Id.LandblockX > xMax) xMax = landblock.Id.LandblockX;
-                                    if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
-                                    if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
-                                }
-
-                                int xCenter = xMin + ((xMax - xMin) / 2);
-                                int yCenter = yMin + ((yMax - yMin) / 2);
-
-                                groupBoundaries[j] = (groupBoundaries[j].group, xMin, xMax, yMin, yMax, xCenter,
-                                    yCenter,
-                                    xMax - xMin, yMax - yMin);
+                                landblockGroups.RemoveAt(i);
 
                                 break;
                             }
@@ -313,13 +262,13 @@ namespace ACE.Server.Managers
 
                 // Debugging
                 var count = 0;
-                foreach (var group in threadSeparatedLandblockGroups)
+                foreach (var group in landblockGroups)
                     count += group.Count;
                 if (count != loadedLandblocks.Count)
                     log.Error($"count ({count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
 
-                threadSeparatedLandblockGroupsNeedsRecalculatingFromAddition = false;
-                threadSeparatedLandblockGroupsNeedsRecalculatingFromRemoval = false;
+                landblockGroupsNeedsRecalculatingFromAddition = false;
+                landblockGroupsNeedsRecalculatingFromDungeonAddition = false;
             }
 
             sw.Stop();
@@ -355,7 +304,7 @@ namespace ACE.Server.Managers
             if (false && MultiThreadedLandblockGroupTicking) // Disabled for now...
             {
                 //Parallel.ForEach(threadSeparatedLandblockGroups, parallelOptions, landblockGroup =>
-                Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup => // TODO: Use all the threads during development to exaggerate issues
+                Parallel.ForEach(landblockGroups, landblockGroup => // TODO: Use all the threads during development to exaggerate issues
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.TickPhysics(portalYearTicks, movedObjects);
@@ -363,7 +312,7 @@ namespace ACE.Server.Managers
             }
             else
             {
-                foreach (var landblockGroup in threadSeparatedLandblockGroups)
+                foreach (var landblockGroup in landblockGroups)
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.TickPhysics(portalYearTicks, movedObjects);
@@ -389,7 +338,7 @@ namespace ACE.Server.Managers
             if (MultiThreadedLandblockGroupTicking)
             {
                 //Parallel.ForEach(threadSeparatedLandblockGroups, parallelOptions, landblockGroup =>
-                Parallel.ForEach(threadSeparatedLandblockGroups, landblockGroup => // TODO: Use all the threads during development to exaggerate issues
+                Parallel.ForEach(landblockGroups, landblockGroup => // TODO: Use all the threads during development to exaggerate issues
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.Tick(Time.GetUnixTime());
@@ -397,7 +346,7 @@ namespace ACE.Server.Managers
             }
             else
             {
-                foreach (var landblockGroup in threadSeparatedLandblockGroups)
+                foreach (var landblockGroup in landblockGroups)
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.Tick(Time.GetUnixTime());
@@ -457,7 +406,11 @@ namespace ACE.Server.Managers
                         return landblock;
                     }
 
-                    threadSeparatedLandblockGroupsNeedsRecalculatingFromAddition = true;
+                    // Each dungeon represents a single landblock group
+                    if (landblock.IsDungeon)
+                        landblockGroupsNeedsRecalculatingFromDungeonAddition = true;
+                    else
+                        landblockGroupsNeedsRecalculatingFromAddition = true;
                 }
 
                 if (permaload)
@@ -663,7 +616,18 @@ namespace ACE.Server.Managers
                         if (loadedLandblocks.Remove(landblock))
                         {
                             landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
-                            threadSeparatedLandblockGroupsNeedsRecalculatingFromRemoval = true;
+
+                            for (int i = landblockGroups.Count - 1; i >= 0 ; i--)
+                            {
+                                if (landblockGroups[i].Remove(landblock))
+                                {
+                                    if (landblockGroups[i].Count == 0)
+                                        landblockGroups.RemoveAt(i);
+
+                                    break;
+                                }
+                            }
+
                             NotifyAdjacents(landblock);
                         }
                         else
