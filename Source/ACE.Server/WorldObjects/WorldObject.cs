@@ -137,16 +137,18 @@ namespace ACE.Server.WorldObjects
             if (!(this is Creature))
             {
                 var isDynamic = Static == null || !Static.Value;
+                var setupTableId = SetupTableId;
 
                 // TODO: REMOVE ME?
                 // Temporary workaround fix to account for ace spawn placement issues with certain hooked objects.
                 if (this is Hook)
                 {
                     var hookWeenie = DatabaseManager.World.GetCachedWeenie(WeenieClassId);
-                    PhysicsObj = PhysicsObj.makeObject(hookWeenie.GetProperty(PropertyDataId.Setup) ?? 0, Guid.Full, isDynamic);
+                    setupTableId = hookWeenie.GetProperty(PropertyDataId.Setup) ?? SetupTableId;
                 }
-                else
-                    PhysicsObj = PhysicsObj.makeObject(SetupTableId, Guid.Full, isDynamic);
+                // TODO: REMOVE ME?
+
+                PhysicsObj.makeObject(setupTableId, Guid.Full, isDynamic);
             }
             else
             {

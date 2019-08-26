@@ -640,7 +640,7 @@ namespace ACE.Server.WorldObjects
                 var dungeonHouse = GetDungeonHouse();
                 if (dungeonHouse == null || dungeonHouse.PhysicsObj == null) return;
 
-                dungeonHouse.UpdateRestrictionDB(restrictions);
+                dungeonHouse.SendRestrictionDB(restrictions);
             }
         }
 
