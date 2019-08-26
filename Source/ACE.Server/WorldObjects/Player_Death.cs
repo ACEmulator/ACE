@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
 
             var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
 
-            log.Debug(nearbyMsg);
+            log.Debug("[CORPSE] " + nearbyMsg);
 
             var excludePlayers = new List<Player>();
             if (lastDamager is Player lastDamagerPlayer)
