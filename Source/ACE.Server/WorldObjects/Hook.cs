@@ -50,19 +50,6 @@ namespace ACE.Server.WorldObjects
         {
             IsLocked = false;
             IsOpen = false;
-
-            // TODO: REMOVE ME?
-            // Temporary workaround fix to account for ace spawn placement issues with certain hooked objects.
-            var weenie = DatabaseManager.World.GetCachedWeenie(WeenieClassId);
-            SetupTableId = weenie.GetProperty(PropertyDataId.Setup) ?? 0;
-            MotionTableId = weenie.GetProperty(PropertyDataId.MotionTable) ?? 0;
-            PhysicsTableId = weenie.GetProperty(PropertyDataId.PhysicsEffectTable) ?? 0;
-            SoundTableId = weenie.GetProperty(PropertyDataId.SoundTable) ?? 0;
-            Placement = (Placement?)weenie.GetProperty(PropertyInt.Placement);
-            ObjScale = (float?)weenie.GetProperty(PropertyFloat.DefaultScale);
-            Name = weenie.GetProperty(PropertyString.Name);
-            // TODO: REMOVE ME?
-
         }
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)

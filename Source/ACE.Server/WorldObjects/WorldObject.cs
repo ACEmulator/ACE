@@ -27,6 +27,7 @@ using ACE.Server.Physics.Util;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
+using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
@@ -136,7 +137,16 @@ namespace ACE.Server.WorldObjects
             if (!(this is Creature))
             {
                 var isDynamic = Static == null || !Static.Value;
-                PhysicsObj = PhysicsObj.makeObject(SetupTableId, Guid.Full, isDynamic);
+
+                // TODO: REMOVE ME?
+                // Temporary workaround fix to account for ace spawn placement issues with certain hooked objects.
+                if (this is Hook)
+                {
+                    var hookWeenie = DatabaseManager.World.GetCachedWeenie(WeenieClassId);
+                    PhysicsObj = PhysicsObj.makeObject(hookWeenie.GetProperty(PropertyDataId.Setup) ?? 0, Guid.Full, isDynamic);
+                }
+                else
+                    PhysicsObj = PhysicsObj.makeObject(SetupTableId, Guid.Full, isDynamic);
             }
             else
             {
