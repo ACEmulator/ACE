@@ -202,7 +202,7 @@ namespace ACE.Server.WorldObjects
                 {
                     house = WorldObjectFactory.CreateWorldObject(biota) as House;
                     HouseOwner = house.HouseOwner;
-                    //HouseOwnerName = house.HouseOwnerName;
+                    HouseOwnerName = house.HouseOwnerName;
                 }
             }
 
