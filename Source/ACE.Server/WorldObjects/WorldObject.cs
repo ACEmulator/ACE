@@ -148,7 +148,7 @@ namespace ACE.Server.WorldObjects
                 }
                 // TODO: REMOVE ME?
 
-                PhysicsObj.makeObject(setupTableId, Guid.Full, isDynamic);
+                PhysicsObj = PhysicsObj.makeObject(setupTableId, Guid.Full, isDynamic);
             }
             else
             {
