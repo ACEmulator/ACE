@@ -202,7 +202,7 @@ namespace ACE.Server.WorldObjects
                 {
                     house = WorldObjectFactory.CreateWorldObject(biota) as House;
                     HouseOwner = house.HouseOwner;
-                    HouseOwnerName = house.HouseOwnerName;
+                    //HouseOwnerName = house.HouseOwnerName;
                 }
             }
 
@@ -212,7 +212,7 @@ namespace ACE.Server.WorldObjects
             wo.HouseId = house.HouseId;
             wo.HouseOwner = house.HouseOwner;
             //wo.HouseInstance = house.HouseInstance;
-            wo.HouseOwnerName = house.HouseOwnerName;
+            //wo.HouseOwnerName = house.HouseOwnerName;
 
             if (house.HouseOwner != null && wo is SlumLord)
                 wo.CurrentMotionState = new Motion(MotionStance.Invalid, MotionCommand.On);
@@ -622,21 +622,19 @@ namespace ACE.Server.WorldObjects
             return booted;
         }
 
-        public void UpdateRestrictionDB()
+        public void UpdateRestrictionDB(RestrictionDB restrictions = null)
         {
             // get restrictions for root house
-            var restrictions = new RestrictionDB(this);
+            if (restrictions == null) restrictions = new RestrictionDB(this);
 
-            UpdateRestrictionDB(restrictions);
+            SendRestrictionDB(restrictions);
 
             // for mansions, update the linked houses
             foreach (var linkedHouse in LinkedHouses)
-                linkedHouse.UpdateRestrictionDB(restrictions);
+                linkedHouse.SendRestrictionDB(restrictions);
 
             // update house dungeon
 
-            // TODO: handle this more gracefully: player in house dungeon,
-            // but outdoor house landblock is unloaded, and player is evicted
             if (HasDungeon)
             {
                 var dungeonHouse = GetDungeonHouse();
@@ -646,14 +644,15 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void UpdateRestrictionDB(RestrictionDB restrictions)
+        public void SendRestrictionDB(RestrictionDB restrictions)
         {
             if (PhysicsObj == null)
                 return;
 
             var nearbyPlayers = PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
             foreach (var player in nearbyPlayers)
-                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictions));
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(this, PropertyInstanceId.HouseOwner, new ObjectGuid(restrictions.HouseOwner)),
+                                                   new GameEventHouseUpdateRestrictions(player.Session, this, restrictions));
         }
 
         public void ClearRestrictions()
@@ -662,13 +661,8 @@ namespace ACE.Server.WorldObjects
 
             var restrictionDB = new RestrictionDB();
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
-            foreach (var player in nearbyPlayers)
-            {
-                // clear house owner
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(this, PropertyInstanceId.HouseOwner, ObjectGuid.Invalid));
-                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictionDB));
-            }
+            UpdateRestrictionDB(restrictionDB);
+
         }
     }
 }

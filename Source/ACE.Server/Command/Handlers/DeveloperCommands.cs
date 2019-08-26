@@ -2554,7 +2554,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
             session.Player.SetHouseOwner(slumlord);
-            session.Player.GiveDeed();
+            session.Player.GiveDeed(slumlord);
         }
 
         [CommandHandler("barrier-test", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows debug information for house barriers")]

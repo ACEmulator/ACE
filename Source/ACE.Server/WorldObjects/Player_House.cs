@@ -94,10 +94,10 @@ namespace ACE.Server.WorldObjects
 
             SetHouseOwner(slumlord);
 
-            GiveDeed();
+            GiveDeed(slumlord);
         }
 
-        public void GiveDeed()
+        public void GiveDeed(SlumLord slumLord)
         {
             var deed = WorldObjectFactory.CreateNewWorldObject("deed");
 
@@ -107,10 +107,10 @@ namespace ACE.Server.WorldObjects
             var derethDateTime = DerethDateTime.UtcNowToLoreTime;
             var date = derethDateTime.DateToString();
             var time = derethDateTime.TimeToString();
-            var location = Location.GetMapCoordStr();
+            var location = slumLord.Location.GetMapCoordStr();
             if (location == null)
             {
-                if (!HouseManager.ApartmentBlocks.TryGetValue(Location.Landblock, out location))
+                if (!HouseManager.ApartmentBlocks.TryGetValue(slumLord.Location.Landblock, out location))
                     log.Error($"{Name}.GiveDeed() - couldn't find location {Location.ToLOCString()}");
             }
 
@@ -220,6 +220,13 @@ namespace ACE.Server.WorldObjects
                 // relink
                 house.UpdateLinks();
 
+                if (house.HasDungeon)
+                {
+                    var dungeonHouse = house.GetDungeonHouse();
+                    if (dungeonHouse != null)
+                        dungeonHouse.UpdateLinks();
+                }
+
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
                 slumlord.ClearInventory(true);
@@ -324,11 +331,16 @@ namespace ACE.Server.WorldObjects
             house.HouseOwner = Guid.Full;
             house.HouseOwnerName = Name;
             house.SaveBiotaToDatabase();
-
-            house.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(house, PropertyInstanceId.HouseOwner, new ObjectGuid(house.HouseOwner ?? 0)));
-
+            
             // relink
             house.UpdateLinks();
+
+            if (house.HasDungeon)
+            {
+                var dungeonHouse = house.GetDungeonHouse();
+                if (dungeonHouse != null)
+                    dungeonHouse.UpdateLinks();
+            }
 
             // notify client w/ HouseID
             Session.Network.EnqueueSend(new GameMessageSystemChat("Congratulations!  You now own this dwelling.", ChatMessageType.Broadcast));
