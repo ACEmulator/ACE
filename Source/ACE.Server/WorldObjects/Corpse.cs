@@ -225,8 +225,8 @@ namespace ACE.Server.WorldObjects
             var tier = LootGenerationFactory.GetRareTier(wo.WeenieClassId);
             LootGenerationFactory.RareChances.TryGetValue(tier, out var chance);
 
-            log.Debug($"[CORPSE] [LOOT] [RARE] {Name} ({Guid}) generated rare {wo.Name} ({wo.Guid}) for {killer.Name} ({killer.Guid})");
-            log.Debug($"[CORPSE] [LOOT] [RARE] Tier {tier} -- 1 / {chance:N0} chance");
+            log.Debug($"[CORPSE][LOOT][RARE] {Name} ({Guid}) generated rare {wo.Name} ({wo.Guid}) for {killer.Name} ({killer.Guid})");
+            log.Debug($"[CORPSE][LOOT][RARE] Tier {tier} -- 1 / {chance:N0} chance");
 
             if (TryAddToInventory(wo))
             {
