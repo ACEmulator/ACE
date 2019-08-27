@@ -356,6 +356,9 @@ namespace ACE.Server.Entity
 
         public void TickPhysics(double portalYearTicks, ConcurrentBag<WorldObject> movedObjects)
         {
+            if (IsDormant)
+                return;
+
             Monitor5m.RegisterEventStart();
             Monitor1h.RegisterEventStart();
             monitorsRequireEventStart = false;

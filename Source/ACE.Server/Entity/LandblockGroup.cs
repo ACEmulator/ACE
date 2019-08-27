@@ -10,7 +10,14 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public const int LandblockGroupMinSpacing = 10;
+        private const int landblockGroupSpanRequiredBeforeSplitEligibility = LandblockGroupMinSpacing * 4;
+
         public bool IsDungeon { get; private set; }
+
+        // Trying to split a group is a very costly operation, so we only do it periodically
+        private readonly TimeSpan splitRetryPeriod = TimeSpan.FromMinutes(5);
+        private DateTime nextSplitRetryTime = DateTime.MinValue;
 
         private readonly HashSet<Landblock> landblocks = new HashSet<Landblock>();
 
@@ -83,7 +90,41 @@ namespace ACE.Server.Entity
 
         public bool Remove(Landblock landblock)
         {
-            return landblocks.Remove(landblock);
+            if (landblocks.Remove(landblock))
+            {
+                // Empty landblock groups will be discarded immediately
+                if (landblocks.Count == 0)
+                    return true;
+
+                // If this landblock is on the perimieter of the group, recalculate the boundaries (they may end up the same)
+                if ((landblock.Id.LandblockX == xMin && landblock.Id.LandblockY == yMin) ||
+                    (landblock.Id.LandblockX == xMax && landblock.Id.LandblockY == yMin) ||
+                    (landblock.Id.LandblockX == xMin && landblock.Id.LandblockY == yMax) ||
+                    (landblock.Id.LandblockX == xMax && landblock.Id.LandblockY == yMax))
+                {
+                    RecalculateBoundaries();
+                }
+                else
+                {
+                    // This landblock is not on a boundary. This landblock may be eligible for a split
+                    if (width >= landblockGroupSpanRequiredBeforeSplitEligibility || height >= landblockGroupSpanRequiredBeforeSplitEligibility)
+                    {
+                        // Make sure this landblock is far enough away from any side
+                        if (Math.Abs(xMin - landblock.Id.LandblockX) >= LandblockGroupMinSpacing ||
+                            Math.Abs(xMax - landblock.Id.LandblockX) >= LandblockGroupMinSpacing ||
+                            Math.Abs(yMin - landblock.Id.LandblockY) >= LandblockGroupMinSpacing ||
+                            Math.Abs(yMax - landblock.Id.LandblockY) >= LandblockGroupMinSpacing)
+                        {
+                            if (nextSplitRetryTime == DateTime.MinValue)
+                                nextSplitRetryTime = DateTime.UtcNow.Add(splitRetryPeriod);
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         public IEnumerator<Landblock> GetEnumerator()
@@ -96,6 +137,98 @@ namespace ACE.Server.Entity
             return GetEnumerator();
         }
 
+
+        private void RecalculateBoundaries()
+        {
+            xMin = int.MaxValue;
+            xMax = int.MinValue;
+            yMin = int.MaxValue;
+            yMax = int.MinValue;
+
+            foreach (var existing in landblocks)
+            {
+                if (existing.Id.LandblockX < xMin) xMin = existing.Id.LandblockX;
+                if (existing.Id.LandblockX > xMax) xMax = existing.Id.LandblockX;
+                if (existing.Id.LandblockY < yMin) yMin = existing.Id.LandblockY;
+                if (existing.Id.LandblockY > yMax) yMax = existing.Id.LandblockY;
+            }
+
+            xCenter = xMin + ((xMax - xMin) / 2);
+            yCenter = yMin + ((yMax - yMin) / 2);
+
+            width = xMax - xMin;
+            height = yMax - yMin;
+        }
+
+        /// <summary>
+        /// Will return null if no split was possible.<para />
+        /// If a LandblockGroup is returned, you must use it. The results of the returned group will have been removed from this group, and this groups boundaries will have been recalculated.
+        /// </summary>
+        public LandblockGroup TrySplit()
+        {
+            var newLandblockGroup = new LandblockGroup();
+
+            var remainingLandblocks = new List<Landblock>(landblocks);
+
+            newLandblockGroup.Add(remainingLandblocks[remainingLandblocks.Count - 1]);
+            remainingLandblocks.RemoveAt(remainingLandblocks.Count - 1);
+
+            doAnotherPass:
+            bool needsAnotherPass = false;
+
+            for (int i = remainingLandblocks.Count - 1 ; i >= 0 ; i--)
+            {
+                if (newLandblockGroup.Distance(remainingLandblocks[i]) < LandblockGroupMinSpacing)
+                {
+                    newLandblockGroup.Add(remainingLandblocks[i]);
+                    remainingLandblocks.RemoveAt(i);
+                    needsAnotherPass = true;
+                }
+            }
+
+            if (needsAnotherPass)
+                goto doAnotherPass;
+
+            nextSplitRetryTime = DateTime.MinValue;
+
+            // If they're the same size, there's no split possible
+            if (Count == newLandblockGroup.Count)
+                return null;
+
+            // Remove the split landblocks
+            foreach (var landblock in newLandblockGroup)
+                landblocks.Remove(landblock);
+
+            RecalculateBoundaries();
+
+            return newLandblockGroup;
+        }
+
+        /// <summary>
+        /// Will return null if no split was possible.<para />
+        /// If a LandblockGroup is returned, you must use it. The results of the returned group will have been removed from this group, and this groups boundaries will have been recalculated.
+        /// </summary>
+        public LandblockGroup TryThrottledSplit()
+        {
+            if (nextSplitRetryTime == DateTime.MinValue || nextSplitRetryTime > DateTime.UtcNow)
+                return null;
+
+            log.Debug($"CheckIfLandblockGroupsNeedRecalculating TryThrottledSplit(). GetHashCode(): {GetHashCode()}, Count: {Count}");
+
+            return TrySplit();
+        }
+
+
+        /// <summary>
+        /// This will calculate the spacing between landblock group boarders as described here:
+        /// https://math.stackexchange.com/questions/2724537/finding-the-clear-spacing-distance-between-two-rectangles
+        /// </summary>
+        public int Distance(Landblock landblock)
+        {
+            return Math.Max(
+                Math.Abs(xCenter - landblock.Id.LandblockX) - (width + 0) / 2,
+                Math.Abs(yCenter - landblock.Id.LandblockY) - (height + 0) / 2);
+        }
 
         /// <summary>
         /// This will calculate the spacing between landblock group boarders as described here:
