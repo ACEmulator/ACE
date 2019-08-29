@@ -40,7 +40,6 @@ namespace ACE.Server.Managers
 
         private static readonly List<Landblock> landblockGroupPendingAdditions = new List<Landblock>();
         private static readonly List<LandblockGroup> landblockGroups = new List<LandblockGroup>();
-        //private static readonly Queue<LandblockGroup> landblockGroupTrySplitQueue = new Queue<LandblockGroup>();
 
         public static bool MultiThreadedLandblockGroupPhysicsTicking = false;
         public static bool MultiThreadedLandblockGroupTicking = true;
@@ -173,35 +172,32 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
-        private static readonly System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-        private static readonly System.Diagnostics.Stopwatch sw1 = new System.Diagnostics.Stopwatch();
-        private static readonly System.Diagnostics.Stopwatch sw2 = new System.Diagnostics.Stopwatch();
-        private static readonly System.Diagnostics.Stopwatch sw4 = new System.Diagnostics.Stopwatch();
+        private static readonly System.Diagnostics.Stopwatch swCheckIfLandblockGroupsNeedRecalculating = new System.Diagnostics.Stopwatch();
+        private static readonly System.Diagnostics.Stopwatch swlandblockGroupPendingAdditions = new System.Diagnostics.Stopwatch();
+        private static readonly System.Diagnostics.Stopwatch swTrySplitOutter = new System.Diagnostics.Stopwatch();
+        private static readonly System.Diagnostics.Stopwatch swTrySplitEach = new System.Diagnostics.Stopwatch();
 
         private static void CheckIfLandblockGroupsNeedRecalculating()
         {
-            // Timers.PortalYearTicks
-
             if (landblockGroupPendingAdditions.Count == 0)
                 return;
 
-            sw.Restart();
+            swCheckIfLandblockGroupsNeedRecalculating.Restart();
 
             lock (landblockMutex)
             {
-                // todo: Investigate alternate logic
-                // Is dungeon?
-                // Add adacents
-                // Check Group Distances
-                // Periodically check for splits
-
-                sw1.Restart();
+                swlandblockGroupPendingAdditions.Restart();
                 for (int i = landblockGroupPendingAdditions.Count - 1; i >= 0; i--)
                 {
                     if (landblockGroupPendingAdditions[i].IsDungeon)
-                        landblockGroups.Add(new LandblockGroup(landblockGroupPendingAdditions[i]));
+                    {
+                        // Each dungeon exists in its own group
+                        var landblockGroup = new LandblockGroup(landblockGroupPendingAdditions[i]);
+                        landblockGroups.Add(landblockGroup);
+                    }
                     else
                     {
+                        // Find out how many groups this landblock is eligible for
                         var landblockGroupsIndexMatchesByDistance = new List<int>();
 
                         for (int j = 0; j < landblockGroups.Count; j++)
@@ -217,11 +213,12 @@ namespace ACE.Server.Managers
 
                         if (landblockGroupsIndexMatchesByDistance.Count > 0)
                         {
+                            // Add the landblock to the first eligible group
                             landblockGroups[landblockGroupsIndexMatchesByDistance[0]].Add(landblockGroupPendingAdditions[i]);
 
                             if (landblockGroupsIndexMatchesByDistance.Count > 1)
                             {
-                                // Multiple groups are close enough, let's merge them
+                                // Merge the additional eligible groups into the first one
                                 for (int j = landblockGroupsIndexMatchesByDistance.Count - 1; j > 0; j--)
                                 {
                                     // Copy the j down into 0
@@ -237,83 +234,36 @@ namespace ACE.Server.Managers
                             // No close groups were found
                             var landblockGroup = new LandblockGroup(landblockGroupPendingAdditions[i]);
                             landblockGroups.Add(landblockGroup);
-                            //landblockGroupTrySplitQueue.Enqueue(landblockGroup);
                         }
                     }
 
                     landblockGroupPendingAdditions.RemoveAt(i);
                 }
-                sw1.Stop();
-                if (sw1.Elapsed.TotalMilliseconds > 1)
-                    log.Warn($"LandblockGroup CILGNR() loop landblockGroupPendingAdditions took: {sw1.Elapsed.TotalMilliseconds:N2} ms");
+                swlandblockGroupPendingAdditions.Stop();
+                if (swlandblockGroupPendingAdditions.Elapsed.TotalMilliseconds > 1)
+                    log.Warn($"LandblockGroup CILGNR() loop landblockGroupPendingAdditions took: {swlandblockGroupPendingAdditions.Elapsed.TotalMilliseconds:N2} ms");
 
-                //sw2.Restart();
-                // Check for landblock group split eligibility, only one group attempt per tick
-                /*if (landblockGroupTrySplitQueue.TryPeek(out var trySplitGroup) && trySplitGroup.NextTrySplitTime <= Timers.PortalYearTicks)
-                {
-                    landblockGroupTrySplitQueue.Dequeue();
-
-                    if (trySplitGroup.Count > 0) // If the count is 0, this landblock group is no longer in-use
-                    {
-                        //sw4.Restart();
-                        var result = trySplitGroup.TrySplit();
-                        //sw4.Stop();
-
-                        //if (sw4.Elapsed.TotalMilliseconds > 0.5)
-                        {
-                            //log.Warn($"LandblockGroup CILGNR() TrySplit took   : {sw4.Elapsed.TotalMilliseconds:N2} ms");
-                            log.Warn($"LandblockGroup CILGNR() TrySplit for old: {trySplitGroup}");
-                        }
-
-                        /*if (results != null)
-                        {
-                            landblockGroups.Remove(trySplitGroup);
-
-                            foreach (var result in results)
-                            {
-                                landblockGroups.Add(result);
-                                landblockGroupTrySplitQueue.Enqueue(result);
-                                log.Info($"LandblockGroup CILGNR() split, old: {trySplitGroup}, new: {result} took: {sw4.Elapsed.TotalMilliseconds:N2} ms");
-                            }
-                        }
-                        else
-                        {
-                            landblockGroupTrySplitQueue.Enqueue(trySplitGroup);
-                        }*/
-
-                        /*landblockGroupTrySplitQueue.Enqueue(trySplitGroup);
-
-                        if (result != null)
-                        {
-                            landblockGroups.Add(result);
-                            landblockGroupTrySplitQueue.Enqueue(result);
-                            //log.Info($"LandblockGroup CILGNR() TrySplit took   : {sw4.Elapsed.TotalMilliseconds:N2} ms");
-                            log.Info($"LandblockGroup CILGNR() TrySplit for old: {trySplitGroup}");
-                            log.Info($"LandblockGroup CILGNR() TrySplit and new: {result}");
-                        }
-                    }
-                }*/
-
+                swTrySplitOutter.Restart();
                 for (int i = landblockGroups.Count - 1; i >= 0; i--)
                 {
-                    sw4.Restart();
-                    var split = landblockGroups[i].TrySplit();
-                    sw4.Stop();
+                    swTrySplitEach.Restart();
+                    var split = landblockGroups[i].TryThrottledSplit();
+                    swTrySplitEach.Stop();
 
-                    if (sw4.Elapsed.TotalMilliseconds > 0.5)
-                        log.Warn($"LandblockGroup CILGNR() TrySplit for {landblockGroups[i]} took: {sw4.Elapsed.TotalMilliseconds:N2} ms");
+                    if (swTrySplitEach.Elapsed.TotalMilliseconds > 0.5)
+                        log.Warn($"LandblockGroup CILGNR() TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
 
                     if (split != null)
                     {
                         landblockGroups.Add(split);
-                        //log.Info($"LandblockGroup CILGNR() TrySplit took   : {sw4.Elapsed.TotalMilliseconds:N2} ms");
-                        //log.Info($"LandblockGroup CILGNR() split for old: {landblockGroups[i]}");
-                        //log.Info($"LandblockGroup CILGNR() split and new: {split}");
+                        log.Info($"LandblockGroup CILGNR() TrySplit took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                        log.Info($"LandblockGroup CILGNR() split for old: {landblockGroups[i]}");
+                        log.Info($"LandblockGroup CILGNR() split and new: {split}");
                     }
                 }
-                //sw2.Stop();
-                //if (sw2.Elapsed.TotalMilliseconds > 1)
-                //    log.Warn($"LandblockGroup CILGNR() process TrySplitQueue took: {sw2.Elapsed.TotalMilliseconds:N2} ms");
+                swTrySplitOutter.Stop();
+                if (swTrySplitOutter.Elapsed.TotalMilliseconds > 1)
+                    log.Warn($"LandblockGroup CILGNR() TrySplit all landblocks took: {swTrySplitOutter.Elapsed.TotalMilliseconds:N2} ms");
 
                 // Debugging
                 var count = 0;
@@ -323,9 +273,9 @@ namespace ACE.Server.Managers
                     log.Error($"LandblockGroup CILGNR() count ({count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
             }
 
-            sw.Stop();
-            if (sw.Elapsed.TotalMilliseconds > 1)
-                log.Warn($"LandblockGroup CILGNR() took: {sw.Elapsed.TotalMilliseconds:N2} ms, sw1: {sw1.Elapsed.TotalMilliseconds:N2} ms, sw2: {sw2.Elapsed.TotalMilliseconds:N2} ms");
+            swCheckIfLandblockGroupsNeedRecalculating.Stop();
+            if (swCheckIfLandblockGroupsNeedRecalculating.Elapsed.TotalMilliseconds > 1)
+                log.Warn($"LandblockGroup CILGNR() took: {swCheckIfLandblockGroupsNeedRecalculating.Elapsed.TotalMilliseconds:N2} ms, swlandblockGroupPendingAdditions: {swlandblockGroupPendingAdditions.Elapsed.TotalMilliseconds:N2} ms, swTrySplit: {swTrySplitOutter.Elapsed.TotalMilliseconds:N2} ms");
             //else
                 //log.Debug($"CheckIfLandblockGroupsNeedRecalculating took: {sw.Elapsed.TotalMilliseconds:N2} ms");
         }
