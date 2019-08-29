@@ -6,20 +6,28 @@ using log4net;
 
 namespace ACE.Server.Entity
 {
-    class LandblockGroup : IEnumerable<Landblock>
+    public class LandblockGroup : IEnumerable<Landblock>
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const int LandblockGroupMinSpacing = 10;
+        public const int LandblockGroupMinSpacing = 5;
+
         private const int landblockGroupSpanRequiredBeforeSplitEligibility = LandblockGroupMinSpacing * 4;
+
+        private const int numberOfUniqueLandblocksRemovedBeforeSplitEligibility = 0; // LandblockGroupMinSpacing * LandblockGroupMinSpacing; TODO change value after testing
 
         public bool IsDungeon { get; private set; }
 
-        // Trying to split a group is a very costly operation, so we only do it periodically
-        private readonly TimeSpan splitRetryPeriod = TimeSpan.FromMinutes(5);
-        private DateTime nextSplitRetryTime = DateTime.MinValue;
+        /// <summary>
+        /// The number of seconds that should elapse before the next time TrySplit is called
+        /// </summary>
+        public const double TrySplitTimeInterval = 0; // 300; TODO change value after testing
+
+        public double NextTrySplitTime { get; private set; } = Timers.PortalYearTicks + TrySplitTimeInterval;
 
         private readonly HashSet<Landblock> landblocks = new HashSet<Landblock>();
+
+        private readonly HashSet<uint> uniqueLandblockIdsRemoved = new HashSet<uint>();
 
         private int xMin = int.MaxValue;
         private int xMax = int.MinValue;
@@ -96,15 +104,15 @@ namespace ACE.Server.Entity
                 if (landblocks.Count == 0)
                     return true;
 
+                uniqueLandblockIdsRemoved.Add(landblock.Id.Raw);
+
                 // If this landblock is on the perimieter of the group, recalculate the boundaries (they may end up the same)
-                if ((landblock.Id.LandblockX == xMin && landblock.Id.LandblockY == yMin) ||
-                    (landblock.Id.LandblockX == xMax && landblock.Id.LandblockY == yMin) ||
-                    (landblock.Id.LandblockX == xMin && landblock.Id.LandblockY == yMax) ||
-                    (landblock.Id.LandblockX == xMax && landblock.Id.LandblockY == yMax))
+                if (landblock.Id.LandblockX == xMin || landblock.Id.LandblockX == xMax ||
+                    landblock.Id.LandblockY == yMin || landblock.Id.LandblockY == yMax)
                 {
                     RecalculateBoundaries();
                 }
-                else
+                /*else
                 {
                     // This landblock is not on a boundary. This landblock may be eligible for a split
                     if (width >= landblockGroupSpanRequiredBeforeSplitEligibility || height >= landblockGroupSpanRequiredBeforeSplitEligibility)
@@ -115,11 +123,10 @@ namespace ACE.Server.Entity
                             Math.Abs(yMin - landblock.Id.LandblockY) >= LandblockGroupMinSpacing ||
                             Math.Abs(yMax - landblock.Id.LandblockY) >= LandblockGroupMinSpacing)
                         {
-                            if (nextSplitRetryTime == DateTime.MinValue)
-                                nextSplitRetryTime = DateTime.UtcNow.Add(splitRetryPeriod);
+                            landblockHasBeenRemoved = true;
                         }
                     }
-                }
+                }*/
 
                 return true;
             }
@@ -160,12 +167,80 @@ namespace ACE.Server.Entity
             height = yMax - yMin;
         }
 
+
+        /*private static void AddLandblockToLandblockGroup(HashSet<Landblock> landblocksAdded, LandblockGroup workingGroup, Landblock workingLandblock)
+        {
+            // TODO: This is bugged because some adjacents might not be part of this landlock group yet
+
+            if (landblocksAdded.Add(workingLandblock))
+            {
+                if (!workingGroup.Add(workingLandblock))
+                    log.Error($"Failed to add landblock ({workingLandblock.Id}) to landblock group ({workingGroup})");
+
+                foreach (var adjacent in workingLandblock.Adjacents)
+                    AddLandblockToLandblockGroup(landblocksAdded, workingGroup, adjacent);
+            }
+        }*/
+
         /// <summary>
         /// Will return null if no split was possible.<para />
-        /// If a LandblockGroup is returned, you must use it. The results of the returned group will have been removed from this group, and this groups boundaries will have been recalculated.
+        /// If a result is returned, you must use it. The landblocks in the result will have been removed from this group.
         /// </summary>
         public LandblockGroup TrySplit()
         {
+            if (IsDungeon || width < landblockGroupSpanRequiredBeforeSplitEligibility || height < landblockGroupSpanRequiredBeforeSplitEligibility || uniqueLandblockIdsRemoved.Count < numberOfUniqueLandblocksRemovedBeforeSplitEligibility)
+                return null;
+
+            /*var results = new List<LandblockGroup>();
+
+            var landblocksAdded = new HashSet<Landblock>(landblocks.Count);
+
+            foreach (var landblock in landblocks)
+            {
+                if (!landblocksAdded.Contains(landblock))
+                {
+                    var workingGroup = new LandblockGroup();
+
+                    AddLandblockToLandblockGroup(landblocksAdded, workingGroup, landblock);
+
+                    results.Add(workingGroup);
+                }
+            }
+
+            landblockHasBeenRemoved = false;
+            NextTrySplitTime = Timers.PortalYearTicks + TrySplitTimeInterval;
+
+            if (results.Count <= 1)
+                return null;
+
+            // Go through the result landblock groups and see if any are close enough to be merged
+            for (int i = results.Count - 1; i >= 0; i--)
+            {
+                for (int j = 0; j < i; j++)
+                {
+                    var distance = results[i].Distance(results[j]);
+
+                    if (distance <= LandblockGroupMinSpacing)
+                    {
+                        // We're close enough, copy i into j and remove i
+                        foreach (var landblock in results[i])
+                            results[j].Add(landblock);
+
+                        results.RemoveAt(i);
+
+                        break;
+                    }
+                }
+            }
+
+            if (results.Count <= 1)
+                return null;
+
+            return results;*/
+
+
+
+
             var newLandblockGroup = new LandblockGroup();
 
             var remainingLandblocks = new List<Landblock>(landblocks);
@@ -176,7 +251,7 @@ namespace ACE.Server.Entity
             doAnotherPass:
             bool needsAnotherPass = false;
 
-            for (int i = remainingLandblocks.Count - 1 ; i >= 0 ; i--)
+            for (int i = remainingLandblocks.Count - 1; i >= 0; i--)
             {
                 if (newLandblockGroup.Distance(remainingLandblocks[i]) < LandblockGroupMinSpacing)
                 {
@@ -189,7 +264,8 @@ namespace ACE.Server.Entity
             if (needsAnotherPass)
                 goto doAnotherPass;
 
-            nextSplitRetryTime = DateTime.MinValue;
+            NextTrySplitTime = Timers.PortalYearTicks + TrySplitTimeInterval;
+            uniqueLandblockIdsRemoved.Clear();
 
             // If they're the same size, there's no split possible
             if (Count == newLandblockGroup.Count)
@@ -202,20 +278,6 @@ namespace ACE.Server.Entity
             RecalculateBoundaries();
 
             return newLandblockGroup;
-        }
-
-        /// <summary>
-        /// Will return null if no split was possible.<para />
-        /// If a LandblockGroup is returned, you must use it. The results of the returned group will have been removed from this group, and this groups boundaries will have been recalculated.
-        /// </summary>
-        public LandblockGroup TryThrottledSplit()
-        {
-            if (nextSplitRetryTime == DateTime.MinValue || nextSplitRetryTime > DateTime.UtcNow)
-                return null;
-
-            log.Debug($"CheckIfLandblockGroupsNeedRecalculating TryThrottledSplit(). GetHashCode(): {GetHashCode()}, Count: {Count}");
-
-            return TrySplit();
         }
 
 
@@ -239,6 +301,12 @@ namespace ACE.Server.Entity
             return Math.Max(
                 Math.Abs(xCenter - landblockGroup.xCenter) - (width + landblockGroup.width) / 2,
                 Math.Abs(yCenter - landblockGroup.yCenter) - (height + landblockGroup.height) / 2);
+        }
+
+
+        public override string ToString()
+        {
+            return $"x: {xMin} - {xMax}, y: {yMin} - {yMax}, w: {width}, h: {height}, Count: {Count}";
         }
     }
 }

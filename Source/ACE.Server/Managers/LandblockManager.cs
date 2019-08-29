@@ -40,7 +40,9 @@ namespace ACE.Server.Managers
 
         private static readonly List<Landblock> landblockGroupPendingAdditions = new List<Landblock>();
         private static readonly List<LandblockGroup> landblockGroups = new List<LandblockGroup>();
+        //private static readonly Queue<LandblockGroup> landblockGroupTrySplitQueue = new Queue<LandblockGroup>();
 
+        public static bool MultiThreadedLandblockGroupPhysicsTicking = false;
         public static bool MultiThreadedLandblockGroupTicking = true;
         private static readonly ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount * .34, 1) };
 
@@ -171,16 +173,29 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
+        private static readonly System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+        private static readonly System.Diagnostics.Stopwatch sw1 = new System.Diagnostics.Stopwatch();
+        private static readonly System.Diagnostics.Stopwatch sw2 = new System.Diagnostics.Stopwatch();
+        private static readonly System.Diagnostics.Stopwatch sw4 = new System.Diagnostics.Stopwatch();
+
         private static void CheckIfLandblockGroupsNeedRecalculating()
         {
+            // Timers.PortalYearTicks
+
             if (landblockGroupPendingAdditions.Count == 0)
                 return;
 
-            var sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
+            sw.Restart();
 
             lock (landblockMutex)
             {
+                // todo: Investigate alternate logic
+                // Is dungeon?
+                // Add adacents
+                // Check Group Distances
+                // Periodically check for splits
+
+                sw1.Restart();
                 for (int i = landblockGroupPendingAdditions.Count - 1; i >= 0; i--)
                 {
                     if (landblockGroupPendingAdditions[i].IsDungeon)
@@ -220,36 +235,97 @@ namespace ACE.Server.Managers
                         else
                         {
                             // No close groups were found
-                            landblockGroups.Add(new LandblockGroup(landblockGroupPendingAdditions[i]));
+                            var landblockGroup = new LandblockGroup(landblockGroupPendingAdditions[i]);
+                            landblockGroups.Add(landblockGroup);
+                            //landblockGroupTrySplitQueue.Enqueue(landblockGroup);
                         }
                     }
 
                     landblockGroupPendingAdditions.RemoveAt(i);
                 }
+                sw1.Stop();
+                if (sw1.Elapsed.TotalMilliseconds > 1)
+                    log.Warn($"LandblockGroup CILGNR() loop landblockGroupPendingAdditions took: {sw1.Elapsed.TotalMilliseconds:N2} ms");
 
-                // Check for landblock group split eligibility
+                //sw2.Restart();
+                // Check for landblock group split eligibility, only one group attempt per tick
+                /*if (landblockGroupTrySplitQueue.TryPeek(out var trySplitGroup) && trySplitGroup.NextTrySplitTime <= Timers.PortalYearTicks)
+                {
+                    landblockGroupTrySplitQueue.Dequeue();
+
+                    if (trySplitGroup.Count > 0) // If the count is 0, this landblock group is no longer in-use
+                    {
+                        //sw4.Restart();
+                        var result = trySplitGroup.TrySplit();
+                        //sw4.Stop();
+
+                        //if (sw4.Elapsed.TotalMilliseconds > 0.5)
+                        {
+                            //log.Warn($"LandblockGroup CILGNR() TrySplit took   : {sw4.Elapsed.TotalMilliseconds:N2} ms");
+                            log.Warn($"LandblockGroup CILGNR() TrySplit for old: {trySplitGroup}");
+                        }
+
+                        /*if (results != null)
+                        {
+                            landblockGroups.Remove(trySplitGroup);
+
+                            foreach (var result in results)
+                            {
+                                landblockGroups.Add(result);
+                                landblockGroupTrySplitQueue.Enqueue(result);
+                                log.Info($"LandblockGroup CILGNR() split, old: {trySplitGroup}, new: {result} took: {sw4.Elapsed.TotalMilliseconds:N2} ms");
+                            }
+                        }
+                        else
+                        {
+                            landblockGroupTrySplitQueue.Enqueue(trySplitGroup);
+                        }*/
+
+                        /*landblockGroupTrySplitQueue.Enqueue(trySplitGroup);
+
+                        if (result != null)
+                        {
+                            landblockGroups.Add(result);
+                            landblockGroupTrySplitQueue.Enqueue(result);
+                            //log.Info($"LandblockGroup CILGNR() TrySplit took   : {sw4.Elapsed.TotalMilliseconds:N2} ms");
+                            log.Info($"LandblockGroup CILGNR() TrySplit for old: {trySplitGroup}");
+                            log.Info($"LandblockGroup CILGNR() TrySplit and new: {result}");
+                        }
+                    }
+                }*/
+
                 for (int i = landblockGroups.Count - 1; i >= 0; i--)
                 {
-                    var split = landblockGroups[i].TryThrottledSplit();
+                    sw4.Restart();
+                    var split = landblockGroups[i].TrySplit();
+                    sw4.Stop();
+
+                    if (sw4.Elapsed.TotalMilliseconds > 0.5)
+                        log.Warn($"LandblockGroup CILGNR() TrySplit for {landblockGroups[i]} took: {sw4.Elapsed.TotalMilliseconds:N2} ms");
 
                     if (split != null)
                     {
                         landblockGroups.Add(split);
-                        log.Debug($"CheckIfLandblockGroupsNeedRecalculating split, old: {landblockGroups[i].Count}, new: {split.Count}");
+                        //log.Info($"LandblockGroup CILGNR() TrySplit took   : {sw4.Elapsed.TotalMilliseconds:N2} ms");
+                        //log.Info($"LandblockGroup CILGNR() split for old: {landblockGroups[i]}");
+                        //log.Info($"LandblockGroup CILGNR() split and new: {split}");
                     }
                 }
+                //sw2.Stop();
+                //if (sw2.Elapsed.TotalMilliseconds > 1)
+                //    log.Warn($"LandblockGroup CILGNR() process TrySplitQueue took: {sw2.Elapsed.TotalMilliseconds:N2} ms");
 
                 // Debugging
                 var count = 0;
                 foreach (var group in landblockGroups)
                     count += group.Count;
                 if (count != loadedLandblocks.Count)
-                    log.Error($"count ({count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
+                    log.Error($"LandblockGroup CILGNR() count ({count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
             }
 
             sw.Stop();
-            if (sw.ElapsedMilliseconds > 1)
-                log.Warn($"CheckIfLandblockGroupsNeedRecalculating took: {sw.Elapsed.TotalMilliseconds:N2} ms");
+            if (sw.Elapsed.TotalMilliseconds > 1)
+                log.Warn($"LandblockGroup CILGNR() took: {sw.Elapsed.TotalMilliseconds:N2} ms, sw1: {sw1.Elapsed.TotalMilliseconds:N2} ms, sw2: {sw2.Elapsed.TotalMilliseconds:N2} ms");
             //else
                 //log.Debug($"CheckIfLandblockGroupsNeedRecalculating took: {sw.Elapsed.TotalMilliseconds:N2} ms");
         }
@@ -279,7 +355,7 @@ namespace ACE.Server.Managers
 
             var movedObjects = new ConcurrentBag<WorldObject>();
 
-            if (false && MultiThreadedLandblockGroupTicking) // Disabled for now...
+            if (MultiThreadedLandblockGroupPhysicsTicking)
             {
                 //Parallel.ForEach(threadSeparatedLandblockGroups, parallelOptions, landblockGroup =>
                 Parallel.ForEach(landblockGroups, landblockGroup => // TODO: Use all the threads during development to exaggerate issues
