@@ -696,8 +696,6 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsOpen) return;
 
-            SendDeletesForMyInventory(player);
-
             var animTime = DoOnCloseMotionChanges();
 
             if (animTime <= 0)
