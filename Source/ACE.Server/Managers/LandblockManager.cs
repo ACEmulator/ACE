@@ -41,9 +41,9 @@ namespace ACE.Server.Managers
         private static readonly List<Landblock> landblockGroupPendingAdditions = new List<Landblock>();
         private static readonly List<LandblockGroup> landblockGroups = new List<LandblockGroup>();
 
-        public static bool MultiThreadedLandblockGroupPhysicsTicking = false;
-        public static bool MultiThreadedLandblockGroupTicking = true;
-        private static readonly ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount * .34, 1) };
+        public static bool MultiThreadedLandblockGroupPhysicsTicking = false; // Do not enable, this feature is still in development and is considered unstable.
+        public static bool MultiThreadedLandblockGroupTicking = true; // You can enable this, this feature is considered alpha and almost ready for beta.
+        private static readonly ParallelOptions parallelOptions = new ParallelOptions(); // TODO: Enable this before pushing tomaster { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount * .34, 1) };
 
         public static int LandblockGroupsCount
         {
@@ -269,8 +269,7 @@ namespace ACE.Server.Managers
 
             if (MultiThreadedLandblockGroupPhysicsTicking)
             {
-                //Parallel.ForEach(threadSeparatedLandblockGroups, parallelOptions, landblockGroup =>
-                Parallel.ForEach(landblockGroups, landblockGroup => // TODO: Use all the threads during development to exaggerate issues
+                Parallel.ForEach(landblockGroups, parallelOptions, landblockGroup =>
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.TickPhysics(portalYearTicks, movedObjects);
@@ -303,8 +302,7 @@ namespace ACE.Server.Managers
 
             if (MultiThreadedLandblockGroupTicking)
             {
-                //Parallel.ForEach(threadSeparatedLandblockGroups, parallelOptions, landblockGroup =>
-                Parallel.ForEach(landblockGroups, landblockGroup => // TODO: Use all the threads during development to exaggerate issues
+                Parallel.ForEach(landblockGroups, parallelOptions, landblockGroup =>
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.Tick(Time.GetUnixTime());

@@ -185,6 +185,7 @@ namespace ACE.Server.Entity
 
             RecalculateBoundaries();
 
+            // TODO: comment this better
             // If they overlap, or one is inside of the other, or they're too close, there's no split possible
             // I don't think this is needed. Even if they overlap or are contained, none are within the boundary
             // If a new landblock is close enough to both, then they'll be merged anyway
@@ -238,12 +239,11 @@ namespace ACE.Server.Entity
             if (width < landblockGroupSpanRequiredBeforeSplitEligibility || height < landblockGroupSpanRequiredBeforeSplitEligibility)
                 return null;
 
-            // todo re-enable after testing
-            //if (uniqueLandblockIdsRemoved.Count < numberOfUniqueLandblocksRemovedBeforeSplitEligibility)
-            //    return null;
+            if (uniqueLandblockIdsRemoved.Count < numberOfUniqueLandblocksRemovedBeforeSplitEligibility)
+                return null;
 
-            //if (NextTrySplitTime > DateTime.UtcNow)
-            //    return null;
+            if (NextTrySplitTime > DateTime.UtcNow)
+                return null;
 
             return TrySplit();
         }
@@ -261,7 +261,6 @@ namespace ACE.Server.Entity
             return (int)Math.Max(
                 Math.Abs(xCenter - landblock.Id.LandblockX) - (width + 1) / 2.0,
                 Math.Abs(yCenter - landblock.Id.LandblockY) - (height + 1) / 2.0);
-               
         }
 
         /// <summary>
