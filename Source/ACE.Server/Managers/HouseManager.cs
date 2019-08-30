@@ -405,7 +405,7 @@ namespace ACE.Server.Managers
 
             slumlord.SaveBiotaToDatabase();
 
-            log.Debug($"HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
+            log.Debug($"[HOUSE] HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
 
             // re-add item to queue
             AddRentQueue(player, playerHouse.House);
@@ -493,7 +493,7 @@ namespace ACE.Server.Managers
 
             house.ClearRestrictions();
 
-            log.Debug($"HouseManager.HandleRentEviction({player.Name})");
+            log.Debug($"[HOUSE] HouseManager.HandleRentEviction({player.Name})");
 
             if (multihouse)
             {
