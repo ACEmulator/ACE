@@ -132,7 +132,7 @@ namespace ACE.Server.WorldObjects
                 var item = GetInventoryItem(itemGuid);
                 if (item == null)
                 {
-                    log.Debug($"{Name}.HandleSalvaging({itemGuid:X8}): couldn't find inventory item");
+                    log.Debug($"[CRAFTING] {Name}.HandleSalvaging({itemGuid:X8}): couldn't find inventory item");
                     continue;
                 }
 

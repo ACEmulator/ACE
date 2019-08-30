@@ -1685,7 +1685,7 @@ namespace ACE.Server.Factories
 
             if(wo.TsysMutationData == null)
             {
-                log.Warn($"Missing PropertyInt.TsysMutationData on loot item {wo.WeenieClassId} - {wo.Name}");
+                log.Warn($"[LOOT] Missing PropertyInt.TsysMutationData on loot item {wo.WeenieClassId} - {wo.Name}");
                 return defaultMaterialType;
             }
 
@@ -2169,7 +2169,7 @@ namespace ACE.Server.Factories
                 }
                 else
                 {
-                    log.Warn($"Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
+                    log.Warn($"[LOOT] Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
                 }
             }
 
