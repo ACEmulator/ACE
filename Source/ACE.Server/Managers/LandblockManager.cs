@@ -115,7 +115,6 @@ namespace ACE.Server.Managers
             var landblockID = new LandblockId(landblock);
             GetLandblock(landblockID, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
             log.DebugFormat("Landblock {0:X4}, ({1}) preloaded. IncludeAdjacents = {2}, Permaload = {3}", landblockID.Landblock, preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
-
         }
 
         private static readonly uint[] apartmentLandblocks =
@@ -172,7 +171,7 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
-        private static void CheckIfLandblockGroupsNeedRecalculating()
+        private static void ProcessPendingLandblockGroupAdditions()
         {
             if (landblockGroupPendingAdditions.Count == 0)
                 return;
@@ -238,7 +237,7 @@ namespace ACE.Server.Managers
                 foreach (var group in landblockGroups)
                     count += group.Count;
                 if (count != loadedLandblocks.Count)
-                    log.Error($"LandblockGroup CILGNR() count ({count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
+                    log.Error($"[LANDBLOCK GROUP] ProcessPendingAdditions count ({count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
             }
         }
 
@@ -263,7 +262,7 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void TickPhysics(double portalYearTicks)
         {
-            CheckIfLandblockGroupsNeedRecalculating();
+            ProcessPendingLandblockGroupAdditions();
 
             var movedObjects = new ConcurrentBag<WorldObject>();
 
@@ -298,7 +297,7 @@ namespace ACE.Server.Managers
 
         private static void Tick()
         {
-            CheckIfLandblockGroupsNeedRecalculating();
+            ProcessPendingLandblockGroupAdditions();
 
             if (MultiThreadedLandblockGroupTicking)
             {
@@ -584,19 +583,21 @@ namespace ACE.Server.Managers
                                         swTrySplitEach.Stop();
 
                                         if (swTrySplitEach.Elapsed.TotalMilliseconds > 1)
-                                            log.Warn($"LandblockGroup TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                                            log.Warn($"[LANDBLOCK GROUP] TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
 
                                         if (splits != null)
                                         {
+                                            // TODO: Add this to my local approved filters
                                             if (splits.Count > 0)
-                                                log.Info($"LandblockGroup TrySplit resulted in {splits.Count} split(s) and took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                                            {
+                                                log.Debug($"[LANDBLOCK GROUP] TrySplit resulted in {splits.Count} split(s) and took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                                                //log.Debug($"[LANDBLOCK GROUP] split for old: {landblockGroups[i]}");
+                                            }
 
                                             foreach (var split in splits)
                                             {
                                                 landblockGroups.Add(split);
-                                                //log.Info($"LandblockGroup TrySplit resulted in {splits.Count} split(s) and took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
-                                                //log.Info($"LandblockGroup split for old: {landblockGroups[i]}");
-                                                //log.Info($"LandblockGroup split and new: {split}");
+                                                //log.Debug($"[LANDBLOCK GROUP] split and new: {split}");
                                             }
                                         }
                                     }

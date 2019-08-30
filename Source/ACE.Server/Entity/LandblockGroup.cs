@@ -60,13 +60,13 @@ namespace ACE.Server.Entity
             {
                 if (IsDungeon)
                 {
-                    log.Error($"You cannot add a landblock ({landblock.Id}) to a LandblockGroup that represents a single Dungeon Landblock");
+                    log.Error($"[LANDBLOCK GROUP] You cannot add a landblock ({landblock.Id}) to a LandblockGroup that represents a single Dungeon Landblock");
                     return false;
                 }
 
                 if (landblock.IsDungeon)
                 {
-                    log.Error($"You cannot add a dungeon landblock ({landblock.Id}) to an existing LandblockGroup");
+                    log.Error($"[LANDBLOCK GROUP] You cannot add a dungeon landblock ({landblock.Id}) to an existing LandblockGroup");
                     return false;
                 }
             }
