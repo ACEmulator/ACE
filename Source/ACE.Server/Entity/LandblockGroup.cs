@@ -10,7 +10,7 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const int LandblockGroupMinSpacing = 5;
+        public const int LandblockGroupMinSpacing = 10;
 
         private const int landblockGroupSpanRequiredBeforeSplitEligibility = LandblockGroupMinSpacing * 4;
 
@@ -31,8 +31,8 @@ namespace ACE.Server.Entity
         private int yMin = int.MaxValue;
         private int yMax = int.MinValue;
 
-        private int xCenter;
-        private int yCenter;
+        private double xCenter;
+        private double yCenter;
 
         private int width;
         private int height;
@@ -81,11 +81,11 @@ namespace ACE.Server.Entity
                 if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
                 if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
 
-                xCenter = xMin + ((xMax - xMin) / 2);
-                yCenter = yMin + ((yMax - yMin) / 2);
+                xCenter = xMin + ((xMax - xMin) / 2.0);
+                yCenter = yMin + ((yMax - yMin) / 2.0);
 
-                width = xMax - xMin;
-                height = yMax - yMin;
+                width = (xMax - xMin) + 1;
+                height = (yMax - yMin) + 1;
 
                 return true;
             }
@@ -142,11 +142,11 @@ namespace ACE.Server.Entity
                 if (existing.Id.LandblockY > yMax) yMax = existing.Id.LandblockY;
             }
 
-            xCenter = xMin + ((xMax - xMin) / 2);
-            yCenter = yMin + ((yMax - yMin) / 2);
+            xCenter = xMin + ((xMax - xMin) / 2.0);
+            yCenter = yMin + ((yMax - yMin) / 2.0);
 
-            width = xMax - xMin;
-            height = yMax - yMin;
+            width = (xMax - xMin) + 1;
+            height = (yMax - yMin) + 1;
         }
 
 
@@ -158,6 +158,8 @@ namespace ACE.Server.Entity
         {
             if (IsDungeon)
                 return null;
+
+            // todo: Consider having this function try to split off more than just 1 group
 
             var newLandblockGroup = new LandblockGroup();
 
@@ -171,7 +173,7 @@ namespace ACE.Server.Entity
 
             for (int i = remainingLandblocks.Count - 1; i >= 0; i--)
             {
-                if (newLandblockGroup.Distance(remainingLandblocks[i]) < LandblockGroupMinSpacing)
+                if (newLandblockGroup.BoundaryDistance(remainingLandblocks[i]) < LandblockGroupMinSpacing)
                 {
                     newLandblockGroup.Add(remainingLandblocks[i]);
                     remainingLandblocks.RemoveAt(i);
@@ -189,11 +191,23 @@ namespace ACE.Server.Entity
             if (Count == newLandblockGroup.Count)
                 return null;
 
-            // Remove the split landblocks
+            // Remove the split landblocks. Do this manually, not through the public Remove() function
             foreach (var landblock in newLandblockGroup)
                 landblocks.Remove(landblock);
 
             RecalculateBoundaries();
+
+            // If they overlap, or one is inside of the other, or they're too close, there's no split possible
+            if (BoundaryDistance(newLandblockGroup) < LandblockGroupMinSpacing)
+            {
+                // Add back the landblocks. Do this manually, not through the public Add() function
+                foreach (var landblock in newLandblockGroup)
+                    landblocks.Add(landblock);
+
+                RecalculateBoundaries();
+
+                return null;
+            }
 
             return newLandblockGroup;
         }
@@ -219,25 +233,32 @@ namespace ACE.Server.Entity
 
 
         /// <summary>
-        /// This will calculate the spacing between landblock group boarders as described here:
-        /// https://math.stackexchange.com/questions/2724537/finding-the-clear-spacing-distance-between-two-rectangles
+        /// This will calculate the distance from the landblock group boarder.<para />
+        /// -X = Inside the bounds, where -1 is the outer perimeter<para />
+        ///  0 = Outside of the bounds but adjacent (touching)<para />
+        /// +X = Has X landblocks between this and the bounds of the group<para />
+        /// Distances are measured horizontally and vertically (not diagonally) pictured here: https://math.stackexchange.com/questions/2724537/finding-the-clear-spacing-distance-between-two-rectangles
         /// </summary>
-        public int Distance(Landblock landblock)
+        public int BoundaryDistance(Landblock landblock)
         {
-            return Math.Max(
-                Math.Abs(xCenter - landblock.Id.LandblockX) - (width + 0) / 2,
-                Math.Abs(yCenter - landblock.Id.LandblockY) - (height + 0) / 2);
+            return (int)Math.Max(
+                Math.Abs(xCenter - landblock.Id.LandblockX) - (width + 1) / 2.0,
+                Math.Abs(yCenter - landblock.Id.LandblockY) - (height + 1) / 2.0);
+               
         }
 
         /// <summary>
-        /// This will calculate the spacing between landblock group boarders as described here:
-        /// https://math.stackexchange.com/questions/2724537/finding-the-clear-spacing-distance-between-two-rectangles
+        /// This will calculate the distance between the landblock group boarders.<para />
+        /// -X = Inside the bounds, where -1 is an overlapping outer perimeter<para />
+        ///  0 = Outside of the bounds but adjacent (touching)<para />
+        /// +X = Has X landblocks between this and the bounds of the group<para />
+        /// Distances are measured horizontally and vertically (not diagonally) pictured here: https://math.stackexchange.com/questions/2724537/finding-the-clear-spacing-distance-between-two-rectangles
         /// </summary>
-        public int Distance(LandblockGroup landblockGroup)
+        public int BoundaryDistance(LandblockGroup landblockGroup)
         {
-            return Math.Max(
-                Math.Abs(xCenter - landblockGroup.xCenter) - (width + landblockGroup.width) / 2,
-                Math.Abs(yCenter - landblockGroup.yCenter) - (height + landblockGroup.height) / 2);
+            return (int)Math.Max(
+                Math.Abs(xCenter - landblockGroup.xCenter) - (width + landblockGroup.width) / 2.0,
+                Math.Abs(yCenter - landblockGroup.yCenter) - (height + landblockGroup.height) / 2.0);
         }
 
 
