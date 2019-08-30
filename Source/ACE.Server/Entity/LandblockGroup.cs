@@ -150,17 +150,8 @@ namespace ACE.Server.Entity
         }
 
 
-        /// <summary>
-        /// Will return null if no split was possible.<para />
-        /// If a result is returned, you must use it. The landblocks in the result will have been removed from this group.
-        /// </summary>
-        public LandblockGroup TrySplit()
+        private LandblockGroup DoTrySplit()
         {
-            if (IsDungeon)
-                return null;
-
-            // todo: Consider having this function try to split off more than just 1 group
-
             var newLandblockGroup = new LandblockGroup();
 
             var remainingLandblocks = new List<Landblock>(landblocks);
@@ -184,9 +175,6 @@ namespace ACE.Server.Entity
             if (needsAnotherPass)
                 goto doAnotherPass;
 
-            NextTrySplitTime = DateTime.UtcNow.Add(TrySplitInterval);
-            uniqueLandblockIdsRemoved.Clear();
-
             // If they're the same size, there's no split possible
             if (Count == newLandblockGroup.Count)
                 return null;
@@ -198,7 +186,9 @@ namespace ACE.Server.Entity
             RecalculateBoundaries();
 
             // If they overlap, or one is inside of the other, or they're too close, there's no split possible
-            if (BoundaryDistance(newLandblockGroup) < LandblockGroupMinSpacing)
+            // I don't think this is needed. Even if they overlap or are contained, none are within the boundary
+            // If a new landblock is close enough to both, then they'll be merged anyway
+            /*if (BoundaryDistance(newLandblockGroup) < LandblockGroupMinSpacing)
             {
                 // Add back the landblocks. Do this manually, not through the public Add() function
                 foreach (var landblock in newLandblockGroup)
@@ -207,9 +197,35 @@ namespace ACE.Server.Entity
                 RecalculateBoundaries();
 
                 return null;
-            }
+            }*/
 
             return newLandblockGroup;
+        }
+
+        /// <summary>
+        /// Will return null if no split was possible.<para />
+        /// If a result is returned, you must use it. The landblocks in the result will have been removed from this group.
+        /// </summary>
+        public List<LandblockGroup> TrySplit()
+        {
+            if (IsDungeon)
+                return null;
+
+            var results = new List<LandblockGroup>();
+
+            var newLandblockGroup = DoTrySplit();
+
+            while (newLandblockGroup != null)
+            {
+                results.Add(newLandblockGroup);
+
+                newLandblockGroup = DoTrySplit();
+            }
+
+            NextTrySplitTime = DateTime.UtcNow.Add(TrySplitInterval);
+            uniqueLandblockIdsRemoved.Clear();
+
+            return results;
         }
 
         /// <summary>
@@ -217,7 +233,7 @@ namespace ACE.Server.Entity
         /// If a result is returned, you must use it. The landblocks in the result will have been removed from this group.<para />
         /// This will only attempt the TrySplit() if all the conditions are met
         /// </summary>
-        public LandblockGroup TryThrottledSplit()
+        public List<LandblockGroup> TryThrottledSplit()
         {
             if (width < landblockGroupSpanRequiredBeforeSplitEligibility || height < landblockGroupSpanRequiredBeforeSplitEligibility)
                 return null;
