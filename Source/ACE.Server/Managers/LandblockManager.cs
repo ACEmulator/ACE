@@ -43,7 +43,7 @@ namespace ACE.Server.Managers
 
         public static bool MultiThreadedLandblockGroupPhysicsTicking = false; // Do not enable, this feature is still in development and is considered unstable.
         public static bool MultiThreadedLandblockGroupTicking = true; // You can enable this, this feature is considered alpha and almost ready for beta.
-        private static readonly ParallelOptions parallelOptions = new ParallelOptions(); // TODO: Enable this before pushing tomaster { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount * .34, 1) };
+        private static readonly ParallelOptions parallelOptions = new ParallelOptions() { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount * .34, 1) };
 
         public static int LandblockGroupsCount
         {
@@ -231,8 +231,7 @@ namespace ACE.Server.Managers
                     landblockGroupPendingAdditions.RemoveAt(i);
                 }
 
-                // todo: comment this out after enough testing
-                // Debugging
+                // Debugging todo: comment this out after enough testing
                 var count = 0;
                 foreach (var group in landblockGroups)
                     count += group.Count;
@@ -587,17 +586,16 @@ namespace ACE.Server.Managers
 
                                         if (splits != null)
                                         {
-                                            // TODO: Add this to my local approved filters
                                             if (splits.Count > 0)
                                             {
                                                 log.Debug($"[LANDBLOCK GROUP] TrySplit resulted in {splits.Count} split(s) and took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
-                                                //log.Debug($"[LANDBLOCK GROUP] split for old: {landblockGroups[i]}");
+                                                log.Debug($"[LANDBLOCK GROUP] split for old: {landblockGroups[i]}");
                                             }
 
                                             foreach (var split in splits)
                                             {
                                                 landblockGroups.Add(split);
-                                                //log.Debug($"[LANDBLOCK GROUP] split and new: {split}");
+                                                log.Debug($"[LANDBLOCK GROUP] split and new: {split}");
                                             }
                                         }
                                     }

@@ -185,20 +185,9 @@ namespace ACE.Server.Entity
 
             RecalculateBoundaries();
 
-            // TODO: comment this better
-            // If they overlap, or one is inside of the other, or they're too close, there's no split possible
-            // I don't think this is needed. Even if they overlap or are contained, none are within the boundary
-            // If a new landblock is close enough to both, then they'll be merged anyway
-            /*if (BoundaryDistance(newLandblockGroup) < LandblockGroupMinSpacing)
-            {
-                // Add back the landblocks. Do this manually, not through the public Add() function
-                foreach (var landblock in newLandblockGroup)
-                    landblocks.Add(landblock);
-
-                RecalculateBoundaries();
-
-                return null;
-            }*/
+            // This can result in returning groups that overlap this ones boundary.
+            // However, that isn't a problem for processing them on separate threads.
+            // In the event a new landblock is added that is within range of both this block and any new block, they will be recombined at that point.
 
             return newLandblockGroup;
         }
