@@ -187,6 +187,7 @@ namespace ACE.Server.Managers
             lock (landblockMutex)
             {
                 swlandblockGroupPendingAdditions.Restart();
+                swTrySplitOutter.Reset();
                 for (int i = landblockGroupPendingAdditions.Count - 1; i >= 0; i--)
                 {
                     if (landblockGroupPendingAdditions[i].IsDungeon)
@@ -240,31 +241,8 @@ namespace ACE.Server.Managers
                     landblockGroupPendingAdditions.RemoveAt(i);
                 }
                 swlandblockGroupPendingAdditions.Stop();
-                if (swlandblockGroupPendingAdditions.Elapsed.TotalMilliseconds > 1)
-                    log.Warn($"LandblockGroup CILGNR() loop landblockGroupPendingAdditions took: {swlandblockGroupPendingAdditions.Elapsed.TotalMilliseconds:N2} ms");
 
-                swTrySplitOutter.Restart();
-                for (int i = landblockGroups.Count - 1; i >= 0; i--)
-                {
-                    swTrySplitEach.Restart();
-                    var split = landblockGroups[i].TryThrottledSplit();
-                    swTrySplitEach.Stop();
-
-                    if (swTrySplitEach.Elapsed.TotalMilliseconds > 0.5)
-                        log.Warn($"LandblockGroup CILGNR() TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
-
-                    if (split != null)
-                    {
-                        landblockGroups.Add(split);
-                        log.Info($"LandblockGroup CILGNR() TrySplit took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
-                        log.Info($"LandblockGroup CILGNR() split for old: {landblockGroups[i]}");
-                        log.Info($"LandblockGroup CILGNR() split and new: {split}");
-                    }
-                }
-                swTrySplitOutter.Stop();
-                if (swTrySplitOutter.Elapsed.TotalMilliseconds > 1)
-                    log.Warn($"LandblockGroup CILGNR() TrySplit all landblocks took: {swTrySplitOutter.Elapsed.TotalMilliseconds:N2} ms");
-
+                // todo: comment this out after enough testing
                 // Debugging
                 var count = 0;
                 foreach (var group in landblockGroups)
@@ -275,7 +253,7 @@ namespace ACE.Server.Managers
 
             swCheckIfLandblockGroupsNeedRecalculating.Stop();
             if (swCheckIfLandblockGroupsNeedRecalculating.Elapsed.TotalMilliseconds > 1)
-                log.Warn($"LandblockGroup CILGNR() took: {swCheckIfLandblockGroupsNeedRecalculating.Elapsed.TotalMilliseconds:N2} ms, swlandblockGroupPendingAdditions: {swlandblockGroupPendingAdditions.Elapsed.TotalMilliseconds:N2} ms, swTrySplit: {swTrySplitOutter.Elapsed.TotalMilliseconds:N2} ms");
+                log.Warn($"LandblockGroup CILGNR() took: {swCheckIfLandblockGroupsNeedRecalculating.Elapsed.TotalMilliseconds:N2} ms, DoAdditions: {swlandblockGroupPendingAdditions.Elapsed.TotalMilliseconds:N2} ms, TrySplit: {swTrySplitOutter.Elapsed.TotalMilliseconds:N2} ms");
             //else
                 //log.Debug($"CheckIfLandblockGroupsNeedRecalculating took: {sw.Elapsed.TotalMilliseconds:N2} ms");
         }
@@ -608,12 +586,30 @@ namespace ACE.Server.Managers
                         {
                             landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
 
+                            // remove from landblock group
                             for (int i = landblockGroups.Count - 1; i >= 0 ; i--)
                             {
                                 if (landblockGroups[i].Remove(landblock))
                                 {
                                     if (landblockGroups[i].Count == 0)
                                         landblockGroups.RemoveAt(i);
+                                    else
+                                    {
+                                        swTrySplitEach.Restart();
+                                        var split = landblockGroups[i].TryThrottledSplit();
+                                        swTrySplitEach.Stop();
+
+                                        if (swTrySplitEach.Elapsed.TotalMilliseconds > 0.5)
+                                            log.Warn($"LandblockGroup CILGNR() TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+
+                                        if (split != null)
+                                        {
+                                            landblockGroups.Add(split);
+                                            log.Info($"LandblockGroup CILGNR() TrySplit took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                                            log.Info($"LandblockGroup CILGNR() split for old: {landblockGroups[i]}");
+                                            log.Info($"LandblockGroup CILGNR() split and new: {split}");
+                                        }
+                                    }
 
                                     break;
                                 }

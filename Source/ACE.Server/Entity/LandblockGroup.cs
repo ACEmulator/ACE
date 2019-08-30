@@ -10,7 +10,7 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const int LandblockGroupMinSpacing = 10;
+        public const int LandblockGroupMinSpacing = 5;
 
         private const int landblockGroupSpanRequiredBeforeSplitEligibility = LandblockGroupMinSpacing * 4;
 
@@ -18,9 +18,9 @@ namespace ACE.Server.Entity
 
         public bool IsDungeon { get; private set; }
 
-        public static readonly TimeSpan TrySplitTimeInterval = TimeSpan.FromMinutes(5);
+        public static readonly TimeSpan TrySplitInterval = Landblock.UnloadInterval * 2;
 
-        public DateTime NextTrySplitTime { get; private set; } = DateTime.UtcNow.Add(TrySplitTimeInterval);
+        public DateTime NextTrySplitTime { get; private set; } = DateTime.UtcNow.Add(TrySplitInterval);
 
         private readonly HashSet<Landblock> landblocks = new HashSet<Landblock>();
 
@@ -184,7 +184,7 @@ namespace ACE.Server.Entity
             if (needsAnotherPass)
                 goto doAnotherPass;
 
-            NextTrySplitTime = DateTime.UtcNow.Add(TrySplitTimeInterval);
+            NextTrySplitTime = DateTime.UtcNow.Add(TrySplitInterval);
             uniqueLandblockIdsRemoved.Clear();
 
             // If they're the same size, there's no split possible
@@ -222,11 +222,12 @@ namespace ACE.Server.Entity
             if (width < landblockGroupSpanRequiredBeforeSplitEligibility || height < landblockGroupSpanRequiredBeforeSplitEligibility)
                 return null;
 
-            if (uniqueLandblockIdsRemoved.Count < numberOfUniqueLandblocksRemovedBeforeSplitEligibility)
-                return null;
+            // todo re-enable after testing
+            //if (uniqueLandblockIdsRemoved.Count < numberOfUniqueLandblocksRemovedBeforeSplitEligibility)
+            //    return null;
 
-            if (NextTrySplitTime > DateTime.UtcNow)
-                return null;
+            //if (NextTrySplitTime > DateTime.UtcNow)
+            //    return null;
 
             return TrySplit();
         }
@@ -264,7 +265,7 @@ namespace ACE.Server.Entity
 
         public override string ToString()
         {
-            return $"x: {xMin} - {xMax}, y: {yMin} - {yMax}, w: {width}, h: {height}, Count: {Count}";
+            return $"x: 0x{xMin:X2} - 0x{xMax:X2}, y: 0x{yMin:X2} - 0x{yMax:X2}, w: {width.ToString().PadLeft(3)}, h: {height.ToString().PadLeft(3)}, Count: {Count.ToString().PadLeft(4)}";
         }
     }
 }

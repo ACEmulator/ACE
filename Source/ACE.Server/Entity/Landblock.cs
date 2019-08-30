@@ -104,7 +104,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Landblocks which have been inactive for this many seconds will be unloaded
         /// </summary>
-        private static readonly TimeSpan unloadInterval = TimeSpan.FromMinutes(5);
+        public static readonly TimeSpan UnloadInterval = TimeSpan.FromMinutes(5);
 
 
         /// <summary>
@@ -540,7 +540,7 @@ namespace ACE.Server.Entity
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
                         IsDormant = true;
-                    if (lastActiveTime + unloadInterval < thisHeartBeat)
+                    if (lastActiveTime + UnloadInterval < thisHeartBeat)
                         LandblockManager.AddToDestructionQueue(this);
                 }
 
