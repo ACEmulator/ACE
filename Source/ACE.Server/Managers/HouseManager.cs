@@ -405,7 +405,7 @@ namespace ACE.Server.Managers
 
             slumlord.SaveBiotaToDatabase();
 
-            log.Info($"HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
+            log.Debug($"[HOUSE] HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
 
             // re-add item to queue
             AddRentQueue(player, playerHouse.House);
@@ -446,7 +446,7 @@ namespace ACE.Server.Managers
                 var nextRentTime = house.GetRentDue(purchaseTime);
                 player.HouseRentTimestamp = (int)nextRentTime;
 
-                log.Info($"HouseManager.HandleRentPaid({player.Name}): house rent disabled via config");
+                log.Debug($"[HOUSE] HouseManager.HandleRentPaid({player.Name}): house rent disabled via config");
 
                 // re-add item to queue
                 AddRentQueue(player, house);
@@ -493,7 +493,7 @@ namespace ACE.Server.Managers
 
             house.ClearRestrictions();
 
-            log.Info($"HouseManager.HandleRentEviction({player.Name})");
+            log.Debug($"[HOUSE] HouseManager.HandleRentEviction({player.Name})");
 
             if (multihouse)
             {
@@ -546,7 +546,7 @@ namespace ACE.Server.Managers
             {
                 if (rentItem.Paid < rentItem.Num)
                 {
-                    log.Info($"{playerHouse.PlayerName}.IsRentPaid() - required wcid {rentItem.WeenieID} amount {rentItem.Num:N0}, found {rentItem.Paid:N0}");
+                    log.Debug($"[HOUSE] {playerHouse.PlayerName}.IsRentPaid() - required wcid {rentItem.WeenieID} amount {rentItem.Num:N0}, found {rentItem.Paid:N0}");
                     return false;
                 }
             }
@@ -573,7 +573,7 @@ namespace ACE.Server.Managers
 
             if (player == null)
             {
-                log.Info($"{playerHouse.PlayerName}.HasRequirements() - couldn't find player");
+                log.Warn($"[HOUSE] {playerHouse.PlayerName}.HasRequirements() - couldn't find player");
                 return false;
             }
 
@@ -588,7 +588,7 @@ namespace ACE.Server.Managers
 
             if (allegiance == null || rank < allegianceMinLevel)
             {
-                log.Info($"{playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
+                log.Debug($"[HOUSE] {playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
                 return false;
             }
             return true;

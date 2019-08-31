@@ -873,7 +873,7 @@ namespace ACE.Server.WorldObjects
 
                                 if (isFromAPlayerCorpse)
                                 {
-                                    log.Info($"{Name} (0x{Guid.ToString()}) picked up {item.Name} (0x{item.Guid.ToString()}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid.ToString()})");
+                                    log.Debug($"{Name} (0x{Guid.ToString()}) picked up {item.Name} (0x{item.Guid.ToString()}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid.ToString()})");
                                     item.SaveBiotaToDatabase();
                                 }
                             }
@@ -2375,7 +2375,7 @@ namespace ACE.Server.WorldObjects
                                     if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                         RushNextPlayerSave(5);
 
-                                    log.Info($"{Name} (0x{Guid}) traded in a IOU (0x{iouToTurnIn.Guid}) for {wcid} which became {item.Name} (0x{item.Guid}).");
+                                    log.Debug($"[IOU] {Name} (0x{Guid}) traded in a IOU (0x{iouToTurnIn.Guid}) for {wcid} which became {item.Name} (0x{item.Guid}).");
                                 }
                                 return;
                             }
