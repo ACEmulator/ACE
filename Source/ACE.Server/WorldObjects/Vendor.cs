@@ -150,7 +150,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     UniqueItemsForSale.Remove(wo.Guid);
-                    log.Info($"Vendor {Name} has discontinued sale of {wo.Name} and removed it from its UniqueItemsForSale list.");
+                    log.Debug($"[VENDOR] Vendor {Name} has discontinued sale of {wo.Name} and removed it from its UniqueItemsForSale list.");
                 }
             }
 
