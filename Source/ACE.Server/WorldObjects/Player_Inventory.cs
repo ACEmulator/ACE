@@ -873,7 +873,7 @@ namespace ACE.Server.WorldObjects
 
                                 if (isFromAPlayerCorpse)
                                 {
-                                    log.Debug($"{Name} (0x{Guid.ToString()}) picked up {item.Name} (0x{item.Guid.ToString()}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid.ToString()})");
+                                    log.Debug($"[CORPSE] {Name} (0x{Guid}) picked up {item.Name} (0x{item.Guid}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid})");
                                     item.SaveBiotaToDatabase();
                                 }
                             }

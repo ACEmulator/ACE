@@ -1,5 +1,18 @@
 # ACEmulator Change Log
 
+### 2019-09-01
+[Ripley]
+* Update logging with some missing tags.
+
+### 2019-08-31
+[Ripley]
+* Fix issue with Nekodes being created as LightWeapons, should have been Katars.
+
+### 2019-08-24
+[Ripley]
+* Fix crash with Pickup and Wield.
+* Fix issue with selling 0 value items to NPCs.
+
 ### 2019-08-22
 [Ripley]
 * Update IOU handling code.
@@ -9,6 +22,8 @@
 [Ripley]
 * Update Aetheria and how ProcSpell is displayed for SpellBook.
 * Apply shard update script `2019-08-21-00-Fix_Aetheria_SpellBook.sql` to remove unneeded spellbook entries.
+* Update [Fellow]PortalSending code to magic retail messaging.
+* Updated Hooks to allow them to be accessible by roommates (characters on same account as house owner)
 
 ### 2019-08-20
 [Ripley]
