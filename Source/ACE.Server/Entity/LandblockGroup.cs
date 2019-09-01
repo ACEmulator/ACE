@@ -225,7 +225,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public List<LandblockGroup> TryThrottledSplit()
         {
-            if (width < landblockGroupSpanRequiredBeforeSplitEligibility || height < landblockGroupSpanRequiredBeforeSplitEligibility)
+            if (width < landblockGroupSpanRequiredBeforeSplitEligibility && height < landblockGroupSpanRequiredBeforeSplitEligibility)
                 return null;
 
             if (uniqueLandblockIdsRemoved.Count < numberOfUniqueLandblocksRemovedBeforeSplitEligibility)
