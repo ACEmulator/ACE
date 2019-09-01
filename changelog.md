@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-09-01
+[Ripley]
+* Update logging with some missing tags.
+
 ### 2019-08-31
 [Ripley]
 * Fix issue with Nekodes being created as LightWeapons, should have been Katars.

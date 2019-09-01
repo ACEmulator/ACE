@@ -534,18 +534,18 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.Broadcast));
 
-                DeathItemLog(dropItems);
+                DeathItemLog(dropItems, corpse);
             }
 
             return dropItems;
         }
 
-        public void DeathItemLog(List<WorldObject> dropItems)
+        public void DeathItemLog(List<WorldObject> dropItems, Corpse corpse)
         {
             if (dropItems.Count == 0)
                 return;
 
-            var msg = $"{Name} dropped items on corpse: ";
+            var msg = $"[CORPSE] {Name} dropped items on corpse (0x{corpse.Guid}): ";
 
             foreach (var dropItem in dropItems)
                 msg += $"{(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? dropItem.StackSize.Value.ToString("N0") + " " + dropItem.GetPluralName() : dropItem.Name)} (0x{dropItem.Guid}){(dropItem.WeenieClassId == 273 && PropertyManager.GetBool("corpse_destroy_pyreals").Item ? $" which {(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? "were" : "was")} destroyed" : "")}, ";
