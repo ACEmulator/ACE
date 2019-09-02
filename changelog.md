@@ -8,15 +8,67 @@
 [Ripley]
 * Fix issue with Nekodes being created as LightWeapons, should have been Katars.
 
+### 2019-08-30
+[Mag-nus]
+* Cleanup log.Info level messages
+* Added failed physics transitions to the warning log
+* Added log4net.async and support for console colors
+
+### 2019-08-25
+[gmriggs]
+* Started to clean up / organize /acecommands a bit
+  - Added optional &lt;access level&gt; and &lt;search term&gt; parameters, ie. /acecommands developer, /acecommands house
+
+* Fixes / refactoring to loot generator clothing
+
+* Fixed Aura of Infected Spirit Caress spell category / stacking ()
+  - Database/Optional/Shard/2019-07-12-00-Match_World_Spells_In_Biota_Enchantment_Registry.sql can be run by server operators after upgrading to this release to fix an existing spells in enchantment registries
+
+[Theran]
+* Visual updates for Withered mobs
+* Removed bad weenie for Inscription of Heal Self
+
 ### 2019-08-24
 [Ripley]
 * Fix crash with Pickup and Wield.
 * Fix issue with selling 0 value items to NPCs.
 
+[gmriggs]
+* Adjusted WEENIE_MAX for custom content creators
+
+### 2019-08-23
+[gmriggs]
+* Filling a gap with item spell redirects
+* Fixed an issue with thrown goblets
+
+[Theran]
+* Fixed the loot generator GetWield() method for magic casters
+* Update Vile Scourge, Fist of Massacre, Vein-Thirst Kukri, and Yaja's Reach for MoA
+* Fix missing PropertyInt 159 on Squalid Leggings
+* Add Sedgemail Leather Armor weenies, using PCAP and ac.yotesfan.com data
+
 ### 2019-08-22
+[Theran]
+* Removed some weenies from the loot generator clothing tables to match retail
+* Update Steel Chest with Clouded Soul scroll
+* Update Guards for Clutch of Kings quest
+* Add elemental hatchets for summoned Undead minions
+* Three portals from LSD and their landblock instance spawn points
+* Add PortalSummonLoc to Bur Lizk
+* Update AddCharacterTitle statements to add missing titles and annotations
+* Add Haebrean armor pieces that are set to base AL of Platemail, being of similar material composition
+* Update some quest weenies related to Hamud's Demise quest
+* Fix broken Kill Task quests
+
 [Ripley]
 * Update IOU handling code.
 * Fix issue CoinValue client desync.
+* Added some boxed items
+
+[gmriggs]
+* Fixed a possible null exception with RestrictionDB
+* Removing officer titles from allegiance info packet (not used in retail, not parsed by Decal)
+* Setting IsBusy state while dying
 
 ### 2019-08-21
 [Ripley]
@@ -25,21 +77,63 @@
 * Update [Fellow]PortalSending code to magic retail messaging.
 * Updated Hooks to allow them to be accessible by roommates (characters on same account as house owner)
 
+[gmriggs]
+* Updated salvaging output formula to match retail
+* Fixed a possible crash with Aetheria
+
 ### 2019-08-20
 [Ripley]
 * Add global configuration for SpellComponentsRequired.
 * Add UseCreateItem + UseCreateQuantity support to Gems.
 * Update TakeItems msg to match retail messaging and support "Take All".
 
+[gmriggs]
+* Updated AttributeMod for finesse weapons
+* Added /createinst for content creators to spawn landblock_instances in-game
+* Added EmoteType.RemoveVitaePenalty
+* Fixed some gaps for swapping weapons after launching a projectile
+
+[Mag-nus]
+* Fixed landblock monitors
+
 ### 2019-08-19
 [Ripley]
 * Fix issue with creatures dropping their wieldables to corpses.
 * Fix some bugs with Pickup and Wield.
 
+[gmriggs]
+* Added content export commands (/export-json, /export-sql) for content developers
+* Fixed some issues with teleporting
+* Ensure GetCleaveTarget() doesn't return targets in dying state
+* Updated Steel and Covenant Armor
+
+[Mag-nus]
+* Added some config.js.example comments
+* Relocated landblock tick code
+* Added more detailed landblock tick performance measurements
+* Added OS and vCPU to /serverstatus
+
 ### 2019-08-18
 [Ripley]
 * Add support for Day/Night GeneratorTimeType generators.
 * Fixed issue with accounts that own monarch-only housing to now allow the other characters to swear allegiance.
+
+[gmriggs]
+* Added support for Pathwarden Salvage for newer items
+* Added warning / lockup prevention for RegenInterval < 0
+
+[Mag-nus]
+* Switch TickOutbound back to parallel
+* Added some debug messages to GuidManager
+
+### 2019-08-17
+[Theran]
+* Fix a possible array out of bounds exception in LootGenerationFactory_Magic.cs that could happen with tier 8
+* Add OverRobes to clothing drops
+* Remove unneeded return for OlthoiKoujiaArmor AL assignment
+
+[gmriggs]
+* Reduced log spam for dynamic projectiles unable to enter world
 
 ### 2019-08-16
 [Ripley]
@@ -48,12 +142,48 @@
 * Fixed issue with logging into open houses: missing IsOpen check.
 * Added Destroy() for items given to NPCs that are of AiAcceptEverything type.
 
+### 2019-08-15
+[Theran]
+* Add over-robes
+* Updates from LSD
+* First pass for new mobs Snow Tusker, Bak'tshay Soldier, and Rynthid Rager; no spawn data for most of them, so they would need to be manually spawned
+* First pass for Graveyard skeleton and wisp mobs and generators for day/night cycle shifting
+* Guid corrections
+* Modify how the Xik Minru event transpires, in the background; change should be transparent to the player
+* Fix mana on PathWarden Trinket
+* Add Risen Princess weenies
+* Update Tome of Blood and Bone
+
+### 2019-08-14
+[dirtyelf]
+* Added the ability to create stacks and multiple objects with /create
+
+[gmriggs]
+* Improved collision detection for archers
+* Added some random null checks
+* Fixed some teleport issues
+
+### 2019-08-13
+[gmriggs]
+* Added DamageType.Undef protection / logging
+
 ### 2019-08-12
+[dgarson]
+* Added command to create named object, with specified count
+
 [OptimShi]
 * Fixed some reported issues with the visual display of different layered armor.
 
 [Ripley]
 * Updated PreCheckItem to be more specific about inventory/container slots.
+
+[gmriggs]
+* Fixed some minor housing issues
+* Fixed stiletto animations
+
+[Theran]
+* Removed a few retired rares, updated some others that changed wcids
+* Added more objects from MoA and updated content from Lifestoned
 
 ### 2019-08-11
 [Ripley]
@@ -63,11 +193,60 @@
 * Restored Casting motion to Vendors that have VendorServices.
 * Fix data desync issue with BiotaPropertiesSpellBook Probability.
 
+[Theran]
+* Backport Vissidal weenie mods from Lifestoned
+* Updated Facility Hub spawn map
+* Restored some missing NPCs
+
+[gmriggs]
+* Added IsDead check to falling damage
+* Added support for spell projectile traps
+* Fixed an issue with Tenacity/Blight
+  - Updated spell messages to match retail
+* Fixed casting gesture for built-in weapon spells
+
+[dirtyelf]
+* Updated /god command serializer for better type handling
+
 ### 2019-08-10
+[OptimShi]
+* Updated drop location for several recall spells to match end of retail
+
 [Ripley]
 * Wire up `bestow` and `remove` for advocate system.
 * Updated several misc Advocate systems.
 * Fixed issue with encounter overrides not applying to cached value.
+
+[gmriggs]
+* Added trophy drop rate config option
+* Added SyncLocation() for enter_world()
+  - This fixes a bug where scatter generators were sending the wrong position to the client
+
+### 2019-08-09
+[Ripley]
+* Added Facility Hub Gem to early exit NPCs
+* Updated Dark Tree Crystal Mine to MinLevel 100
+* Updated Scarlet Red Letters and sentries
+* Tweaked Snow Lily Trap
+
+### 2019-08-07
+[OptimShi]
+* Tailoring cleanup
+
+### 2019-08-06
+[Mag-nus]
+* Added log4net.config.example
+
+[gmriggs]
+* Added tinkering log
+* Added RestrictionDB to house combat barriers
+
+[Theran]
+* Added versioning and ArmorTypes to Olthoi Armor
+* Normalized Olthoi Armor AL values
+
+[Ripley]
+* Updated the PK altar MinimumTimeSincePk from 3 hours to 15 minutes to match end of retail
 
 ### 2019-08-05
 [Ripley]
@@ -80,11 +259,27 @@
 * Added `pk_new_character_grace_period` and `pk_respite_timer` configuration options.
 * Restored global PK death messages, player configurable via "Listen to PK deaths messages." character option.
 
+[gmriggs]
+* Added house barrier protections for PK/PKLite
+* Updated start-server netcore version
+* Added handlers for hand/foot armor without damage stats
+* Updated PK deaths to only go temporarily NPK from PK battles
+
 ### 2019-08-04
 [Ripley]
 * Update AuthenticationHandler to boot oldest connection to account when new one connects with valid login/password.
  - Added new server configurable property `account_login_boots_in_use`, enabled by default retail rule.
 
+* Restored Morathe to Candeth Keep
+
+ [gmriggs]
+ * Fixed GetDamageType() for UAC low power attacks
+ * Added support for HomeRadius
+ * Refined HandArmor/FootArmor selector
+ * Fixed monster location desync after MoveHome()
+ * Fixed untrained message for skill temple
+ * Persisted allegiance bans and approved vassals to database
+ 
 ### 2019-08-03
 [Ripley]
 * Add support for AdminEnvirons
@@ -92,9 +287,21 @@
   - `setglobalenviron` is operates exactly as seen in retail worlds. in that it affects all players globally throughout the world, including bug with dungeons.
   - `setlbenviron` operates differently in that it localizes effect to landblock and immediate adjacent landblocks for area-based events.
 
+[OptimShi]
+* Updated some properties for Armor Middle Reduction Tool
+
+[gmriggs]
+* Fixed some issues with item spells redirecting to unenchantable targets
+* Fixed various vital enchantment calc errors
+* Removed AttackType.OffhandSlash from Mazules and Flanged Maces
+* Added handlers for weapons w/ malformed offhand AttackType data
+
 ### 2019-08-02
 [Ripley]
 * Swap out some properties relating to Local Signals for more specific one found in property buckets.
+
+[gmriggs]
+* Improved player melee attack animations
 
 ### 2019-07-31
 [gmriggs]
