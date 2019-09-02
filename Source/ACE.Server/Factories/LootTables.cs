@@ -245,7 +245,7 @@ namespace ACE.Server.Factories
             new int[] { 30571, 30572, 30573, 30574, 30575 }, // Spada
             new int[] { 340, 3853, 3854, 3855, 3856 },// Shamshir
             new int[] { 30611, 30612, 30613, 30614, 30615 }, // Knuckles
-            new int[] { 326, 4196, 4197, 4198, 4199 } // Katar
+            new int[] { 326, 3818, 3819, 3820, 3821 } // Katar
         };
 
         public static readonly int[][] FinesseWeaponsMatrix =
