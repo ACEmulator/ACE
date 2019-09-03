@@ -1574,7 +1574,7 @@ namespace ACE.Server.Physics
 
                 if (GetBlockDist(Position, newPos) > 1)
                 {
-                    log.Warn($"WARNING: failed transition for {Name} from {Position} to {newPos}\n");
+                    log.Warn($"WARNING: failed transition for {Name} from {Position} to {newPos}");
                     return;
                 }
 
@@ -1648,7 +1648,7 @@ namespace ACE.Server.Physics
             //UpdatePhysicsInternal((float)quantum, ref offsetFrame);
             if (GetBlockDist(Position, RequestPos) > 1)
             {
-                log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}\n");
+                log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}");
                 return false;
             }
 
