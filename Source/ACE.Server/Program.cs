@@ -44,6 +44,9 @@ namespace ACE.Server
             var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
 
+            if (Environment.ProcessorCount < 2)
+                log.Warn("Only one vCPU was detected. ACE may run with limited performance. You should increase your vCPU count for anything more than a single player server.");
+
             // Do system specific initializations here
             try
             {
