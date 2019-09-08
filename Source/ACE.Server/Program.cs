@@ -35,12 +35,6 @@ namespace ACE.Server
 
         public static void Main(string[] args)
         {
-            if (Environment.ProcessorCount < 2)
-            {
-                log.Fatal("ACE requires at least 2 vCPU.");
-                return;
-            }
-
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
