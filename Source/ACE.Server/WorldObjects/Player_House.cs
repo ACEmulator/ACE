@@ -111,7 +111,7 @@ namespace ACE.Server.WorldObjects
             if (location == null)
             {
                 if (!HouseManager.ApartmentBlocks.TryGetValue(slumLord.Location.Landblock, out location))
-                    log.Error($"{Name}.GiveDeed() - couldn't find location {Location.ToLOCString()}");
+                    log.Error($"{Name}.GiveDeed() - couldn't find location {slumLord.Location.ToLOCString()}");
             }
 
             deed.LongDesc = $"Bought by {Name}{titleStr} on {date} at {time}\n\nPurchased at {location}";
