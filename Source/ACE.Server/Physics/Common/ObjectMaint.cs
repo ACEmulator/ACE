@@ -1,7 +1,8 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+
+using ACE.Server.Physics.Managers;
 
 namespace ACE.Server.Physics.Common
 {
@@ -65,11 +66,6 @@ namespace ACE.Server.Physics.Common
         /// - for combat pets, contains monsters
         /// </summary>
         public Dictionary<uint, PhysicsObj> VisibleTargets { get; set; }
-
-        /// <summary>
-        /// Custom lookup table of PhysicsObjs for the server
-        /// </summary>
-        public static ConcurrentDictionary<uint, PhysicsObj> ServerObjects { get; set; } = new ConcurrentDictionary<uint, PhysicsObj>();
 
         // Client structures -
         // When client unloads a cell/landblock, but still knows about objects in those cells?
@@ -513,33 +509,6 @@ namespace ACE.Server.Physics.Common
         }
 
         /// <summary>
-        /// Adds a PhysicsObj to the static list of server-wide objects
-        /// </summary>
-        public static void AddServerObject(PhysicsObj obj)
-        {
-            if (obj != null)
-                ServerObjects[obj.ID] = obj;
-        }
-
-        /// <summary>
-        /// Removes a PhysicsObj from the static list of server-wide objects
-        /// </summary>
-        public static void RemoveServerObject(PhysicsObj obj)
-        {
-            if (obj != null)
-                ServerObjects.TryRemove(obj.ID, out _);
-        }
-
-        /// <summary>
-        /// Returns a PhysicsObj for an object ID
-        /// </summary>
-        public static PhysicsObj GetObjectA(uint objectID)
-        {
-            ServerObjects.TryGetValue(objectID, out var obj);
-            return obj;
-        }
-
-        /// <summary>
         /// Clears all of the ObjMaint tables for an object
         /// </summary>
         public void RemoveAllObjects()
@@ -570,7 +539,7 @@ namespace ACE.Server.Physics.Common
 
             RemoveAllObjects();
 
-            RemoveServerObject(PhysicsObj);
+            ServerObjectManager.RemoveServerObject(PhysicsObj);
         }
     }
 }

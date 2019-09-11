@@ -24,6 +24,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Entity;
+using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
@@ -1596,7 +1597,7 @@ namespace ACE.Server.Command.Handlers
                     target = CommandHandlerHelper.GetLastAppraisedObject(session);
                 else if (uint.TryParse(targetType, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var targetGuid))
                 {
-                    if (ObjectMaint.ServerObjects.TryGetValue(targetGuid, out var physicsObj))
+                    if (ServerObjectManager.ServerObjects.TryGetValue(targetGuid, out var physicsObj))
                         target = physicsObj.WeenieObj.WorldObject;
                 }
             }
@@ -2150,13 +2151,13 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("auditobjectmaint", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Iterates over physics objects to find leaks")]
         public static void HandleAuditObjectMaint(Session session, params string[] parameters)
         {
-            var serverObjects = ObjectMaint.ServerObjects.Keys.ToHashSet();
+            var serverObjects = ServerObjectManager.ServerObjects.Keys.ToHashSet();
 
             int objectTableErrors = 0;
             int visibleObjectTableErrors = 0;
             int voyeurTableErrors = 0;
 
-            foreach (var value in ObjectMaint.ServerObjects.Values)
+            foreach (var value in ServerObjectManager.ServerObjects.Values)
             {
                 {
                     var kvps = value.ObjMaint.KnownObjects.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
