@@ -575,7 +575,7 @@ namespace ACE.Server.Managers
                                 {
                                     if (landblockGroups[i].Count == 0)
                                         landblockGroups.RemoveAt(i);
-                                    else
+                                    else if (MultiThreadedLandblockGroupPhysicsTicking || MultiThreadedLandblockGroupTicking) // Only try to split if multi-threading is enabled
                                     {
                                         swTrySplitEach.Restart();
                                         var splits = landblockGroups[i].TryThrottledSplit();
