@@ -40,42 +40,43 @@ namespace ACE.Server.WorldObjects
             var coverage = new List<uint>();
 
             uint thisSetupId = SetupTableId;
-            bool showHelm;
-            bool showCloak;
+            bool showHelm = true;
+            bool showCloak = true;
             if (this is Player player)
             {
                 showHelm = player.GetCharacterOption(CharacterOption.ShowYourHelmOrHeadGear);
                 showCloak = player.GetCharacterOption(CharacterOption.ShowYourCloak);
-
-                // Some player races use an AlternateSetupDid, either at creation of via Barber options.
-                // BUT -- those values do not correspond with entries in the Clothing Table.
-                // So, we need to make some adjustments to look up something that DOES exist and is appropriate for the AlternateSetup model.
-                switch (thisSetupId)
-                {
-                    case (uint)SetupConst.UndeadMaleSkeleton:
-                    case (uint)SetupConst.UndeadMaleSkeletonNoflame:
-                    case (uint)SetupConst.UndeadMaleZombie:
-                    case (uint)SetupConst.UndeadMaleZombieNoflame:
-                        thisSetupId = (uint)SetupConst.UndeadMaleUndead;
-                        break;
-                    case (uint)SetupConst.UndeadFemaleSkeleton:
-                    case (uint)SetupConst.UndeadFemaleSkeletonNoflame:
-                    case (uint)SetupConst.UndeadFemaleZombie:
-                    case (uint)SetupConst.UndeadFemaleZombieNoflame:
-                        thisSetupId = (uint)SetupConst.UndeadFemaleUndead;
-                        break;
-                    case (uint)SetupConst.PenumbraenMaleNocrown:
-                        thisSetupId = (uint)SetupConst.PenumbraenMaleCrown;
-                        break;
-                    case (uint)SetupConst.PenumbraenFemaleNocrown:
-                        thisSetupId = (uint)SetupConst.PenumbraenFemaleCrown;
-                        break;
-                }
             }
-            else
+
+            // Some player races use an AlternateSetupDid, either at creation or via Barber options.
+            // BUT -- those values do not correspond with entries in the Clothing Table.
+            // So, we need to make some adjustments to look up something that DOES exist and is appropriate for the AlternateSetup model.
+            switch (thisSetupId)
             {
-                showHelm = true;
-                showCloak = true;
+                case (uint)SetupConst.UndeadMaleSkeleton:
+                case (uint)SetupConst.UndeadMaleSkeletonNoflame:
+                case (uint)SetupConst.UndeadMaleZombie:
+                case (uint)SetupConst.UndeadMaleZombieNoflame:
+                    thisSetupId = (uint)SetupConst.UndeadMaleUndead;
+                    break;
+                case (uint)SetupConst.UndeadFemaleSkeleton:
+                case (uint)SetupConst.UndeadFemaleSkeletonNoflame:
+                case (uint)SetupConst.UndeadFemaleZombie:
+                case (uint)SetupConst.UndeadFemaleZombieNoflame:
+                    thisSetupId = (uint)SetupConst.UndeadFemaleUndead;
+                    break;
+                case (uint)SetupConst.PenumbraenMaleNocrown:
+                    thisSetupId = (uint)SetupConst.PenumbraenMaleCrown;
+                    break;
+                case (uint)SetupConst.PenumbraenFemaleNocrown:
+                    thisSetupId = (uint)SetupConst.PenumbraenFemaleCrown;
+                    break;
+                case (uint)SetupConst.UmbraenMaleNocrown:
+                    thisSetupId = (uint)SetupConst.UmbraenMaleCrown;
+                    break;
+                case (uint)SetupConst.UmbraenFemaleNocrown:
+                    thisSetupId = (uint)SetupConst.UmbraenFemaleCrown;
+                    break;
             }
 
             // get all the Armor Items so we can calculate their priority
