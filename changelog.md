@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2019-09-12
+[OptimShi]
+* Fix issue with AlternateSetup for certain non-human models
+
+[Ripley]
+* Fix issue with Umbraen Males and Female crown options
+
 ### 2019-09-01
 [Ripley]
 * Update logging with some missing tags.
@@ -279,7 +286,7 @@
  * Fixed monster location desync after MoveHome()
  * Fixed untrained message for skill temple
  * Persisted allegiance bans and approved vassals to database
- 
+
 ### 2019-08-03
 [Ripley]
 * Add support for AdminEnvirons
