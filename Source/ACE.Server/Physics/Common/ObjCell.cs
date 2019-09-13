@@ -19,7 +19,7 @@ namespace ACE.Server.Physics.Common
         public int NumLights;
         public List<int> LightList;
         public int NumShadowObjects;
-        public List<ShadowObj> ShadowObjectList; // TODO: this needs thread safety
+        public List<ShadowObj> ShadowObjectList;
         public List<uint> ShadowObjectIDs;
         public uint RestrictionObj;
         public List<int> ClipPlanes;
