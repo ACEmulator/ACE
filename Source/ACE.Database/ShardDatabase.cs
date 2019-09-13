@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
@@ -23,8 +24,6 @@ namespace ACE.Database
     public class ShardDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        private static readonly ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount - (int)Math.Max(Environment.ProcessorCount * .34, 1), 1) };
 
         public bool Exists(bool retryUntilFound)
         {
@@ -371,7 +370,7 @@ namespace ACE.Database
         {
             var result = true;
 
-            Parallel.ForEach(biotas, parallelOptions, biota =>
+            Parallel.ForEach(biotas, ThreadConfiguration.DatabaseParallelOptions, biota =>
             {
                 if (!SaveBiota(biota.biota, biota.rwLock))
                     result = false;
@@ -434,7 +433,7 @@ namespace ACE.Database
         {
             var result = true;
 
-            Parallel.ForEach(biotas, parallelOptions, biota =>
+            Parallel.ForEach(biotas, ThreadConfiguration.DatabaseParallelOptions, biota =>
             {
                 if (!RemoveBiota(biota.biota, biota.rwLock))
                     result = false;
@@ -480,7 +479,7 @@ namespace ACE.Database
                     .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId)
                     .ToList();
 
-                Parallel.ForEach(results, parallelOptions, result =>
+                Parallel.ForEach(results, ThreadConfiguration.DatabaseParallelOptions, result =>
                 {
                     var biota = GetBiota(result.ObjectId);
 
@@ -514,7 +513,7 @@ namespace ACE.Database
                     .Where(r => r.Type == (ushort)PropertyInstanceId.Wielder && r.Value == parentId)
                     .ToList();
 
-                Parallel.ForEach(results, parallelOptions, result =>
+                Parallel.ForEach(results, ThreadConfiguration.DatabaseParallelOptions, result =>
                 {
                     var biota = GetBiota(result.ObjectId);
 
@@ -566,7 +565,7 @@ namespace ACE.Database
 
                 var results = context.Biota.Where(b => b.Id >= min && b.Id <= max).ToList();
 
-                Parallel.ForEach(results, parallelOptions, result =>
+                Parallel.ForEach(results, ThreadConfiguration.DatabaseParallelOptions, result =>
                 {
                     var biota = GetBiota(result.Id);
                     staticObjects.Add(biota);
@@ -625,7 +624,7 @@ namespace ACE.Database
                     .Where(p => p.PositionType == 1 && p.ObjCellId >= min && p.ObjCellId <= max && p.ObjectId >= 0x80000000)
                     .ToList();
 
-                Parallel.ForEach(results, parallelOptions, result =>
+                Parallel.ForEach(results, ThreadConfiguration.DatabaseParallelOptions, result =>
                 {
                     var biota = GetBiota(result.ObjectId);
 
