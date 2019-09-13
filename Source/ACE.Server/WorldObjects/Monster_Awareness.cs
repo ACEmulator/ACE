@@ -233,7 +233,7 @@ namespace ACE.Server.WorldObjects
         {
             var visibleTargets = new List<Creature>();
 
-            foreach (var target in PhysicsObj.ObjMaint.VisibleTargets.Values)
+            foreach (var target in PhysicsObj.ObjMaint.GetVisibleTargetsValues())
             {
                 var creature = target.WeenieObj.WorldObject as Creature;
                 if (creature == null) continue;
@@ -317,7 +317,7 @@ namespace ACE.Server.WorldObjects
             Creature closestTarget = null;
             var closestDistSq = float.MaxValue;
 
-            foreach (var visibleTarget in PhysicsObj.ObjMaint.VisibleTargets.Values)
+            foreach (var visibleTarget in PhysicsObj.ObjMaint.GetVisibleTargetsValues())
             {
                 var creature = visibleTarget.WeenieObj.WorldObject as Creature;
 

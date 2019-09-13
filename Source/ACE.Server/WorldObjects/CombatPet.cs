@@ -124,7 +124,7 @@ namespace ACE.Server.WorldObjects
         {
             var monsters = new List<Creature>();
 
-            foreach (var visibleTarget in PhysicsObj.ObjMaint.VisibleTargets.Values)
+            foreach (var visibleTarget in PhysicsObj.ObjMaint.GetVisibleTargetsValues())
             {
                 var creature = visibleTarget.WeenieObj.WorldObject as Creature;
 

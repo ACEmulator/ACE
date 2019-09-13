@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
         {
             //if (!Attackable) return;
 
-            var visibleTargets = PhysicsObj.ObjMaint.VisibleTargets.Values;
+            var visibleTargets = PhysicsObj.ObjMaint.GetVisibleTargetsValues();
 
             foreach (var visibleTarget in visibleTargets)
             {
