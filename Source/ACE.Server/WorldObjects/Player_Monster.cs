@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!Attackable || Teleporting) return;
 
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjects.Values;
+            var visibleObjs = PhysicsObj.ObjMaint.GetVisibleObjectsValues();
 
             foreach (var obj in visibleObjs)
             {

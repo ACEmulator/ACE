@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Server.Physics.Managers;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Physics.Common
 {
@@ -46,7 +47,7 @@ namespace ACE.Server.Physics.Common
         /// This list of objects that are currently within PVS / VisibleCell range
         /// only maintained for players
         /// </summary>
-        public ConcurrentDictionary<uint, PhysicsObj> VisibleObjects { get; } = new ConcurrentDictionary<uint, PhysicsObj>();
+        private ConcurrentDictionary<uint, PhysicsObj> VisibleObjects { get; } = new ConcurrentDictionary<uint, PhysicsObj>();
 
         /// <summary>
         /// Objects that were previously visible to the client,
@@ -59,7 +60,7 @@ namespace ACE.Server.Physics.Common
         /// A list of players that currently know about this object
         /// This is maintained for all server-spawned WorldObjects, and is used for broadcasting
         /// </summary>
-        public ConcurrentDictionary<uint, PhysicsObj> KnownPlayers { get; } = new ConcurrentDictionary<uint, PhysicsObj>();
+        private ConcurrentDictionary<uint, PhysicsObj> KnownPlayers { get; } = new ConcurrentDictionary<uint, PhysicsObj>();
 
         /// <summary>
         /// For monster and CombatPet FindNextTarget
@@ -441,6 +442,11 @@ namespace ACE.Server.Physics.Common
         public List<PhysicsObj> GetKnownPlayersValues()
         {
             return KnownPlayers.Values.ToList();
+        }
+
+        public List<Player> GetKnownPlayersValuesAsPlayer()
+        {
+            return KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
         }
 
         /// <summary>
