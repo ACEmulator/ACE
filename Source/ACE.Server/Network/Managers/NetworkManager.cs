@@ -292,8 +292,6 @@ namespace ACE.Server.Network.Managers
             }
         }
 
-        private static readonly ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount * .34, 1) };
-
         /// <summary>
         /// Processes all inbound GameAction messages.<para />
         /// Dispatches all outgoing messages.<para />
@@ -308,7 +306,7 @@ namespace ACE.Server.Network.Managers
             {
                 // The session tick outbound processes pending actions and handles outgoing messages
                 ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
-                Parallel.ForEach(sessionMap, parallelOptions, s => s?.TickOutbound());
+                Parallel.ForEach(sessionMap, ThreadConfiguration.NetworkManagerParallelOptions, s => s?.TickOutbound());
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
