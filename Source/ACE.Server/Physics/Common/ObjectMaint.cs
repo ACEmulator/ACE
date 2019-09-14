@@ -89,14 +89,14 @@ namespace ACE.Server.Physics.Common
             return KnownObjects.Count;
         }
 
-        public List<KeyValuePair<uint, PhysicsObj>> GetKnownObjectsWhere(Func<KeyValuePair<uint, PhysicsObj>, bool> predicate)
-        {
-            return KnownObjects.Where(predicate).ToList();
-        }
-
         public bool KnownObjectsContainsValue(PhysicsObj value)
         {
             return KnownObjects.Values.Contains(value);
+        }
+
+        public List<KeyValuePair<uint, PhysicsObj>> GetKnownObjectsWhere(Func<KeyValuePair<uint, PhysicsObj>, bool> predicate)
+        {
+            return KnownObjects.Where(predicate).ToList();
         }
 
         public List<PhysicsObj> GetKnownObjectsValues()
@@ -122,7 +122,8 @@ namespace ACE.Server.Physics.Common
             KnownObjects.TryAdd(obj.ID, obj);
 
             // maintain KnownPlayers for both parties
-            if (obj.IsPlayer) AddKnownPlayer(obj);
+            if (obj.IsPlayer)
+                AddKnownPlayer(obj);
 
             obj.ObjMaint.AddKnownPlayer(PhysicsObj);
 
@@ -140,7 +141,10 @@ namespace ACE.Server.Physics.Common
             var newObjs = new List<PhysicsObj>();
 
             foreach (var obj in objs)
-                if (AddKnownObject(obj)) newObjs.Add(obj);
+            {
+                if (AddKnownObject(obj))
+                    newObjs.Add(obj);
+            }
 
             return newObjs;
         }
@@ -186,7 +190,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> GetVisibleObjects(ObjCell cell, VisibleObjectType type = VisibleObjectType.All)
         {
-            if (PhysicsObj.CurLandblock == null || cell == null) return new List<PhysicsObj>();
+            if (PhysicsObj.CurLandblock == null || cell == null)
+                return new List<PhysicsObj>();
 
             // use PVS / VisibleCells for EnvCells not seen outside
             // (mostly dungeons, also some large indoor areas ie. caves)
@@ -521,6 +526,11 @@ namespace ACE.Server.Physics.Common
         public List<PhysicsObj> GetVisibleTargetsValues()
         {
             return VisibleTargets.Values.ToList();
+        }
+
+        public List<Creature> GetVisibleTargetsValuesAsCreature()
+        {
+            return VisibleTargets.Values.Select(v => v.WeenieObj.WorldObject).OfType<Creature>().ToList();
         }
 
         /// <summary>
