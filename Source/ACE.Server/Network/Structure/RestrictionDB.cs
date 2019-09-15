@@ -13,6 +13,7 @@ namespace ACE.Server.Network.Structure
     /// </summary>
     public class RestrictionDB
     {
+        public uint HouseOwner;
         public uint Version = 0x10000002;   // If high word is not 0, this value indicates the version of the message.
         public uint OpenStatus;             // 0 = private dwelling, 1 = open to public
         public ObjectGuid MonarchID;        // Allegiance monarch (if allegiance access granted)
@@ -22,6 +23,7 @@ namespace ACE.Server.Network.Structure
         public RestrictionDB()
         {
             Table = new Dictionary<ObjectGuid, uint>();
+            HouseOwner = 0;
         }
 
         public RestrictionDB(House house)
@@ -29,6 +31,8 @@ namespace ACE.Server.Network.Structure
             Table = new Dictionary<ObjectGuid, uint>();
 
             if (house == null) return;
+
+            HouseOwner = house.HouseOwner ?? 0;
 
             OpenStatus = Convert.ToUInt32(house.OpenStatus);
 
