@@ -485,6 +485,33 @@ namespace ACE.Database
             }
         }
 
+        private readonly ConcurrentDictionary<ushort, uint> cachedBasementHouseGuids = new ConcurrentDictionary<ushort, uint>();
+
+        public uint GetCachedBasementHouseGuid(ushort landblock)
+        {
+            if (cachedBasementHouseGuids.TryGetValue(landblock, out var value))
+                return value;
+
+            using (var context = new WorldDbContext())
+            {
+                var result = context.LandblockInstance
+                    .AsNoTracking()
+                    .Where(r => r.Landblock == landblock
+                            && r.WeenieClassId != 11730 /* Exclude House Portal */
+                            && r.WeenieClassId != 278   /* Exclude Door */
+                            && r.WeenieClassId != 568   /* Exclude Door (entry) */
+                            && !r.IsLinkChild)
+                    .FirstOrDefault();
+
+                if (result == null)
+                    return 0;
+
+                cachedBasementHouseGuids[landblock] = result.Guid;
+
+                return result.Guid;
+            }
+        }
+
         private readonly ConcurrentDictionary<uint, List<HousePortal>> cachedHousePortals = new ConcurrentDictionary<uint, List<HousePortal>>();
 
         public List<HousePortal> GetCachedHousePortals(uint houseId)
