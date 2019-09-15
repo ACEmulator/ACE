@@ -465,18 +465,19 @@ namespace ACE.Server.Managers
             // relink
             house.UpdateLinks();
 
-            // player slumlord 'off' animation
-            var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
+            if (house.HasDungeon)
+            {
+                var dungeonHouse = house.GetDungeonHouse();
+                if (dungeonHouse != null)
+                    dungeonHouse.UpdateLinks();
+            }
 
-            slumlord.CurrentMotionState = off;
-            slumlord.EnqueueBroadcastMotion(off);
+            // player slumlord 'off' animation
+            slumlord.Off();
 
             // reset slumlord name
-            var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
-            var wo = WorldObjectFactory.CreateWorldObject(weenie, ObjectGuid.Invalid);
-            slumlord.Name = wo.Name;
+            slumlord.SetAndBroadcastName();
 
-            slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
             slumlord.SaveBiotaToDatabase();
 
             // if evicting a multihouse owner's previous house,
@@ -523,7 +524,7 @@ namespace ACE.Server.Managers
             onlinePlayer.House = null;
 
             // send text message
-            onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
+            onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You've been evicted from your house!", ChatMessageType.Broadcast));
             onlinePlayer.RemoveDeed();
 
             onlinePlayer.SaveBiotaToDatabase();
