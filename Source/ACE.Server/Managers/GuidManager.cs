@@ -286,7 +286,7 @@ namespace ACE.Server.Managers
             // todo: fix this so things don't look funky to clients
             // todo: What was reported was that items would spawn in looking like couches, or other dynamic items
             // todo: Figure out how long the sequence gaps, then change the recycle limit to that threshold
-            //dynamicAlloc.Recycle(guid.Full);
+            dynamicAlloc.Recycle(guid.Full);
         }
 
 
