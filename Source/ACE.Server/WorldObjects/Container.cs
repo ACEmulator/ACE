@@ -802,7 +802,8 @@ namespace ACE.Server.WorldObjects
                     if (sourceItem.StackSize == 0)
                     {
                         TryRemoveFromInventory(sourceItem.Guid);
-                        sourceItem.Destroy();
+                        if (!sourceItem.IsDestroyed)
+                            sourceItem.Destroy();
                         break;
                     }
                 }

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -169,6 +169,55 @@ namespace ACE.Server.WorldObjects
         protected override void OnInitialInventoryLoadCompleted()
         {
             HouseManager.OnInitialInventoryLoadCompleted(this);
+        }
+
+        public void On()
+        {
+            var on = new Motion(MotionStance.Invalid, MotionCommand.On);
+
+            SetAndBroadcastMotion(on);
+        }
+
+        public void Off()
+        {
+            var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
+
+            SetAndBroadcastMotion(off);
+        }
+
+        private void SetAndBroadcastMotion(Motion motion)
+        {
+            CurrentMotionState = motion;
+            EnqueueBroadcastMotion(motion);
+        }
+
+        public void SetAndBroadcastName(string houseOwnerName = null)
+        {
+            if (string.IsNullOrWhiteSpace(houseOwnerName))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(WeenieClassId);
+
+                if (weenie != null)
+                    Name = weenie.GetProperty(PropertyString.Name);
+                else
+                    Name = House.HouseType.ToString();
+            }
+            else
+                Name = $"{houseOwnerName}'s {Name}";
+
+            EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(this, PropertyString.Name, Name));
+        }
+
+        /// <summary>
+        /// This event is raised when HouseManager removes item for rent
+        /// </summary>
+        protected override void OnRemoveItem(WorldObject removedItem)
+        {
+            //Console.WriteLine("Slumlord.OnRemoveItem()");
+
+            // Here we explicitly remove the payment from the database to avoid storing unneeded objects and free guid.
+            if (!removedItem.IsDestroyed)
+                removedItem.Destroy();
         }
     }
 }

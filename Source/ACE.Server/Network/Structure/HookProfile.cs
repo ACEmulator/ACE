@@ -1,3 +1,4 @@
+using ACE.Entity.Enum;
 using System;
 using System.IO;
 
@@ -6,25 +7,18 @@ namespace ACE.Server.Network.Structure
     [Flags]
     public enum HookFlags
     {
+        None        = 0x0,
         Inscribable = 0x1,
         IsHealer    = 0x2,
+        IsFood      = 0x4,
         IsLockpick  = 0x8
     };
 
-    [Flags]
-    public enum HookAmmoType
-    {
-        ThrownWeapon = 0x0,
-        Arrow = 0x1,
-        Bolt = 0x2,
-        Dart = 0x4,
-    }
-
     public class HookProfile
     {
-        public HookFlags Flags;
-        public uint ValidLocations;
-        public HookAmmoType AmmoType;
+        public HookFlags Flags = HookFlags.None;
+        public EquipMask ValidLocations = EquipMask.None;
+        public AmmoType AmmoType = AmmoType.None;
     }
 
     public static class HookProfileExtensions
@@ -32,8 +26,8 @@ namespace ACE.Server.Network.Structure
         public static void Write(this BinaryWriter writer, HookProfile hook)
         {
             writer.Write((uint)hook.Flags);
-            writer.Write(hook.ValidLocations);
-            writer.Write((ushort)hook.AmmoType);
+            writer.Write((uint)hook.ValidLocations);
+            writer.Write((uint)hook.AmmoType);
         }
     }
 }
