@@ -672,6 +672,26 @@ namespace ACE.Server.WorldObjects
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
         }
 
+        private void SendDeletesForMyInventory(Player player)
+        {
+            // send deleteobjects for all objects in this container's inventory to player
+            var itemsToSend = new List<GameMessage>();
+
+            foreach (var item in Inventory.Values)
+            {
+                // FIXME: only send messages for known objects
+                itemsToSend.Add(new GameMessageDeleteObject(item));
+
+                if (item is Container container)
+                {
+                    foreach (var containerItem in container.Inventory.Values)
+                        itemsToSend.Add(new GameMessageDeleteObject(containerItem));
+                }
+            }
+
+            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
+        }
+
         public virtual void Close(Player player)
         {
             if (!IsOpen) return;
@@ -782,7 +802,8 @@ namespace ACE.Server.WorldObjects
                     if (sourceItem.StackSize == 0)
                     {
                         TryRemoveFromInventory(sourceItem.Guid);
-                        sourceItem.Destroy();
+                        if (!sourceItem.IsDestroyed)
+                            sourceItem.Destroy();
                         break;
                     }
                 }
