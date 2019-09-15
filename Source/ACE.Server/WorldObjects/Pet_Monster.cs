@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
         {
             //if (!Attackable) return;
 
-            var creatures = PhysicsObj.ObjMaint.GetVisibleTargetsValuesAsCreature();
+            var creatures = PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature();
 
             foreach (var monster in creatures)
             {

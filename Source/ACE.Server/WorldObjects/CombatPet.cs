@@ -124,7 +124,7 @@ namespace ACE.Server.WorldObjects
         {
             var monsters = new List<Creature>();
 
-            foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesAsCreature())
+            foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
                 // why does this need to be in here?
                 if (creature.IsDead)
