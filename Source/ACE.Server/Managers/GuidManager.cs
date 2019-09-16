@@ -97,6 +97,9 @@ namespace ACE.Server.Managers
             }
         }
 
+        /// <summary>
+        /// On a server with ~500 players, about 10,000,000 dynamic GUID's will be requested every 24hr period.
+        /// </summary>
         private class DynamnicGuidAllocator
         {
             private readonly uint max;
@@ -283,9 +286,6 @@ namespace ACE.Server.Managers
         /// <param name="guid"></param>
         public static void RecycleDynamicGuid(ObjectGuid guid)
         {
-            // todo: fix this so things don't look funky to clients
-            // todo: What was reported was that items would spawn in looking like couches, or other dynamic items
-            // todo: Figure out how long the sequence gaps, then change the recycle limit to that threshold
             dynamicAlloc.Recycle(guid.Full);
         }
 
