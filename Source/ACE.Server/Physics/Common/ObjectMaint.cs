@@ -280,7 +280,7 @@ namespace ACE.Server.Physics.Common
             if (DestructionQueue.ContainsKey(obj))
                 return false;
 
-            DestructionQueue.TryAdd(obj, PhysicsTimer.CurrentTime + DestructionTime);
+            DestructionQueue.Add(obj, PhysicsTimer.CurrentTime + DestructionTime);
 
             return true;
         }
@@ -355,7 +355,7 @@ namespace ACE.Server.Physics.Common
 
             RemoveKnownObject(obj, inverse);
             RemoveVisibleObject(obj, inverse);
-            DestructionQueue.Remove(obj, out _);
+            DestructionQueue.Remove(obj);
 
             RemoveKnownPlayer(obj);
             RemoveVisibleTarget(obj);
