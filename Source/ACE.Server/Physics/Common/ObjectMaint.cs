@@ -39,26 +39,26 @@ namespace ACE.Server.Physics.Common
         ///
         /// - This is only maintained for players.
         /// </remarks>
-        public ConcurrentDictionary<uint, PhysicsObj> KnownObjects { get; set; }
+        public Dictionary<uint, PhysicsObj> KnownObjects { get; set; }
 
         /// <summary>
         /// This list of objects that are currently within PVS / VisibleCell range
         /// only maintained for players
         /// </summary>
-        public ConcurrentDictionary<uint, PhysicsObj> VisibleObjects { get; set; }
+        public Dictionary<uint, PhysicsObj> VisibleObjects { get; set; }
 
         /// <summary>
         /// Objects that were previously visible to the client,
         /// but have been outside the PVS for less than 25 seconds
         /// only maintained for players
         /// </summary>
-        public ConcurrentDictionary<PhysicsObj, double> DestructionQueue { get; set; }
+        public Dictionary<PhysicsObj, double> DestructionQueue { get; set; }
 
         /// <summary>
         /// A list of players that currently know about this object
         /// This is maintained for all server-spawned WorldObjects, and is used for broadcasting
         /// </summary>
-        public ConcurrentDictionary<uint, PhysicsObj> KnownPlayers { get; set; }
+        public Dictionary<uint, PhysicsObj> KnownPlayers { get; set; }
 
         /// <summary>
         /// For monster and CombatPet FindNextTarget
@@ -80,11 +80,11 @@ namespace ACE.Server.Physics.Common
         {
             PhysicsObj = obj;
 
-            KnownObjects = new ConcurrentDictionary<uint, PhysicsObj>();
-            VisibleObjects = new ConcurrentDictionary<uint, PhysicsObj>();
-            DestructionQueue = new ConcurrentDictionary<PhysicsObj, double>();
+            KnownObjects = new Dictionary<uint, PhysicsObj>();
+            VisibleObjects = new Dictionary<uint, PhysicsObj>();
+            DestructionQueue = new Dictionary<PhysicsObj, double>();
 
-            KnownPlayers = new ConcurrentDictionary<uint, PhysicsObj>();
+            KnownPlayers = new Dictionary<uint, PhysicsObj>();
             VisibleTargets = new Dictionary<uint, PhysicsObj>();
         }
 
@@ -126,7 +126,7 @@ namespace ACE.Server.Physics.Common
 
         public void RemoveKnownObject(PhysicsObj obj, bool inversePlayer = true)
         {
-            KnownObjects.TryRemove(obj.ID, out _);
+            KnownObjects.Remove(obj.ID, out _);
 
             if (PhysicsObj.IsPlayer && inversePlayer)
                 obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
@@ -260,7 +260,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool RemoveVisibleObject(PhysicsObj obj, bool inverseTarget = true)
         {
-            var removed = VisibleObjects.TryRemove(obj.ID, out _);
+            var removed = VisibleObjects.Remove(obj.ID, out _);
 
             if (inverseTarget)
                 obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
@@ -311,7 +311,7 @@ namespace ACE.Server.Physics.Common
             DestructionQueue.TryGetValue(obj, out time);
             if (time != -1 && time > PhysicsTimer.CurrentTime)
             {
-                DestructionQueue.TryRemove(obj, out _);
+                DestructionQueue.Remove(obj, out _);
                 return true;
             }
             return false;
@@ -355,7 +355,7 @@ namespace ACE.Server.Physics.Common
 
             RemoveKnownObject(obj, inverse);
             RemoveVisibleObject(obj, inverse);
-            DestructionQueue.TryRemove(obj, out _);
+            DestructionQueue.Remove(obj, out _);
 
             RemoveKnownPlayer(obj);
             RemoveVisibleTarget(obj);
@@ -413,7 +413,7 @@ namespace ACE.Server.Physics.Common
         {
             //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
 
-            return KnownPlayers.TryRemove(obj.ID, out _);
+            return KnownPlayers.Remove(obj.ID, out _);
         }
 
         /// <summary>
