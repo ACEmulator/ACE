@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
@@ -18,11 +19,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public static readonly float DestructionTime = 25.0f;
 
-        /// <summary>
-        /// Certain actions can only run one at a time, per server, to make sure that ObjectMaint relationships remain accurate
-        /// This also avoids race conditions
-        /// </summary>
-        private static readonly object globalObjectMaintMutex = new object();
+        private static readonly ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
         /// <summary>
         /// The owner of this ObjectMaint instance
@@ -90,32 +87,67 @@ namespace ACE.Server.Physics.Common
 
         public int GetKnownObjectsCount()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownObjects.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public bool KnownObjectsContainsValue(PhysicsObj value)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownObjects.Values.Contains(value);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<KeyValuePair<uint, PhysicsObj>> GetKnownObjectsWhere(Func<KeyValuePair<uint, PhysicsObj>, bool> predicate)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownObjects.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<PhysicsObj> GetKnownObjectsValues()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownObjects.Values.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<PhysicsObj> GetKnownObjectsValuesWhere(Func<PhysicsObj, bool> predicate)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownObjects.Values.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -125,7 +157,8 @@ namespace ACE.Server.Physics.Common
         /// <returns>true if previously an unknown object</returns>
         public bool AddKnownObject(PhysicsObj obj)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 if (KnownObjects.ContainsKey(obj.ID))
                     return false;
@@ -139,6 +172,10 @@ namespace ACE.Server.Physics.Common
                 obj.ObjMaint.AddKnownPlayer(PhysicsObj);
 
                 return true;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
             }
         }
 
@@ -163,7 +200,8 @@ namespace ACE.Server.Physics.Common
 
         public bool RemoveKnownObject(PhysicsObj obj, bool inversePlayer = true)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 var result = KnownObjects.Remove(obj.ID, out _);
 
@@ -172,43 +210,89 @@ namespace ACE.Server.Physics.Common
 
                 return result;
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
 
         public int GetVisibleObjectsCount()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleObjects.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public bool VisibleObjectsContainsKey(uint key)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleObjects.ContainsKey(key);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<KeyValuePair<uint, PhysicsObj>> GetVisibleObjectsWhere(Func<KeyValuePair<uint, PhysicsObj>, bool> predicate)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleObjects.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<PhysicsObj> GetVisibleObjectsValues()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleObjects.Values.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<PhysicsObj> GetVisibleObjectsValuesWhere(Func<PhysicsObj, bool> predicate)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleObjects.Values.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<Creature> GetVisibleObjectsValuesOfTypeCreature()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleObjects.Values.Select(v => v.WeenieObj.WorldObject).OfType<Creature>().ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -216,7 +300,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> GetVisibleObjects(ObjCell cell, VisibleObjectType type = VisibleObjectType.All)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
             {
                 if (PhysicsObj.CurLandblock == null || cell == null)
                     return new List<PhysicsObj>();
@@ -238,6 +323,10 @@ namespace ACE.Server.Physics.Common
                 }
 
                 return ApplyFilter(visibleObjs, type).Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
             }
         }
 
@@ -299,8 +388,8 @@ namespace ACE.Server.Physics.Common
         /// <returns>TRUE if object was previously not visible, and added to the visible list</returns>
         public bool AddVisibleObject(PhysicsObj obj)
         {
-            lock (obj)
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 if (VisibleObjects.ContainsKey(obj.ID))
                     return false;
@@ -321,6 +410,10 @@ namespace ACE.Server.Physics.Common
 
                 return true;
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -329,7 +422,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> AddVisibleObjects(ICollection<PhysicsObj> objs)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 var visibleAdded = new List<PhysicsObj>();
 
@@ -343,6 +437,10 @@ namespace ACE.Server.Physics.Common
 
                 return AddKnownObjects(visibleAdded);
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -352,7 +450,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool RemoveVisibleObject(PhysicsObj obj, bool inverseTarget = true)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 var removed = VisibleObjects.Remove(obj.ID, out _);
 
@@ -361,18 +460,30 @@ namespace ACE.Server.Physics.Common
 
                 return removed;
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
 
         public int GetDestructionQueueCount()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return DestructionQueue.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public Dictionary<PhysicsObj, double> GetDestructionQueueCopy()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
             {
                 var result = new Dictionary<PhysicsObj, double>();
 
@@ -380,6 +491,10 @@ namespace ACE.Server.Physics.Common
                     result[kvp.Key] = kvp.Value;
 
                 return result;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
             }
         }
 
@@ -390,7 +505,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool AddObjectToBeDestroyed(PhysicsObj obj)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 RemoveVisibleObject(obj);
 
@@ -401,6 +517,10 @@ namespace ACE.Server.Physics.Common
 
                 return true;
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -409,7 +529,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> AddObjectsToBeDestroyed(List<PhysicsObj> objs)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 var queued = new List<PhysicsObj>();
                 foreach (var obj in objs)
@@ -420,6 +541,10 @@ namespace ACE.Server.Physics.Common
 
                 return queued;
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -428,7 +553,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool RemoveObjectToBeDestroyed(PhysicsObj obj)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 double time = -1;
                 DestructionQueue.TryGetValue(obj, out time);
@@ -439,6 +565,10 @@ namespace ACE.Server.Physics.Common
                 }
 
                 return false;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
             }
         }
 
@@ -458,7 +588,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> DestroyObjects()
         {
-            lock (globalObjectMaintMutex)
+            rwLock.EnterWriteLock();
+            try
             {
                 // find the list of objects that have been in the destruction queue > 25s
                 var expiredObjs = DestructionQueue.Where(kvp => kvp.Value <= PhysicsTimer.CurrentTime)
@@ -470,6 +601,10 @@ namespace ACE.Server.Physics.Common
 
                 return expiredObjs;
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -477,7 +612,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public void RemoveObject(PhysicsObj obj, bool inverse = true)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 if (obj == null) return;
 
@@ -488,31 +624,63 @@ namespace ACE.Server.Physics.Common
                 RemoveKnownPlayer(obj);
                 RemoveVisibleTarget(obj);
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
 
         public int GetKnownPlayersCount()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownPlayers.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<KeyValuePair<uint, PhysicsObj>> GetKnownPlayersWhere(Func<KeyValuePair<uint, PhysicsObj>, bool> predicate)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownPlayers.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<PhysicsObj> GetKnownPlayersValues()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownPlayers.Values.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<Player> GetKnownPlayersValuesAsPlayer()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -552,7 +720,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> AddKnownPlayers(IEnumerable<PhysicsObj> objs)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 var newObjs = new List<PhysicsObj>();
 
@@ -564,6 +733,10 @@ namespace ACE.Server.Physics.Common
 
                 return newObjs;
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -573,33 +746,68 @@ namespace ACE.Server.Physics.Common
         {
             //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
 
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return KnownPlayers.Remove(obj.ID, out _);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
 
         public int GetVisibleTargetsCount()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleTargets.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public bool VisibleTargetsContainsKey(uint key)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleTargets.ContainsKey(key);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<PhysicsObj> GetVisibleTargetsValues()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleTargets.Values.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         public List<Creature> GetVisibleTargetsValuesOfTypeCreature()
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
+            {
                 return VisibleTargets.Values.Select(v => v.WeenieObj.WorldObject).OfType<Creature>().ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -663,7 +871,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> AddVisibleTargets(IEnumerable<PhysicsObj> objs)
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 var visibleAdded = new List<PhysicsObj>();
 
@@ -675,6 +884,10 @@ namespace ACE.Server.Physics.Common
 
                 return AddKnownPlayers(visibleAdded.Where(o => o.IsPlayer));
             }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         private bool RemoveVisibleTarget(PhysicsObj obj)
@@ -685,7 +898,8 @@ namespace ACE.Server.Physics.Common
 
         public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell, VisibleObjectType type)
         {
-            lock (PhysicsObj)
+            rwLock.EnterReadLock();
+            try
             {
                 var visibleObjs = GetVisibleObjects(cell, type);
 
@@ -699,6 +913,10 @@ namespace ACE.Server.Physics.Common
                 }
 
                 return dist;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
             }
         }
 
@@ -721,7 +939,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public void DestroyObject()
         {
-            lock (PhysicsObj)
+            rwLock.EnterWriteLock();
+            try
             {
                 foreach (var obj in KnownObjects.Values)
                     obj.ObjMaint.RemoveObject(PhysicsObj);
@@ -737,6 +956,10 @@ namespace ACE.Server.Physics.Common
                 RemoveAllObjects();
 
                 ServerObjectManager.RemoveServerObject(PhysicsObj);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
             }
         }
     }
