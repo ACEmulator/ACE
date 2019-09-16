@@ -42,7 +42,7 @@ namespace ACE.Server.Managers
         private static readonly List<LandblockGroup> landblockGroups = new List<LandblockGroup>();
 
         public static bool MultiThreadedLandblockGroupPhysicsTicking = false; // Do not enable, this feature is still in development and is considered unstable.
-        public static bool MultiThreadedLandblockGroupTicking = true; // You can enable this, this feature is considered alpha and almost ready for beta.
+        public static bool MultiThreadedLandblockGroupTicking = false; // You can enable this, this feature is considered alpha and almost ready for beta.
 
         public static int LandblockGroupsCount
         {
