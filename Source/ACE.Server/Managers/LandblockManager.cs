@@ -43,7 +43,6 @@ namespace ACE.Server.Managers
 
         public static bool MultiThreadedLandblockGroupPhysicsTicking = false; // Do not enable, this feature is still in development and is considered unstable.
         public static bool MultiThreadedLandblockGroupTicking = true; // You can enable this, this feature is considered alpha and almost ready for beta.
-        private static readonly ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = (int)Math.Max(Environment.ProcessorCount * .34, 1) };
 
         public static int LandblockGroupsCount
         {
@@ -267,7 +266,7 @@ namespace ACE.Server.Managers
 
             if (MultiThreadedLandblockGroupPhysicsTicking)
             {
-                Parallel.ForEach(landblockGroups, parallelOptions, landblockGroup =>
+                Parallel.ForEach(landblockGroups, ThreadConfiguration.LandblockManagerParallelOptions, landblockGroup =>
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.TickPhysics(portalYearTicks, movedObjects);
@@ -300,7 +299,7 @@ namespace ACE.Server.Managers
 
             if (MultiThreadedLandblockGroupTicking)
             {
-                Parallel.ForEach(landblockGroups, parallelOptions, landblockGroup =>
+                Parallel.ForEach(landblockGroups, ThreadConfiguration.LandblockManagerParallelOptions, landblockGroup =>
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.Tick(Time.GetUnixTime());
