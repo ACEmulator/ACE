@@ -527,7 +527,7 @@ namespace ACE.Server.Managers
             if (pSync)
             {
                 var pLandblock = Physics.Common.LScape.get_landblock(landblock.Id.Raw | 0xFFFF);
-                pLandblock.get_adjacents(true); // TODO: change this to a new function rebuild_adjacents
+                pLandblock.get_adjacents(true);
             }
 
             if (traverse)

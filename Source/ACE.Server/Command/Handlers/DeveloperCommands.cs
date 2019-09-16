@@ -2163,7 +2163,7 @@ namespace ACE.Server.Command.Handlers
                     var kvps = value.ObjMaint.KnownObjects.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.KnownObjects.Remove(kvp.Key, out _))
+                        if (value.ObjMaint.KnownObjects.Remove(kvp.Key))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [ObjectTable]");
                             objectTableErrors++;
@@ -2175,7 +2175,7 @@ namespace ACE.Server.Command.Handlers
                     var kvps = value.ObjMaint.VisibleObjects.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.VisibleObjects.Remove(kvp.Key, out _))
+                        if (value.ObjMaint.VisibleObjects.Remove(kvp.Key))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VisibleObjectTable]");
                             visibleObjectTableErrors++;
@@ -2187,7 +2187,7 @@ namespace ACE.Server.Command.Handlers
                     var kvps = value.ObjMaint.KnownPlayers.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.KnownPlayers.Remove(kvp.Key, out _))
+                        if (value.ObjMaint.KnownPlayers.Remove(kvp.Key))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VoyeurTable]");
                             voyeurTableErrors++;

@@ -98,7 +98,7 @@ namespace ACE.Server.Physics.Common
             if (KnownObjects.ContainsKey(obj.ID))
                 return false;
 
-            KnownObjects.TryAdd(obj.ID, obj);
+            KnownObjects.Add(obj.ID, obj);
 
             // maintain KnownPlayers for both parties
             if (obj.IsPlayer) AddKnownPlayer(obj);
@@ -126,7 +126,7 @@ namespace ACE.Server.Physics.Common
 
         public void RemoveKnownObject(PhysicsObj obj, bool inversePlayer = true)
         {
-            KnownObjects.Remove(obj.ID, out _);
+            KnownObjects.Remove(obj.ID);
 
             if (PhysicsObj.IsPlayer && inversePlayer)
                 obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
@@ -227,7 +227,7 @@ namespace ACE.Server.Physics.Common
             }
 
             //Console.WriteLine($"{PhysicsObj.Name}.AddVisibleObject({obj.Name})");
-            VisibleObjects.TryAdd(obj.ID, obj);
+            VisibleObjects.Add(obj.ID, obj);
 
             if (obj.WeenieObj.IsMonster)
                 obj.ObjMaint.AddVisibleTarget(PhysicsObj, false);
@@ -260,7 +260,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool RemoveVisibleObject(PhysicsObj obj, bool inverseTarget = true)
         {
-            var removed = VisibleObjects.Remove(obj.ID, out _);
+            var removed = VisibleObjects.Remove(obj.ID);
 
             if (inverseTarget)
                 obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
@@ -311,7 +311,7 @@ namespace ACE.Server.Physics.Common
             DestructionQueue.TryGetValue(obj, out time);
             if (time != -1 && time > PhysicsTimer.CurrentTime)
             {
-                DestructionQueue.Remove(obj, out _);
+                DestructionQueue.Remove(obj);
                 return true;
             }
             return false;
@@ -389,7 +389,7 @@ namespace ACE.Server.Physics.Common
             if (KnownPlayers.ContainsKey(obj.ID))
                 return false;
 
-            KnownPlayers.TryAdd(obj.ID, obj);
+            KnownPlayers.Add(obj.ID, obj);
             return true;
         }
 
@@ -413,7 +413,7 @@ namespace ACE.Server.Physics.Common
         {
             //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
 
-            return KnownPlayers.Remove(obj.ID, out _);
+            return KnownPlayers.Remove(obj.ID);
         }
 
         /// <summary>
