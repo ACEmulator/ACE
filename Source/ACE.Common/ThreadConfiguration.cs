@@ -34,6 +34,8 @@ namespace ACE.Common
 
         public static readonly int WorldThreadCount = (int)Math.Max(Environment.ProcessorCount * Multiplier, 1);
 
+        public static readonly object WorldLockObject = new object();
+
         public static readonly int LandblockManagerThreadCount = WorldThreadCount;
         public static readonly ParallelOptions LandblockManagerParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = LandblockManagerThreadCount };
 
