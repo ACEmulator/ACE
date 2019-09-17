@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+
 using log4net;
 
 namespace ACE.Server.Managers
 {
-    public class EventManager
+    public static class EventManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

@@ -8,9 +8,9 @@ using ACE.Server.Entity;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.WorldObjects;
+using ACE.Server.Managers;
 
-namespace ACE.Server.Managers
+namespace ACE.Server.WorldObjects.Managers
 {
     public class SquelchManager
     {
