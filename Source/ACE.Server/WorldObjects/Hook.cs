@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject wo)
         {
-            if (!(House.HouseHooksVisible ?? true) && Item != null)
+            if (!(House.RootHouse.HouseHooksVisible ?? true) && Item != null)
             {
                 if (wo is Player player)
                     player.LasUsedHookId = Guid;
@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
 
         protected override void OnInitialInventoryLoadCompleted()
         {
-            var hidden = !(House.HouseHooksVisible ?? true);
+            var hidden = !(House.RootHouse.HouseHooksVisible ?? true);
 
             Ethereal = !HasItem;
             if (!HasItem)
