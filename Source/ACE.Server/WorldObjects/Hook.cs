@@ -71,7 +71,7 @@ namespace ACE.Server.WorldObjects
                 return Item.CheckUseRequirements(activator);
             }
 
-            if (!House.RootHouse.HouseOwner.HasValue || House.RootHouse.HouseOwner == 0 || (player.Guid.Full != House.RootHouse.HouseOwner.Value && player.House != null && player.House.HouseOwner != House.RootHouse.HouseOwner)) // Only HouseOwners can open hooks to add/remove items
+            if (!House.RootHouse.HouseOwner.HasValue || House.RootHouse.HouseOwner == 0 || player.House == null || (player.Guid.Full != House.RootHouse.HouseOwner.Value && player.House != null && player.House.HouseOwner != House.RootHouse.HouseOwner)) // Only HouseOwners can open hooks to add/remove items
             {
                 if (Item == null)
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.HookItemNotUsable_CannotOpen));
