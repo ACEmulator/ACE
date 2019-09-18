@@ -225,7 +225,7 @@ namespace ACE.Server.WorldObjects
                     hook.UiHidden = false;
                     hook.Ethereal = false;
                 }
-                else if (!(HouseHooksVisible ?? true))
+                else if (!(house.HouseHooksVisible ?? true))
                 {
                     hook.NoDraw = true;
                     hook.UiHidden = true;
