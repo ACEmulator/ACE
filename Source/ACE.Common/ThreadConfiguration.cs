@@ -36,9 +36,11 @@ namespace ACE.Common
 
         public static readonly object WorldLockObject = new object();
 
+        public static bool MultiThreadedLandblockGroupPhysicsTicking = true;
         public static readonly int LandblockManagerThreadCount = WorldThreadCount;
         public static readonly ParallelOptions LandblockManagerParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = LandblockManagerThreadCount };
 
+        public static bool MultiThreadedLandblockGroupTicking = true;
         public static readonly int NetworkManagerThreadCount = WorldThreadCount;
         public static readonly ParallelOptions NetworkManagerParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = NetworkManagerThreadCount };
 

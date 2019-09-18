@@ -424,7 +424,7 @@ namespace ACE.Server.Entity
                 Monitor1h.ResumeEvent();
             }
 
-            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
+            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions); // TODO: This pattern is broken for multi-threading
             actionQueue.RunActions();
             ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
 
