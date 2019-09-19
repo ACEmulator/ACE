@@ -419,7 +419,7 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                        placement = ACE.Entity.Enum.Placement.RightHandNonCombat;
                         parentLocation = ACE.Entity.Enum.ParentLocation.LeftWeapon;
                     }
                     break;
