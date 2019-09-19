@@ -653,7 +653,7 @@ namespace ACE.Server.WorldObjects
                             var wo = rNode.TryGetWorldObject();
 
                             if (wo is Creature creature && !creature.IsDead)
-                                creature.Smite(this);
+                                creature.Smite(this, true);
                         }
 
                         generator.Spawned.Clear();
