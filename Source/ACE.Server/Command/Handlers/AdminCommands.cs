@@ -849,8 +849,10 @@ namespace ACE.Server.Command.Handlers
                         if (wo is Player) // I don't recall if @smite all would kill players in range, assuming it didn't
                             continue;
 
+                        var useTakeDamage = PropertyManager.GetBool("smite_uses_takedamage").Item;
+
                         if (wo is Creature creature && creature.Attackable)
-                            creature.Smite(session.Player);
+                            creature.Smite(session.Player, useTakeDamage);
                     }
 
                     PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} used smite all.");
@@ -881,7 +883,7 @@ namespace ACE.Server.Command.Handlers
                     // playerSession will be null when the character is not found
                     if (player != null)
                     {
-                        player.Smite(session.Player);
+                        player.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
 
                         PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {player.Name}");
                         return;
@@ -902,7 +904,7 @@ namespace ACE.Server.Command.Handlers
                         return;
 
                     if (wo != null)
-                        wo.Smite(session.Player);
+                        wo.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
 
                     PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
                 }

@@ -111,11 +111,18 @@ namespace ACE.Server.WorldObjects
         /// Called when an admin player uses the /smite command
         /// to instantly kill a creature
         /// </summary>
-        public void Smite(WorldObject smiter)
+        public void Smite(WorldObject smiter, bool useTakeDamage = false)
         {
-            // deal remaining damage?
-            OnDeath();
-            Die(smiter, smiter);
+            if (useTakeDamage)
+            {
+                // deal remaining damage
+                TakeDamage(smiter, DamageType.Bludgeon, Health.Current);
+            }
+            else
+            {
+                OnDeath();
+                Die(smiter, smiter);
+            }
         }
 
         public void OnDeath()
@@ -232,16 +239,22 @@ namespace ACE.Server.WorldObjects
             corpse.Name = $"{prefix} of {Name}";
 
             // set 'killed by' for looting rights
+            var killerName = "misadventure";
             if (killer != null)
             {
-                corpse.LongDesc = $"Killed by {killer.Name.TrimStart('+')}.";  // vtank requires + to be stripped for regex matching.
-                if (killer is CombatPet)
-                    corpse.KillerId = killer.PetOwner.Value;
-                else
-                    corpse.KillerId = killer.Guid.Full;
+                if (!(Generator != null && Generator.Guid == killer.Guid) && Guid != killer.Guid)
+                {
+                    if (!string.IsNullOrWhiteSpace(killer.Name))
+                        killerName = killer.Name.TrimStart('+');  // vtank requires + to be stripped for regex matching.
+
+                    if (killer is CombatPet)
+                        corpse.KillerId = killer.PetOwner.Value;
+                    else
+                        corpse.KillerId = killer.Guid.Full;
+                }
             }
-            else
-                corpse.LongDesc = $"Killed by misadventure.";
+
+            corpse.LongDesc = $"Killed by {killerName}.";
 
             bool saveCorpse = false;
 
