@@ -67,9 +67,9 @@ namespace ACE.Server.WorldObjects
         public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
             if (activator is null || House is null || House.RootHouse is null)
-            {
-                log.Warn($"HousePortal.CheckUseRequirements: activator is null - {activator is null} | House is null - {House is null} | RootHouse is null - {House.RootHouse is null}");
+            {                
                 log.Warn($"HousePortal.CheckUseRequirements: 0x{Guid} - {Location.ToLOCString()}");
+                log.Warn($"HousePortal.CheckUseRequirements: activator is null - {activator is null} | House is null - {House is null} | RootHouse is null - {House.RootHouse is null}");
                 return new ActivationResult(false);
             }
 
