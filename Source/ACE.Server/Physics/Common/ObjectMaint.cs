@@ -146,14 +146,7 @@ namespace ACE.Server.Physics.Common
 
             // use current landblock + adjacents for outdoors,
             // and envcells seen from outside (all buildings)
-            var visibleObjs = new List<PhysicsObj>(PhysicsObj.CurLandblock.ServerObjects);
-
-            var adjacents = PhysicsObj.CurLandblock.get_adjacents();
-            if (adjacents != null)
-            {
-                foreach (var adjacent in adjacents)
-                    visibleObjs.AddRange(adjacent.ServerObjects);
-            }
+            var visibleObjs = PhysicsObj.CurLandblock.GetServerObjects(true);
 
             return ApplyFilter(visibleObjs, type).Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
         }

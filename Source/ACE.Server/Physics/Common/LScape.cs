@@ -2,21 +2,22 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
+
 using ACE.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Util;
-using log4net;
 
 namespace ACE.Server.Physics.Common
 {
     public static class LScape
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         public static int MidRadius = 5;
         public static int MidWidth = 11;
 
         private static readonly object landblockMutex = new object();
+        /// <summary>
+        /// This is not used if PhysicsEngine.Instance.Server is true
+        /// </summary>
         public static ConcurrentDictionary<uint, Landblock> Landblocks = new ConcurrentDictionary<uint, Landblock>();
         public static Dictionary<uint, Landblock> BlockDrawList = new Dictionary<uint, Landblock>();
 
@@ -52,6 +53,16 @@ namespace ACE.Server.Physics.Common
         /// <param name="blockCellID">Any landblock + cell ID within the landblock</param>
         public static Landblock get_landblock(uint blockCellID)
         {
+            var landblockID = blockCellID | 0xFFFF;
+
+            if (PhysicsEngine.Instance.Server)
+            {
+                var lbid = new LandblockId(landblockID);
+                var lbmLandblock = LandblockManager.GetLandblock(lbid, false, false);
+
+                return lbmLandblock.PhysicsLandblock;
+            }
+
             // client implementation
             /*if (Landblocks == null || Landblocks.Count == 0)
                 return null;
@@ -70,8 +81,6 @@ namespace ACE.Server.Physics.Common
 
             return Landblocks[yDiff + xDiff * MidWidth];*/
 
-            var landblockID = blockCellID | 0xFFFF;
-
             // check if landblock is already cached
             if (Landblocks.TryGetValue(landblockID, out var landblock))
                 return landblock;
@@ -85,18 +94,7 @@ namespace ACE.Server.Physics.Common
                 // if not, load into cache
                 landblock = new Landblock(DBObj.GetCellLandblock(landblockID));
                 if (Landblocks.TryAdd(landblockID, landblock))
-                {
                     landblock.PostInit();
-
-                    // ensure landblock manager loaded
-                    var lbid = new LandblockId(landblockID);
-                    if (!LandblockManager.IsLoaded(lbid))
-                    {
-                        // this can happen from encounter spawns sliding down walkable slopes...
-                        //log.Debug($"{landblockID:X8} requested from LScape, but not loaded from LandblockManager, adding");
-                        LandblockManager.GetLandblock(lbid, false, false);
-                    }
-                }
                 else
                     Landblocks.TryGetValue(landblockID, out landblock);
 
@@ -106,7 +104,17 @@ namespace ACE.Server.Physics.Common
 
         public static bool unload_landblock(uint landblockID)
         {
+            if (PhysicsEngine.Instance.Server)
+            {
+                // todo: Instead of ACE.Server.Entity.Landblock.Unload() calling this function, it should be calling PhysicsLandblock.Unload()
+                // todo: which would then call AdjustCell.AdjustCells.Remove()
+
+                AdjustCell.AdjustCells.Remove(landblockID >> 16);
+                return true;
+            }
+
             var result = Landblocks.TryRemove(landblockID, out _);
+            // todo: Like mentioned above, the following function should be moved to ACE.Server.Physics.Common.Landblock.Unload()
             AdjustCell.AdjustCells.Remove(landblockID >> 16);
             return result;
         }
