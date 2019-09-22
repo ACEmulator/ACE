@@ -17,6 +17,7 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Managers;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics;
+using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.WorldObjects
 {
