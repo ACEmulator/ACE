@@ -1585,7 +1585,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (stack.StackSize < amount)
+            if (stack.StackSize <= amount)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({4}) 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
@@ -1743,7 +1743,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (stack.StackSize < amount)
+            if (stack.StackSize <= amount)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({4}) 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
