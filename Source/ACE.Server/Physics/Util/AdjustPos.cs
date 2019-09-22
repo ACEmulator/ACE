@@ -24,15 +24,6 @@ namespace ACE.Server.Physics.Util
 
             DungeonProfiles.Add(0x13e, burialTemple);
 
-            // North Glenden Prison
-            var glendenPrison = new AdjustPosProfile();
-            glendenPrison.BadPosition = new Vector3(38.400002f, -18.600000f, 6.000000f);
-            glendenPrison.BadRotation = new Quaternion(-0.782608f, 0, 0, -0.622514f);
-            glendenPrison.GoodPosition = new Vector3(61, -20, -17.995000839233f);
-            glendenPrison.GoodRotation = new Quaternion(-0.70710700750351f, 0, 0, -0.70710700750351f);
-
-            DungeonProfiles.Add(0x1e4, glendenPrison);
-
             // Nuhmudira's Dungeon
             var nuhmudirasDungeon = new AdjustPosProfile();
             nuhmudirasDungeon.BadPosition = new Vector3(149.242996f, -49.946301f, -5.995000f);
