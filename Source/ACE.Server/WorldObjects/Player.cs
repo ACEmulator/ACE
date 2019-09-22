@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -21,9 +22,9 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
+using ACE.Server.WorldObjects.Managers;
 
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
-using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {

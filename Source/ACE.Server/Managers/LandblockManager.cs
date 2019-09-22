@@ -347,10 +347,12 @@ namespace ACE.Server.Managers
         /// </summary>
         public static Landblock GetLandblock(LandblockId landblockId, bool loadAdjacents, bool permaload = false)
         {
-            Landblock landblock = null;
+            Landblock landblock;
 
             lock (landblockMutex)
             {
+                bool setAdjacents = false;
+
                 landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
 
                 if (landblock == null)
@@ -365,22 +367,29 @@ namespace ACE.Server.Managers
                     }
 
                     landblockGroupPendingAdditions.Add(landblock);
+
+                    landblock.Init();
+
+                    setAdjacents = true;
                 }
 
                 if (permaload)
                     landblock.Permaload = true;
-            }
 
-            // load adjacents, if applicable
-            if (loadAdjacents)
-            {
-                var adjacents = GetAdjacentIDs(landblock);
-                foreach (var adjacent in adjacents)
-                    GetLandblock(adjacent, false, permaload);
-            }
+                // load adjacents, if applicable
+                if (loadAdjacents)
+                {
+                    var adjacents = GetAdjacentIDs(landblock);
+                    foreach (var adjacent in adjacents)
+                        GetLandblock(adjacent, false, permaload);
 
-            // cache adjacencies
-            SetAdjacents(landblock, true, true);
+                    setAdjacents = true;
+                }
+
+                // cache adjacencies
+                if (setAdjacents)
+                    SetAdjacents(landblock, true, true);
+            }
 
             return landblock;
         }
@@ -394,19 +403,6 @@ namespace ACE.Server.Managers
                 return loadedLandblocks.ToList();
         }
 
-        public static List<Landblock> GetAdjacents(LandblockId landblockID)
-        {
-            Landblock landblock;
-
-            lock (landblockMutex)
-                landblock = landblocks[landblockID.LandblockX, landblockID.LandblockY];
-
-            if (landblock == null)
-                return null;
-
-            return GetAdjacents(landblock);
-        }
-
         /// <summary>
         /// Returns the active, non-null adjacents for a landblock
         /// </summary>
@@ -416,15 +412,13 @@ namespace ACE.Server.Managers
 
             var adjacents = new List<Landblock>();
 
-            lock (landblockMutex)
+            foreach (var adjacentID in adjacentIDs)
             {
-                foreach (var adjacentID in adjacentIDs)
-                {
-                    var adjacent = landblocks[adjacentID.LandblockX, adjacentID.LandblockY];
-                    if (adjacent != null)
-                        adjacents.Add(adjacent);
-                }
+                var adjacent = landblocks[adjacentID.LandblockX, adjacentID.LandblockY];
+                if (adjacent != null)
+                    adjacents.Add(adjacent);
             }
+
             return adjacents;
         }
 
@@ -522,10 +516,7 @@ namespace ACE.Server.Managers
             landblock.Adjacents = GetAdjacents(landblock);
 
             if (pSync)
-            {
-                var pLandblock = Physics.Common.LScape.get_landblock(landblock.Id.Raw | 0xFFFF);
-                pLandblock.get_adjacents(true);
-            }
+                landblock.PhysicsLandblock.SetAdjacents(landblock.Adjacents);
 
             if (traverse)
             {
@@ -547,7 +538,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Processes the destruction queue in a thread-safe manner
         /// </summary>
-        public static void UnloadLandblocks()
+        private static void UnloadLandblocks()
         {
             while (!destructionQueue.IsEmpty)
             {
@@ -638,7 +629,7 @@ namespace ACE.Server.Managers
 
         public static EnvironChangeType? GlobalFogColor;
 
-        public static void SetGlobalFogColor(EnvironChangeType environChangeType)
+        private static void SetGlobalFogColor(EnvironChangeType environChangeType)
         {
             if (environChangeType.IsFog())
             {
@@ -648,29 +639,28 @@ namespace ACE.Server.Managers
                     GlobalFogColor = environChangeType;
 
                 foreach (var landblock in loadedLandblocks)
-                {
                     landblock.SendCurrentEnviron();
-                }
             }
         }
 
-        public static void SendGlobalEnvironSound(EnvironChangeType environChangeType)
+        private static void SendGlobalEnvironSound(EnvironChangeType environChangeType)
         {
             if (environChangeType.IsSound())
             {
                 foreach (var landblock in loadedLandblocks)
-                {
                     landblock.SendEnvironChange(environChangeType);
-                }
             }
         }
 
         public static void DoEnvironChange(EnvironChangeType environChangeType)
         {
-            if (environChangeType.IsFog())
-                SetGlobalFogColor(environChangeType);
-            else
-                SendGlobalEnvironSound(environChangeType);
+            lock (landblockMutex)
+            {
+                if (environChangeType.IsFog())
+                    SetGlobalFogColor(environChangeType);
+                else
+                    SendGlobalEnvironSound(environChangeType);
+            }
         }
     }
 }

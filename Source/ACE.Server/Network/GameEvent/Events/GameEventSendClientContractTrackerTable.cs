@@ -1,5 +1,5 @@
-using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
+using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.Network.GameEvent.Events
 {

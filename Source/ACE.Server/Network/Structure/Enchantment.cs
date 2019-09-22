@@ -6,8 +6,8 @@ using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
-using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.Network.Structure
 {
