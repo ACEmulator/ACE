@@ -150,11 +150,13 @@ namespace ACE.Server.WorldObjects
         {
             var spells = new List<Spell>();
 
-            if (setItems.Count == 0)
+            var firstSetItem = setItems.FirstOrDefault();
+
+            if (firstSetItem is null)
                 return spells;
 
-            var equipmentSet = (EquipmentSet)setItems.LastOrDefault().EquipmentSetId;
-            var itemXpStyle = setItems.LastOrDefault().ItemXpStyle ?? 0;
+            var equipmentSet = firstSetItem.EquipmentSetId;
+            var itemXpStyle = firstSetItem.ItemXpStyle ?? 0;
 
             if (!DatManager.PortalDat.SpellTable.SpellSet.TryGetValue((uint)equipmentSet, out var spellSet))
                 return spells;
