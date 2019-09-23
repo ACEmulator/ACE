@@ -158,12 +158,12 @@ namespace ACE.Server.Managers
         public static void Tick(double portalYearTicks)
         {
             // update positions through physics engine
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
+            ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
             TickPhysics(portalYearTicks);
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
 
             // Tick all of our Landblocks and WorldObjects
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
+            ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
             Tick();
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
 
