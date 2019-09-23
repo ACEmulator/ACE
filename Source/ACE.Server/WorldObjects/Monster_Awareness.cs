@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
 
         public virtual bool FindNextTarget()
         {
-            ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Monster_Awareness_FindNextTarget);
+            stopwatch.Restart();
 
             try
             {
@@ -222,7 +222,7 @@ namespace ACE.Server.WorldObjects
             }
             finally
             {
-                ServerPerformanceMonitor.PauseEvent(ServerPerformanceMonitor.MonitorType.Monster_Awareness_FindNextTarget);
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Monster_Awareness_FindNextTarget, stopwatch.Elapsed.TotalSeconds);
             }
         }
 

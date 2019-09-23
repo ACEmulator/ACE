@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 using ACE.Common.Performance;
@@ -26,6 +25,28 @@ namespace ACE.Server.Managers
             LandblockManager_TickPhysics,
             LandblockManager_Tick,
 
+            // These are all found in NetworkManager.DoSessionWork()
+            DoSessionWork_TickOutbound,
+            DoSessionWork_RemoveSessions,
+
+            // These are all found in NetworkManager.ProcessPacket()
+            ProcessPacket_0,
+            ProcessPacket_1,
+
+            MaxItems // Keep this at the end to properly size our monitors array
+        }
+
+        private static readonly RateMonitor[] monitors5m = new RateMonitor[(int)MonitorType.MaxItems];
+        private static readonly RateMonitor[] monitors1h = new RateMonitor[(int)MonitorType.MaxItems];
+        private static readonly RateMonitor[] monitors24h = new RateMonitor[(int)MonitorType.MaxItems];
+
+
+        /// <summary>
+        /// These are monitors that are resumed/paused many times over the course of a single game loop (WorldManager.UpdateGameWorld)<para />
+        /// Their purpose is to give a performance value for a system and all the work it may process in a single loop (WorldManager.UpdateGameWorld).
+        /// </summary>
+        public enum CumulativeEventHistoryType
+        {
             // These are all found in Landblock.Tick()
             Landblock_Tick_RunActions,
             Landblock_Tick_Player_Tick,
@@ -40,39 +61,13 @@ namespace ACE.Server.Managers
             Monster_Awareness_FindNextTarget,
             Monster_Navigation_UpdatePosition_PUO,
 
-            // These are all found in NetworkManager.DoSessionWork()
-            DoSessionWork_TickOutbound,
-            DoSessionWork_RemoveSessions,
-
-            // These are all found in NetworkManager.ProcessPacket()
-            ProcessPacket_0,
-            ProcessPacket_1,
-
-            MonitorMaxItems // Keep this at the end to properly size our monitors array
+            MaxItems // Keep this at the end to properly size our monitors array
         }
 
-        /// <summary>
-        /// These are monitors that are resumed/paused many times over the course of a single game loop (WorldManager.UpdateGameWorld)<para />
-        /// Their purpose is to give a performance value for a system and all the work it may process in a single loop (WorldManager.UpdateGameWorld).
-        /// </summary>
-        private static readonly HashSet<MonitorType> cumulativeMonitorTypes = new HashSet<MonitorType>
-        {
-            MonitorType.Landblock_Tick_RunActions,
-            MonitorType.Landblock_Tick_Player_Tick,
-            MonitorType.Landblock_Tick_Monster_Tick,
-            MonitorType.Landblock_Tick_WorldObject_Heartbeat,
-            MonitorType.Landblock_Tick_GeneratorUpdate,
-            MonitorType.Landblock_Tick_GeneratorRegeneration,
-            MonitorType.Landblock_Tick_Heartbeat,
-            MonitorType.Landblock_Tick_Database_Save,
+        private static readonly TimedEventHistory[] cumulative5m = new TimedEventHistory[(int)CumulativeEventHistoryType.MaxItems];
+        private static readonly TimedEventHistory[] cumulative1h = new TimedEventHistory[(int)CumulativeEventHistoryType.MaxItems];
+        private static readonly TimedEventHistory[] cumulative24h = new TimedEventHistory[(int)CumulativeEventHistoryType.MaxItems];
 
-            MonitorType.Monster_Awareness_FindNextTarget,
-            MonitorType.Monster_Navigation_UpdatePosition_PUO,
-        };
-
-        private static readonly RateMonitor[] monitors5m = new RateMonitor[(int)MonitorType.MonitorMaxItems];
-        private static readonly RateMonitor[] monitors1h = new RateMonitor[(int)MonitorType.MonitorMaxItems];
-        private static readonly RateMonitor[] monitors24h = new RateMonitor[(int)MonitorType.MonitorMaxItems];
 
         private static readonly TimeSpan last5mClearInterval = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan last1hClearInteval = TimeSpan.FromHours(1);
@@ -94,6 +89,13 @@ namespace ACE.Server.Managers
                 monitors5m[i] = new RateMonitor();
                 monitors1h[i] = new RateMonitor();
                 monitors24h[i] = new RateMonitor();
+            }
+
+            for (int i = 0; i < cumulative5m.Length; i++)
+            {
+                cumulative5m[i] = new TimedEventHistory();
+                cumulative1h[i] = new TimedEventHistory();
+                cumulative24h[i] = new TimedEventHistory();
             }
         }
 
@@ -127,6 +129,9 @@ namespace ACE.Server.Managers
                 foreach (var monitor in monitors5m)
                     monitor.ClearEventHistory();
 
+                foreach (var eventHistory in cumulative5m)
+                    eventHistory.ClearHistory();
+
                 last5mClear = DateTime.UtcNow;
             }
 
@@ -135,6 +140,9 @@ namespace ACE.Server.Managers
                 foreach (var monitor in monitors1h)
                     monitor.ClearEventHistory();
 
+                foreach (var eventHistory in cumulative1h)
+                    eventHistory.ClearHistory();
+
                 last1hClear = DateTime.UtcNow;
             }
 
@@ -142,6 +150,9 @@ namespace ACE.Server.Managers
             {
                 foreach (var monitor in monitors24h)
                     monitor.ClearEventHistory();
+
+                foreach (var eventHistory in cumulative24h)
+                    eventHistory.ClearHistory();
 
                 last24hClear = DateTime.UtcNow;
             }
@@ -159,6 +170,13 @@ namespace ACE.Server.Managers
                 monitors24h[i].ClearEventHistory();
             }
 
+            for (int i = 0; i < cumulative5m.Length; i++)
+            {
+                cumulative5m[i].ClearHistory();
+                cumulative1h[i].ClearHistory();
+                cumulative24h[i].ClearHistory();
+            }
+
             last5mClear = DateTime.UtcNow;
             last1hClear = DateTime.UtcNow;
             last24hClear = DateTime.UtcNow;
@@ -173,37 +191,6 @@ namespace ACE.Server.Managers
             monitors24h[(int)monitorType].Restart();
             monitors1h[(int)monitorType].Restart();
             monitors5m[(int)monitorType].Restart();
-
-            // Reset cumulative monitors
-            if (monitorType == MonitorType.UpdateGameWorld_Entire)
-            {
-                foreach (var entry in cumulativeMonitorTypes)
-                {
-                    monitors5m[(int)entry].Reset();
-                    monitors1h[(int)entry].Reset();
-                    monitors24h[(int)entry].Reset();
-                }
-            }
-        }
-
-        public static void PauseEvent(MonitorType monitorType)
-        {
-            if (!IsRunning)
-                return;
-
-            monitors5m[(int)monitorType].Pause();
-            monitors1h[(int)monitorType].Pause();
-            monitors24h[(int)monitorType].Pause();
-        }
-
-        public static void ResumeEvent(MonitorType monitorType)
-        {
-            if (!IsRunning)
-                return;
-
-            monitors24h[(int)monitorType].Resume();
-            monitors1h[(int)monitorType].Resume();
-            monitors5m[(int)monitorType].Resume();
         }
 
         public static void RegisterEventEnd(MonitorType monitorType)
@@ -214,33 +201,55 @@ namespace ACE.Server.Managers
             monitors5m[(int)monitorType].RegisterEventEnd();
             monitors1h[(int)monitorType].RegisterEventEnd();
             monitors24h[(int)monitorType].RegisterEventEnd();
+        }
 
-            // Register end for cumulative monitors
-            if (monitorType == MonitorType.UpdateGameWorld_Entire)
+
+        private static readonly double[] cumulativeSeconds = new double[(int)CumulativeEventHistoryType.MaxItems];
+
+        public static void RestartCumulativeEvent()
+        {
+            if (!IsRunning)
+                return;
+
+            for (int i = 0; i < cumulativeSeconds.Length; i++)
+                cumulativeSeconds[i] = 0;
+        }
+
+        public static void AddToCumulativeEvent(CumulativeEventHistoryType eventHistoryType, double seconds)
+        {
+            if (!IsRunning)
+                return;
+
+            cumulativeSeconds[(int)eventHistoryType] += seconds;
+        }
+
+        public static void RegisterCumulativeEvents()
+        {
+            if (!IsRunning)
+                return;
+
+            for (int i = 0; i < cumulative5m.Length; i++)
             {
-                foreach (var entry in cumulativeMonitorTypes)
-                {
-                    monitors5m[(int)entry].RegisterEventEnd();
-                    monitors1h[(int)entry].RegisterEventEnd();
-                    monitors24h[(int)entry].RegisterEventEnd();
-                }
+                cumulative5m[i].RegisterEvent(cumulativeSeconds[i]);
+                cumulative1h[i].RegisterEvent(cumulativeSeconds[i]);
+                cumulative24h[i].RegisterEvent(cumulativeSeconds[i]);
             }
         }
 
 
-        public static RateMonitor GetMonitor5m(MonitorType monitorType)
+        public static TimedEventHistory GetEventHistory5m(MonitorType monitorType)
         {
-            return monitors5m[(int) monitorType];
+            return monitors5m[(int) monitorType].EventHistory;
         }
 
-        public static RateMonitor GetMonitor1h(MonitorType monitorType)
+        public static TimedEventHistory GetEventHistory1h(MonitorType monitorType)
         {
-            return monitors1h[(int)monitorType];
+            return monitors1h[(int)monitorType].EventHistory;
         }
 
-        public static RateMonitor GetMonitor24h(MonitorType monitorType)
+        public static TimedEventHistory GetEventHistory24h(MonitorType monitorType)
         {
-            return monitors24h[(int)monitorType];
+            return monitors24h[(int)monitorType].EventHistory;
         }
 
 
@@ -253,40 +262,40 @@ namespace ACE.Server.Managers
 
             sb.Append($"Calls from WorldManager.UpdateWorld(){'\n'}");
             for (int i = (int)MonitorType.PlayerManager_Tick; i <= (int)MonitorType.NetworkManager_DoSessionWork; i++)
-                AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
+                AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
 
             sb.Append($"WorldManager.UpdateGameWorld() time not including throttled returns{'\n'}");
-            AddMonitorOutputToStringBuilder(monitors5m[(int)MonitorType.UpdateGameWorld_Entire], monitors1h[(int)MonitorType.UpdateGameWorld_Entire], monitors24h[(int)MonitorType.UpdateGameWorld_Entire], MonitorType.UpdateGameWorld_Entire, sb);
+            AddMonitorOutputToStringBuilder(monitors5m[(int)MonitorType.UpdateGameWorld_Entire].EventHistory, monitors1h[(int)MonitorType.UpdateGameWorld_Entire].EventHistory, monitors24h[(int)MonitorType.UpdateGameWorld_Entire].EventHistory, MonitorType.UpdateGameWorld_Entire.ToString(), sb);
 
             sb.Append($"Calls from WorldManager.UpdateGameWorld(){'\n'}");
             for (int i = (int)MonitorType.LandblockManager_TickPhysics; i <= (int)MonitorType.LandblockManager_Tick; i++)
-                AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
+                AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
 
             sb.Append($"Calls from Landblock.Tick() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)MonitorType.Landblock_Tick_RunActions; i <= (int)MonitorType.Landblock_Tick_Database_Save; i++)
-                AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
+            for (int i = (int)CumulativeEventHistoryType.Landblock_Tick_RunActions; i <= (int)CumulativeEventHistoryType.Landblock_Tick_Database_Save; i++)
+                AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
 
             sb.Append($"Calls from Landblock.Tick() - Misc - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)MonitorType.Monster_Awareness_FindNextTarget; i <= (int)MonitorType.Monster_Navigation_UpdatePosition_PUO; i++)
-                AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
+            for (int i = (int)CumulativeEventHistoryType.Monster_Awareness_FindNextTarget; i <= (int)CumulativeEventHistoryType.Monster_Navigation_UpdatePosition_PUO; i++)
+                AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
 
             sb.Append($"Calls from NetworkManager.DoSessionWork(){'\n'}");
             for (int i = (int)MonitorType.DoSessionWork_TickOutbound; i <= (int)MonitorType.DoSessionWork_RemoveSessions; i++)
-                AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
+                AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
 
             sb.Append($"Calls from NetworkManager.ProcessPacket(){'\n'}");
             for (int i = (int)MonitorType.ProcessPacket_0; i <= (int)MonitorType.ProcessPacket_1; i++)
-                AddMonitorOutputToStringBuilder(monitors5m[i], monitors1h[i], monitors24h[i], (MonitorType)i, sb);
+                AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
 
             return sb.ToString();
         }
 
-        private static void AddMonitorOutputToStringBuilder(RateMonitor monitor5m, RateMonitor monitor1h, RateMonitor monitor24h, MonitorType monitorType, StringBuilder sb)
+        private static void AddMonitorOutputToStringBuilder(TimedEventHistory eventHistory5m, TimedEventHistory eventHistory1h, TimedEventHistory eventHistory24h, string name, StringBuilder sb)
         {
-            sb.Append($"{monitor5m.EventHistory.TotalEvents.ToString().PadLeft(7)} {monitor5m.EventHistory.AverageEventDuration:N4} {monitor5m.EventHistory.LongestEvent:N3} {monitor5m.EventHistory.LastEvent:N3} {((int)monitor5m.EventHistory.TotalSeconds).ToString().PadLeft(3)} - " +
-                      $"{monitor1h.EventHistory.TotalEvents.ToString().PadLeft(7)} {monitor1h.EventHistory.AverageEventDuration:N4} {monitor1h.EventHistory.LongestEvent:N3} {monitor1h.EventHistory.LastEvent:N3} {((int)monitor1h.EventHistory.TotalSeconds).ToString().PadLeft(4)} - " +
-                      $"{monitor24h.EventHistory.TotalEvents.ToString().PadLeft(7)} {monitor24h.EventHistory.AverageEventDuration:N4} {monitor24h.EventHistory.LongestEvent:N3} {monitor24h.EventHistory.LastEvent:N3} {((int)monitor24h.EventHistory.TotalSeconds).ToString().PadLeft(5)} - " +
-                      $"{monitorType}{'\n'}");
+            sb.Append($"{eventHistory5m.TotalEvents.ToString().PadLeft(7)} {eventHistory5m.AverageEventDuration:N4} {eventHistory5m.LongestEvent:N3} {eventHistory5m.LastEvent:N3} {((int)eventHistory5m.TotalSeconds).ToString().PadLeft(3)} - " +
+                      $"{eventHistory1h.TotalEvents.ToString().PadLeft(7)} {eventHistory1h.AverageEventDuration:N4} {eventHistory1h.LongestEvent:N3} {eventHistory1h.LastEvent:N3} {((int)eventHistory1h.TotalSeconds).ToString().PadLeft(4)} - " +
+                      $"{eventHistory24h.TotalEvents.ToString().PadLeft(7)} {eventHistory24h.AverageEventDuration:N4} {eventHistory24h.LongestEvent:N3} {eventHistory24h.LastEvent:N3} {((int)eventHistory24h.TotalSeconds).ToString().PadLeft(5)} - " +
+                      $"{name}{'\n'}");
         }
     }
 }

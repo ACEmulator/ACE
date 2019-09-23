@@ -366,6 +366,7 @@ namespace ACE.Server.Managers
 
             updateGameWorldRateLimiter.RegisterEvent();
 
+            ServerPerformanceMonitor.RestartCumulativeEvent();
             ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
 
             LandblockManager.Tick(Timers.PortalYearTicks);
@@ -373,6 +374,7 @@ namespace ACE.Server.Managers
             HouseManager.Tick();
 
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
+            ServerPerformanceMonitor.RegisterCumulativeEvents();
 
             return true;
         }
