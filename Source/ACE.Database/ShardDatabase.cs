@@ -953,7 +953,7 @@ namespace ACE.Database
 
                 context.Remove(character);
 
-                log.Info($"Character {character.Name} (0x{character.Id:X8}) - deleted at {Common.Time.GetDateTimeFromTimestamp(character.DeleteTime).ToLocalTime()} - has been purged.");
+                log.Info($"Character {character.Name} (0x{character.Id:X8}) - deleted at {Common.Time.GetDateTimeFromTimestamp(character.DeleteTime).ToLocalTime()} - and all its possessions has been purged.");
 
                 context.SaveChanges();
             }
