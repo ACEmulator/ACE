@@ -367,24 +367,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Raise the available luminance by a specified amount
-        /// </summary>
-        public void GrantLuminance(long amount)
-        {
-            // apply lum modifier
-            amount = (long)Math.Round(amount * PropertyManager.GetDouble("luminance_modifier").Item);
-
-            if (AvailableLuminance + amount > MaximumLuminance)
-                amount = MaximumLuminance.Value - AvailableLuminance.Value;
-
-            AvailableLuminance += amount;
-
-            var luminance = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableLuminance, AvailableLuminance ?? 0);
-            var message = new GameMessageSystemChat($"{amount:N0} luminance granted.", ChatMessageType.Advancement);
-            Session.Network.EnqueueSend(luminance, message);
-        }
-
-        /// <summary>
         /// The player earns XP for items that can be leveled up
         /// by killing creatures and completing quests,
         /// while those items are equipped.
