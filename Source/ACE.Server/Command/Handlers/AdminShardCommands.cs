@@ -180,19 +180,5 @@ namespace ACE.Server.Command.Handlers
             else if (close)
                 WorldManager.Close(session == null ? null : session.Player, bootPlayers);
         }
-
-        // purgeorphans
-        [CommandHandler("purgeorphans", AccessLevel.Admin, CommandHandlerFlag.None, 0,
-            "Purges all orphaned objects found in the database")]
-        public static void HandlePurgeOrphans(Session session, params string[] parameters)
-        {
-            CommandHandlerHelper.WriteOutputInfo(session, $"Command WIP.", ChatMessageType.Broadcast);
-            return;
-
-            //if (DatabaseManager.Shard.PurgeOrphanedBiotas(out var numberOfBiotasPurged))
-            //    CommandHandlerHelper.WriteOutputInfo(session, $"Purged {numberOfBiotasPurged:N0} orphaned biotas.", ChatMessageType.Broadcast);
-            //else
-            //    CommandHandlerHelper.WriteOutputInfo(session, $"Purged of orphaned biotas failed.", ChatMessageType.Broadcast);
-        }
     }
 }

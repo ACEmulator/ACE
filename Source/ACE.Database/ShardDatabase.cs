@@ -897,10 +897,8 @@ namespace ACE.Database
             }
         }
 
-        public bool CanPurgeCharacter(uint characterId)
+        public bool CanPurgeCharacter(ShardDbContext context, uint characterId)
         {
-            var context = new ShardDbContext();
-
             var result = context.Character
                 .FirstOrDefault(r => r.Id == characterId);
 
@@ -910,10 +908,14 @@ namespace ACE.Database
             return false;
         }
 
-        public bool PurgeCharacter(uint characterId)
+        public bool CanPurgeCharacter(uint characterId)
         {
-            var context = new ShardDbContext();
+            using (var context = new ShardDbContext())
+                return CanPurgeCharacter(context, characterId);
+        }
 
+        public bool PurgeCharacter(ShardDbContext context, uint characterId)
+        {
             var character = context.Character
                 .Include(r => r.CharacterPropertiesContractRegistry)
                 .Include(r => r.CharacterPropertiesFillCompBook)
@@ -959,13 +961,17 @@ namespace ACE.Database
             return true;
         }
 
-        public bool PurgeCharacters(int daysLimiter, out int numberOfCharactersPurged)
+        public bool PurgeCharacter(uint characterId)
+        {
+            using (var context = new ShardDbContext())
+                return PurgeCharacter(context, characterId);
+        }
+
+        public bool PurgeCharacters(ShardDbContext context, int daysLimiter, out int numberOfCharactersPurged)
         {
             numberOfCharactersPurged = 0;
 
             var deleteLimit = Common.Time.GetUnixTime(DateTime.UtcNow.AddDays(-daysLimiter));
-
-            var context = new ShardDbContext();
 
             var results = context.Character
                 .Where(r => r.DeleteTime < deleteLimit)
@@ -981,7 +987,13 @@ namespace ACE.Database
             return true;
         }
 
-        public bool PurgeOrphanedBiotas(out int numberOfBiotasPurged)
+        public bool PurgeCharacters(int daysLimiter, out int numberOfCharactersPurged)
+        {
+            using (var context = new ShardDbContext())
+                return PurgeCharacters(context, daysLimiter, out numberOfCharactersPurged);
+        }
+
+        public bool PurgeOrphanedBiotas(ShardDbContext context, out int numberOfBiotasPurged)
         {
             numberOfBiotasPurged = 0;
 
@@ -1311,6 +1323,12 @@ namespace ACE.Database
             //}
 
             //return true;
+        }
+
+        public bool PurgeOrphanedBiotas(out int numberOfCharactersPurged)
+        {
+            using (var context = new ShardDbContext())
+                return PurgeOrphanedBiotas(context, out numberOfCharactersPurged);
         }
     }
 }
