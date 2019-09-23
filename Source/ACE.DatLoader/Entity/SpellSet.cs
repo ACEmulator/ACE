@@ -16,9 +16,6 @@ namespace ACE.DatLoader.Entity
         {
             SpellSetTiers.UnpackPackedHashTable(reader);
 
-            //var last = SpellSetTiers.LastOrDefault();
-            //var first = SpellSetTiers.FirstOrDefault();
-
             SpellSetTiers lastSpellSetTier = null;
 
             for (uint i = 0; i < SpellSetTiers.Keys.LastOrDefault(); i++)
