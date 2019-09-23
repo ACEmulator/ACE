@@ -146,9 +146,15 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the item set spells for a particular level
         /// </summary>
-        public static List<Spell> GetSpellSet(EquipmentSet equipmentSet, ItemXpStyle itemXpStyle, List<WorldObject> setItems, int levelDiff = 0)
+        public static List<Spell> GetSpellSet(List<WorldObject> setItems, int levelDiff = 0)
         {
             var spells = new List<Spell>();
+
+            if (setItems.Count == 0)
+                return spells;
+
+            var equipmentSet = (EquipmentSet)setItems.LastOrDefault().EquipmentSetId;
+            var itemXpStyle = setItems.LastOrDefault().ItemXpStyle ?? 0;
 
             if (!DatManager.PortalDat.SpellTable.SpellSet.TryGetValue((uint)equipmentSet, out var spellSet))
                 return spells;
@@ -166,7 +172,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"Total level: {level}");
             level = Math.Min(level, highestTier);
 
-            if (!spellSet.SpellSetTiers.TryGetValue(level, out var spellSetTiers))
+            if (!spellSet.SpellSetTiersNoGaps.TryGetValue(level, out var spellSetTiers))
                 return spells;
 
             foreach (var spellId in spellSetTiers.Spells)

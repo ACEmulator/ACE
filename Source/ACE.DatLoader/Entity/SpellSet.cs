@@ -14,6 +14,8 @@ namespace ACE.DatLoader.Entity
 
         public uint HighestTier = 0;
 
+        public SortedDictionary<uint, SpellSetTiers> SpellSetTiersNoGaps = new SortedDictionary<uint, SpellSetTiers>();
+
         public void Unpack(BinaryReader reader)
         {
             SpellSetTiers.UnpackPackedHashTable(reader);
@@ -22,16 +24,14 @@ namespace ACE.DatLoader.Entity
 
             SpellSetTiers lastSpellSetTier = null;
 
-            for (uint i = 0; i < HighestTier; i++)
-            {                
-                if (SpellSetTiers.ContainsKey(i))
-                    lastSpellSetTier = SpellSetTiers[i];
-                else
-                {
-                    if (lastSpellSetTier != null)
-                        SpellSetTiers.Add(i, lastSpellSetTier);
-                }
-            }            
+            for (uint i = 0; i <= HighestTier; i++)
+            {
+                if (SpellSetTiers.TryGetValue(i, out var spellSetTiers))
+                    lastSpellSetTier = spellSetTiers;
+
+                if (lastSpellSetTier != null)
+                    SpellSetTiersNoGaps.Add(i, lastSpellSetTier);
+            }
         }
     }
 }
