@@ -206,7 +206,7 @@ namespace ACE.Server.Managers
 
         private static readonly double[] cumulativeSeconds = new double[(int)CumulativeEventHistoryType.MaxItems];
 
-        public static void RestartCumulativeEvent()
+        public static void RestartCumulativeEvents()
         {
             if (!IsRunning)
                 return;
