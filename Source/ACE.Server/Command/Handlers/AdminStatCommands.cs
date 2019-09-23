@@ -97,7 +97,7 @@ namespace ACE.Server.Command.Handlers
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
             if (ServerPerformanceMonitor.IsRunning)
-                sb.Append($"Server Performance Monitor - UpdateGameWorld ~5m {ServerPerformanceMonitor.GetMonitor5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3}, ~1h {ServerPerformanceMonitor.GetMonitor1h(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3} s{'\n'}");
+                sb.Append($"Server Performance Monitor - UpdateGameWorld ~5m {ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3}, ~1h {ServerPerformanceMonitor.GetEventHistory1h(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration:N3} s{'\n'}");
             else
                 sb.Append($"Server Performance Monitor - Not running. To start use /serverperformance start{'\n'}");
 
@@ -161,10 +161,10 @@ namespace ACE.Server.Command.Handlers
             var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
 
             // Filter out landblocks that haven't recorded a certain amount of events
-            var sortedBy5mAverage = loadedLandblocks.Where(r => r.Monitor5m.TotalEvents >= 10).OrderByDescending(r => r.Monitor5m.AverageEventDuration).Take(10).ToList();
-            var sortedBy1hrAverage = loadedLandblocks.Where(r => r.Monitor1h.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.AverageEventDuration).Take(10).ToList();
+            var sortedBy5mAverage = loadedLandblocks.Where(r => r.Monitor5m.EventHistory.TotalEvents >= 10).OrderByDescending(r => r.Monitor5m.EventHistory.AverageEventDuration).Take(10).ToList();
+            var sortedBy1hrAverage = loadedLandblocks.Where(r => r.Monitor1h.EventHistory.TotalEvents >= 1000).OrderByDescending(r => r.Monitor1h.EventHistory.AverageEventDuration).Take(10).ToList();
 
-            var combinedByAverage = sortedBy5mAverage.Concat(sortedBy1hrAverage).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.AverageEventDuration, r.Monitor1h.AverageEventDuration)).Take(10);
+            var combinedByAverage = sortedBy5mAverage.Concat(sortedBy1hrAverage).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.EventHistory.AverageEventDuration, r.Monitor1h.EventHistory.AverageEventDuration)).Take(10);
 
             sb.Append($"Most Busy Landblock - By Average{'\n'}");
             sb.Append($"~5m Hits   Avg  Long  Last - ~1h Hits   Avg  Long  Last - Location   Players  Creatures{'\n'}");
@@ -180,15 +180,15 @@ namespace ACE.Server.Command.Handlers
                         creatures++;
                 }
 
-                sb.Append($"{entry.Monitor5m.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.AverageEventDuration:N4} {entry.Monitor5m.LongestEvent:N3} {entry.Monitor5m.LastEvent:N3} - " +
-                          $"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} - " +
+                sb.Append($"{entry.Monitor5m.EventHistory.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.EventHistory.AverageEventDuration:N4} {entry.Monitor5m.EventHistory.LongestEvent:N3} {entry.Monitor5m.EventHistory.LastEvent:N3} - " +
+                          $"{entry.Monitor1h.EventHistory.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.EventHistory.AverageEventDuration:N4} {entry.Monitor1h.EventHistory.LongestEvent:N3} {entry.Monitor1h.EventHistory.LastEvent:N3} - " +
                           $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
             }
 
-            var sortedBy5mLong = loadedLandblocks.OrderByDescending(r => r.Monitor5m.LongestEvent).Take(10);
-            var sortedBy1hrLong = loadedLandblocks.OrderByDescending(r => r.Monitor1h.LongestEvent).Take(10);
+            var sortedBy5mLong = loadedLandblocks.OrderByDescending(r => r.Monitor5m.EventHistory.LongestEvent).Take(10);
+            var sortedBy1hrLong = loadedLandblocks.OrderByDescending(r => r.Monitor1h.EventHistory.LongestEvent).Take(10);
 
-            var combinedByLong = sortedBy5mLong.Concat(sortedBy1hrLong).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.LongestEvent, r.Monitor1h.LongestEvent)).Take(10);
+            var combinedByLong = sortedBy5mLong.Concat(sortedBy1hrLong).Distinct().OrderByDescending(r => Math.Max(r.Monitor5m.EventHistory.LongestEvent, r.Monitor1h.EventHistory.LongestEvent)).Take(10);
 
             sb.Append($"Most Busy Landblock - By Longest{'\n'}");
             sb.Append($"~5m Hits   Avg  Long  Last - ~1h Hits   Avg  Long  Last - Location   Players  Creatures{'\n'}");
@@ -204,8 +204,8 @@ namespace ACE.Server.Command.Handlers
                         creatures++;
                 }
 
-                sb.Append($"{entry.Monitor5m.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.AverageEventDuration:N4} {entry.Monitor5m.LongestEvent:N3} {entry.Monitor5m.LastEvent:N3} - " +
-                          $"{entry.Monitor1h.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.AverageEventDuration:N4} {entry.Monitor1h.LongestEvent:N3} {entry.Monitor1h.LastEvent:N3} - " +
+                sb.Append($"{entry.Monitor5m.EventHistory.TotalEvents.ToString().PadLeft(7)} {entry.Monitor5m.EventHistory.AverageEventDuration:N4} {entry.Monitor5m.EventHistory.LongestEvent:N3} {entry.Monitor5m.EventHistory.LastEvent:N3} - " +
+                          $"{entry.Monitor1h.EventHistory.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.EventHistory.AverageEventDuration:N4} {entry.Monitor1h.EventHistory.LongestEvent:N3} {entry.Monitor1h.EventHistory.LastEvent:N3} - " +
                           $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
             }
 

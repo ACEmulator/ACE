@@ -46,7 +46,7 @@ namespace ACE.Server.Network.Managers
         {
             if (connectionListener.ListenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
             {
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
                 if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
                 {
                     packetLog.Debug($"{packet}, {endPoint}");
@@ -91,7 +91,7 @@ namespace ACE.Server.Network.Managers
             }
             else // ConfigManager.Config.Server.Network.Port + 0
             {
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.ProcessPacket_0);
                 if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
                 {
                     packetLog.Debug($"{packet}, {endPoint}");
@@ -305,12 +305,12 @@ namespace ACE.Server.Network.Managers
             try
             {
                 // The session tick outbound processes pending actions and handles outgoing messages
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
                 Parallel.ForEach(sessionMap, ThreadConfiguration.NetworkManagerParallelOptions, s => s?.TickOutbound());
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound);
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions);
                 foreach (var session in sessionMap.Where(k => !Equals(null, k)))
                 {
                     if (session.PendingTermination != null && session.PendingTermination.TerminationStatus == SessionTerminationPhase.SessionWorkCompleted)

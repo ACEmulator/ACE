@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 using log4net;
 
-using ACE.Common;
+using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
