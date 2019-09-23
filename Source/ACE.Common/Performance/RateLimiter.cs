@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace ACE.Common
+namespace ACE.Common.Performance
 {
     public class RateLimiter
     {
