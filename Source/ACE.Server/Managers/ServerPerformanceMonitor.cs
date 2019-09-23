@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using ACE.Common;
+using ACE.Common.Performance;
 
 namespace ACE.Server.Managers
 {
@@ -165,25 +165,45 @@ namespace ACE.Server.Managers
         }
 
 
-        public static void RegisterEventStart(MonitorType monitorType)
+        public static void RestartEvent(MonitorType monitorType)
         {
             if (!IsRunning)
                 return;
 
-            monitors24h[(int)monitorType].RegisterEventStart();
-            monitors1h[(int)monitorType].RegisterEventStart();
-            monitors5m[(int)monitorType].RegisterEventStart();
+            monitors24h[(int)monitorType].Restart();
+            monitors1h[(int)monitorType].Restart();
+            monitors5m[(int)monitorType].Restart();
 
             // Reset cumulative monitors
             if (monitorType == MonitorType.UpdateGameWorld_Entire)
             {
                 foreach (var entry in cumulativeMonitorTypes)
                 {
-                    monitors5m[(int)entry].ResetEvent();
-                    monitors1h[(int)entry].ResetEvent();
-                    monitors24h[(int)entry].ResetEvent();
+                    monitors5m[(int)entry].Reset();
+                    monitors1h[(int)entry].Reset();
+                    monitors24h[(int)entry].Reset();
                 }
             }
+        }
+
+        public static void PauseEvent(MonitorType monitorType)
+        {
+            if (!IsRunning)
+                return;
+
+            monitors5m[(int)monitorType].Pause();
+            monitors1h[(int)monitorType].Pause();
+            monitors24h[(int)monitorType].Pause();
+        }
+
+        public static void ResumeEvent(MonitorType monitorType)
+        {
+            if (!IsRunning)
+                return;
+
+            monitors24h[(int)monitorType].Resume();
+            monitors1h[(int)monitorType].Resume();
+            monitors5m[(int)monitorType].Resume();
         }
 
         public static void RegisterEventEnd(MonitorType monitorType)
@@ -205,27 +225,6 @@ namespace ACE.Server.Managers
                     monitors24h[(int)entry].RegisterEventEnd();
                 }
             }
-        }
-
-
-        public static void ResumeEvent(MonitorType monitorType)
-        {
-            if (!IsRunning)
-                return;
-
-            monitors24h[(int)monitorType].ResumeEvent();
-            monitors1h[(int)monitorType].ResumeEvent();
-            monitors5m[(int)monitorType].ResumeEvent();
-        }
-
-        public static void PauseEvent(MonitorType monitorType)
-        {
-            if (!IsRunning)
-                return;
-
-            monitors5m[(int)monitorType].PauseEvent();
-            monitors1h[(int)monitorType].PauseEvent();
-            monitors24h[(int)monitorType].PauseEvent();
         }
 
 
@@ -284,9 +283,9 @@ namespace ACE.Server.Managers
 
         private static void AddMonitorOutputToStringBuilder(RateMonitor monitor5m, RateMonitor monitor1h, RateMonitor monitor24h, MonitorType monitorType, StringBuilder sb)
         {
-            sb.Append($"{monitor5m.TotalEvents.ToString().PadLeft(7)} {monitor5m.AverageEventDuration:N4} {monitor5m.LongestEvent:N3} {monitor5m.LastEvent:N3} {((int)monitor5m.TotalSeconds).ToString().PadLeft(3)} - " +
-                      $"{monitor1h.TotalEvents.ToString().PadLeft(7)} {monitor1h.AverageEventDuration:N4} {monitor1h.LongestEvent:N3} {monitor1h.LastEvent:N3} {((int)monitor1h.TotalSeconds).ToString().PadLeft(4)} - " +
-                      $"{monitor24h.TotalEvents.ToString().PadLeft(7)} {monitor24h.AverageEventDuration:N4} {monitor24h.LongestEvent:N3} {monitor24h.LastEvent:N3} {((int)monitor24h.TotalSeconds).ToString().PadLeft(5)} - " +
+            sb.Append($"{monitor5m.EventHistory.TotalEvents.ToString().PadLeft(7)} {monitor5m.EventHistory.AverageEventDuration:N4} {monitor5m.EventHistory.LongestEvent:N3} {monitor5m.EventHistory.LastEvent:N3} {((int)monitor5m.EventHistory.TotalSeconds).ToString().PadLeft(3)} - " +
+                      $"{monitor1h.EventHistory.TotalEvents.ToString().PadLeft(7)} {monitor1h.EventHistory.AverageEventDuration:N4} {monitor1h.EventHistory.LongestEvent:N3} {monitor1h.EventHistory.LastEvent:N3} {((int)monitor1h.EventHistory.TotalSeconds).ToString().PadLeft(4)} - " +
+                      $"{monitor24h.EventHistory.TotalEvents.ToString().PadLeft(7)} {monitor24h.EventHistory.AverageEventDuration:N4} {monitor24h.EventHistory.LongestEvent:N3} {monitor24h.EventHistory.LastEvent:N3} {((int)monitor24h.EventHistory.TotalSeconds).ToString().PadLeft(5)} - " +
                       $"{monitorType}{'\n'}");
         }
     }

@@ -1,11 +1,8 @@
-using System.Diagnostics;
 
-namespace ACE.Common
+namespace ACE.Common.Performance
 {
-    public class RateMonitor
+    public class TimedEventHistory
     {
-        private readonly Stopwatch stopwatch = new Stopwatch();
-
         /// <summary>
         /// Last event duration in seconds
         /// </summary>
@@ -30,37 +27,6 @@ namespace ACE.Common
         /// </summary>
         public double AverageEventDuration => TotalSeconds / TotalEvents;
 
-        public void ResetEvent()
-        {
-            stopwatch.Reset();
-        }
-
-        public void RegisterEventStart()
-        {
-            stopwatch.Reset();
-            stopwatch.Start();
-        }
-
-        public void PauseEvent()
-        {
-            stopwatch.Stop();
-        }
-
-        public void ResumeEvent()
-        {
-            stopwatch.Start();
-        }
-
-        /// <summary>
-        /// returns the elapsed seconds for this event
-        /// </summary>
-        public double RegisterEventEnd()
-        {
-            stopwatch.Stop();
-
-            return RegisterEvent(stopwatch.Elapsed.TotalSeconds);
-        }
-
         public double RegisterEvent(double totalSeconds)
         {
             LastEvent = totalSeconds;
@@ -77,7 +43,7 @@ namespace ACE.Common
             return LastEvent;
         }
 
-        public void ClearEventHistory()
+        public void ClearHistory()
         {
             LastEvent = 0;
             TotalEvents = 0;

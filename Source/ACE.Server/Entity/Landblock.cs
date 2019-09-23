@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 using log4net;
 
-using ACE.Common;
+using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -362,8 +362,8 @@ namespace ACE.Server.Entity
 
         public void TickPhysics(double portalYearTicks, ConcurrentBag<WorldObject> movedObjects)
         {
-            Monitor5m.RegisterEventStart();
-            Monitor1h.RegisterEventStart();
+            Monitor5m.Restart();
+            Monitor1h.Restart();
             monitorsRequireEventStart = false;
 
             foreach (WorldObject wo in GetWorldObjectsForPhysicsHandling())
@@ -392,8 +392,8 @@ namespace ACE.Server.Entity
                     movedObjects.Add(wo);
             }
 
-            Monitor5m.PauseEvent();
-            Monitor1h.PauseEvent();
+            Monitor5m.Pause();
+            Monitor1h.Pause();
         }
 
         /// <summary>
@@ -418,13 +418,13 @@ namespace ACE.Server.Entity
         {
             if (monitorsRequireEventStart)
             {
-                Monitor5m.RegisterEventStart();
-                Monitor1h.RegisterEventStart();
+                Monitor5m.Restart();
+                Monitor1h.Restart();
             }
             else
             {
-                Monitor5m.ResumeEvent();
-                Monitor1h.ResumeEvent();
+                Monitor5m.Resume();
+                Monitor1h.Resume();
             }
 
             ServerPerformanceMonitor.ResumeEvent(ServerPerformanceMonitor.MonitorType.Landblock_Tick_RunActions);
