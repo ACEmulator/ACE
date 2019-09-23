@@ -1,6 +1,7 @@
 using ACE.DatLoader.FileTypes;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace ACE.DatLoader.Entity
 {
@@ -14,6 +15,23 @@ namespace ACE.DatLoader.Entity
         public void Unpack(BinaryReader reader)
         {
             SpellSetTiers.UnpackPackedHashTable(reader);
+
+            //var last = SpellSetTiers.LastOrDefault();
+            //var first = SpellSetTiers.FirstOrDefault();
+
+            SpellSetTiers lastSpellSetTier = null;
+
+            for (uint i = 0; i < SpellSetTiers.Keys.LastOrDefault(); i++)
+            {                
+                if (SpellSetTiers.ContainsKey(i))
+                    lastSpellSetTier = SpellSetTiers[i];
+                else
+                {
+                    if (lastSpellSetTier != null)
+                        SpellSetTiers.Add(i, lastSpellSetTier);
+                }
+
+            }
         }
     }
 }
