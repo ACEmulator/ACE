@@ -146,7 +146,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the item set spells for a particular level
         /// </summary>
-        public static List<Spell> GetSpellSet(EquipmentSet equipmentSet, List<WorldObject> setItems, int levelDiff = 0)
+        public static List<Spell> GetSpellSet(EquipmentSet equipmentSet, ItemXpStyle itemXpStyle, List<WorldObject> setItems, int levelDiff = 0)
         {
             var spells = new List<Spell>();
 
@@ -154,14 +154,59 @@ namespace ACE.Server.WorldObjects
                 return spells;
 
             // apply maximum level cap here?
-            var level = (uint)(setItems.Sum(i => i.ItemLevel ?? 0) + levelDiff);
-            var highestTier = spellSet.SpellSetTiers.Last().Key;
+            uint level = 0;
+            if (itemXpStyle > 0)
+                level = (uint)(setItems.Sum(i => i.ItemLevel ?? 0) + levelDiff);
+            else
+                level = (uint)setItems.Count;
+            var highestTier = spellSet.SpellSetTiers.Last().Key;            
 
             //Console.WriteLine($"Total level: {level}");
             level = Math.Min(level, highestTier);
 
+            //var x = spellSet.SpellSetTiers.TakeWhile(x => x != level).DefaultIfEmpty(spellSet.SpellSetTiers[spellSet.SpellSetTiers.Count - 1]).LastOrDefault();
+
+            //for (int i = 0; i < spellSet.SpellSetTiers.Count; i++)
+            //{
+            //    var previous = spellSet.SpellSetTiers.TryGetValue(level - 1, out var prevSpellSetTiers);
+            //    var current = spellSet.SpellSetTiers.TryGetValue(level, out var spellSetTiers);
+            //    //var next = spellSet.ElementAtOrDefault(i + 1);
+            //}
+
             if (!spellSet.SpellSetTiers.TryGetValue(level, out var spellSetTiers))
                 return spells;
+
+            //var highestValidTier = spellSet.SpellSetTiers.LastOrDefault(x => x.Key <= level).Key;
+
+            //if (!spellSet.SpellSetTiers.TryGetValue(highestValidTier, out var spellSetTiers))
+            //    return spells;
+
+            //if (!spellSet.SpellSetTiers.TryGetValue(level, out var spellSetTiers))
+            //{
+
+            //    //var first = spellSet.SpellSetTiers.Where(x => x.Key >= level).FirstOrDefault();
+            //    //var first = spellSet.SpellSetTiers.FirstOrDefault(x => x.Key <= level).Value;
+
+            //    //var foundPreviousTier = false;
+            //    //for (uint i = level; i > 0; i--)
+            //    //{
+            //    //    if (spellSet.SpellSetTiers.TryGetValue(i, out spellSetTiers))
+            //    //    {
+            //    //        foundPreviousTier = true;
+            //    //        break;
+            //    //    }
+            //    //}
+
+            //    //if (!foundPreviousTier)
+            //    //    return spells;
+
+            //    var previousTier = spellSet.SpellSetTiers.LastOrDefault(x => x.Key <= level).Value;
+
+            //    if (previousTier != null)
+            //        spellSetTiers = previousTier;
+            //    else
+            //        return spells;
+            //}
 
             foreach (var spellId in spellSetTiers.Spells)
                 spells.Add(new Spell(spellId, false));
