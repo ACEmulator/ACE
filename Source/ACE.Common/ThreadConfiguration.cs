@@ -37,10 +37,10 @@ namespace ACE.Common
         public static readonly object WorldLockObject = new object();
 
         public static bool MultiThreadedLandblockGroupPhysicsTicking = false; // todo: Do not enable this until the new movement PR is merged and new testing can be done
+        public static bool MultiThreadedLandblockGroupTicking = true;
         public static readonly int LandblockManagerThreadCount = WorldThreadCount;
         public static readonly ParallelOptions LandblockManagerParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = LandblockManagerThreadCount };
 
-        public static bool MultiThreadedLandblockGroupTicking = true;
         public static readonly int NetworkManagerThreadCount = WorldThreadCount;
         public static readonly ParallelOptions NetworkManagerParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = NetworkManagerThreadCount };
 
