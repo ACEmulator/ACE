@@ -159,7 +159,9 @@ namespace ACE.Server.WorldObjects
                 level = (uint)(setItems.Sum(i => i.ItemLevel ?? 0) + levelDiff);
             else
                 level = (uint)setItems.Count;
-            var highestTier = spellSet.SpellSetTiers.Last().Key;            
+
+            //var highestTier = spellSet.SpellSetTiers.Last().Key;
+            var highestTier = spellSet.HighestTier;
 
             //Console.WriteLine($"Total level: {level}");
             level = Math.Min(level, highestTier);
