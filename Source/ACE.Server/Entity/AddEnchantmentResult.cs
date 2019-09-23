@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Database.Models.Shard;
-using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.Entity
 {

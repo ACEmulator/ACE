@@ -9,11 +9,14 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
+using log4net;
 
 namespace ACE.Server.WorldObjects
 {
     public sealed class HousePortal : Portal
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public House House => ParentLink as House;
 
         /// <summary>
@@ -63,6 +66,13 @@ namespace ACE.Server.WorldObjects
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
+            if (activator is null || House is null || House.RootHouse is null)
+            {
+                log.Warn($"HousePortal.CheckUseRequirements: 0x{Guid} - {Location.ToLOCString()}");
+                log.Warn($"HousePortal.CheckUseRequirements: activator is null - {activator is null} | House is null - {House is null} | RootHouse is null - {House.RootHouse is null}");
+                return new ActivationResult(false);
+            }
+
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
@@ -75,7 +85,7 @@ namespace ACE.Server.WorldObjects
             if (!House.RootHouse.HouseOwner.HasValue || House.RootHouse.HouseOwner == 0)
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
 
-            if (House.RootHouse.IsOpen && House.RootHouse.HouseOwner.HasValue && House.RootHouse.HouseOwner > 0)
+            if (House.RootHouse.IsOpen && House.RootHouse.HouseOwner > 0)
                 return new ActivationResult(true);
 
             if (!House.RootHouse.HasPermission(player))

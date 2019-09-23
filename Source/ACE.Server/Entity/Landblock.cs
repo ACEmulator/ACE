@@ -111,7 +111,7 @@ namespace ACE.Server.Entity
         /// The clientlib backing store landblock
         /// Eventually these classes could be merged, but for now they are separate...
         /// </summary>
-        public Physics.Common.Landblock _landblock { get; private set; }
+        public Physics.Common.Landblock PhysicsLandblock { get; }
 
         public CellLandblock CellLandblock { get; }
         public LandblockInfo LandblockInfo { get; }
@@ -163,10 +163,16 @@ namespace ACE.Server.Entity
 
             lastActiveTime = DateTime.UtcNow;
 
+            var cellLandblock = DBObj.GetCellLandblock(Id.Raw | 0xFFFF);
+            PhysicsLandblock = new Physics.Common.Landblock(cellLandblock);
+        }
+
+        public void Init()
+        {
+            PhysicsLandblock.PostInit();
+
             Task.Run(() =>
             {
-                _landblock = LScape.get_landblock(Id.Raw);
-
                 CreateWorldObjects();
 
                 SpawnDynamicShardObjects();
@@ -222,7 +228,7 @@ namespace ACE.Server.Entity
 
                 CreateWorldObjectsCompleted = true;
 
-                _landblock.SortObjects();
+                PhysicsLandblock.SortObjects();
             }));
         }
 
@@ -265,7 +271,7 @@ namespace ACE.Server.Entity
                 pos.Frame = new Physics.Animation.AFrame(new Vector3(xPos, yPos, 0), Quaternion.Identity);
                 pos.adjust_to_outside();
 
-                pos.Frame.Origin.Z = _landblock.GetZ(pos.Frame.Origin);
+                pos.Frame.Origin.Z = PhysicsLandblock.GetZ(pos.Frame.Origin);
 
                 wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
 
@@ -766,10 +772,13 @@ namespace ACE.Server.Entity
                     wo.CurrentLandblock = null;
 
                     if (wo.Generator != null)
-                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}");
+                    {
+                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}");
+                        wo.NotifyOfEvent(RegenerationType.PickUp); // Notify generator the generated object is effectively destroyed, use Pickup to catch both cases.
+                    }
 
                     else if (wo.ProjectileTarget == null)
-                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name}");
+                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}]");
 
                     return false;
                 }
@@ -950,7 +959,7 @@ namespace ACE.Server.Entity
             lastActiveTime = DateTime.UtcNow;
             IsDormant = false;
 
-            if (isAdjacent || _landblock == null || _landblock.IsDungeon) return;
+            if (isAdjacent || PhysicsLandblock == null || PhysicsLandblock.IsDungeon) return;
 
             // for outdoor landblocks, recursively call 1 iteration to set adjacents to active
             foreach (var landblock in Adjacents)

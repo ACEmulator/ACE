@@ -262,7 +262,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.WieldObject));
 
             if (worldObject.ParentLocation != null)
-                EnqueueBroadcast(new GameMessageParentEvent(this, worldObject, (int?)worldObject.ParentLocation ?? 0, (int?)worldObject.Placement ?? 0));
+                EnqueueBroadcast(new GameMessageParentEvent(this, worldObject));
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
@@ -419,7 +419,7 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                        placement = ACE.Entity.Enum.Placement.RightHandNonCombat;
                         parentLocation = ACE.Entity.Enum.ParentLocation.LeftWeapon;
                     }
                     break;

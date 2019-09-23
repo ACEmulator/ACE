@@ -873,7 +873,7 @@ namespace ACE.Server.WorldObjects
 
                                 if (isFromAPlayerCorpse)
                                 {
-                                    log.Info($"{Name} (0x{Guid.ToString()}) picked up {item.Name} (0x{item.Guid.ToString()}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid.ToString()})");
+                                    log.Debug($"[CORPSE] {Name} (0x{Guid}) picked up {item.Name} (0x{item.Guid}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid})");
                                     item.SaveBiotaToDatabase();
                                 }
                             }
@@ -1340,7 +1340,7 @@ namespace ACE.Server.WorldObjects
                 if (IsInChildLocation(item))
                 {
                     ResetChild(item);
-                    EnqueueBroadcast(new GameMessageParentEvent(this, item, (int?)item.ParentLocation ?? 0, (int?)item.Placement ?? 0));
+                    EnqueueBroadcast(new GameMessageParentEvent(this, item));
 
                     // handle swapping dual-wielded weapons
                     if (IsDoubleSend)
@@ -1585,7 +1585,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (stack.StackSize < amount)
+            if (stack.StackSize <= amount)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({4}) 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
@@ -1743,7 +1743,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (stack.StackSize < amount)
+            if (stack.StackSize <= amount)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({4}) 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
@@ -2375,7 +2375,7 @@ namespace ACE.Server.WorldObjects
                                     if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                         RushNextPlayerSave(5);
 
-                                    log.Info($"{Name} (0x{Guid}) traded in a IOU (0x{iouToTurnIn.Guid}) for {wcid} which became {item.Name} (0x{item.Guid}).");
+                                    log.Debug($"[IOU] {Name} (0x{Guid}) traded in a IOU (0x{iouToTurnIn.Guid}) for {wcid} which became {item.Name} (0x{item.Guid}).");
                                 }
                                 return;
                             }

@@ -22,6 +22,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network.Enum;
+using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
 
@@ -40,7 +41,7 @@ namespace ACE.Server.Command.Handlers
 
         // adminvision { on | off | toggle | check}
         [CommandHandler("adminvision", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
-            "Allows the admin to see admin - only visible items.", "{ on | off | toggle | check }\n" +
+            "Allows the admin to see admin-only visible items.", "{ on | off | toggle | check }\n" +
             "Controls whether or not the admin can see admin-only visible items. Note that if you turn this feature off, you will need to log out and back in before the visible items become invisible.")]
         public static void HandleAdminvision(Session session, params string[] parameters)
         {
@@ -564,7 +565,7 @@ namespace ACE.Server.Command.Handlers
 
         // myiid
         [CommandHandler("myiid", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
-            "Displays your Instance ID(IID)")]
+            "Displays your Instance ID (IID)")]
         public static void HandleMyIID(Session session, params string[] parameters)
         {
             // @myiid - Displays your Instance ID(IID).
@@ -848,8 +849,10 @@ namespace ACE.Server.Command.Handlers
                         if (wo is Player) // I don't recall if @smite all would kill players in range, assuming it didn't
                             continue;
 
+                        var useTakeDamage = PropertyManager.GetBool("smite_uses_takedamage").Item;
+
                         if (wo is Creature creature && creature.Attackable)
-                            creature.Smite(session.Player);
+                            creature.Smite(session.Player, useTakeDamage);
                     }
 
                     PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} used smite all.");
@@ -880,7 +883,7 @@ namespace ACE.Server.Command.Handlers
                     // playerSession will be null when the character is not found
                     if (player != null)
                     {
-                        player.Smite(session.Player);
+                        player.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
 
                         PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {player.Name}");
                         return;
@@ -901,7 +904,7 @@ namespace ACE.Server.Command.Handlers
                         return;
 
                     if (wo != null)
-                        wo.Smite(session.Player);
+                        wo.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
 
                     PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
                 }
@@ -1271,7 +1274,8 @@ namespace ACE.Server.Command.Handlers
 
         public static Position LastSpawnPos;
 
-        public const uint WEENIE_MAX = 199999;
+        // ??
+        public const uint WEENIE_MAX = uint.MaxValue;
 
         static WorldObject CreateObjectForCommand(Session session, string weenieClassDescription)
         {
@@ -1585,7 +1589,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Displays how much experience the last appraised creature is worth when killed.
         /// </summary>
-        [CommandHandler("deathxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays how much experience the last appraised creature iw worth when killed.")]
+        [CommandHandler("deathxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays how much experience the last appraised creature is worth when killed.")]
         public static void HandleDeathxp(Session session, params string[] parameters)
         {
             var creature = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -1595,7 +1599,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // de_n name, text
-        [CommandHandler("de_n", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2)]
+        [CommandHandler("de_n", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name> <text>")]
         public static void Handlede_n(Session session, params string[] parameters)
         {
             // usage: @de_n name, text
@@ -1603,16 +1607,11 @@ namespace ACE.Server.Command.Handlers
             // Sends text to named player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_name - Sends text to named player, formatted exactly as entered.
 
-            // usage: @de_s text
-            // usage: @direct_emote_select text
-            // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
-            // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
-
             // TODO: output
         }
 
         // direct_emote_name name, text
-        [CommandHandler("direct_emote_name", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2)]
+        [CommandHandler("direct_emote_name", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name> <text>")]
         public static void Handledirect_emote_name(Session session, params string[] parameters)
         {
             // usage: @de_n name, text
@@ -1620,23 +1619,13 @@ namespace ACE.Server.Command.Handlers
             // Sends text to named player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_name - Sends text to named player, formatted exactly as entered.
 
-            // usage: @de_s text
-            // usage: @direct_emote_select text
-            // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
-            // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
-
             // TODO: output
         }
 
         // de_s text
-        [CommandHandler("de_s", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("de_s", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Sends text to selected player, formatted exactly as entered, with no prefix of any kind.", "<text>")]
         public static void Handlede_s(Session session, params string[] parameters)
         {
-            // usage: @de_n name, text
-            // usage: @direct_emote_name name, text
-            // Sends text to named player, formatted exactly as entered, with no prefix of any kind.
-            // @direct_emote_name - Sends text to named player, formatted exactly as entered.
-
             // usage: @de_s text
             // usage: @direct_emote_select text
             // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
@@ -1646,7 +1635,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // direct_emote_select text
-        [CommandHandler("direct_emote_select", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("direct_emote_select", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Sends text to selected player, formatted exactly as entered, with no prefix of any kind.", "<text>")]
         public static void Handledirect_emote_select(Session session, params string[] parameters)
         {
             // usage: @de_s text
@@ -1978,7 +1967,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("magic god", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleMagicGod(Session session, params string[] parameters)
         {
-            // @magic god -Sets your magic stats to the specfied level.
+            // @magic god - Sets your magic stats to the specfied level.
 
             // TODO: output
 
@@ -1987,9 +1976,163 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, "You are now a magic god!!!", ChatMessageType.Broadcast);
         }
 
+        
+        [CommandHandler("modifyvital", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts the maximum vital attribute for the last appraised mob/player and restores full vitals", "<Health|Stamina|Mana> <delta>")]
+        public static void HandleModifyVital(Session session, params string[] parameters)
+        {
+            var lastAppraised = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (lastAppraised == null || !(lastAppraised is Creature))
+            {
+                ChatPacket.SendServerMessage(session, "The last appraised object was not a mob/NPC/player.", ChatMessageType.Broadcast);
+                return;
+            }
+            var creature = lastAppraised as Creature;
+
+            if (parameters.Length < 2)
+            {
+                ChatPacket.SendServerMessage(session, "Usage: modifyvital <Invalid vital type, valid values are: Health,Stamina,Mana", ChatMessageType.Broadcast);
+                return;
+            }
+
+            // determine the vital type
+            if (!Enum.TryParse(parameters[0], out PropertyAttribute2nd vitalAttr)) {
+                ChatPacket.SendServerMessage(session, "Invalid vital type, valid values are: Health,Stamina,Mana", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (!Int32.TryParse(parameters[1], out int delta))
+            {
+                ChatPacket.SendServerMessage(session, "Invalid vital value, values must be valid integers", ChatMessageType.Broadcast);
+                return;
+            }
+
+            PropertyAttribute2nd maxAttr;
+            switch (vitalAttr)
+            {
+                case PropertyAttribute2nd.Health:
+                    maxAttr = PropertyAttribute2nd.MaxHealth;
+                    break;
+                case PropertyAttribute2nd.Stamina:
+                    maxAttr = PropertyAttribute2nd.MaxStamina;
+                    break;
+                case PropertyAttribute2nd.Mana:
+                    maxAttr = PropertyAttribute2nd.MaxMana;
+                    break;
+                default:
+                    ChatPacket.SendServerMessage(session, "Unexpected vital type, valid values are: Health,Stamina,Mana", ChatMessageType.Broadcast);
+                    return;
+            }
+
+            CreatureVital maxVital = new CreatureVital(creature, maxAttr);
+            maxVital.Ranks = (uint)Math.Clamp(maxVital.Ranks + delta, 1, uint.MaxValue);
+            creature.UpdateVital(maxVital, maxVital.MaxValue);
+
+            CreatureVital vital = new CreatureVital(creature, vitalAttr);
+            vital.Ranks = (uint)Math.Clamp(vital.Ranks + delta, 1, uint.MaxValue);
+            creature.UpdateVital(vital, maxVital.MaxValue);
+
+            if (creature is Player)
+            {
+                Player player = creature as Player;
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(player, maxVital.Vital, maxVital.Ranks, maxVital.StartingValue, maxVital.ExperienceSpent, maxVital.Current));
+            }
+
+            creature.SetMaxVitals();
+
+            // save changes
+            if (creature is Player || creature.IsDynamicThatShouldPersistToShard())
+            {
+                creature.SaveBiotaToDatabase();
+            }
+        }
+
+        [CommandHandler("modifyskill", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts the skill for the last appraised mob/player", "<skillName> <delta>")]
+        public static void HandleModifySkill(Session session, params string[] parameters)
+        {
+            var lastAppraised = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (lastAppraised == null || !(lastAppraised is Creature))
+            {
+                ChatPacket.SendServerMessage(session, "The last appraised object was not a mob/NPC/player.", ChatMessageType.Broadcast);
+                return;
+            }
+            var creature = lastAppraised as Creature;
+
+            if (parameters.Length < 2)
+            {
+                ChatPacket.SendServerMessage(session, "Usage: modifyskill <skillName> <delta>: missing skillId and/or delta", ChatMessageType.Broadcast);
+                return;
+            }
+            if (!Enum.TryParse(parameters[0], out Skill skill))
+            {
+                String[] names = Enum.GetNames(typeof(Skill));
+                ChatPacket.SendServerMessage(session, "Invalid skillName, must be a valid skill name (without spaces, with capitalization), valid values are: " + String.Join(", ", names), ChatMessageType.Broadcast);
+                return;
+            }
+            if (!Int32.TryParse(parameters[1], out int delta))
+            {
+                ChatPacket.SendServerMessage(session, "Invalid delta, must be a valid integer", ChatMessageType.Broadcast);
+                return;
+            }
+
+            CreatureSkill creatureSkill = creature is Player ? creature.Skills[skill] : creature.GetCreatureSkill(skill);
+            creatureSkill.InitLevel = (ushort)Math.Clamp(creatureSkill.InitLevel + delta, 0, (Int32)ushort.MaxValue);
+
+            // save changes
+            if (creature is Player || creature.IsDynamicThatShouldPersistToShard())
+            {
+                creature.SaveBiotaToDatabase();
+            }
+            if (creature is Player)
+            {
+                Player player = creature as Player;
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, creatureSkill.Skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, creatureSkill.ExperienceSpent));
+            }
+        }
+
+        [CommandHandler("modifyattr", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts an attribute for the last appraised mob/NPC/player", "<attribute> <delta>")]
+        public static void HandleModifyAttribute(Session session, params string[] parameters)
+        {
+            var lastAppraised = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (lastAppraised == null || !(lastAppraised is Creature))
+            {
+                ChatPacket.SendServerMessage(session, "The last appraised object was not a mob/NPC/player.", ChatMessageType.Broadcast);
+                return;
+            }
+            var creature = lastAppraised as Creature;
+
+            if (parameters.Length < 2)
+            {
+                ChatPacket.SendServerMessage(session, "Usage: modifyattr <attribute> <delta>: missing attribute name and/or delta", ChatMessageType.Broadcast);
+                return;
+            }
+            if (!Enum.TryParse(parameters[0], out PropertyAttribute attrType))
+            {
+                ChatPacket.SendServerMessage(session, "Invalid skillName, must be a valid skill name (without spaces, with capitalization), valid values are: Strength,Endurance,Coordination,Quickness,Focus,Self", ChatMessageType.Broadcast);
+                return;
+            }
+            if (!Int32.TryParse(parameters[1], out int delta))
+            {
+                ChatPacket.SendServerMessage(session, "Invalid delta, must be a valid integer", ChatMessageType.Broadcast);
+                return;
+            }
+
+            CreatureAttribute attr = creature.Attributes[attrType];
+            attr.StartingValue = (uint)Math.Clamp(attr.StartingValue + delta, 1, 9999);
+
+            if (creature is Player || creature.IsDynamicThatShouldPersistToShard())
+            {
+                creature.SaveBiotaToDatabase();
+            }
+            if (creature is Player)
+            {
+                Player player = creature as Player;
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, attr.Attribute, attr.Ranks, attr.StartingValue, attr.ExperienceSpent));
+            }
+        }
+
         // heal
         [CommandHandler("heal", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
-            "Heals yourself(or the selected creature)",
+            "Heals yourself (or the selected creature)",
             "\n" + "This command fully restores your(or the selected creature's) health, mana, and stamina")]
         public static void HandleHeal(Session session, params string[] parameters)
         {
@@ -2457,7 +2600,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Sets whether you lose items should you die.
         /// </summary>
-        [CommandHandler("sticky", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("sticky", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Sets whether you lose items should you die.", "<off/on>")]
         public static void HandleSticky(Session session, params string[] parameters)
         {
             bool sticky = !(parameters.Length > 0 && parameters[0] == "off");
@@ -2758,14 +2901,13 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, "Successfully updated property description!", ChatMessageType.Help);
         }
 
-        [CommandHandler("resyncproperties", AccessLevel.Admin, CommandHandlerFlag.None, -1,
-            "Resync the properties database", "resyncproperties")]
+        [CommandHandler("resyncproperties", AccessLevel.Admin, CommandHandlerFlag.None, "Resync the properties database")]
         public static void HandleResyncServerProperties(Session session, params string[] parameters)
         {
             PropertyManager.ResyncVariables();
         }
 
-        [CommandHandler("fix-allegiances", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Fixes the monarch data for allegiances", "")]
+        [CommandHandler("fix-allegiances", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes the monarch data for allegiances")]
         public static void HandleFixAllegiances(Session session, params string[] parameters)
         {
             var players = PlayerManager.GetAllPlayers();
@@ -2833,7 +2975,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("show-allegiances", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Shows all of the allegiance chains on the server.", "")]
+        [CommandHandler("show-allegiances", AccessLevel.Admin, CommandHandlerFlag.None, "Shows all of the allegiance chains on the server.")]
         public static void HandleShowAllegiances(Session session, params string[] parameters)
         {
             var players = PlayerManager.GetAllPlayers();
@@ -2849,7 +2991,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("verify-xp", AccessLevel.Admin, CommandHandlerFlag.None, 0, "fixes skill ranks from spec temple", "")]
+        [CommandHandler("verify-xp", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes skill ranks from spec temple")]
         public static void HandleVerifySkill(Session session, params string[] parameters)
         {
             var players = PlayerManager.GetAllOffline();
@@ -2880,7 +3022,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("verify-skill-credits", AccessLevel.Admin, CommandHandlerFlag.None, 0, "fixes skill credits from asheron's castle", "")]
+        [CommandHandler("verify-skill-credits", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and fixes player skill credits from Asheron's Castle.")]
         public static void HandleVerifySkillCredits(Session session, params string[] parameters)
         {
             var players = PlayerManager.GetAllOffline();
@@ -3036,7 +3178,7 @@ namespace ACE.Server.Command.Handlers
             { 275, 46 }
         };
 
-        [CommandHandler("getenchantments", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Shows the enchantments for the last appraised item", "")]
+        [CommandHandler("getenchantments", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, "Shows the enchantments for the last appraised item")]
         public static void HandleGetEnchantments(Session session, params string[] parameters)
         {
             var item = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -3053,16 +3195,14 @@ namespace ACE.Server.Command.Handlers
         }
       
         // cm <material type> <quantity> <ave. workmanship>
-        [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3)]
+        [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCM(Session session, params string[] parameters)
         {
             // Format is: @cm <material type> <quantity> <ave. workmanship>
             HandleCISalvage(session);
-
-            // TODO: output
         }
 
-        [CommandHandler("cisalvage", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
+        [CommandHandler("cisalvage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCISalvage(Session session, params string[] parameters)
         {
             if (!Enum.TryParse(parameters[0], true, out MaterialType materialType))

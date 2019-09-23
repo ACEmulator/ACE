@@ -571,64 +571,45 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+
         private List<Landblock> adjacents;
 
         /// <summary>
         /// Returns the list of adjacent landblocks
         /// </summary>
-        public List<Landblock> get_adjacents(bool reload = false)
+        public List<Landblock> get_adjacents()
         {
-            if (adjacents != null && !reload) return adjacents;
-
-            // dungeons have no adjacents
-            if (IsDungeon)
-            {
-                adjacents = new List<Landblock>();
-                return adjacents;
-            }
-
-            var lbx = ID >> 24;
-            var lby = ID >> 16 & 0xFF;
-
-            var _adjacents = LandblockManager.GetAdjacents(new LandblockId((byte)lbx, (byte)lby));
-
-            if (_adjacents == null)
-                return null;
-
-            adjacents = new List<Landblock>();
-
-            var startX = lbx > 0 ? lbx - 1 : lbx;
-            var startY = lby > 0 ? lby - 1 : lby;
-
-            var endX = lbx < 254 ? lbx + 1 : lbx;
-            var endY = lby < 254 ? lby + 1 : lby;
-
-            // get adjacents for outdoor landblocks
-            for (var curX = startX; curX <= endX; curX++)
-            {
-                for (var curY = startY; curY <= endY; curY++)
-                {
-                    // exclude current landblock
-                    if (curX == lbx && curY == lby) continue;
-
-                    var id = curX << 24 | curY << 16 | 0xFFFF;
-
-                    // ensure adjacent is loaded in ace landblock manager
-                    if (!IsAdjacentLoaded(_adjacents, id))
-                        continue;
-
-                    var landblock = LScape.get_landblock(id);
-                    if (landblock != null)
-                        adjacents.Add(landblock);
-                }
-            }
             return adjacents;
         }
 
-        public bool IsAdjacentLoaded(List<Server.Entity.Landblock> adjacents, uint landblockID)
+        /// <summary>
+        /// This should only be used when PhysicsEngine.Instance.Server is true
+        /// </summary>
+        /// <param name="landblocks"></param>
+        public void SetAdjacents(List<Server.Entity.Landblock> landblocks)
         {
-            return adjacents.Any(l => (l.Id.Raw | 0xFFFF) == landblockID);
+            if (adjacents == null)
+                adjacents = new List<Landblock>(landblocks.Count);
+            else
+                adjacents.Clear();
+
+            foreach (var landblock in landblocks)
+                adjacents.Add(landblock.PhysicsLandblock);
         }
+
+        public List<PhysicsObj> GetServerObjects(bool includeAdjacents)
+        {
+            var results = new List<PhysicsObj>(ServerObjects);
+
+            if (includeAdjacents)
+            {
+                foreach (var adjacent in adjacents)
+                    results.AddRange(adjacent.ServerObjects);
+            }
+
+            return results;
+        }
+
 
         private List<EnvCell> envcells;
 

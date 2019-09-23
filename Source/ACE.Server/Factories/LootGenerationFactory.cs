@@ -374,10 +374,7 @@ namespace ACE.Server.Factories
                         case 1:
                         case 2:
                         case 3:
-                            if (chance < 80)
-                                wield = 0;
-                            else
-                                wield = 290;
+                            wield = 0;
                             break;
                         case 4:
                             if (chance < 60)
@@ -1688,7 +1685,7 @@ namespace ACE.Server.Factories
 
             if(wo.TsysMutationData == null)
             {
-                log.Info($"Missing PropertyInt.TsysMutationData on loot item {wo.WeenieClassId} - {wo.Name}");
+                log.Warn($"[LOOT] Missing PropertyInt.TsysMutationData on loot item {wo.WeenieClassId} - {wo.Name}");
                 return defaultMaterialType;
             }
 
@@ -2172,7 +2169,7 @@ namespace ACE.Server.Factories
                 }
                 else
                 {
-                    log.Info($"Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
+                    log.Warn($"[LOOT] Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
                 }
             }
 
