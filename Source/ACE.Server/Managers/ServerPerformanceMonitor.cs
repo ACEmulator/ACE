@@ -220,7 +220,8 @@ namespace ACE.Server.Managers
             if (!IsRunning)
                 return;
 
-            cumulativeSeconds[(int)eventHistoryType] += seconds;
+            lock (cumulative5m[(int)eventHistoryType])
+                cumulativeSeconds[(int)eventHistoryType] += seconds;
         }
 
         public static void RegisterCumulativeEvents()
