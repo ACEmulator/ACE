@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -29,20 +28,17 @@ namespace ACE.Server.WorldObjects
         /// <param name="criticalHit">True if the death blow was a critical hit, generates a critical death message</param>
         public virtual DeathMessage OnDeath(WorldObject lastDamager, DamageType damageType, bool criticalHit = false)
         {
-            lock (ThreadConfiguration.WorldLockObject)
-            {
-                IsTurning = false;
-                IsMoving = false;
+            IsTurning = false;
+            IsMoving = false;
 
-                EmoteManager.OnDeath(DamageHistory);
+            EmoteManager.OnDeath(DamageHistory);
 
-                OnDeath_GrantXP();
+            OnDeath_GrantXP();
 
-                if (IsGenerator)
-                    OnGeneratorDeath();
+            if (IsGenerator)
+                OnGeneratorDeath();
 
-                return GetDeathMessage(lastDamager, damageType, criticalHit);
-            }
+            return GetDeathMessage(lastDamager, damageType, criticalHit);
         }
 
 

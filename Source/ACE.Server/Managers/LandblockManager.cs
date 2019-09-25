@@ -261,9 +261,9 @@ namespace ACE.Server.Managers
 
             var movedObjects = new ConcurrentBag<WorldObject>();
 
-            if (ThreadConfiguration.MultiThreadedLandblockGroupPhysicsTicking)
+            if (ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupPhysicsTicking)
             {
-                Parallel.ForEach(landblockGroups, ThreadConfiguration.LandblockManagerParallelOptions, landblockGroup =>
+                Parallel.ForEach(landblockGroups, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.TickPhysics(portalYearTicks, movedObjects);
@@ -294,9 +294,9 @@ namespace ACE.Server.Managers
         {
             ProcessPendingLandblockGroupAdditions();
 
-            if (ThreadConfiguration.MultiThreadedLandblockGroupTicking)
+            if (ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupTicking)
             {
-                Parallel.ForEach(landblockGroups, ThreadConfiguration.LandblockManagerParallelOptions, landblockGroup =>
+                Parallel.ForEach(landblockGroups, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
                 {
                     foreach (var landblock in landblockGroup)
                         landblock.Tick(Time.GetUnixTime());
@@ -562,7 +562,7 @@ namespace ACE.Server.Managers
                                 {
                                     if (landblockGroups[i].Count == 0)
                                         landblockGroups.RemoveAt(i);
-                                    else if (ThreadConfiguration.MultiThreadedLandblockGroupPhysicsTicking || ThreadConfiguration.MultiThreadedLandblockGroupTicking) // Only try to split if multi-threading is enabled
+                                    else if (ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupPhysicsTicking || ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupTicking) // Only try to split if multi-threading is enabled
                                     {
                                         swTrySplitEach.Restart();
                                         var splits = landblockGroups[i].TryThrottledSplit();

@@ -1,12 +1,14 @@
 {
   "Server": {
     "WorldName": "ACEmulator",
+
     "Network": {
       "Host": "0.0.0.0",
       "Port": 9000,
       "MaximumAllowedSessions": 128,
       "DefaultSessionTimeout": 60
     },
+
     "Accounts": {
       "OverrideCharacterPermissions": true,
       "DefaultAccessLevel": 0,
@@ -29,6 +31,12 @@
     // Additional overhead is added but it is minimal.
     // This can greatly help you (and ACE developers) understand what sections of ACE are underperforming.
     "ServerPerformanceMonitorAutoStart": false,
+
+    "Threading": {
+      "WorldThreadCountMultiplier": 0.34,
+      "MultiThreadedLandblockGroupPhysicsTicking": false,
+      "MultiThreadedLandblockGroupTicking": false
+    },
 
     // WorldDatabasePrecaching, default: false
     // Development recommendation: false
