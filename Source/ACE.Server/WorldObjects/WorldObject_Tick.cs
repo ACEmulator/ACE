@@ -231,7 +231,8 @@ namespace ACE.Server.WorldObjects
             updatePhysicsLock.EnterWriteLock();
             try
             {
-                stopwatch.Restart();
+                if (!forceUpdate) // This is needed beacuse this function might be called recursively
+                    stopwatch.Restart();
 
                 var success = true;
 
@@ -284,7 +285,8 @@ namespace ACE.Server.WorldObjects
             }
             finally
             {
-                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, stopwatch.Elapsed.TotalSeconds);
+                if (!forceUpdate) // This is needed beacuse this function might be called recursively
+                    ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, stopwatch.Elapsed.TotalSeconds);
                 updatePhysicsLock.ExitWriteLock();
             }
         }
