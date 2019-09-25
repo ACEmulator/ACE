@@ -6,6 +6,25 @@ using log4net;
 
 namespace ACE.Server.Entity
 {
+    /// <summary>
+    /// The idea behind the landblock groups are that each group may contain multiple landblocks that must be ticked on the same thread, but, each group itself can be ticked on independent threads.
+    ///
+    /// Landblock groups describe their area using a rectangle.
+    /// As landblocks are added (and removed) the rectangle that contains all the landblocks in the group is adjusted.
+    ///
+    /// Landblocks are added to groups based on a minimum distance to the landblock groups rectangle.
+    ///
+    /// In the event a landblock needs to be added and is within range of multiple groups, those groups will be combined into one.
+    ///
+    /// Periodically, landblock groups are checked to see if they can be split.
+    /// When a landblock group is split, it can result in a new group that has an overlapping rectangle to the parent group.
+    /// This is not a problem because all the landblocks within each group meet the minimum distance requirements.
+    /// In the event that a new landblock is added and is close to both rectangles, the groups will then be merged again.
+    ///
+    /// Adding landblocks to groups is a very efficient process
+    /// Removing landblocks from groups is a very efficient process
+    /// Checking landblock groups for split potential does incur some overhead (~0.5 ms) which is why it's only done on intervals that are twice the Landblock.UnloadInterval.
+    /// </summary>
     public class LandblockGroup : IEnumerable<Landblock>
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);

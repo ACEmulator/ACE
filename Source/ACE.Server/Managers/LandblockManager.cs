@@ -568,8 +568,10 @@ namespace ACE.Server.Managers
                                         var splits = landblockGroups[i].TryThrottledSplit();
                                         swTrySplitEach.Stop();
 
-                                        if (swTrySplitEach.Elapsed.TotalMilliseconds > 1) // Debugging, can be removed after a while
+                                        if (swTrySplitEach.Elapsed.TotalMilliseconds > 3)
                                             log.Warn($"[LANDBLOCK GROUP] TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                                        else if (swTrySplitEach.Elapsed.TotalMilliseconds > 1)
+                                            log.Debug($"[LANDBLOCK GROUP] TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
 
                                         if (splits != null)
                                         {
