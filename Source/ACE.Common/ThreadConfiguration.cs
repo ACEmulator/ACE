@@ -39,11 +39,12 @@ namespace ACE.Common
                 worldThreadCountMultiplier = value;
 
                 var worldThreadCount = (int)Math.Max(Environment.ProcessorCount * value, 1);
+                var databaseThreadCount = Math.Max(Environment.ProcessorCount - worldThreadCount, 1);
 
                 LandblockManagerParallelOptions.MaxDegreeOfParallelism = worldThreadCount;
                 NetworkManagerParallelOptions.MaxDegreeOfParallelism = worldThreadCount;
 
-                DatabaseParallelOptions.MaxDegreeOfParallelism = Math.Max(Environment.ProcessorCount - worldThreadCount, 1);
+                DatabaseParallelOptions.MaxDegreeOfParallelism = databaseThreadCount;
             }
         }
 

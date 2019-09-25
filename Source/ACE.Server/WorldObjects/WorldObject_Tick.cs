@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 
 using ACE.Common;
@@ -14,6 +15,9 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
+        // Used for cumulative ServerPerformanceMonitor event recording
+        protected readonly Stopwatch stopwatch = new Stopwatch();
+
         private const int heartbeatSpreadInterval = 5;
 
         protected double CachedHeartbeatInterval;
@@ -227,6 +231,8 @@ namespace ACE.Server.WorldObjects
             updatePhysicsLock.EnterWriteLock();
             try
             {
+                stopwatch.Restart();
+
                 var success = true;
 
                 if (PhysicsObj != null)
@@ -278,6 +284,7 @@ namespace ACE.Server.WorldObjects
             }
             finally
             {
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, stopwatch.Elapsed.TotalSeconds);
                 updatePhysicsLock.ExitWriteLock();
             }
         }
@@ -337,6 +344,8 @@ namespace ACE.Server.WorldObjects
             updatePhysicsLock.EnterReadLock();
             try
             {
+                stopwatch.Restart();
+
                 // get position before
                 var pos = PhysicsObj.Position.Frame.Origin;
                 var prevPos = pos;
@@ -397,6 +406,7 @@ namespace ACE.Server.WorldObjects
             }
             finally
             {
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, stopwatch.Elapsed.TotalSeconds);
                 updatePhysicsLock.ExitReadLock();
             }
         }
