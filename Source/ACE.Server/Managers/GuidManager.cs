@@ -106,7 +106,7 @@ namespace ACE.Server.Managers
             private uint current;
             private readonly string name;
 
-            private static readonly TimeSpan recycleTime = TimeSpan.FromMinutes(30);
+            private static readonly TimeSpan recycleTime = TimeSpan.FromMinutes(120);
 
             private readonly Queue<Tuple<DateTime, uint>> recycledGuids = new Queue<Tuple<DateTime, uint>>();
 
@@ -231,7 +231,11 @@ namespace ACE.Server.Managers
 
             public uint Current()
             {
-                return current;
+                // First, try to use a recycled Guid
+                if (recycledGuids.TryPeek(out var result) && DateTime.UtcNow - result.Item1 > recycleTime)
+                    return result.Item2;
+                else
+                    return current;
             }
 
             public void Recycle(uint guid)
@@ -248,7 +252,24 @@ namespace ACE.Server.Managers
                     foreach (var pair in availableIDs)
                         total += (pair.end - pair.start) + 1;
 
-                    return $"DynamnicGuidAllocator: {name}, current: 0x{current:X8}, max: 0x{max:X8}, sequence gap GUIDs available: {total:N0}, recycled GUIDs available: {recycledGuids.Count:N0}";
+                    var totalRecycledGuids = recycledGuids.Count;
+
+                    recycledGuids.TryPeek(out var nextAvailableRecycledGuid);
+
+                    var recycledGuidDetails = "";
+
+                    if (nextAvailableRecycledGuid != null)
+                    {
+                        var availableAt = "now.";
+                        var availableTime = nextAvailableRecycledGuid.Item1 + recycleTime - DateTime.UtcNow;
+
+                        if (availableTime.TotalSeconds > 0)
+                            availableAt = $"in {availableTime.ToString("%h")} hours, {availableTime.ToString("%m")} minutes, and {availableTime.ToString("%s")} seconds.";
+
+                        recycledGuidDetails = $", next recycled GUID: 0x{nextAvailableRecycledGuid.Item2:X8}, recycled at: {nextAvailableRecycledGuid.Item1.ToLocalTime()}, available {availableAt}";
+                    }
+
+                    return $"DynamicGuidAllocator: {name}, current: 0x{current:X8}, max: 0x{max:X8}, sequence gap GUIDs available: {total:N0}, recycled GUIDs total: {totalRecycledGuids:N0}{recycledGuidDetails}";
                 }
             }
         }
