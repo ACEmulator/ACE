@@ -114,7 +114,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"Player {Name} - TrackEquippedObject({wieldedItem.Name}) on Wielder {wielder.Name}");
 
             // We make sure the item is actually wielded and selectable
-            if ((wieldedItem.CurrentWieldedLocation ?? 0 & EquipMask.SelectablePlusAmmo) == 0)
+            if (((wieldedItem.CurrentWieldedLocation ?? 0) & EquipMask.SelectablePlusAmmo) == 0)
                 return;
 
             // The wielder already knows about this object
