@@ -120,10 +120,14 @@ namespace ACE.Server.WorldObjects
 
             if (!Heritage.HasValue || !Gender.HasValue)
             {
+#if DEBUG
                 if (!(NpcLooksLikeObject ?? false))
                     log.Warn($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
+#endif
                 return;
+
             }
+
 
             if (!cg.HeritageGroups.ContainsKey((uint)Heritage) || !cg.HeritageGroups[(uint)Heritage].Genders.ContainsKey((int)Gender))
             {
