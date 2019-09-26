@@ -123,7 +123,13 @@ namespace ACE.Server.WorldObjects
             WorldObject wo = GetInventoryItem(itemGuid);
 
             if (wo == null)
-                return;
+            {
+                wo = GetEquippedItem(itemGuid);
+
+                if (wo == null)
+                    return;
+            }
+                
 
             if (wo.IsAttunedOrContainsAttuned)
             {
@@ -193,6 +199,9 @@ namespace ACE.Server.WorldObjects
             if (!VerifyTrade_BusyState(target) || !VerifyTrade_Inventory(target))
                 return;
 
+            IsBusy = true;
+            target.IsBusy = true;
+
             TradeTransferInProgress = true;
             target.TradeTransferInProgress = true;
 
@@ -201,11 +210,14 @@ namespace ACE.Server.WorldObjects
 
             var tradedItems = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
 
+            var myEscrow = new List<WorldObject>();
+            var targetEscrow = new List<WorldObject>();
+
             foreach (ObjectGuid itemGuid in ItemsInTradeWindow)
             {
                 if (TryRemoveFromInventoryWithNetworking(itemGuid, out var wo, RemoveFromInventoryAction.TradeItem) || TryDequipObjectWithNetworking(itemGuid, out wo, DequipObjectAction.TradeItem))
                 {
-                    target.TryCreateInInventoryWithNetworking(wo);
+                    targetEscrow.Add(wo);
 
                     tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                 }
@@ -215,23 +227,37 @@ namespace ACE.Server.WorldObjects
             {
                 if (target.TryRemoveFromInventoryWithNetworking(itemGuid, out var wo, RemoveFromInventoryAction.TradeItem) || target.TryDequipObjectWithNetworking(itemGuid, out wo, DequipObjectAction.TradeItem))
                 {
-                    TryCreateInInventoryWithNetworking(wo);
+                    myEscrow.Add(wo);
 
                     tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                 }
             }
 
-            Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TradeComplete));
-            target.Session.Network.EnqueueSend(new GameEventWeenieError(target.Session, WeenieError.TradeComplete));
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(0.5f);
+            actionChain.AddAction(CurrentLandblock, () =>
+            {
+                foreach (var wo in myEscrow)
+                    TryCreateInInventoryWithNetworking(wo);
 
-            TradeTransferInProgress = false;
-            target.TradeTransferInProgress = false;
+                foreach (var wo in targetEscrow)
+                    target.TryCreateInInventoryWithNetworking(wo);
 
-            DatabaseManager.Shard.SaveBiotasInParallel(tradedItems, null);
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TradeComplete));
+                target.Session.Network.EnqueueSend(new GameEventWeenieError(target.Session, WeenieError.TradeComplete));
 
-            HandleActionResetTrade(Guid);
-            target.HandleActionResetTrade(target.Guid);
+                TradeTransferInProgress = false;
+                target.TradeTransferInProgress = false;
 
+                IsBusy = false;
+                target.IsBusy = false;
+
+                DatabaseManager.Shard.SaveBiotasInParallel(tradedItems, null);
+
+                HandleActionResetTrade(Guid);
+                target.HandleActionResetTrade(target.Guid);
+            });
+            actionChain.EnqueueChain();
         }
 
         private List<WorldObject> GetItemsInTradeWindow(Player player)
