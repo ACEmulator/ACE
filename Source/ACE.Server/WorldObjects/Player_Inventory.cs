@@ -1039,7 +1039,7 @@ namespace ACE.Server.WorldObjects
 
             if (wasEquipped)
             {
-                if (!TryDequipObjectWithNetworking(item.Guid.Full, out item, DequipObjectAction.DropItem))
+                if (!TryDequipObjectWithNetworking(item.Guid.Full, out _, DequipObjectAction.DropItem))
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip item!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
@@ -1048,7 +1048,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (!TryRemoveFromInventoryWithNetworking(item.Guid.Full, out item, RemoveFromInventoryAction.DropItem))
+                if (!TryRemoveFromInventoryWithNetworking(item.Guid.Full, out _, RemoveFromInventoryAction.DropItem))
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to remove item from inventory!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
