@@ -2161,12 +2161,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @idlist - Shows the next ID that will be allocated from SQL.
 
-            ObjectGuid nextItemGuid = GuidManager.NextDynamicGuid();
-            ObjectGuid nextPlayerGuid = GuidManager.NextPlayerGuid();
-
-            string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full):X})\n";
-            message += $"The next Player GUID to be allocated is expected to be: {nextPlayerGuid.Full} (0x{(nextPlayerGuid.Full):X})";
-            var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
+            var sysChatMsg = new GameMessageSystemChat(GuidManager.GetIdListCommandOutput(), ChatMessageType.WorldBroadcast);
             session.Network.EnqueueSend(sysChatMsg);
         }
 
