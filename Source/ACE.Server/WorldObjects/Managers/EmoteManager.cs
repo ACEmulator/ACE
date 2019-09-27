@@ -129,7 +129,13 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardLuminance:
 
                     if (player != null)
-                        player.GrantLuminance((long)emote.Amount);
+                    {
+                        var amount = (long)emote.Amount;
+
+                        player.EarnLuminance(amount);
+
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} luminance.", ChatMessageType.Advancement));
+                    }
                     break;
 
                 case EmoteType.AwardNoShareXP:
