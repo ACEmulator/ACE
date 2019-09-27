@@ -84,10 +84,9 @@ namespace ACE.Server
 
             if (PropertyManager.GetBool("auto_purge_deleted_characters_on_startup").Item)
             {
-                log.Info($"Purging deleted characters, and their possessions, older than {PropertyManager.GetDouble("auto_purge_safe_days").Item} days ({DateTime.UtcNow.AddDays(-(int)PropertyManager.GetDouble("auto_purge_safe_days").Item).ToLocalTime()})...");
-                var shardDb = new ShardDatabase();
-                shardDb.PurgeCharacters((int)PropertyManager.GetDouble("auto_purge_safe_days").Item, out var numberOfCharactersPurged);
-                log.Info($"Purged {numberOfCharactersPurged:N0} deleted characters.");
+                log.Info($"Purging deleted characters, and their possessions, older than {PropertyManager.GetDouble("auto_purge_safe_days").Item} days ({DateTime.Now.AddDays(-(int)PropertyManager.GetDouble("auto_purge_safe_days").Item)})...");
+                ShardDatabaseOfflineTools.PurgeCharacters((int)PropertyManager.GetDouble("auto_purge_safe_days").Item, out var charactersPurged, out var playerBiotasPurged, out var possessionsPurged);
+                log.Info($"Purged {charactersPurged:N0} characters, {playerBiotasPurged:N0} player biotas and {possessionsPurged:N0} possessions.");
             }
             else
                 log.Info("Automatic Purging of deleted characters is Disabled...");
