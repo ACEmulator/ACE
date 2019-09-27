@@ -163,6 +163,13 @@ namespace ACE.Server.WorldObjects
                     totalXP *= 1.0f + playerDamager.AugmentationBonusXp * 0.05f;
 
                 playerDamager.EarnXP((long)Math.Round(totalXP), XpType.Kill);
+
+                // handle luminance
+                if (LuminanceAward != null)
+                {
+                    var totalLuminance = (long)Math.Round(LuminanceAward.Value * damagePercent);
+                    playerDamager.EarnLuminance(totalLuminance);
+                }
             }
         }
 

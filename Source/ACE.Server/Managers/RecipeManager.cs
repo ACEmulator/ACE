@@ -995,6 +995,15 @@ namespace ACE.Server.Managers
                     continue;
 
                 // apply base mod
+                switch (mod.DataId)
+                {
+                    // 	Fetish of the Dark Idols
+                    case 0x38000046:
+                        AddImbuedEffect(player, target, ImbuedEffectType.IgnoreSomeMagicProjectileDamage);
+                        target.SetProperty(PropertyFloat.AbsorbMagicDamage, 1);
+                        break;
+                }
+
                 // adjust vitals, but all appear to be 0 in current database?
 
                 // apply type mods
