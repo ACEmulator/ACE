@@ -209,7 +209,7 @@ namespace ACE.Server.Command.Handlers
         };
 
         /// <summary>
-        /// For characters/accounts who currently own multiple houses, used to select which house they want to keep
+        /// Manually sets a character option on the server. Use /config list to see a list of settings.
         /// </summary>
         [CommandHandler("config", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 1, "Manually sets a character option on the server.\nUse /config list to see a list of settings.", "<setting> <on/off>")]
         public static void HandleConfig(Session session, params string[] parameters)
