@@ -153,8 +153,7 @@ namespace ACE.Database
             int playerBiotasPurgedTotal = 0;
             int possessionsPurgedTotal = 0;
 
-            //Parallel.ForEach(results, result =>
-            Parallel.ForEach(results, new ParallelOptions { MaxDegreeOfParallelism = 2 }, result =>
+            Parallel.ForEach(results, result =>
             {
                 PurgeCharacter(result.Id, out var charactersPurgedResult, out var playerBiotasPurgedResult, out var possessionsPurgedResult);
 
