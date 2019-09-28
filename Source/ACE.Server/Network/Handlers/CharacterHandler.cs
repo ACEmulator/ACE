@@ -193,6 +193,12 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            if (character.IsDeleted || character.DeleteTime > 0)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
+                return;
+            }
+
             if (PlayerManager.GetOnlinePlayer(guid) != null)
             {
                 // If this happens, it could be that the previous session for this Player terminated in a way that didn't transfer the player to offline via PlayerManager properly.
@@ -200,10 +206,18 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (PlayerManager.GetOfflinePlayer(guid) == null)
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(guid);
+
+            if (offlinePlayer == null)
             {
                 // This would likely only happen if the account tried to log in a character that didn't exist.
                 session.SendCharacterError(CharacterError.EnterGameGeneric);
+                return;
+            }
+
+            if (offlinePlayer.IsDeleted || offlinePlayer.IsPendingDeletion)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
                 return;
             }
 
@@ -247,6 +261,14 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(session.Characters[(int)characterSlot].Id);
+
+            if (offlinePlayer == null || offlinePlayer.IsDeleted || offlinePlayer.IsPendingDeletion)
+            {
+                session.SendCharacterError(CharacterError.Delete);
+                return;
+            }
+
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
             var charRestoreTime = PropertyManager.GetLong("char_delete_time", 3600).Item;
@@ -279,6 +301,12 @@ namespace ACE.Server.Network.Handlers
             var character = session.Characters.SingleOrDefault(c => c.Id == guid);
             if (character == null)
                 return;
+
+            if (Time.GetUnixTime() > character.DeleteTime || character.IsDeleted)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
+                return;
+            }
 
             DatabaseManager.Shard.IsCharacterNameAvailable(character.Name, isAvailable =>
             {
