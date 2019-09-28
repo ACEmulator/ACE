@@ -116,5 +116,15 @@
       "Username": "root",
       "Password": ""
     }
+  },
+  // This section can trigger events that may happen before the world starts up, or after it shuts down
+  // The shard should be in a disconnected state from any running ACE world
+  "Offline": {
+    // Purge characters that have been deleted longer than PruneDeletedCharactersDays
+    // These characters, and their associated biotas, will be deleted permanantly!
+    "PurgeDeletedCharacters": false,
+
+    // Number of days a character must have been deleted for before eligible for purging
+    "PurgeDeletedCharactersDays": 30
   }
 }
