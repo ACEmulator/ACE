@@ -67,6 +67,13 @@ namespace ACE.Server
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
 
+            if (ConfigManager.Config.Offline.PurgeDeletedCharacters)
+            {
+                log.Info($"Purging deleted characters, and their possessions, older than {ConfigManager.Config.Offline.PurgeDeletedCharactersDays} days ({DateTime.Now.AddDays(-ConfigManager.Config.Offline.PurgeDeletedCharactersDays)})...");
+                ShardDatabaseOfflineTools.PurgeCharacters(ConfigManager.Config.Offline.PurgeDeletedCharactersDays, out var charactersPurged, out var playerBiotasPurged, out var possessionsPurged);
+                log.Info($"Purged {charactersPurged:N0} characters, {playerBiotasPurged:N0} player biotas and {possessionsPurged:N0} possessions.");
+            }
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
@@ -81,15 +88,6 @@ namespace ACE.Server
 
             log.Info("Starting PropertyManager...");
             PropertyManager.Initialize();
-
-            if (PropertyManager.GetBool("auto_purge_deleted_characters_on_startup").Item)
-            {
-                log.Info($"Purging deleted characters, and their possessions, older than {PropertyManager.GetDouble("auto_purge_safe_days").Item} days ({DateTime.Now.AddDays(-(int)PropertyManager.GetDouble("auto_purge_safe_days").Item)})...");
-                ShardDatabaseOfflineTools.PurgeCharacters((int)PropertyManager.GetDouble("auto_purge_safe_days").Item, out var charactersPurged, out var playerBiotasPurged, out var possessionsPurged);
-                log.Info($"Purged {charactersPurged:N0} characters, {playerBiotasPurged:N0} player biotas and {possessionsPurged:N0} possessions.");
-            }
-            else
-                log.Info("Automatic Purging of deleted characters is Disabled...");
 
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
