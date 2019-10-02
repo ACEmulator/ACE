@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-02
+[Ripley]
+* Fix issue with EmoteType.Give handling stackable/nonstackable items.
+
 ### 2019-09-28
 [Ripley, Mag-nus]
 * Support Purging of deleted Characters from database

@@ -2545,5 +2545,96 @@ namespace ACE.Server.WorldObjects
             Prev_PutItemInContainer[1] = Prev_PutItemInContainer[0];
             Prev_PutItemInContainer[0] = new PutItemInContainerEvent(itemGuid, containerGuid, placement);
         }
+        
+        public void GiveFromEmote(WorldObject emoter, uint weenieClassId, int amount = 1)
+        {
+            if (emoter is null || weenieClassId == 0)
+            {
+                log.Warn($"Player.GiveFromEmote: Emoter is null: {emoter is null} | weenieClassId == 0: {weenieClassId == 0}");
+                if (emoter != null)
+                    log.Warn($"Player.GiveFromEmote: Emoter is {emoter.Name} (0x{emoter.Guid}) | WCID: {emoter.WeenieClassId}");
+                return;
+            }
+
+            var playerFreeInventorySlots = GetFreeInventorySlots();
+            var playerFreeContainerSlots = GetFreeContainerSlots();
+            var playerAvailableBurden = GetAvailableBurden();
+
+            var playerOutOfInventorySlots = false;
+            var playerOutOfContainerSlots = false;
+            var playerExceedsAvailableBurden = false;
+
+            var itemStacks = PreCheckItem(weenieClassId, amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
+
+            if (itemRequiresBackpackSlot)
+            {
+                playerFreeContainerSlots -= itemStacks;
+                playerAvailableBurden -= itemEncumberance;
+
+                playerOutOfContainerSlots = playerFreeContainerSlots < 0;
+            }
+            else
+            {
+                playerFreeInventorySlots -= itemStacks;
+                playerAvailableBurden -= itemEncumberance;
+
+                playerOutOfInventorySlots = playerFreeInventorySlots < 0;
+            }
+
+            playerExceedsAvailableBurden = playerAvailableBurden < 0;
+
+            if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
+            {
+                //if (playerExceedsAvailableBurden)
+                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to use that!"));
+                //else if (playerOutOfInventorySlots)
+                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
+                //else //if (playerOutOfContainerSlots)
+                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+                return;
+            }
+
+            if (itemStacks > 0)
+            {
+                while (amount > 0)
+                {
+                    var item = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+
+                    if (item is Stackable)
+                    {
+                        // amount contains a max stack
+                        if (item.MaxStackSize <= amount)
+                        {
+                            item.SetStackSize(item.MaxStackSize);
+                            amount -= item.MaxStackSize.Value;
+                        }
+                        else // not a full stack
+                        {
+                            item.SetStackSize(amount);
+                            amount -= amount;
+                        }
+                    }
+                    else
+                        amount -= 1;
+
+                    if (TryCreateInInventoryWithNetworking(item))
+                    {
+                        var msg = new GameMessageSystemChat($"{emoter.Name} gives you {(item.StackSize > 1 ? $"{item.StackSize} " : "")}{(item.StackSize > 1 ? item.GetPluralName() : item.Name)}.", ChatMessageType.Broadcast);
+                        var sound = new GameMessageSound(Guid, Sound.ReceiveItem, 1);
+                        if (!(emoter.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
+                            Session.Network.EnqueueSend(msg, sound);
+                        else
+                            Session.Network.EnqueueSend(sound);
+
+                        if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                            RushNextPlayerSave(5);
+                    }
+                }
+            }
+            else
+            {
+                log.Warn($"Player.GiveFromEmote: itemStacks <= 0: emoter: {emoter.Name} (0x{emoter.Guid}) - {emoter.WeenieClassId} | weenieClassId: {weenieClassId} | amount: {amount}");
+            }
+        }
     }
 }
