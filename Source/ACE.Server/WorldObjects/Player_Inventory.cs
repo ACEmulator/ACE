@@ -2617,23 +2617,31 @@ namespace ACE.Server.WorldObjects
                     else
                         amount -= 1;
 
-                    if (TryCreateInInventoryWithNetworking(item))
-                    {
-                        var msg = new GameMessageSystemChat($"{emoter.Name} gives you {(item.StackSize > 1 ? $"{item.StackSize} " : "")}{(item.StackSize > 1 ? item.GetPluralName() : item.Name)}.", ChatMessageType.Broadcast);
-                        var sound = new GameMessageSound(Guid, Sound.ReceiveItem, 1);
-                        if (!(emoter.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
-                            Session.Network.EnqueueSend(msg, sound);
-                        else
-                            Session.Network.EnqueueSend(sound);
-
-                        if (PropertyManager.GetBool("player_receive_immediate_save").Item)
-                            RushNextPlayerSave(5);
-                    }
+                    GiveFromNPC(emoter, item);
                 }
             }
             else
             {
                 log.Warn($"Player.GiveFromEmote: itemStacks <= 0: emoter: {emoter.Name} (0x{emoter.Guid}) - {emoter.WeenieClassId} | weenieClassId: {weenieClassId} | amount: {amount}");
+
+                var item = PlayerFactory.CreateIOU(weenieClassId);
+                GiveFromNPC(emoter, item);
+            }
+        }
+
+        public void GiveFromNPC(WorldObject giver, WorldObject itemBeingGiven)
+        {
+            if (TryCreateInInventoryWithNetworking(itemBeingGiven))
+            {
+                var msg = new GameMessageSystemChat($"{giver.Name} gives you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{(itemBeingGiven.StackSize > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.Name)}.", ChatMessageType.Broadcast);
+                var sound = new GameMessageSound(Guid, Sound.ReceiveItem, 1);
+                if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
+                    Session.Network.EnqueueSend(msg, sound);
+                else
+                    Session.Network.EnqueueSend(sound);
+
+                if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                    RushNextPlayerSave(5);
             }
         }
     }
