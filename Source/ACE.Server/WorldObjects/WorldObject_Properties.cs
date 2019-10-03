@@ -2803,6 +2803,9 @@ namespace ACE.Server.WorldObjects
         /// <param name="value"></param>
         public void SetStackSize(int? value)
         {
+            if (!(this is Stackable))
+                return;
+
             StackSize = value;
 
             EncumbranceVal = (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
