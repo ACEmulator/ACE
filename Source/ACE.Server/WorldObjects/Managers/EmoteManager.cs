@@ -340,7 +340,7 @@ namespace ACE.Server.WorldObjects.Managers
                     bool success = false;
 
                     if (player != null && emote.WeenieClassId != null)
-                        player.GiveFromEmote(WorldObject, (uint)emote.WeenieClassId, emote.StackSize ?? 1);
+                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, emote.StackSize ?? 1);
 
                     break;
 
