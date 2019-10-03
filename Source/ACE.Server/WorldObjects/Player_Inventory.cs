@@ -2617,7 +2617,7 @@ namespace ACE.Server.WorldObjects
                     else
                         amount -= 1;
 
-                    GiveFromNPC(emoter, item);
+                    TryCreateForGive(emoter, item);
                 }
             }
             else
@@ -2625,11 +2625,11 @@ namespace ACE.Server.WorldObjects
                 log.Warn($"Player.GiveFromEmote: itemStacks <= 0: emoter: {emoter.Name} (0x{emoter.Guid}) - {emoter.WeenieClassId} | weenieClassId: {weenieClassId} | amount: {amount}");
 
                 var item = PlayerFactory.CreateIOU(weenieClassId);
-                GiveFromNPC(emoter, item);
+                TryCreateForGive(emoter, item);
             }
         }
 
-        public void GiveFromNPC(WorldObject giver, WorldObject itemBeingGiven)
+        public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
         {
             if (TryCreateInInventoryWithNetworking(itemBeingGiven))
             {
@@ -2642,7 +2642,11 @@ namespace ACE.Server.WorldObjects
 
                 if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                     RushNextPlayerSave(5);
+
+                return true;
             }
+            else
+                return false;
         }
     }
 }
