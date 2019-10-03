@@ -2803,7 +2803,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="value"></param>
         public void SetStackSize(int? value)
         {
-            if (!(this is Stackable))
+            var isStackable = this is Stackable;
+            if (!isStackable)
                 return;
 
             StackSize = value;
