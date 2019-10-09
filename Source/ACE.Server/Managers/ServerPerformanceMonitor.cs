@@ -47,6 +47,10 @@ namespace ACE.Server.Managers
         /// </summary>
         public enum CumulativeEventHistoryType
         {
+            // These are all found in WorldObject_Tick.cs
+            WorldObject_Tick_UpdatePlayerPhysics,
+            WorldObject_Tick_UpdateObjectPhysics,
+
             // These are all found in Landblock.Tick()
             Landblock_Tick_RunActions,
             Landblock_Tick_Player_Tick,
@@ -220,7 +224,8 @@ namespace ACE.Server.Managers
             if (!IsRunning)
                 return;
 
-            cumulativeSeconds[(int)eventHistoryType] += seconds;
+            lock (cumulative5m[(int)eventHistoryType])
+                cumulativeSeconds[(int)eventHistoryType] += seconds;
         }
 
         public static void RegisterCumulativeEvents()
@@ -270,6 +275,10 @@ namespace ACE.Server.Managers
             sb.Append($"Calls from WorldManager.UpdateGameWorld(){'\n'}");
             for (int i = (int)MonitorType.LandblockManager_TickPhysics; i <= (int)MonitorType.LandblockManager_Tick; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
+
+            sb.Append($"Calls from Landblock.TickPhysics() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
+            for (int i = (int)CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics; i <= (int)CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics; i++)
+                AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
 
             sb.Append($"Calls from Landblock.Tick() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
             for (int i = (int)CumulativeEventHistoryType.Landblock_Tick_RunActions; i <= (int)CumulativeEventHistoryType.Landblock_Tick_Database_Save; i++)

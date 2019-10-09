@@ -1,5 +1,56 @@
 # ACEmulator Change Log
 
+### 2019-09-28
+[Ripley, Mag-nus]
+* Support Purging of deleted Characters from database
+
+### 2019-09-27
+[Ripley]
+* Support Dark Idol recipe DataId mods
+
+### 2019-09-26
+[Ripley]
+* Adjustments to Guid Recycling
+* Some Give/Trade Wielded Adjustments
+
+### 2019-09-24
+[Ripley]
+* Support SpellSets for Items that don't level
+
+### 2019-09-22
+[Ripley]
+* Validate int data for GenerateNewFace
+* Remove coded North Glenden Prison position adjustments
+* Adjust Split StackSize Checks
+
+### 2019-09-21
+[Ripley]
+* Add logging to HousePortal nulls
+
+### 2019-09-19
+[Ripley]
+* Update Killed by misadventure conditions
+
+### 2019-09-18
+[Ripley]
+* Fix issue with opening empty hooks
+* Sync HouseHooksVisible to root house object
+
+### 2019-09-15
+[Ripley]
+* Generate Random Faces for CreatureType.Empyrean NPCs
+
+### 2019-09-14
+[Ripley]
+* Fix Hook Visibility Control in Basements
+* Fix issue on Hook Appraisal
+* Workaround fix to spawn hooks
+* Misc Housing Cleanup
+* Rebase SQL scripts, archived previous batch for legacy servers.
+* Turn on Guid Recycling
+* Update Logging messages
+* Notify Generator of spawn failure for regen retry
+
 ### 2019-09-12
 [OptimShi]
 * Fix issue with AlternateSetup for certain non-human models

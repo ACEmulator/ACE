@@ -1,14 +1,18 @@
 using System;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 namespace ACE.Common
 {
     /// <summary>
     /// We determine the number of available threads using Environment.ProcessCount
-    /// We allocate(int)Math.Max(Environment.ProcessorCount * multiplier, 1) to the World, and the remainder to the database.
+    /// We allocate(int)Math.Max(Environment.ProcessorCount * WorldThreadCountMultiplier, 1) to the World, and the remainder to the database.
     /// </summary>
-    public static class ThreadConfiguration
+    public class ThreadConfiguration
     {
+        private double worldThreadCountMultiplier;
+
         /*
          * Multiplier of 0.34:
          * 1 vCPU = 1 thread world, 1 thread database
@@ -21,29 +25,43 @@ namespace ACE.Common
          * 8 vCPU = 2 thread world, 6 thread database
          * 9 vCPU = 3 thread world, 6 thread database
          * 10 vCPU = 3 thread world, 7 thread database
+         * 11 vCPU = 3 thread world, 8 thread database
+         * 12 vCPU = 4 thread world, 8 thread database
          */
 
-        /// <summary>
-        /// This is the number of threads used for World (Non Databae) operations
-        /// </summary>
-        public const double Multiplier = 0.34;
+        [System.ComponentModel.DefaultValue(0.34)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public double WorldThreadCountMultiplier
+        {
+            get => worldThreadCountMultiplier;
+            set
+            {
+                worldThreadCountMultiplier = value;
 
+                var worldThreadCount = (int)Math.Max(Environment.ProcessorCount * value, 1);
+                var databaseThreadCount = Math.Max(Environment.ProcessorCount - worldThreadCount, 1);
+
+                LandblockManagerParallelOptions.MaxDegreeOfParallelism = worldThreadCount;
+                NetworkManagerParallelOptions.MaxDegreeOfParallelism = worldThreadCount;
+
+                DatabaseParallelOptions.MaxDegreeOfParallelism = databaseThreadCount;
+            }
+        }
+
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool MultiThreadedLandblockGroupPhysicsTicking { get; set; }
+
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool MultiThreadedLandblockGroupTicking { get; set; }
 
 
         // World Thread Management
-
-        public static readonly int WorldThreadCount = (int)Math.Max(Environment.ProcessorCount * Multiplier, 1);
-
-        public static readonly int LandblockManagerThreadCount = WorldThreadCount;
-        public static readonly ParallelOptions LandblockManagerParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = LandblockManagerThreadCount };
-
-        public static readonly int NetworkManagerThreadCount = WorldThreadCount;
-        public static readonly ParallelOptions NetworkManagerParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = NetworkManagerThreadCount };
-
+        public readonly ParallelOptions LandblockManagerParallelOptions = new ParallelOptions();
+        public readonly ParallelOptions NetworkManagerParallelOptions = new ParallelOptions();
 
         // Database Thread Management
-
-        public static readonly int DatabaseThreadCount = Math.Max(Environment.ProcessorCount - WorldThreadCount, 1);
-        public static readonly ParallelOptions DatabaseParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = DatabaseThreadCount };
+        public readonly ParallelOptions DatabaseParallelOptions = new ParallelOptions();
     }
 }

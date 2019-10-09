@@ -310,8 +310,6 @@ namespace ACE.Server.Managers
                  * The only cases where it's acceptable for to create a new Task, Thread or Parallel loop are the following:
                    - Every scenario must be one where you don't care about breaking ACE
                    - DeveloperCommand Handlers
-
-                 * TODO: We need a thread safe way to handle object transitions between distant landblocks
                 */
 
                 worldTickTimer.Restart();
