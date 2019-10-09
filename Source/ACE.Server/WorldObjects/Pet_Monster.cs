@@ -14,13 +14,11 @@ namespace ACE.Server.WorldObjects
         {
             //if (!Attackable) return;
 
-            var visibleTargets = PhysicsObj.ObjMaint.VisibleTargets.Values;
+            var creatures = PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature();
 
-            foreach (var visibleTarget in visibleTargets)
+            foreach (var monster in creatures)
             {
-                var monster = visibleTarget.WeenieObj.WorldObject as Creature;
-
-                if (monster == null || monster.IsDead) continue;
+                if (monster.IsDead) continue;
 
                 if (Location.SquaredDistanceTo(monster.Location) < rangeSquared)
                     PetAlertMonster(monster);

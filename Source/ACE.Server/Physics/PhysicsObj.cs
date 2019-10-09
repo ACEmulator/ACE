@@ -2287,7 +2287,7 @@ namespace ACE.Server.Physics
             }
 
             // handle known players
-            foreach (var player in ObjMaint.KnownPlayers.Values)
+            foreach (var player in ObjMaint.GetKnownPlayersValues())
             {
                 var added = player.handle_visible_obj(this);
 
@@ -2624,7 +2624,7 @@ namespace ACE.Server.Physics
 
             // get the difference between current and previous visible
             //var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjects.Values).ToList();
-            var newlyOccluded = ObjMaint.VisibleObjects.Values.Except(visibleObjects).ToList();
+            var newlyOccluded = ObjMaint.GetVisibleObjectsValues().Except(visibleObjects).ToList();
             //Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
             //Console.WriteLine("Newly occluded objects: " + newlyOccluded.Count);
             //foreach (var obj in newlyOccluded)
@@ -2705,7 +2705,7 @@ namespace ACE.Server.Physics
             }
             else
             {
-                var newlyOccluded = ObjMaint.VisibleObjects.ContainsKey(obj.ID);
+                var newlyOccluded = ObjMaint.VisibleObjectsContainsKey(obj.ID);
 
                 if (newlyOccluded)
                     ObjMaint.AddObjectToBeDestroyed(obj);
