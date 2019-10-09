@@ -105,7 +105,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Landblocks which have been inactive for this many seconds will be unloaded
         /// </summary>
-        private static readonly TimeSpan unloadInterval = TimeSpan.FromMinutes(5);
+        public static readonly TimeSpan UnloadInterval = TimeSpan.FromMinutes(5);
 
 
         /// <summary>
@@ -365,6 +365,9 @@ namespace ACE.Server.Entity
 
         public void TickPhysics(double portalYearTicks, ConcurrentBag<WorldObject> movedObjects)
         {
+            if (IsDormant)
+                return;
+
             Monitor5m.Restart();
             Monitor1h.Restart();
             monitorsRequireEventStart = false;
@@ -546,7 +549,7 @@ namespace ACE.Server.Entity
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
                         IsDormant = true;
-                    if (lastActiveTime + unloadInterval < thisHeartBeat)
+                    if (lastActiveTime + UnloadInterval < thisHeartBeat)
                         LandblockManager.AddToDestructionQueue(this);
                 }
 
@@ -897,7 +900,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// This will return null if the object was not found in the current or adjacent landblocks.
         /// </summary>
-        public WorldObject GetObject(ObjectGuid guid)
+        public WorldObject GetObject(ObjectGuid guid, bool searchAdjacents = true)
         {
             if (pendingRemovals.Contains(guid))
                 return null;
@@ -905,10 +908,18 @@ namespace ACE.Server.Entity
             if (worldObjects.TryGetValue(guid, out var worldObject) || pendingAdditions.TryGetValue(guid, out worldObject))
                 return worldObject;
 
-            foreach (Landblock lb in Adjacents)
+            if (searchAdjacents)
             {
-                if (lb != null && !lb.pendingRemovals.Contains(guid) && (lb.worldObjects.TryGetValue(guid, out worldObject) || lb.pendingAdditions.TryGetValue(guid, out worldObject)))
-                    return worldObject;
+                foreach (Landblock lb in Adjacents)
+                {
+                    if (lb != null)
+                    {
+                        var wo = lb.GetObject(guid, false);
+
+                        if (wo != null)
+                            return wo;
+                    }
+                }
             }
 
             return null;

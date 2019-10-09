@@ -336,7 +336,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // note: VisibleTargets is only maintained for monsters and combat pets
-            return PhysicsObj.ObjMaint.VisibleTargets.ContainsKey(wo.PhysicsObj.ID);
+            return PhysicsObj.ObjMaint.VisibleTargetsContainsKey(wo.PhysicsObj.ID);
         }
 
         //public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);     // arrow

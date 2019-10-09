@@ -7,9 +7,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        // Used for cumulative ServerPerformanceMonitor event recording
-        private readonly Stopwatch stopwatch = new Stopwatch();
-
         protected const double monsterTickInterval = 0.2;
 
         public double NextMonsterTickTime;
