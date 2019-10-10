@@ -283,24 +283,35 @@ namespace ACE.Server.WorldObjects
 
         public void UpdatePlayerPhysics()
         {
-            if (DebugPlayerMoveToStatePhysics)
-                Console.WriteLine($"{Name}.UpdatePlayerPhysics({PhysicsObj.PartArray.Sequence.CurrAnim.Value.Anim.ID:X8})");
-
-            //Console.WriteLine($"{PhysicsObj.Position.Frame.Origin}");
-
-            PhysicsObj.update_object();
-
-            if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
+            UpdatePhysicsLock.EnterWriteLock();
+            try
             {
-                // apply latest MoveToState, if applicable
-                if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
-                {
-                    if (DebugPlayerMoveToStatePhysics)
-                        Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
+                stopwatch.Restart();
 
-                    OnMoveToState(LastMoveToState);
+                if (DebugPlayerMoveToStatePhysics)
+                    Console.WriteLine($"{Name}.UpdatePlayerPhysics({PhysicsObj.PartArray.Sequence.CurrAnim.Value.Anim.ID:X8})");
+
+                //Console.WriteLine($"{PhysicsObj.Position.Frame.Origin}");
+
+                PhysicsObj.update_object();
+
+                if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
+                {
+                    // apply latest MoveToState, if applicable
+                    if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
+                    {
+                        if (DebugPlayerMoveToStatePhysics)
+                            Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
+
+                        OnMoveToState(LastMoveToState);
+                    }
+                    LastMoveToState = null;
                 }
-                LastMoveToState = null;
+            }
+            finally
+            {
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdatePlayerPhysics, stopwatch.Elapsed.TotalSeconds);
+                UpdatePhysicsLock.ExitWriteLock();
             }
         }
 
