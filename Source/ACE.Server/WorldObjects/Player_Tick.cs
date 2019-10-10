@@ -250,70 +250,72 @@ namespace ACE.Server.WorldObjects
 
         public override bool UpdateObjectPhysics()
         {
-            bool landblockUpdate = false;
-
-            InUpdate = true;
-
-            // update position through physics engine
-            if (RequestedLocation != null)
-            {
-                landblockUpdate = UpdatePlayerPosition(RequestedLocation);
-                RequestedLocation = null;
-            }
-
-            if (PhysicsObj.IsMovingOrAnimating)
-            {
-                UpdatePlayerPhysics();
-                WasAnimating = true;
-            }
-            else if (WasAnimating)
-            {
-                WasAnimating = false;
-
-                if (DebugPlayerMoveToStatePhysics)
-                    Console.WriteLine("--------------------------");
-
-                OnMotionQueueDone();
-            }
-
-            InUpdate = false;
-
-            return landblockUpdate;
-        }
-
-        public void UpdatePlayerPhysics()
-        {
             UpdatePhysicsLock.EnterWriteLock();
             try
             {
                 stopwatch.Restart();
 
-                if (DebugPlayerMoveToStatePhysics)
-                    Console.WriteLine($"{Name}.UpdatePlayerPhysics({PhysicsObj.PartArray.Sequence.CurrAnim.Value.Anim.ID:X8})");
+                bool landblockUpdate = false;
 
-                //Console.WriteLine($"{PhysicsObj.Position.Frame.Origin}");
+                InUpdate = true;
 
-                PhysicsObj.update_object();
-
-                if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
+                // update position through physics engine
+                if (RequestedLocation != null)
                 {
-                    // apply latest MoveToState, if applicable
-                    if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
-                    {
-                        if (DebugPlayerMoveToStatePhysics)
-                            Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
-
-                        OnMoveToState(LastMoveToState);
-                    }
-                    LastMoveToState = null;
+                    landblockUpdate = UpdatePlayerPosition(RequestedLocation);
+                    RequestedLocation = null;
                 }
+
+                if (PhysicsObj.IsMovingOrAnimating)
+                {
+                    UpdatePlayerPhysics();
+                    WasAnimating = true;
+                }
+                else if (WasAnimating)
+                {
+                    WasAnimating = false;
+
+                    if (DebugPlayerMoveToStatePhysics)
+                        Console.WriteLine("--------------------------");
+
+                    OnMotionQueueDone();
+                }
+
+                InUpdate = false;
+
+                return landblockUpdate;
             }
             finally
             {
-                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdatePlayerPhysics, stopwatch.Elapsed.TotalSeconds);
+                var elapsed = stopwatch.Elapsed.TotalSeconds;
                 UpdatePhysicsLock.ExitWriteLock();
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsed);
             }
         }
+
+        public void UpdatePlayerPhysics()
+        {
+            if (DebugPlayerMoveToStatePhysics)
+                Console.WriteLine($"{Name}.UpdatePlayerPhysics({PhysicsObj.PartArray.Sequence.CurrAnim.Value.Anim.ID:X8})");
+
+            //Console.WriteLine($"{PhysicsObj.Position.Frame.Origin}");
+
+            PhysicsObj.update_object();
+
+            if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
+            {
+                // apply latest MoveToState, if applicable
+                if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
+                {
+                    if (DebugPlayerMoveToStatePhysics)
+                        Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
+
+                    OnMoveToState(LastMoveToState);
+                }
+                LastMoveToState = null;
+            }
+        }
+
 
         /// <summary>
         /// Used by physics engine to actually update a player position

@@ -48,7 +48,7 @@ namespace ACE.Server.Managers
         public enum CumulativeEventHistoryType
         {
             // These are found in Player_Tick.cs and WorldObject_Tick.cs
-            Player_Tick_UpdatePlayerPhysics,
+            Player_Tick_UpdateObjectPhysics,
             WorldObject_Tick_UpdateObjectPhysics,
 
             // These are all found in Landblock.Tick()
@@ -277,7 +277,7 @@ namespace ACE.Server.Managers
                 AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
 
             sb.Append($"Calls from Landblock.TickPhysics() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)CumulativeEventHistoryType.Player_Tick_UpdatePlayerPhysics; i <= (int)CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics; i++)
+            for (int i = (int)CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics; i <= (int)CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics; i++)
                 AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
 
             sb.Append($"Calls from Landblock.Tick() - Cumulative over a single UpdateGameWorld Tick{'\n'}");

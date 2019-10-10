@@ -208,7 +208,7 @@ namespace ACE.Server.WorldObjects
         /// - Multiple non-player objects can be updated simultaneously
         /// We separate players from non-players because players are the only ones that can cross landblock groups, and thus, thread boundaries.
         /// </summary>
-        protected static readonly ReaderWriterLockSlim UpdatePhysicsLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+        protected static readonly ReaderWriterLockSlim UpdatePhysicsLock = new ReaderWriterLockSlim();
 
         public double lastDist;
 
@@ -327,8 +327,9 @@ namespace ACE.Server.WorldObjects
             }
             finally
             {
-                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, stopwatch.Elapsed.TotalSeconds);
+                var elapsed = stopwatch.Elapsed.TotalSeconds;
                 UpdatePhysicsLock.ExitReadLock();
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, elapsed);
             }
         }
     }
