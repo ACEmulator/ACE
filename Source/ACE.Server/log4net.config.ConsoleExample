@@ -1,0 +1,66 @@
+<!-- This config file shows you how to refine your console output.
+     In this example, the following takes place:
+       All INFO, WARN, ERROR, FATAL messages go to the console
+       Any DEBUG level message with [CORPSE] or [LOOT] is also forwarded to the console
+       Any DEBUG level messages from ACE.Server.Managers.HouseManager
+
+     You'll see that Console isn't listed in the root appenders list.
+     Instead, we list th forwarders. They will forward the logs to the Console appender.
+
+     This type of forward logging can also be appllied to file outputs.
+
+     Note: stringToMatch is case sensitive! You can also use regexToMatch
+--> 
+
+<log4net>
+
+  <appender name="Console" type="log4net.Appender.ConsoleAppender">
+    <layout type="log4net.Layout.PatternLayout">
+      <conversionPattern value="%date %-5level: %message%newline" />
+    </layout>
+  </appender>
+
+  <appender name="ConsoleInfoForwarder" type="log4net.Appender.ForwardingAppender" >
+    <threshold value="INFO"/>
+    <appender-ref ref="Console" />
+  </appender>
+
+  <appender name="ConsoleFilterForwarder" type="log4net.Appender.ForwardingAppender" >
+    <!-- We filter out the log levels that the console will receive from ConsoleInfoForwarder -->
+    <filter type="log4net.Filter.LevelMatchFilter">
+      <levelToMatch  value="INFO" />
+      <acceptOnMatch value="false" />
+    </filter>
+    <filter type="log4net.Filter.LevelMatchFilter">
+      <levelToMatch  value="WARN" />
+      <acceptOnMatch value="false" />
+    </filter>
+    <filter type="log4net.Filter.LevelMatchFilter">
+      <levelToMatch  value="ERROR" />
+      <acceptOnMatch value="false" />
+    </filter>
+    <filter type="log4net.Filter.LevelMatchFilter">
+      <levelToMatch  value="FATAL" />
+      <acceptOnMatch value="false" />
+    </filter>
+    <!-- Next, we look for what we want to match -->
+    <filter type="log4net.Filter.StringMatchFilter">
+      <regexToMatch value="^.*\[(CORPSE|LOOT)\].*$" />
+    </filter>
+    <filter type="log4net.Filter.LoggerMatchFilter">
+      <loggerToMatch value="ACE.Server.Managers.HouseManager" />
+    </filter>
+    <!-- Lastly, we reject everything else -->
+    <filter type="log4net.Filter.DenyAllFilter" />
+    <appender-ref ref="Console" />
+  </appender>
+
+  <root>
+    <level value="ALL" />
+    <!-- For any appender you define above, you must add it here for it to work --> 
+    <!-- If you want to disable any specific log, you can comment them out here --> 
+    <appender-ref ref="ConsoleInfoForwarder" />
+    <appender-ref ref="ConsoleFilterForwarder" />
+  </root>
+
+</log4net>

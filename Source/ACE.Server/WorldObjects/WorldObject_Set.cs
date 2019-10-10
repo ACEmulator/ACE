@@ -146,21 +146,34 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the item set spells for a particular level
         /// </summary>
-        public static List<Spell> GetSpellSet(EquipmentSet equipmentSet, List<WorldObject> setItems, int levelDiff = 0)
+        public static List<Spell> GetSpellSet(List<WorldObject> setItems, int levelDiff = 0)
         {
             var spells = new List<Spell>();
+
+            var firstSetItem = setItems.FirstOrDefault();
+
+            if (firstSetItem is null)
+                return spells;
+
+            var equipmentSet = firstSetItem.EquipmentSetId;
+            var itemXpStyle = firstSetItem.ItemXpStyle ?? 0;
 
             if (!DatManager.PortalDat.SpellTable.SpellSet.TryGetValue((uint)equipmentSet, out var spellSet))
                 return spells;
 
             // apply maximum level cap here?
-            var level = (uint)(setItems.Sum(i => i.ItemLevel ?? 0) + levelDiff);
-            var highestTier = spellSet.SpellSetTiers.Last().Key;
+            uint level = 0;
+            if (itemXpStyle > 0)
+                level = (uint)(setItems.Sum(i => i.ItemLevel ?? 0) + levelDiff);
+            else
+                level = (uint)setItems.Count;
+
+            var highestTier = spellSet.HighestTier;
 
             //Console.WriteLine($"Total level: {level}");
             level = Math.Min(level, highestTier);
 
-            if (!spellSet.SpellSetTiers.TryGetValue(level, out var spellSetTiers))
+            if (!spellSet.SpellSetTiersNoGaps.TryGetValue(level, out var spellSetTiers))
                 return spells;
 
             foreach (var spellId in spellSetTiers.Spells)

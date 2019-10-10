@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -21,9 +22,9 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
+using ACE.Server.WorldObjects.Managers;
 
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
-using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
@@ -821,10 +822,10 @@ namespace ACE.Server.WorldObjects
             // send CO network messages for admin objects
             if (Adminvision && oldState != Adminvision)
             {
-                var adminObjs = PhysicsObj.ObjMaint.KnownObjects.Values.Where(o => o.WeenieObj.WorldObject != null && o.WeenieObj.WorldObject.Visibility);
+                var adminObjs = PhysicsObj.ObjMaint.GetKnownObjectsValuesWhere(o => o.WeenieObj.WorldObject != null && o.WeenieObj.WorldObject.Visibility);
                 PhysicsObj.enqueue_objs(adminObjs);
 
-                var nodrawObjs = PhysicsObj.ObjMaint.KnownObjects.Values.Where(o => o.WeenieObj.WorldObject != null && ((o.WeenieObj.WorldObject.NoDraw ?? false) || o.WeenieObj.WorldObject.UiHidden));
+                var nodrawObjs = PhysicsObj.ObjMaint.GetKnownObjectsValuesWhere(o => o.WeenieObj.WorldObject != null && ((o.WeenieObj.WorldObject.NoDraw ?? false) || o.WeenieObj.WorldObject.UiHidden));
 
                 foreach (var wo in nodrawObjs)
                     Session.Network.EnqueueSend(new GameMessageUpdateObject(wo.WeenieObj.WorldObject, Adminvision, Adminvision ? true : false));

@@ -46,7 +46,7 @@ namespace ACE.Server.WorldObjects
             if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
                 GenerateNewFace();
 
-            if (CreatureType == ACE.Entity.Enum.CreatureType.Shadow || CreatureType == ACE.Entity.Enum.CreatureType.Simulacrum)
+            if (CreatureType == ACE.Entity.Enum.CreatureType.Empyrean || CreatureType == ACE.Entity.Enum.CreatureType.Shadow || CreatureType == ACE.Entity.Enum.CreatureType.Simulacrum)
                 GenerateNewFace();
 
             // If any of the vitals don't exist for this biota, one will be created automatically in the CreatureVital ctor
@@ -119,7 +119,19 @@ namespace ACE.Server.WorldObjects
             }
 
             if (!Heritage.HasValue || !Gender.HasValue)
+            {
+#if DEBUG
+                if (!(NpcLooksLikeObject ?? false))
+                    log.Warn($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
+#endif
                 return;
+            }
+
+            if (!cg.HeritageGroups.ContainsKey((uint)Heritage) || !cg.HeritageGroups[(uint)Heritage].Genders.ContainsKey((int)Gender))
+            {
+                log.Warn($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data invalid, Cannot randomize face.");
+                return;
+            }
 
             SexCG sex = cg.HeritageGroups[(uint)Heritage].Genders[(int)Gender];
 

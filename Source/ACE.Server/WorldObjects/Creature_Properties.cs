@@ -221,5 +221,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyDataId.DeathTreasureType);
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.DeathTreasureType); else SetProperty(PropertyDataId.DeathTreasureType, value.Value); }
         }
+
+        public int? LuminanceAward
+        {
+            get => GetProperty(PropertyInt.LuminanceAward);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LuminanceAward); else SetProperty(PropertyInt.LuminanceAward, value.Value); }
+        }
     }
 }

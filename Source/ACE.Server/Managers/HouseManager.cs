@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 using log4net;
 
-using ACE.Common;
+using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -405,7 +405,7 @@ namespace ACE.Server.Managers
 
             slumlord.SaveBiotaToDatabase();
 
-            log.Info($"HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
+            log.Debug($"[HOUSE] HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
 
             // re-add item to queue
             AddRentQueue(player, playerHouse.House);
@@ -446,7 +446,7 @@ namespace ACE.Server.Managers
                 var nextRentTime = house.GetRentDue(purchaseTime);
                 player.HouseRentTimestamp = (int)nextRentTime;
 
-                log.Info($"HouseManager.HandleRentPaid({player.Name}): house rent disabled via config");
+                log.Debug($"[HOUSE] HouseManager.HandleRentPaid({player.Name}): house rent disabled via config");
 
                 // re-add item to queue
                 AddRentQueue(player, house);
@@ -465,18 +465,19 @@ namespace ACE.Server.Managers
             // relink
             house.UpdateLinks();
 
-            // player slumlord 'off' animation
-            var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
+            if (house.HasDungeon)
+            {
+                var dungeonHouse = house.GetDungeonHouse();
+                if (dungeonHouse != null)
+                    dungeonHouse.UpdateLinks();
+            }
 
-            slumlord.CurrentMotionState = off;
-            slumlord.EnqueueBroadcastMotion(off);
+            // player slumlord 'off' animation
+            slumlord.Off();
 
             // reset slumlord name
-            var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
-            var wo = WorldObjectFactory.CreateWorldObject(weenie, ObjectGuid.Invalid);
-            slumlord.Name = wo.Name;
+            slumlord.SetAndBroadcastName();
 
-            slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
             slumlord.SaveBiotaToDatabase();
 
             // if evicting a multihouse owner's previous house,
@@ -493,7 +494,7 @@ namespace ACE.Server.Managers
 
             house.ClearRestrictions();
 
-            log.Info($"HouseManager.HandleRentEviction({player.Name})");
+            log.Debug($"[HOUSE] HouseManager.HandleRentEviction({player.Name})");
 
             if (multihouse)
             {
@@ -523,7 +524,7 @@ namespace ACE.Server.Managers
             onlinePlayer.House = null;
 
             // send text message
-            onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
+            onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You've been evicted from your house!", ChatMessageType.Broadcast));
             onlinePlayer.RemoveDeed();
 
             onlinePlayer.SaveBiotaToDatabase();
@@ -546,7 +547,7 @@ namespace ACE.Server.Managers
             {
                 if (rentItem.Paid < rentItem.Num)
                 {
-                    log.Info($"{playerHouse.PlayerName}.IsRentPaid() - required wcid {rentItem.WeenieID} amount {rentItem.Num:N0}, found {rentItem.Paid:N0}");
+                    log.Debug($"[HOUSE] {playerHouse.PlayerName}.IsRentPaid() - required wcid {rentItem.WeenieID} amount {rentItem.Num:N0}, found {rentItem.Paid:N0}");
                     return false;
                 }
             }
@@ -573,7 +574,7 @@ namespace ACE.Server.Managers
 
             if (player == null)
             {
-                log.Info($"{playerHouse.PlayerName}.HasRequirements() - couldn't find player");
+                log.Warn($"[HOUSE] {playerHouse.PlayerName}.HasRequirements() - couldn't find player");
                 return false;
             }
 
@@ -588,7 +589,7 @@ namespace ACE.Server.Managers
 
             if (allegiance == null || rank < allegianceMinLevel)
             {
-                log.Info($"{playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
+                log.Debug($"[HOUSE] {playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
                 return false;
             }
             return true;

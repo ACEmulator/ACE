@@ -190,7 +190,7 @@ namespace ACE.Server.WorldObjects
             if (removeFromInventoryAction != RemoveFromInventoryAction.SellItem && removeFromInventoryAction != RemoveFromInventoryAction.GiveItem)
                 Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid));
 
-            if (removeFromInventoryAction == RemoveFromInventoryAction.GiveItem || removeFromInventoryAction == RemoveFromInventoryAction.TradeItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
+            if (removeFromInventoryAction == RemoveFromInventoryAction.GiveItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
                 Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(item));
 
             if (removeFromInventoryAction != RemoveFromInventoryAction.ToWieldedSlot)
@@ -209,7 +209,7 @@ namespace ACE.Server.WorldObjects
                 item.SaveBiotaToDatabase();
             }
 
-            if (removeFromInventoryAction == RemoveFromInventoryAction.ConsumeItem)
+            if (removeFromInventoryAction == RemoveFromInventoryAction.ConsumeItem || removeFromInventoryAction == RemoveFromInventoryAction.TradeItem)
             {
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
             }
@@ -366,7 +366,7 @@ namespace ACE.Server.WorldObjects
             if (item.HasItemSet)
                 DequipItemFromSet(item);
 
-            if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath)
+            if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath || dequipObjectAction == DequipObjectAction.TradeItem)
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 
             if (dequipObjectAction == DequipObjectAction.ConsumeItem)
@@ -873,7 +873,7 @@ namespace ACE.Server.WorldObjects
 
                                 if (isFromAPlayerCorpse)
                                 {
-                                    log.Info($"{Name} (0x{Guid.ToString()}) picked up {item.Name} (0x{item.Guid.ToString()}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid.ToString()})");
+                                    log.Debug($"[CORPSE] {Name} (0x{Guid}) picked up {item.Name} (0x{item.Guid}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid})");
                                     item.SaveBiotaToDatabase();
                                 }
                             }
@@ -1039,7 +1039,7 @@ namespace ACE.Server.WorldObjects
 
             if (wasEquipped)
             {
-                if (!TryDequipObjectWithNetworking(item.Guid.Full, out item, DequipObjectAction.DropItem))
+                if (!TryDequipObjectWithNetworking(item.Guid.Full, out _, DequipObjectAction.DropItem))
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip item!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
@@ -1048,7 +1048,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (!TryRemoveFromInventoryWithNetworking(item.Guid.Full, out item, RemoveFromInventoryAction.DropItem))
+                if (!TryRemoveFromInventoryWithNetworking(item.Guid.Full, out _, RemoveFromInventoryAction.DropItem))
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to remove item from inventory!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
@@ -1585,7 +1585,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (stack.StackSize < amount)
+            if (stack.StackSize <= amount)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({4}) 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
@@ -1743,7 +1743,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (stack.StackSize < amount)
+            if (stack.StackSize <= amount)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({4}) 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
@@ -2375,7 +2375,7 @@ namespace ACE.Server.WorldObjects
                                     if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                         RushNextPlayerSave(5);
 
-                                    log.Info($"{Name} (0x{Guid}) traded in a IOU (0x{iouToTurnIn.Guid}) for {wcid} which became {item.Name} (0x{item.Guid}).");
+                                    log.Debug($"[IOU] {Name} (0x{Guid}) traded in a IOU (0x{iouToTurnIn.Guid}) for {wcid} which became {item.Name} (0x{item.Guid}).");
                                 }
                                 return;
                             }

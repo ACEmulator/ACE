@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using ACE.Common;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -13,7 +15,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -75,7 +76,7 @@ namespace ACE.Server.WorldObjects
 
             var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
 
-            log.Info(nearbyMsg);
+            log.Debug("[CORPSE] " + nearbyMsg);
 
             var excludePlayers = new List<Player>();
             if (lastDamager is Player lastDamagerPlayer)
@@ -84,7 +85,7 @@ namespace ACE.Server.WorldObjects
             var nearbyPlayers = EnqueueBroadcast(excludePlayers, false, broadcastMsg);
 
             excludePlayers.AddRange(nearbyPlayers);
-            excludePlayers.Add(this);   // exclude self
+            excludePlayers.Add(this); // exclude self
 
             if (Fellowship != null)
                 Fellowship.OnDeath(this);
@@ -534,25 +535,25 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.Broadcast));
 
-                DeathItemLog(dropItems);
+                DeathItemLog(dropItems, corpse);
             }
 
             return dropItems;
         }
 
-        public void DeathItemLog(List<WorldObject> dropItems)
+        public void DeathItemLog(List<WorldObject> dropItems, Corpse corpse)
         {
             if (dropItems.Count == 0)
                 return;
 
-            var msg = $"{Name} dropped items on corpse: ";
+            var msg = $"[CORPSE] {Name} dropped items on corpse (0x{corpse.Guid}): ";
 
             foreach (var dropItem in dropItems)
                 msg += $"{(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? dropItem.StackSize.Value.ToString("N0") + " " + dropItem.GetPluralName() : dropItem.Name)} (0x{dropItem.Guid}){(dropItem.WeenieClassId == 273 && PropertyManager.GetBool("corpse_destroy_pyreals").Item ? $" which {(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? "were" : "was")} destroyed" : "")}, ";
 
             msg = msg.Substring(0, msg.Length - 2);
 
-            log.Info(msg);
+            log.Debug(msg);
         }
 
         /// <summary>

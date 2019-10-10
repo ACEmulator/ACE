@@ -10,6 +10,7 @@ using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Hooks;
+using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
 
 using log4net;
@@ -560,7 +561,7 @@ namespace ACE.Server.Physics
 
         public PhysicsObj GetObjectA(uint objectID)
         {
-            return ObjectMaint.GetObjectA(objectID);
+            return ServerObjectManager.GetObjectA(objectID);
         }
 
         public float GetRadius()
@@ -1548,7 +1549,7 @@ namespace ACE.Server.Physics
 
         public bool TurnToObject(uint objectID, MovementParameters movementParams)
         {
-            var obj = ObjectMaint.GetObjectA(objectID);
+            var obj = ServerObjectManager.GetObjectA(objectID);
             if (obj == null) return false;
 
             var parent = obj.Parent != null ? obj.Parent : obj;
@@ -1634,7 +1635,7 @@ namespace ACE.Server.Physics
 
                 if (GetBlockDist(Position, newPos) > 1)
                 {
-                    Console.WriteLine($"WARNING: failed transition for {Name} from {Position} to {newPos}\n");
+                    log.Warn($"WARNING: failed transition for {Name} from {Position} to {newPos}");
                     return;
                 }
 
@@ -1708,7 +1709,7 @@ namespace ACE.Server.Physics
             //UpdatePhysicsInternal((float)quantum, ref offsetFrame);
             if (GetBlockDist(Position, RequestPos) > 1)
             {
-                Console.WriteLine($"WARNING: failed transition for {Name} from {Position} to {RequestPos}\n");
+                log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}");
                 return false;
             }
 
@@ -2315,7 +2316,7 @@ namespace ACE.Server.Physics
             }
 
             // handle known players
-            foreach (var player in ObjMaint.KnownPlayers.Values)
+            foreach (var player in ObjMaint.GetKnownPlayersValues())
             {
                 var added = player.handle_visible_obj(this);
 
@@ -2652,7 +2653,7 @@ namespace ACE.Server.Physics
 
             // get the difference between current and previous visible
             //var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjects.Values).ToList();
-            var newlyOccluded = ObjMaint.VisibleObjects.Values.Except(visibleObjects).ToList();
+            var newlyOccluded = ObjMaint.GetVisibleObjectsValues().Except(visibleObjects).ToList();
             //Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
             //Console.WriteLine("Newly occluded objects: " + newlyOccluded.Count);
             //foreach (var obj in newlyOccluded)
@@ -2733,7 +2734,7 @@ namespace ACE.Server.Physics
             }
             else
             {
-                var newlyOccluded = ObjMaint.VisibleObjects.ContainsKey(obj.ID);
+                var newlyOccluded = ObjMaint.VisibleObjectsContainsKey(obj.ID);
 
                 if (newlyOccluded)
                     ObjMaint.AddObjectToBeDestroyed(obj);
@@ -3206,7 +3207,7 @@ namespace ACE.Server.Physics
 
             foreach (var objectID in CollisionTable.Keys)
             {
-                var obj = ObjectMaint.GetObjectA(objectID);
+                var obj = ServerObjectManager.GetObjectA(objectID);
                 if (obj != null)
                     report_object_collision(obj, TransientState.HasFlag(TransientStateFlags.Contact));
             }
@@ -3277,7 +3278,7 @@ namespace ACE.Server.Physics
         {
             if (ObjMaint != null)
             {
-                var collision = ObjectMaint.GetObjectA(objectID);
+                var collision = ServerObjectManager.GetObjectA(objectID);
                 if (collision != null)
                 {
                     if (!collision.State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
@@ -3654,7 +3655,7 @@ namespace ACE.Server.Physics
             ObjID = guid;
             ID = guid.Full;
 
-            ObjectMaint.AddServerObject(this);
+            ServerObjectManager.AddServerObject(this);
         }
 
         /// <summary>
@@ -3879,7 +3880,7 @@ namespace ACE.Server.Physics
             MakePositionManager();
             if (ObjMaint == null) return;
 
-            var objectA = ObjectMaint.GetObjectA(objectID);
+            var objectA = ServerObjectManager.GetObjectA(objectID);
             if (objectA == null) return;
             if (objectA.Parent != null)
                 objectA = Parent;

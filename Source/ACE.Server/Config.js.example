@@ -1,12 +1,14 @@
 {
   "Server": {
     "WorldName": "ACEmulator",
+
     "Network": {
       "Host": "0.0.0.0",
       "Port": 9000,
       "MaximumAllowedSessions": 128,
       "DefaultSessionTimeout": 60
     },
+
     "Accounts": {
       "OverrideCharacterPermissions": true,
       "DefaultAccessLevel": 0,
@@ -29,6 +31,35 @@
     // Additional overhead is added but it is minimal.
     // This can greatly help you (and ACE developers) understand what sections of ACE are underperforming.
     "ServerPerformanceMonitorAutoStart": false,
+
+    // Multi-threading the world is disabled by default
+    // Multi-threading the database is enabled in code and cannot be disabled
+    // You may want to enable world multi-threading if your /serverstatus UpdateGameWorld value is >= 0.015
+    // You're better off leaving this disabled unless you require it.
+    // This feature is still in development and bugs may be present when multi-threading is enabled
+    "Threading": {
+      // This number is used to determine thread allocation between the two systems, world and database
+      // (Total System vCPU * WorldThreadCountMultiplier) = World Thread Count
+      // (Total System vCPU - World Thread Count) = Database Thread Count
+      // On larger servers, you may want to raise this to 0.5
+      "WorldThreadCountMultiplier": 0.34,
+
+      // The following to booleans configure the levels of multi-threading enabled on the server
+      // The server will group landblocks that are close in distance into LandblockGroups (Dungeons are always 1 per group)
+      // This allows us to tick an entire LandblockGroup on a single thread
+      // The thread safety boundary surrounds the LandblockGroup and separates groups from each other
+      // Optionally, if the following booleans are enabled, we can tick LandblockGroups in parallel
+
+      // This will multi-thread physics engine
+      // This feature is currently in beta
+      "MultiThreadedLandblockGroupPhysicsTicking": false,
+
+      // This will multi-thread world object ticking
+      // This is a much more involved process as world object ticking interacts with server global constructs like Allegiances, Fellowships, Housing, etc..
+      // There is much more cross-landblock group work happening here
+      // This feature is currently in alpha
+      "MultiThreadedLandblockGroupTicking": false
+    },
 
     // WorldDatabasePrecaching, default: false
     // Development recommendation: false
@@ -116,5 +147,15 @@
       "Username": "root",
       "Password": ""
     }
+  },
+  // This section can trigger events that may happen before the world starts up, or after it shuts down
+  // The shard should be in a disconnected state from any running ACE world
+  "Offline": {
+    // Purge characters that have been deleted longer than PruneDeletedCharactersDays
+    // These characters, and their associated biotas, will be deleted permanantly!
+    "PurgeDeletedCharacters": false,
+
+    // Number of days a character must have been deleted for before eligible for purging
+    "PurgeDeletedCharactersDays": 30
   }
 }

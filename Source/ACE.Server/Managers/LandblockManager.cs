@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 
 using log4net;
 
@@ -36,6 +37,18 @@ namespace ACE.Server.Managers
         /// A lookup table of all the currently loaded landblocks
         /// </summary>
         private static readonly HashSet<Landblock> loadedLandblocks = new HashSet<Landblock>();
+
+        private static readonly List<Landblock> landblockGroupPendingAdditions = new List<Landblock>();
+        private static readonly List<LandblockGroup> landblockGroups = new List<LandblockGroup>();
+
+        public static int LandblockGroupsCount
+        {
+            get
+            {
+                lock (landblockMutex)
+                    return landblockGroups.Count;
+            }
+        }
 
         /// <summary>
         /// DestructionQueue is concurrent because it can be added to by multiple threads at once, publicly via AddToDestructionQueue()
@@ -98,7 +111,6 @@ namespace ACE.Server.Managers
             var landblockID = new LandblockId(landblock);
             GetLandblock(landblockID, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
             log.DebugFormat("Landblock {0:X4}, ({1}) preloaded. IncludeAdjacents = {2}, Permaload = {3}", landblockID.Landblock, preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
-
         }
 
         private static readonly uint[] apartmentLandblocks =
@@ -155,15 +167,84 @@ namespace ACE.Server.Managers
             0x5369FFFF
         };
 
+        private static void ProcessPendingLandblockGroupAdditions()
+        {
+            if (landblockGroupPendingAdditions.Count == 0)
+                return;
+
+            lock (landblockMutex)
+            {
+                for (int i = landblockGroupPendingAdditions.Count - 1; i >= 0; i--)
+                {
+                    if (landblockGroupPendingAdditions[i].IsDungeon)
+                    {
+                        // Each dungeon exists in its own group
+                        var landblockGroup = new LandblockGroup(landblockGroupPendingAdditions[i]);
+                        landblockGroups.Add(landblockGroup);
+                    }
+                    else
+                    {
+                        // Find out how many groups this landblock is eligible for
+                        var landblockGroupsIndexMatchesByDistance = new List<int>();
+
+                        for (int j = 0; j < landblockGroups.Count; j++)
+                        {
+                            if (landblockGroups[j].IsDungeon)
+                                continue;
+
+                            var distance = landblockGroups[j].BoundaryDistance(landblockGroupPendingAdditions[i]);
+
+                            if (distance < LandblockGroup.LandblockGroupMinSpacing)
+                                landblockGroupsIndexMatchesByDistance.Add(j);
+                        }
+
+                        if (landblockGroupsIndexMatchesByDistance.Count > 0)
+                        {
+                            // Add the landblock to the first eligible group
+                            landblockGroups[landblockGroupsIndexMatchesByDistance[0]].Add(landblockGroupPendingAdditions[i]);
+
+                            if (landblockGroupsIndexMatchesByDistance.Count > 1)
+                            {
+                                // Merge the additional eligible groups into the first one
+                                for (int j = landblockGroupsIndexMatchesByDistance.Count - 1; j > 0; j--)
+                                {
+                                    // Copy the j down into 0
+                                    foreach (var landblock in landblockGroups[landblockGroupsIndexMatchesByDistance[j]])
+                                        landblockGroups[landblockGroupsIndexMatchesByDistance[0]].Add(landblock);
+
+                                    landblockGroups.RemoveAt(landblockGroupsIndexMatchesByDistance[j]);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // No close groups were found
+                            var landblockGroup = new LandblockGroup(landblockGroupPendingAdditions[i]);
+                            landblockGroups.Add(landblockGroup);
+                        }
+                    }
+
+                    landblockGroupPendingAdditions.RemoveAt(i);
+                }
+
+                // Debugging todo: comment this out after enough testing
+                var count = 0;
+                foreach (var group in landblockGroups)
+                    count += group.Count;
+                if (count != loadedLandblocks.Count)
+                    log.Error($"[LANDBLOCK GROUP] ProcessPendingAdditions count ({count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
+            }
+        }
+
         public static void Tick(double portalYearTicks)
         {
             // update positions through physics engine
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
+            ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
             TickPhysics(portalYearTicks);
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
 
             // Tick all of our Landblocks and WorldObjects
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
+            ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
             Tick();
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
 
@@ -176,12 +257,26 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void TickPhysics(double portalYearTicks)
         {
-            var activeLandblocks = GetActiveLandblocks();
+            ProcessPendingLandblockGroupAdditions();
 
             var movedObjects = new ConcurrentBag<WorldObject>();
 
-            foreach (var landblock in activeLandblocks)
-                landblock.TickPhysics(portalYearTicks, movedObjects);
+            if (ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupPhysicsTicking)
+            {
+                Parallel.ForEach(landblockGroups, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
+                {
+                    foreach (var landblock in landblockGroup)
+                        landblock.TickPhysics(portalYearTicks, movedObjects);
+                });
+            }
+            else
+            {
+                foreach (var landblockGroup in landblockGroups)
+                {
+                    foreach (var landblock in landblockGroup)
+                        landblock.TickPhysics(portalYearTicks, movedObjects);
+                }
+            }
 
             // iterate through objects that have changed landblocks
             foreach (var movedObject in movedObjects)
@@ -197,10 +292,24 @@ namespace ACE.Server.Managers
 
         private static void Tick()
         {
-            var loadedLandblocks = GetLoadedLandblocks();
+            ProcessPendingLandblockGroupAdditions();
 
-            foreach (var landblock in loadedLandblocks)
-                landblock.Tick(Time.GetUnixTime());
+            if (ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupTicking)
+            {
+                Parallel.ForEach(landblockGroups, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
+                {
+                    foreach (var landblock in landblockGroup)
+                        landblock.Tick(Time.GetUnixTime());
+                });
+            }
+            else
+            {
+                foreach (var landblockGroup in landblockGroups)
+                {
+                    foreach (var landblock in landblockGroup)
+                        landblock.Tick(Time.GetUnixTime());
+                }
+            }
         }
 
         /// <summary>
@@ -238,10 +347,12 @@ namespace ACE.Server.Managers
         /// </summary>
         public static Landblock GetLandblock(LandblockId landblockId, bool loadAdjacents, bool permaload = false)
         {
-            Landblock landblock = null;
+            Landblock landblock;
 
             lock (landblockMutex)
             {
+                bool setAdjacents = false;
+
                 landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
 
                 if (landblock == null)
@@ -254,22 +365,31 @@ namespace ACE.Server.Managers
                         log.Error($"LandblockManager: failed to add {landblock.Id.Raw:X8} to active landblocks!");
                         return landblock;
                     }
+
+                    landblockGroupPendingAdditions.Add(landblock);
+
+                    landblock.Init();
+
+                    setAdjacents = true;
                 }
 
                 if (permaload)
                     landblock.Permaload = true;
-            }
 
-            // load adjacents, if applicable
-            if (loadAdjacents)
-            {
-                var adjacents = GetAdjacentIDs(landblock);
-                foreach (var adjacent in adjacents)
-                    GetLandblock(adjacent, false, permaload);
-            }
+                // load adjacents, if applicable
+                if (loadAdjacents)
+                {
+                    var adjacents = GetAdjacentIDs(landblock);
+                    foreach (var adjacent in adjacents)
+                        GetLandblock(adjacent, false, permaload);
 
-            // cache adjacencies
-            SetAdjacents(landblock, true, true);
+                    setAdjacents = true;
+                }
+
+                // cache adjacencies
+                if (setAdjacents)
+                    SetAdjacents(landblock, true, true);
+            }
 
             return landblock;
         }
@@ -284,28 +404,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns the list of all active landblocks. This is just all loaded landblocks that are !IsDormant
-        /// </summary>
-        public static List<Landblock> GetActiveLandblocks()
-        {
-            lock (landblockMutex)
-                return loadedLandblocks.Where(r => !r.IsDormant).ToList();
-        }
-
-        public static List<Landblock> GetAdjacents(LandblockId landblockID)
-        {
-            Landblock landblock;
-
-            lock (landblockMutex)
-                landblock = landblocks[landblockID.LandblockX, landblockID.LandblockY];
-
-            if (landblock == null)
-                return null;
-
-            return GetAdjacents(landblock);
-        }
-
-        /// <summary>
         /// Returns the active, non-null adjacents for a landblock
         /// </summary>
         private static List<Landblock> GetAdjacents(Landblock landblock)
@@ -314,15 +412,13 @@ namespace ACE.Server.Managers
 
             var adjacents = new List<Landblock>();
 
-            lock (landblockMutex)
+            foreach (var adjacentID in adjacentIDs)
             {
-                foreach (var adjacentID in adjacentIDs)
-                {
-                    var adjacent = landblocks[adjacentID.LandblockX, adjacentID.LandblockY];
-                    if (adjacent != null)
-                        adjacents.Add(adjacent);
-                }
+                var adjacent = landblocks[adjacentID.LandblockX, adjacentID.LandblockY];
+                if (adjacent != null)
+                    adjacents.Add(adjacent);
             }
+
             return adjacents;
         }
 
@@ -420,10 +516,7 @@ namespace ACE.Server.Managers
             landblock.Adjacents = GetAdjacents(landblock);
 
             if (pSync)
-            {
-                var pLandblock = Physics.Common.LScape.get_landblock(landblock.Id.Raw | 0xFFFF);
-                pLandblock.get_adjacents(true);
-            }
+                landblock.PhysicsLandblock.SetAdjacents(landblock.Adjacents);
 
             if (traverse)
             {
@@ -440,10 +533,12 @@ namespace ACE.Server.Managers
             destructionQueue.Add(landblock);
         }
 
+        private static readonly System.Diagnostics.Stopwatch swTrySplitEach = new System.Diagnostics.Stopwatch();
+
         /// <summary>
         /// Processes the destruction queue in a thread-safe manner
         /// </summary>
-        public static void UnloadLandblocks()
+        private static void UnloadLandblocks()
         {
             while (!destructionQueue.IsEmpty)
             {
@@ -459,6 +554,45 @@ namespace ACE.Server.Managers
                         if (loadedLandblocks.Remove(landblock))
                         {
                             landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
+
+                            // remove from landblock group
+                            for (int i = landblockGroups.Count - 1; i >= 0 ; i--)
+                            {
+                                if (landblockGroups[i].Remove(landblock))
+                                {
+                                    if (landblockGroups[i].Count == 0)
+                                        landblockGroups.RemoveAt(i);
+                                    else if (ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupPhysicsTicking || ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupTicking) // Only try to split if multi-threading is enabled
+                                    {
+                                        swTrySplitEach.Restart();
+                                        var splits = landblockGroups[i].TryThrottledSplit();
+                                        swTrySplitEach.Stop();
+
+                                        if (swTrySplitEach.Elapsed.TotalMilliseconds > 3)
+                                            log.Warn($"[LANDBLOCK GROUP] TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                                        else if (swTrySplitEach.Elapsed.TotalMilliseconds > 1)
+                                            log.Debug($"[LANDBLOCK GROUP] TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+
+                                        if (splits != null)
+                                        {
+                                            if (splits.Count > 0)
+                                            {
+                                                log.Debug($"[LANDBLOCK GROUP] TrySplit resulted in {splits.Count} split(s) and took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                                                log.Debug($"[LANDBLOCK GROUP] split for old: {landblockGroups[i]}");
+                                            }
+
+                                            foreach (var split in splits)
+                                            {
+                                                landblockGroups.Add(split);
+                                                log.Debug($"[LANDBLOCK GROUP] split and new: {split}");
+                                            }
+                                        }
+                                    }
+
+                                    break;
+                                }
+                            }
+
                             NotifyAdjacents(landblock);
                         }
                         else
@@ -497,7 +631,7 @@ namespace ACE.Server.Managers
 
         public static EnvironChangeType? GlobalFogColor;
 
-        public static void SetGlobalFogColor(EnvironChangeType environChangeType)
+        private static void SetGlobalFogColor(EnvironChangeType environChangeType)
         {
             if (environChangeType.IsFog())
             {
@@ -507,29 +641,28 @@ namespace ACE.Server.Managers
                     GlobalFogColor = environChangeType;
 
                 foreach (var landblock in loadedLandblocks)
-                {
                     landblock.SendCurrentEnviron();
-                }
             }
         }
 
-        public static void SendGlobalEnvironSound(EnvironChangeType environChangeType)
+        private static void SendGlobalEnvironSound(EnvironChangeType environChangeType)
         {
             if (environChangeType.IsSound())
             {
                 foreach (var landblock in loadedLandblocks)
-                {
                     landblock.SendEnvironChange(environChangeType);
-                }
             }
         }
 
         public static void DoEnvironChange(EnvironChangeType environChangeType)
         {
-            if (environChangeType.IsFog())
-                SetGlobalFogColor(environChangeType);
-            else
-                SendGlobalEnvironSound(environChangeType);
+            lock (landblockMutex)
+            {
+                if (environChangeType.IsFog())
+                    SetGlobalFogColor(environChangeType);
+                else
+                    SendGlobalEnvironSound(environChangeType);
+            }
         }
     }
 }

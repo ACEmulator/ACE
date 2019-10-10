@@ -15,18 +15,18 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.WorldObjects;
 
 using log4net;
 
 using Position = ACE.Entity.Position;
 using Spell = ACE.Server.Entity.Spell;
 
-namespace ACE.Server.Managers
+namespace ACE.Server.WorldObjects.Managers
 {
-    public partial class EmoteManager
+    public class EmoteManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -129,7 +129,13 @@ namespace ACE.Server.Managers
                 case EmoteType.AwardLuminance:
 
                     if (player != null)
-                        player.GrantLuminance((long)emote.Amount);
+                    {
+                        var amount = (long)emote.Amount;
+
+                        player.EarnLuminance(amount);
+
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} luminance.", ChatMessageType.Advancement));
+                    }
                     break;
 
                 case EmoteType.AwardNoShareXP:

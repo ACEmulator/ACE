@@ -120,11 +120,11 @@ namespace ACE.Server.WorldObjects
 
             var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
 
-            var spells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+            var spells = GetSpellSet(setItems);
 
             // get the spells from before / without this item
             setItems.Remove(item);
-            var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+            var prevSpells = GetSpellSet(setItems);
 
             EquipDequipItemFromSet(item, spells, prevSpells);
         }
@@ -152,11 +152,11 @@ namespace ACE.Server.WorldObjects
 
             var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
 
-            var spells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+            var spells = GetSpellSet(setItems);
 
             // get the spells from before / with this item
             setItems.Add(item);
-            var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+            var prevSpells = GetSpellSet(setItems);
 
             EquipDequipItemFromSet(item, spells, prevSpells);
         }
@@ -169,9 +169,9 @@ namespace ACE.Server.WorldObjects
 
             var levelDiff = prevItemLevel - (item.ItemLevel ?? 0);
 
-            var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems, levelDiff);
+            var prevSpells = GetSpellSet(setItems, levelDiff);
 
-            var spells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+            var spells = GetSpellSet(setItems);
 
             EquipDequipItemFromSet(item, spells, prevSpells);
         }
@@ -505,7 +505,7 @@ namespace ACE.Server.WorldObjects
                 var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
 
                 // get all of the spells currently active from this set
-                var currentSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+                var currentSpells = GetSpellSet(setItems);
 
                 // get all of the spells possible for this item set
                 var possibleSpells = GetSpellSetAll((EquipmentSet)item.EquipmentSetId);
