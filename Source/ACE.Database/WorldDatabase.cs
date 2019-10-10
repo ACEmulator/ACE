@@ -541,8 +541,8 @@ namespace ACE.Database
             {
                 var results = context.HousePortal
                     .AsNoTracking()
-                    .GroupBy(r => r.HouseId)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.HouseId);
 
                 foreach (var result in results)
                     cachedHousePortals[result.Key] = result.ToList();
@@ -945,8 +945,8 @@ namespace ACE.Database
             {
                 var results = context.TreasureWielded
                     .AsNoTracking()
-                    .GroupBy(r => r.TreasureType)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.TreasureType);
 
                 foreach (var result in results)
                     cachedWieldedTreasure[result.Key] = result.ToList();
@@ -984,8 +984,8 @@ namespace ACE.Database
             {
                 var results = context.TreasureMaterialColor
                     .AsNoTracking()
-                    .GroupBy(r => r.MaterialId)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.MaterialId);
 
                 foreach (var result in results)
                     cachedTreasureMaterialColor[(int)result.Key] = result.ToList();
@@ -1018,8 +1018,8 @@ namespace ACE.Database
             {
                 var results = context.TreasureMaterialBase
                     .AsNoTracking()
-                    .GroupBy(r => r.MaterialCode)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.MaterialCode);
 
                 foreach (var result in results)
                     cachedTreasureMaterialBase[(int)result.Key] = result.ToList();
@@ -1064,8 +1064,8 @@ namespace ACE.Database
             {
                 var results = context.TreasureMaterialGroups
                     .AsNoTracking()
-                    .GroupBy(r => r.MaterialGroup)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.MaterialGroup);
 
                 foreach (var result in results)
                 cachedTreasureMaterialGroups[(int)result.Key] = result.ToList();
