@@ -2369,8 +2369,13 @@ namespace ACE.Server.WorldObjects
 
             if (!PropertyManager.GetBool("iou_trades").Item)
             {
-                //Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Hmm... Something isn't quite right with this IOU. I can't seem to make out what its for. I'm sorry!", this, ChatMessageType.Tell));
-                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
+                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Sorry! I'm not taking IOUs right now, but if you do wish to discard them, drop them in to the garbage barrels found at the Mana Forges in Hebian-To, Zaikhal, and Cragstone.", this, ChatMessageType.Tell));
+                //Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
+                //var barrel = WorldObjectFactory.CreateNewWorldObject("ace34726-garbagebarrel");
+                //barrel.TimeToRot = 180;
+                //barrel.Location = target.Location.InFrontOf(2f);
+                //barrel.Location.LandblockId = new LandblockId(barrel.Location.GetCell());
+                //barrel.EnterWorld();
                 return;
             }
 
