@@ -18,15 +18,11 @@ namespace ACE.Server.WorldObjects
         {
             if (!Attackable || Teleporting) return;
 
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjects.Values;
+            var visibleObjs = PhysicsObj.ObjMaint.GetVisibleObjectsValuesOfTypeCreature();
 
-            foreach (var obj in visibleObjs)
+            foreach (var monster in visibleObjs)
             {
-                if (PhysicsObj == obj) continue;
-
-                var monster = obj.WeenieObj.WorldObject as Creature;
-
-                if (monster == null || monster is Player) continue;
+                if (monster is Player) continue;
 
                 if (Location.SquaredDistanceTo(monster.Location) < rangeSquared)
                     AlertMonster(monster);

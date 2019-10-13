@@ -124,16 +124,8 @@ namespace ACE.Server.WorldObjects
         {
             var monsters = new List<Creature>();
 
-            foreach (var visibleTarget in PhysicsObj.ObjMaint.VisibleTargets.Values)
+            foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
-                var creature = visibleTarget.WeenieObj.WorldObject as Creature;
-
-                if (creature == null)
-                {
-                    Console.WriteLine($"{Name}.GetNearbyMonsters(): couldn't find {visibleTarget.Name} ({visibleTarget.ID:X8})");
-                    continue;
-                }
-
                 // why does this need to be in here?
                 if (creature.IsDead)
                 {

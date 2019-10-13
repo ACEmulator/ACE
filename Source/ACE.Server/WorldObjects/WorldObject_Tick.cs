@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.Threading;
 
 using ACE.Common;
 using ACE.Entity;
@@ -13,6 +15,9 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
+        // Used for cumulative ServerPerformanceMonitor event recording
+        protected readonly Stopwatch stopwatch = new Stopwatch();
+
         private const int heartbeatSpreadInterval = 5;
 
         protected double CachedHeartbeatInterval;
@@ -197,6 +202,15 @@ namespace ACE.Server.WorldObjects
         public bool InUpdate;
 
         /// <summary>
+        /// The idea behind using a ReaderWriterLock for updating physics is as follows:
+        /// - Only one player should be updated at a time
+        /// - If a player is being updated, no other object should be updated during that time
+        /// - Multiple non-player objects can be updated simultaneously
+        /// We separate players from non-players because players are the only ones that can cross landblock groups, and thus, thread boundaries.
+        /// </summary>
+        private static readonly ReaderWriterLockSlim updatePhysicsLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+
+        /// <summary>
         /// Used by physics engine to actually update a player position
         /// Automatically notifies clients of updated position
         /// </summary>
@@ -214,54 +228,67 @@ namespace ACE.Server.WorldObjects
             // possible bug: while teleporting, client can still send AutoPos packets from old landblock
             if (Teleporting && !forceUpdate) return false;
 
-            var success = true;
-
-            if (PhysicsObj != null)
+            updatePhysicsLock.EnterWriteLock();
+            try
             {
-                var distSq = Location.SquaredDistanceTo(newPosition);
+                if (!forceUpdate) // This is needed beacuse this function might be called recursively
+                    stopwatch.Restart();
 
-                if (distSq > PhysicsGlobals.EpsilonSq)
+                var success = true;
+
+                if (PhysicsObj != null)
                 {
-                    var curCell = LScape.get_landcell(newPosition.Cell);
-                    if (curCell != null)
+                    var distSq = Location.SquaredDistanceTo(newPosition);
+
+                    if (distSq > PhysicsGlobals.EpsilonSq)
                     {
-                        //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
-                        //PhysicsObj.change_cell_server(curCell);
-
-                        PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
-                        success = PhysicsObj.update_object_server();
-
-                        if (PhysicsObj.CurCell == null)
-                            PhysicsObj.CurCell = curCell;
-
-                        player.CheckMonsters();
-
-                        if (curCell.ID != prevCell)
+                        var curCell = LScape.get_landcell(newPosition.Cell);
+                        if (curCell != null)
                         {
-                            //prevCell = curCell.ID;
-                            //Console.WriteLine("Player cell: " + curCell.ID.ToString("X8"));
-                            //var envCell = curCell as Physics.Common.EnvCell;
-                            //var seenOutside = envCell != null ? envCell.SeenOutside : true;
-                            //Console.WriteLine($"CurCell: {curCell.ID:X8}, SeenOutside: {seenOutside}");
+                            //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
+                            //PhysicsObj.change_cell_server(curCell);
+
+                            PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
+                            success = PhysicsObj.update_object_server();
+
+                            if (PhysicsObj.CurCell == null)
+                                PhysicsObj.CurCell = curCell;
+
+                            player.CheckMonsters();
+
+                            if (curCell.ID != prevCell)
+                            {
+                                //prevCell = curCell.ID;
+                                //Console.WriteLine("Player cell: " + curCell.ID.ToString("X8"));
+                                //var envCell = curCell as Physics.Common.EnvCell;
+                                //var seenOutside = envCell != null ? envCell.SeenOutside : true;
+                                //Console.WriteLine($"CurCell: {curCell.ID:X8}, SeenOutside: {seenOutside}");
+                            }
                         }
                     }
                 }
+
+                // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
+                if (Teleporting && !forceUpdate) return true;
+
+                if (!success) return false;
+
+                var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
+                Location = newPosition;
+
+                SendUpdatePosition();
+
+                if (!InUpdate)
+                    LandblockManager.RelocateObjectForPhysics(this, true);
+
+                return landblockUpdate;
             }
-
-            // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
-            if (Teleporting && !forceUpdate) return true;
-
-            if (!success) return false;
-
-            var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
-            Location = newPosition;
-
-            SendUpdatePosition();
-
-            if (!InUpdate)
-                LandblockManager.RelocateObjectForPhysics(this, true);
-
-            return landblockUpdate;
+            finally
+            {
+                if (!forceUpdate) // This is needed beacuse this function might be called recursively
+                    ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, stopwatch.Elapsed.TotalSeconds);
+                updatePhysicsLock.ExitWriteLock();
+            }
         }
 
         public double lastDist;
@@ -316,62 +343,74 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            // get position before
-            var pos = PhysicsObj.Position.Frame.Origin;
-            var prevPos = pos;
-            var cellBefore = PhysicsObj.CurCell != null ? PhysicsObj.CurCell.ID : 0;
-
-            //Console.WriteLine($"{Name} - ticking physics");
-            var updated = PhysicsObj.update_object();
-
-            // get position after
-            pos = PhysicsObj.Position.Frame.Origin;
-            var newPos = pos;
-
-            // handle landblock / cell change
-            var isMoved = (prevPos != newPos);
-            var curCell = PhysicsObj.CurCell;
-
-            if (PhysicsObj.CurCell == null)
+            updatePhysicsLock.EnterReadLock();
+            try
             {
-                //Console.WriteLine("CurCell is null");
-                PhysicsObj.set_active(false);
-                Destroy();
-                return false;
-            }
+                stopwatch.Restart();
 
-            var landblockUpdate = (cellBefore >> 16) != (curCell.ID >> 16);
-            if (isMoved)
-            {
-                if (curCell.ID != cellBefore)
-                    Location.LandblockId = new LandblockId(curCell.ID);
+                // get position before
+                var pos = PhysicsObj.Position.Frame.Origin;
+                var prevPos = pos;
+                var cellBefore = PhysicsObj.CurCell != null ? PhysicsObj.CurCell.ID : 0;
 
-                Location.Pos = newPos;
-                Location.Rotation = PhysicsObj.Position.Frame.Orientation;
-                //if (landblockUpdate)
-                //WorldManager.UpdateLandblock.Add(this);
-            }
+                //Console.WriteLine($"{Name} - ticking physics");
+                var updated = PhysicsObj.update_object();
 
-            /*if (PhysicsObj.IsGrounded)
-                SendUpdatePosition();*/
+                // get position after
+                pos = PhysicsObj.Position.Frame.Origin;
+                var newPos = pos;
 
-            //var dist = Vector3.Distance(ProjectileTarget.Location.Pos, newPos);
-            //Console.WriteLine("Dist: " + dist);
-            //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
+                // handle landblock / cell change
+                var isMoved = (prevPos != newPos);
+                var curCell = PhysicsObj.CurCell;
 
-            if (this is SpellProjectile spellProjectile && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
-            {
-                var dist = spellProjectile.SpawnPos.DistanceTo(Location);
-                var maxRange = spellProjectile.Spell.BaseRangeConstant;
-                //Console.WriteLine("Max range: " + maxRange);
-                if (dist > maxRange)
+                if (PhysicsObj.CurCell == null)
                 {
+                    //Console.WriteLine("CurCell is null");
                     PhysicsObj.set_active(false);
-                    spellProjectile.ProjectileImpact();
+                    Destroy();
                     return false;
                 }
+
+                var landblockUpdate = (cellBefore >> 16) != (curCell.ID >> 16);
+                if (isMoved)
+                {
+                    if (curCell.ID != cellBefore)
+                        Location.LandblockId = new LandblockId(curCell.ID);
+
+                    Location.Pos = newPos;
+                    Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+                    //if (landblockUpdate)
+                    //WorldManager.UpdateLandblock.Add(this);
+                }
+
+                /*if (PhysicsObj.IsGrounded)
+                    SendUpdatePosition();*/
+
+                //var dist = Vector3.Distance(ProjectileTarget.Location.Pos, newPos);
+                //Console.WriteLine("Dist: " + dist);
+                //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
+
+                if (this is SpellProjectile spellProjectile && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
+                {
+                    var dist = spellProjectile.SpawnPos.DistanceTo(Location);
+                    var maxRange = spellProjectile.Spell.BaseRangeConstant;
+                    //Console.WriteLine("Max range: " + maxRange);
+                    if (dist > maxRange)
+                    {
+                        PhysicsObj.set_active(false);
+                        spellProjectile.ProjectileImpact();
+                        return false;
+                    }
+                }
+
+                return landblockUpdate;
             }
-            return landblockUpdate;
+            finally
+            {
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, stopwatch.Elapsed.TotalSeconds);
+                updatePhysicsLock.ExitReadLock();
+            }
         }
     }
 }
