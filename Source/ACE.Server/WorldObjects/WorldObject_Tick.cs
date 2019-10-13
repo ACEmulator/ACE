@@ -202,15 +202,6 @@ namespace ACE.Server.WorldObjects
         public bool InUpdate;
 
         /// <summary>
-        /// The idea behind using a ReaderWriterLock for updating physics is as follows:
-        /// - Only one player should be updated at a time
-        /// - If a player is being updated, no other object should be updated during that time
-        /// - Multiple non-player objects can be updated simultaneously
-        /// We separate players from non-players because players are the only ones that can cross landblock groups, and thus, thread boundaries.
-        /// </summary>
-        private static readonly ReaderWriterLockSlim updatePhysicsLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
-
-        /// <summary>
         /// Used by physics engine to actually update a player position
         /// Automatically notifies clients of updated position
         /// </summary>
@@ -228,7 +219,6 @@ namespace ACE.Server.WorldObjects
             // possible bug: while teleporting, client can still send AutoPos packets from old landblock
             if (Teleporting && !forceUpdate) return false;
 
-            updatePhysicsLock.EnterWriteLock();
             try
             {
                 if (!forceUpdate) // This is needed beacuse this function might be called recursively
@@ -287,7 +277,6 @@ namespace ACE.Server.WorldObjects
             {
                 if (!forceUpdate) // This is needed beacuse this function might be called recursively
                     ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, stopwatch.Elapsed.TotalSeconds);
-                updatePhysicsLock.ExitWriteLock();
             }
         }
 
@@ -343,7 +332,6 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            updatePhysicsLock.EnterReadLock();
             try
             {
                 stopwatch.Restart();
@@ -409,7 +397,6 @@ namespace ACE.Server.WorldObjects
             finally
             {
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, stopwatch.Elapsed.TotalSeconds);
-                updatePhysicsLock.ExitReadLock();
             }
         }
     }
