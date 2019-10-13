@@ -1556,6 +1556,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var isStackable = stack is Stackable;
+            if (!isStackable)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split an item 0x{2:X8}:{3} that is not stackable.", Guid.Full, Name, stack.Guid.Full, stack.Name);
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot split that!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
             if (stackRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(stack))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
@@ -1735,6 +1745,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var isStackable = stack is Stackable;
+            if (!isStackable)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split an item 0x{2:X8}:{3} that is not stackable.", Guid.Full, Name, stack.Guid.Full, stack.Name);
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot split that!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
             if (stack.StackSize == null || stack.StackSize == 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split invalid item 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
@@ -1859,6 +1879,24 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {sourceStack.Name} in that.")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                return;
+            }
+
+            var sourceIsStackable = sourceStack is Stackable;
+            var targetIsStackable = targetStack is Stackable;
+            if (!sourceIsStackable || !targetIsStackable)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot merge those items!")); // Custom error message
+                if (!sourceIsStackable)
+                {
+                    log.WarnFormat("Player 0x{0:X8}:{1} tried to merge an item 0x{2:X8}:{3} that is not stackable.", Guid.Full, Name, sourceStack.Guid.Full, sourceStack.Name);
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                }
+                else
+                {
+                    log.WarnFormat("Player 0x{0:X8}:{1} tried to merge an item 0x{2:X8}:{3} that is not stackable.", Guid.Full, Name, targetStack.Guid.Full, targetStack.Name);
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeToGuid));
+                }
                 return;
             }
 
@@ -2276,9 +2314,11 @@ namespace ACE.Server.WorldObjects
             {
                 if (acceptAll || result.Category == (uint)EmoteCategory.Give)
                 {
+                    var isStackable = item is Stackable;
+
                     // for NPCs that accept items with EmoteCategory.Give,
                     // if stacked item, only give 1
-                    if (!acceptAll && RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
+                    if (!acceptAll && isStackable && RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
                     {
                         if (itemToGive == null)
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
@@ -2329,8 +2369,13 @@ namespace ACE.Server.WorldObjects
 
             if (!PropertyManager.GetBool("iou_trades").Item)
             {
-                //Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Hmm... Something isn't quite right with this IOU. I can't seem to make out what its for. I'm sorry!", this, ChatMessageType.Tell));
-                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
+                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Sorry! I'm not taking IOUs right now, but if you do wish to discard them, drop them in to the garbage barrels found at the Mana Forges in Hebian-To, Zaikhal, and Cragstone.", this, ChatMessageType.Tell));
+                //Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
+                //var barrel = WorldObjectFactory.CreateNewWorldObject("ace34726-garbagebarrel");
+                //barrel.TimeToRot = 180;
+                //barrel.Location = target.Location.InFrontOf(2f);
+                //barrel.Location.LandblockId = new LandblockId(barrel.Location.GetCell());
+                //barrel.EnterWorld();
                 return;
             }
 
@@ -2544,6 +2589,109 @@ namespace ACE.Server.WorldObjects
         {
             Prev_PutItemInContainer[1] = Prev_PutItemInContainer[0];
             Prev_PutItemInContainer[0] = new PutItemInContainerEvent(itemGuid, containerGuid, placement);
+        }
+        
+        public void GiveFromEmote(WorldObject emoter, uint weenieClassId, int amount = 1)
+        {
+            if (emoter is null || weenieClassId == 0)
+            {
+                log.Warn($"Player.GiveFromEmote: Emoter is null: {emoter is null} | weenieClassId == 0: {weenieClassId == 0}");
+                if (emoter != null)
+                    log.Warn($"Player.GiveFromEmote: Emoter is {emoter.Name} (0x{emoter.Guid}) | WCID: {emoter.WeenieClassId}");
+                return;
+            }
+
+            var playerFreeInventorySlots = GetFreeInventorySlots();
+            var playerFreeContainerSlots = GetFreeContainerSlots();
+            var playerAvailableBurden = GetAvailableBurden();
+
+            var playerOutOfInventorySlots = false;
+            var playerOutOfContainerSlots = false;
+            var playerExceedsAvailableBurden = false;
+
+            var itemStacks = PreCheckItem(weenieClassId, amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
+
+            if (itemRequiresBackpackSlot)
+            {
+                playerFreeContainerSlots -= itemStacks;
+                playerAvailableBurden -= itemEncumberance;
+
+                playerOutOfContainerSlots = playerFreeContainerSlots < 0;
+            }
+            else
+            {
+                playerFreeInventorySlots -= itemStacks;
+                playerAvailableBurden -= itemEncumberance;
+
+                playerOutOfInventorySlots = playerFreeInventorySlots < 0;
+            }
+
+            playerExceedsAvailableBurden = playerAvailableBurden < 0;
+
+            if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
+            {
+                //if (playerExceedsAvailableBurden)
+                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to use that!"));
+                //else if (playerOutOfInventorySlots)
+                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
+                //else //if (playerOutOfContainerSlots)
+                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+                return;
+            }
+
+            if (itemStacks > 0)
+            {
+                while (amount > 0)
+                {
+                    var item = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+
+                    if (item is Stackable)
+                    {
+                        // amount contains a max stack
+                        if (item.MaxStackSize <= amount)
+                        {
+                            item.SetStackSize(item.MaxStackSize);
+                            amount -= item.MaxStackSize.Value;
+                        }
+                        else // not a full stack
+                        {
+                            item.SetStackSize(amount);
+                            amount -= amount;
+                        }
+                    }
+                    else
+                        amount -= 1;
+
+                    TryCreateForGive(emoter, item);
+                }
+            }
+            else
+            {
+                log.Warn($"Player.GiveFromEmote: itemStacks <= 0: emoter: {emoter.Name} (0x{emoter.Guid}) - {emoter.WeenieClassId} | weenieClassId: {weenieClassId} | amount: {amount}");
+
+                var item = PlayerFactory.CreateIOU(weenieClassId);
+                TryCreateForGive(emoter, item);
+            }
+        }
+
+        public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
+        {
+            if (TryCreateInInventoryWithNetworking(itemBeingGiven))
+            {
+                var msg = new GameMessageSystemChat($"{giver.Name} gives you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{(itemBeingGiven.StackSize > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.Name)}.", ChatMessageType.Broadcast);
+                var sound = new GameMessageSound(Guid, Sound.ReceiveItem, 1);
+                if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
+                    Session.Network.EnqueueSend(msg, sound);
+                else
+                    Session.Network.EnqueueSend(sound);
+
+                if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                    RushNextPlayerSave(5);
+
+                return true;
+            }
+            else
+                return false;
         }
     }
 }

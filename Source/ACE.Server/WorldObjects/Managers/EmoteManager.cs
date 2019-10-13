@@ -338,39 +338,10 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.Give:
 
                     bool success = false;
+
                     if (player != null && emote.WeenieClassId != null)
-                    {
-                        var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
+                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, emote.StackSize ?? 1);
 
-                        var stackMsg = "";
-                        if (item != null)
-                        {
-                            var stackSize = emote.StackSize ?? 1;
-                            if (stackSize > 1)
-                            {
-                                item.SetStackSize(stackSize);
-                                stackMsg = stackSize + " ";     // pluralize?
-                            }
-                        }
-                        else
-                            item = PlayerFactory.CreateIOU((uint)emote.WeenieClassId);
-
-                        success = player.TryCreateInInventoryWithNetworking(item);
-
-                        // transaction / rollback on failure?
-                        if (success)
-                        {
-                            var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
-                            var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
-                            if (!(WorldObject.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
-                                player.Session.Network.EnqueueSend(msg, sound);
-                            else
-                                player.Session.Network.EnqueueSend(sound);
-
-                            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
-                                player.RushNextPlayerSave(5);
-                        }
-                    }
                     break;
 
                 /* redirects to the GotoSet category for this action */
