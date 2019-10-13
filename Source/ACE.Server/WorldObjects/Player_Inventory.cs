@@ -1556,6 +1556,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var isStackable = stack is Stackable;
+            if (!isStackable)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split an item 0x{2:X8}:{3} that is not stackable.", Guid.Full, Name, stack.Guid.Full, stack.Name);
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot split that!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
             if (stackRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(stack))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
@@ -1735,6 +1745,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var isStackable = stack is Stackable;
+            if (!isStackable)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split an item 0x{2:X8}:{3} that is not stackable.", Guid.Full, Name, stack.Guid.Full, stack.Name);
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot split that!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
             if (stack.StackSize == null || stack.StackSize == 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split invalid item 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
@@ -1859,6 +1879,24 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {sourceStack.Name} in that.")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                return;
+            }
+
+            var sourceIsStackable = sourceStack is Stackable;
+            var targetIsStackable = targetStack is Stackable;
+            if (!sourceIsStackable || !targetIsStackable)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot merge those items!")); // Custom error message
+                if (!sourceIsStackable)
+                {
+                    log.WarnFormat("Player 0x{0:X8}:{1} tried to merge an item 0x{2:X8}:{3} that is not stackable.", Guid.Full, Name, sourceStack.Guid.Full, sourceStack.Name);
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
+                }
+                else
+                {
+                    log.WarnFormat("Player 0x{0:X8}:{1} tried to merge an item 0x{2:X8}:{3} that is not stackable.", Guid.Full, Name, targetStack.Guid.Full, targetStack.Name);
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeToGuid));
+                }
                 return;
             }
 
