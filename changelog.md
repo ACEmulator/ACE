@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-16
+[Ripley]
+* Fix bug with pickup/merge into a full container.
+
 ### 2019-10-02
 [Ripley]
 * Fix issue with EmoteType.Give handling stackable/nonstackable items.
