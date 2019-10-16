@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-16
+[gmriggs]
+* Fixed a bug where atlatl/thrown weaps were using power instead of accuracy bar
+
 ### 2019-10-02
 [Ripley]
 * Fix issue with EmoteType.Give handling stackable/nonstackable items.
