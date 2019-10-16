@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-16
+[gmriggs]
+* Added support for monsters with PropertyBool.NonProjectileMagicImmune
+
 ### 2019-10-02
 [Ripley]
 * Fix issue with EmoteType.Give handling stackable/nonstackable items.
