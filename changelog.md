@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2019-10-16
+[Ripley]
+* Fix bug with pickup/merge into a full container.
+
 [gmriggs]
 * Added support for monsters with PropertyBool.NonProjectileMagicImmune
 * Fixed a bug where atlatl/thrown weaps were using power instead of accuracy bar

@@ -916,8 +916,14 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"DoHandleActionPutItemInContainer({item.Name}, {container.Name}, {itemWasEquipped}, {placement})");
 
+            Position prevLocation = null;
+            Landblock prevLandblock = null;
+
             if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
             {
+                prevLocation = new Position(item.Location);
+                prevLandblock = item.CurrentLandblock;
+
                 item.CurrentLandblock.RemoveWorldObject(item.Guid, false, true);
                 item.Location = null;
             }
@@ -954,11 +960,23 @@ namespace ACE.Server.WorldObjects
 
             if (!container.TryAddToInventory(item, placement, true, burdenCheck))
             {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "AddToInventory failed!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"Unable to put {item.Name} into container")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
 
-                // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
-                log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from DoHandleActionPutItemInContainer failure.", item.Guid.Full, item.Name, Name);
+                if (prevLocation != null)
+                {
+                    var landblockReturn = new ActionChain();
+
+                    landblockReturn.AddDelaySeconds(1);
+                    landblockReturn.AddAction(prevLandblock, () => RemoveTrackedObject(item, false));
+                    landblockReturn.AddDelaySeconds(1);
+                    landblockReturn.AddAction(prevLandblock, () =>
+                    {
+                        item.Location = new Position(prevLocation);
+                        LandblockManager.AddObject(item);
+                    });
+                    landblockReturn.EnqueueChain();
+                }
 
                 return false;
             }
@@ -1933,6 +1951,12 @@ namespace ACE.Server.WorldObjects
             }
 
             if (!CanAddToInventory(sourceStack))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
+                return;
+            }
+
+            if (!targetStackFoundInContainer.CanAddToContainer(sourceStack, false))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
                 return;
