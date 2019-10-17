@@ -3,6 +3,11 @@
 ### 2019-10-16
 [gmriggs]
 * Added support for monsters with PropertyBool.NonProjectileMagicImmune
+* Fixed a bug where atlatl/thrown weaps were using power instead of accuracy bar
+
+### 2019-10-14
+[gmriggs]
+* Added luminance sharing to fellowships
 
 ### 2019-10-02
 [Ripley]
@@ -16,10 +21,16 @@
 [Ripley]
 * Support Dark Idol recipe DataId mods
 
+[gmriggs]
+* Added luminance award for kills
+
 ### 2019-09-26
 [Ripley]
 * Adjustments to Guid Recycling
 * Some Give/Trade Wielded Adjustments
+
+[gmriggs]
+* Fixed a bug with player missile defense
 
 ### 2019-09-24
 [Ripley]
@@ -58,6 +69,9 @@
 * Turn on Guid Recycling
 * Update Logging messages
 * Notify Generator of spawn failure for regen retry
+
+[gmriggs]
+* Added server option for Aetheria healing over time message color
 
 ### 2019-09-12
 [OptimShi]
