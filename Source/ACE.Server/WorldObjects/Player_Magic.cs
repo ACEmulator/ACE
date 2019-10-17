@@ -597,6 +597,12 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
+                    if (creatureTarget != null && creatureTarget.NonProjectileMagicImmune)
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {creatureTarget.Name} with {spell.Name}", ChatMessageType.Magic));
+                        break;
+                    }
+
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     enchantmentStatus = CreatureMagic(target, spell);
                     if (enchantmentStatus.Message != null)
@@ -635,6 +641,12 @@ namespace ACE.Server.WorldObjects
                                 log.Error("Something went wrong with the Magic resistance check");
                                 break;
                             }
+                        }
+
+                        if (creatureTarget != null && creatureTarget.NonProjectileMagicImmune)
+                        {
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {creatureTarget.Name} with {spell.Name}", ChatMessageType.Magic));
+                            break;
                         }
                     }
 

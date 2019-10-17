@@ -2,6 +2,7 @@
 
 ### 2019-10-16
 [gmriggs]
+* Added support for monsters with PropertyBool.NonProjectileMagicImmune
 * Fixed a bug where atlatl/thrown weaps were using power instead of accuracy bar
 
 ### 2019-10-14
