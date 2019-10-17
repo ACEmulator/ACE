@@ -4,6 +4,9 @@
 [Ripley]
 * Fix bug with pickup/merge into a full container.
 
+[gmriggs]
+* Fixed a bug where atlatl/thrown weaps were using power instead of accuracy bar
+
 ### 2019-10-14
 [gmriggs]
 * Added luminance sharing to fellowships
