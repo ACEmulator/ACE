@@ -129,13 +129,8 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardLuminance:
 
                     if (player != null)
-                    {
-                        var amount = (long)emote.Amount;
+                        player.EarnLuminance((long)emote.Amount, XpType.Quest, ShareType.None);
 
-                        player.EarnLuminance(amount);
-
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} luminance.", ChatMessageType.Advancement));
-                    }
                     break;
 
                 case EmoteType.AwardNoShareXP:
@@ -1017,7 +1012,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                         if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                         {
-                            player.QuestManager.HandleKillTask(questName, WorldObject, player.CurrentRadarRange);
+                            player.QuestManager.HandleKillTask(questName, WorldObject);
                         }
                         else
                             player.QuestManager.Stamp(emote.Message);
