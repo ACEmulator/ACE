@@ -408,6 +408,20 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if there are enough free inventory slots and burden available to add item
+        /// </summary>
+        public bool CanAddToContainer(WorldObject worldObject, bool includeSidePacks = true)
+        {
+            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObject))
+                return false;
+
+            if (worldObject.UseBackpackSlot)
+                return GetFreeContainerSlots() > 0;
+            else
+                return GetFreeInventorySlots(includeSidePacks) > 0;
+        }
+
+        /// <summary>
         /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>
