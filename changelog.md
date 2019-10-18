@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-18
+[gmriggs]
+* Allow neutral casters and missile launchers to be tailored onto weapons with DamageType
+
 ### 2019-10-02
 [Ripley]
 * Fix issue with EmoteType.Give handling stackable/nonstackable items.
