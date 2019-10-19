@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-19
+[gmriggs]
+* Fixing some gaps with nested emote chains and EmoteManager.IsBusy
+
 ### 2019-10-18
 [gmriggs]
 * Allow neutral casters and missile launchers to be tailored onto weapons with DamageType
