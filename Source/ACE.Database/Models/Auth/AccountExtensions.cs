@@ -4,6 +4,7 @@ using log4net;
 
 using System;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -100,6 +101,15 @@ namespace ACE.Database.Models.Auth
                 hash = hasher.ComputeHash(buffer);
 
             return Convert.ToBase64String(hash);
+        }
+
+        public static void UpdateLastLogin(this Account account, IPAddress address)
+        {
+            account.LastLoginIP = address.GetAddressBytes();
+            account.LastLoginTime = DateTime.UtcNow;
+            account.TotalTimesLoggedIn++;
+
+            DatabaseManager.Authentication.UpdateAccount(account);
         }
     }
 }

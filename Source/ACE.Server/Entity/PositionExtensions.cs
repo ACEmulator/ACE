@@ -274,5 +274,15 @@ namespace ACE.Server.Entity
 
             return Physics.PhysicsObj.is_valid_walkable(walkable.Plane.Normal);
         }
+
+        /// <summary>
+        /// Returns TRUE if current cell is a House cell
+        /// </summary>
+        public static bool IsRestrictable(this Position p, Landblock landblock)
+        {
+            var cell = landblock.IsDungeon ? p.Cell : p.GetOutdoorCell();
+
+            return HouseCell.HouseCells.ContainsKey(cell);
+        }
     }
 }

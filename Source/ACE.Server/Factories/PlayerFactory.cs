@@ -13,6 +13,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
+using ACE.Server.Managers;
 
 namespace ACE.Server.Factories
 {
@@ -29,13 +30,13 @@ namespace ACE.Server.Factories
             FailedToSpecializeSkill,
         }
 
-        public static CreateResult Create(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId, out Player player)
+        public static CreateResult Create(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId, WeenieType weenieType, out Player player)
         {
             var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[characterCreateInfo.Heritage];
 
-            if (weenie.Type == (int)WeenieType.Admin)
+            if (weenieType == WeenieType.Admin)
                 player = new Admin(weenie, guid, accountId);
-            else if (weenie.Type == (int)WeenieType.Sentinel)
+            else if (weenieType == WeenieType.Sentinel)
                 player = new Sentinel(weenie, guid, accountId);
             else
                 player = new Player(weenie, guid, accountId);
@@ -83,7 +84,7 @@ namespace ACE.Server.Factories
             player.Character.DefaultHairTexture = sex.GetDefaultHairTexture(characterCreateInfo.Apperance.HairStyle);
             // HeadObject can be null if we're dealing with GearKnight or Olthoi
             var headObject = sex.GetHeadObject(characterCreateInfo.Apperance.HairStyle);
-            if(headObject != null)
+            if (headObject != null)
                 player.SetProperty(PropertyDataId.HeadObject, (uint)headObject);
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
@@ -208,7 +209,7 @@ namespace ACE.Server.Factories
                         return CreateResult.FailedToTrainSkill;
                 }
                 else if (sac == SkillAdvancementClass.Untrained)
-                    player.UntrainSkill((Skill) i, 0);
+                    player.UntrainSkill((Skill)i, 0);
             }
 
             var isDualWieldTrainedOrSpecialized = player.Skills[Skill.DualWield].AdvancementClass > SkillAdvancementClass.Untrained;
@@ -218,6 +219,9 @@ namespace ACE.Server.Factories
 
             player.SetProperty(PropertyInt.MeleeMastery, (int)meleeMastery);
             player.SetProperty(PropertyInt.RangedMastery, (int)rangedMastery);
+
+            // Set innate augs
+            SetInnateAugmentations(player);
 
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
@@ -380,6 +384,17 @@ namespace ACE.Server.Factories
 
             player.SetProperty(PropertyBool.RecallsDisabled, true);
 
+            if (PropertyManager.GetBool("pk_server").Item)
+                player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PK);
+            else if (PropertyManager.GetBool("pkl_server").Item)
+                player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+
+            if ((PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item) && PropertyManager.GetBool("pk_server_safe_training_academy").Item)
+            {
+                player.SetProperty(PropertyFloat.MinimumTimeSincePk, -PropertyManager.GetDouble("pk_new_character_grace_period").Item);
+                player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+            }
+
             if (player is Sentinel || player is Admin)
             {
                 player.Character.IsPlussed = true;
@@ -512,7 +527,49 @@ namespace ACE.Server.Factories
                     rangedMastery = WeaponType.Undef;
                     break;
             }
-    }
+        }
+
+        private static void SetInnateAugmentations(Player player)
+        {
+            switch (player.HeritageGroup)
+            {
+                case HeritageGroup.Aluvian:
+                case HeritageGroup.Gharundim:
+                case HeritageGroup.Sho:
+                case HeritageGroup.Viamontian:
+                    player.AugmentationJackOfAllTrades = 1;
+                    break;
+
+                case HeritageGroup.Shadowbound:
+                case HeritageGroup.Penumbraen:
+                    player.AugmentationCriticalExpertise = 1;
+                    break;
+
+                case HeritageGroup.Gearknight:
+                    player.AugmentationDamageReduction = 1;
+                    break;
+
+                case HeritageGroup.Undead:
+                    player.AugmentationCriticalDefense = 1;
+                    break;
+
+                case HeritageGroup.Empyrean:
+                    player.AugmentationInfusedLifeMagic = 1;
+                    break;
+
+                case HeritageGroup.Tumerok:
+                    player.AugmentationCriticalPower = 1;
+                    break;
+
+                case HeritageGroup.Lugian:
+                    player.AugmentationIncreasedCarryingCapacity = 1;
+                    break;
+
+                case HeritageGroup.Olthoi:
+                case HeritageGroup.OlthoiAcid:
+                    break;
+            }
+        }
 
         public static WorldObject CreateIOU(uint missingWeenieId)
         {
@@ -522,7 +579,7 @@ namespace ACE.Server.Factories
             iou.AddPage(uint.MaxValue, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
             iou.Bonded = (int)BondedStatus.Bonded;
             iou.Attuned = (int)AttunedStatus.Attuned;
-            iou.SetProperty(PropertyBool.IsSellable, false);
+            iou.IsSellable = false;
             iou.Value = 0;
             iou.EncumbranceVal = 0;
 
@@ -613,7 +670,7 @@ namespace ACE.Server.Factories
 
             characterCreateInfo.Name = name;
 
-            Create(characterCreateInfo, weenie, guid, accountId, out var player);
+            Create(characterCreateInfo, weenie, guid, accountId, WeenieType.Creature, out var player);
 
             LevelUpPlayer(player);
 

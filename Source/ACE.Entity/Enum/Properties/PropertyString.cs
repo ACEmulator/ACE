@@ -75,6 +75,10 @@ namespace ACE.Entity.Enum.Properties
 
         [ServerOnly]
         PCAPRecordedCurrentMotionState  = 8006,
+        [ServerOnly]
+        PCAPRecordedServerName          = 8031,
+        [ServerOnly]
+        PCAPRecordedCharacterName       = 8032,
 
         /* custom */
         [ServerOnly]
@@ -87,6 +91,10 @@ namespace ACE.Entity.Enum.Properties
         AllegianceSeneschalTitle        = 9004,
         [ServerOnly]
         AllegianceCastellanTitle        = 9005,
+        [ServerOnly]
+        GodState                        = 9006,
+        [ServerOnly]
+        TinkerLog                       = 9007,
     }
 
     public static class PropertyStringExtensions

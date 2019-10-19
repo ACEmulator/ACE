@@ -51,6 +51,10 @@ namespace ACE.Server.WorldObjects
             GeneratorProfiles.Clear();            
 
             DeathTreasureType = null;
+            WieldedTreasureType = null;
+
+            if (Biota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                Biota.WeenieType = (int)WeenieType.CombatPet;
         }
 
         public void Init(Player player, DamageType damageType, PetDevice petDevice)
@@ -85,15 +89,12 @@ namespace ACE.Server.WorldObjects
         {
             var creature = AttackTarget as Creature;
 
-            if (creature == null || creature.IsDead || !IsVisible(creature))
+            if (creature == null || creature.IsDead || !IsVisibleTarget(creature))
                 FindNextTarget();
         }
 
         public override bool FindNextTarget()
         {
-            // rebuild visible objects (handle this better for monsters)
-            GetVisibleObjects();
-
             var nearbyMonsters = GetNearbyMonsters();
             if (nearbyMonsters.Count == 0)
             {
@@ -117,35 +118,23 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns a list of attackable monsters in this pet's visible objects table
+        /// Returns a list of attackable monsters in this pet's visible targets
         /// </summary>
         public List<Creature> GetNearbyMonsters()
         {
-            // TODO: this might need refreshed
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
-
             var monsters = new List<Creature>();
 
-            foreach (var obj in visibleObjs)
+            foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
-                // exclude self (should hopefully not be in this list)
-                if (PhysicsObj == obj) continue;
-
-                // exclude players
-                var wo = obj.WeenieObj.WorldObject;
-                if (wo == null) continue;
-                if (wo is Player) continue;
-
-                // ensure creature / not combat pet
-                var creature = wo as Creature;
-                if (creature == null || wo is CombatPet || creature.IsDead) continue;
-
-                // ensure attackable
-                var attackable = creature.GetProperty(PropertyBool.Attackable) ?? false;
-                if (!attackable) continue;
-
+                // why does this need to be in here?
+                if (creature.IsDead)
+                {
+                    //Console.WriteLine($"{Name}.GetNearbyMonsters(): refusing to add dead creature {creature.Name} ({creature.Guid})");
+                    continue;
+                }
                 monsters.Add(creature);
             }
+
             return monsters;
         }
 

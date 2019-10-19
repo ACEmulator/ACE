@@ -1,14 +1,12 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
@@ -23,7 +21,6 @@ using ACE.Server.Network.Managers;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 
-using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
@@ -31,8 +28,6 @@ namespace ACE.Server.Managers
     public static class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        public static bool Concurrency = false;
 
         private static readonly PhysicsEngine Physics;
 
@@ -64,6 +59,7 @@ namespace ACE.Server.Managers
                 UpdateWorld();
             });
             thread.Name = "World Manager";
+            thread.Priority = ThreadPriority.AboveNormal;
             thread.Start();
             log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
@@ -162,7 +158,7 @@ namespace ACE.Server.Managers
 
             if (stripAdminProperties) // continue stripping properties
             {
-                player.CloakStatus = null;
+                player.CloakStatus = CloakStatus.Undef;
                 player.Attackable = true;
                 player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.DamagedByCollisions, true);
                 player.AdvocateLevel = null;
@@ -211,7 +207,7 @@ namespace ACE.Server.Managers
                 if (session.Player.Instantiation != null)
                     session.Player.Location = new Position(session.Player.Instantiation);
                 else
-                    session.Player.Location = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f); // ultimate fallback;
+                    session.Player.Location = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f);  // ultimate fallback
             }
 
             session.Player.PlayerEnterWorld();
@@ -314,34 +310,32 @@ namespace ACE.Server.Managers
                  * The only cases where it's acceptable for to create a new Task, Thread or Parallel loop are the following:
                    - Every scenario must be one where you don't care about breaking ACE
                    - DeveloperCommand Handlers
-
-                 * TODO: We need a thread safe way to handle object transitions between distant landblocks
                 */
 
                 worldTickTimer.Restart();
 
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick);
                 PlayerManager.Tick();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick);
 
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.NetworkManager_InboundClientMessageQueueRun);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.NetworkManager_InboundClientMessageQueueRun);
                 NetworkManager.InboundMessageQueue.RunActions();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.NetworkManager_InboundClientMessageQueueRun);
 
                 // This will consist of PlayerEnterWorld actions, as well as other game world actions that require thread safety
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
                 actionQueue.RunActions();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
 
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.DelayManager_RunActions);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.DelayManager_RunActions);
                 DelayManager.RunActions();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.DelayManager_RunActions);
 
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.UpdateGameWorld);
                 var gameWorldUpdated = UpdateGameWorld();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld);
 
-                ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.NetworkManager_DoSessionWork);
+                ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.NetworkManager_DoSessionWork);
                 int sessionCount = NetworkManager.DoSessionWork();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.NetworkManager_DoSessionWork);
 
@@ -370,39 +364,15 @@ namespace ACE.Server.Managers
 
             updateGameWorldRateLimiter.RegisterEvent();
 
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
+            ServerPerformanceMonitor.RestartCumulativeEvents();
+            ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
 
-            // update positions through physics engine
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_HandlePhysics);
-            var movedObjects = HandlePhysics(Timers.PortalYearTicks);
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_HandlePhysics);
-
-            // iterate through objects that have changed landblocks
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_RelocateObjectForPhysics);
-            foreach (var movedObject in movedObjects)
-            {
-                // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                if (movedObject.Location == null) continue;
-
-                // assume adjacency move here?
-                LandblockManager.RelocateObjectForPhysics(movedObject, true);
-            }
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_RelocateObjectForPhysics);
-
-            // Tick all of our Landblocks and WorldObjects
-            ServerPerformanceMonitor.RegisterEventStart(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
-            var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
-
-            foreach (var landblock in loadedLandblocks)
-                landblock.Tick(Time.GetUnixTime());
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_landblock_Tick);
-
-            // clean up inactive landblocks
-            LandblockManager.UnloadLandblocks();
+            LandblockManager.Tick(Timers.PortalYearTicks);
 
             HouseManager.Tick();
 
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire);
+            ServerPerformanceMonitor.RegisterCumulativeEvents();
 
             return true;
         }
@@ -411,85 +381,5 @@ namespace ACE.Server.Managers
         /// Function to begin ending the operations inside of an active world.
         /// </summary>
         public static void StopWorld() { pendingWorldStop = true; }
-
-        /// <summary>
-        /// Processes physics objects in all active landblocks for updating
-        /// </summary>
-        private static IEnumerable<WorldObject> HandlePhysics(double timeTick)
-        {
-            ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
-            try
-            {
-                var activeLandblocks = LandblockManager.GetActiveLandblocks();
-
-                if (Concurrency)
-                {
-                    // Access ActiveLandblocks should be safe here, but sometimes crashes with
-                    // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
-                    Parallel.ForEach(activeLandblocks, landblock =>
-                    {
-                        HandlePhysicsLandblock(landblock, timeTick, movedObjects);
-                    });
-                }
-                else
-                {
-                    foreach (var landblock in activeLandblocks)
-                        HandlePhysicsLandblock(landblock, timeTick, movedObjects);
-                }
-            }
-            catch (Exception e)
-            {
-                log.Error(e);
-            }
-            return movedObjects;
-        }
-
-        private static void HandlePhysicsLandblock(Landblock landblock, double timeTick, ConcurrentQueue<WorldObject> movedObjects)
-        {
-            foreach (WorldObject wo in landblock.GetWorldObjectsForPhysicsHandling())
-            {
-                // set to TRUE if object changes landblock
-                var landblockUpdate = false;
-
-                // detect player movement
-                // TODO: handle players the same as everything else
-                if (wo is Player player)
-                {
-                    wo.InUpdate = true;
-
-                    var newPosition = HandlePlayerPhysics(player, timeTick);
-
-                    // update position through physics engine
-                    if (newPosition != null)
-                        landblockUpdate = wo.UpdatePlayerPhysics(newPosition);
-
-                    wo.InUpdate = false;
-                }
-                else
-                    landblockUpdate = wo.UpdateObjectPhysics();
-
-                if (landblockUpdate)
-                    movedObjects.Enqueue(wo);
-            }
-        }
-
-        /// <summary>
-        /// Detects if player has moved through ForcedLocation or RequestedLocation
-        /// </summary>
-        private static Position HandlePlayerPhysics(Player player, double timeTick)
-        {
-            Position newPosition = null;
-
-            if (player.ForcedLocation != null)
-                newPosition = player.ForcedLocation;
-
-            else if (player.RequestedLocation != null)
-                newPosition = player.RequestedLocation;
-
-            if (newPosition != null)
-                player.ClearRequestedPositions();
-
-            return newPosition;
-        }
     }
 }

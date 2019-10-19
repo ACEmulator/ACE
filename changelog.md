@@ -1,8 +1,874 @@
 # ACEmulator Change Log
 
+### 2019-10-18
+[gmriggs]
+* Allow neutral casters and missile launchers to be tailored onto weapons with DamageType
+
+### 2019-10-16
+[Ripley]
+* Fix bug with pickup/merge into a full container.
+
+[gmriggs]
+* Added support for monsters with PropertyBool.NonProjectileMagicImmune
+* Fixed a bug where atlatl/thrown weaps were using power instead of accuracy bar
+
+### 2019-10-14
+[gmriggs]
+* Added luminance sharing to fellowships
+
+### 2019-10-02
+[Ripley]
+* Fix issue with EmoteType.Give handling stackable/nonstackable items.
+
+### 2019-09-28
+[Ripley, Mag-nus]
+* Support Purging of deleted Characters from database
+
+### 2019-09-27
+[Ripley]
+* Support Dark Idol recipe DataId mods
+
+[gmriggs]
+* Added luminance award for kills
+
+### 2019-09-26
+[Ripley]
+* Adjustments to Guid Recycling
+* Some Give/Trade Wielded Adjustments
+
+[gmriggs]
+* Fixed a bug with player missile defense
+
+### 2019-09-24
+[Ripley]
+* Support SpellSets for Items that don't level
+
+### 2019-09-22
+[Ripley]
+* Validate int data for GenerateNewFace
+* Remove coded North Glenden Prison position adjustments
+* Adjust Split StackSize Checks
+
+### 2019-09-21
+[Ripley]
+* Add logging to HousePortal nulls
+
+### 2019-09-19
+[Ripley]
+* Update Killed by misadventure conditions
+
+### 2019-09-18
+[Ripley]
+* Fix issue with opening empty hooks
+* Sync HouseHooksVisible to root house object
+
+### 2019-09-15
+[Ripley]
+* Generate Random Faces for CreatureType.Empyrean NPCs
+
+### 2019-09-14
+[Ripley]
+* Fix Hook Visibility Control in Basements
+* Fix issue on Hook Appraisal
+* Workaround fix to spawn hooks
+* Misc Housing Cleanup
+* Rebase SQL scripts, archived previous batch for legacy servers.
+* Turn on Guid Recycling
+* Update Logging messages
+* Notify Generator of spawn failure for regen retry
+
+[gmriggs]
+* Added server option for Aetheria healing over time message color
+
+### 2019-09-12
+[OptimShi]
+* Fix issue with AlternateSetup for certain non-human models
+
+[Ripley]
+* Fix issue with Umbraen Males and Female crown options
+
+### 2019-09-01
+[Ripley]
+* Update logging with some missing tags.
+
+### 2019-08-31
+[Ripley]
+* Fix issue with Nekodes being created as LightWeapons, should have been Katars.
+
+### 2019-08-30
+[Mag-nus]
+* Cleanup log.Info level messages
+* Added failed physics transitions to the warning log
+* Added log4net.async and support for console colors
+
+### 2019-08-25
+[gmriggs]
+* Started to clean up / organize /acecommands a bit
+  - Added optional &lt;access level&gt; and &lt;search term&gt; parameters, ie. /acecommands developer, /acecommands house
+
+* Fixes / refactoring to loot generator clothing
+
+* Fixed Aura of Infected Spirit Caress spell category / stacking ()
+  - Database/Optional/Shard/2019-07-12-00-Match_World_Spells_In_Biota_Enchantment_Registry.sql can be run by server operators after upgrading to this release to fix an existing spells in enchantment registries
+
+[Theran]
+* Visual updates for Withered mobs
+* Removed bad weenie for Inscription of Heal Self
+
+### 2019-08-24
+[Ripley]
+* Fix crash with Pickup and Wield.
+* Fix issue with selling 0 value items to NPCs.
+
+[gmriggs]
+* Adjusted WEENIE_MAX for custom content creators
+
+### 2019-08-23
+[gmriggs]
+* Filling a gap with item spell redirects
+* Fixed an issue with thrown goblets
+
+[Theran]
+* Fixed the loot generator GetWield() method for magic casters
+* Update Vile Scourge, Fist of Massacre, Vein-Thirst Kukri, and Yaja's Reach for MoA
+* Fix missing PropertyInt 159 on Squalid Leggings
+* Add Sedgemail Leather Armor weenies, using PCAP and ac.yotesfan.com data
+
+### 2019-08-22
+[Theran]
+* Removed some weenies from the loot generator clothing tables to match retail
+* Update Steel Chest with Clouded Soul scroll
+* Update Guards for Clutch of Kings quest
+* Add elemental hatchets for summoned Undead minions
+* Three portals from LSD and their landblock instance spawn points
+* Add PortalSummonLoc to Bur Lizk
+* Update AddCharacterTitle statements to add missing titles and annotations
+* Add Haebrean armor pieces that are set to base AL of Platemail, being of similar material composition
+* Update some quest weenies related to Hamud's Demise quest
+* Fix broken Kill Task quests
+
+[Ripley]
+* Update IOU handling code.
+* Fix issue CoinValue client desync.
+* Added some boxed items
+
+[gmriggs]
+* Fixed a possible null exception with RestrictionDB
+* Removing officer titles from allegiance info packet (not used in retail, not parsed by Decal)
+* Setting IsBusy state while dying
+
+### 2019-08-21
+[Ripley]
+* Update Aetheria and how ProcSpell is displayed for SpellBook.
+* Apply shard update script `2019-08-21-00-Fix_Aetheria_SpellBook.sql` to remove unneeded spellbook entries.
+* Update [Fellow]PortalSending code to magic retail messaging.
+* Updated Hooks to allow them to be accessible by roommates (characters on same account as house owner)
+
+[gmriggs]
+* Updated salvaging output formula to match retail
+* Fixed a possible crash with Aetheria
+
+### 2019-08-20
+[Ripley]
+* Add global configuration for SpellComponentsRequired.
+* Add UseCreateItem + UseCreateQuantity support to Gems.
+* Update TakeItems msg to match retail messaging and support "Take All".
+
+[gmriggs]
+* Updated AttributeMod for finesse weapons
+* Added /createinst for content creators to spawn landblock_instances in-game
+* Added EmoteType.RemoveVitaePenalty
+* Fixed some gaps for swapping weapons after launching a projectile
+
+[Mag-nus]
+* Fixed landblock monitors
+
+### 2019-08-19
+[Ripley]
+* Fix issue with creatures dropping their wieldables to corpses.
+* Fix some bugs with Pickup and Wield.
+
+[gmriggs]
+* Added content export commands (/export-json, /export-sql) for content developers
+* Fixed some issues with teleporting
+* Ensure GetCleaveTarget() doesn't return targets in dying state
+* Updated Steel and Covenant Armor
+
+[Mag-nus]
+* Added some config.js.example comments
+* Relocated landblock tick code
+* Added more detailed landblock tick performance measurements
+* Added OS and vCPU to /serverstatus
+
+### 2019-08-18
+[Ripley]
+* Add support for Day/Night GeneratorTimeType generators.
+* Fixed issue with accounts that own monarch-only housing to now allow the other characters to swear allegiance.
+
+[gmriggs]
+* Added support for Pathwarden Salvage for newer items
+* Added warning / lockup prevention for RegenInterval < 0
+
+[Mag-nus]
+* Switch TickOutbound back to parallel
+* Added some debug messages to GuidManager
+
+### 2019-08-17
+[Theran]
+* Fix a possible array out of bounds exception in LootGenerationFactory_Magic.cs that could happen with tier 8
+* Add OverRobes to clothing drops
+* Remove unneeded return for OlthoiKoujiaArmor AL assignment
+
+[gmriggs]
+* Reduced log spam for dynamic projectiles unable to enter world
+
+### 2019-08-16
+[Ripley]
+* Fixed issue with invisible hooks on relinks (buy/abandon): bool/physicsstate mis-matches.
+* Fixed issue with RDB on house buy: missing InstanceIID update.
+* Fixed issue with logging into open houses: missing IsOpen check.
+* Added Destroy() for items given to NPCs that are of AiAcceptEverything type.
+
+### 2019-08-15
+[Theran]
+* Add over-robes
+* Updates from LSD
+* First pass for new mobs Snow Tusker, Bak'tshay Soldier, and Rynthid Rager; no spawn data for most of them, so they would need to be manually spawned
+* First pass for Graveyard skeleton and wisp mobs and generators for day/night cycle shifting
+* Guid corrections
+* Modify how the Xik Minru event transpires, in the background; change should be transparent to the player
+* Fix mana on PathWarden Trinket
+* Add Risen Princess weenies
+* Update Tome of Blood and Bone
+
+### 2019-08-14
+[dirtyelf]
+* Added the ability to create stacks and multiple objects with /create
+
+[gmriggs]
+* Improved collision detection for archers
+* Added some random null checks
+* Fixed some teleport issues
+
+### 2019-08-13
+[gmriggs]
+* Added DamageType.Undef protection / logging
+
+### 2019-08-12
+[dgarson]
+* Added command to create named object, with specified count
+
+[OptimShi]
+* Fixed some reported issues with the visual display of different layered armor.
+
+[Ripley]
+* Updated PreCheckItem to be more specific about inventory/container slots.
+
+[gmriggs]
+* Fixed some minor housing issues
+* Fixed stiletto animations
+
+[Theran]
+* Removed a few retired rares, updated some others that changed wcids
+* Added more objects from MoA and updated content from Lifestoned
+
+### 2019-08-11
+[Ripley]
+* Updated ManaStone objects use message.
+* Fixed issue with UnlimitedUse ManaStones.
+* Fixed issue with IsDecayable and TimeToRot.
+* Restored Casting motion to Vendors that have VendorServices.
+* Fix data desync issue with BiotaPropertiesSpellBook Probability.
+
+[Theran]
+* Backport Vissidal weenie mods from Lifestoned
+* Updated Facility Hub spawn map
+* Restored some missing NPCs
+
+[gmriggs]
+* Added IsDead check to falling damage
+* Added support for spell projectile traps
+* Fixed an issue with Tenacity/Blight
+  - Updated spell messages to match retail
+* Fixed casting gesture for built-in weapon spells
+
+[dirtyelf]
+* Updated /god command serializer for better type handling
+
+### 2019-08-10
+[OptimShi]
+* Updated drop location for several recall spells to match end of retail
+
+[Ripley]
+* Wire up `bestow` and `remove` for advocate system.
+* Updated several misc Advocate systems.
+* Fixed issue with encounter overrides not applying to cached value.
+
+[gmriggs]
+* Added trophy drop rate config option
+* Added SyncLocation() for enter_world()
+  - This fixes a bug where scatter generators were sending the wrong position to the client
+
+### 2019-08-09
+[Ripley]
+* Added Facility Hub Gem to early exit NPCs
+* Updated Dark Tree Crystal Mine to MinLevel 100
+* Updated Scarlet Red Letters and sentries
+* Tweaked Snow Lily Trap
+
+### 2019-08-07
+[OptimShi]
+* Tailoring cleanup
+
+### 2019-08-06
+[Mag-nus]
+* Added log4net.config.example
+
+[gmriggs]
+* Added tinkering log
+* Added RestrictionDB to house combat barriers
+
+[Theran]
+* Added versioning and ArmorTypes to Olthoi Armor
+* Normalized Olthoi Armor AL values
+
+[Ripley]
+* Updated the PK altar MinimumTimeSincePk from 3 hours to 15 minutes to match end of retail
+
+### 2019-08-05
+[Ripley]
+* Add immediate save to items being picked up from player corpses to avoid falling into void if server crashes before next player save.
+* Updated more logging relating to corpses for history tracking.
+* Fix issue with EventIsPKWorld.
+* Add in NPK grace-period for newly created characters on PK worlds and optional enabling via `pk_server_safe_training_academy` configurable
+* Improve handling for world type switches, NPK to PK, PK to NPK, etc.
+* Improve handling for player pk status switching and timeouts.
+* Added `pk_new_character_grace_period` and `pk_respite_timer` configuration options.
+* Restored global PK death messages, player configurable via "Listen to PK deaths messages." character option.
+
+[gmriggs]
+* Added house barrier protections for PK/PKLite
+* Updated start-server netcore version
+* Added handlers for hand/foot armor without damage stats
+* Updated PK deaths to only go temporarily NPK from PK battles
+
+### 2019-08-04
+[Ripley]
+* Update AuthenticationHandler to boot oldest connection to account when new one connects with valid login/password.
+ - Added new server configurable property `account_login_boots_in_use`, enabled by default retail rule.
+
+* Restored Morathe to Candeth Keep
+
+ [gmriggs]
+ * Fixed GetDamageType() for UAC low power attacks
+ * Added support for HomeRadius
+ * Refined HandArmor/FootArmor selector
+ * Fixed monster location desync after MoveHome()
+ * Fixed untrained message for skill temple
+ * Persisted allegiance bans and approved vassals to database
+
+### 2019-08-03
+[Ripley]
+* Add support for AdminEnvirons
+  - Wired up support commands `setlbenviron` and `setglobalenviron`
+  - `setglobalenviron` is operates exactly as seen in retail worlds. in that it affects all players globally throughout the world, including bug with dungeons.
+  - `setlbenviron` operates differently in that it localizes effect to landblock and immediate adjacent landblocks for area-based events.
+
+[OptimShi]
+* Updated some properties for Armor Middle Reduction Tool
+
+[gmriggs]
+* Fixed some issues with item spells redirecting to unenchantable targets
+* Fixed various vital enchantment calc errors
+* Removed AttackType.OffhandSlash from Mazules and Flanged Maces
+* Added handlers for weapons w/ malformed offhand AttackType data
+
+### 2019-08-02
+[Ripley]
+* Swap out some properties relating to Local Signals for more specific one found in property buckets.
+
+[gmriggs]
+* Improved player melee attack animations
+
+### 2019-07-31
+[gmriggs]
+* Improved squelch system
+* Added support for global /filters by message type
+* Removed some redundant broadcasts
+* Fixed a bug with some emotes such as *wave* playing multiple times
+* Added PK Arenas / PKLite Arenas
+
+[dgarson]
+* Added configurable 'player_save_interval' seconds config property for server admins
+
+### 2019-07-28
+[Ripley]
+* Wire up full support for contract system.
+  - This requires a shard update script found in updates folder: `2019-07-22-00-Update_Contracts.sql`
+
+[Theran]
+* Separate out undead summon weapons
+* Added more weenies, and corrections from LSD
+* Added Skittering Mukkir
+* Move patch Evolution weenies
+
+[gmriggs]
+* Filtering houses from /create and /ci
+
+### 2019-07-27
+[gmriggs]
+* Added RestrictionDB null prevention
+* Clamped local broadcast range for pklite messages
+* Added epic / legendary cantrip logging
+
+[Theran]
+* Removed loot gen properties from quest item
+
+### 2019-07-25
+[OptimShi]
+* Fix to allow *null* EncumberanceVal items to be carried.
+
+[dgarson]
+* Added pkl_server admin config option
+
+[Ripley]
+* Add forced save to db for items being moved between players to prevent loss if crash occurs before normal save interval.
+
+[gmriggs]
+* Fixed a bug when multiple items level up simultaneously
+* Fixed a bug with transferring items from side packs -> main pack @ max burden
+* Added prevention / debug code for spellbook probability 0
+* Added support for RemainingLifespan
+
+### 2019-07-24
+[OptimShi]
+* Added support for proper visual display of Layered Armor (Tailoring) and Reduced Armor (Tailoring) as well as future items such as Over-Robes.
+
+[gmriggs]
+* Fixed animation bug for unarmed combat - low power, high attack
+
+[dgarson]
+* Added IsBusy checks for recalls / PKLite commands
+
+### 2019-07-23
+[gmriggs]
+* Added universal weapon masteries
+* Fixed some bugs for PK/PKLite
+
+[dirtyelf]
+* Added /ungod command
+
+[Theran]
+* Fixed the deadly prismatic dart recipes
+
+[Slushnas]
+* Set NonTracking to True for later arc spells
+
+### 2019-07-22
+[Slushnas]
+* Added Curse of Raven Fury spell
+
+[dgarson]
+* Ensure players are unattackable while in portal space
+* Removed attribute cantrips from jewelry loot generator
+* Include material type in give item message
+
+[series8217]
+* Fixed string buffer overrun / leaked memory in packet logs
+
+[gmriggs]
+* Updated war/void magic projectile skill damage bonus to match retail
+* Syncing kill task shareable range with radar
+* Capped passup xp display to uint.MaxValue to match client
+* Added Critical Protection Augmentation message
+
+### 2019-07-20
+[gmriggs]
+* Fixed a StackSize 0 bug in WieldedTreasure
+* Fixed Thrungus special attack
+* Added support for Ebon Rifts multiple damage types
+
+[series8217]
+* Improved database setup instructions in Readme.md
+
+[Theran]
+* Fixed physical damage on Wave and Aqueous Golems
+* Add the four undead mobs for Vissidal from LSD
+* Add new treasure table entry used by Ghastly Priestess and Shambling Adherent
+* Update one of the Vissidal landscape generators to include the undead for spawning near the Temple of Xik Minru
+
+[Slushnas]
+* Updated number of projectiles for Curse of Raven Fury to match retail pcaps
+* Adjusted drain and damage modifiers to match retail spell description
+
+### 2019-07-19
+[Ripley]
+* Fixed Black Marrow Keyring Recipes
+
+[gmriggs]
+* Added optional debug info for RecipeMods
+* Updated mana conversion to better match retail
+* Suicide refactoring
+* Fixed a weapon swapping client bug
+* Improved calcs / appraisal info for Spirit Thirst
+
+[Theran]
+* Cantrip and weenie updates
+* Temple of Xik Minru portal location update
+* Update Jedetj Eckhart and add more Vissidal region spawn data
+* Correct Dar Rell speech emote formating
+* Fix portal spell and move chest
+
+### 2019-07-18
+[gmriggs]
+* Fixed a bug with monster Ranks -> InitLevel
+* Adding Surge of Regeneration tick messages
+* Added Medicated Healing Kits to Rare T3 tables, and elixirs to Rare T2 tables
+* Scaling SrcVital to DestVital for life transfer spells
+
+### 2019-07-17
+[Ripley]
+* Further adjust vendor sell fix to include correct error msg when 0 items are sold as a result of a fail.
+* Added EdgeSlide to Aetheria wisps
+
+[gmriggs]
+* Improved / refactored enchantment messages
+* Fixed a bug with Aetheria DoT durations
+
+[Theran]
+* Increased spawns on Vissidal Island
+
+### 2019-07-16
+[Ripley]
+* Fix issue with HousePortal permissions, IsOpen saving.
+
+[gmriggs]
+* Adjusting epic cantrip drop rates
+* Added support for HealOverTime enchantments
+* Fixed a bug where Aetheria could be wielded into unopened slots
+* Update quest XP test notification messages
+* Fixed a bug where bows and thrown weapons were showing (based on STRENGTH 100) during appriasal
+* Added Spirit Thirst cantrips to LootGenerationFactory
+
+### 2019-07-15
+[Ripley]
+* Various updates to Housing objects related to assessment
+* Increase guestlist to 128 to match end of retail number.
+* Stored Open status of house in different property to allow for future option to use HouseStatus to turn off rent.
+
+[Mag-nus]
+* Added WorldObject info to ActionQueue output
+
+[gmriggs]
+* Adjusted Aetheria drop rates closer to retail, fixed drop rate mods
+* Fixed a bug with missing ManaRates
+* Fixed a bug with level proportional xp
+
+[Theran]
+* Updated Creature Combat Skills for MoA
+
+### 2019-07-13
+[gmriggs]
+* Fixed a bug with item auras
+
+[Theran]
+* Updated all weapon aura spells for MoA
+
+### 2019-07-12
+[Ripley]
+* Added Aetheria quest
+* Fix issue with some recipe changes and ObjectDescriptionFlags
+
+[gmriggs]
+* Added ObjMaint v3 - much improved object visibility system, improved/clearer architecture, fixes many bugs
+* Added /import-json all, and /import-sql all commands for content creators
+
+[Mag-nus]
+* Added dungeon landblock counts, and unique connection count to /serverstatus
+
+[Theran]
+* Added Aetheria to LootGenerationFactory
+* Refactored LootGenerationFactory magic code
+
+### 2019-07-11
+[Mag-nus]
+* Updated Dat SubPalette and TextureMapChanges properties
+
+### 2019-07-10
+[Ripley]
+* Clean up error on sell to Vendor fail message.
+
+[gmriggs]
+* Refactored ObjectDescriptionFlags
+* Added multihouse decomissioning system
+* Refactored HouseManager
+* Added house_per_char server config option
+* Added apartment deed location info
+
+[Mag-nus]
+* Upgraded project to .NET Core 2.2.1
+
+### 2019-07-09
+[gmriggs]
+* Fixed some bugs for two-handed weapons
+* Improved /delete for admins
+
+[Theran]
+* Updated Aetheria items
+* Added Vissial Island spawns
+
+### 2019-07-08
+[Ripley]
+* Add support for a version command response. Gives a basic idea of what version database is running currently and if running in debug/release mode.
+
+[Mag-nus, gmriggs]
+* Fixed a memory leak in the object visibility system
+
+[gmriggs]
+* Converted HandleAugsForwardCompatibility -> SetInnateAugs during character creation
+
+[Theran]
+* Added Tether and Core Plating recipes
+
+[Mag-nus]
+* Improved consistency for InventoryLoaded flag
+
+### 2019-07-07
+[Ripley]
+* Only allow use of Hookers on Hooks.
+* Fix some issues with using certain Hookers that were previously broken.
+* Fix issues with Books on hooks, Chalk Boards now writable for all as expected, all other books readable.
+* Fix some miscellaneous Aetheria issues.
+
+### 2019-07-06
+[Ripley, Mag-nus]
+* Add `2019-06-10-00-Add_Fields_To_Account_Table.sql` to Auth Updates folder. Servers are required to update Auth database with this script.
+* Rescaffolded to add in new fields to Account.
+* Add in creation ip/time and last login ip/time to account creation/login.
+
+[gmriggs]
+* Fixed a bug where Gharu'ndim and Empyrean caster appraisal wasn't showing Heritage weapon mastery bonus
+
+[Mag-nus]
+* Updated documentation to latest version of MySQL
+
+### 2019-07-05
+[gmriggs]
+* Refactored healing ratings
+* Additional IsBusy checks
+
+### 2019-07-04
+[Ripley]
+* Add DoNothing ActOnUse to CraftTool.
+* Adjust EmoteManager
+  - Wire up EmoteType.LocalSignal.
+  - Wire up EmoteCategory.ReceiveLocalSignal.
+  - Adjust EmoteType.Activate to fall back to linked generator if no activation target is specified.
+* Add Landblock.EmitSignal to support localized object interaction.
+
+[Mag-nus]
+* Updated PlacementPosition types
+
+[gmriggs]
+* Improved handling for leveling up items casting spells
+
+### 2019-07-03
+[dirtyelf]
+* Updated Siraluun weapons
+
+### 2019-07-01
+[Ripley]
+* Fix issue with converting books from JSON to SQL.
+* Adjusted some debug output.
+* Add overridden properties for region encounter generators.
+  - override_encounter_spawn_rates
+    - encounter_regen_interval
+    - encounter_delay
+* Allow camp generators to despawn
+  - When a full "camp" is wiped, if the camp has a parent generator, destroy it so the parent generator can roll the slot again.
+* Added data error protection for treasure data in generator profiles.
+
+[gmriggs]
+* Added account-wide house recall / account house permissions
+* Added JSON weenie import, and live editing features for content creators
+
+### 2019-06-30
+[Mag-nus]
+* Renamed Envoy references to Sentinel
+
+[Ripley]
+* Updated Knight's Stash, and some other generator profiles
+
+[gmriggs]
+* Fixed a bug with handing equipped items to Town Criers
+
+### 2019-06-29
+[Ripley]
+* Clean up issue with Weenie Cache corruption via admin commands/player creation.
+
+[gmriggs]
+* Fixed some bugs for PKLite
+
+### 2019-06-28
+[Theran]
+* Fix issue with invisible Acid hotspot
+* Add quest flags, update emote tables to allow reentry/reuse of Gatekeeper crystals. This is not retroactive to those who have already completed it. Turning in those required items will fix it for those characters going forward.
+* Update Water and Flame Guardian npcs
+  - Fix clothingbase/palette template for appearances
+
+[gmriggs]
+* Fixed various inventory stack bugs
+
+### 2019-06-27
+[OptimShi]
+* Fixed issue with Recipe Manager "CopyFromSourceToResult" not using the player as the source.
+
+[gmriggs]
+* Fixed a bug with corpse/chest inventory closing when trying to loot from magic combat mode
+* Log cleanup
+
+### 2019-06-26
+[Mag-nus]
+* Additional network fixes
+* Updated CommandParser for better handling of multiple arguments with spaces
+
+[gmriggs]
+* Fixed a bug where irresistible spells could be resisted
+* Indexing biota_wcid db column, improved mansion/villa basement loading speed
+
+### 2019-06-25
+[Theran]
+* Vissidal flagging quest
+* Fix give chests spamming server logs about MaxGeneratedObjects being less than InitGeneratedObjects
+* Update Tibri the Cavedweller and Peng-Ya
+* Add missing MaterialType to Foolproof Salvage
+
+[Mag-nus]
+* Added multi-homed internet support
+
+[gmriggs]
+* Fixed item proc sources and messages
+* Fixed edge case for equipping thrown weapon w/ dual weapon wielded
+* Added defense spec bonuses
+
+### 2019-06-24
+[Ripley]
+* Update GetCachedInstancesByLandblock for external exporting
+
+### 2019-06-23
+[Ripley]
+* Fix issue of weenie cache corruption, setting the weenie's weenietype instead of biota's weenietype
+* Ensure subbed combatpets are always melee-ing by not spawning any inventory/weapons.
+* Generator system tweaks
+  - Carry over Delay from profile template correctly.
+  - Update RemoveQueue info in GeneratorDump.
+  - Adjust CurrentCreate to be calculated to prevent out-of-sync issues.
+
+[nwacks]
+* Fixed a bug where stamina/mana kits could not be used at full health (was performing wrong vital checks)
+
+[gmriggs]
+* Additional refactoring for healing kits
+
+[dirtyelf]
+* Updated Nullify Item Magic scroll drop
+
+### 2019-06-22
+[Ripley]
+* Expand `qst` command.
+* Code fix for out of order emote sets.
+* Fix issue with food consumables ObjectDescriptionFlag.
+* Fix issue with certain doors.
+
+[gmriggs]
+* Updating outdoor house references for unloaded landblocks
+
+### 2019-06-21
+[Ripley]
+* Generator system revamp
+  - Add Landblock_Tick_GeneratorRegeneration
+  - Split up Generator Regeneration and Heartbeats
+  - Notify Geneator of Pickup of Landblock Stackable
+  - Add RegenerationTimestamp and GeneratedTreasureItem properties
+  - Add InitializeGenerator
+  - Remove IsLinked
+  - Change SelectProfilesInit to use GetMaxObjects
+  - Change SelectProfilesMax to use GetMaxObjects
+  - Update GetMaxObjects
+    - -1 MaxCreate == Fill up all slots
+  - Renamed HandleStatus to HandleStatusStaged
+  - Restore previous HandleStatus
+  - Update StartGenerator
+    - GeneratorInitialDelay > 0: offset NextGeneratorRegenerationTime
+    - else if InitCreate > 0: Regen
+  - Add GetNextRegenerationTime
+    - If generator isn't previously loaded, skip delay
+  - Update DisableGenerator
+    -  Add ProcessGeneratorDestructionDirective
+    - Support GeneratorDestructionType and GeneratorEndDestructionType
+  - Update AddGeneratorLinks
+    - Increment InitCreate and MaxCreate per profile template spec (placeholder), per each link added
+  - Update Generator_HeartBeat
+    - Starts/Stops Generator, checks event status
+  - Add Generator_Regeneration
+    - Queues for Respawn and/or/both Spawns objects
+  - Add ResetGenerator
+  - Update GetSpawnTime to always return UtcNow
+  - Update Spawn
+    - If TreasureGenerator is used, set GeneratedTreasureItem
+    - If profile PaletteId and/or/both Shade have value, use it
+  - Wire up `@regen` command
+  - Add `@generatordump` command
+  - Change EmoteType.Generate to use Generator_Regeneration
+  - Update OnDeath to call OnGeneratorDeath for Generators
+  - Update OnActivate
+    - Move default action to last action to allow other actions to start before
+    - Change OnGenerate to use Generator_Regeneration
+  - Update Chests
+    - Remove ResetGenerator
+    - If Locked disable timed regen of contents
+    - Update Reset
+    - Override ResetGenerator
+    - Update ResetInterval resetting
+  - Rename Generator to GeneratorProfile
+  - Rename Generator.cs to GeneratorProfile.cs
+  - Update WorldObject_Generators.cs
+    - Skip PlaceHolder object profiles
+    - Change ProcessGeneratorDestructionDirective to not affect dead/dying creatures
+  - Update WorldObject_Generators.cs
+    - Bad data protection
+  - Code fix for linkitemgen2minutes
+    - Bad Init/Max for this linkable
+  - Add GeneratorUpdateTimestamp
+  - GeneratorHeartbeat renamed to GeneratorUpdate
+    - This matches property found in enum
+
+* Stop saving Gateway portals to Shard DB
+* Add IsGateway to Portal
+* Add default sound to Pressure Plates
+* Update Corpse Decay Logging
+* Do not change default icon unless Shade or Palette was defined
+* Add NpcInteractsSilently handling for EmoteType.Give
+* Wire up `trophies` command
+
+[gmriggs]
+* Fixed highframe bug for level 6 spellcasts
+* Fixed some vitae bugs
+* Prevent allegiance passup xp from reducing vitae
+* Refactored drop item
+
+### 2019-06-20
+[gmriggs]
+* Added PK timers
+* Improved item magic code
+
 ### 2019-06-19
 [Ripley]
 * Fire EmoteManager.OnDrop when an item is dropped to landblock. (Clutch of Kings (Rehir))
+* Added Morgluuk Linvak event
+
+[gmriggs]
+* Fixed a bug with house payments for offline allegiances
 
 ### 2019-06-18
 [OptimShi]
@@ -12,9 +878,90 @@
 * Prevent using Hookers if house isn't owned or is closed and player isn't on guestlist.
 * Fix gems that cast recall spells.
 
+* Fixed doubled up spawns in Matron Hive East
+* Minor changes to Destroyed Portals
+
+[gmriggs]
+* Fixing fellowship proportional xp sharing
+
+[Mag-nus]
+* ConnectionListener: Add NetworkReset error handling
+
+[dirtyelf]
+* Added Revitalize Other VI and Nullify Item Magic to loot system scroll drops
+
+[Theran]
+* Recipe updates / additions:
+  - Retired old Barbed Crop and Sharpened Virindi Scalpel in favor of updated recipes using MoA skill checks
+  - Added Foolproof salvage recipes
+  - Added Ancient Armor dye recipe
+
 ### 2019-06-17
+[gmriggs]
+* Adding ExperienceHandlingType, ShareType for xp classification
+* Updated fellowship quest bonus to match retail, with additional config options
+* Refactored consumables
+
 [Ripley]
+* Update Vendor Buy/Sell to validate item amounts before creation
 * Prevent using Hookers if they aren't hooked.
+* Updated Olthoi Hunter
+
+### 2019-06-16
+[gmriggs]
+* Updated fellowship kill tasks to match retail by default, with additional config options
+* More busy state checks during teleport
+* Updating allegiance chat channel when breaking from vassals
+
+[Ripley]
+* Some changes to Tomb of Adhorix
+
+### 2019-06-15
+[gmriggs]
+* Improved support for Phantom weapons
+* Added missile reload anim speed modifier
+* Added burden modifier
+* Fixed a bug where Oak Salvage couldn't be applied to melee weapon
+* Added support for swearing allegiance to lower level characters
+* ConfirmationManager refactoring
+
+### 2019-06-14
+[Slushnas]
+* Updated chess pieces so that drudges are white team
+* Added GameEventAllegianceLoginNotification packet
+* Updated Allegiance panel for online/offline status
+
+[Harli Quin]
+* Added more info to /debugdamage
+
+### 2019-06-13
+[Theran]
+* Fix prismatic ammunition
+* Continue to add UCoN content and quests
+* Fix Dire Mattekar Kill Task quest
+
+[Mag-nus]
+* More descriptive exceptions in ConnectionListener
+* Added ActionChain performance measurement
+* ObjectGuid.ToString() cleanup
+
+### 2019-06-11
+[Harli Quin]
+* Added /additemspell command for devs/admins - add a spell to an existing item
+
+[gmriggs]
+* Added multiple wield requirement checks
+
+[Mag-nus]
+* Landblock decay code cleanup
+
+### 2019-06-10
+[Mag-nus]
+* Updated Physics.WeenieObj to WeakReference<WorldObject>
+* NetworkSession.cachedPackets pruning
+
+[gmriggs]
+* Added Sandstone Salvage for new items, updated existing Sandstone Salvage bags
 
 ### 2019-06-09
 [Ripley]
@@ -26,9 +973,25 @@
 * Add HasComponentsForSpell checks to Player.CreatePlayerSpell for targeted and untargeted spells.
 * Fix issue with certain createlist profiles.
 
+[gmriggs]
+* Additional cleanup for ignoremagic*
+* Added Sandstone Salvage to RecipeManager
+
 ### 2019-06-08
 [Ripley]
 * Add LightSource Weenie class.
+
+[gmriggs]
+* Added lock resistance enchantments
+* Added /verify-skill-credits
+* More refactoring for hollow missile damage
+* Fixed a bug with item enchantments not ticking in side containers
+
+[dirtyelf]
+* Added /god admin command
+
+[Harli Quin]
+* Added more info to /debugdamage
 
 ### 2019-06-07
 [Ripley]
@@ -36,15 +999,47 @@
 * Adjust ItemMagic/SpellType.PortalSummon to use spell.Link instead of spell.Name.
 
 ### 2019-06-06
+[Theran]
+* Add Laurana to her Cavern home in Glenden Wood; currently using texture update properties to craft the NPC's correct look, until SedgeMail Leather armor is added to the game; will require ACE PR 1968 to make accessible
+* Add Lightning Longbow that is wielded by NPCs only
+* Add Invitation to Master Fletchers "portal gem"
+* Remove few spawns from Glenden Wood due to changes in town, such as doors in the air from a burned out structure
+* Correct Sho Pathwarden Chest to hand out correct racial Pathwarden Robe
+* Update Pathwardens to have the remaining WS5 granite and WS5 steel salvage at 33% reward on Pathwarden gear turn in
+* Add the two Salvage bag items used for the Pathwarden gear turn in
+* Add more Under Cover of Night patch weenies
+
 [Ripley]
 * Wire up EmoteType.TeleportTarget
 * Adjust appraisal code for better NpcLooksLikeObject handling.
+
+### 2019-06-04
+[Theran]
+* Start adding Under Cover of Night content, including some initial weenies and landblock spawns
+
+[gmriggs]
+* Added retained message for sandstone salvage
+* Updated crafting chance of success dialog
+* Fixed some issues with ivory and leather salvage
+* Fixed hollow damage for chorizite missile weapons
+* Fixed some issues with emote table RNG
 
 ### 2019-06-03
 [OptimShi]
 * Made a small adjustment to the GetPaletteID function that was, in certain circumstances, returning the wrong palette.
 
+### 2019-06-02
+[Mag-nus]
+* Move network/packet work from WorldManager to NetworkManager
+* Remove unused code from GameActionPacket
+* /auditobjectmaint
+* add /allstats, make /delete safer
+
 ### 2019-06-01
+[gmriggs]
+* Fixed tailoring for pauldrons
+* Fixed some gaps in house abandon / eviction for unloaded landblocks
+
 [Ripley]
 * Disable players putting or merging items into corpses. You can only pull from not push to.
 * Update logging for decay of corpses.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
@@ -28,6 +29,14 @@ namespace ACE.Server.WorldObjects
                 ChangesDetected = true;
 
             return spellAdded;
+        }
+
+        /// <summary>
+        /// Removes a known spell from the player's spellbook
+        /// </summary>
+        public bool RemoveKnownSpell(uint spellId)
+        {
+            return Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock, BiotaPropertySpells);
         }
 
         public void LearnSpellWithNetworking(uint spellId, bool uiOutput = true)
@@ -83,11 +92,11 @@ namespace ACE.Server.WorldObjects
 
             var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
 
-            var spells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+            var spells = GetSpellSet(setItems);
 
             // get the spells from before / without this item
             setItems.Remove(item);
-            var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+            var prevSpells = GetSpellSet(setItems);
 
             EquipDequipItemFromSet(item, spells, prevSpells);
         }
@@ -115,13 +124,79 @@ namespace ACE.Server.WorldObjects
 
             var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
 
-            var spells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+            var spells = GetSpellSet(setItems);
 
             // get the spells from before / with this item
             setItems.Add(item);
-            var prevSpells = GetSpellSet((EquipmentSet)item.EquipmentSetId, setItems);
+            var prevSpells = GetSpellSet(setItems);
 
             EquipDequipItemFromSet(item, spells, prevSpells);
+        }
+
+        public void OnItemLevelUp(WorldObject item, int prevItemLevel)
+        {
+            if (!item.HasItemSet) return;
+
+            var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
+
+            var levelDiff = prevItemLevel - (item.ItemLevel ?? 0);
+
+            var prevSpells = GetSpellSet(setItems, levelDiff);
+
+            var spells = GetSpellSet(setItems);
+
+            EquipDequipItemFromSet(item, spells, prevSpells);
+        }
+
+        public void AuditItemSpells()
+        {
+            // cleans up bugged chars with dangling item set spells
+            // from previous bugs
+
+            // get active item enchantments
+            var enchantments = Biota.GetEnchantments(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
+
+            foreach (var enchantment in enchantments)
+            {
+                // if this item is not equipped, remove enchantment
+                if (!EquippedObjects.TryGetValue(new ObjectGuid(enchantment.CasterObjectId), out var item))
+                {
+                    var spell = new Spell(enchantment.SpellId, false);
+                    log.Error($"{Name}.AuditItemSpells(): removing spell {spell.Name} from non-equipped item");
+
+                    EnchantmentManager.Dispel(enchantment);
+                    continue;
+                }
+
+                // is this item part of a set?
+                if (!item.HasItemSet)
+                    continue;
+
+                // get all of the equipped items in this set
+                var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
+
+                // get all of the spells currently active from this set
+                var currentSpells = GetSpellSet(setItems);
+
+                // get all of the spells possible for this item set
+                var possibleSpells = GetSpellSetAll((EquipmentSet)item.EquipmentSetId);
+
+                // get the difference between them
+                var inactiveSpells = possibleSpells.Except(currentSpells).ToList();
+
+                // remove any item set spells that shouldn't be active
+                foreach (var inactiveSpell in inactiveSpells)
+                {
+                    var removeSpells = enchantments.Where(i => i.SpellSetId == (uint)item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
+
+                    foreach (var removeSpell in removeSpells)
+                    {
+                        log.Error($"{Name}.AuditItemSpells(): removing spell {inactiveSpell.Name} from {item.EquipmentSetId}");
+
+                        EnchantmentManager.Dispel(removeSpell);
+                    }
+                }
+            }
         }
     }
 }

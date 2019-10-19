@@ -43,6 +43,7 @@ namespace ACE.Database.Models.World
         public virtual DbSet<TreasureMaterialColor> TreasureMaterialColor { get; set; }
         public virtual DbSet<TreasureMaterialGroups> TreasureMaterialGroups { get; set; }
         public virtual DbSet<TreasureWielded> TreasureWielded { get; set; }
+        public virtual DbSet<Version> Version { get; set; }
         public virtual DbSet<Weenie> Weenie { get; set; }
         public virtual DbSet<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
         public virtual DbSet<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
@@ -1284,6 +1285,27 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Unknown9).HasColumnName("unknown_9");
 
                 entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
+            });
+
+            modelBuilder.Entity<Version>(entity =>
+            {
+                entity.ToTable("version");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.BaseVersion)
+                    .HasColumnName("base_Version")
+                    .HasColumnType("varchar(45)");
+
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
+                entity.Property(e => e.PatchVersion)
+                    .HasColumnName("patch_Version")
+                    .HasColumnType("varchar(45)");
             });
 
             modelBuilder.Entity<Weenie>(entity =>

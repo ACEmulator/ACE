@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+
 using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -16,6 +17,11 @@ namespace ACE.Server.WorldObjects
     {
         public CombatMode CombatMode { get; private set; }
 
+        /// <summary>
+        /// The list of combat maneuvers performable by this creature
+        /// </summary>
+        public DatLoader.FileTypes.CombatManeuverTable CombatTable { get; set; }
+
         public DamageHistory DamageHistory;
 
         /// <summary>
@@ -28,17 +34,26 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public double LastWeaponSwap;
 
+        public float SetCombatMode(CombatMode combatMode)
+        {
+            return SetCombatMode(combatMode, out var _);
+        }
+
         /// <summary>
         /// Switches a player or creature to a new combat stance
         /// </summary>
-        public float SetCombatMode(CombatMode combatMode)
+        public float SetCombatMode(CombatMode combatMode, out float queueTime)
         {
-            //Console.WriteLine($"SetCombatMode({combatMode})");
-
             // check if combat stance actually needs switching
             var combatStance = GetCombatStance();
+
+            //Console.WriteLine($"{Name}.SetCombatMode({combatMode}), CombatStance: {combatStance}");
+
             if (combatMode != CombatMode.NonCombat && CurrentMotionState.Stance == combatStance)
+            {
+                queueTime = 0.0f;
                 return 0.0f;
+            }
 
             if (CombatMode == CombatMode.Missile)
                 HideAmmo();
@@ -66,7 +81,8 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            var queueTime = HandleStanceQueue(animLength);
+            queueTime = HandleStanceQueue(animLength);
+
             //Console.WriteLine($"SetCombatMode(): queueTime({queueTime}) + animLength({animLength})");
             return queueTime + animLength;
         }
@@ -235,7 +251,7 @@ namespace ACE.Server.WorldObjects
             if (caster != null)
                 return MotionStance.Magic;
 
-            var weapon = GetEquippedWeapon();
+            var weapon = GetEquippedWeapon(true);
             var dualWield = GetDualWieldWeapon();
             var shield = GetEquippedShield();
 
@@ -377,10 +393,12 @@ namespace ACE.Server.WorldObjects
         /// <param name="attackType">Uses strength for melee, coordination for missile</param>
         public float GetAttributeMod(WorldObject weapon)
         {
-            if (weapon != null && weapon.IsBow)
-                return SkillFormula.GetAttributeMod(PropertyAttribute.Coordination, (int)Coordination.Current);
-            else
-                return SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)Strength.Current);
+            var isBow = weapon != null && weapon.IsBow;
+
+            //var attribute = isBow || GetCurrentWeaponSkill() == Skill.FinesseWeapons ? Coordination : Strength;
+            var attribute = isBow || weapon?.WeaponSkill == Skill.FinesseWeapons ? Coordination : Strength;
+
+            return SkillFormula.GetAttributeMod((int)attribute.Current, isBow);
         }
 
         /// <summary>
@@ -393,17 +411,32 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the pre-MoA skill for a non-player creature
+        /// Returns the current weapon skill for non-player creatures
         /// </summary>
         public virtual Skill GetCurrentWeaponSkill()
         {
             var weapon = GetEquippedWeapon();
-            if (weapon == null) return Skill.UnarmedCombat;
 
-            var skill = (Skill)(weapon.GetProperty(PropertyInt.WeaponSkill) ?? 0);
+            var skill = weapon != null ? weapon.WeaponSkill : Skill.UnarmedCombat;
+
+            var creatureSkill = GetCreatureSkill(skill);
+
+            if (creatureSkill.InitLevel == 0)
+            {
+                // convert to post-MoA skill
+                if (weapon != null && weapon.IsRanged)
+                    skill = Skill.MissileWeapons;
+                else if (skill == Skill.Sword)
+                    skill = Skill.HeavyWeapons;
+                else if (skill == Skill.Dagger)
+                    skill = Skill.FinesseWeapons;
+                else
+                    skill = Skill.LightWeapons;
+            }
+
             //Console.WriteLine("Monster weapon skill: " + skill);
 
-            return skill == Skill.None ? Skill.UnarmedCombat : skill;
+            return skill;
         }
 
         /// <summary>
@@ -864,14 +897,15 @@ namespace ACE.Server.WorldObjects
             // Dirty Fighting! <Player> delivers a <sic> Unbalancing Blow to <target>!
             //var article = spellBase.Name.StartsWithVowel() ? "an" : "a";
 
-            var msg = new GameMessageSystemChat($"Dirty Fighting! {Name} delivers a {spell.Name} to {target.Name}!", ChatMessageType.Combat);
+            var msg = $"Dirty Fighting! {Name} delivers a {spell.Name} to {target.Name}!";
 
             var playerSource = this as Player;
             var playerTarget = target as Player;
+
             if (playerSource != null)
-                playerSource.Session.Network.EnqueueSend(msg);
+                playerSource.SendMessage(msg, ChatMessageType.Combat, this);
             if (playerTarget != null)
-                playerTarget.Session.Network.EnqueueSend(msg);
+                playerTarget.SendMessage(msg, ChatMessageType.Combat, this);
         }
 
         /// <summary>
@@ -983,6 +1017,75 @@ namespace ACE.Server.WorldObjects
 
             foreach (var tryProcItem in tryProcItems)
                 tryProcItem.TryProcItem(this, target);
+        }
+
+        public static Skill GetDefenseSkill(CombatType combatType)
+        {
+            switch (combatType)
+            {
+                case CombatType.Melee:
+                    return Skill.MeleeDefense;
+                case CombatType.Missile:
+                    return Skill.MissileDefense;
+                case CombatType.Magic:
+                    return Skill.MagicDefense;
+                default:
+                    return Skill.None;
+            }
+        }
+
+        /// <summary>
+        /// Wakes up a monster if it can be alerted
+        /// </summary>
+        public bool AlertMonster(Creature monster)
+        {
+            if ((monster.Attackable || monster.TargetingTactic != TargetingTactic.None) && monster.MonsterState == State.Idle && monster.Tolerance == Tolerance.None)
+            {
+                //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
+                monster.AttackTarget = this;
+                monster.WakeUp();
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the damage type for the currently equipped weapon / ammo
+        /// </summary>
+        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
+        public virtual DamageType GetDamageType(bool multiple = false, CombatType? combatType = null)
+        {
+            // old method, keeping intact for monsters
+            var weapon = GetEquippedWeapon();
+            var ammo = GetEquippedAmmo();
+
+            if (weapon == null)
+                return DamageType.Bludgeon;
+
+            if (combatType == null)
+                combatType = GetCombatType();
+
+            var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
+
+            var damageTypes = damageSource.W_DamageType;
+
+            // returning multiple damage types
+            if (multiple) return damageTypes;
+
+            // get single damage type
+            var motion = CurrentMotionState.MotionState.ForwardCommand.ToString();
+            foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
+            {
+                if ((damageTypes & damageType) != 0)
+                {
+                    // handle multiple damage types
+                    if (damageType == DamageType.Slash && motion.Contains("Thrust"))
+                        continue;
+
+                    return damageType;
+                }
+            }
+            return damageTypes;
         }
     }
 }

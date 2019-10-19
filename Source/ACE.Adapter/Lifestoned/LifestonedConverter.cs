@@ -34,15 +34,15 @@ namespace ACE.Adapter.Lifestoned
                     result.ClassName = clsName.Substring(0, clsName.Length - 6);
                 }
                 else
-                    result.ClassName = "ace" + input.WeenieClassId + "-" + input.Name.Replace("'", "").Replace(" ", "").Replace(".", "").Replace("(", "").Replace(")", "").Replace("+", "").Replace(":", "").Replace("_", "").Replace("-", "").Replace(",", "").ToLower();
+                    result.ClassName = "ace" + input.WeenieClassId + "-" + input.Name.Replace("'", "").Replace(" ", "").Replace(".", "").Replace("(", "").Replace(")", "").Replace("+", "").Replace(":", "").Replace("_", "").Replace("-", "").Replace(",", "").Replace("\"", "").ToLower();
 
                 result.Type = input.WeenieTypeId;
 
                 if (input.Book != null)
                 {
                     result.WeeniePropertiesBook = new WeeniePropertiesBook();
-                    result.WeeniePropertiesBook.MaxNumPages = result.WeeniePropertiesBook.MaxNumPages;
-                    result.WeeniePropertiesBook.MaxNumCharsPerPage = result.WeeniePropertiesBook.MaxNumCharsPerPage;
+                    result.WeeniePropertiesBook.MaxNumPages = input.Book.MaxNumberPages; 
+                    result.WeeniePropertiesBook.MaxNumCharsPerPage = input.Book.MaxCharactersPerPage;
 
                     if (input.Book.Pages != null)
                     {

@@ -12,6 +12,7 @@ namespace ACE.Entity.Enum.Properties
         Undef                            = 0,
         [Ephemeral][ServerOnly]
         Stuck                            = 1,
+        [Ephemeral]
         Open                             = 2,
         Locked                           = 3,
         RotProof                         = 4,
@@ -95,6 +96,7 @@ namespace ACE.Entity.Enum.Properties
         IgnoreMagicResist                = 65,
         IgnoreMagicArmor                 = 66,
         AiAllowTrade                     = 67,
+        [SendOnLogin]
         SpellComponentsRequired          = 68,
         IsSellable                       = 69,
         IgnoreShieldsBySkill             = 70,

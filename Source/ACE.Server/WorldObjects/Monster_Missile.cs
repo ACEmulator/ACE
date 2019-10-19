@@ -101,13 +101,13 @@ namespace ACE.Server.WorldObjects
 
                 if (AttackTarget != null)
                 {
-                    var projectile = LaunchProjectile(ammo, AttackTarget, out targetTime);
+                    var projectile = LaunchProjectile(weapon, ammo, AttackTarget, out targetTime);
                     UpdateAmmoAfterLaunch(ammo);
                 }
             });
 
             // will ammo be depleted?
-            if (ammo.StackSize == 1)
+            if (ammo.StackSize == null || ammo.StackSize <= 1)
             {
                 // compare monsters: lugianmontokrenegade /  sclavusse / zombielichtowerarcher
                 actionChain.EnqueueChain();
@@ -134,8 +134,8 @@ namespace ACE.Server.WorldObjects
             }
             //Console.WriteLine($"Reload time: launchTime({launchTime}) + reloadTime({reloadTime}) + linkTime({linkTime})");
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
-                    (int)ACE.Entity.Enum.Placement.RightHandCombat)));
+            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
+                    ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.EnqueueChain();
 

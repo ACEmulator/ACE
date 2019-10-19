@@ -9,16 +9,16 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public AttackType MAttackType
+        public AttackType W_AttackType
         {
             get => (AttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
-            set { if (value == AttackType.Undef) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
+            set { if (value == 0) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
         }
 
-        public int? W_WeaponType
+        public WeaponType W_WeaponType
         {
-            get => GetProperty(PropertyInt.WeaponType) ?? 0;
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, value.Value); }
+            get => (WeaponType)(GetProperty(PropertyInt.WeaponType) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, (int)value); }
         }
 
         public Skill WeaponSkill
@@ -27,10 +27,10 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.WeaponSkill); else SetProperty(PropertyInt.WeaponSkill, (int)value); }
         }
 
-        public int? W_DamageType
+        public DamageType W_DamageType
         {
-            get => GetProperty(PropertyInt.DamageType) ?? 0;
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.DamageType); else SetProperty(PropertyInt.DamageType, value.Value); }
+            get => (DamageType)(GetProperty(PropertyInt.DamageType) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.DamageType); else SetProperty(PropertyInt.DamageType, (int)value); }
         }
 
         /// <summary>
@@ -233,7 +233,7 @@ namespace ACE.Server.WorldObjects
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (weapon == null)
+            if (wielder == null || weapon == null)
                 return defaultMagicCritFrequency;
 
             var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultMagicCritFrequency);
@@ -266,7 +266,7 @@ namespace ACE.Server.WorldObjects
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (weapon == null)
+            if (wielder == null || weapon == null)
                 return defaultCritMultiplier;
 
             var critDamageMod = (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritMultiplier);
@@ -301,7 +301,7 @@ namespace ACE.Server.WorldObjects
 
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (weapon == null)
+            if (wielder == null || weapon == null)
                 return modifier;
 
             if (weapon.GetProperty(PropertyInt.SlayerCreatureType) != null && target != null)
@@ -312,40 +312,40 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns a multiplicative elemental damage bonus for the magic caster weapon type
+        /// PvP damaged is halved, automatically displayed in the client
+        /// </summary>
+        public static readonly float ElementalDamageBonusPvPReduction = 0.5f;
+
+        /// <summary>
+        /// Returns a multiplicative elemental damage modifier for the magic caster weapon type
         /// </summary>
         public static float GetCasterElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
         {
-            // A multiplicative bonus, so the default is 1
-            float elementalDmgBonusPvPReduction = 0.5f;
-            float modifier = defaultBonusModifier;
+            var weapon = GetWeapon(wielder as Player);
 
-            var wielderAsPlayer = wielder as Player;
-            var targetAsPlayer = target as Player;
+            if (wielder == null || !(weapon is Caster) || weapon.W_DamageType != damageType)
+                return 1.0f;
 
-            WorldObject weapon = GetWeapon(wielderAsPlayer);
+            var elementalDamageMod = weapon.ElementalDamageMod ?? 1.0f;
 
-            if (weapon is Caster)
-            {
-                var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
-                if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
-                {
-                    var casterElementalDmgMod = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? modifier) + wielder.EnchantmentManager.GetElementalDamageMod();
-                    if (casterElementalDmgMod > modifier)
-                    {
-                        modifier = casterElementalDmgMod;
-                        if (wielderAsPlayer != null && targetAsPlayer != null)
-                            modifier = 1.0f + (casterElementalDmgMod - 1.0f) * elementalDmgBonusPvPReduction;
-                    }
-                }
-            }
-            return modifier;
+            // additive to base multiplier
+            var wielderEnchantments = wielder.EnchantmentManager.GetElementalDamageMod();
+            var weaponEnchantments = weapon.EnchantmentManager.GetElementalDamageMod();
+
+            var enchantments = wielderEnchantments + weaponEnchantments;
+
+            var modifier = (float)(elementalDamageMod + enchantments);
+
+            if (modifier > 1.0f && wielder is Player && target is Player)
+                modifier = 1.0f + (modifier - 1.0f) * ElementalDamageBonusPvPReduction;
+
+            return (float)(elementalDamageMod + enchantments);
         }
 
         /// <summary>
         /// Returns an additive elemental damage bonus for the missile launcher weapon type
         /// </summary>
-        public static int GetMissileElementalDamageModifier(Creature wielder, DamageType damageType)
+        public static int GetMissileElementalDamageBonus(Creature wielder, DamageType damageType)
         {
             // An additive bonus, so the default is zero
             int modifier = 0;
@@ -376,7 +376,7 @@ namespace ACE.Server.WorldObjects
 
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (weapon == null)
+            if (wielder == null || weapon == null)
                 return defaultBonusModifier;
 
             var weaponResistanceModifierType = weapon.GetProperty(PropertyInt.ResistanceModifierType) ?? (int)DamageType.Undef;
@@ -425,7 +425,7 @@ namespace ACE.Server.WorldObjects
                 case DamageType.Electric:
                     return ImbuedEffectType.ElectricRending;
                 case DamageType.Nether:
-                    return ImbuedEffectType.Undef;  // none?
+                    return ImbuedEffectType.NetherRending;
                 default:
                     //Console.WriteLine($"GetRendDamageType({damageType}) unexpected damage type");
                     return ImbuedEffectType.Undef;
@@ -716,7 +716,173 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
-            wielder.TryCastSpell(spell, target, wielder);
+            wielder.TryCastSpell(spell, target, this);
+        }
+
+        private bool? isMasterable;
+
+        public bool IsMasterable
+        {
+            get
+            {
+                // should be based on this, but a bunch of the weapon data probably needs to be updated...
+                //return W_WeaponType != WeaponType.Undef;
+
+                // cache this?
+                if (isMasterable == null)
+                    isMasterable = LongDesc == null || !LongDesc.Contains("This weapon seems tough to master.", StringComparison.OrdinalIgnoreCase);
+
+                return isMasterable.Value;
+            }
+        }
+
+        public static readonly float ThrustThreshold = 0.25f;
+
+        public AttackType GetAttackType(MotionStance stance, float powerLevel, bool offhand)
+        {
+            if (offhand)
+                return GetOffhandAttackType(stance, powerLevel);
+
+            var attackType = W_AttackType;
+
+            if ((attackType & AttackType.Offhand) != 0)
+            {
+                log.Warn($"{Name} ({Guid}, {WeenieClassId}).GetAttackType(): {attackType}");
+                attackType &= ~AttackType.Offhand;
+            }
+
+            if (stance == MotionStance.DualWieldCombat)
+            {
+                if (attackType.HasFlag(AttackType.TripleThrust | AttackType.TripleSlash))
+                {
+                    if (powerLevel >= ThrustThreshold)
+                        attackType = AttackType.TripleSlash;
+                    else
+                        attackType = AttackType.TripleThrust;
+                }
+                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash))
+                {
+                    if (powerLevel >= ThrustThreshold)
+                        attackType = AttackType.DoubleSlash;
+                    else
+                        attackType = AttackType.DoubleThrust;
+                }
+                // stiletto
+                else if (attackType.HasFlag(AttackType.DoubleThrust))
+                {
+                    if (powerLevel >= ThrustThreshold)
+                        attackType = AttackType.DoubleThrust;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+            }
+            else if (stance == MotionStance.SwordShieldCombat)
+            {
+                // force thrust animation when using a shield with a multi-strike weapon
+                if (attackType.HasFlag(AttackType.TripleThrust | AttackType.TripleSlash))
+                {
+                    if (powerLevel >= ThrustThreshold)
+                        attackType = AttackType.TripleThrust;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+                else if ((attackType & (AttackType.DoubleThrust | AttackType.DoubleSlash)) != 0)
+                {
+                    if (powerLevel >= ThrustThreshold)
+                        attackType = AttackType.DoubleThrust;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+            }
+            else if (stance == MotionStance.SwordCombat)
+            {
+                // force slash animation when using no shield with a multi-strike weapon
+                if (attackType.HasFlag(AttackType.TripleThrust | AttackType.TripleSlash))
+                {
+                    if (powerLevel >= ThrustThreshold)
+                        attackType = AttackType.TripleSlash;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash))
+                {
+                    if (powerLevel >= ThrustThreshold)
+                        attackType = AttackType.DoubleSlash;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+
+                // stiletto only has double thrust?
+                else if (attackType.HasFlag(AttackType.DoubleThrust))
+                    attackType = AttackType.Thrust;
+            }
+            if (attackType.HasFlag(AttackType.Thrust | AttackType.Slash))
+            {
+                if (powerLevel >= ThrustThreshold)
+                    attackType = AttackType.Slash;
+                else
+                    attackType = AttackType.Thrust;
+            }
+            return attackType;
+        }
+
+        public AttackType GetOffhandAttackType(MotionStance stance, float powerLevel)
+        {
+            var attackType = W_AttackType;
+
+            if ((attackType & AttackType.Offhand) != 0)
+            {
+                log.Warn($"{Name} ({Guid}, {WeenieClassId}).GetOffhandAttackType(): {attackType}");
+                attackType &= ~AttackType.Offhand;
+            }
+
+            if (attackType.HasFlag(AttackType.TripleThrust | AttackType.TripleSlash))
+            {
+                if (powerLevel >= ThrustThreshold)
+                    attackType = AttackType.OffhandTripleSlash;
+                else
+                    attackType = AttackType.OffhandTripleThrust;
+            }
+            else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash))
+            {
+                if (powerLevel >= ThrustThreshold)
+                    attackType = AttackType.OffhandDoubleSlash;
+                else
+                    attackType = AttackType.OffhandDoubleThrust;
+            }
+            // stiletto
+            else if (attackType.HasFlag(AttackType.DoubleThrust))
+            {
+                if (powerLevel >= ThrustThreshold)
+                    attackType = AttackType.OffhandDoubleThrust;
+                else
+                    attackType = AttackType.OffhandThrust;
+            }
+            else if (attackType.HasFlag(AttackType.Thrust | AttackType.Slash))
+            {
+                if (powerLevel >= ThrustThreshold)
+                    attackType = AttackType.OffhandSlash;
+                else
+                    attackType = AttackType.OffhandThrust;
+            }
+            else
+            {
+                switch (attackType)
+                {
+                    case AttackType.Thrust:
+                        attackType = AttackType.OffhandThrust;
+                        break;
+
+                    case AttackType.Slash:
+                        attackType = AttackType.OffhandSlash;
+                        break;
+
+                    case AttackType.Punch:
+                        attackType = AttackType.OffhandPunch;
+                        break;
+                }
+            }
+            return attackType;
         }
     }
 }

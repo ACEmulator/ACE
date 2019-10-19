@@ -1,7 +1,8 @@
 using System;
+
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Server.Managers;
+using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.WorldObjects
 {

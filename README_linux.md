@@ -26,18 +26,16 @@ The following three sections (Database, Code, and Starting the Server) contain a
 1. Install MySQL or MariaDB
    * [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
    * [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
-2. Create two databases named `ace_auth`, `ace_shard`.
-3. Load AuthenticationBase.sql and ShardBase.sql for their respective databases. 
+2. Create three databases named `ace_auth`, `ace_shard`, and `ace_world`
+3. Load AuthenticationBase.sql and ShardBase.sql for their respective databases. These can be found in the Database\Base directory.
 4. Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
-5. Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
-6. Create a final database named `ace_world`.
-7. Load WorldBase.sql to initialize the ace_world database. 
-8. Download from [ACE-World-16PY-Patches](https://github.com/ACEmulator/ACE-World-16PY-Patches) the [latest release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest) of world data, extract and load into your ace_world database.
-   * [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.55+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
-9. SKIP THIS STEP IF USING DOWNLOADED WORLD DATA FROM PREVIOUS STEP.
+5. Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory. 
+6. Download from [ACE-World-16PY-Patches](https://github.com/ACEmulator/ACE-World-16PY-Patches) the [latest release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest) of world data, extract and load into your ace_world database.
+   * [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.98+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
+7. SKIP THIS STEP IF USING DOWNLOADED WORLD DATA FROM PREVIOUS STEP.
    * If using a custom database, you may need to update the schema for the emulator to operate correctly. If you're using the official release data, this step is not recommended.
+   * Load WorldBase.sql from Database\Base into your `ace_world` database
    * Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
-
 
 ### Code
 1. Install .NET Core SDK

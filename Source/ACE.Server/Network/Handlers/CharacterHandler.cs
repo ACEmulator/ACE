@@ -60,9 +60,6 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var isAdmin = characterCreateInfo.IsAdmin && (session.AccessLevel >= AccessLevel.Developer);
-            var isEnvoy = characterCreateInfo.IsEnvoy && (session.AccessLevel >= AccessLevel.Sentinel);
-
             Weenie weenie;
             if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
@@ -88,10 +85,10 @@ namespace ACE.Server.Network.Handlers
             if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.Type == (int)WeenieType.Creature)
                 weenie = DatabaseManager.World.GetCachedWeenie("olthoiacidplayer");
 
-            if (isEnvoy)
+            if (characterCreateInfo.IsSentinel && session.AccessLevel >= AccessLevel.Sentinel)
                 weenie = DatabaseManager.World.GetCachedWeenie("sentinel");
 
-            if (isAdmin)
+            if (characterCreateInfo.IsAdmin && session.AccessLevel >= AccessLevel.Developer)
                 weenie = DatabaseManager.World.GetCachedWeenie("admin");
 
             if (weenie == null)
@@ -110,17 +107,19 @@ namespace ACE.Server.Network.Handlers
 
             var guid = GuidManager.NewPlayerGuid();
 
+            var weenieType = (WeenieType)weenie.Type;
+
             // If Database didn't have Sentinel/Admin weenies, alter the weenietype coming in.
             if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
-                if (session.AccessLevel >= AccessLevel.Developer && session.AccessLevel <= AccessLevel.Admin && weenie.Type != (int)WeenieType.Admin)
-                    weenie.Type = (int)WeenieType.Admin;
-                else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy && weenie.Type != (int)WeenieType.Sentinel)
-                    weenie.Type = (int)WeenieType.Sentinel;
+                if (session.AccessLevel >= AccessLevel.Developer && session.AccessLevel <= AccessLevel.Admin && weenieType != WeenieType.Admin)
+                    weenieType = WeenieType.Admin;
+                else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy && weenieType != WeenieType.Sentinel)
+                    weenieType = WeenieType.Sentinel;
             }
 
 
-            var result = PlayerFactory.Create(characterCreateInfo, weenie, guid, session.AccountId, out var player);
+            var result = PlayerFactory.Create(characterCreateInfo, weenie, guid, session.AccountId, weenieType, out var player);
 
             if (result != PlayerFactory.CreateResult.Success || player == null)
             {
@@ -194,6 +193,12 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            if (character.IsDeleted || character.DeleteTime > 0)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
+                return;
+            }
+
             if (PlayerManager.GetOnlinePlayer(guid) != null)
             {
                 // If this happens, it could be that the previous session for this Player terminated in a way that didn't transfer the player to offline via PlayerManager properly.
@@ -201,10 +206,18 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (PlayerManager.GetOfflinePlayer(guid) == null)
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(guid);
+
+            if (offlinePlayer == null)
             {
                 // This would likely only happen if the account tried to log in a character that didn't exist.
                 session.SendCharacterError(CharacterError.EnterGameGeneric);
+                return;
+            }
+
+            if (offlinePlayer.IsDeleted || offlinePlayer.IsPendingDeletion)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
                 return;
             }
 
@@ -248,6 +261,14 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(session.Characters[(int)characterSlot].Id);
+
+            if (offlinePlayer == null || offlinePlayer.IsDeleted || offlinePlayer.IsPendingDeletion)
+            {
+                session.SendCharacterError(CharacterError.Delete);
+                return;
+            }
+
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
             var charRestoreTime = PropertyManager.GetLong("char_delete_time", 3600).Item;
@@ -280,6 +301,12 @@ namespace ACE.Server.Network.Handlers
             var character = session.Characters.SingleOrDefault(c => c.Id == guid);
             if (character == null)
                 return;
+
+            if (Time.GetUnixTime() > character.DeleteTime || character.IsDeleted)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
+                return;
+            }
 
             DatabaseManager.Shard.IsCharacterNameAvailable(character.Name, isAvailable =>
             {

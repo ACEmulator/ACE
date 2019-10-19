@@ -12,6 +12,6 @@ namespace ACE.Database.Models.Shard
         public uint NewId { get; set; }
         public byte? Order { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

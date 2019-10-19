@@ -1,0 +1,4 @@
+2/18/2017
+--------
+- Added accesslevel table - Inserted data for the access levels.
+- Altered account table - Added accesslevel column with FK back to accesslevel table and defaulted to player level access.

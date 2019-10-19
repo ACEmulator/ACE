@@ -137,23 +137,25 @@ namespace ACE.Server.Command
                 var listParameters = new List<string>();
 
                 for (int start = 0; start < parameters.Length; start++)
-                    if (!parameters[start].StartsWith("\""))
-                        listParameters.Add(parameters[start]);
+                {
+                    if (!parameters[start].StartsWith("\"") || parameters[start].EndsWith("\"")) // Make sure we catch parameters like: "someParam"
+                        listParameters.Add(parameters[start].Replace("\"", ""));
                     else
                     {
                         listParameters.Add(parameters[start].Replace("\"", ""));
                         for (int end = start + 1; end < parameters.Length; end++)
                         {
                             if (!parameters[end].EndsWith("\""))
-                                listParameters[start] = listParameters[start] + " " + parameters[end];
+                                listParameters[listParameters.Count - 1] += " " + parameters[end];
                             else
                             {
-                                listParameters[start] = listParameters[start] + " " + parameters[end].Replace("\"", "");
+                                listParameters[listParameters.Count - 1] += " " + parameters[end].Replace("\"", "");
                                 start = end;
                                 break;
                             }
                         }
                     }
+                }
                 Array.Resize(ref parameters, listParameters.Count);
                 parameters = listParameters.ToArray();
             }
@@ -211,8 +213,8 @@ namespace ACE.Server.Command
             if (session != null)
             {
                 bool isAdvocate = session.Player.IsAdvocate;
-                bool isSentinel = session.Player.IsEnvoy; // we map this to envoy
-                bool isEnvoy = isSentinel;
+                bool isSentinel = session.Player.IsSentinel;
+                bool isEnvoy = isSentinel; // TODO: Add more resolution to player levels so we can separate IsEnvoy from IsSentinel
                 bool isArch = session.Player.IsArch;
                 bool isAdmin = session.Player.IsAdmin;
 

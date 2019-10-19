@@ -223,7 +223,7 @@ namespace ACE.Server.WorldObjects
                         {
                             var updateSkill = new GameMessagePrivateUpdateSkill(player, skill);
                             var availableSkillCredits = new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0);
-                            var msg = untrainable ? WeenieErrorWithString.CannotUntrain_SkillButRecoveredXP : WeenieErrorWithString.YouHaveSucceededUntraining_Skill;
+                            var msg = untrainable ? WeenieErrorWithString.YouHaveSucceededUntraining_Skill : WeenieErrorWithString.CannotUntrain_SkillButRecoveredXP;
                             var message = new GameEventWeenieErrorWithString(player.Session, msg, skill.Skill.ToSentence());
 
                             player.Session.Network.EnqueueSend(updateSkill, availableSkillCredits, message);

@@ -259,7 +259,7 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         HousePurchaseTimestamp                   = 199,
         RedirectableEquippedArmorCount           = 200,
-        MeleedefenseImbuedEffectTypeCache        = 201,
+        MeleeDefenseImbuedEffectTypeCache        = 201,
         MissileDefenseImbuedEffectTypeCache      = 202,
         MagicDefenseImbuedEffectTypeCache        = 203,
         ElementalDamageBonus                     = 204,
@@ -587,6 +587,13 @@ namespace ACE.Entity.Enum.Properties
         /// </summary>
         [ServerOnly]
         Hairstyle = 9012,
+        /// <summary>
+        /// Used to store the calculated Clothing Priority for use with armor reduced items and items like Over-Robes.
+        /// </summary>
+        [Ephemeral][ServerOnly]
+        VisualClothingPriority                  = 9013,
+        [ServerOnly]
+        SquelchGlobal                           = 9014,
     }
 
     public static class PropertyIntExtensions
@@ -720,6 +727,9 @@ namespace ACE.Entity.Enum.Properties
                     return System.Enum.GetName(typeof(Placement), value);
                 case PropertyInt.HouseStatus:
                     return System.Enum.GetName(typeof(HouseStatus), value);
+
+                case PropertyInt.UseCreatesContractId:
+                    return System.Enum.GetName(typeof(ContractId), value);
             }
 
             return null;

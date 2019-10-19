@@ -1,5 +1,4 @@
-using System.Linq;
-
+using System;
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -20,6 +19,7 @@ namespace ACE.Server.WorldObjects
         public void PlayerEnterWorld()
         {
             PlayerManager.SwitchPlayerFromOfflineToOnline(this);
+            Teleporting = true;
 
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
@@ -35,8 +35,6 @@ namespace ACE.Server.WorldObjects
             if (BarberActive)
                 BarberActive = false;
 
-            HandleAugsForwardCompatibility();
-
             if (AllegianceNode != null)
                 AllegianceRank = (int)AllegianceNode.Rank;
             else
@@ -44,6 +42,9 @@ namespace ACE.Server.WorldObjects
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
+
+            // Update or override certain properties sent to client.
+            SendPropertyUpdatesAndOverrides();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
             UpdateChatChannels();
@@ -58,13 +59,20 @@ namespace ACE.Server.WorldObjects
             HandleAllegianceOnLogin();
             HandleHouseOnLogin();
 
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+            // retail appeared to send the squelch list very early,
+            // even before the CreatePlayer, but doing it here
+            if (SquelchManager.HasSquelches)
+                SquelchManager.SendSquelchDB();
+
+            AuditItemSpells();
+
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
             {
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(3.0f);
                 actionChain.AddAction(this, () =>
                 {
-                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK, true);
 
                     Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
                 });
@@ -95,7 +103,13 @@ namespace ACE.Server.WorldObjects
 
             SendInventoryAndWieldedItems();
 
-            // SendContractTrackerTable(); todo fix for new ef not use aceobj
+            SendContractTrackerTable();
+        }
+
+        private void SendPropertyUpdatesAndOverrides()
+        {
+            if (!PropertyManager.GetBool("require_spell_comps").Item)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(this, PropertyBool.SpellComponentsRequired, false));
         }
 
         /// <summary>
@@ -126,12 +140,10 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        /// <summary>
-        /// This method is used to take our persisted tracked contracts and send them on to the client. Pg II
-        /// </summary>
         public void SendContractTrackerTable()
         {
-            Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session, TrackedContracts.Select(x => x.Value).ToList()));
+            if (ContractManager.Contracts.Count > 0)
+                Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session));
         }
 
         /// <summary>
@@ -171,6 +183,10 @@ namespace ACE.Server.WorldObjects
             RequestedLocation = pos;
         }
 
+        //public DateTime LastSoulEmote;
+
+        //private static TimeSpan SoulEmoteTime = TimeSpan.FromSeconds(2);
+
         public void BroadcastMovement(MoveToState moveToState)
         {
             var state = moveToState.RawMotionState;
@@ -197,13 +213,73 @@ namespace ACE.Server.WorldObjects
                     CurrentMotionState.SetForwardCommand(state.Commands[0].MotionCommand);
             }
 
+            /*if (state.HasSoulEmote())
+            {
+                // prevent soul emote spam / bug where client sends multiples
+                var elapsed = DateTime.UtcNow - LastSoulEmote;
+                if (elapsed < SoulEmoteTime) return;
+
+                LastSoulEmote = DateTime.UtcNow;
+            }*/
+
             var movementData = new MovementData(this, moveToState);
 
             var movementEvent = new GameMessageUpdateMotion(this, movementData);
-            EnqueueBroadcast(movementEvent);    // shouldn't need to go to originating player?
+            EnqueueBroadcast(false, movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
             CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
+        }
+
+        private EnvironChangeType? currentFogColor;
+
+        public void SetFogColor(EnvironChangeType fogColor)
+        {
+            if (fogColor == EnvironChangeType.Clear && !currentFogColor.HasValue)
+                return;                
+
+            if (LandblockManager.GlobalFogColor.HasValue && currentFogColor != fogColor)
+            {
+                currentFogColor = LandblockManager.GlobalFogColor;
+                SendEnvironChange(currentFogColor.Value);
+            }
+            else if (currentFogColor != fogColor)
+            {
+                currentFogColor = fogColor;
+                SendEnvironChange(currentFogColor.Value);
+            }
+
+            if (currentFogColor == EnvironChangeType.Clear)
+                currentFogColor = null;
+        }
+
+        public void ClearFogColor()
+        {
+            SetFogColor(EnvironChangeType.Clear);
+        }
+
+        public void SendEnvironChange(EnvironChangeType environChangeType)
+        {
+            Session.Network.EnqueueSend(new GameMessageAdminEnvirons(Session, environChangeType));
+        }
+
+        public void SetPlayerKillerStatus(PlayerKillerStatus playerKillerStatus, bool broadcast = false)
+        {
+            switch (playerKillerStatus)
+            {
+                case PlayerKillerStatus.NPK:
+                case PlayerKillerStatus.PK:
+                case PlayerKillerStatus.PKLite:
+                    PlayerKillerStatus = PlayerKillerStatus.NPK;
+                    MinimumTimeSincePk = 0;
+                    break;
+                case PlayerKillerStatus.Free:
+                    PlayerKillerStatus = PlayerKillerStatus.Free;
+                    break;
+            }
+
+            if (broadcast)
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
         }
     }
 }

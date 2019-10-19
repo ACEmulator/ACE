@@ -62,24 +62,25 @@ namespace ACE.Server.WorldObjects
                 SerializePhysicsData(writer, adminvision, changenodraw);
             }
 
-            var weenieFlags = CalculatedWeenieHeaderFlag();
-            var weenieFlags2 = CalculatedWeenieHeaderFlag2();
-            var descriptionFlags = CalculatedDescriptionFlag();
+            var weenieFlags =  CalculateWeenieHeaderFlag();
+            var weenieFlags2 = CalculateWeenieHeaderFlag2();
+
+            UpdateObjectDescriptionFlags();
+
+            var objDescriptionFlags = ObjectDescriptionFlags;
 
             if (adminvision)
-            {
-                descriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
-            }
+                objDescriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
 
             writer.Write((uint)weenieFlags);
             writer.WriteString16L(Name ?? String.Empty);
             writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(IconId, 0x6000000);
             writer.Write((uint)ItemType);
-            writer.Write((uint)descriptionFlags);
+            writer.Write((uint)objDescriptionFlags);
             writer.Align();
 
-            if ((descriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
+            if ((objDescriptionFlags & ObjectDescriptionFlag.IncludesSecondHeader) != 0)
                 writer.Write((uint)weenieFlags2);
 
             if ((weenieFlags & WeenieHeaderFlag.PluralName) != 0)
@@ -162,7 +163,7 @@ namespace ACE.Server.WorldObjects
                 // if mansion, send house owner from master copy
                 var houseOwner = HouseOwner;
                 var house = this as House;
-                if (house != null && house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                if (house != null && house.HouseType == HouseType.Mansion)
                     houseOwner = house.LinkedHouses[0].HouseOwner;
 
                 writer.Write(houseOwner ?? 0);
@@ -174,14 +175,14 @@ namespace ACE.Server.WorldObjects
 
                 // if house object is in dungeon,
                 // send the permissions from the outdoor house
-                if (house.CurrentLandblock.IsDungeon)
+                if (house.HouseType != HouseType.Apartment && house.CurrentLandblock.IsDungeon)
                 {
                     house = house.RootHouse;
                 }
                 else
                 {
                     // if mansion, send permissions from master copy
-                    if (house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    if (house.HouseType == HouseType.Mansion)
                         house = house.LinkedHouses[0];
                 }
 
@@ -281,7 +282,7 @@ namespace ACE.Server.WorldObjects
         {
             var physicsDescriptionFlag = CalculatedPhysicsDescriptionFlag();
 
-            if (adminvision && this is Player && CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+            if (adminvision && this is Player && CloakStatus == CloakStatus.On)
             {
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
             }
@@ -354,31 +355,31 @@ namespace ACE.Server.WorldObjects
                 writer.Write(Elasticity ?? 0f);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Translucency) != 0)
-                if (adminvision && this is Player && CloakStatus == ACE.Entity.Enum.CloakStatus.On)
+                if (adminvision && this is Player && CloakStatus == CloakStatus.On)
                     writer.Write(0.5f);
                 else
                     writer.Write(Translucency ?? 0f);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
-                Velocity.Serialize(writer);
+                writer.Write(Velocity.Value);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
             {
-                Acceleration.Serialize(writer);
+                writer.Write(Acceleration.Value);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
             {
-                Omega.Serialize(writer);
+                writer.Write(Omega.Value);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
-                writer.Write(DefaultScriptId ?? 0);
+                writer.Write(Convert.ToUInt32(PhysicsObj?.DefaultScript ?? 0u));
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
-                writer.Write(DefaultScriptIntensity ?? 0f);
+                writer.Write(PhysicsObj?.DefaultScriptIntensity ?? 0f);
 
             // timestamps
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectPosition));        // 0
@@ -477,10 +478,10 @@ namespace ACE.Server.WorldObjects
             if (Omega != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
-            if (DefaultScriptId != null)
+            if (PhysicsObj?.DefaultScript != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
 
-            if (DefaultScriptIntensity != null)
+            if (PhysicsObj?.DefaultScriptIntensity != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
 
             return physicsDescriptionFlag;
@@ -677,17 +678,17 @@ namespace ACE.Server.WorldObjects
             return physicsState;
         }
 
-        protected WeenieHeaderFlag CalculatedWeenieHeaderFlag()
+        protected WeenieHeaderFlag CalculateWeenieHeaderFlag()
         {
             var weenieHeaderFlag = WeenieHeaderFlag.None;
 
             if (PluralName != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.PluralName;
 
-            if (ItemCapacity != null)
+            if (ItemCapacity != null && !(this is SlumLord))
                 weenieHeaderFlag |= WeenieHeaderFlag.ItemsCapacity;
 
-            if (ContainerCapacity != null)
+            if (ContainerCapacity != null && !(this is SlumLord))
                 weenieHeaderFlag |= WeenieHeaderFlag.ContainersCapacity;
 
             if (AmmoType != null)
@@ -751,7 +752,7 @@ namespace ACE.Server.WorldObjects
             if ((Workmanship != null) && (uint?)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
-            if (EncumbranceVal != 0 && !(this is Creature))
+            if (EncumbranceVal != 0 && !(this is Creature) && !(this is SpellProjectile))
                 weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
             if ((SpellDID != null) && (SpellDID != 0))
@@ -763,7 +764,7 @@ namespace ACE.Server.WorldObjects
             {
                 weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
 
-                if (house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                if (house.HouseType == HouseType.Mansion)
                     houseOwner = house.LinkedHouses[0].HouseOwner;
             }
 
@@ -789,7 +790,7 @@ namespace ACE.Server.WorldObjects
             return weenieHeaderFlag;
         }
 
-        private WeenieHeaderFlag2 CalculatedWeenieHeaderFlag2()
+        private WeenieHeaderFlag2 CalculateWeenieHeaderFlag2()
         {
             var weenieHeaderFlag2 = WeenieHeaderFlag2.None;
 
@@ -808,183 +809,48 @@ namespace ACE.Server.WorldObjects
             return weenieHeaderFlag2;
         }
 
-        private ObjectDescriptionFlag CalculatedDescriptionFlag()
+        private void UpdateObjectDescriptionFlags()
         {
-            var flag = BaseDescriptionFlags;
-            var weenieFlags2 = CalculatedWeenieHeaderFlag2();
-
-
-            //if (flag.HasFlag(ObjectDescriptionFlag.Openable))
-            //    if (!Open.HasValue)
-            //        Open = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.Inscribable))
-                if (!Inscribable.HasValue)
-                    Inscribable = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.Stuck))
-                if (!Stuck.HasValue)
-                    Stuck = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.Attackable))
-                if (!Attackable.HasValue)
-                    Attackable = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.HiddenAdmin))
-                if (!HiddenAdmin.HasValue)
-                    HiddenAdmin = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.UiHidden))
-                if (!UiHidden.HasValue)
-                    UiHidden = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.ImmuneCellRestrictions))
-                if (!IgnoreHouseBarriers.HasValue)
-                    IgnoreHouseBarriers = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.RequiresPackSlot))
-                if (!RequiresBackpackSlot.HasValue)
-                    RequiresBackpackSlot = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.Retained))
-                if (!Retained.HasValue)
-                    Retained = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.WieldOnUse))
-                if (!WieldOnUse.HasValue)
-                    WieldOnUse = true;
-            if (flag.HasFlag(ObjectDescriptionFlag.WieldLeft))
-                if (!AutowieldLeft.HasValue)
-                    AutowieldLeft = true;
-
-            // TODO: More uncommenting and wiring up for other flags
-            ////None                   = 0x00000000,
-            ////Openable               = 0x00000001,
-            if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
+            if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest
+                || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
             {
-                if (CurrentLandblock == null || !IsLocked && !IsOpen || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
-                    flag |= ObjectDescriptionFlag.Openable;
-                else
-                    flag &= ~ObjectDescriptionFlag.Openable;
+                UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Openable, !IsLocked);
             }
-            ////Inscribable            = 0x00000002,
-            if (Inscribable ?? false)
-                flag |= ObjectDescriptionFlag.Inscribable;
-            else
-                flag &= ~ObjectDescriptionFlag.Inscribable;
-            ////Stuck                  = 0x00000004,
-            if (Stuck ?? false)
-                flag |= ObjectDescriptionFlag.Stuck;
-            else
-                flag &= ~ObjectDescriptionFlag.Stuck;
-            ////Player                 = 0x00000008,
+
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Inscribable, Inscribable);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Stuck, Stuck);
+
             if (WeenieType == WeenieType.Admin || WeenieType == WeenieType.Sentinel)
-            {
-                if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Undef) < ACE.Entity.Enum.CloakStatus.Creature)
-                    flag |= ObjectDescriptionFlag.Player;
-                else
-                    flag &= ~ObjectDescriptionFlag.Player;
-            }
-            ////Attackable             = 0x00000010,
-            if (Attackable ?? false)
-                flag |= ObjectDescriptionFlag.Attackable;
-            else
-                flag &= ~ObjectDescriptionFlag.Attackable;
-            ////PlayerKiller           = 0x00000020,
-            if (PlayerKillerStatus == PlayerKillerStatus.PK)
-                flag |= ObjectDescriptionFlag.PlayerKiller;
-            else
-                flag &= ~ObjectDescriptionFlag.PlayerKiller;
-            ////HiddenAdmin            = 0x00000040,
-            if (HiddenAdmin ?? false)
-                flag |= ObjectDescriptionFlag.HiddenAdmin;
-            else
-                flag &= ~ObjectDescriptionFlag.HiddenAdmin;
-            ////UiHidden               = 0x00000080,
-            if (UiHidden ?? false)
-                flag |= ObjectDescriptionFlag.UiHidden;
-            else
-                flag &= ~ObjectDescriptionFlag.UiHidden;
-            ////Book                   = 0x00000100,
-            // if (AceObject.Book ?? false)
-            //    Book = true;
-            ////Vendor                 = 0x00000200,
-            // if (AceObject.Vendor ?? false)
-            //    Vendor = true;
-            ////PkSwitch               = 0x00000400,
-            // if (AceObject.PkSwitch ?? false)
-            //    PkSwitch = true;
-            ////NpkSwitch              = 0x00000800,
-            // if (AceObject.NpkSwitch ?? false)
-            //    NpkSwitch = true;
-            ////Door                   = 0x00001000,
-            // if (AceObject.Door ?? false)
-            //    Door = true;
-            ////Corpse                 = 0x00002000,
-            // if (AceObject.Corpse ?? false)
-            //    Corpse = true;
-            ////LifeStone              = 0x00004000,
-            // if (AceObject.LifeStone ?? false)
-            //    LifeStone = true;
-            ////Food                   = 0x00008000,
-            // if (AceObject.Food ?? false)
-            //    Food = true;
-            ////Healer                 = 0x00010000,
-            // if (AceObject.Healer ?? false)
-            //    Healer = true;
-            ////Lockpick               = 0x00020000,
-            // if (AceObject.Lockpick ?? false)
-            //    Lockpick = true;
-            ////Portal                 = 0x00040000,
-            // if (AceObject.Portal ?? false)
-            //    Portal = true;
-            ////Admin                  = 0x00100000,
-            if (WeenieType == WeenieType.Admin || WeenieType == WeenieType.Sentinel)
-            {
-                if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Undef) < ACE.Entity.Enum.CloakStatus.Player)
-                    flag |= ObjectDescriptionFlag.Admin;
-                else
-                    flag &= ~ObjectDescriptionFlag.Admin;
-            }
-            ////FreePkStatus           = 0x00200000,
-            if (PlayerKillerStatus == PlayerKillerStatus.Free)
-                flag |= ObjectDescriptionFlag.FreePkStatus;
-            else
-                flag &= ~ObjectDescriptionFlag.FreePkStatus;
-            ////ImmuneCellRestrictions = 0x00400000,
-            if (IgnoreHouseBarriers ?? false)
-                flag |= ObjectDescriptionFlag.ImmuneCellRestrictions;
-            else
-                flag &= ~ObjectDescriptionFlag.ImmuneCellRestrictions;
-            ////RequiresPackSlot       = 0x00800000,
-            if (RequiresBackpackSlot ?? false)
-                flag |= ObjectDescriptionFlag.RequiresPackSlot;
-            else
-                flag &= ~ObjectDescriptionFlag.RequiresPackSlot;
-            ////Retained               = 0x01000000,
-            if (Retained ?? false)
-                flag |= ObjectDescriptionFlag.Retained;
-            else
-                flag &= ~ObjectDescriptionFlag.Retained;
-            ////PkLiteStatus           = 0x02000000,
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-                flag |= ObjectDescriptionFlag.PkLiteStatus;
-            else
-                flag &= ~ObjectDescriptionFlag.PkLiteStatus;
-            ////IncludesSecondHeader   = 0x04000000,
-            if (weenieFlags2 > WeenieHeaderFlag2.None)
-                flag |= ObjectDescriptionFlag.IncludesSecondHeader;
-            else
-                flag &= ~ObjectDescriptionFlag.IncludesSecondHeader;
-            ////BindStone              = 0x08000000,
-            // if (AceObject.BindStone ?? false)
-            //    BindStone = true;
-            ////VolatileRare           = 0x10000000,
-            // if (AceObject.VolatileRare ?? false)
-            //    VolatileRare = true;
-            ////WieldOnUse             = 0x20000000,
-            if (WieldOnUse ?? false)
-                flag |= ObjectDescriptionFlag.WieldOnUse;
-            else
-                flag &= ~ObjectDescriptionFlag.WieldOnUse;
-            ////WieldLeft              = 0x40000000,
-            if (AutowieldLeft ?? false)
-                flag |= ObjectDescriptionFlag.WieldLeft;
-            else
-                flag &= ~ObjectDescriptionFlag.WieldLeft;
+                UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Player, CloakStatus < CloakStatus.Creature);
 
-            return flag;
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Attackable, Attackable);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.PlayerKiller, PlayerKillerStatus == PlayerKillerStatus.PK);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.HiddenAdmin, HiddenAdmin);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.UiHidden, UiHidden);
+
+            if (WeenieType == WeenieType.Admin || WeenieType == WeenieType.Sentinel)
+                UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Admin, CloakStatus < CloakStatus.Player);
+
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.FreePkStatus, PlayerKillerStatus == PlayerKillerStatus.Free);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.ImmuneCellRestrictions, IgnoreHouseBarriers);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.RequiresPackSlot, RequiresPackSlot);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Retained, Retained);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.PkLiteStatus, PlayerKillerStatus == PlayerKillerStatus.PKLite);
+
+            var weenieFlags2 = CalculateWeenieHeaderFlag2();
+
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.IncludesSecondHeader, weenieFlags2 > WeenieHeaderFlag2.None);
+
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.WieldOnUse, WieldOnUse);
+            UpdateObjectDescriptionFlag(ObjectDescriptionFlag.WieldLeft, WieldLeft);
+        }
+
+        private void UpdateObjectDescriptionFlag(ObjectDescriptionFlag flag, bool value)
+        {
+            if (value)
+                ObjectDescriptionFlags |= flag;
+            else
+                ObjectDescriptionFlags &= ~flag;
         }
 
         public void ClearRequestedPositions()
@@ -1003,6 +869,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.IgnoreCloIcons);
             set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnoreCloIcons); else SetProperty(PropertyBool.IgnoreCloIcons, value.Value); }
+        }
+
+        public bool? Dyable
+        {
+            get => GetProperty(PropertyBool.Dyable);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.Dyable); else SetProperty(PropertyBool.Dyable, value.Value); }
         }
 
         public virtual ACE.Entity.ObjDesc CalculateObjDesc()
@@ -1058,7 +930,7 @@ namespace ACE.Server.WorldObjects
                         itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
                     }
 
-                    if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false))
+                    if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false) && (Shade.HasValue || PaletteTemplate.HasValue))
                         IconId = itemSubPal.Icon;
 
                     float shade = 0;
@@ -1155,7 +1027,7 @@ namespace ACE.Server.WorldObjects
             if (!excludeSelf && this is Player self)
                 self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            foreach (var player in PhysicsObj.ObjMaint.GetKnownPlayersValuesAsPlayer())
             {
                 if (Visibility && !player.Adminvision)
                     continue;
@@ -1184,26 +1056,50 @@ namespace ACE.Server.WorldObjects
             return iterator.CurrentLandblock == null ? null : iterator;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, MotionStance? _stance = null)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
         {
-            var stance = MotionStance.NonCombat;
-            if (_stance != null)
-                stance = _stance.Value;
-            else if (CurrentMotionState != null)
-                stance = CurrentMotionState.Stance;
-
-            if (CurrentMotionState == null)
-                log.Warn($"{Name} ({Guid}).EnqueueMotion({motionCommand}, {speed}, {stance}): CurrentMotionState == null");
+            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
             var animLength = 0.0f;
+            if (usePrevCommand)
+            {
+                var prevCommand = CurrentMotionState.MotionState.ForwardCommand;
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
+            }
+            else
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
 
-            if (CurrentMotionState == null || CurrentMotionState.Stance == stance)
+            actionChain.AddAction(this, () =>
+            {
+                CurrentMotionState = motion;
+                EnqueueBroadcastMotion(motion);
+            });
+
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
+        }
+
+        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f)
+        {
+            var motion = new Motion(stance, motionCommand, speed);
+
+            var animLength = 0.0f;
+
+            if (prevCommand == null)
                 animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
             else
-                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand, (MotionCommand)stance, speed);
+            {
+                var isStance = Enum.IsDefined(typeof(MotionStance), (uint)prevCommand);
+
+                if (isStance)
+                    animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, (MotionStance)prevCommand, motionCommand, (MotionCommand)stance, speed);
+                else
+                    animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand.Value, motionCommand, speed);
+            }
 
             actionChain.AddAction(this, () =>
             {
@@ -1212,23 +1108,21 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion);
             });
 
-            if (CurrentMotionState != null && stance != CurrentMotionState.Stance)
-                CurrentMotionState.Stance = stance;
-
             actionChain.AddDelaySeconds(animLength);
             return animLength;
         }
+
 
         /// <summary>
         /// Returns TRUE if there are any players within range of this object
         /// </summary>
         public bool PlayersInRange(float range = 96.0f)
         {
-            var isDungeon = CurrentLandblock != null && CurrentLandblock._landblock != null && CurrentLandblock._landblock.IsDungeon;
+            var isDungeon = CurrentLandblock != null && CurrentLandblock.PhysicsLandblock != null && CurrentLandblock.PhysicsLandblock.IsDungeon;
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            foreach (var player in PhysicsObj.ObjMaint.GetKnownPlayersValuesAsPlayer())
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
@@ -1249,7 +1143,7 @@ namespace ACE.Server.WorldObjects
         /// Sends network messages to all Players who currently know about this object
         /// within a maximum range
         /// </summary>
-        public void EnqueueBroadcast(GameMessage msg, float range, bool useSquelch = false)
+        public void EnqueueBroadcast(GameMessage msg, float range, ChatMessageType? squelchType = null)
         {
             if (PhysicsObj == null || CurrentLandblock == null) return;
 
@@ -1260,13 +1154,13 @@ namespace ACE.Server.WorldObjects
                 self.Session.Network.EnqueueSend(msg);
             }
 
-            var isDungeon = CurrentLandblock._landblock != null && CurrentLandblock._landblock.IsDungeon;
+            var isDungeon = CurrentLandblock.PhysicsLandblock != null && CurrentLandblock.PhysicsLandblock.IsDungeon;
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            foreach (var player in PhysicsObj.ObjMaint.GetKnownPlayersValuesAsPlayer())
             {
-                if (self != null && useSquelch && player.Squelches.Contains(self))
+                if (self != null && squelchType != null && player.SquelchManager.Squelches.Contains(self, squelchType.Value))
                     continue;
 
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
@@ -1301,7 +1195,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.GetKnownPlayersValuesAsPlayer();
             foreach (var player in nearbyPlayers)
             {
                 if (Visibility && !player.Adminvision)
@@ -1322,7 +1216,7 @@ namespace ACE.Server.WorldObjects
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
+            var nearbyPlayers = PhysicsObj.ObjMaint.GetKnownPlayersValuesAsPlayer();
             foreach (var player in nearbyPlayers.Except(excludePlayers))
             {
                 if (Visibility && !player.Adminvision)
@@ -1338,17 +1232,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void NotifyPlayers()
         {
-            // build a list of all players within visible range
-            PhysicsObj.get_voyeurs();
-
-            //Console.WriteLine($"{Name}: NotifyPlayers - found {PhysicsObj.ObjMaint.VoyeurTable.Count} players");
-
-            // add to player tracking / send create object network messages to these players
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>())
+            // send create object network message to visible players
+            foreach (var player in PhysicsObj.ObjMaint.GetKnownPlayersValuesAsPlayer())
                 player.AddTrackedObject(this);
 
             if (this is Creature creature && !(this is Player))
-                creature.CheckPlayers();
+                creature.CheckTargets();
         }
     }
 }

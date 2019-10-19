@@ -102,7 +102,7 @@ namespace ACE.Server.WorldObjects
                         else if (targetPlayer != null)
                         {
                             // this is a player taking damage
-                            targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical);
+                            targetPlayer.TakeDamage(this, damageEvent);
 
                             if (damageEvent.ShieldMod != 1.0f)
                             {
@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
             // for sword combat, they have double and triple strikes (dagger / two-handed only?)
             var weapon = GetEquippedMeleeWeapon();
 
-            var stanceManeuvers = CombatTable.CMT.Where(m => m.Style == (MotionCommand)CurrentMotionState.Stance).ToList();
+            var stanceManeuvers = CombatTable.CMT.Where(m => m.Style == CurrentMotionState.Stance).ToList();
 
             if (stanceManeuvers.Count == 0)
                 return null;
@@ -165,19 +165,27 @@ namespace ACE.Server.WorldObjects
 
                 // todo: use motion mapping, avoid string search
 
-                if (motion.Contains("Slash") && (weapon == null || (weapon.MAttackType & (AttackType.Slash | AttackType.DoubleSlash | AttackType.TripleSlash)) == 0))
+                if (motion.Contains("Slash") && (weapon == null || (weapon.W_AttackType & (AttackType.Slash | AttackType.DoubleSlash | AttackType.TripleSlash)) == 0))
                     continue;
-                if (motion.Contains("Thrust") && (weapon == null || (weapon.MAttackType & (AttackType.Thrust | AttackType.DoubleThrust | AttackType.TripleThrust)) == 0))
+                if (motion.Contains("Thrust") && (weapon == null || (weapon.W_AttackType & (AttackType.Thrust | AttackType.DoubleThrust | AttackType.TripleThrust)) == 0))
                     continue;
 
-                if (motion.StartsWith("Double") && (weapon == null || (weapon.MAttackType & AttackType.DoubleStrike) == 0))
+                if (motion.StartsWith("Double") && (weapon == null || (weapon.W_AttackType & AttackType.DoubleStrike) == 0))
                     continue;
-                if (motion.StartsWith("Triple") && (weapon == null || (weapon.MAttackType & AttackType.TripleStrike) == 0))
+                if (motion.StartsWith("Triple") && (weapon == null || (weapon.W_AttackType & AttackType.TripleStrike) == 0))
                     continue;
 
                 // ensure combat maneuver exists for this monster's motion table
                 if (motions.TryGetValue((uint)combatManeuver.Motion, out var motionData) && motionData != null)
+                {
+                    /*Console.WriteLine($"{Name} selected CombatManeuver:");
+                    Console.WriteLine($"Style: {combatManeuver.Style}");
+                    Console.WriteLine($"MotionCommand: {combatManeuver.Motion}");
+                    Console.WriteLine($"AttackHeight: {combatManeuver.AttackHeight}");
+                    Console.WriteLine($"AttackType: {combatManeuver.AttackType}");*/
+
                     return combatManeuver;
+                }
             }
 
             // No match was found
@@ -430,10 +438,12 @@ namespace ACE.Server.WorldObjects
             {
                 var motionName = ((MotionCommand)maneuver.Motion).ToString();
                 if (motionName.Contains("Special"))
-                    parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
+                    //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
+                    parts = Biota.BiotaPropertiesBodyPart.Where(b => b.Key == (int)CombatBodyPart.Breath).ToList();  // always use Breath?
             }
             if (parts == null)
-                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
+                //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
+                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.Key != (int)CombatBodyPart.Breath).ToList();
 
             if (parts.Count == 0)
             {

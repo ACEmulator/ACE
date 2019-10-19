@@ -5,6 +5,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -34,13 +35,11 @@ namespace ACE.Server.WorldObjects
 
         private List<WorldObject> CreatePayoutCoinStacks(int amount)
         {
-            const uint coinWeenieId = 273;
-
             var coinStacks = new List<WorldObject>();
 
             while (amount > 0)
             {
-                var currencyStack = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
+                var currencyStack = WorldObjectFactory.CreateNewWorldObject("coinstack");
 
                 // payment contains a max stack
                 if (currencyStack.MaxStackSize <= amount)
@@ -60,26 +59,23 @@ namespace ACE.Server.WorldObjects
             return coinStacks;
         }
 
-        public int PreCheckItem(uint weenieClassId, int amount, int playerFreeContainerSlots, int playerFreeInventorySlots, int playerFreeAvailableBurden, out int requiredEncumbrance, out bool isContainer)
+        public int PreCheckItem(uint weenieClassId, int amount, int playerFreeContainerSlots, int playerFreeInventorySlots, int playerFreeAvailableBurden, out int requiredEncumbrance, out bool requiresBackpackSlot)
         {
             var itemStacks = 0;
             requiredEncumbrance = 0;
-            isContainer = false;
+            requiresBackpackSlot = false;
 
             var item = DatabaseManager.World.GetCachedWeenie(weenieClassId);
 
             if (item != null)
             {
-                var isVendorService = item.GetProperty(PropertyBool.VendorService) ?? false;
+                var isVendorService = item.IsVendorService();
                 if (isVendorService)
                     return 0;
 
-                var weenieType = (WeenieType)item.Type;
+                requiresBackpackSlot = item.RequiresBackpackSlotOrIsContainer();
 
-                isContainer = item.GetProperty(PropertyBool.RequiresBackpackSlot) ?? false || weenieType == WeenieType.Container;
-
-                var isStackable = weenieType == WeenieType.Stackable || weenieType == WeenieType.Food || weenieType == WeenieType.Coin || weenieType == WeenieType.CraftTool
-                    || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
+                var isStackable = item.IsStackable();
 
                 var itemStackUnitEncumbrance = isStackable ? (item.GetProperty(PropertyInt.StackUnitEncumbrance).HasValue ? item.GetProperty(PropertyInt.StackUnitEncumbrance) ?? 0 : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0) : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0;
                 var itemStackMaxStackSize = isStackable ? item.GetProperty(PropertyInt.MaxStackSize) ?? 1 : 1;
@@ -126,7 +122,7 @@ namespace ACE.Server.WorldObjects
             List<WorldObject> cost = new List<WorldObject>();
             uint payment = 0;
 
-            WorldObject changeobj = WorldObjectFactory.CreateNewWorldObject(273);
+            WorldObject changeobj = WorldObjectFactory.CreateNewWorldObject("coinstack");
             uint change = 0;
 
             foreach (WorldObject wo in currency)
@@ -181,15 +177,16 @@ namespace ACE.Server.WorldObjects
         /// <param name="items"></param>
         public void HandleActionBuyItem(uint vendorGuid, List<ItemProfile> items)
         {
-            var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
-
-            if (vendor == null)
+            if (IsBusy)
             {
-                SendUseDoneEvent();
+                SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return;
             }
 
-            vendor.BuyItems_ValidateTransaction(items, this);
+            var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
+
+            if (vendor != null)
+                vendor.BuyItems_ValidateTransaction(items, this);
 
             SendUseDoneEvent();
         }
@@ -247,7 +244,19 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         var spell = new Spell(gen.SpellDID ?? 0);
-                        TryCastSpell(spell, this, null, false, false);
+                        if (!spell.NotFound)
+                        {
+                            var preCastTime = vendor.PreCastMotion(this);
+
+                            var castChain = new ActionChain();
+                            castChain.AddDelaySeconds(preCastTime);
+                            castChain.AddAction(vendor, () =>
+                            {
+                                vendor.TryCastSpell(spell, this, vendor);
+                                vendor.PostCastMotion();
+                            });
+                            castChain.EnqueueChain();
+                        }
                     }
                 }
 
@@ -315,6 +324,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionSellItem(List<ItemProfile> itemprofiles, uint vendorGuid)
         {
+            if (IsBusy)
+            {
+                SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
 
             if (vendor == null)
@@ -338,11 +353,18 @@ namespace ACE.Server.WorldObjects
                 if (item == null)
                     continue;
 
-                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || (acceptedItemTypes & item.ItemType) == 0)
+                if ((acceptedItemTypes & item.ItemType) == 0 || !item.IsSellable || item.Retained)
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold")); // TODO: find retail messages
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} is unsellable.")); // retail message did not include item name, leaving in that for now.
+
+                    continue;
+                }
+
+                if (item.Value < 1)
+                {
+                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} has no value and cannot be sold.")); // retail message did not include item name, leaving in that for now.
 
                     continue;
                 }
@@ -352,7 +374,8 @@ namespace ACE.Server.WorldObjects
 
             if (sellList.Count == 0)
             {
-                SendUseDoneEvent(WeenieError.NoObject);
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
+                SendUseDoneEvent(WeenieError.None);
                 return;
             }
 

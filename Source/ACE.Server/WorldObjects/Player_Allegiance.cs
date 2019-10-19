@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -91,7 +92,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            log.Info($"{Name} swearing allegiance to {patron.Name}");
+            log.Debug($"[ALLEGIANCE] {Name} swearing allegiance to {patron.Name}");
 
             PatronId = targetGuid;
             MonarchId = AllegianceManager.GetMonarch(patron).Guid.Full;
@@ -164,7 +165,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null) return;
 
-            log.Info(Name + " breaking allegiance to " + target.Name);
+            log.Debug($"[ALLEGIANCE] {Name} breaking allegiance to {target.Name}");
 
             // target can be either patron or vassal
             var isPatron = PatronId == target.Guid.Full;
@@ -305,7 +306,7 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
-                if (targetNode.Allegiance.IsLocked && !targetNode.Allegiance.ApprovedVassals.Contains(Guid)
+                if (targetNode.Allegiance.IsLocked && !targetNode.Allegiance.HasApprovedVassal(Guid.Full)
                     && (targetNode.Player.AllegianceOfficerRank ?? 0) < (int)AllegianceOfficerLevel.Castellan)
                 {
                     //Console.WriteLine(Name + "tried to join locked allegiance, not in approved vassals list");
@@ -313,7 +314,7 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
 
-                if (targetNode.Allegiance.BanList.Contains(Guid))
+                if (targetNode.Allegiance.IsBanned(Guid.Full))
                 {
                     //Console.WriteLine(Name + "tried to join allegiance, but was banned!");
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You are banned from joining {target.Name}'s allegiance.", ChatMessageType.Broadcast));
@@ -321,11 +322,11 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // ensure this player doesn't own a mansion
-            if (House != null && House.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+            // ensure this player doesn't own a monarch-only house
+            if (House != null && House.SlumLord.HouseRequiresMonarch && House.HouseOwner == Guid.Full)
             {
                 //Console.WriteLine(Name + "monarch tried to pledge allegiance, already owns a mansion");
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear allegiance while owning a mansion.", ChatMessageType.Broadcast));
+                //Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear allegiance while owning a mansion.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.CannotSwearAllegianceWhileOwningMansion));
                 return false;
             }
@@ -425,7 +426,7 @@ namespace ACE.Server.WorldObjects
             if (AllegianceXPCached == 0) return;
 
             // TODO: handle ulong -> long?
-            EarnXP((long)AllegianceXPCached, XpType.Allegiance, ShareType.None);
+            GrantXP((long)AllegianceXPCached, XpType.Allegiance, ShareType.None);
 
             AllegianceXPReceived += AllegianceXPCached;
 
@@ -908,11 +909,15 @@ namespace ACE.Server.WorldObjects
                 }
 
                 var list = "Approved vassals:";
-                foreach (var guid in Allegiance.ApprovedVassals)
+                foreach (var entity in Allegiance.ApprovedVassals)
                 {
-                    var approvedVassal = PlayerManager.FindByGuid(guid);
+                    var approvedVassal = PlayerManager.FindByGuid(entity.CharacterId);
                     if (approvedVassal == null)
+                    {
+                        // automatically remove?
+                        log.Warn($"{Name}.HandleActionDoAllegianceLockAction({action}): couldn't find approved vassal {entity.CharacterId:X8}");
                         continue;
+                    }
 
                     list += $"\n{approvedVassal.Name}";
                 }
@@ -929,7 +934,9 @@ namespace ACE.Server.WorldObjects
 
             if (action == AllegianceLockAction.ClearApproved)
             {
-                Allegiance.ApprovedVassals.Clear();
+                foreach (var entity in Allegiance.ApprovedVassals)
+                    Allegiance.RemoveApprovedVassal(entity.CharacterId);
+
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"The approved vassals list has been cleared.", ChatMessageType.Broadcast));
                 return;
             }
@@ -991,13 +998,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (Allegiance.ApprovedVassals.Contains(player.Guid))
+            if (Allegiance.HasApprovedVassal(player.Guid.Full))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already an approved vassal.", ChatMessageType.Broadcast));
                 return;
             }
 
-            Allegiance.ApprovedVassals.Add(player.Guid);
+            Allegiance.AddApprovedVassal(player.Guid.Full);
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is now an approved vassal.", ChatMessageType.Broadcast));
         }
@@ -1210,18 +1217,27 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (Allegiance.BanList.Count == 0)
+            var banList = Allegiance.BanList;
+
+            if (banList.Count == 0)
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"The ban list is currently empty.", ChatMessageType.Broadcast));
                 return;
             }
 
             var list = "Allegiance ban list:";
-            foreach (var guid in Allegiance.BanList)
+            foreach (var entity in banList)
             {
-                var player = PlayerManager.FindByGuid(guid);
-                if (player != null)
-                    list += $"\n{player.Name}";
+                var player = PlayerManager.FindByGuid(entity.CharacterId);
+
+                if (player == null)
+                {
+                    // automatically remove?
+                    log.Warn($"{Name}.HandleActionListAllegianceBans(): couldn't find banned player {entity.CharacterId:X8}");
+                    continue;
+                }
+
+                list += $"\n{player.Name}";
             }
 
             Session.Network.EnqueueSend(new GameMessageSystemChat(list, ChatMessageType.Broadcast));
@@ -1259,13 +1275,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (Allegiance.BanList.Contains(player.Guid))
+            if (Allegiance.IsBanned(player.Guid.Full))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already banned from the allegiance.", ChatMessageType.Broadcast));
                 return;
             }
 
-            Allegiance.BanList.Add(player.Guid);
+            Allegiance.AddBan(player.Guid.Full);
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been banned from the allegiance.", ChatMessageType.Broadcast));
 
@@ -1299,20 +1315,20 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!Allegiance.BanList.Contains(player.Guid))
+            if (!Allegiance.IsBanned(player.Guid.Full))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not banned from the allegiance.", ChatMessageType.Broadcast));
                 return;
             }
 
-            Allegiance.BanList.Remove(player.Guid);
+            Allegiance.RemoveBan(player.Guid.Full);
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is no longer banned from the allegiance.", ChatMessageType.Broadcast));
         }
 
         public void HandleActionBreakAllegianceBoot(string playerName, bool accountBoot)
         {
-            log.Info($"{Name}.HandleActionBreakAllegianceBoot({playerName}, {accountBoot})");
+            log.Debug($"[ALLEGIANCE] {Name}.HandleActionBreakAllegianceBoot({playerName}, {accountBoot})");
 
             // TODO: handle account boot
 

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -32,6 +34,9 @@ namespace ACE.Server.WorldObjects
             EmoteManager.OnDeath(DamageHistory);
 
             OnDeath_GrantXP();
+
+            if (IsGenerator)
+                OnGeneratorDeath();
 
             return GetDeathMessage(lastDamager, damageType, criticalHit);
         }
@@ -77,8 +82,11 @@ namespace ACE.Server.WorldObjects
             if (topDamager != null)
                 KillerId = topDamager.Guid.Full;
 
+            if (topDamager is Player)
+                topDamager.CreatureKills++;
+
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
-            IsMonster = false;
+            //IsMonster = false;
 
             // broadcast death animation
             var motionDeath = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
@@ -92,8 +100,8 @@ namespace ACE.Server.WorldObjects
 
             dieChain.AddAction(this, () =>
             {
-                Destroy();
                 CreateCorpse(topDamager);
+                Destroy();
             });
 
             dieChain.EnqueueChain();
@@ -103,11 +111,18 @@ namespace ACE.Server.WorldObjects
         /// Called when an admin player uses the /smite command
         /// to instantly kill a creature
         /// </summary>
-        public void Smite(WorldObject smiter)
+        public void Smite(WorldObject smiter, bool useTakeDamage = false)
         {
-            // deal remaining damage?
-            OnDeath();
-            Die(smiter, smiter);
+            if (useTakeDamage)
+            {
+                // deal remaining damage
+                TakeDamage(smiter, DamageType.Bludgeon, Health.Current);
+            }
+            else
+            {
+                OnDeath();
+                Die(smiter, smiter);
+            }
         }
 
         public void OnDeath()
@@ -148,6 +163,13 @@ namespace ACE.Server.WorldObjects
                     totalXP *= 1.0f + playerDamager.AugmentationBonusXp * 0.05f;
 
                 playerDamager.EarnXP((long)Math.Round(totalXP), XpType.Kill);
+
+                // handle luminance
+                if (LuminanceAward != null)
+                {
+                    var totalLuminance = (long)Math.Round(LuminanceAward.Value * damagePercent);
+                    playerDamager.EarnLuminance(totalLuminance, XpType.Kill);
+                }
             }
         }
 
@@ -158,7 +180,7 @@ namespace ACE.Server.WorldObjects
         {
             if (NoCorpse)
             {
-                var loot = GenerateTreasure(null);
+                var loot = GenerateTreasure(killer, null);
 
                 foreach(var item in loot)
                 {
@@ -168,7 +190,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
+            var cachedWeenie = DatabaseManager.World.GetCachedWeenie("corpse");
+
+            var corpse = WorldObjectFactory.CreateNewWorldObject(cachedWeenie) as Corpse;
+
             var prefix = "Corpse";
 
             if (TreasureCorpse)
@@ -221,16 +246,22 @@ namespace ACE.Server.WorldObjects
             corpse.Name = $"{prefix} of {Name}";
 
             // set 'killed by' for looting rights
+            var killerName = "misadventure";
             if (killer != null)
             {
-                corpse.LongDesc = $"Killed by {killer.Name.TrimStart('+')}."; // VTANK requires + to be stripped for regex matching.
-                if (killer is CombatPet)
-                    corpse.KillerId = killer.PetOwner.Value;
-                else
-                    corpse.KillerId = killer.Guid.Full;
+                if (!(Generator != null && Generator.Guid == killer.Guid) && Guid != killer.Guid)
+                {
+                    if (!string.IsNullOrWhiteSpace(killer.Name))
+                        killerName = killer.Name.TrimStart('+');  // vtank requires + to be stripped for regex matching.
+
+                    if (killer is CombatPet)
+                        corpse.KillerId = killer.PetOwner.Value;
+                    else
+                        corpse.KillerId = killer.Guid.Full;
+                }
             }
-            else
-                corpse.LongDesc = $"Killed by misadventure.";
+
+            corpse.LongDesc = $"Killed by {killerName}.";
 
             bool saveCorpse = false;
 
@@ -255,7 +286,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 corpse.IsMonster = true;
-                GenerateTreasure(corpse);
+                GenerateTreasure(killer, corpse);
                 if (killer is Player && (Level >= 100 || Level >= killer.Level + 5))
                 {
                     CanGenerateRare = true;
@@ -267,15 +298,14 @@ namespace ACE.Server.WorldObjects
             if (CanGenerateRare && killer != null)
                 corpse.GenerateRare(killer);
 
-            corpse.MarkAsInventoryLoaded();
             corpse.EnterWorld();
 
             if (this is Player p)
             {
                 if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
-                    log.Info($"{Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {p.Location.ToLOCString()}");
+                    log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {p.Location.ToLOCString()}");
                 else
-                    log.Info($"{Name}'s corpse (0x{corpse.Guid}) is located at {corpse.PhysicsObj.Position}");
+                    log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) is located at {corpse.PhysicsObj.Position}");
             }
 
             if (saveCorpse)
@@ -291,7 +321,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Transfers generated treasure from creature to corpse
         /// </summary>
-        private List<WorldObject> GenerateTreasure(Corpse corpse)
+        private List<WorldObject> GenerateTreasure(WorldObject killer, Corpse corpse)
         {
             var droppedItems = new List<WorldObject>();
 
@@ -305,6 +335,8 @@ namespace ACE.Server.WorldObjects
                         corpse.TryAddToInventory(wo);
                     else
                         droppedItems.Add(wo);
+
+                    DoCantripLogging(killer, wo);
                 }
             }
 
@@ -335,15 +367,40 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 if (TryDequipObjectWithBroadcasting(item.Guid, out var wo, out var wieldedLocation))
-                    TryAddToInventory(wo);
+                    EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid));
 
                 if (corpse != null)
+                {
                     corpse.TryAddToInventory(item);
+                    EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, corpse.Guid), new GameMessagePickupEvent(item));
+                }
                 else
                     droppedItems.Add(item);
             }
 
             return droppedItems;
+        }
+
+        public void DoCantripLogging(WorldObject killer, WorldObject wo)
+        {
+            var epicCantrips = wo.EpicCantrips;
+            var legendaryCantrips = wo.LegendaryCantrips;
+
+            if (epicCantrips.Count > 0)
+                log.Debug($"[LOOT][EPIC] {Name} ({Guid}) generated item with {epicCantrips.Count} epic{(epicCantrips.Count > 1 ? "s" : "")} - {wo.Name} ({wo.Guid}) - {GetSpellList(epicCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
+
+            if (legendaryCantrips.Count > 0)
+                log.Debug($"[LOOT][LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
+        }
+
+        public static string GetSpellList(List<BiotaPropertiesSpellBook> spellbook)
+        {
+            var spells = new List<Server.Entity.Spell>();
+
+            foreach (var spell in spellbook)
+                spells.Add(new Server.Entity.Spell(spell.Spell, false));
+
+            return string.Join(", ", spells.Select(i => i.Name));
         }
     }
 }

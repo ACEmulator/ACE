@@ -435,5 +435,20 @@ namespace ACE.Server.Physics.Common
         {
             return ID.GetHashCode();
         }
+
+        public bool IsVisibleIndoors(ObjCell cell)
+        {
+            var blockDist = PhysicsObj.GetBlockDist(ID, cell.ID);
+
+            // if landblocks equal
+            if (blockDist == 0)
+            {
+                // check env VisibleCells
+                var cellID = cell.ID & 0xFFFF;
+                if (VisibleCells.ContainsKey(cellID))
+                    return true;
+            }
+            return SeenOutside && blockDist <= 1;
+        }
     }
 }

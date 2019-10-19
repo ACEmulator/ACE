@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
             if (ammo == null) return;
 
             var creature = target as Creature;
-            if (!IsAlive || MissileTarget == null || !creature.IsAlive)
+            if (!IsAlive || MissileTarget == null || creature == null || !creature.IsAlive)
             {
                 MissileTarget = null;
                 return;
@@ -112,12 +112,12 @@ namespace ACE.Server.WorldObjects
                 UpdateVitalDelta(Stamina, -staminaCost);
 
                 float targetTime = 0.0f;
-                var projectile = LaunchProjectile(ammo, target, out targetTime);
+                var projectile = LaunchProjectile(weapon, ammo, target, out targetTime);
                 UpdateAmmoAfterLaunch(ammo);
             });
 
             // ammo remaining?
-            if (ammo.StackSize == 1)
+            if (ammo.StackSize == null || ammo.StackSize <= 1)
             {
                 actionChain.AddAction(this, () =>
                 {
@@ -138,8 +138,8 @@ namespace ACE.Server.WorldObjects
             var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
             //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
-                (int)ACE.Entity.Enum.Placement.RightHandCombat)));
+            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
+                ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.AddDelaySeconds(linkTime);
 
@@ -191,7 +191,7 @@ namespace ACE.Server.WorldObjects
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
 
-            if (ammo.StackSize == 1)
+            if (ammo.StackSize == null || ammo.StackSize <= 1)
                 TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);
             else
                 TryConsumeFromInventoryWithNetworking(ammo, 1);

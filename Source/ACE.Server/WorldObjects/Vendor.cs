@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Vendor;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Vendor;
         }
 
 
@@ -150,7 +150,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     UniqueItemsForSale.Remove(wo.Guid);
-                    log.Info($"Vendor {Name} has discontinued sale of {wo.Name} and removed it from its UniqueItemsForSale list.");
+                    log.Debug($"[VENDOR] Vendor {Name} has discontinued sale of {wo.Name} and removed it from its UniqueItemsForSale list.");
                 }
             }
 
@@ -382,9 +382,9 @@ namespace ACE.Server.WorldObjects
 
             foreach (ItemProfile item in filteredlist)
             {
-                var itemAmount = player.PreCheckItem(item.WeenieClassId, (int)item.Amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemIsContainer);
+                var itemAmount = player.PreCheckItem(item.WeenieClassId, (int)item.Amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
 
-                if (itemIsContainer)
+                if (itemRequiresBackpackSlot)
                 {
                     playerFreeContainerSlots -= itemAmount;
                     playerAvailableBurden -= itemEncumberance;

@@ -11,6 +11,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -100,9 +101,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the currently equipped primary weapon
         /// </summary>
-        public WorldObject GetEquippedWeapon()
+        public WorldObject GetEquippedWeapon(bool forceMainHand = false)
         {
-            var meleeWeapon = GetEquippedMeleeWeapon();
+            var meleeWeapon = GetEquippedMeleeWeapon(forceMainHand);
             return meleeWeapon ?? GetEquippedMissileWeapon();
         }
 
@@ -110,9 +111,9 @@ namespace ACE.Server.WorldObjects
         /// Returns the current equipped active melee weapon
         /// This will normally be the primary melee weapon, but if dual wielding, this will be the weapon for the next attack
         /// </summary>
-        public WorldObject GetEquippedMeleeWeapon()
+        public WorldObject GetEquippedMeleeWeapon(bool forceMainHand = false)
         {
-            if (!IsDualWieldAttack || DualWieldAlternate)
+            if (!IsDualWieldAttack || DualWieldAlternate || forceMainHand)
                 return EquippedObjects.Values.FirstOrDefault(e => e.ParentLocation == ACE.Entity.Enum.ParentLocation.RightHand && (e.CurrentWieldedLocation == EquipMask.MeleeWeapon || e.CurrentWieldedLocation == EquipMask.TwoHanded));
 
             return GetDualWieldWeapon();
@@ -140,6 +141,14 @@ namespace ACE.Server.WorldObjects
         public WorldObject GetEquippedMissileWeapon()
         {
             return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon);
+        }
+
+        /// <summary>
+        /// Returns the current equipped weapon in main hand
+        /// </summary>
+        public WorldObject GetEquippedMainHand()
+        {
+            return GetEquippedMeleeWeapon(true) ?? GetEquippedMissileWeapon() ?? GetEquippedWand();
         }
 
         /// <summary>
@@ -253,7 +262,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.WieldObject));
 
             if (worldObject.ParentLocation != null)
-                EnqueueBroadcast(new GameMessageParentEvent(this, worldObject, (int?)worldObject.ParentLocation ?? 0, (int?)worldObject.Placement ?? 0));
+                EnqueueBroadcast(new GameMessageParentEvent(this, worldObject));
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
@@ -301,7 +310,7 @@ namespace ACE.Server.WorldObjects
         /// Called by non-player creatures to unwield an item,
         /// removing any spells casted by the item
         /// </summary>
-        protected bool TryUnwieldObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
+        public bool TryUnwieldObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
         {
             if (!TryDequipObjectWithBroadcasting(objectGuid, out worldObject, out wieldedLocation, droppingToLandscape))
                 return false;
@@ -410,7 +419,7 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                        placement = ACE.Entity.Enum.Placement.RightHandNonCombat;
                         parentLocation = ACE.Entity.Enum.ParentLocation.LeftWeapon;
                     }
                     break;
@@ -489,8 +498,6 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldList()
         {
-            var attackable = Attackable ?? false;
-
             var wielded = Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Wield) != 0).ToList();
 
             var items = CreateListSelect(wielded);
@@ -513,6 +520,10 @@ namespace ACE.Server.WorldObjects
 
         public static List<BiotaPropertiesCreateList> CreateListSelect(List<BiotaPropertiesCreateList> createList)
         {
+            var trophy_drop_rate = PropertyManager.GetDouble("trophy_drop_rate").Item;
+            if (trophy_drop_rate != 1.0)
+                return CreateListSelect(createList, (float)trophy_drop_rate);
+
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var totalProbability = 0.0f;
             var rngSelected = false;
@@ -537,6 +548,54 @@ namespace ACE.Server.WorldObjects
                     }
 
                     var probability = shadeOrProbability;
+
+                    totalProbability += probability;
+
+                    if (rngSelected || rng > totalProbability)
+                        continue;
+
+                    rngSelected = true;
+                }
+
+                results.Add(item);
+            }
+
+            return results;
+        }
+
+        public static List<BiotaPropertiesCreateList> CreateListSelect(List<BiotaPropertiesCreateList> _createList, float dropRateMod)
+        {
+            var createList = new CreateList(_createList);
+            CreateListSetModifier modifier = null;
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            var totalProbability = 0.0f;
+            var rngSelected = false;
+
+            var results = new List<BiotaPropertiesCreateList>();
+
+            for (var i = 0; i < _createList.Count; i++)
+            {
+                var item = _createList[i];
+
+                var destinationType = (DestinationType)item.DestinationType;
+                var useRNG = destinationType.HasFlag(DestinationType.Treasure) && item.Shade != 0;
+
+                var shadeOrProbability = item.Shade;
+
+                if (useRNG)
+                {
+                    // handle sets in 0-1 chunks
+                    if (totalProbability == 0.0f || totalProbability >= 1.0f)
+                    {
+                        totalProbability = 0.0f;
+                        rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                        rngSelected = false;
+
+                        modifier = createList.GetSetModifier(i, dropRateMod);
+                    }
+
+                    var probability = shadeOrProbability * (item.WeenieClassId != 0 ? modifier.TrophyMod : modifier.NoneMod);
 
                     totalProbability += probability;
 

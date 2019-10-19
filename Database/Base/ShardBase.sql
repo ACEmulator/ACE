@@ -37,8 +37,29 @@ CREATE TABLE `biota` (
   `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of the Weenie this Biota was created from',
   `weenie_Type` int(5) NOT NULL DEFAULT '0' COMMENT 'WeenieType for this Object',
   `populated_Collection_Flags` int(10) unsigned NOT NULL DEFAULT '4294967295',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `biota_wcid_idx` (`weenie_Class_Id`),
+  KEY `biota_type_idx` (`weenie_Type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Dynamic Weenies of a Shard/World';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `biota_properties_allegiance`
+--
+
+DROP TABLE IF EXISTS `biota_properties_allegiance`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `biota_properties_allegiance` (
+  `allegiance_Id` int(10) unsigned NOT NULL,
+  `character_Id` int(10) unsigned NOT NULL,
+  `banned` bit(1) NOT NULL,
+  `approved_Vassal` bit(1) NOT NULL,
+  PRIMARY KEY (`allegiance_Id`,`character_Id`),
+  KEY `FK_allegiance_character_Id` (`character_Id`),
+  CONSTRAINT `FK_allegiance_biota_Id` FOREIGN KEY (`allegiance_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_allegiance_character_Id` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -435,6 +456,7 @@ CREATE TABLE `biota_properties_i_i_d` (
   `value` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_iid_type_uidx` (`object_Id`,`type`),
+  KEY `type_value_idx` (`type`,`value`),
   CONSTRAINT `wcid_iid` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='InstanceID Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -515,6 +537,7 @@ CREATE TABLE `biota_properties_position` (
   `angles_Z` float NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
+  KEY `type_cell_idx` (`position_Type`,`obj_Cell_Id`),
   CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Position Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -627,24 +650,18 @@ CREATE TABLE `character` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `character_properties_contract`
+-- Table structure for table `character_properties_contract_registry`
 --
 
-DROP TABLE IF EXISTS `character_properties_contract`;
+DROP TABLE IF EXISTS `character_properties_contract_registry`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
-CREATE TABLE `character_properties_contract` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
+CREATE TABLE `character_properties_contract_registry` (
   `character_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the character this property belongs to',
   `contract_Id` int(10) unsigned NOT NULL,
-  `version` int(10) unsigned NOT NULL,
-  `stage` int(10) unsigned NOT NULL,
-  `time_When_Done` bigint(20) unsigned NOT NULL,
-  `time_When_Repeats` bigint(20) unsigned NOT NULL,
   `delete_Contract` bit(1) NOT NULL,
   `set_As_Display_Contract` bit(1) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `wcid_contract_uidx` (`character_Id`,`contract_Id`),
+  PRIMARY KEY (`character_Id`,`contract_Id`),
   CONSTRAINT `wcid_contract` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -737,6 +754,23 @@ CREATE TABLE `character_properties_spell_bar` (
   UNIQUE KEY `wcid_spellbar_barId_spellId_uidx` (`character_Id`,`spell_Bar_Number`,`spell_Id`),
   CONSTRAINT `wcid_spellbar` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SpellBar Properties of Weenies';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `character_properties_squelch`
+--
+
+DROP TABLE IF EXISTS `character_properties_squelch`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `character_properties_squelch` (
+  `character_Id` int(10) unsigned NOT NULL,
+  `squelch_Character_Id` int(10) unsigned NOT NULL,
+  `squelch_Account_Id` int(10) unsigned NOT NULL,
+  `type` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`character_Id`,`squelch_Character_Id`),
+  CONSTRAINT `squelch_character_Id_constraint` FOREIGN KEY (`character_Id`) REFERENCES `character` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -844,4 +878,4 @@ CREATE TABLE `house_permission` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-04-29  2:19:16
+-- Dump completed on 2019-09-14 12:36:31

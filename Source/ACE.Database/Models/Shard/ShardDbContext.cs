@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -16,6 +16,7 @@ namespace ACE.Database.Models.Shard
         }
 
         public virtual DbSet<Biota> Biota { get; set; }
+        public virtual DbSet<BiotaPropertiesAllegiance> BiotaPropertiesAllegiance { get; set; }
         public virtual DbSet<BiotaPropertiesAnimPart> BiotaPropertiesAnimPart { get; set; }
         public virtual DbSet<BiotaPropertiesAttribute> BiotaPropertiesAttribute { get; set; }
         public virtual DbSet<BiotaPropertiesAttribute2nd> BiotaPropertiesAttribute2nd { get; set; }
@@ -41,12 +42,13 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<BiotaPropertiesString> BiotaPropertiesString { get; set; }
         public virtual DbSet<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
         public virtual DbSet<Character> Character { get; set; }
-        public virtual DbSet<CharacterPropertiesContract> CharacterPropertiesContract { get; set; }
+        public virtual DbSet<CharacterPropertiesContractRegistry> CharacterPropertiesContractRegistry { get; set; }
         public virtual DbSet<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
         public virtual DbSet<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
         public virtual DbSet<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
         public virtual DbSet<CharacterPropertiesShortcutBar> CharacterPropertiesShortcutBar { get; set; }
         public virtual DbSet<CharacterPropertiesSpellBar> CharacterPropertiesSpellBar { get; set; }
+        public virtual DbSet<CharacterPropertiesSquelch> CharacterPropertiesSquelch { get; set; }
         public virtual DbSet<CharacterPropertiesTitleBook> CharacterPropertiesTitleBook { get; set; }
         public virtual DbSet<ConfigPropertiesBoolean> ConfigPropertiesBoolean { get; set; }
         public virtual DbSet<ConfigPropertiesDouble> ConfigPropertiesDouble { get; set; }
@@ -74,6 +76,12 @@ namespace ACE.Database.Models.Shard
             {
                 entity.ToTable("biota");
 
+                entity.HasIndex(e => e.WeenieClassId)
+                    .HasName("biota_wcid_idx");
+
+                entity.HasIndex(e => e.WeenieType)
+                    .HasName("biota_type_idx");
+
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.PopulatedCollectionFlags)
@@ -86,6 +94,39 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("weenie_Type")
                     .HasColumnType("int(5)")
                     .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<BiotaPropertiesAllegiance>(entity =>
+            {
+                entity.HasKey(e => new { e.AllegianceId, e.CharacterId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("biota_properties_allegiance");
+
+                entity.HasIndex(e => e.CharacterId)
+                    .HasName("FK_allegiance_character_Id");
+
+                entity.Property(e => e.AllegianceId).HasColumnName("allegiance_Id");
+
+                entity.Property(e => e.CharacterId).HasColumnName("character_Id");
+
+                entity.Property(e => e.ApprovedVassal)
+                    .HasColumnName("approved_Vassal")
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.Banned)
+                    .HasColumnName("banned")
+                    .HasColumnType("bit(1)");
+
+                entity.HasOne(d => d.Allegiance)
+                    .WithMany(p => p.BiotaPropertiesAllegiance)
+                    .HasForeignKey(d => d.AllegianceId)
+                    .HasConstraintName("FK_allegiance_biota_Id");
+
+                entity.HasOne(d => d.Character)
+                    .WithMany(p => p.BiotaPropertiesAllegiance)
+                    .HasForeignKey(d => d.CharacterId)
+                    .HasConstraintName("FK_allegiance_character_Id");
             });
 
             modelBuilder.Entity<BiotaPropertiesAnimPart>(entity =>
@@ -703,7 +744,8 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesEnchantmentRegistry>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.SpellId, e.CasterObjectId, e.LayerId });
+                entity.HasKey(e => new { e.ObjectId, e.SpellId, e.CasterObjectId, e.LayerId })
+                    .HasName("PRIMARY");
 
                 entity.ToTable("biota_properties_enchantment_registry");
 
@@ -1034,6 +1076,9 @@ namespace ACE.Database.Models.Shard
                     .HasName("wcid_position_type_uidx")
                     .IsUnique();
 
+                entity.HasIndex(e => new { e.PositionType, e.ObjCellId })
+                    .HasName("type_cell_idx");
+
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.AnglesW).HasColumnName("angles_W");
@@ -1264,15 +1309,12 @@ namespace ACE.Database.Models.Shard
                     .HasDefaultValueSql("'0'");
             });
 
-            modelBuilder.Entity<CharacterPropertiesContract>(entity =>
+            modelBuilder.Entity<CharacterPropertiesContractRegistry>(entity =>
             {
-                entity.ToTable("character_properties_contract");
+                entity.HasKey(e => new { e.CharacterId, e.ContractId })
+                    .HasName("PRIMARY");
 
-                entity.HasIndex(e => new { e.CharacterId, e.ContractId })
-                    .HasName("wcid_contract_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.ToTable("character_properties_contract_registry");
 
                 entity.Property(e => e.CharacterId)
                     .HasColumnName("character_Id")
@@ -1288,16 +1330,8 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("set_As_Display_Contract")
                     .HasColumnType("bit(1)");
 
-                entity.Property(e => e.Stage).HasColumnName("stage");
-
-                entity.Property(e => e.TimeWhenDone).HasColumnName("time_When_Done");
-
-                entity.Property(e => e.TimeWhenRepeats).HasColumnName("time_When_Repeats");
-
-                entity.Property(e => e.Version).HasColumnName("version");
-
                 entity.HasOne(d => d.Character)
-                    .WithMany(p => p.CharacterPropertiesContract)
+                    .WithMany(p => p.CharacterPropertiesContractRegistry)
                     .HasForeignKey(d => d.CharacterId)
                     .HasConstraintName("wcid_contract");
             });
@@ -1392,7 +1426,8 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<CharacterPropertiesShortcutBar>(entity =>
             {
-                entity.HasKey(e => new { e.CharacterId, e.ShortcutBarIndex });
+                entity.HasKey(e => new { e.CharacterId, e.ShortcutBarIndex })
+                    .HasName("PRIMARY");
 
                 entity.ToTable("character_properties_shortcut_bar");
 
@@ -1449,6 +1484,27 @@ namespace ACE.Database.Models.Shard
                     .HasConstraintName("wcid_spellbar");
             });
 
+            modelBuilder.Entity<CharacterPropertiesSquelch>(entity =>
+            {
+                entity.HasKey(e => new { e.CharacterId, e.SquelchCharacterId })
+                    .HasName("PRIMARY");
+
+                entity.ToTable("character_properties_squelch");
+
+                entity.Property(e => e.CharacterId).HasColumnName("character_Id");
+
+                entity.Property(e => e.SquelchCharacterId).HasColumnName("squelch_Character_Id");
+
+                entity.Property(e => e.SquelchAccountId).HasColumnName("squelch_Account_Id");
+
+                entity.Property(e => e.Type).HasColumnName("type");
+
+                entity.HasOne(d => d.Character)
+                    .WithMany(p => p.CharacterPropertiesSquelch)
+                    .HasForeignKey(d => d.CharacterId)
+                    .HasConstraintName("squelch_character_Id_constraint");
+            });
+
             modelBuilder.Entity<CharacterPropertiesTitleBook>(entity =>
             {
                 entity.ToTable("character_properties_title_book");
@@ -1475,7 +1531,8 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<ConfigPropertiesBoolean>(entity =>
             {
-                entity.HasKey(e => e.Key);
+                entity.HasKey(e => e.Key)
+                    .HasName("PRIMARY");
 
                 entity.ToTable("config_properties_boolean");
 
@@ -1494,7 +1551,8 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<ConfigPropertiesDouble>(entity =>
             {
-                entity.HasKey(e => e.Key);
+                entity.HasKey(e => e.Key)
+                    .HasName("PRIMARY");
 
                 entity.ToTable("config_properties_double");
 
@@ -1511,7 +1569,8 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<ConfigPropertiesLong>(entity =>
             {
-                entity.HasKey(e => e.Key);
+                entity.HasKey(e => e.Key)
+                    .HasName("PRIMARY");
 
                 entity.ToTable("config_properties_long");
 
@@ -1530,7 +1589,8 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<ConfigPropertiesString>(entity =>
             {
-                entity.HasKey(e => e.Key);
+                entity.HasKey(e => e.Key)
+                    .HasName("PRIMARY");
 
                 entity.ToTable("config_properties_string");
 

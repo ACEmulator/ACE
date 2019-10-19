@@ -45,7 +45,7 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Constructs a new QuestManager for a Player
+        /// Constructs a new QuestManager for a Fellowship
         /// </summary>
         public QuestManager(Fellowship fellowship)
         {
@@ -127,15 +127,29 @@ namespace ACE.Server.Managers
                     info.CharacterId = Fellowship.FellowshipLeaderGuid;
                 if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): added quest");
                 Quests.Add(info);
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
+                }
             }
             else
             {
+                if (IsMaxSolves(questName))
+                {
+                    if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): can not update existing quest. IsMaxSolves({questName}) is true.");
+                    return;
+                }
+
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted++;
                 if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                }
             }
         }
 
@@ -164,7 +178,11 @@ namespace ACE.Server.Managers
                     info.CharacterId = Fellowship.FellowshipLeaderGuid;
                 if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({questFormat}): initialized quest to {info.NumTimesCompleted}");
                 Quests.Add(info);
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
+                }
             }
             else
             {
@@ -172,7 +190,11 @@ namespace ACE.Server.Managers
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted = questCompletions;
                 if (Debug) Console.WriteLine($"{((Player != null) ? Player.Name : $"Fellowship({Fellowship.FellowshipName})")}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                }
             }
         }
 
@@ -263,7 +285,31 @@ namespace ACE.Server.Managers
             foreach (var quest in quests)
             {
                 Quests.Remove(quest);
-                if (Player != null) Player.CharacterChangesDetected = true;
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Removes an all quests from registry
+        /// </summary>
+        public void EraseAll()
+        {
+            if (Debug)
+                Console.WriteLine($"{Player.Name}.QuestManager.EraseAll");
+
+            var quests = Quests.ToList();
+            foreach (var quest in quests)
+            {
+                Quests.Remove(quest);
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
+                }
             }
         }
 
@@ -342,8 +388,7 @@ namespace ACE.Server.Managers
             else
             {
                 var error = new GameEventInventoryServerSaveFailed(Player.Session, wo.Guid.Full, WeenieError.ItemRequiresQuestToBePickedUp);
-                var text = new GameMessageSystemChat("This item requires you to complete a specific quest before you can pick it up!", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, error);
+                Player.Session.Network.EnqueueSend(error);
             }
         }
 
@@ -372,7 +417,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Increments the counter for a kill task, and optionally shares with fellowship
         /// </summary>
-        public void HandleKillTask(string _questName, WorldObject obj, float shareableRange)
+        public void HandleKillTask(string _questName, WorldObject obj, bool shareable = true)
         {
             // http://acpedia.org/wiki/Announcements_-_2012/12_-_A_Growing_Twilight#Release_Notes
 
@@ -419,25 +464,14 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            // are we in a fellowship? if so, share with fellowship
-            if (shareableRange > 0.0f && Player.Fellowship != null)
+            // is player in fellowship?
+            if (Player.Fellowship != null && shareable)
             {
-                var landblockRange = PropertyManager.GetBool("fellow_kt_landblock").Item;
+                // if so, share with fellows within range
+                var fellows = Player.Fellowship.WithinRange(Player);
 
-                // killtasks can be shared with all members of a fellowship,
-                // they do not use the same "ShareableMembers" as XP sharing
-                var fellows = Player.Fellowship.GetFellowshipMembers();
-
-                foreach (var fellow in fellows.Values.Where(f => f != Player))
-                {
-                    // ensure within shareable distance
-                    var shareable = landblockRange ?
-                        Player.CurrentLandblock == fellow.CurrentLandblock || Player.Location.DistanceTo(fellow.Location) <= 192.0f :
-                        Player.Location.DistanceTo(fellow.Location) <= shareableRange;      // 2d or 3d distance here?
-
-                    if (shareable)
-                        fellow.QuestManager.HandleKillTask(_questName, obj, 0.0f);
-                }
+                foreach (var fellow in fellows)
+                    fellow.QuestManager.HandleKillTask(_questName, obj, false);
             }
         }
     }

@@ -1,7 +1,5 @@
-using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 
@@ -13,6 +11,11 @@ namespace ACE.Server.WorldObjects
         /// This is set by HandleActionUseItem / TryUseItem
         /// </summary>
         public ObjectGuid LastOpenedContainerId { get; set; }
+
+        /// <summary>
+        /// This is set by Hook.ActOnUse
+        /// </summary>
+        public ObjectGuid LasUsedHookId { get; set; }
 
         /// <summary>
         /// Handles the 'GameAction 0x35 - UseWithTarget' network message
@@ -84,7 +87,15 @@ namespace ACE.Server.WorldObjects
             if (item != null)
             {
                 if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastOpenedContainerId)
+                {
+                    if (IsBusy)
+                    {
+                        SendUseDoneEvent(WeenieError.YoureTooBusy);
+                        return;
+                    }
+
                     CreateMoveToChain(item, (success) => TryUseItem(item, success));
+                }
                 else
                     TryUseItem(item);
             }

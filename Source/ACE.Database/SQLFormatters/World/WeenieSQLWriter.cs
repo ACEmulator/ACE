@@ -537,7 +537,7 @@ namespace ACE.Database.SQLFormatters.World
                 }
 
                 string weenieClassIdLabel = null;
-                if (input[i].WeenieClassId.HasValue)
+                if (input[i].WeenieClassId.HasValue && WeenieNames != null)
                 {
                     WeenieNames.TryGetValue(input[i].WeenieClassId.Value, out weenieClassIdLabel);
                     if (weenieClassIdLabel != null)

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
@@ -43,6 +45,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.LastPkAttackTimestamp) ?? 0;
             set { if (value == 0) RemoveProperty(PropertyFloat.LastPkAttackTimestamp); else SetProperty(PropertyFloat.LastPkAttackTimestamp, value); }
+        }
+
+        public double PkTimestamp
+        {
+            get => GetProperty(PropertyFloat.PkTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.PkTimestamp); else SetProperty(PropertyFloat.PkTimestamp, value); }
         }
 
         /// <summary>
@@ -140,30 +148,29 @@ namespace ACE.Server.WorldObjects
                 OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
 
                 if (targetPlayer != null)
-                    targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical);
+                    targetPlayer.TakeDamage(this, damageEvent);
                 else
                     target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);
             }
             else
             {
-                if (targetPlayer != null && targetPlayer.UnderLifestoneProtection)
+                if (damageEvent.LifestoneProtection)
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"The Lifestone's magic protects {target.Name} from the attack!", ChatMessageType.Magic));
-                else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
+
+                else if (!SquelchManager.Squelches.Contains(target, ChatMessageType.CombatSelf))
+                    Session.Network.EnqueueSend(new GameEventEvasionAttackerNotification(Session, target.Name));
+
+                if (targetPlayer != null)
+                    targetPlayer.OnEvade(this, damageEvent.CombatType);
             }
 
             if (damageEvent.HasDamage && target.IsAlive)
             {
-                var attackConditions = new AttackConditions();
-                if (damageEvent.RecklessnessMod > 1.0f)
-                    attackConditions |= AttackConditions.Recklessness;
-                if (damageEvent.SneakAttackMod > 1.0f)
-                    attackConditions |= AttackConditions.SneakAttack;
-
                 // notify attacker
                 var intDamage = (uint)Math.Round(damageEvent.Damage);
 
-                Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, attackConditions));
+                if (!SquelchManager.Squelches.Contains(this, ChatMessageType.CombatSelf))
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, damageEvent.AttackConditions));
 
                 // splatter effects
                 if (targetPlayer == null)
@@ -278,7 +285,8 @@ namespace ACE.Server.WorldObjects
             else
                 UpdateVitalDelta(Stamina, -1);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {attacker.Name}!", ChatMessageType.CombatEnemy));
+            if (!SquelchManager.Squelches.Contains(attacker, ChatMessageType.CombatEnemy))
+                Session.Network.EnqueueSend(new GameEventEvasionDefenderNotification(Session, attacker.Name));
 
             var creature = attacker as Creature;
             if (creature == null) return;
@@ -288,23 +296,30 @@ namespace ACE.Server.WorldObjects
             Proficiency.OnSuccessUse(this, defenseSkill, difficulty);
         }
 
-        public BaseDamageMod GetBaseDamageMod()
+        public BaseDamageMod GetBaseDamageMod(WorldObject damageSource)
         {
-            var attackType = GetCombatType();
-            var damageSource = attackType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
-
-            if (damageSource == null)
+            if (damageSource == this)
             {
-                var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
-                return new BaseDamageMod(baseDamage);
+                if (AttackType == AttackType.Punch)
+                    damageSource = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    damageSource = FootArmor;
+
+                // no weapon, no hand or foot armor
+                if (damageSource == null)
+                {
+                    var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
+                    return new BaseDamageMod(baseDamage);
+                }
+                else
+                    return damageSource.GetDamageMod(this, damageSource);
             }
-            else
-                return damageSource.GetDamageMod(this);
+            return damageSource.GetDamageMod(this);
         }
 
         public override float GetPowerMod(WorldObject weapon)
         {
-            if (weapon == null || !weapon.IsBow)
+            if (weapon == null || !weapon.IsRanged)
                 return PowerLevel + 0.5f;
             else
                 return 1.0f;
@@ -312,7 +327,7 @@ namespace ACE.Server.WorldObjects
 
         public override float GetAccuracyMod(WorldObject weapon)
         {
-            if (weapon != null && weapon.IsBow)
+            if (weapon != null && weapon.IsRanged)
                 return AccuracyLevel + 0.6f;
             else
                 return 1.0f;
@@ -409,8 +424,8 @@ namespace ACE.Server.WorldObjects
             //{
                 var nether = damageType == DamageType.Nether ? "nether " : "";
                 var chatMessageType = damageType == DamageType.Nether ? ChatMessageType.Magic : ChatMessageType.Combat;
-                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", chatMessageType);
-                Session.Network.EnqueueSend(text);
+                var text = $"You receive {amount} points of periodic {nether}damage.";
+                SendMessage(text, chatMessageType);
             //}
 
             // splatter effects
@@ -434,18 +449,23 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
         }
 
+        public int TakeDamage(WorldObject source, DamageEvent damageEvent)
+        {
+            return TakeDamage(source, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical, damageEvent.AttackConditions);
+        }
+
         /// <summary>
         /// Applies damages to a player from a physical damage source
         /// </summary>
-        public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
+        public int TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false, AttackConditions attackConditions = AttackConditions.None)
         {
-            if (Invincible || IsDead) return;
+            if (Invincible || IsDead) return 0;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
             {
                 HandleLifestoneProtection();
-                return;
+                return 0;
             }
 
             var amount = (uint)Math.Round(_amount);
@@ -465,21 +485,21 @@ namespace ACE.Server.WorldObjects
             {
                 OnDeath(source, damageType, crit);
                 Die();
-                return;
+                return (int)damageTaken;
             }
 
             if (!BodyParts.Indices.TryGetValue(bodyPart, out var iDamageLocation))
             {
                 log.Error($"{Name}.TakeDamage({source.Name}, {damageType}, {amount}, {bodyPart}, {crit}): avoided crash for bad damage location");
-                return;
+                return 0;
             }
             var damageLocation = (DamageLocation)iDamageLocation;
 
             // send network messages
             if (source is Creature creature)
             {
-                var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
-                Session.Network.EnqueueSend(text);
+                if (!SquelchManager.Squelches.Contains(source, ChatMessageType.CombatEnemy))
+                    Session.Network.EnqueueSend(new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, attackConditions));
 
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
@@ -492,6 +512,8 @@ namespace ACE.Server.WorldObjects
             // if player attacker, update PK timer
             if (source is Player attacker)
                 UpdatePKTimers(attacker, this);
+
+            return (int)damageTaken;
         }
 
         public string GetArmorType(BodyPart bodyPart)
@@ -615,12 +637,30 @@ namespace ACE.Server.WorldObjects
             return recklessnessMod;
         }
 
-        public Player GetKiller_PKLite()
+        /// <summary>
+        /// Returns TRUE if this player is PK and died to another player
+        /// </summary>
+        public bool IsPKDeath(WorldObject topDamager)
         {
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-                return CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0)) as Player;
-            else
-                return null;
+            return IsPKDeath(topDamager?.Guid.Full);
+        }
+
+        public bool IsPKDeath(uint? killerGuid)
+        {
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PK) && new ObjectGuid(killerGuid ?? 0).IsPlayer();
+        }
+
+        /// <summary>
+        /// Returns TRUE if this player is PKLite and died to another player
+        /// </summary>
+        public bool IsPKLiteDeath(WorldObject topDamager)
+        {
+            return IsPKLiteDeath(topDamager?.Guid.Full);
+        }
+
+        public bool IsPKLiteDeath(uint? killerGuid)
+        {
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PKLite) && new ObjectGuid(killerGuid ?? 0).IsPlayer();
         }
 
         /// <summary>
@@ -733,7 +773,7 @@ namespace ACE.Server.WorldObjects
         // - These abilities are player-only, creatures with high endurance will not benefit from any of these changes.
         // - Come May, you can type @help endurance for a summary of the April changes to Endurance.
 
-        public override float GetNaturalResistance(DamageType damageType)
+        public override float GetNaturalResistance()
         {
             // base strength and endurance give the player a natural resistance to damage,
             // which caps at 50% (equivalent to level 5 life prots)
@@ -811,5 +851,133 @@ namespace ACE.Server.WorldObjects
         public bool PKLogoutActive => IsPKType && Time.GetUnixTime() - LastPkAttackTimestamp < PKLogoffTimer.TotalSeconds;
 
         public bool IsPKType => PlayerKillerStatus == PlayerKillerStatus.PK || PlayerKillerStatus == PlayerKillerStatus.PKLite;
+
+        public bool IsPK => PlayerKillerStatus == PlayerKillerStatus.PK;
+
+        public bool IsPKL => PlayerKillerStatus == PlayerKillerStatus.PKLite;
+
+        public bool IsNPK => PlayerKillerStatus == PlayerKillerStatus.NPK;
+
+        public bool CheckHouseRestrictions(Player player)
+        {
+            if (Location.Cell == player.Location.Cell)
+                return true;
+
+            // dealing with outdoor cell equivalents at this point, if applicable
+            var cell = (CurrentLandblock?.IsDungeon ?? false) ? Location.Cell : Location.GetOutdoorCell();
+            var playerCell = (player.CurrentLandblock?.IsDungeon ?? false) ? player.Location.Cell : player.Location.GetOutdoorCell();
+
+            if (cell == playerCell)
+                return true;
+
+            HouseCell.HouseCells.TryGetValue(cell, out var houseGuid);
+            HouseCell.HouseCells.TryGetValue(playerCell, out var playerHouseGuid);
+
+            // pass if both of these players aren't in a house cell
+            if (houseGuid == 0 && playerHouseGuid == 0)
+                return true;
+
+            var houses = new HashSet<House>();
+            CheckHouseRestrictions_GetHouse(houseGuid, houses);
+            player.CheckHouseRestrictions_GetHouse(playerHouseGuid, houses);
+
+            foreach (var house in houses)
+            {
+                if (!house.HasPermission(this) || !house.HasPermission(player))
+                    return false;
+            }
+            return true;
+        }
+
+        public void CheckHouseRestrictions_GetHouse(uint houseGuid, HashSet<House> houses)
+        {
+            if (houseGuid == 0)
+                return;
+
+            var house = CurrentLandblock.GetObject(houseGuid) as House;
+            if (house != null)
+            {
+                var rootHouse = house.LinkedHouses.Count > 0 ? house.LinkedHouses[0] : house;
+
+                if (rootHouse.HouseOwner == null || rootHouse.OpenStatus || houses.Contains(rootHouse))
+                    return;
+
+                //Console.WriteLine($"{Name}.CheckHouseRestrictions_GetHouse({houseGuid:X8}): found root house {house.Name} ({house.HouseId})");
+                houses.Add(rootHouse);
+            }
+            else
+                log.Error($"{Name}.CheckHouseRestrictions_GetHouse({houseGuid:X8}): couldn't find house from {CurrentLandblock.Id.Raw:X8}");
+        }
+
+        /// <summary>
+        /// Returns the damage type for the currently equipped weapon / ammo
+        /// </summary>
+        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
+        public override DamageType GetDamageType(bool multiple = false, CombatType? combatType = null)
+        {
+            // player override
+            if (combatType == null)
+                combatType = GetCombatType();
+
+            var weapon = GetEquippedWeapon();
+            var ammo = GetEquippedAmmo();
+
+            if (weapon == null && combatType == CombatType.Melee)
+            {
+                // handle gauntlets/ boots
+                if (AttackType == AttackType.Punch)
+                    weapon = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    weapon = FootArmor;
+                else
+                {
+                    log.Warn($"{Name}.GetDamageType(): no weapon, AttackType={AttackType}");
+                    return DamageType.Undef;
+                }
+
+                if (weapon != null && weapon.W_DamageType == DamageType.Undef)
+                    return DamageType.Bludgeon;
+            }
+
+            if (weapon == null)
+                return DamageType.Bludgeon;
+
+            var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
+
+            var damageType = damageSource.W_DamageType;
+
+            if (damageType == DamageType.Undef)
+            {
+                log.Warn($"{Name}.GetDamageType(): {damageSource} ({damageSource.Guid}, {damageSource.WeenieClassId}): no DamageType");
+                return DamageType.Bludgeon;
+            }
+
+            // return multiple damage types
+            if (multiple || !damageType.IsMultiDamage())
+                return damageType;
+
+            // get single damage type
+            if (damageType == (DamageType.Pierce | DamageType.Slash))
+            {
+                if ((AttackType & AttackType.Punches) != 0)
+                {
+                    if (PowerLevel < ThrustThreshold)
+                        return DamageType.Pierce;
+                    else
+                        return DamageType.Slash;
+                }
+
+                if ((AttackType & AttackType.Thrusts) != 0)
+                    return DamageType.Pierce;
+                else
+                    return DamageType.Slash;
+            }
+
+            return damageType.SelectDamageType();
+        }
+
+        public WorldObject HandArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Hands) > 0);
+
+        public WorldObject FootArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Feet) > 0);
     }
 }

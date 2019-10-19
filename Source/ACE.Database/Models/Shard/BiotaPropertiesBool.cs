@@ -10,6 +10,6 @@ namespace ACE.Database.Models.Shard
         public ushort Type { get; set; }
         public bool Value { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

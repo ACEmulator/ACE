@@ -31,9 +31,25 @@ namespace ACE.Server.Network.Handlers
 
         public static void HandleLoginRequest(ClientPacket packet, Session session)
         {
-            PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
-            Task t = new Task(() => DoLogin(session, loginRequest));
-            t.Start();
+            try
+            {
+                PacketInboundLoginRequest loginRequest = new PacketInboundLoginRequest(packet);
+
+                if (loginRequest.Account.Length > 50)
+                {
+                    NetworkManager.SendLoginRequestReject(session, CharacterError.AccountInvalid);
+                    session.Terminate(SessionTerminationReason.AccountInformationInvalid);
+                    return;
+                }
+
+                Task t = new Task(() => DoLogin(session, loginRequest));
+                t.Start();
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Received LoginRequest from {0} that threw an exception.", session.EndPoint);
+                log.Error(ex);
+            }
         }
 
         private static void DoLogin(Session session, PacketInboundLoginRequest loginRequest)
@@ -57,7 +73,7 @@ namespace ACE.Server.Network.Handlers
                         if (!System.Enum.IsDefined(typeof(AccessLevel), accessLevel))
                             accessLevel = AccessLevel.Player;
 
-                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel);
+                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel, session.EndPoint.Address);
                     }
                 }
             }
@@ -124,10 +140,13 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            if (NetworkManager.Find(account.AccountName) != null)
+            if (!PropertyManager.GetBool("account_login_boots_in_use").Item)
             {
-                session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.ServerCrash1));
-                return;
+                if (NetworkManager.Find(account.AccountName) != null)
+                {
+                    session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.ServerCrash1));
+                    return;
+                }
             }
 
             if (loginRequest.NetAuthType == NetAuthType.AccountPassword)
@@ -135,9 +154,9 @@ namespace ACE.Server.Network.Handlers
                 if (!account.PasswordMatches(loginRequest.Password))
                 {
                     if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
-                        log.Info($"client {loginRequest.Account} connected with non matching password does so booting");
+                        log.Info($"client {loginRequest.Account} connected with non matching password so booting");
                     else
-                        log.Debug($"client {loginRequest.Account} connected with non matching password does so booting");
+                        log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
                     session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
 
@@ -145,6 +164,16 @@ namespace ACE.Server.Network.Handlers
                     // exponential duration of lockout for targeted account
 
                     return;
+                }
+
+                if (PropertyManager.GetBool("account_login_boots_in_use").Item)
+                {
+                    var previouslyConnectedAccount = NetworkManager.Find(account.AccountName);
+
+                    if (previouslyConnectedAccount != null)
+                    {
+                        previouslyConnectedAccount.Terminate(SessionTerminationReason.AccountLoggedIn, new GameMessageCharacterError(CharacterError.Logon));
+                    }
                 }
 
                 if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
@@ -166,6 +195,8 @@ namespace ACE.Server.Network.Handlers
 
             // TODO: check for account bans
 
+            account.UpdateLastLogin(session.EndPoint.Address);
+
             session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
             session.State = SessionState.AuthConnectResponse;
         }
@@ -176,9 +207,9 @@ namespace ACE.Server.Network.Handlers
             {
                 DatabaseManager.Shard.GetCharacters(session.AccountId, false, result =>
                 {
-                // If you want to create default characters for accounts that have none, here is where you would do it.
+                    // If you want to create default characters for accounts that have none, here is where you would do it.
 
-                SendConnectResponse(session, result);
+                    SendConnectResponse(session, result);
                 });
             }
             else

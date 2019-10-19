@@ -5,12 +5,13 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public static TimeSpan PlayerSaveInterval = TimeSpan.FromMinutes(5);
+        public static readonly long DefaultPlayerSaveIntervalSecs = 300; // default to 5 minutes
 
         public DateTime CharacterLastRequestedDatabaseSave { get; protected set; }
 
@@ -19,6 +20,14 @@ namespace ACE.Server.WorldObjects
         /// The primary use for this is to trigger save on add/modify/remove of properties.
         /// </summary>
         public bool CharacterChangesDetected { get; set; }
+
+        /// <summary>
+        /// The time period between automatic saving of player character changes
+        /// </summary>
+        public long PlayerSaveIntervalSecs
+        {
+            get => PropertyManager.GetLong("player_save_interval", DefaultPlayerSaveIntervalSecs).Item;
+        }
 
         /// <summary>
         /// Best practice says you should use this lock any time you read/write the Character.<para />
@@ -44,10 +53,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RushNextPlayerSave(int seconds)
         {
-            if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow.AddSeconds(seconds))
+            if (LastRequestedDatabaseSave.AddSeconds(PlayerSaveIntervalSecs) <= DateTime.UtcNow.AddSeconds(seconds))
                 return;
 
-            LastRequestedDatabaseSave = DateTime.UtcNow.AddSeconds(seconds) - PlayerSaveInterval;
+            LastRequestedDatabaseSave = DateTime.UtcNow.AddSeconds(seconds).AddSeconds(-1 * PlayerSaveIntervalSecs);
         }
 
         /// <summary>

@@ -53,10 +53,10 @@ namespace ACE.Server.Network
         public string BootSessionReason { get; private set; }
 
 
-        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
+        public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
-            Network = new NetworkSession(this, clientId, serverId);
+            Network = new NetworkSession(this, connectionListener, clientId, serverId);
         }
 
 
@@ -173,11 +173,11 @@ namespace ACE.Server.Network
         /// <summary>
         /// Log off the player normally
         /// </summary>
-        public void LogOffPlayer()
+        public void LogOffPlayer(bool forceImmediate = false)
         {
             if (logOffRequestTime == DateTime.MinValue)
             {
-                var result = Player.LogOut();
+                var result = Player.LogOut(false, forceImmediate);
 
                 if (result)
                     logOffRequestTime = DateTime.UtcNow;

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -14,6 +16,8 @@ namespace ACE.Server.Entity
 {
     public class DamageEvent
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // factors:
         // - lifestone protection
         // - evade
@@ -115,6 +119,8 @@ namespace ACE.Server.Entity
 
         public bool HasDamage => !Evaded && !LifestoneProtection;
 
+        public bool CriticalDefended;
+
         public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, CombatManeuver combatManeuver = null)
         {
             var damageEvent = new DamageEvent();
@@ -137,11 +143,11 @@ namespace ACE.Server.Entity
             Attacker = attacker;
             Defender = defender;
 
-            CombatType = attacker.GetCombatType();
+            CombatType = damageSource.ProjectileSource == null ? attacker.GetCombatType() : CombatType.Missile;
 
             DamageSource = damageSource;
 
-            Weapon = attacker.GetEquippedWeapon();
+            Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedWeapon() : damageSource.ProjectileLauncher;
 
             AttackType = attacker.GetAttackType(Weapon, CombatManeuver);
             AttackHeight = attacker.AttackHeight ?? AttackHeight.Medium;
@@ -171,6 +177,12 @@ namespace ACE.Server.Entity
             else
                 GetBaseDamage(attacker, CombatManeuver);
 
+            if (DamageType == DamageType.Undef)
+            {
+                log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
+                GeneralFailure = true;
+            }
+
             if (GeneralFailure) return 0.0f;
 
             // get damage modifiers
@@ -194,17 +206,16 @@ namespace ACE.Server.Entity
             CriticalChance = WorldObject.GetWeaponCritChanceModifier(attacker, attackSkill, defender);
             if (CriticalChance > ThreadSafeRandom.Next(0.0f, 1.0f))
             {
-                var criticalDefended = false;
                 if (playerDefender != null && playerDefender.AugmentationCriticalDefense > 0)
                 {
                     var criticalDefenseMod = playerAttacker != null ? 0.05f : 0.25f;
                     var criticalDefenseChance = playerDefender.AugmentationCriticalDefense * criticalDefenseMod;
 
                     if (criticalDefenseChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                        criticalDefended = true;
+                        CriticalDefended = true;
                 }
 
-                if (!criticalDefended)
+                if (!CriticalDefended)
                 {
                     IsCritical = true;
 
@@ -264,7 +275,7 @@ namespace ACE.Server.Entity
             }
 
             // damage resistance rating
-            DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetDamageResistRating());
+            DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetDamageResistRating(CombatType));
 
             // get shield modifier
             ShieldMod = defender.GetShieldMod(attacker, DamageType, Weapon);
@@ -284,7 +295,10 @@ namespace ACE.Server.Entity
             AccuracyMod = attacker.GetAccuracyMod(Weapon);
 
             EffectiveAttackSkill = attacker.GetEffectiveAttackSkill();
-            EffectiveDefenseSkill = defender.GetEffectiveDefenseSkill(attacker.CurrentAttack ?? CombatType.Melee);
+
+            var attackType = attacker.GetCombatType();
+
+            EffectiveDefenseSkill = defender.GetEffectiveDefenseSkill(attackType);
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance(EffectiveAttackSkill, EffectiveDefenseSkill);
             return (float)evadeChance;
@@ -297,14 +311,13 @@ namespace ACE.Server.Entity
         {
             if (DamageSource.ItemType == ItemType.MissileWeapon)
             {
-                DamageType = (DamageType)DamageSource.GetProperty(PropertyInt.DamageType);
+                DamageType = DamageSource.W_DamageType;
 
                 // handle prismatic arrows
                 if (DamageType == DamageType.Base)
                 {
-                    var weapon = attacker.GetEquippedWeapon();
-                    if (weapon != null && (weapon.W_DamageType ?? 0) != 0)
-                        DamageType = (DamageType)weapon.W_DamageType;
+                    if (Weapon != null && Weapon.W_DamageType != DamageType.Undef)
+                        DamageType = Weapon.W_DamageType;
                     else
                         DamageType = DamageType.Pierce;
                 }
@@ -313,10 +326,10 @@ namespace ACE.Server.Entity
                 DamageType = attacker.GetDamageType();
 
             // TODO: combat maneuvers for player?
-            BaseDamageMod = attacker.GetBaseDamageMod();
+            BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
 
             if (DamageSource.ItemType == ItemType.MissileWeapon)
-                BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageModifier(attacker, DamageType);
+                BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(attacker, DamageType);
 
             BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
         }
@@ -336,7 +349,7 @@ namespace ACE.Server.Entity
             BaseDamageMod = attacker.GetBaseDamage(AttackPart);
             BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
-            DamageType = attacker.GetDamageType(AttackPart);
+            DamageType = attacker.GetDamageType(AttackPart, CombatType);
 
             if (attacker is CombatPet combatPet)
                 DamageType = combatPet.DamageType;
@@ -439,6 +452,7 @@ namespace ACE.Server.Entity
             // critical hit
             info += $"CriticalChance: {CriticalChance}\n";
             info += $"CriticalHit: {IsCritical}\n";
+            info += $"CriticalDefended: {CriticalDefended}\n";
             info += $"CriticalDamageMod: {CriticalDamageMod}\n";
 
             if (BodyPart != 0)
@@ -492,6 +506,23 @@ namespace ACE.Server.Entity
             {
                 ShowInfo(defender);
                 return;
+            }
+        }
+
+        public AttackConditions AttackConditions
+        {
+            get
+            {
+                var attackConditions = new AttackConditions();
+
+                if (CriticalDefended)
+                    attackConditions |= AttackConditions.CriticalProtectionAugmentation;
+                if (RecklessnessMod > 1.0f)
+                    attackConditions |= AttackConditions.Recklessness;
+                if (SneakAttackMod > 1.0f)
+                    attackConditions |= AttackConditions.SneakAttack;
+
+                return attackConditions;
             }
         }
     }

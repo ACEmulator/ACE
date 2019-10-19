@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ACE.Entity;
+using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
@@ -12,6 +13,7 @@ namespace ACE.Server.Network.Structure
     /// </summary>
     public class RestrictionDB
     {
+        public uint HouseOwner;
         public uint Version = 0x10000002;   // If high word is not 0, this value indicates the version of the message.
         public uint OpenStatus;             // 0 = private dwelling, 1 = open to public
         public ObjectGuid MonarchID;        // Allegiance monarch (if allegiance access granted)
@@ -21,22 +23,44 @@ namespace ACE.Server.Network.Structure
         public RestrictionDB()
         {
             Table = new Dictionary<ObjectGuid, uint>();
+            HouseOwner = 0;
         }
 
         public RestrictionDB(House house)
         {
+            Table = new Dictionary<ObjectGuid, uint>();
+
+            if (house == null) return;
+
+            HouseOwner = house.HouseOwner ?? 0;
+
             OpenStatus = Convert.ToUInt32(house.OpenStatus);
 
             if (house.MonarchId != null)
                 MonarchID = new ObjectGuid(house.MonarchId.Value);      // for allegiance guest/storage access
-
-            Table = new Dictionary<ObjectGuid, uint>();
 
             foreach (var guest in house.Guests)
             {
                 if (guest.Key != MonarchID)
                     Table.Add(guest.Key, Convert.ToUInt32(guest.Value));
             }
+
+            if (house.HouseOwner == null) return;
+
+            // add in players on house owner's account
+            var owner = PlayerManager.FindByGuid(house.HouseOwner.Value);
+
+            // added for people deleting accounts from their account db...
+            if (owner == null || owner.Account == null)
+            {
+                Console.WriteLine($"RestrictionDB({house.HouseInstance:X8}): couldn't find house owner {house.HouseOwner:X8}");
+                return;
+            }
+
+            var accountPlayers = Player.GetAccountPlayers(owner.Account.AccountId);
+
+            foreach (var accountPlayer in accountPlayers)
+                Table.TryAdd(accountPlayer.Guid, 1);
         }
     }
 

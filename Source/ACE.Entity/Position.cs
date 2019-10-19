@@ -473,12 +473,12 @@ namespace ACE.Entity
 
         public override string ToString()
         {
-            return $"{LandblockId.Raw:X}: {PositionX} {PositionY} {PositionZ}";
+            return $"{LandblockId.Raw:X8} [{PositionX} {PositionY} {PositionZ}]";
         }
 
         public string ToLOCString()
         {
-            return $"0x{LandblockId.Raw:X} [{PositionX} {PositionY} {PositionZ}] {RotationW} {RotationX} {RotationY} {RotationZ}";
+            return $"0x{LandblockId.Raw:X8} [{PositionX} {PositionY} {PositionZ}] {RotationW} {RotationX} {RotationY} {RotationZ}";
         }
 
         public static readonly int BlockLength = 192;

@@ -19,7 +19,7 @@ namespace ACE.Server.Network.GameEvent.Events
 
                 if (inv.WeenieType == WeenieType.Container)
                     Writer.Write((uint)ContainerType.Container);
-                else if (inv.RequiresBackpackSlot ?? false)
+                else if (inv.RequiresPackSlot)
                     Writer.Write((uint)ContainerType.Foci);
                 else
                     Writer.Write((uint)ContainerType.NonContainer);

@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
 
 using log4net;
 
@@ -12,39 +12,40 @@ namespace ACE.Server.Network.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly ConnectionListener[] listeners = new ConnectionListener[2];
+        private static ConnectionListener[] listeners;
 
         public static void Initialize()
         {
-            IPAddress host;
+            var hosts = new List<IPAddress>();
 
             try
             {
-                host = IPAddress.Parse(ConfigManager.Config.Server.Network.Host);
+                var splits = ConfigManager.Config.Server.Network.Host.Split(",");
+
+                foreach (var split in splits)
+                    hosts.Add(IPAddress.Parse(split));
             }
             catch (Exception ex)
             {
                 log.Error($"Unable to use {ConfigManager.Config.Server.Network.Host} as host due to: {ex}");
                 log.Error("Using IPAddress.Any as host instead.");
-                host = IPAddress.Any;
+                hosts.Clear();
+                hosts.Add(IPAddress.Any);
             }
 
-            listeners[0] = new ConnectionListener(host, ConfigManager.Config.Server.Network.Port);
-            log.Info($"Binding ConnectionListener to {host}:{ConfigManager.Config.Server.Network.Port}");
+            listeners = new ConnectionListener[hosts.Count * 2];
 
-            listeners[1] = new ConnectionListener(host, ConfigManager.Config.Server.Network.Port + 1);
-            log.Info($"Binding ConnectionListener to {host}:{ConfigManager.Config.Server.Network.Port + 1}");
+            for (int i = 0; i < hosts.Count; i++)
+            {
+                listeners[(i * 2) + 0] = new ConnectionListener(hosts[i], ConfigManager.Config.Server.Network.Port);
+                log.Info($"Binding ConnectionListener to {hosts[i]}:{ConfigManager.Config.Server.Network.Port}");
 
-            listeners[0].Start();
-            listeners[1].Start();
-        }
+                listeners[(i * 2) + 1] = new ConnectionListener(hosts[i], ConfigManager.Config.Server.Network.Port + 1);
+                log.Info($"Binding ConnectionListener to {hosts[i]}:{ConfigManager.Config.Server.Network.Port + 1}");
 
-        /// <summary>
-        /// We use a single socket because the use of dual unidirectional sockets doesn't work for some client firewalls
-        /// </summary>
-        public static Socket GetMainSocket()
-        {
-            return listeners[0].Socket;
+                listeners[(i * 2) + 0].Start();
+                listeners[(i * 2) + 1].Start();
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Numerics;
@@ -23,6 +24,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Entity;
+using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
@@ -136,10 +138,10 @@ namespace ACE.Server.Command.Handlers
                 if (parameters[0].StartsWith("0x"))
                 {
                     string strippedmodelid = parameters[0].Substring(2);
-                    modelId = UInt32.Parse(strippedmodelid, System.Globalization.NumberStyles.HexNumber);
+                    modelId = UInt32.Parse(strippedmodelid, NumberStyles.HexNumber);
                 }
                 else
-                    modelId = UInt32.Parse(parameters[0], System.Globalization.NumberStyles.HexNumber);
+                    modelId = UInt32.Parse(parameters[0], NumberStyles.HexNumber);
 
                 int palOption = -1;
                 if (parameters.Length > 1)
@@ -414,7 +416,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Debug command to spawn the Barber UI
         /// </summary>
-        [CommandHandler("barbershop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("barbershop", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Displays the barber ui")]
         public static void BarberShop(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameEventStartBarber(session));
@@ -827,7 +829,7 @@ namespace ACE.Server.Command.Handlers
 
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted.", ChatMessageType.Advancement));
 
-                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} granted {amount:N0} of experience to {aceParams[0].AsPlayer.Name}.");
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} granted {amount:N0} experience to {aceParams[0].AsPlayer.Name}.");
 
                         return;
                     }
@@ -839,6 +841,80 @@ namespace ACE.Server.Command.Handlers
             }
 
             ChatPacket.SendServerMessage(session, "Usage: /grantxp [name] 1234 (max 999999999999)", ChatMessageType.Broadcast);
+        }
+
+        [CommandHandler("grantluminance", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Give luminance to yourself (or the specified character).", "ulong\n" + "@grantluminance [name] 1500000 is max luminance")]
+        public static void HandleGrantLuminance(Session session, params string[] parameters)
+        {
+            if (parameters?.Length > 0)
+            {
+                List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
+                {
+                    new CommandParameterHelpers.ACECommandParameter() {
+                        Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerNameOrIid,
+                        Required = false,
+                        DefaultValue = session.Player
+                    },
+                    new CommandParameterHelpers.ACECommandParameter()
+                    {
+                        Type = CommandParameterHelpers.ACECommandParameterType.PositiveLong,
+                        Required = true,
+                        ErrorMessage = "You must specify the amount of luminance."
+                    }
+                };
+                if (CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams))
+                {
+                    try
+                    {
+                        var amount = aceParams[1].AsLong;
+                        aceParams[0].AsPlayer.GrantLuminance(amount, XpType.Admin, ShareType.None);
+
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} luminance granted.", ChatMessageType.Advancement));
+
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} granted {amount:N0} luminance to {aceParams[0].AsPlayer.Name}.");
+
+                        return;
+                    }
+                    catch
+                    {
+                        //overflow
+                    }
+                }
+            }
+
+            ChatPacket.SendServerMessage(session, "Usage: /grantluminance [name] 1234 (max 999999999999)", ChatMessageType.Broadcast);
+        }
+
+        [CommandHandler("grantitemxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Give item XP to the last appraised item.")]
+        public static void HandleGrantItemXp(Session session, params string[] parameters)
+        {
+            if (!long.TryParse(parameters[0], out var amount))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid amount {parameters[0]}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var item = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (item == null) return;
+
+            if (item is Player player)
+            {
+                player.GrantItemXP(amount);
+
+                foreach (var i in player.EquippedObjects.Values.Where(i => i.HasItemLevel))
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted to {i.Name}.", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                if (item.HasItemLevel)
+                {
+                    session.Player.GrantItemXP(item, amount);
+
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted to {item.Name}.", ChatMessageType.Broadcast));
+                }
+                else
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{item.Name} is not a levelable item.", ChatMessageType.Broadcast));
+            }
         }
 
         [CommandHandler("spendallxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]
@@ -917,7 +993,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Debug command to set player vitals to 1
         /// </summary>
-        [CommandHandler("harmself", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("harmself", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Sets all player vitals to 1")]
         public static void HarmSelf(Session session, params string[] parameters)
         {
             session.Player.UpdateVital(session.Player.Health, 1);
@@ -1186,27 +1262,162 @@ namespace ACE.Server.Command.Handlers
         // Quests/Contracts
         // ==================================
 
-        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Send a contract to yourself.", "uint\n" + "@sendcontract 100 is a sample contract")]
+        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Query, stamp, and erase contracts on the targeted player",
+            "[list | bestow | erase]\n"
+            + "contract list - List the contracts for the targeted player\n"
+            + "contract bestow - Stamps the specific contract on the targeted player. If this fails, it's probably because the contract is invalid.\n"
+            + "contract erase - Erase the specific contract from the targeted player. If no quest flag is given, it erases the entire contract table for the targeted player.\n")]
         public static void HandleContract(Session session, params string[] parameters)
         {
-            if (!(parameters?.Length > 0)) return;
-            if (!uint.TryParse(parameters[0], out var contractId)) return;
-
-            ContractTracker contractTracker = new ContractTracker(contractId, session.Player.Guid.Full)
+            if (parameters.Length == 0)
             {
-                Stage = 0,
-                TimeWhenDone = 0,
-                TimeWhenRepeats = 0,
-                DeleteContract = 0,
-                SetAsDisplayContract = 1
-            };
+                // todo: display help screen
+                return;
+            }
 
-            if (!session.Player.TrackedContracts.ContainsKey(contractId))
-                session.Player.TrackedContracts.Add(contractId, contractTracker);
+            var objectId = new ObjectGuid();
 
-            GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(session, contractTracker);
-            session.Network.EnqueueSend(contractMsg);
-            ChatPacket.SendServerMessage(session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
+            if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+            else if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+            else if (session.Player.CurrentAppraisalTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+            var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+            if (wo != null && wo is Player player)
+            {
+                if (parameters[0].Equals("list"))
+                {
+                    var contractsHdr = $"Contract Registry for {player.Name} (0x{player.Guid}):\n";
+                    contractsHdr += "================================================\n";
+                    contractsHdr += $"Contracts.Count: {player.ContractManager.Contracts.Count}\n";
+                    contractsHdr += "================================================\n";
+                    var contracts = "";
+                    foreach (var contract in player.ContractManager.ContractTrackerTable)
+                    {
+                        var contractTracker = contract.Value;
+                        contracts += $"Contract Id: {contractTracker.Contract.ContractId} | Contract Name: {contractTracker.Contract.ContractName}\nStage: {contractTracker.Stage.ToString()}\n";
+
+                        if (contractTracker.Stage == Network.Structure.ContractStage.InProgress)
+                        {
+                            var timeWhenDone = new TimeSpan(0, 0, (int)contractTracker.TimeWhenDone);
+
+                            if (timeWhenDone == TimeSpan.MinValue || timeWhenDone.TotalSeconds == 0)
+                                contracts += $"TimeWhenDone: Expired ({contractTracker.TimeWhenDone})\n";
+                            else if (timeWhenDone == TimeSpan.MaxValue)
+                                contracts += $"TimeWhenDone: Unlimited ({contractTracker.TimeWhenDone})\n";
+                            else
+                                contracts += $"TimeWhenDone: In {timeWhenDone:%d} days, {timeWhenDone:%h} hours, {timeWhenDone:%m} minutes and, {timeWhenDone:%s} seconds. ({(DateTime.UtcNow + timeWhenDone).ToLocalTime()})\n";
+                        }
+
+                        if (contractTracker.Stage == Network.Structure.ContractStage.DoneOrPendingRepeat)
+                        {
+
+                            var timeWhenRepeats = new TimeSpan(0, 0, (int)contractTracker.TimeWhenRepeats);
+
+                            if (timeWhenRepeats == TimeSpan.MinValue || timeWhenRepeats.TotalSeconds == 0)
+                                contracts += $"TimeWhenRepeats: Available ({contractTracker.TimeWhenDone})\n";
+                            else if (timeWhenRepeats == TimeSpan.MaxValue)
+                                contracts += $"TimeWhenRepeats: Unlimited ({contractTracker.TimeWhenDone})\n";
+                            else
+                                contracts += $"TimeWhenRepeats: In {timeWhenRepeats:%d} days, {timeWhenRepeats:%h} hours, {timeWhenRepeats:%m} minutes and, {timeWhenRepeats:%s} seconds. ({(DateTime.UtcNow + timeWhenRepeats).ToLocalTime()})\n";
+                        }
+
+                        contracts += "--====--\n";
+                    }
+
+                    session.Player.SendMessage($"{contractsHdr}{(contracts != "" ? contracts : "No contracts found.")}");
+                    return;
+                }
+
+                if (parameters[0].Equals("bestow"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        // delete all contracts?
+                        // seems unsafe, maybe a confirmation?
+                        return;
+                    }
+
+                    if (!uint.TryParse(parameters[1], out var contractId))
+                        return;
+
+                    var datContract = player.ContractManager.GetContractFromDat(contractId);
+
+                    if (datContract == null)
+                    {
+                        session.Player.SendMessage($"Unable to find contract for id {contractId} in dat file.");
+                        return;
+                    }
+
+                    if (player.ContractManager.HasContract(contractId))
+                    {
+                        session.Player.SendMessage($"{player.Name} already has the contract for \"{datContract.ContractName}\" ({contractId})");
+                        return;
+                    }
+
+                    var hasContract = player.ContractManager.HasContract(contractId);
+                    if (!hasContract)
+                    {
+                        player.ContractManager.Add(contractId);
+                        session.Player.SendMessage($"Contract for \"{datContract.ContractName}\" ({contractId}) bestowed on {player.Name}");
+                        return;
+                    }
+                    else
+                    {
+                        session.Player.SendMessage($"Couldn't bestow {contractId} on {player.Name}");
+                        return;
+                    }
+                }
+
+                if (parameters[0].Equals("erase"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        // delete all contracts?
+                        // seems unsafe, maybe a confirmation?
+                        session.Player.SendMessage($"You must specify a contract to delete, if you want to delete all contracts use the following command: /contract delete *");
+                        return;
+                    }
+
+                    if (parameters[1] == "*")
+                    {
+                        player.ContractManager.EraseAll();
+                        session.Player.SendMessage($"All contracts deleted for {player.Name}.");
+                        return;
+                    }
+
+                    if (!uint.TryParse(parameters[1], out var contractId))
+                        return;
+
+                    var datContract = player.ContractManager.GetContractFromDat(contractId);
+
+                    if (datContract == null)
+                    {
+                        session.Player.SendMessage($"Unable to find contract for id {contractId} in dat file.");
+                        return;
+                    }
+
+                    if (!player.ContractManager.HasContract(contractId))
+                    {
+                        session.Player.SendMessage($"{datContract.ContractName} ({contractId}) not found in {player.Name}'s registry.");
+                        return;
+                    }
+                    player.ContractManager.Erase(contractId);
+                    session.Player.SendMessage($"{datContract.ContractName} ({contractId}) deleted for {player.Name}.");
+                    return;
+                }
+            }
+            else
+            {
+                if (wo == null)
+                    session.Player.SendMessage($"Selected object (0x{objectId}) not found.");
+                else
+                    session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a player.");
+            }
         }
 
         // ==================================
@@ -1282,7 +1493,7 @@ namespace ACE.Server.Command.Handlers
             Creature.ForcePos = enabled;
         }
 
-        [CommandHandler("lostest", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Tests for direct visibilty with latest appraised object", "lostest")]
+        [CommandHandler("lostest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Tests for direct visibilty with latest appraised object")]
         public static void HandleVisible(Session session, params string[] parameters)
         {
             // get the last appraised object
@@ -1345,7 +1556,7 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine(skill.Skill + ": " + skill.Current);
         }
 
-        [CommandHandler("givemana", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Gives mana to the last appraised object", "givemana <amount>")]
+        [CommandHandler("givemana", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Gives mana to the last appraised object", "<amount>")]
         public static void HandleGiveMana(Session session, params string[] parameters)
         {
             if (parameters.Length == 0) return;
@@ -1374,8 +1585,8 @@ namespace ACE.Server.Command.Handlers
             var dist = Vector3.Distance(sourcePos, targetPos);
             var dist2d = Vector2.Distance(new Vector2(sourcePos.X, sourcePos.Y), new Vector2(targetPos.X, targetPos.Y));
 
-            Console.WriteLine("Dist: " + dist);
-            Console.WriteLine("2D Dist: " + dist2d);
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Dist: {dist}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"2D Dist: {dist2d}", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -1416,39 +1627,76 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, "3D Distance: " + totalDist, ChatMessageType.System);
         }
 
+        public static WorldObject GetObjectMaintTarget(Session session, params string[] parameters)
+        {
+            WorldObject target = session.Player;
+
+            if (parameters.Length > 0)
+            {
+                var targetType = parameters[0];
+
+                if (targetType.Equals("target", StringComparison.OrdinalIgnoreCase))
+                    target = CommandHandlerHelper.GetLastAppraisedObject(session);
+                else if (uint.TryParse(targetType, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var targetGuid))
+                {
+                    if (ServerObjectManager.ServerObjects.TryGetValue(targetGuid, out var physicsObj))
+                        target = physicsObj.WeenieObj.WorldObject;
+                }
+            }
+            if (target == null)
+            {
+                var param = parameters.Length > 0 ? $" {parameters[0]}" : "";
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find target{param}", ChatMessageType.Broadcast));
+            }
+            return target;
+        }
+
         /// <summary>
-        /// Shows the list of objects known to this player
+        /// Shows the list of objects currently known to an object
         /// </summary>
-        [CommandHandler("knownobjs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of objects known to this player", "/knownobjs")]
+        [CommandHandler("knownobjs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of objects currently known to an object", "/knownobjs")]
         public static void HandleKnownObjs(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nKnown objects to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.ObjectTable.Count}");
+            var target = GetObjectMaintTarget(session, parameters);
+            if (target == null)
+                return;
 
-            foreach (var obj in session.Player.PhysicsObj.ObjMaint.ObjectTable.Values)
+            Console.WriteLine($"\nKnown objects to {target.Name}: {target.PhysicsObj.ObjMaint.GetKnownObjectsCount()}");
+
+            foreach (var obj in target.PhysicsObj.ObjMaint.GetKnownObjectsValues())
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
         /// <summary>
-        /// Shows the list of objects visible to this player
+        /// Shows the list of objects currently visible to an object
         /// </summary>
-        [CommandHandler("visibleobjs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of objects known to this player", "/visibleobjs")]
+        [CommandHandler("visibleobjs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of objects currently visible to an object", "/visibleobjs")]
         public static void HandleVisibleObjs(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nVisible objects to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Count}");
+            var target = GetObjectMaintTarget(session, parameters);
+            if (target == null)
+                return;
 
-            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values)
+            Console.WriteLine($"\nVisible objects to {target.Name}: {target.PhysicsObj.ObjMaint.GetVisibleObjectsCount()}");
+
+            foreach (var obj in target.PhysicsObj.ObjMaint.GetVisibleObjectsValues())
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
         /// <summary>
-        /// Shows the list of players known to this player
+        /// Shows the list of players known to an object
+        /// KnownPlayers are used for broadcasting
         /// </summary>
-        [CommandHandler("knownplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players known to this player", "/knownplayers")]
+        [CommandHandler("knownplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players known to an object", "/knownplayers")]
         public static void HandleKnownPlayers(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nKnown players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.ObjectTable.Values.Count(o => o.IsPlayer)}");
+            var target = GetObjectMaintTarget(session, parameters);
+            if (target == null)
+                return;
 
-            foreach (var obj in session.Player.PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.IsPlayer))
+            Console.WriteLine($"\nKnown players to {target.Name}: {target.PhysicsObj.ObjMaint.GetKnownPlayersCount()}");
+
+            foreach (var obj in target.PhysicsObj.ObjMaint.GetKnownPlayersValues())
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
@@ -1458,21 +1706,25 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("visibleplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players visible to this player", "/visibleplayers")]
         public static void HandleVisiblePlayers(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nVisible players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values.Count(o => o.IsPlayer)}");
+            Console.WriteLine($"\nVisible players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.GetVisibleObjectsValuesWhere(o => o.IsPlayer).Count}");
 
-            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values.Where(o => o.IsPlayer))
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.GetVisibleObjectsValuesWhere(o => o.IsPlayer))
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
         /// <summary>
-        /// Shows the list of voyeurs for this player
+        /// Shows the list of targets currently visible to a monster
         /// </summary>
-        [CommandHandler("voyeurs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of voyeurs for this player", "/voyeurs")]
-        public static void HandleVoyeurs(Session session, params string[] parameters)
+        [CommandHandler("visibletargets", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of targets currently visible to a monster", "/knownplayers")]
+        public static void HandleVisibleTargets(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nVoyeurs for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VoyeurTable.Values.Count(o => o.IsPlayer)}");
+            var target = GetObjectMaintTarget(session, parameters);
+            if (target == null)
+                return;
 
-            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VoyeurTable.Values.Where(o => o.IsPlayer))
+            Console.WriteLine($"\nVisible targets to {target.Name}: {target.PhysicsObj.ObjMaint.GetVisibleTargetsCount()}");
+
+            foreach (var obj in target.PhysicsObj.ObjMaint.GetVisibleTargetsValues())
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
@@ -1482,11 +1734,11 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("destructionqueue", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of previously visible objects queued for destruction for this player", "/destructionqueue")]
         public static void HandleDestructionQueue(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nDestruction queue for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.DestructionQueue.Count}");
+            Console.WriteLine($"\nDestruction queue for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.GetDestructionQueueCount()}");
 
             var currentTime = Physics.Common.PhysicsTimer.CurrentTime;
 
-            foreach (var obj in session.Player.PhysicsObj.ObjMaint.DestructionQueue)
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.GetDestructionQueueCopy())
                 Console.WriteLine($"{obj.Key.Name} ({obj.Key.ID:X8}): {obj.Value - currentTime}");
         }
 
@@ -1528,7 +1780,9 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("myloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the current player location, from the server perspective", "/myloc")]
         public static void HandleMyLoc(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {session.Player.PhysicsObj.Position}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CurrentLandblock: {session.Player.CurrentLandblock.Id.Landblock:X4}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {session.Player.Location.ToLOCString()}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {session.Player.PhysicsObj.Position}", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -1804,13 +2058,13 @@ namespace ACE.Server.Command.Handlers
             session.Player.UpdateProperty(session.Player, PropertyInt.AetheriaBitfield, flags);
         }
 
-        [CommandHandler("debugchess", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Shows the chess move history for a player")]
+        [CommandHandler("debugchess", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the chess move history for a player")]
         public static void HandleDebugChess(Session session, params string[] parameters)
         {
             session.Player.ChessMatch?.DebugMove();
         }
 
-        [CommandHandler("debugboard", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Shows the current chess board state")]
+        [CommandHandler("debugboard", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the current chess board state")]
         public static void HandleDebugBoard(Session session, params string[] parameters)
         {
             session.Player.ChessMatch?.Logic?.DebugBoard();
@@ -1819,7 +2073,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Teleports directly to a dungeon by name or landblock
         /// </summary>
-        [CommandHandler("teledungeon", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "<dungeon name or landblock>")]
+        [CommandHandler("teledungeon", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleport to a dungeon", "<dungeon name or landblock>")]
         public static void HandleTeleDungeon(Session session, params string[] parameters)
         {
             var isBlock = true;
@@ -1939,19 +2193,19 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("auditobjectmaint", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Iterates over physics objects to find leaks")]
         public static void HandleAuditObjectMaint(Session session, params string[] parameters)
         {
-            var serverObjects = ObjectMaint.ServerObjects.Keys.ToHashSet();
+            var serverObjects = ServerObjectManager.ServerObjects.Keys.ToHashSet();
 
             int objectTableErrors = 0;
             int visibleObjectTableErrors = 0;
             int voyeurTableErrors = 0;
 
-            foreach (var value in ObjectMaint.ServerObjects.Values)
+            foreach (var value in ServerObjectManager.ServerObjects.Values)
             {
                 {
-                    var kvps = value.ObjMaint.ObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    var kvps = value.ObjMaint.GetKnownObjectsWhere(kvp => !serverObjects.Contains(kvp.Key));
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.ObjectTable.Remove(kvp.Key))
+                        if (value.ObjMaint.RemoveKnownObject(kvp.Value, false))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [ObjectTable]");
                             objectTableErrors++;
@@ -1960,10 +2214,10 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 {
-                    var kvps = value.ObjMaint.VisibleObjectTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    var kvps = value.ObjMaint.GetVisibleObjectsWhere(kvp => !serverObjects.Contains(kvp.Key));
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.VisibleObjectTable.Remove(kvp.Key))
+                        if (value.ObjMaint.RemoveVisibleObject(kvp.Value, false))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VisibleObjectTable]");
                             visibleObjectTableErrors++;
@@ -1972,10 +2226,10 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 {
-                    var kvps = value.ObjMaint.VoyeurTable.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    var kvps = value.ObjMaint.GetKnownPlayersWhere(kvp => !serverObjects.Contains(kvp.Key));
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.VoyeurTable.Remove(kvp.Key))
+                        if (value.ObjMaint.RemoveKnownPlayer(kvp.Value))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VoyeurTable]");
                             voyeurTableErrors++;
@@ -1989,7 +2243,7 @@ namespace ACE.Server.Command.Handlers
             log.Info($"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
         }
 
-        [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory. Syntax is \"lootgen (wcid) <tier>\"")]
+        [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory.", "<wcid> <tier>")]
         public static void HandleLootGen(Session session, params string[] parameters)
         {
             string weenieClassDescription = parameters[0];
@@ -2028,6 +2282,13 @@ namespace ACE.Server.Command.Handlers
             }
 
             WorldObject loot = LootGenerationFactory.CreateLootByWCID(weenieClassId, tier);
+
+            if (loot == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Generating {weenieClassId} was not successful.", ChatMessageType.Broadcast));
+                return;
+            }
+
             session.Player.TryCreateInInventoryWithNetworking(loot);
         }
 
@@ -2094,7 +2355,7 @@ namespace ACE.Server.Command.Handlers
             if (target != null && target is Player player)
             {
                 if (player.Session != null)
-                    player.Session.LogOffPlayer();
+                    player.Session.LogOffPlayer(true);
                 else
                     player.LogOut();
 
@@ -2139,10 +2400,11 @@ namespace ACE.Server.Command.Handlers
                     break;
             }
         }
+        
         /// <summary>
         /// This is to add spells to items (whether loot or quest generated).  For making weapons to check damage from pcaps or other sources
         /// </summary>
-        [CommandHandler("additemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "/additemspell <spell id> - adds a spell to the last appraised item. Ex /additemspell 6089 - adds Legendary Bloodthirst")]
+        [CommandHandler("additemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Adds a spell to the last appraised item's spellbook.", "<spell id>")]
         public static void HandleAddItemSpell(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -2166,7 +2428,7 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("pktimer", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("pktimer", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Sets your PK timer to the current time")]
         public static void HandlePKTimer(Session session, params string[] parameters)
         {
             session.Player.UpdatePKTimer();
@@ -2174,7 +2436,7 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Updated PK timer", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("fellow-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("fellow-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows debug info for fellowships.")]
         public static void HandleFellowInfo(Session session, params string[] parameters)
         {
             var player = session.Player;
@@ -2203,7 +2465,128 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("purchase-house", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("generatordump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Lists all properties for the last generator you examined.",
+            "")]
+        public static void HandleGeneratorDump(Session session, params string[] parameters)
+        {
+            // TODO: output
+
+            var objectId = new ObjectGuid();
+
+            if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+            {
+                if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                else if (session.Player.HealthQueryTarget.HasValue)
+                    objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+                else
+                    objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+                var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+                if (objectId.IsPlayer())
+                    return;
+
+                var msg = "";
+                if (wo.IsGenerator)
+                {
+                    msg = $"Generator Dump for {wo.Name} (0x{wo.Guid.ToString()})\n";
+                    msg += $"Generator WCID: {wo.WeenieClassId}\n";
+                    msg += $"Generator WeenieClassName: {wo.WeenieClassName}\n";
+                    msg += $"Generator WeenieType: {wo.WeenieType.ToString()}\n";
+                    msg += $"Generator Status: {(wo.GeneratorDisabled ? "Disabled" : "Enabled")}\n";
+                    msg += $"GeneratorType: {wo.GeneratorType.ToString()}\n";
+                    msg += $"GeneratorTimeType: {wo.GeneratorTimeType.ToString()}\n";
+                    msg += $"GeneratorEvent: {(!string.IsNullOrWhiteSpace(wo.GeneratorEvent) ? wo.GeneratorEvent : "Undef")}\n";
+                    msg += $"GeneratorEndDestructionType: {wo.GeneratorEndDestructionType.ToString()}\n";
+                    msg += $"GeneratorDestructionType: {wo.GeneratorDestructionType.ToString()}\n";
+                    msg += $"GeneratorRadius: {wo.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f}\n";
+                    msg += $"InitGeneratedObjects: {wo.InitGeneratedObjects}\n";
+                    msg += $"MaxGeneratedObjects: {wo.MaxGeneratedObjects}\n";
+                    msg += $"GeneratorInitialDelay: {wo.GeneratorInitialDelay}\n";
+                    msg += $"RegenerationInterval: {wo.RegenerationInterval}\n";
+                    msg += $"GeneratorUpdateTimestamp: {wo.GeneratorUpdateTimestamp} ({Time.GetDateTimeFromTimestamp(wo.GeneratorUpdateTimestamp).ToLocalTime()})\n";
+                    msg += $"NextGeneratorUpdateTime: {wo.NextGeneratorUpdateTime} ({((wo.NextGeneratorUpdateTime == double.MaxValue) ? "Disabled" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorUpdateTime).ToLocalTime().ToString())})\n";
+                    msg += $"RegenerationTimestamp: {wo.RegenerationTimestamp} ({Time.GetDateTimeFromTimestamp(wo.RegenerationTimestamp).ToLocalTime()})\n";
+                    msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime} ({((wo.NextGeneratorRegenerationTime == double.MaxValue) ? "On Demand" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorRegenerationTime).ToLocalTime().ToString())})\n";
+
+                    msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count}\n";
+                    msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
+                    msg += $"CurrentCreate: {wo.CurrentCreate}\n";
+
+                    msg += $"===============================================\n";
+                    foreach (var activeProfile in wo.GeneratorActiveProfiles)
+                    {
+                        var profile = wo.GeneratorProfiles[activeProfile];
+
+                        msg += $"Active GeneratorProfile id: {activeProfile}\n";
+
+                        msg += $"Probability: {profile.Biota.Probability} | WCID: {profile.Biota.WeenieClassId} | Delay: {profile.Biota.Delay} | Init: {profile.Biota.InitCreate} | Max: {profile.Biota.MaxCreate}\n";
+                        msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
+                        msg += $"StackSize: {profile.Biota.StackSize} | PaletteId: {profile.Biota.PaletteId} | Shade: {profile.Biota.Shade}\n";
+                        msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
+                        msg += $"GeneratedTreasureItem: {profile.GeneratedTreasureItem}\n";
+                        msg += $"--====--\n";
+                        if (profile.Spawned.Count > 0)
+                        {
+                            msg += "Spawned Objects:\n";
+                            foreach (var spawn in profile.Spawned.Values)
+                            {
+                                msg += $"0x{spawn.Guid}: {spawn.Name} - {spawn.WeenieClassId} - {spawn.WeenieType}\n";
+                            }
+                            msg += $"--====--\n";
+                        }
+
+                        if (profile.SpawnQueue.Count > 0)
+                        {
+                            msg += "Pending Spawn Times:\n";
+                            foreach (var spawn in profile.SpawnQueue)
+                            {
+                                msg += $"{spawn.ToLocalTime()}\n";
+                            }
+                            msg += $"--====--\n";
+                        }
+
+                        if (profile.RemoveQueue.Count > 0)
+                        {
+                            msg += "Pending Removed Objects:\n";
+                            foreach (var spawn in profile.RemoveQueue)
+                            {
+                                var action = "";
+                                switch((RegenerationType)profile.Biota.WhenCreate)
+                                {
+                                    case RegenerationType.Death:
+                                        action = "died";
+                                        break;
+                                    case RegenerationType.Destruction:
+                                        action = "destroyed";
+                                        break;
+                                    case RegenerationType.PickUp:
+                                        action = "picked up";
+                                        break;
+                                    case RegenerationType.Undef:
+                                    default:
+                                        action = "despawned";
+                                        break;
+                                }
+
+                                msg += $"0x{spawn.objectGuid:X8} {action} at {spawn.time.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.time.ToLocalTime()}\n";
+                            }
+                            msg += $"--====--\n";
+                        }
+
+                        msg += $"===============================================\n";
+                    }
+                }
+                else
+                    msg = $"{wo.Name} (0x{wo.Guid.ToString()}) is not a generator.";
+
+                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.System));
+            }
+        }
+
+        [CommandHandler("purchase-house", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Instantly purchase the house for the last appraised covenant crystal.")]
         public static void HandlePurchaseHouse(Session session, params string[] parameters)
         {
             var slumlord = CommandHandlerHelper.GetLastAppraisedObject(session) as SlumLord;
@@ -2214,7 +2597,55 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
             session.Player.SetHouseOwner(slumlord);
-            session.Player.GiveDeed();
+            session.Player.GiveDeed(slumlord);
+        }
+
+        [CommandHandler("barrier-test", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows debug information for house barriers")]
+        public static void HandleBarrierTest(Session session, params string[] parameters)
+        {
+            var cell = session.Player.Location.Cell;
+            Console.WriteLine($"CurCell: {cell:X8}");
+
+            if (session.Player.CurrentLandblock.IsDungeon)
+            {
+                Console.WriteLine($"Dungeon landblock");
+
+                if (!HouseManager.ApartmentBlocks.ContainsKey(session.Player.Location.Landblock))
+                    return;
+            }
+            else
+            {
+                cell = session.Player.Location.GetOutdoorCell();
+                Console.WriteLine($"OutdoorCell: {cell:X8}");
+            }
+
+            var barrier = HouseCell.HouseCells.ContainsKey(cell);
+            Console.WriteLine($"Barrier: {barrier}");
+        }
+
+        [CommandHandler("targetloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the location of the last appraised object")]
+        public static void HandleTargetLoc(Session session, params string[] parameters)
+        {
+            var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (wo == null)
+                return;
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {wo.Location?.ToLOCString()}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj?.Position}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("remove-vitae", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Removes vitae from last appraised player")]
+        public static void HandleRemoveVitae(Session session, params string[] parameters)
+        {
+            var player = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
+
+            if (player == null)
+                player = session.Player;
+
+            player.EnchantmentManager.RemoveVitae();
+
+            if (player != session.Player)
+                session.Network.EnqueueSend(new GameMessageSystemChat("Removed vitae for {player.Name}", ChatMessageType.Broadcast));
         }
     }
 }

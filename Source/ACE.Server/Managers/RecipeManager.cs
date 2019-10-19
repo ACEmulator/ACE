@@ -47,6 +47,7 @@ namespace ACE.Server.Managers
             if (source == target)
             {
                 var message = new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft);
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on itself."));
                 player.Session.Network.EnqueueSend(message);
                 player.SendUseDoneEvent();
                 return;
@@ -232,14 +233,13 @@ namespace ACE.Server.Managers
                     var truncated = percent.Truncate(decimalPlaces);
 
                     var toolMaterial = GetMaterialName(tool.MaterialType ?? 0);
-                    var targetMaterial = GetMaterialName(target.MaterialType ?? 0);
 
                     // TODO: retail messages
                     // You determine that you have a 100 percent chance to succeed.
                     // You determine that you have a 99 percent chance to succeed.
                     // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
 
-                    var templateMsg = $"You have a % chance of using {toolMaterial} {tool.Name} on {targetMaterial} {target.Name}.";
+                    var templateMsg = $"You have a % chance of using {toolMaterial} {tool.Name} on {target.NameWithMaterial}.";
                     var floorMsg = templateMsg.Replace("%", (int)percent + "%");
                     var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
                     var exactMsg = templateMsg.Replace("%", percent + "%");
@@ -272,7 +272,6 @@ namespace ACE.Server.Managers
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
             var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
-            var itemMaterial = GetMaterialName(target.MaterialType ?? 0);
 
             if (success)
             {
@@ -280,10 +279,10 @@ namespace ACE.Server.Managers
 
                 // send local broadcast
                 if (incItemTinkered)
-                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}.", ChatMessageType.Craft), 96.0f);
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
             }
             else if (incItemTinkered)
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {itemMaterial} {target.Name}. The target is destroyed.", ChatMessageType.Craft), 96.0f);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
             CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
@@ -349,10 +348,10 @@ namespace ACE.Server.Managers
                     //target.SetProperty(PropertyInt.Attuned, 0);
                     break;
                 case MaterialType.Leather:
-                    target.SetProperty(PropertyBool.Retained, true);
+                    target.Retained = true;
                     break;
                 case MaterialType.Sandstone:
-                    target.SetProperty(PropertyBool.Retained, false);
+                    target.Retained = false;
                     break;
                 case MaterialType.Moonstone:
                     target.ItemMaxMana += 500;
@@ -509,7 +508,13 @@ namespace ACE.Server.Managers
 
             // increase # of times tinkered, if appropriate
             if (incItemTinkered)
+            {
                 target.NumTimesTinkered++;
+
+                if (target.TinkerLog != null)
+                    target.TinkerLog += ",";
+                target.TinkerLog += (int)materialType;
+            }
         }
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
@@ -558,8 +563,8 @@ namespace ACE.Server.Managers
 
             if (IconUnderlay.TryGetValue(effect, out var icon))
             {
-                target.SetProperty(PropertyDataId.IconUnderlay, icon);
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(target, PropertyDataId.IconUnderlay, icon));
+                target.IconUnderlayId = icon;
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(target, PropertyDataId.IconUnderlay, target.IconUnderlayId.Value));
             }
 
             return true;
@@ -990,6 +995,15 @@ namespace ACE.Server.Managers
                     continue;
 
                 // apply base mod
+                switch (mod.DataId)
+                {
+                    // 	Fetish of the Dark Idols
+                    case 0x38000046:
+                        AddImbuedEffect(player, target, ImbuedEffectType.IgnoreSomeMagicProjectileDamage);
+                        target.SetProperty(PropertyFloat.AbsorbMagicDamage, 1);
+                        break;
+                }
+
                 // adjust vitals, but all appear to be 0 in current database?
 
                 // apply type mods
@@ -1028,6 +1042,9 @@ namespace ACE.Server.Managers
                 return;
             }
             targetMod.SetProperty(prop, value);
+
+            if (Debug)
+                Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
         }
 
         public static void ModifyInt(Player player, RecipeModsInt intMod, WorldObject source, WorldObject target, WorldObject result)
@@ -1043,15 +1060,19 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.Add:
                     targetMod.IncProperty(prop, value);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.IncProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);     // ??
+                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);     // ??
+                    if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.AddSpell:
                     if (value != -1)
@@ -1060,6 +1081,7 @@ namespace ACE.Server.Managers
                         if (added)
                             targetMod.ChangesDetected = true;
                     }
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.AddSpell({value}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInt({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1080,15 +1102,19 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.Add:
                     targetMod.IncProperty(prop, value);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.IncProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
+                    if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyFloat({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1109,12 +1135,15 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
+                    if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? sourceMod.Name}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
+                    result.SetProperty(prop, player.GetProperty(prop) ?? player.Name);
+                    if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? player.Name}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyString({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1135,12 +1164,15 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
+                    if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {ModifyInstanceIDRuleSet(prop, sourceMod, targetMod)}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));     // ??
+                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, player, targetMod));     // ??
+                    if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {ModifyInstanceIDRuleSet(prop, player, targetMod)}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInstanceID({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1175,12 +1207,15 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     targetMod.SetProperty(prop, value);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
+                    if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");

@@ -32,7 +32,7 @@ namespace ACE.Entity
         public uint StartArea { get; private set; }
 
         public bool IsAdmin { get; private set; }
-        public bool IsEnvoy { get; private set; }
+        public bool IsSentinel { get; private set; }
 
         public void Unpack(BinaryReader reader)
         {
@@ -64,7 +64,7 @@ namespace ACE.Entity
             StartArea = reader.ReadUInt32();
 
             IsAdmin = (reader.ReadUInt32() == 1);
-            IsEnvoy = (reader.ReadUInt32() == 1);
+            IsSentinel = (reader.ReadUInt32() == 1);
         }
     }
 }

@@ -15,7 +15,6 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
-using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -29,6 +28,8 @@ namespace ACE.Server.WorldObjects
         public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
+
+            InventoryLoaded = true;
         }
 
         /// <summary>
@@ -36,6 +37,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Biota biota) : base(biota)
         {
+            if (Biota.TryRemoveProperty(PropertyBool.Open, out _, BiotaDatabaseLock))
+                ChangesDetected = true;
+
             SetEphemeralValues();
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
@@ -65,6 +69,8 @@ namespace ACE.Server.WorldObjects
 
             if (!UseRadius.HasValue)
                 UseRadius = 0.5f;
+
+            IsOpen = false;
         }
 
 
@@ -278,6 +284,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the inventory items matching a weenie class name
+        /// </summary>
+        public List<WorldObject> GetInventoryItemsOfWeenieClass(string weenieClassName)
+        {
+            var items = new List<WorldObject>();
+
+            // search main pack / creature
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.Equals(weenieClassName, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            items.AddRange(localInventory);
+
+            // next search any side containers
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            foreach (var container in sideContainers)
+                items.AddRange(container.GetInventoryItemsOfWeenieClass(weenieClassName));
+
+            return items;
+        }
+
+        /// <summary>
+        /// Returns the total # of inventory items matching a weenie class name
+        /// </summary>
+        public int GetNumInventoryItemsOfWeenieClass(string weenieClassName)
+        {
+            return GetInventoryItemsOfWeenieClass(weenieClassName).Select(i => i.StackSize ?? 1).Sum();
+        }
+
+        /// <summary>
         /// Returns all of the trade notes from inventory + side packs
         /// </summary>
         public List<WorldObject> GetTradeNotes()
@@ -302,9 +336,9 @@ namespace ACE.Server.WorldObjects
         /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>
-        public bool TryAddToInventory(WorldObject worldObject, int placementPosition = 0, bool limitToMainPackOnly = false)
+        public bool TryAddToInventory(WorldObject worldObject, int placementPosition = 0, bool limitToMainPackOnly = false, bool burdenCheck = true)
         {
-            return TryAddToInventory(worldObject, out _, placementPosition, limitToMainPackOnly);
+            return TryAddToInventory(worldObject, out _, placementPosition, limitToMainPackOnly, burdenCheck);
         }
 
         /// <summary>
@@ -374,12 +408,27 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if there are enough free inventory slots and burden available to add item
+        /// </summary>
+        public bool CanAddToContainer(WorldObject worldObject, bool includeSidePacks = true)
+        {
+            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObject))
+                return false;
+
+            if (worldObject.UseBackpackSlot)
+                return GetFreeContainerSlots() > 0;
+            else
+                return GetFreeInventorySlots(includeSidePacks) > 0;
+        }
+
+        /// <summary>
         /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>
-        public bool TryAddToInventory(WorldObject worldObject, out Container container, int placementPosition = 0, bool limitToMainPackOnly = false)
+        public bool TryAddToInventory(WorldObject worldObject, out Container container, int placementPosition = 0, bool limitToMainPackOnly = false, bool burdenCheck = true)
         {
-            if (this is Player player)
+            // bug: should be root owner
+            if (this is Player player && burdenCheck)
             {
                 if (!player.HasEnoughBurdenToAddToInventory(worldObject))
                 {
@@ -515,7 +564,7 @@ namespace ACE.Server.WorldObjects
                 if (forceSave)
                     item.SaveBiotaToDatabase();
 
-                OnRemoveItem();
+                OnRemoveItem(item);
 
                 return true;
             }
@@ -587,6 +636,23 @@ namespace ACE.Server.WorldObjects
             DoOnOpenMotionChanges();
 
             SendInventory(player);
+
+            if (!(this is Chest) && !ResetMessagePending && ResetInterval.HasValue)
+            {
+                var actionChain = new ActionChain();
+                if (ResetInterval.Value < 15)
+                    actionChain.AddDelaySeconds(15);
+                else
+                    actionChain.AddDelaySeconds(ResetInterval.Value);
+                actionChain.AddAction(this, Reset);
+                //actionChain.AddAction(this, () =>
+                //{
+                //    Close(player);
+                //});
+                actionChain.EnqueueChain();
+
+                ResetMessagePending = true;
+            }
         }
 
         protected virtual float DoOnOpenMotionChanges()
@@ -616,6 +682,26 @@ namespace ACE.Server.WorldObjects
             // send sub-containers
             foreach (var container in Inventory.Values.Where(i => i is Container))
                 player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, (Container)container));
+
+            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
+        }
+
+        private void SendDeletesForMyInventory(Player player)
+        {
+            // send deleteobjects for all objects in this container's inventory to player
+            var itemsToSend = new List<GameMessage>();
+
+            foreach (var item in Inventory.Values)
+            {
+                // FIXME: only send messages for known objects
+                itemsToSend.Add(new GameMessageDeleteObject(item));
+
+                if (item is Container container)
+                {
+                    foreach (var containerItem in container.Inventory.Values)
+                        itemsToSend.Add(new GameMessageDeleteObject(containerItem));
+                }
+            }
 
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
         }
@@ -663,11 +749,24 @@ namespace ACE.Server.WorldObjects
 
                 player.Session.Network.EnqueueSend(itemsToSend.ToArray());*/
             }
+
         }
 
         public virtual void Reset()
         {
-            // do reset stuff here
+            var player = CurrentLandblock.GetObject(Viewer) as Player;
+
+            if (IsOpen)
+                Close(player);
+
+            //if (IsGenerator)
+            //{
+            //    ResetGenerator();
+            //    if (InitCreate > 0)
+            //        Generator_Regeneration();
+            //}
+
+            ResetMessagePending = false;
         }
 
         private void GenerateContainList()
@@ -717,7 +816,8 @@ namespace ACE.Server.WorldObjects
                     if (sourceItem.StackSize == 0)
                     {
                         TryRemoveFromInventory(sourceItem.Guid);
-                        sourceItem.Destroy();
+                        if (!sourceItem.IsDestroyed)
+                            sourceItem.Destroy();
                         break;
                     }
                 }
@@ -743,19 +843,22 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This event is raised when player removes item from container
         /// </summary>
-        protected virtual void OnRemoveItem()
+        protected virtual void OnRemoveItem(WorldObject worldObject)
         {
             // empty base
         }
 
         public virtual MotionCommand MotionPickup => MotionCommand.Pickup;
 
-        /// <summary>
-        /// Mainly used to mark containers (corpse) inventory loaded for proper decay rules
-        /// </summary>
-        public void MarkAsInventoryLoaded()
+        public override bool IsAttunedOrContainsAttuned => base.IsAttunedOrContainsAttuned || Inventory.Values.Any(i => i.IsAttunedOrContainsAttuned);
+
+        public override void OnTalk(WorldObject activator)
         {
-            InventoryLoaded = true;
+            if (activator is Player player)
+            {
+                if (IsOpen)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
+            }
         }
     }
 }

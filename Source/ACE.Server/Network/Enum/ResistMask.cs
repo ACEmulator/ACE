@@ -27,73 +27,87 @@ namespace ACE.Server.Network.Enum
 
     public static class ResistMaskHelper
     {
-        public static ResistMask GetHighlightMask(WorldObject wo)
+        public static ResistMask GetHighlightMask(WorldObject wielder, WorldObject weapon = null)
         {
             ResistMask highlightMask = 0;
 
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Slash) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Slash) != 1.0f)
                 highlightMask |= ResistMask.ResistSlash;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Pierce) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Pierce) != 1.0f)
                 highlightMask |= ResistMask.ResistPierce;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Bludgeon) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Bludgeon) != 1.0f)
                 highlightMask |= ResistMask.ResistBludgeon;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Fire) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Fire) != 1.0f)
                 highlightMask |= ResistMask.ResistFire;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Cold) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Cold) != 1.0f)
                 highlightMask |= ResistMask.ResistCold;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Electric) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Electric) != 1.0f)
                 highlightMask |= ResistMask.ResistElectric;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Health) != 1.0f)      // ??
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Health) != 1.0f)      // ??
                 highlightMask |= ResistMask.ResistHealthBoost;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Stamina) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Stamina) != 1.0f)
                 highlightMask |= ResistMask.ResistStaminaDrain;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Stamina) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Stamina) != 1.0f)
                 highlightMask |= ResistMask.ResistStaminaBoost;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Mana) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Mana) != 1.0f)
                 highlightMask |= ResistMask.ResistManaDrain;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Mana) != 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Mana) != 1.0f)
                 highlightMask |= ResistMask.ResistManaBoost;
-            if (wo.EnchantmentManager.GetManaConvMod() != 1.0f)     // only for items?
+            if (wielder.EnchantmentManager.GetManaConvMod() != 1.0f)     // only for items?
                 highlightMask |= ResistMask.ManaConversionMod;
-            if (wo.EnchantmentManager.GetElementalDamageMod() != 0.0f)
+
+            var wielderElementalDamageMod = wielder.EnchantmentManager.GetElementalDamageMod();
+            var weaponElementalDamageMod = weapon != null ? weapon.EnchantmentManager.GetElementalDamageMod() : 0.0f;
+
+            var elementalDamageMod = wielderElementalDamageMod + weaponElementalDamageMod;
+
+            if (elementalDamageMod != 0.0f)
                 highlightMask |= ResistMask.ElementalDamageMod;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Nether) != 1.0f)
+
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Nether) != 1.0f)
                 highlightMask |= ResistMask.ResistNether;
 
             return highlightMask;
         }
 
-        public static ResistMask GetColorMask(WorldObject wo)
+        public static ResistMask GetColorMask(WorldObject wielder, WorldObject weapon = null)
         {
             ResistMask colorMask = 0;
 
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Slash) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Slash) > 1.0f)
                 colorMask |= ResistMask.ResistSlash;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Pierce) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Pierce) > 1.0f)
                 colorMask |= ResistMask.ResistPierce;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Bludgeon) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Bludgeon) > 1.0f)
                 colorMask |= ResistMask.ResistBludgeon;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Fire) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Fire) > 1.0f)
                 colorMask |= ResistMask.ResistFire;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Cold) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Cold) > 1.0f)
                 colorMask |= ResistMask.ResistCold;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Electric) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Electric) > 1.0f)
                 colorMask |= ResistMask.ResistElectric;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Health) > 1.0f)      // ??
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Health) > 1.0f)      // ??
                 colorMask |= ResistMask.ResistHealthBoost;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Stamina) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Stamina) > 1.0f)
                 colorMask |= ResistMask.ResistStaminaDrain;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Stamina) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Stamina) > 1.0f)
                 colorMask |= ResistMask.ResistStaminaBoost;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Mana) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Mana) > 1.0f)
                 colorMask |= ResistMask.ResistManaDrain;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Mana) > 1.0f)
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Mana) > 1.0f)
                 colorMask |= ResistMask.ResistManaBoost;
-            if (wo.EnchantmentManager.GetManaConvMod() > 1.0f)      // only for items?
+            if (wielder.EnchantmentManager.GetManaConvMod() > 1.0f)      // only for items?
                 colorMask |= ResistMask.ManaConversionMod;
-            if (wo.EnchantmentManager.GetElementalDamageMod() > 0.0f)
+
+            var wielderElementalDamageMod = wielder.EnchantmentManager.GetElementalDamageMod();
+            var weaponElementalDamageMod = weapon != null ? weapon.EnchantmentManager.GetElementalDamageMod() : 0.0f;
+
+            var elementalDamageMod = wielderElementalDamageMod + weaponElementalDamageMod;
+
+            if (elementalDamageMod > 0.0f)
                 colorMask |= ResistMask.ElementalDamageMod;
-            if (wo.EnchantmentManager.GetResistanceMod(DamageType.Nether) > 1.0f)
+
+            if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Nether) > 1.0f)
                 colorMask |= ResistMask.ResistNether;
 
             return colorMask;

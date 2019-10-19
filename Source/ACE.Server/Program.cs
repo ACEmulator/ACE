@@ -44,6 +44,9 @@ namespace ACE.Server
             var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
 
+            if (Environment.ProcessorCount < 2)
+                log.Warn("Only one vCPU was detected. ACE may run with limited performance. You should increase your vCPU count for anything more than a single player server.");
+
             // Do system specific initializations here
             try
             {
@@ -63,6 +66,13 @@ namespace ACE.Server
 
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
+
+            if (ConfigManager.Config.Offline.PurgeDeletedCharacters)
+            {
+                log.Info($"Purging deleted characters, and their possessions, older than {ConfigManager.Config.Offline.PurgeDeletedCharactersDays} days ({DateTime.Now.AddDays(-ConfigManager.Config.Offline.PurgeDeletedCharactersDays)})...");
+                ShardDatabaseOfflineTools.PurgeCharacters(ConfigManager.Config.Offline.PurgeDeletedCharactersDays, out var charactersPurged, out var playerBiotasPurged, out var possessionsPurged);
+                log.Info($"Purged {charactersPurged:N0} characters, {playerBiotasPurged:N0} player biotas and {possessionsPurged:N0} possessions.");
+            }
 
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
