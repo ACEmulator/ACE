@@ -60,7 +60,7 @@ namespace ACE.Server.WorldObjects
             var probability = 0.0f;
 
             foreach (var spell in Biota.BiotaPropertiesSpellBook)
-                probability += spell.Probability;
+                probability += spell.Probability - 2.0f;
 
             return probability;
         }
@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
             var probability = GetSpellProbability();
             //Console.WriteLine("Spell probability: " + probability);
 
-            var rng = ThreadSafeRandom.Next(0.0f, 100.0f);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             //var rng = ThreadSafeRandom.Next(0.0f, probability);
             return rng < probability;
         }
@@ -247,10 +247,10 @@ namespace ACE.Server.WorldObjects
             var currentSpell = 0.0f;
             foreach (var spell in Biota.BiotaPropertiesSpellBook)
             {
-                if (rng < currentSpell + spell.Probability)
-                    return spell;
+                currentSpell += spell.Probability - 2.0f;
 
-                currentSpell += spell.Probability;
+                if (rng < currentSpell)
+                    return spell;
             }
             return Biota.BiotaPropertiesSpellBook.Last();
         }

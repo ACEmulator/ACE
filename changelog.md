@@ -5,6 +5,9 @@
 * Re-order operations in GiveObjectToNPC.
 * Adjust ApproachVendor to track last spent alt-currency better.
 
+[gmriggs]
+* Updated monster spellbook probabilities
+
 ### 2019-10-19
 [gmriggs]
 * Fixing some gaps with nested emote chains and EmoteManager.IsBusy
