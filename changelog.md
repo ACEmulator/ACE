@@ -2,6 +2,7 @@
 
 ### 2019-10-20
 [Ripley]
+* Re-order operations in GiveObjectToNPC.
 * Adjust ApproachVendor to track last spent alt-currency better.
 
 ### 2019-10-19

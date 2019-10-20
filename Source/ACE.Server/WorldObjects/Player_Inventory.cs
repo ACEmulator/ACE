@@ -2210,13 +2210,13 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (target is Player targetAsPlayer)
-                    GiveObjecttoPlayer(targetAsPlayer, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
+                    GiveObjectToPlayer(targetAsPlayer, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
                 else
-                    GiveObjecttoNPC(target, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
+                    GiveObjectToNPC(target, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
             });
         }
 
-        private void GiveObjecttoPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
+        private void GiveObjectToPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
         {
             if ((item.Attuned ?? 0) >= 1)
             {
@@ -2305,7 +2305,7 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        private void GiveObjecttoNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
+        private void GiveObjectToNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
         {
             if (target == null || item == null) return;
 
@@ -2331,12 +2331,9 @@ namespace ACE.Server.WorldObjects
 
             var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && (item.Attuned ?? 0) != (int)AttunedStatus.Sticky;
 
-            // this logic is a bit backwards here, and should be re-evaluated
-            // currently, HandleNPCReceiveItem checks if NPC can receive item, and if so, starts the emote chain
-            // the item is then removed from the player's inventory, which could possibly fail...
-            if (target.HandleNPCReceiveItem(item, this, out var result) || acceptAll)
+            if (target.HasGiveOrRefuseEmoteForItem(item, out var emoteResult) || acceptAll)
             {
-                if (acceptAll || result.Category == (uint)EmoteCategory.Give)
+                if (acceptAll || emoteResult.Category == (uint)EmoteCategory.Give)
                 {
                     var isStackable = item is Stackable;
 
@@ -2349,6 +2346,8 @@ namespace ACE.Server.WorldObjects
 
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.NameWithMaterial}.", ChatMessageType.Broadcast));
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+
+                        target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
                     }
                     else
                     {
@@ -2364,6 +2363,8 @@ namespace ACE.Server.WorldObjects
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
+                            target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
+
                             item.Destroy();
                         }
                         else
@@ -2372,11 +2373,13 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 }
-                else if (result.Category == (uint)EmoteCategory.Refuse)
+                else if (emoteResult.Category == (uint)EmoteCategory.Refuse)
                 {
                     // Item rejected by npc
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.NameWithMaterial}.", ChatMessageType.Broadcast));
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeAiRefuseEmote));
+
+                    target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
                 }
             }
             else
