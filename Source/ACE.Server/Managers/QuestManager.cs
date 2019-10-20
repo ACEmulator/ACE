@@ -417,7 +417,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Increments the counter for a kill task, and optionally shares with fellowship
         /// </summary>
-        public void HandleKillTask(string _questName, WorldObject obj, float shareableRange)
+        public void HandleKillTask(string _questName, WorldObject obj, bool shareable = true)
         {
             // http://acpedia.org/wiki/Announcements_-_2012/12_-_A_Growing_Twilight#Release_Notes
 
@@ -464,25 +464,14 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            // are we in a fellowship? if so, share with fellowship
-            if (shareableRange > 0.0f && Player.Fellowship != null)
+            // is player in fellowship?
+            if (Player.Fellowship != null && shareable)
             {
-                var landblockRange = PropertyManager.GetBool("fellow_kt_landblock").Item;
+                // if so, share with fellows within range
+                var fellows = Player.Fellowship.WithinRange(Player);
 
-                // killtasks can be shared with all members of a fellowship,
-                // they do not use the same "ShareableMembers" as XP sharing
-                var fellows = Player.Fellowship.GetFellowshipMembers();
-
-                foreach (var fellow in fellows.Values.Where(f => f != Player))
-                {
-                    // ensure within shareable distance
-                    var shareable = landblockRange ?
-                        Player.CurrentLandblock == fellow.CurrentLandblock || Player.Location.DistanceTo(fellow.Location) <= 192.0f :
-                        Player.Location.Distance2D(fellow.Location) <= shareableRange && Player.ObjMaint.VisibleObjects.ContainsKey(fellow.Guid.Full);      // 2d visible distance / radar range?
-
-                    if (shareable)
-                        fellow.QuestManager.HandleKillTask(_questName, obj, 0.0f);
-                }
+                foreach (var fellow in fellows)
+                    fellow.QuestManager.HandleKillTask(_questName, obj, false);
             }
         }
     }

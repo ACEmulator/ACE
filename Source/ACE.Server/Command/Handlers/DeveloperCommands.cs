@@ -829,7 +829,7 @@ namespace ACE.Server.Command.Handlers
 
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted.", ChatMessageType.Advancement));
 
-                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} granted {amount:N0} of experience to {aceParams[0].AsPlayer.Name}.");
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} granted {amount:N0} experience to {aceParams[0].AsPlayer.Name}.");
 
                         return;
                     }
@@ -841,6 +841,48 @@ namespace ACE.Server.Command.Handlers
             }
 
             ChatPacket.SendServerMessage(session, "Usage: /grantxp [name] 1234 (max 999999999999)", ChatMessageType.Broadcast);
+        }
+
+        [CommandHandler("grantluminance", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Give luminance to yourself (or the specified character).", "ulong\n" + "@grantluminance [name] 1500000 is max luminance")]
+        public static void HandleGrantLuminance(Session session, params string[] parameters)
+        {
+            if (parameters?.Length > 0)
+            {
+                List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
+                {
+                    new CommandParameterHelpers.ACECommandParameter() {
+                        Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerNameOrIid,
+                        Required = false,
+                        DefaultValue = session.Player
+                    },
+                    new CommandParameterHelpers.ACECommandParameter()
+                    {
+                        Type = CommandParameterHelpers.ACECommandParameterType.PositiveLong,
+                        Required = true,
+                        ErrorMessage = "You must specify the amount of luminance."
+                    }
+                };
+                if (CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams))
+                {
+                    try
+                    {
+                        var amount = aceParams[1].AsLong;
+                        aceParams[0].AsPlayer.GrantLuminance(amount, XpType.Admin, ShareType.None);
+
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} luminance granted.", ChatMessageType.Advancement));
+
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} granted {amount:N0} luminance to {aceParams[0].AsPlayer.Name}.");
+
+                        return;
+                    }
+                    catch
+                    {
+                        //overflow
+                    }
+                }
+            }
+
+            ChatPacket.SendServerMessage(session, "Usage: /grantluminance [name] 1234 (max 999999999999)", ChatMessageType.Broadcast);
         }
 
         [CommandHandler("grantitemxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Give item XP to the last appraised item.")]
@@ -1619,9 +1661,9 @@ namespace ACE.Server.Command.Handlers
             if (target == null)
                 return;
 
-            Console.WriteLine($"\nKnown objects to {target.Name}: {target.PhysicsObj.ObjMaint.KnownObjects.Count}");
+            Console.WriteLine($"\nKnown objects to {target.Name}: {target.PhysicsObj.ObjMaint.GetKnownObjectsCount()}");
 
-            foreach (var obj in target.PhysicsObj.ObjMaint.KnownObjects.Values)
+            foreach (var obj in target.PhysicsObj.ObjMaint.GetKnownObjectsValues())
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
@@ -1635,9 +1677,9 @@ namespace ACE.Server.Command.Handlers
             if (target == null)
                 return;
 
-            Console.WriteLine($"\nVisible objects to {target.Name}: {target.PhysicsObj.ObjMaint.VisibleObjects.Count}");
+            Console.WriteLine($"\nVisible objects to {target.Name}: {target.PhysicsObj.ObjMaint.GetVisibleObjectsCount()}");
 
-            foreach (var obj in target.PhysicsObj.ObjMaint.VisibleObjects.Values)
+            foreach (var obj in target.PhysicsObj.ObjMaint.GetVisibleObjectsValues())
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
@@ -1652,9 +1694,9 @@ namespace ACE.Server.Command.Handlers
             if (target == null)
                 return;
 
-            Console.WriteLine($"\nKnown players to {target.Name}: {target.PhysicsObj.ObjMaint.KnownPlayers.Values.Count}");
+            Console.WriteLine($"\nKnown players to {target.Name}: {target.PhysicsObj.ObjMaint.GetKnownPlayersCount()}");
 
-            foreach (var obj in target.PhysicsObj.ObjMaint.KnownPlayers.Values)
+            foreach (var obj in target.PhysicsObj.ObjMaint.GetKnownPlayersValues())
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
@@ -1664,9 +1706,9 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("visibleplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players visible to this player", "/visibleplayers")]
         public static void HandleVisiblePlayers(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nVisible players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VisibleObjects.Values.Count(o => o.IsPlayer)}");
+            Console.WriteLine($"\nVisible players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.GetVisibleObjectsValuesWhere(o => o.IsPlayer).Count}");
 
-            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjects.Values.Where(o => o.IsPlayer))
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.GetVisibleObjectsValuesWhere(o => o.IsPlayer))
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
@@ -1680,9 +1722,9 @@ namespace ACE.Server.Command.Handlers
             if (target == null)
                 return;
 
-            Console.WriteLine($"\nVisible targets to {target.Name}: {target.PhysicsObj.ObjMaint.VisibleTargets.Values.Count}");
+            Console.WriteLine($"\nVisible targets to {target.Name}: {target.PhysicsObj.ObjMaint.GetVisibleTargetsCount()}");
 
-            foreach (var obj in target.PhysicsObj.ObjMaint.VisibleTargets.Values)
+            foreach (var obj in target.PhysicsObj.ObjMaint.GetVisibleTargetsValues())
                 Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
         }
 
@@ -1692,11 +1734,11 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("destructionqueue", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of previously visible objects queued for destruction for this player", "/destructionqueue")]
         public static void HandleDestructionQueue(Session session, params string[] parameters)
         {
-            Console.WriteLine($"\nDestruction queue for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.DestructionQueue.Count}");
+            Console.WriteLine($"\nDestruction queue for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.GetDestructionQueueCount()}");
 
             var currentTime = Physics.Common.PhysicsTimer.CurrentTime;
 
-            foreach (var obj in session.Player.PhysicsObj.ObjMaint.DestructionQueue)
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.GetDestructionQueueCopy())
                 Console.WriteLine($"{obj.Key.Name} ({obj.Key.ID:X8}): {obj.Value - currentTime}");
         }
 
@@ -2160,10 +2202,10 @@ namespace ACE.Server.Command.Handlers
             foreach (var value in ServerObjectManager.ServerObjects.Values)
             {
                 {
-                    var kvps = value.ObjMaint.KnownObjects.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    var kvps = value.ObjMaint.GetKnownObjectsWhere(kvp => !serverObjects.Contains(kvp.Key));
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.KnownObjects.Remove(kvp.Key))
+                        if (value.ObjMaint.RemoveKnownObject(kvp.Value, false))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [ObjectTable]");
                             objectTableErrors++;
@@ -2172,10 +2214,10 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 {
-                    var kvps = value.ObjMaint.VisibleObjects.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    var kvps = value.ObjMaint.GetVisibleObjectsWhere(kvp => !serverObjects.Contains(kvp.Key));
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.VisibleObjects.Remove(kvp.Key))
+                        if (value.ObjMaint.RemoveVisibleObject(kvp.Value, false))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VisibleObjectTable]");
                             visibleObjectTableErrors++;
@@ -2184,10 +2226,10 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 {
-                    var kvps = value.ObjMaint.KnownPlayers.Where(kvp => !serverObjects.Contains(kvp.Key)).ToList();
+                    var kvps = value.ObjMaint.GetKnownPlayersWhere(kvp => !serverObjects.Contains(kvp.Key));
                     foreach (var kvp in kvps)
                     {
-                        if (value.ObjMaint.KnownPlayers.Remove(kvp.Key))
+                        if (value.ObjMaint.RemoveKnownPlayer(kvp.Value))
                         {
                             log.Debug($"AuditObjectMaint removed 0x{kvp.Value.ID:X8}:{kvp.Value.Name} (IsDestroyed:{kvp.Value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{kvp.Value.Position}) from 0x{value.ID:X8}:{value.Name} (IsDestroyed:{value.WeenieObj?.WorldObject?.IsDestroyed}, Position:{value.Position}) [VoyeurTable]");
                             voyeurTableErrors++;

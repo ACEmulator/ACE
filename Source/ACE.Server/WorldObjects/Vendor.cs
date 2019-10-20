@@ -112,13 +112,13 @@ namespace ACE.Server.WorldObjects
         /// Sends the latest vendor inventory list to player, rotates vendor towards player, and performs the appropriate emote.
         /// </summary>
         /// <param name="action">The action performed by the player</param>
-        private void ApproachVendor(Player player, VendorType action = VendorType.Undef)
+        private void ApproachVendor(Player player, VendorType action = VendorType.Undef, uint altCurrencySpent = 0)
         {
             var vendorList = AllItemsForSale.Values.ToList();
 
             vendorList = RotUniques(vendorList);
 
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorList));
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorList, altCurrencySpent));
 
             var rotateTime = Rotate(player); // vendor rotates to player
 
@@ -466,7 +466,7 @@ namespace ACE.Server.WorldObjects
         /// Handles the final phase of the transaction
         ///  for player buying items from vendor
         /// </summary>
-        public void BuyItems_FinalTransaction(Player player, List<WorldObject> uqlist, bool valid)
+        public void BuyItems_FinalTransaction(Player player, List<WorldObject> uqlist, bool valid, uint altCurrencySpent)
         {
             if (!valid) // re-add unique temp stock items.
             {
@@ -476,7 +476,7 @@ namespace ACE.Server.WorldObjects
                         UniqueItemsForSale.Add(wo.Guid, wo);
                 }
             }
-            ApproachVendor(player, VendorType.Buy);
+            ApproachVendor(player, VendorType.Buy, altCurrencySpent);
         }
 
         // ==========================

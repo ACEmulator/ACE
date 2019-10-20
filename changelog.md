@@ -1,5 +1,98 @@
 # ACEmulator Change Log
 
+### 2019-10-20
+[Ripley]
+* Re-order operations in GiveObjectToNPC.
+* Adjust ApproachVendor to track last spent alt-currency better.
+
+[gmriggs]
+* Updated monster spellbook probabilities
+
+### 2019-10-19
+[gmriggs]
+* Fixing some gaps with nested emote chains and EmoteManager.IsBusy
+* Adding support for monster casting untargeted spells (ie. ring spells)
+
+### 2019-10-18
+[gmriggs]
+* Allow neutral casters and missile launchers to be tailored onto weapons with DamageType
+
+### 2019-10-16
+[Ripley]
+* Fix bug with pickup/merge into a full container.
+
+[gmriggs]
+* Added support for monsters with PropertyBool.NonProjectileMagicImmune
+* Fixed a bug where atlatl/thrown weaps were using power instead of accuracy bar
+
+### 2019-10-14
+[gmriggs]
+* Added luminance sharing to fellowships
+
+### 2019-10-02
+[Ripley]
+* Fix issue with EmoteType.Give handling stackable/nonstackable items.
+
+### 2019-09-28
+[Ripley, Mag-nus]
+* Support Purging of deleted Characters from database
+
+### 2019-09-27
+[Ripley]
+* Support Dark Idol recipe DataId mods
+
+[gmriggs]
+* Added luminance award for kills
+
+### 2019-09-26
+[Ripley]
+* Adjustments to Guid Recycling
+* Some Give/Trade Wielded Adjustments
+
+[gmriggs]
+* Fixed a bug with player missile defense
+
+### 2019-09-24
+[Ripley]
+* Support SpellSets for Items that don't level
+
+### 2019-09-22
+[Ripley]
+* Validate int data for GenerateNewFace
+* Remove coded North Glenden Prison position adjustments
+* Adjust Split StackSize Checks
+
+### 2019-09-21
+[Ripley]
+* Add logging to HousePortal nulls
+
+### 2019-09-19
+[Ripley]
+* Update Killed by misadventure conditions
+
+### 2019-09-18
+[Ripley]
+* Fix issue with opening empty hooks
+* Sync HouseHooksVisible to root house object
+
+### 2019-09-15
+[Ripley]
+* Generate Random Faces for CreatureType.Empyrean NPCs
+
+### 2019-09-14
+[Ripley]
+* Fix Hook Visibility Control in Basements
+* Fix issue on Hook Appraisal
+* Workaround fix to spawn hooks
+* Misc Housing Cleanup
+* Rebase SQL scripts, archived previous batch for legacy servers.
+* Turn on Guid Recycling
+* Update Logging messages
+* Notify Generator of spawn failure for regen retry
+
+[gmriggs]
+* Added server option for Aetheria healing over time message color
+
 ### 2019-09-12
 [OptimShi]
 * Fix issue with AlternateSetup for certain non-human models

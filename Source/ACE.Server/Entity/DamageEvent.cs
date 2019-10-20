@@ -295,7 +295,10 @@ namespace ACE.Server.Entity
             AccuracyMod = attacker.GetAccuracyMod(Weapon);
 
             EffectiveAttackSkill = attacker.GetEffectiveAttackSkill();
-            EffectiveDefenseSkill = defender.GetEffectiveDefenseSkill(attacker.CurrentAttack ?? CombatType.Melee);
+
+            var attackType = attacker.GetCombatType();
+
+            EffectiveDefenseSkill = defender.GetEffectiveDefenseSkill(attackType);
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance(EffectiveAttackSkill, EffectiveDefenseSkill);
             return (float)evadeChance;

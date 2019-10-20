@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             if (Fellowship != null && Fellowship.ShareXP && shareType.HasFlag(ShareType.Fellowship))
             {
                 // this will divy up the XP, and re-call this function
-                // with shareable = false
+                // with ShareType.Fellowship removed
                 Fellowship.SplitXp((ulong)amount, xpType, shareType, this);
                 return;
             }
@@ -364,24 +364,6 @@ namespace ACE.Server.WorldObjects
             var shareType = shareable ? ShareType.All : ShareType.None;
 
             GrantXP(scaledXP, XpType.Quest, shareType);
-        }
-
-        /// <summary>
-        /// Raise the available luminance by a specified amount
-        /// </summary>
-        public void GrantLuminance(long amount)
-        {
-            // apply lum modifier
-            amount = (long)Math.Round(amount * PropertyManager.GetDouble("luminance_modifier").Item);
-
-            if (AvailableLuminance + amount > MaximumLuminance)
-                amount = MaximumLuminance.Value - AvailableLuminance.Value;
-
-            AvailableLuminance += amount;
-
-            var luminance = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableLuminance, AvailableLuminance ?? 0);
-            var message = new GameMessageSystemChat($"{amount:N0} luminance granted.", ChatMessageType.Advancement);
-            Session.Network.EnqueueSend(luminance, message);
         }
 
         /// <summary>

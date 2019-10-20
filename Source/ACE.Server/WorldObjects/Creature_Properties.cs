@@ -89,6 +89,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistNether); else SetProperty(PropertyFloat.ResistNether, value.Value); }
         }
 
+        public bool NonProjectileMagicImmune
+        {
+            get => GetProperty(PropertyBool.NonProjectileMagicImmune) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.NonProjectileMagicImmune); else SetProperty(PropertyBool.NonProjectileMagicImmune, value); }
+        }
+
         public float GetResistanceMod(DamageType damageType, WorldObject weapon, float weaponResistanceMod = 1.0f)
         {
             var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
@@ -220,6 +226,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyDataId.DeathTreasureType);
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.DeathTreasureType); else SetProperty(PropertyDataId.DeathTreasureType, value.Value); }
+        }
+
+        public int? LuminanceAward
+        {
+            get => GetProperty(PropertyInt.LuminanceAward);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LuminanceAward); else SetProperty(PropertyInt.LuminanceAward, value.Value); }
         }
     }
 }

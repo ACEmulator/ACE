@@ -385,6 +385,42 @@ namespace ACE.Server.Entity
             }
         }
 
+        /// <summary>
+        /// Splits luminance amongst fellowship members, depending on XP type and fellow settings
+        /// </summary>
+        /// <param name="amount">The input amount of luminance</param>
+        /// <param name="xpType">The type of lumaniance (quest luminance is handled differently)</param>
+        /// <param name="player">The fellowship member who originated the luminance</param>
+        public void SplitLuminance(ulong amount, XpType xpType, ShareType shareType, Player player)
+        {
+            // https://asheron.fandom.com/wiki/Announcements_-_2002/02_-_Fever_Dreams#Letter_to_the_Players_1
+
+            shareType &= ~ShareType.Fellowship;
+
+            if (xpType == XpType.Quest)
+            {
+                // quest luminance is not shared
+                player.GrantLuminance((long)amount, XpType.Quest, shareType);
+            }
+            else
+            {
+                // pre-filter: evenly divide between luminance-eligible fellows
+                var shareableMembers = GetFellowshipMembers().Values.Where(f => f.MaximumLuminance != null).ToList();
+
+                var perAmount = (long)Math.Round((double)(amount / (ulong)shareableMembers.Count));
+
+                // further filter to fellows in radar range
+                var inRange = shareableMembers.Intersect(WithinRange(player, true)).ToList();
+
+                foreach (var member in inRange)
+                {
+                    var fellowXpType = player == member ? xpType : XpType.Fellowship;
+
+                    member.GrantLuminance(perAmount, fellowXpType, shareType);
+                }
+            }
+        }
+
         internal double GetMemberSharePercent()
         {
             var fellowshipMembers = GetFellowshipMembers();
@@ -442,6 +478,32 @@ namespace ACE.Server.Entity
             var scalar = 1 - (dist - MaxDistance) / MaxDistance;
 
             return Math.Max(0.0f, scalar);
+        }
+
+        /// <summary>
+        /// Returns fellows within radar range (75 units outdoors, 25 units indoors)
+        /// </summary>
+        public List<Player> WithinRange(Player player, bool includeSelf = false)
+        {
+            var fellows = GetFellowshipMembers();
+
+            var landblockRange = PropertyManager.GetBool("fellow_kt_landblock").Item;
+
+            var results = new List<Player>();
+
+            foreach (var fellow in fellows.Values)
+            {
+                if (player == fellow && !includeSelf)
+                    continue;
+
+                var shareable = player == fellow || landblockRange ?
+                    player.CurrentLandblock == fellow.CurrentLandblock || player.Location.DistanceTo(fellow.Location) <= 192.0f :
+                    player.Location.Distance2D(fellow.Location) <= player.CurrentRadarRange && player.ObjMaint.VisibleObjectsContainsKey(fellow.Guid.Full);      // 2d visible distance / radar range?
+
+                if (shareable)
+                    results.Add(fellow);
+            }
+            return results;
         }
 
         /// <summary>
