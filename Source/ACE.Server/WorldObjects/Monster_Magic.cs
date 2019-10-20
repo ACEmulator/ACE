@@ -177,7 +177,14 @@ namespace ACE.Server.WorldObjects
             {
                 case MagicSchool.WarMagic:
 
-                    WarMagic(AttackTarget, spell);
+                    var spellTarget = AttackTarget;
+
+                    var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
+
+                    if (spellType == SpellProjectile.ProjectileSpellType.Ring)
+                        spellTarget = null;
+
+                    WarMagic(spellTarget, spell);
                     break;
 
                 case MagicSchool.LifeMagic:

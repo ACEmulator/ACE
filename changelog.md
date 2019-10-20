@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-19
+[gmriggs]
+* Adding support for monster casting ring spells
+
 ### 2019-10-18
 [gmriggs]
 * Allow neutral casters and missile launchers to be tailored onto weapons with DamageType
