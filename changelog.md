@@ -8,6 +8,7 @@
 ### 2019-10-19
 [gmriggs]
 * Fixing some gaps with nested emote chains and EmoteManager.IsBusy
+* Adding support for monster casting untargeted spells (ie. ring spells)
 
 ### 2019-10-18
 [gmriggs]
