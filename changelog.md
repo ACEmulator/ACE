@@ -1,8 +1,15 @@
 # ACEmulator Change Log
 
 ### 2019-10-20
+[Ripley]
+* Adjust ApproachVendor to track last spent alt-currency better.
+
 [gmriggs]
 * Updated monster spellbook probabilities
+
+### 2019-10-19
+[gmriggs]
+* Fixing some gaps with nested emote chains and EmoteManager.IsBusy
 
 ### 2019-10-18
 [gmriggs]

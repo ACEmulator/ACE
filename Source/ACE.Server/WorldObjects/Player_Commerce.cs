@@ -273,7 +273,7 @@ namespace ACE.Server.WorldObjects
                     RushNextPlayerSave(5);
             }
 
-            vendor.BuyItems_FinalTransaction(this, uqlist, valid);
+            vendor.BuyItems_FinalTransaction(this, uqlist, valid, altcost);
         }
 
 

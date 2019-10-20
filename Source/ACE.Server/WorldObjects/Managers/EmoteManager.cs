@@ -38,7 +38,8 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Returns TRUE if this WorldObject is currently busy processing other emotes
         /// </summary>
-        public bool IsBusy;
+        public bool IsBusy { get; set; }
+        public int Nested { get; set; }
 
         public bool Debug = false;
 
@@ -1290,6 +1291,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (IsBusy && !nested) return false;
 
             // start action chain
+            Nested++;
             Enqueue(emoteSet, targetObject);
 
             return true;
@@ -1297,20 +1299,25 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void Enqueue(BiotaPropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx = 0, float delay = 0.0f)
         {
-            if (emoteSet == null) return;
+            if (emoteSet == null)
+            {
+                Nested--;
+                return;
+            }
 
             IsBusy = true;
             var emote = emoteSet.BiotaPropertiesEmoteAction.ElementAt(emoteIdx);
 
             var actionChain = new ActionChain();
 
+            if (Debug)
+                actionChain.AddAction(WorldObject, () => Console.Write($"{emote.Delay} - "));
+
             // post-delay from actual time of previous emote
             actionChain.AddDelaySeconds(delay);
 
             // pre-delay for current emote
             actionChain.AddDelaySeconds(emote.Delay);
-            if (Debug)
-                Console.Write($"{emote.Delay} - ");
 
             actionChain.AddAction(WorldObject, () =>
             {
@@ -1328,7 +1335,13 @@ namespace ACE.Server.WorldObjects.Managers
                 {
                     var delayChain = new ActionChain();
                     delayChain.AddDelaySeconds(nextDelay);
-                    delayChain.AddAction(WorldObject, () => IsBusy = false);
+                    delayChain.AddAction(WorldObject, () =>
+                    {
+                        Nested--;
+
+                        if (Nested == 0)
+                            IsBusy = false;
+                    });
                     delayChain.EnqueueChain();
                 }
             });
