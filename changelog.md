@@ -2,7 +2,7 @@
 
 ### 2019-10-19
 [gmriggs]
-* Adding support for monster casting ring spells
+* Adding support for monster casting untargeted spells (ie. ring spells)
 
 ### 2019-10-18
 [gmriggs]
