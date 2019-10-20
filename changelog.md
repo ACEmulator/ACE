@@ -1,7 +1,12 @@
 # ACEmulator Change Log
 
+### 2019-10-20
+[Ripley]
+* Adjust ApproachVendor to track last spent alt-currency better.
+
 ### 2019-10-19
 [gmriggs]
+* Fixing some gaps with nested emote chains and EmoteManager.IsBusy
 * Adding support for monster casting untargeted spells (ie. ring spells)
 
 ### 2019-10-18
