@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             if (Fellowship != null && Fellowship.ShareXP && shareType.HasFlag(ShareType.Fellowship))
             {
                 // this will divy up the XP, and re-call this function
-                // with shareable = false
+                // with ShareType.Fellowship removed
                 Fellowship.SplitXp((ulong)amount, xpType, shareType, this);
                 return;
             }

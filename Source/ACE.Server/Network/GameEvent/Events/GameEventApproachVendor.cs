@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventApproachVendor : GameEventMessage
     {
-        public GameEventApproachVendor(Session session, Vendor vendor, List<WorldObject> items)
+        public GameEventApproachVendor(Session session, Vendor vendor, List<WorldObject> items, uint altCurrencySpent)
             : base(GameEventType.ApproachVendor, GameMessageGroup.UIQueue, session)
         {        
             Writer.Write(vendor.Guid.Full);
@@ -34,7 +34,8 @@ namespace ACE.Server.Network.GameEvent.Events
                 var pluralName = altCurrency.GetPluralName();
 
                 // the total amount of alternate currency the player currently has
-                Writer.Write((uint)session.Player.GetNumInventoryItemsOfWCID(vendor.AlternateCurrency.Value));
+                var altCurrencyInInventory = (uint)session.Player.GetNumInventoryItemsOfWCID(vendor.AlternateCurrency.Value);
+                Writer.Write(altCurrencyInInventory + altCurrencySpent);
 
                 // the plural name of alt currency
                 Writer.WriteString16L(pluralName);

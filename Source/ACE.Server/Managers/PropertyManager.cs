@@ -496,6 +496,7 @@ namespace ACE.Server.Managers
                 ("house_rent_enabled", new Property<bool>(true, "If FALSE then rent is not required")),
                 ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),                     
                 ("override_encounter_spawn_rates", new Property<bool>(false, "if enabled, landblock encounter spawns are overidden by double properties below.")),
+                ("player_config_command", new Property<bool>(false, "If enabled, players can use /config to change their settings via text commands")),
                 ("player_receive_immediate_save", new Property<bool>(false, "if enabled, when the player receives items from an NPC, they will be saved immediately")),
                 ("pk_server", new Property<bool>(false, "set this to TRUE for darktide servers")),
                 ("pk_server_safe_training_academy", new Property<bool>(false, "set this to TRUE to disable pk fighting in training academy and time to exit starter town safely")),

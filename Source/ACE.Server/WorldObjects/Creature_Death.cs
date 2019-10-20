@@ -168,7 +168,7 @@ namespace ACE.Server.WorldObjects
                 if (LuminanceAward != null)
                 {
                     var totalLuminance = (long)Math.Round(LuminanceAward.Value * damagePercent);
-                    playerDamager.EarnLuminance(totalLuminance);
+                    playerDamager.EarnLuminance(totalLuminance, XpType.Kill);
                 }
             }
         }
