@@ -375,7 +375,7 @@ namespace ACE.Server.WorldObjects
 
             // NonComponentTargetType should be 0 for untargeted spells.
             // Return if the spell type is targeted with no target defined or the target is already dead.
-            if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != 0)
+            if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != ItemType.None)
             {
                 damage = 0;
                 return false;

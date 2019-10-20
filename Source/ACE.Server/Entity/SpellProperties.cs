@@ -160,9 +160,9 @@ namespace ACE.Server.Entity
         public uint DisplayOrder { get => _spellBase.DisplayOrder; }
 
         /// <summary>
-        /// Unknown what this does?
+        /// The allowed target types for this spell
         /// </summary>
-        public uint NonComponentTargetType { get => _spellBase.NonComponentTargetType; }
+        public ItemType NonComponentTargetType { get => (ItemType)_spellBase.NonComponentTargetType; }
 
         /// <summary>
         /// Additional mana cost per target (e.g. "Incantation of Acid Bane" Mana Cost = 80 + 14 per target)

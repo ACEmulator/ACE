@@ -169,53 +169,53 @@ namespace ACE.Server.WorldObjects
             //var spell = GetCurrentSpell();
 
             var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
-            var target = targetSelf ? this : AttackTarget;
+            var untargeted = spell.NonComponentTargetType == ItemType.None;
 
-            var player = AttackTarget as Player;
- 
+            var target = AttackTarget;
+            if (untargeted)
+                target = null;
+            else if (targetSelf)
+                target = this;
+
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
 
-                    var spellTarget = AttackTarget;
-
-                    var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
-
-                    if (spellType == SpellProjectile.ProjectileSpellType.Ring)
-                        spellTarget = null;
-
-                    WarMagic(spellTarget, spell);
+                    WarMagic(target, spell);
                     break;
 
                 case MagicSchool.LifeMagic:
 
                     resisted = ResistSpell(target, spell);
-                    if (!targetSelf && (resisted == true)) break;
                     if (resisted == null)
-                    {
                         log.Error("Something went wrong with the Magic resistance check");
+                    if (resisted ?? true)
                         break;
-                    }
+
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
                     if (targetDeath && target is Creature targetCreature)
                     {
                         targetCreature.OnDeath(this, DamageType.Health, false);
                         targetCreature.Die();
                     }
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                    if (target != null)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                     break;
 
                 case MagicSchool.CreatureEnchantment:
 
                     resisted = ResistSpell(target, spell);
-                    if (!targetSelf && (resisted == true)) break;
                     if (resisted == null)
-                    {
                         log.Error("Something went wrong with the Magic resistance check");
+                    if (resisted ?? true)
                         break;
-                    }
+
                     CreatureMagic(target, spell);
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                    if (target != null)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                     break;
 
                 case MagicSchool.VoidMagic:
@@ -223,15 +223,13 @@ namespace ACE.Server.WorldObjects
                     if (spell.NumProjectiles == 0)
                     {
                         resisted = ResistSpell(target, spell);
-                        if (!targetSelf && (resisted == true)) break;
                         if (resisted == null)
-                        {
                             log.Error("Something went wrong with the Magic resistance check");
+                        if (resisted ?? true)
                             break;
-                        }
                     }
-                    VoidMagic(AttackTarget, spell);
-                    if (spell.NumProjectiles == 0)
+                    VoidMagic(target, spell);
+                    if (spell.NumProjectiles == 0 && target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
             }
