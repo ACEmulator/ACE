@@ -153,6 +153,23 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+        [CommandHandler("debugspell", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleDebugSpell(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                session.Player.DebugSpell = !session.Player.DebugSpell;
+            }
+            else
+            {
+                if (parameters[0].Equals("on", StringComparison.OrdinalIgnoreCase))
+                    session.Player.DebugSpell = true;
+                else
+                    session.Player.DebugSpell = false;
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Spell projectile debugging is {(session.Player.DebugSpell ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
+        }
+
         private static List<string> configList = new List<string>()
         {
             "Common settings:\nConfirmVolatileRareUse, MainPackPreferred, SalvageMultiple, SideBySideVitals, UseCraftSuccessDialog",

@@ -242,10 +242,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnCollideEnvironment()
         {
-            if (Info != null)
+            var player = ProjectileSource as Player;
+
+            if (Info != null && player != null && player.DebugSpell)
             {
-                log.Info($"{Name}.OnCollideEnvironment()");
-                log.Info(Info);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name}.OnCollideEnvironment()", ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(Info.ToString(), ChatMessageType.Broadcast));
             }
 
             ProjectileImpact();
@@ -256,6 +258,12 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.OnCollideObject({_target.Name})");
 
             var player = ProjectileSource as Player;
+
+            if (Info != null && player != null && player.DebugSpell)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name}.OnCollideObject({_target?.Name} ({_target?.Guid}))", ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(Info.ToString(), ChatMessageType.Broadcast));
+            }
 
             if (player != null)
                 player.LastHitSpellProjectile = Spell;

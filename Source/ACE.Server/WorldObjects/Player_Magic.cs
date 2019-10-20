@@ -41,6 +41,8 @@ namespace ACE.Server.WorldObjects
         public double LastSuccessCast_Time;
         public MagicSchool LastSuccessCast_School;
 
+        public bool DebugSpell;
+
         /// <summary>
         /// Returns the magic skill associated with the magic school
         /// for the last collided spell projectile
