@@ -46,6 +46,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionTargetedMeleeAttack(uint targetGuid, uint attackHeight, float powerLevel)
         {
+            if (PKLogout)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
+
             // verify input
             powerLevel = Math.Clamp(powerLevel, 0.0f, 1.0f);
 
