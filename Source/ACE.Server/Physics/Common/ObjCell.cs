@@ -31,12 +31,12 @@ namespace ACE.Server.Physics.Common
         public Landblock CurLandblock;
 
         /// <summary>
-        /// TODO: This is a temporary locking mechanism
-        /// The objective here is to allow multi-threading of physics, divided by landblock groups
-        /// This solves the issue of a player leaving one landblock group and trying to insert itself a target landblock group while that target landblock group is also in processing
-        /// In the future, the object should be removed from the landblock group and added to a queue of items that need to be inserted into a target
-        /// That list should then be processed in a single thread.
-        /// The above solution should remove the need for ObjCell access locking, and also increase performance
+        /// TODO: This is a temporary locking mechanism, Mag-nus 2019-10-20
+        /// TODO: The objective here is to allow multi-threading of physics, divided by landblock groups
+        /// TODO: This solves the issue of a player leaving one landblock group and trying to insert itself a target landblock group while that target landblock group is also in processing
+        /// TODO: In the future, the object should be removed from the landblock group and added to a queue of items that need to be inserted into a target
+        /// TODO: That list should then be processed in a single thread.
+        /// TODO: The above solution should remove the need for ObjCell access locking, and also increase performance
         /// </summary>
         private readonly ReaderWriterLockSlim readerWriterLockSlim = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
