@@ -59,7 +59,9 @@ namespace ACE.Server.WorldObjects
         {
             var probability = 0.0f;
 
-            foreach (var spell in Biota.BiotaPropertiesSpellBook)
+            // monster spellbooks have probabilities with base 2.0
+            // ie. a 5% chance would be 2.05 instead of 0.05
+            foreach (var spell in Biota.BiotaPropertiesSpellBook.Where(i => i.Probability > 2.0f))
                 probability += spell.Probability - 2.0f;
 
             return probability;
@@ -245,7 +247,7 @@ namespace ACE.Server.WorldObjects
             var rng = ThreadSafeRandom.Next(0.0f, probability);
 
             var currentSpell = 0.0f;
-            foreach (var spell in Biota.BiotaPropertiesSpellBook)
+            foreach (var spell in Biota.BiotaPropertiesSpellBook.Where(i => i.Probability > 2.0f))
             {
                 currentSpell += spell.Probability - 2.0f;
 
