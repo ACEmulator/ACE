@@ -39,7 +39,7 @@ The following three sections (Database, Code, and Starting the Server) contain a
 
 ### Code
 1. Install .NET Core SDK
-   * https://dotnet.microsoft.com/download/linux-package-manager/ubuntu18-04/sdk-2.2.104
+   * https://dotnet.microsoft.com/download/linux-package-manager/rhel/sdk-current
 2. Clone the project with git:
    * git clone https://github.com/ACEmulator/ACE.git
 3. Copy `ACE.Server\Config.js.example` to `ACE.Server\Config.js` and modify settings, such as DAT folder, passwords and other server settings.
@@ -47,7 +47,7 @@ The following three sections (Database, Code, and Starting the Server) contain a
 
 
 ### Starting the Server
-1. In ACE/Source/ACE.Server/bin/x64/Debug/netcoreapp2.1, run the server with `dotnet ACE.Server.dll`
+1. In ACE/Source/ACE.Server/bin/x64/Debug/netcoreapp3.0, run the server with `dotnet ACE.Server.dll`
 2. Create your first account as an admin at the ACE prompt: `accountcreate testaccount testpassword 5`
 3. Launch acclient directly with this command: `acclient.exe -a testaccount -v testpassword -h your-server-address:9000`
 
