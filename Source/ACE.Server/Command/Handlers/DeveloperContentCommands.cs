@@ -258,7 +258,7 @@ namespace ACE.Server.Command.Handlers.Processors
             var sqlCommands = File.ReadAllText(sqlFile);
 
             using (var ctx = new WorldDbContext())
-                ctx.Database.ExecuteSqlRaw(sqlCommands);
+                ctx.Database.ExecuteSqlCommand(sqlCommands);
         }
 
         [CommandHandler("createinst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Spawns a new wcid or classname as a landblock instance", "<wcid or classname>")]
