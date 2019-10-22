@@ -127,7 +127,8 @@ namespace ACE.Server.Entity
             if (Patron == null)
                 return TimeSpan.Zero;
 
-            // TODO: figure out better handling for legacy players with null timestamp
+            // TODO: figure out better handling for legacy players
+            // with AllegianceSwearTimestamp null
             var now = Time.GetUnixTime();
             var timestamp = Player.AllegianceSwearTimestamp ?? now;
 
@@ -142,7 +143,8 @@ namespace ACE.Server.Entity
             if (Patron == null)
                 return TimeSpan.Zero;
 
-            // TODO: figure out better handling for legacy players with null age
+            // TODO: figure out better handling for legacy players
+            // with AllegianceSwearAge null
             var current_age = Player.Age ?? 0;
             var swear_age = Player.AllegianceSwearAge ?? current_age;
 

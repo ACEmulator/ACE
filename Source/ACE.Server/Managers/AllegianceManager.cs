@@ -170,13 +170,13 @@ namespace ACE.Server.Managers
 
         /// <summary>
         /// The maximum amount of realtime sworn to patron
-        /// before reaching cap
+        /// before reaching cap (retail default: 730 days / 2 years)
         /// </summary>
         public static TimeSpan RealCap = TimeSpan.FromDays(730);
 
         /// <summary>
         /// The maximum amount of gametime sworn to patron
-        /// before reaching cap
+        /// before reaching cap (retail default: 720 hours / 1 month)
         /// </summary>
         public static TimeSpan GameCap = TimeSpan.FromHours(720);
 
