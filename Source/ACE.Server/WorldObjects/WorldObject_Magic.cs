@@ -1227,6 +1227,9 @@ namespace ACE.Server.WorldObjects
                 var sourceCreature = this as Creature;
                 if (sourceCreature != null && targetCreature != null && sourceCreature != targetCreature)
                     sourceCreature.TryProcEquippedItems(targetCreature, false);
+
+                if (player != null && targetPlayer != null)
+                    Player.UpdatePKTimers(player, targetPlayer);
             }
             else
                 Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), difficultyMod);
