@@ -346,6 +346,8 @@ namespace ACE.Server.WorldObjects
                         Destroy();
                         return false;
                     }
+
+                    // missiles always run an update
                 }
                 else
                 {
