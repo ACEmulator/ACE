@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -58,6 +59,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges) ?? true;
             set { if (value) RemoveProperty(PropertyBool.ExistedBeforeAllegianceXpChanges); else SetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges, value); }
+        }
+
+        public double? AllegianceSwearTimestamp
+        {
+            get => GetProperty(PropertyFloat.AllegianceSwearTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AllegianceSwearTimestamp); else SetProperty(PropertyFloat.AllegianceSwearTimestamp, value.Value); }
         }
 
         /// <summary>
@@ -122,6 +129,7 @@ namespace ACE.Server.WorldObjects
             // rebuild allegiance tree structure
             AllegianceManager.OnSwearAllegiance(this);
 
+            AllegianceSwearTimestamp = Time.GetUnixTime();
             AllegianceXPGenerated = 0;
             AllegianceOfficerRank = null;
 
