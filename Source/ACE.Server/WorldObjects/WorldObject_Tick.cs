@@ -200,8 +200,6 @@ namespace ACE.Server.WorldObjects
         public uint prevCell;
         public bool InUpdate;
 
-        private bool lastPhysicsTickWasOutsideThreshold;
-
         /// <summary>
         /// Used by physics engine to actually update a player position
         /// Automatically notifies clients of updated position
@@ -280,14 +278,10 @@ namespace ACE.Server.WorldObjects
                 {
                     var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                     ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, elapsedSeconds);
-                    if (elapsedSeconds > 0.002)
-                    {
-                        if (lastPhysicsTickWasOutsideThreshold)
-                            log.Warn($"{Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
-                        lastPhysicsTickWasOutsideThreshold = true;
-                    }
-                    else
-                        lastPhysicsTickWasOutsideThreshold = false;
+                    if (elapsedSeconds >= 1) // Yea, that ain't good....
+                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                    else if (elapsedSeconds >= 0.005)
+                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
                 }
             }
         }
@@ -430,14 +424,10 @@ namespace ACE.Server.WorldObjects
             {
                 var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, elapsedSeconds);
-                if (elapsedSeconds > 0.002)
-                {
-                    if (lastPhysicsTickWasOutsideThreshold)
-                        log.Warn($"{Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
-                    lastPhysicsTickWasOutsideThreshold = true;
-                }
-                else
-                    lastPhysicsTickWasOutsideThreshold = false;
+                if (elapsedSeconds >= 1) // Yea, that ain't good....
+                    log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+                else if (elapsedSeconds >= 0.005)
+                    log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
             }
         }
     }
