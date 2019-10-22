@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
@@ -11,7 +12,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Applies luminance modifiers before adding luminance
         /// </summary>
-        public void EarnLuminance(long amount)
+        public void EarnLuminance(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
             // following the same model as Player_Xp
 
@@ -19,22 +20,39 @@ namespace ACE.Server.WorldObjects
 
             var m_amount = (long)Math.Round(amount * modifier);
 
-            GrantLuminance(m_amount);
+            GrantLuminance(m_amount, xpType, shareType);
         }
 
         /// <summary>
         /// Directly grants luminance to the player, without any additional luminance modifiers
         /// </summary>
-        public void GrantLuminance(long amount)
+        public void GrantLuminance(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
-            if (AvailableLuminance == MaximumLuminance)
+            if (Fellowship != null && Fellowship.ShareXP && shareType.HasFlag(ShareType.Fellowship))
+            {
+                // this will divy up the luminance, and re-call this function
+                // with ShareType.Fellowship removed
+                Fellowship.SplitLuminance((ulong)amount, xpType, shareType, this);
+            }
+            else
+                AddLuminance(amount, xpType);
+        }
+
+        private void AddLuminance(long amount, XpType xpType)
+        {
+            var available = AvailableLuminance ?? 0;
+            var maximum = MaximumLuminance ?? 0;
+
+            if (available == maximum)
                 return;
 
-            var remaining = (MaximumLuminance - AvailableLuminance) ?? 0;
+            // this is similar to Player_Xp.UpdateXpAndLevel()
+
+            var remaining = maximum - available;
 
             var addAmount = Math.Min(amount, remaining);
 
-            AvailableLuminance += addAmount;
+            AvailableLuminance = available + addAmount;
 
             UpdateLuminance();
         }
@@ -44,10 +62,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool SpendLuminance(long amount)
         {
-            if (amount > (AvailableLuminance ?? 0))
+            var available = AvailableLuminance ?? 0;
+
+            if (amount > available)
                 return false;
 
-            AvailableLuminance -= amount;
+            AvailableLuminance = available - amount;
 
             UpdateLuminance();
 

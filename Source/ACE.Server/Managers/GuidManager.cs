@@ -327,7 +327,7 @@ namespace ACE.Server.Managers
             var dynamicGuidCurrent = dynamicAlloc.Current();
             var dynamicDebugInfo = dynamicAlloc.GetRecycleDebugInfo();
 
-            string message = $"The next Player GUID to be allocated is expected to be: (0x{playerGuidCurrent:X})\n";
+            string message = $"The next Player GUID to be allocated is expected to be: 0x{playerGuidCurrent:X}\n";
 
             if (dynamicDebugInfo.nextRecycleTime == DateTime.MinValue)
                 message += $"After {dynamicDebugInfo.totalSequenceGapGuids:N0} sequence gap ids have been consumed, and {dynamicDebugInfo.totalPendingRecycledGuids:N0} recycled ids have been consumed, the next id will be {dynamicGuidCurrent:X8}";
@@ -336,9 +336,9 @@ namespace ACE.Server.Managers
                 var nextDynamicIsAvailIn = dynamicDebugInfo.nextRecycleTime - DateTime.UtcNow;
 
                 if (nextDynamicIsAvailIn.TotalSeconds <= 0)
-                    message += $"After {dynamicDebugInfo.totalSequenceGapGuids:N0} sequence gap ids have been consumed, and {dynamicDebugInfo.totalPendingRecycledGuids:N0} recycled ids have been consumed, the next of which are available now, the next id will be {dynamicGuidCurrent:X8}";
+                    message += $"After {dynamicDebugInfo.totalSequenceGapGuids:N0} sequence gap ids have been consumed, and {dynamicDebugInfo.totalPendingRecycledGuids:N0} recycled ids have been consumed, the next of which are available now, the next id will be: 0x{dynamicGuidCurrent:X8}";
                 else
-                    message += $"After {dynamicDebugInfo.totalSequenceGapGuids:N0} sequence gap ids have been consumed, and {dynamicDebugInfo.totalPendingRecycledGuids:N0} recycled ids have been consumed, the next of which is available in {nextDynamicIsAvailIn.TotalMinutes:N1} m, the next id will be {dynamicGuidCurrent:X8}";
+                    message += $"After {dynamicDebugInfo.totalSequenceGapGuids:N0} sequence gap ids have been consumed, and {dynamicDebugInfo.totalPendingRecycledGuids:N0} recycled ids have been consumed, the next of which is available in {nextDynamicIsAvailIn.TotalMinutes:N1} m, the next id will be: 0x{dynamicGuidCurrent:X8}";
             }
 
             return message;

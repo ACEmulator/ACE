@@ -201,7 +201,7 @@ namespace ACE.Server.Entity
                     case ItemType.Container:
                         return DeathItemCategory.None;  // containers don't drop?
                     default:
-                        Console.WriteLine("Unknown death item type: " + wo.ItemType);
+                        //Console.WriteLine("Unknown death item type: " + wo.ItemType);
                         return DeathItemCategory.None;
                 }
             }

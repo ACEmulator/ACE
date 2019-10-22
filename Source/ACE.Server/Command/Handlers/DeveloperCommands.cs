@@ -867,7 +867,7 @@ namespace ACE.Server.Command.Handlers
                     try
                     {
                         var amount = aceParams[1].AsLong;
-                        aceParams[0].AsPlayer.GrantLuminance(amount);
+                        aceParams[0].AsPlayer.GrantLuminance(amount, XpType.Admin, ShareType.None);
 
                         session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} luminance granted.", ChatMessageType.Advancement));
 
@@ -2155,7 +2155,7 @@ namespace ACE.Server.Command.Handlers
 
                 var results = query.ToList();
 
-                var dest = results.Where(i => i.Name.Value.Equals(searchName, StringComparison.OrdinalIgnoreCase)).Select(i => i.Dest).FirstOrDefault();
+                var dest = results.Where(i => i.Name.Value.Contains(searchName, StringComparison.OrdinalIgnoreCase)).Select(i => i.Dest).FirstOrDefault();
 
                 if (dest == null)
                 {

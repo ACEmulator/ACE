@@ -38,7 +38,8 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Returns TRUE if this WorldObject is currently busy processing other emotes
         /// </summary>
-        public bool IsBusy;
+        public bool IsBusy { get; set; }
+        public int Nested { get; set; }
 
         public bool Debug = false;
 
@@ -129,13 +130,8 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardLuminance:
 
                     if (player != null)
-                    {
-                        var amount = (long)emote.Amount;
+                        player.EarnLuminance((long)emote.Amount, XpType.Quest, ShareType.None);
 
-                        player.EarnLuminance(amount);
-
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} luminance.", ChatMessageType.Advancement));
-                    }
                     break;
 
                 case EmoteType.AwardNoShareXP:
@@ -338,39 +334,10 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.Give:
 
                     bool success = false;
+
                     if (player != null && emote.WeenieClassId != null)
-                    {
-                        var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
+                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, emote.StackSize ?? 1);
 
-                        var stackMsg = "";
-                        if (item != null)
-                        {
-                            var stackSize = emote.StackSize ?? 1;
-                            if (stackSize > 1)
-                            {
-                                item.SetStackSize(stackSize);
-                                stackMsg = stackSize + " ";     // pluralize?
-                            }
-                        }
-                        else
-                            item = PlayerFactory.CreateIOU((uint)emote.WeenieClassId);
-
-                        success = player.TryCreateInInventoryWithNetworking(item);
-
-                        // transaction / rollback on failure?
-                        if (success)
-                        {
-                            var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
-                            var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
-                            if (!(WorldObject.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
-                                player.Session.Network.EnqueueSend(msg, sound);
-                            else
-                                player.Session.Network.EnqueueSend(sound);
-
-                            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
-                                player.RushNextPlayerSave(5);
-                        }
-                    }
                     break;
 
                 /* redirects to the GotoSet category for this action */
@@ -1046,7 +1013,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                         if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                         {
-                            player.QuestManager.HandleKillTask(questName, WorldObject, player.CurrentRadarRange);
+                            player.QuestManager.HandleKillTask(questName, WorldObject);
                         }
                         else
                             player.QuestManager.Stamp(emote.Message);
@@ -1324,6 +1291,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (IsBusy && !nested) return false;
 
             // start action chain
+            Nested++;
             Enqueue(emoteSet, targetObject);
 
             return true;
@@ -1331,20 +1299,25 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void Enqueue(BiotaPropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx = 0, float delay = 0.0f)
         {
-            if (emoteSet == null) return;
+            if (emoteSet == null)
+            {
+                Nested--;
+                return;
+            }
 
             IsBusy = true;
             var emote = emoteSet.BiotaPropertiesEmoteAction.ElementAt(emoteIdx);
 
             var actionChain = new ActionChain();
 
+            if (Debug)
+                actionChain.AddAction(WorldObject, () => Console.Write($"{emote.Delay} - "));
+
             // post-delay from actual time of previous emote
             actionChain.AddDelaySeconds(delay);
 
             // pre-delay for current emote
             actionChain.AddDelaySeconds(emote.Delay);
-            if (Debug)
-                Console.Write($"{emote.Delay} - ");
 
             actionChain.AddAction(WorldObject, () =>
             {
@@ -1362,7 +1335,13 @@ namespace ACE.Server.WorldObjects.Managers
                 {
                     var delayChain = new ActionChain();
                     delayChain.AddDelaySeconds(nextDelay);
-                    delayChain.AddAction(WorldObject, () => IsBusy = false);
+                    delayChain.AddAction(WorldObject, () =>
+                    {
+                        Nested--;
+
+                        if (Nested == 0)
+                            IsBusy = false;
+                    });
                     delayChain.EnqueueChain();
                 }
             });
