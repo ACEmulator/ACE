@@ -303,14 +303,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HandleNPCReceiveItem(WorldObject item, WorldObject giver, out BiotaPropertiesEmote emote)
+        public bool HasGiveOrRefuseEmoteForItem(WorldObject item, out BiotaPropertiesEmote emote)
         {
             // NPC refuses this item, with a custom response
             var refuseItem = EmoteManager.GetEmoteSet(EmoteCategory.Refuse, null, null, item.WeenieClassId);
             if (refuseItem != null)
             {
                 emote = refuseItem;
-                EmoteManager.ExecuteEmoteSet(refuseItem, giver);
                 return true;
             }            
 
@@ -319,7 +318,6 @@ namespace ACE.Server.WorldObjects
             if (giveItem != null)
             {
                 emote = giveItem;
-                EmoteManager.ExecuteEmoteSet(giveItem, giver);
                 return true;
             }
 

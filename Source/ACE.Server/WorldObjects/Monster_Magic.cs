@@ -59,8 +59,10 @@ namespace ACE.Server.WorldObjects
         {
             var probability = 0.0f;
 
-            foreach (var spell in Biota.BiotaPropertiesSpellBook)
-                probability += spell.Probability;
+            // monster spellbooks have probabilities with base 2.0
+            // ie. a 5% chance would be 2.05 instead of 0.05
+            foreach (var spell in Biota.BiotaPropertiesSpellBook.Where(i => i.Probability > 2.0f))
+                probability += spell.Probability - 2.0f;
 
             return probability;
         }
@@ -73,7 +75,7 @@ namespace ACE.Server.WorldObjects
             var probability = GetSpellProbability();
             //Console.WriteLine("Spell probability: " + probability);
 
-            var rng = ThreadSafeRandom.Next(0.0f, 100.0f);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             //var rng = ThreadSafeRandom.Next(0.0f, probability);
             return rng < probability;
         }
@@ -169,46 +171,53 @@ namespace ACE.Server.WorldObjects
             //var spell = GetCurrentSpell();
 
             var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
-            var target = targetSelf ? this : AttackTarget;
+            var untargeted = spell.NonComponentTargetType == ItemType.None;
 
-            var player = AttackTarget as Player;
- 
+            var target = AttackTarget;
+            if (untargeted)
+                target = null;
+            else if (targetSelf)
+                target = this;
+
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
 
-                    WarMagic(AttackTarget, spell);
+                    WarMagic(target, spell);
                     break;
 
                 case MagicSchool.LifeMagic:
 
                     resisted = ResistSpell(target, spell);
-                    if (!targetSelf && (resisted == true)) break;
                     if (resisted == null)
-                    {
                         log.Error("Something went wrong with the Magic resistance check");
+                    if (resisted ?? true)
                         break;
-                    }
+
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
                     if (targetDeath && target is Creature targetCreature)
                     {
                         targetCreature.OnDeath(this, DamageType.Health, false);
                         targetCreature.Die();
                     }
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                    if (target != null)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                     break;
 
                 case MagicSchool.CreatureEnchantment:
 
                     resisted = ResistSpell(target, spell);
-                    if (!targetSelf && (resisted == true)) break;
                     if (resisted == null)
-                    {
                         log.Error("Something went wrong with the Magic resistance check");
+                    if (resisted ?? true)
                         break;
-                    }
+
                     CreatureMagic(target, spell);
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                    if (target != null)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                     break;
 
                 case MagicSchool.VoidMagic:
@@ -216,15 +225,13 @@ namespace ACE.Server.WorldObjects
                     if (spell.NumProjectiles == 0)
                     {
                         resisted = ResistSpell(target, spell);
-                        if (!targetSelf && (resisted == true)) break;
                         if (resisted == null)
-                        {
                             log.Error("Something went wrong with the Magic resistance check");
+                        if (resisted ?? true)
                             break;
-                        }
                     }
-                    VoidMagic(AttackTarget, spell);
-                    if (spell.NumProjectiles == 0)
+                    VoidMagic(target, spell);
+                    if (spell.NumProjectiles == 0 && target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
             }
@@ -240,12 +247,12 @@ namespace ACE.Server.WorldObjects
             var rng = ThreadSafeRandom.Next(0.0f, probability);
 
             var currentSpell = 0.0f;
-            foreach (var spell in Biota.BiotaPropertiesSpellBook)
+            foreach (var spell in Biota.BiotaPropertiesSpellBook.Where(i => i.Probability > 2.0f))
             {
-                if (rng < currentSpell + spell.Probability)
-                    return spell;
+                currentSpell += spell.Probability - 2.0f;
 
-                currentSpell += spell.Probability;
+                if (rng < currentSpell)
+                    return spell;
             }
             return Biota.BiotaPropertiesSpellBook.Last();
         }

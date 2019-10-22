@@ -72,6 +72,12 @@ namespace ACE.Server.WorldObjects
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
         public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false)
         {
+            if (PKLogout)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
+
             // verify spell is contained in player's spellbook,
             // or in the weapon's spellbook in the case of built-in spells
             if (!VerifySpell(spellId, builtInSpell))
@@ -147,6 +153,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionMagicCastUnTargetedSpell(uint spellId)
         {
+            if (PKLogout)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
+
             // verify spell is contained in player's spellbook,
             // or in the weapon's spellbook in the case of built-in spells
             if (!VerifySpell(spellId))
@@ -597,6 +609,12 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
+                    if (creatureTarget != null && creatureTarget.NonProjectileMagicImmune)
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {creatureTarget.Name} with {spell.Name}", ChatMessageType.Magic));
+                        break;
+                    }
+
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     enchantmentStatus = CreatureMagic(target, spell);
                     if (enchantmentStatus.Message != null)
@@ -635,6 +653,12 @@ namespace ACE.Server.WorldObjects
                                 log.Error("Something went wrong with the Magic resistance check");
                                 break;
                             }
+                        }
+
+                        if (creatureTarget != null && creatureTarget.NonProjectileMagicImmune)
+                        {
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {creatureTarget.Name} with {spell.Name}", ChatMessageType.Magic));
+                            break;
                         }
                     }
 

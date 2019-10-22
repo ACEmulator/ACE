@@ -350,7 +350,13 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSound(sourceId, sound, volume));
         }
 
- 
+        /// <summary>
+        /// Returns TRUE if a Player Killer has clicked logout after being involved in a PK battle
+        /// within the past 2 mins.
+        /// The server delays the logout for 20s, and the client remains in frozen state during this delay
+        /// </summary>
+        public bool PKLogout;
+
         /// <summary>
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
@@ -361,6 +367,8 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
+
+                PKLogout = true;
 
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(20.0f);

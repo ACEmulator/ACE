@@ -309,11 +309,15 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj == null || !PhysicsObj.is_active())
                 return false;
 
+            bool isDying = false;
+
             if (this is Creature creature)
             {
                 // monsters have separate physics updates
                 if (creature.IsMonster)
                     return false;
+
+                isDying = creature.IsDead;
 
                 //var pet = this as CombatPet;
 
@@ -323,7 +327,7 @@ namespace ACE.Server.WorldObjects
                 LastPhysicsUpdate = PhysicsTimer.CurrentTime;
 
                 // determine if updates should be run for object
-                var runUpdate = (PhysicsObj.InitialUpdates <= 1 || PhysicsObj.IsAnimating);
+                var runUpdate = (PhysicsObj.IsAnimating || isDying || PhysicsObj.InitialUpdates <= 1);
 
                 if (!runUpdate)
                     return false;
@@ -350,7 +354,7 @@ namespace ACE.Server.WorldObjects
                     // determine if updates should be run for object
                     //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
                     //var runUpdate = isMissile;
-                    var runUpdate = (/*IsMoving ||*/ /*!PhysicsObj.IsGrounded || */ PhysicsObj.InitialUpdates <= 1 || PhysicsObj.IsAnimating /*|| contactPlane*/);
+                    var runUpdate = PhysicsObj.IsAnimating || PhysicsObj.InitialUpdates <= 1;
 
                     if (!runUpdate)
                         return false;
@@ -387,7 +391,7 @@ namespace ACE.Server.WorldObjects
 
                 var landblockUpdate = (cellBefore >> 16) != (curCell.ID >> 16);
 
-                if (isMoved)
+                if (isMoved || isDying)
                 {
                     if (curCell.ID != cellBefore)
                         Location.LandblockId = new LandblockId(curCell.ID);
