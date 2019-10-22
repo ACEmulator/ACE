@@ -211,6 +211,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength, out List<float> attackFrames)
         {
+            if (ForcePos)
+                SendUpdatePosition();
+
             var animSpeed = GetAnimSpeed();
             animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, animSpeed);
 

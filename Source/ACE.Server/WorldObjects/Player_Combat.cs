@@ -319,7 +319,7 @@ namespace ACE.Server.WorldObjects
 
         public override float GetPowerMod(WorldObject weapon)
         {
-            if (weapon == null || !weapon.IsBow)
+            if (weapon == null || !weapon.IsRanged)
                 return PowerLevel + 0.5f;
             else
                 return 1.0f;
@@ -327,7 +327,7 @@ namespace ACE.Server.WorldObjects
 
         public override float GetAccuracyMod(WorldObject weapon)
         {
-            if (weapon != null && weapon.IsBow)
+            if (weapon != null && weapon.IsRanged)
                 return AccuracyLevel + 0.6f;
             else
                 return 1.0f;
