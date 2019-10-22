@@ -24,6 +24,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionUseWithTarget(uint sourceObjectGuid, uint targetObjectGuid)
         {
+            if (PKLogout)
+            {
+                SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                return;
+            }
+
             StopExistingMoveToChains();
 
             // source item is always in our possession
@@ -80,6 +86,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionUseItem(uint itemGuid)
         {
+            if (PKLogout)
+            {
+                SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                return;
+            }
+
             StopExistingMoveToChains();
 
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);

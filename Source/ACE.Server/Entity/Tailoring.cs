@@ -441,7 +441,8 @@ namespace ACE.Server.Entity
 
                 case ItemType.MissileWeapon:
 
-                    if (source.DefaultCombatStyle != target.DefaultCombatStyle || source.W_DamageType != target.W_DamageType )
+                    if (source.DefaultCombatStyle != target.DefaultCombatStyle ||
+                        source.W_DamageType != DamageType.Undef && source.W_DamageType != target.W_DamageType)
                     {
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
@@ -450,7 +451,7 @@ namespace ACE.Server.Entity
 
                 case ItemType.Caster:
 
-                    if (source.W_DamageType != target.W_DamageType)
+                    if (source.W_DamageType != DamageType.Undef && source.W_DamageType != target.W_DamageType)
                     {
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
