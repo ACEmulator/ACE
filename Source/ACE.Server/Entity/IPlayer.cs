@@ -78,6 +78,12 @@ namespace ACE.Server.Entity
 
         int? HouseRentTimestamp { get; set; }
 
+        int? Age { get; set; }
+
+        int? AllegianceSwearAge { get; set; }
+
+        double? AllegianceSwearTimestamp { get; set; }
+
 
         uint GetCurrentLoyalty();
 
