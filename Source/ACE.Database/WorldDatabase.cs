@@ -131,7 +131,11 @@ namespace ACE.Database
         public Weenie GetWeenie(uint weenieClassId)
         {
             using (var context = new WorldDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 return GetWeenie(context, weenieClassId);
+            }
         }
 
         /// <summary>
