@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Database;
@@ -110,9 +111,68 @@ namespace ACE.Server.WorldObjects
             return itemStacks;
         }
 
+        private List<WorldObject> SpendCurrency(uint currencyWeenieClassId, uint amountToSpend, bool destroy = false)
+        {
+            if (currencyWeenieClassId == 0 || amountToSpend == 0)
+                return null;
+
+            var cost = new List<WorldObject>();
+
+            if (currencyWeenieClassId == Vendor.CoinStackWCID)
+            {
+                if (amountToSpend > CoinValue)
+                    return null;
+            }
+
+            if (destroy)
+            {
+                TryConsumeFromInventoryWithNetworking(currencyWeenieClassId, (int)amountToSpend);
+            }
+            else
+            {
+                cost = CollectCurrencyStacks(currencyWeenieClassId, amountToSpend);
+
+                foreach (var stack in cost)
+                    TryRemoveFromInventoryWithNetworking(stack.Guid, out _, RemoveFromInventoryAction.GiveItem);
+            }
+
+            return cost;
+        }
+
+        private List<WorldObject> CollectCurrencyStacks(uint currencyWeenieClassId, uint amountToSpend)
+        {
+            var currencyStacksToRemove = new List<WorldObject>();
+
+            var currencyStacksInInventory = GetInventoryItemsOfWCID(currencyWeenieClassId);
+            currencyStacksInInventory = currencyStacksInInventory.OrderBy(o => o.Value).ToList();
+
+            var leftToCollect = (int)amountToSpend;
+            foreach (var stack in currencyStacksInInventory)
+            {
+                var amountToRemove = Math.Min(leftToCollect, stack.StackSize ?? 1);
+                if (stack.StackSize == amountToRemove)
+                    currencyStacksToRemove.Add(stack);
+                else
+                {
+                    var newStack = WorldObjectFactory.CreateNewWorldObject(currencyWeenieClassId);
+                    newStack.SetStackSize(stack.StackSize - amountToRemove);
+                    currencyStacksToRemove.Add(newStack);
+                    var stackToAdjust = FindObject(stack.Guid, SearchLocations.MyInventory, out var foundInContainer, out var rootContainer, out _);
+                    if (stackToAdjust != null)
+                        AdjustStack(stackToAdjust, -amountToRemove, foundInContainer, rootContainer);
+                }
+
+                leftToCollect -= amountToRemove;
+                if (leftToCollect <= 0)
+                    break;
+            }
+
+            return currencyStacksToRemove;
+        }
+
         private List<WorldObject> SpendCurrency(uint amount, WeenieType type)
         {
-            if (type == WeenieType.Coin && amount > CoinValue)
+            if (type == WeenieType.Coin && (amount > CoinValue || amount == 0))
                 return null;
 
             List<WorldObject> currency = new List<WorldObject>();
@@ -220,14 +280,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, uint goldcost, uint altcost)
         {
-            // todo research packets more for both buy and sell. ripley thinks buy is update..
             // vendor accepted the transaction
 
             var valid = ValidateBuyTransaction(vendor, goldcost, altcost);
 
             if (valid)
             {
-                SpendCurrency(goldcost, WeenieType.Coin);
+                if (altcost > 0)
+                {
+                    var altCurrency = vendor.AlternateCurrency ?? 0;
+
+                    SpendCurrency(altCurrency, altcost, true);
+                }
+                else
+                    SpendCurrency(Vendor.CoinStackWCID, goldcost, true);
 
                 foreach (WorldObject wo in uqlist)
                 {
@@ -258,13 +324,6 @@ namespace ACE.Server.WorldObjects
                             castChain.EnqueueChain();
                         }
                     }
-                }
-
-                if (altcost > 0)
-                {
-                    var altCurrency = vendor.AlternateCurrency ?? 0;
-
-                    TryConsumeFromInventoryWithNetworking(altCurrency, (int)altcost);
                 }
 
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));

@@ -28,6 +28,8 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly uint CoinStackWCID = DatabaseManager.World.GetCachedWeenie("coinstack").ClassId;
+
         public readonly Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
         // unique items purchased from other players
