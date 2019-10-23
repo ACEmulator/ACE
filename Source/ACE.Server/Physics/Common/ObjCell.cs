@@ -555,14 +555,14 @@ namespace ACE.Server.Physics.Common
 
         public void AddObjectListTo(List<PhysicsObj> target)
         {
-            readerWriterLockSlim.EnterWriteLock();
+            readerWriterLockSlim.EnterReadLock();
             try
             {
                 target.AddRange(ObjectList);
             }
             finally
             {
-                readerWriterLockSlim.ExitWriteLock();
+                readerWriterLockSlim.ExitReadLock();
             }
         }
     }
