@@ -581,7 +581,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (numberVariance != 1.0f)
             {
                 var maxDispelNum = dispelNum;
-                var minDispelNum = (int)Math.Round(dispelNum * numberVariance);
+                var minDispelNum = (int)Math.Round(dispelNum * (1.0f - numberVariance));
 
                 // factor in rng variance
                 dispelNum = ThreadSafeRandom.Next(minDispelNum, maxDispelNum);
