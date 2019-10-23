@@ -280,7 +280,7 @@ namespace ACE.Server.WorldObjects
                     ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, elapsedSeconds);
                     if (elapsedSeconds >= 1) // Yea, that ain't good....
                         log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
-                    else if (elapsedSeconds >= 0.005)
+                    else if (elapsedSeconds >= 0.010)
                         log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
                 }
             }
@@ -432,7 +432,7 @@ namespace ACE.Server.WorldObjects
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, elapsedSeconds);
                 if (elapsedSeconds >= 1) // Yea, that ain't good....
                     log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
-                else if (elapsedSeconds >= 0.005)
+                else if (elapsedSeconds >= 0.010)
                     log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
             }
         }
