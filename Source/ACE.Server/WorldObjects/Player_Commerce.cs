@@ -240,9 +240,9 @@ namespace ACE.Server.WorldObjects
             {
                 if (altcost > 0)
                 {
-                    var altCurrency = vendor.AlternateCurrency ?? 0;
+                    var altCurrencyWCID = vendor.AlternateCurrency ?? 0;
 
-                    SpendCurrency(altCurrency, altcost, true);
+                    SpendCurrency(altCurrencyWCID, altcost, true);
                 }
                 else
                     SpendCurrency(Vendor.CoinStackWCID, goldcost, true);
