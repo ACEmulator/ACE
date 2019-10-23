@@ -221,7 +221,10 @@ namespace ACE.Server.WorldObjects
             var rawState = moveToState.RawMotionState;
 
             if (DebugPlayerMoveToStatePhysics)
-                rawState.ShowInfo();
+                Console.WriteLine(rawState);
+
+            if (RecordCast.Enabled)
+                RecordCast.OnMoveToState(moveToState);
 
             var minterp = PhysicsObj.get_minterp();
             minterp.RawState.SetState(moveToState.RawMotionState);

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+
 using ACE.Entity.Enum;
 using ACE.Server.Network.Sequence;
 using ACE.Server.WorldObjects;
@@ -46,11 +48,15 @@ namespace ACE.Server.Network.Structure
             Speed = reader.ReadSingle();
         }
 
-        public void ShowInfo()
+        public override string ToString()
         {
-            Console.WriteLine($"MotionCommand: {MotionCommand}");
-            Console.WriteLine($"IsAutonomous: {IsAutonomous}");
-            Console.WriteLine($"Speed: {Speed}");
+            var sb = new StringBuilder();
+
+            sb.AppendLine($"MotionCommand: {MotionCommand}");
+            sb.AppendLine($"IsAutonomous: {IsAutonomous}");
+            sb.AppendLine($"Speed: {Speed}");
+
+            return sb.ToString();
         }
     }
 

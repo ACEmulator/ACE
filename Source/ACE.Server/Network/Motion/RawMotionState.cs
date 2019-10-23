@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -80,41 +81,51 @@ namespace ACE.Server.Network.Structure
             }
         }
 
-        public void ShowInfo()
+        public string ToString(bool showFlags)
         {
-            Console.WriteLine($"Flags: {Flags}");
+            var sb = new StringBuilder();
+
+            if (showFlags)
+                sb.AppendLine($"Flags: {Flags}");
 
             if ((Flags & RawMotionFlags.CurrentHoldKey) != 0)
-                Console.WriteLine($"CurrentHoldKey: {CurrentHoldKey}");
+                sb.AppendLine($"CurrentHoldKey: {CurrentHoldKey}");
             if ((Flags & RawMotionFlags.CurrentStyle) != 0)
-                Console.WriteLine($"CurrentStyle: {CurrentStyle}");
+                sb.AppendLine($"CurrentStyle: {CurrentStyle}");
             if ((Flags & RawMotionFlags.ForwardCommand) != 0)
-                Console.WriteLine($"ForwardCommand: {ForwardCommand}");
+                sb.AppendLine($"ForwardCommand: {ForwardCommand}");
             if ((Flags & RawMotionFlags.ForwardHoldKey) != 0)
-                Console.WriteLine($"ForwardHoldKey: {ForwardHoldKey}");
+                sb.AppendLine($"ForwardHoldKey: {ForwardHoldKey}");
             if ((Flags & RawMotionFlags.ForwardSpeed) != 0)
-                Console.WriteLine($"ForwardSpeed: {ForwardSpeed}");
+                sb.AppendLine($"ForwardSpeed: {ForwardSpeed}");
             if ((Flags & RawMotionFlags.SideStepCommand) != 0)
-                Console.WriteLine($"SidestepCommand: {SidestepCommand}");
+                sb.AppendLine($"SidestepCommand: {SidestepCommand}");
             if ((Flags & RawMotionFlags.SideStepHoldKey) != 0)
-                Console.WriteLine($"SidestepHoldKey: {SidestepHoldKey}");
+                sb.AppendLine($"SidestepHoldKey: {SidestepHoldKey}");
             if ((Flags & RawMotionFlags.SideStepSpeed) != 0)
-                Console.WriteLine($"SidestepSpeed: {SidestepSpeed}");
+                sb.AppendLine($"SidestepSpeed: {SidestepSpeed}");
             if ((Flags & RawMotionFlags.TurnCommand) != 0)
-                Console.WriteLine($"TurnCommand: {TurnCommand}");
+                sb.AppendLine($"TurnCommand: {TurnCommand}");
             if ((Flags & RawMotionFlags.TurnHoldKey) != 0)
-                Console.WriteLine($"TurnHoldKey: {TurnHoldKey}");
+                sb.AppendLine($"TurnHoldKey: {TurnHoldKey}");
             if ((Flags & RawMotionFlags.TurnSpeed) != 0)
-                Console.WriteLine($"TurnSpeed: {TurnSpeed}");
+                sb.AppendLine($"TurnSpeed: {TurnSpeed}");
 
             if (CommandListLength > 0)
             {
-                Console.WriteLine($"CommandListLength: {CommandListLength}");
+                sb.AppendLine($"CommandListLength: {CommandListLength}");
                 foreach (var command in Commands)
-                    command.ShowInfo();
+                    sb.Append(command);
             }
 
-            Console.WriteLine("---");
+            sb.AppendLine("---");
+
+            return sb.ToString();
+        }
+
+        public override string ToString()
+        {
+            return ToString(true);
         }
 
         public bool HasMovement()

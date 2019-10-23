@@ -1,5 +1,7 @@
 using System;
+
 using ACE.Entity.Enum;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -50,6 +52,8 @@ namespace ACE.Server.Entity
 
         public DateTime StartTime { get; set; }
 
+        public int CastNum { get; set; }
+
         public MagicState(Player player)
         {
             Player = player;
@@ -71,6 +75,14 @@ namespace ACE.Server.Entity
 
             if (Player.UnderLifestoneProtection)
                 Player.LifestoneProtectionDispel();
+
+            CastNum++;
+
+            if (Player.RecordCast.Enabled)
+            {
+                Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Cast #: {CastNum}", ChatMessageType.Broadcast));
+                Player.RecordCast.Log($"MagicState.OnCastStart({CastNum})");
+            }
         }
 
         /// <summary>
@@ -88,6 +100,12 @@ namespace ACE.Server.Entity
             CastGesture = MotionCommand.Invalid;
 
             CastSpellParams = null;
+
+            if (Player.RecordCast.Enabled)
+            {
+                Player.RecordCast.Log($"MagicState.OnCastDone()\n================================================================================");
+                Player.RecordCast.Flush();
+            }
         }
 
         public void SetCastParams(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)

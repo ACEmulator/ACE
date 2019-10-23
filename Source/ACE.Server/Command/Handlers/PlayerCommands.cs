@@ -174,6 +174,23 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Spell projectile debugging is {(session.Player.DebugSpell ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
         }
 
+        [CommandHandler("recordcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleRecordCast(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                session.Player.RecordCast.Enabled = !session.Player.RecordCast.Enabled;
+            }
+            else
+            {
+                if (parameters[0].Equals("on", StringComparison.OrdinalIgnoreCase))
+                    session.Player.RecordCast.Enabled = true;
+                else
+                    session.Player.RecordCast.Enabled = false;
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Record cast {(session.Player.RecordCast.Enabled ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
+        }
+
         private static List<string> configList = new List<string>()
         {
             "Common settings:\nConfirmVolatileRareUse, MainPackPreferred, SalvageMultiple, SideBySideVitals, UseCraftSuccessDialog",

@@ -731,6 +731,9 @@ namespace ACE.Server.WorldObjects
             }
 
             SetCombatMode(newCombatMode);
+
+            if (RecordCast.Enabled)
+                RecordCast.OnSetCombatMode(newCombatMode);
         }
 
         /// <summary>

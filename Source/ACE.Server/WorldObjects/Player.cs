@@ -155,6 +155,8 @@ namespace ACE.Server.WorldObjects
 
             MagicState = new MagicState(this);
 
+            RecordCast = new RecordCast(this);
+
             return; // todo
 
             // =======================================
@@ -761,6 +763,9 @@ namespace ACE.Server.WorldObjects
 
             // broadcast jump
             EnqueueBroadcast(new GameMessageVectorUpdate(this));
+
+            if (RecordCast.Enabled)
+                RecordCast.OnJump(jump);
         }
 
         /// <summary>

@@ -43,6 +43,8 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugSpell;
 
+        public RecordCast RecordCast;
+
         /// <summary>
         /// Returns the magic skill associated with the magic school
         /// for the last collided spell projectile
@@ -100,6 +102,9 @@ namespace ACE.Server.WorldObjects
                 SendUseDoneEvent(WeenieError.TargetNotAcquired);
                 return;
             }
+
+            if (RecordCast.Enabled)
+                RecordCast.OnCastTargetedSpell(new Spell(spellId), target);
 
             if (targetCategory != TargetCategory.WorldObject && targetCategory != TargetCategory.Wielded)
             {
@@ -193,6 +198,9 @@ namespace ACE.Server.WorldObjects
             // or in the weapon's spellbook in the case of built-in spells
             if (!VerifySpell(spellId))
                 return;
+
+            if (RecordCast.Enabled)
+                RecordCast.OnCastUntargetedSpell(new Spell(spellId));
 
             CreatePlayerSpell(spellId);
         }
@@ -384,6 +392,15 @@ namespace ACE.Server.WorldObjects
             {
                 foreach (var windupGesture in spell.Formula.WindupGestures)
                 {
+                    if (RecordCast.Enabled)
+                    {
+                        castChain.AddAction(this, () =>
+                        {
+                            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, windupGesture, CastSpeed);
+                            RecordCast.Log($"Windup Gesture: {windupGesture}, Windup Time: {animLength}");
+                        });
+                    }
+
                     var windupTime = EnqueueMotion(castChain, windupGesture, CastSpeed);
 
                     /*Console.WriteLine($"{spell.Name}");
@@ -402,6 +419,15 @@ namespace ACE.Server.WorldObjects
                 var caster = GetEquippedWand();
                 if (caster.UseUserAnimation != 0)
                     MagicState.CastGesture = caster.UseUserAnimation;
+            }
+
+            if (RecordCast.Enabled)
+            {
+                castChain.AddAction(this, () =>
+                {
+                    var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MagicState.CastGesture, CastSpeed);
+                    RecordCast.Log($"Cast Gesture: {MagicState.CastGesture}, Cast Time: {animLength}");
+                });
             }
 
             var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
@@ -465,6 +491,9 @@ namespace ACE.Server.WorldObjects
 
                 if (angle > MaxAngle)
                 {
+                    if (RecordCast.Enabled)
+                        RecordCast.Log($"DoCastSpell(angle={angle})");
+
                     TurnTo_Magic(target);
                     return;
                 }
@@ -486,6 +515,10 @@ namespace ACE.Server.WorldObjects
 
         public void DoCastSpell_Inner(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
         {
+            if (RecordCast.Enabled)
+                RecordCast.Log($"DoCastSpell_Inner()");
+
+
             // consume mana
             if (!isWeaponSpell)
                 UpdateVitalDelta(Mana, -(int)manaUsed);
@@ -1130,7 +1163,9 @@ namespace ACE.Server.WorldObjects
 
             if (motionID == (uint)MagicState.CastGesture)
             {
-                //Console.WriteLine($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done");
+                if (RecordCast.Enabled)
+                    RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done");
+
                 MagicState.CastMotionDone = true;
                 DoCastSpell(MagicState);
             }
@@ -1139,7 +1174,9 @@ namespace ACE.Server.WorldObjects
             // we handle this separately here, else the player re-turns too quickly
             if (MagicState.CastTurn && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
             {
-                //Console.WriteLine($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - turn done");
+                if (RecordCast.Enabled)
+                    RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - turn done");
+
                 MagicState.CastTurn = false;
                 DoCastSpell(MagicState);
             }
@@ -1152,11 +1189,15 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj.MovementManager.MoveToManager.PendingActions.Count > 0)
             {
                 // this occurs after a jammed up secondary turn
-                //Console.WriteLine($"{Name}.OnMotionQueueDone_Magic() - restarting bugged turn");
+                if (RecordCast.Enabled)
+                    RecordCast.Log($"{Name}.OnMotionQueueDone_Magic() - restarting bugged turn");
+
                 PhysicsObj.cancel_moveto();
             }
 
-            //Console.WriteLine($"{Name}.OnMotionQueueDone_Magic() - DoCastSpell");
+            if (RecordCast.Enabled)
+                RecordCast.Log($"{Name}.OnMotionQueueDone_Magic() - DoCastSpell");
+
             MagicState.CastTurn = false;
             DoCastSpell(MagicState);
         }
@@ -1167,7 +1208,9 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // this occurs after a normal secondary turn
-            //Console.WriteLine($"{Name}.OnMoveComplete_Magic({status}) - DoCastSpell");
+            if (RecordCast.Enabled)
+                RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoCastSpell");
+
             MagicState.CastTurn = false;
             DoCastSpell(MagicState);
         }
