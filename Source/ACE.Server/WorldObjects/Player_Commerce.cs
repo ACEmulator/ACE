@@ -133,7 +133,7 @@ namespace ACE.Server.WorldObjects
                 cost = CollectCurrencyStacks(currencyWeenieClassId, amountToSpend);
 
                 foreach (var stack in cost)
-                    TryRemoveFromInventoryWithNetworking(stack.Guid, out _, RemoveFromInventoryAction.GiveItem);
+                    TryRemoveFromInventoryWithNetworking(stack.Guid, out _, RemoveFromInventoryAction.SpendItem);
             }
 
             return cost;

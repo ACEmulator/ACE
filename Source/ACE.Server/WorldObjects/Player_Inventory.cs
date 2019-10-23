@@ -175,7 +175,8 @@ namespace ACE.Server.WorldObjects
 
             ToCorpseOnDeath,
 
-            ConsumeItem
+            ConsumeItem,
+            SpendItem
         }
 
         public bool TryRemoveFromInventoryWithNetworking(uint objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
@@ -191,7 +192,7 @@ namespace ACE.Server.WorldObjects
             if (removeFromInventoryAction != RemoveFromInventoryAction.SellItem && removeFromInventoryAction != RemoveFromInventoryAction.GiveItem)
                 Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid));
 
-            if (removeFromInventoryAction == RemoveFromInventoryAction.GiveItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
+            if (removeFromInventoryAction == RemoveFromInventoryAction.GiveItem | removeFromInventoryAction == RemoveFromInventoryAction.SpendItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
                 Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(item));
 
             if (removeFromInventoryAction != RemoveFromInventoryAction.ToWieldedSlot)
