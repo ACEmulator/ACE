@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects
 
         private List<WorldObject> CollectCurrencyStacks(uint currencyWeenieClassId, uint amountToSpend)
         {
-            var currencyStacksToRemove = new List<WorldObject>();
+            var currencyStacksCollected = new List<WorldObject>();
 
             var currencyStacksInInventory = GetInventoryItemsOfWCID(currencyWeenieClassId);
             currencyStacksInInventory = currencyStacksInInventory.OrderBy(o => o.Value).ToList();
@@ -151,15 +151,22 @@ namespace ACE.Server.WorldObjects
             {
                 var amountToRemove = Math.Min(leftToCollect, stack.StackSize ?? 1);
                 if (stack.StackSize == amountToRemove)
-                    currencyStacksToRemove.Add(stack);
+                    currencyStacksCollected.Add(stack);
                 else
                 {
                     var newStack = WorldObjectFactory.CreateNewWorldObject(currencyWeenieClassId);
-                    newStack.SetStackSize(stack.StackSize - amountToRemove);
-                    currencyStacksToRemove.Add(newStack);
+                    newStack.SetStackSize(amountToRemove);
+                    currencyStacksCollected.Add(newStack);
                     var stackToAdjust = FindObject(stack.Guid, SearchLocations.MyInventory, out var foundInContainer, out var rootContainer, out _);
                     if (stackToAdjust != null)
+                    {
                         AdjustStack(stackToAdjust, -amountToRemove, foundInContainer, rootContainer);
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(stackToAdjust));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                        if (stackToAdjust.WeenieType == WeenieType.Coin)
+                            UpdateCoinValue();
+                    }
                 }
 
                 leftToCollect -= amountToRemove;
@@ -167,62 +174,7 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            return currencyStacksToRemove;
-        }
-
-        private List<WorldObject> SpendCurrency(uint amount, WeenieType type)
-        {
-            if (type == WeenieType.Coin && (amount > CoinValue || amount == 0))
-                return null;
-
-            List<WorldObject> currency = new List<WorldObject>();
-            currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
-            currency = currency.OrderBy(o => o.Value).ToList();
-
-            List<WorldObject> cost = new List<WorldObject>();
-            uint payment = 0;
-
-            WorldObject changeobj = WorldObjectFactory.CreateNewWorldObject("coinstack");
-            uint change = 0;
-
-            foreach (WorldObject wo in currency)
-            {
-                if (payment + wo.StackSize.Value <= amount)
-                {
-                    // add to payment
-                    payment = payment + (uint)wo.StackSize.Value;
-                    cost.Add(wo);
-                }
-                else if (payment + wo.StackSize.Value > amount)
-                {
-                    // add payment
-                    payment = payment + (uint)wo.StackSize.Value;
-                    cost.Add(wo);
-                    // calculate change
-                    if (payment > amount)
-                    {
-                        change = payment - amount;
-                        // add new change object.
-                        changeobj.SetStackSize((int)change);
-                        wo.SetStackSize(wo.StackSize - (int)change);
-                    }
-                    break;
-                }
-                else if (payment == amount)
-                    break;
-            }
-
-            // destroy all stacks of currency required / sale
-            foreach (WorldObject wo in cost)
-                TryConsumeFromInventoryWithNetworking(wo);
-
-            // if there is change - readd - do this at the end to try to prevent exploiting
-            if (change > 0)
-                TryCreateInInventoryWithNetworking(changeobj);
-
-            UpdateCoinValue(false);
-
-            return cost;
+            return currencyStacksCollected;
         }
 
 
