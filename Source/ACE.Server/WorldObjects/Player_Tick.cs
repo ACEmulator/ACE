@@ -253,7 +253,6 @@ namespace ACE.Server.WorldObjects
 
         public override bool UpdateObjectPhysics()
         {
-            UpdatePhysicsLock.EnterWriteLock();
             try
             {
                 stopwatch.Restart();
@@ -290,9 +289,12 @@ namespace ACE.Server.WorldObjects
             }
             finally
             {
-                var elapsed = stopwatch.Elapsed.TotalSeconds;
-                UpdatePhysicsLock.ExitWriteLock();
-                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsed);
+                var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsedSeconds);
+                if (elapsedSeconds >= 1) // Yea, that ain't good....
+                    log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+                else if (elapsedSeconds >= 0.010)
+                    log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
             }
         }
 
