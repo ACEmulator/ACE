@@ -497,7 +497,7 @@ namespace ACE.Server.WorldObjects
                     buyRate = 1.0;
 
                 // payout scaled by the vendor's buy rate
-                payout += Math.Max(1, (int)Math.Ceiling(((float)buyRate * (wo.Value ?? 0)) + 0.1));
+                payout += Math.Max(1, (int)Math.Floor(((float)buyRate * (wo.Value ?? 0)) + 0.1));
             }
 
             return payout;
