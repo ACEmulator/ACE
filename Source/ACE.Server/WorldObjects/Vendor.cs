@@ -443,7 +443,7 @@ namespace ACE.Server.WorldObjects
                 if (wo.ItemType == ItemType.PromissoryNote)
                     sellRate = 1.15;
 
-                goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
+                goldcost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0))));
             }
 
             foreach (WorldObject wo in genlist)
@@ -454,7 +454,7 @@ namespace ACE.Server.WorldObjects
                     if (wo.ItemType == ItemType.PromissoryNote)
                         sellRate = 1.15;
 
-                    goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
+                    goldcost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0))));
                 }
                 else
                     altcost += (uint)((wo.StackSize ?? 1) * (wo.StackUnitValue ?? 1));
