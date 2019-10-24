@@ -132,6 +132,9 @@ namespace ACE.Server.WorldObjects
 
         public float GetMaxRange()
         {
+            // FIXME
+            var it = 0;
+
             while (CurrentAttack == CombatType.Magic)
             {
                 // select a magic spell
@@ -145,9 +148,13 @@ namespace ACE.Server.WorldObjects
                     {
                         // reroll attack type
                         CurrentAttack = GetNextAttackType();
-                        continue;
+                        it++;
 
                         // max iterations to melee?
+                        if (it >= 30)
+                            CurrentAttack = CombatType.Melee;
+
+                        continue;
                     }
                 }
                 return GetSpellMaxRange();
