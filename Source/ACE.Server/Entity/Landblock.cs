@@ -372,7 +372,9 @@ namespace ACE.Server.Entity
             Monitor1h.Restart();
             monitorsRequireEventStart = false;
 
-            foreach (WorldObject wo in GetWorldObjectsForPhysicsHandling())
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            foreach (WorldObject wo in worldObjects.Values)
             {
                 // set to TRUE if object changes landblock
                 var landblockUpdate = false;
