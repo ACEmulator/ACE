@@ -494,6 +494,7 @@ namespace ACE.Server.Managers
                 ("gateway_ties_summonable", new Property<bool>(true, "if disabled, players cannot summon ties from gateways. defaults to enabled, as in retail")),
                 ("house_purchase_requirements", new Property<bool>(true, "if disabled, requirements to purchase/rent house are not checked")),
                 ("house_rent_enabled", new Property<bool>(true, "If FALSE then rent is not required")),
+                ("item_dispel", new Property<bool>(false, "if enabled, allows players to dispel items. defaults to end of retail, where item dispels could only target creatures")),
                 ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),                     
                 ("override_encounter_spawn_rates", new Property<bool>(false, "if enabled, landblock encounter spawns are overidden by double properties below.")),
                 ("player_config_command", new Property<bool>(false, "If enabled, players can use /config to change their settings via text commands")),
