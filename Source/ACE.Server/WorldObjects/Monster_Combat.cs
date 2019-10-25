@@ -85,7 +85,8 @@ namespace ACE.Server.WorldObjects
                 return CombatType.Missile;
 
             // if caster, roll for spellcasting chance
-            if (!IsCaster || !RollCastMagic())
+            //if (!IsCaster || !RollCastMagic())
+            if (!IsCaster || TryRollSpell() == null)
                 return CombatType.Melee;
             else
                 return CombatType.Magic;
@@ -138,7 +139,7 @@ namespace ACE.Server.WorldObjects
             while (CurrentAttack == CombatType.Magic)
             {
                 // select a magic spell
-                CurrentSpell = GetRandomSpell();
+                //CurrentSpell = GetRandomSpell();
                 var currentSpell = GetCurrentSpell();
 
                 if (currentSpell.IsProjectile)
