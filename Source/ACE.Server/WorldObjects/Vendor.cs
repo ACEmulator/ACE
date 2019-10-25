@@ -28,6 +28,8 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly uint CoinStackWCID = DatabaseManager.World.GetCachedWeenie("coinstack").ClassId;
+
         public readonly Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
         // unique items purchased from other players
@@ -441,7 +443,7 @@ namespace ACE.Server.WorldObjects
                 if (wo.ItemType == ItemType.PromissoryNote)
                     sellRate = 1.15;
 
-                goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
+                goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
             }
 
             foreach (WorldObject wo in genlist)
@@ -452,7 +454,7 @@ namespace ACE.Server.WorldObjects
                     if (wo.ItemType == ItemType.PromissoryNote)
                         sellRate = 1.15;
 
-                    goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
+                    goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
                 }
                 else
                     altcost += (uint)((wo.StackSize ?? 1) * (wo.StackUnitValue ?? 1));
@@ -483,7 +485,7 @@ namespace ACE.Server.WorldObjects
         // Helper Functions - Selling
         // ==========================
 
-        public int CalculatePayoutCoinAmount(IList<WorldObject> items)
+        public int CalculatePayoutCoinAmount(List<WorldObject> items)
         {
             int payout = 0;
 
@@ -495,7 +497,7 @@ namespace ACE.Server.WorldObjects
                     buyRate = 1.0;
 
                 // payout scaled by the vendor's buy rate
-                payout += Math.Max(1, (int)Math.Floor((wo.Value ?? 0) * buyRate + 0.1));
+                payout += Math.Max(1, (int)Math.Floor(((float)buyRate * (wo.Value ?? 0)) + 0.1));
             }
 
             return payout;

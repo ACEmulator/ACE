@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-23
+[Ripley]
+* Adjust the way SpendCurrency spends currency.
+
 ### 2019-10-20
 [Ripley]
 * Re-order operations in GiveObjectToNPC.
