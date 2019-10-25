@@ -17,21 +17,10 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Creature
     {
-        private bool? isCaster;
-
         /// <summary>
         /// Returns TRUE if monster is a spell caster
         /// </summary>
-        public bool IsCaster
-        {
-            get
-            {
-                if (isCaster == null)
-                    isCaster = Biota.BiotaPropertiesSpellBook.Any(i => i.Probability > 2.0f);
-
-                return isCaster.Value;
-            }
-        }
+        public bool IsCaster => Biota.BiotaPropertiesSpellBook.Count > 0;
 
         /// <summary>
         /// The next spell the monster will attempt to cast
@@ -71,10 +60,16 @@ namespace ACE.Server.WorldObjects
 
             // monster spellbooks have probabilities with base 2.0
             // ie. a 5% chance would be 2.05 instead of 0.05
-            foreach (var spell in Biota.BiotaPropertiesSpellBook.Where(i => i.Probability > 2.0f))
+
+            // much less common, some monsters will have spells with just base 2.0 probability
+            // there were probably other criteria used to select these spells (emote responses, monster ai responses)
+            // for now, 2.0 base just becomes a 2% chance
+            foreach (var spell in Biota.BiotaPropertiesSpellBook)
             {
+                var probability = spell.Probability > 2.0f ? spell.Probability - 2.0f : spell.Probability / 100.0f;
+
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                if (rng < spell.Probability - 2.0f)
+                if (rng < probability)
                 {
                     CurrentSpell = spell;
                     return new Spell(spell.Spell);
