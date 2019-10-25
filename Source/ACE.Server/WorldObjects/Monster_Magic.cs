@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if monster is a spell caster
         /// </summary>
-        public bool IsCaster => Biota.BiotaPropertiesSpellBook.Count > 0;
+        public bool IsCaster { get => Biota.BiotaPropertiesSpellBook.Count > 0; }
 
         /// <summary>
         /// The next spell the monster will attempt to cast
