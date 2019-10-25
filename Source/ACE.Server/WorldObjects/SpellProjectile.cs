@@ -118,7 +118,8 @@ namespace ACE.Server.WorldObjects
             Streak,
             Arc,
             Ring,
-            Wall
+            Wall,
+            Strike
         }
 
         public static ProjectileSpellType GetProjectileSpellType(uint spellID)
@@ -128,44 +129,38 @@ namespace ACE.Server.WorldObjects
             if (spell.Wcid == 0)
                 return ProjectileSpellType.Undef;
 
-            // TODO: improve readability
-            if ((spell.Wcid >= 7262 && spell.Wcid <= 7268) || (spellID >= 5345 && spellID <= 5348) || (spellID >= 5357 && spellID <= 5360))
+            if (spell.NumProjectiles == 1)
             {
-                return ProjectileSpellType.Streak;
-            }
-            else if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233 || spellID == 6320 || spellID == 3818)
-            {
-                return ProjectileSpellType.Ring;
-            }
-            else if (spell.Wcid >= 7276 && spell.Wcid <= 7282 || spell.Wcid == 23144)
-            {
-                return ProjectileSpellType.Wall;
-            }
-            else if (spell.NonTracking)
-            {
-                return ProjectileSpellType.Arc;
-            }
-            else if (spell.Wcid == 1499 || spell.Wcid == 1503 || (spell.Wcid >= 1633 && spell.Wcid <= 1667) || (spellID >= 5395 && spellID <= 5402) || (spellID >= 5544 && spellID <= 5551))
-            {
-                if (spell.SpreadAngle > 0)
-                {
-                    return ProjectileSpellType.Blast;
-                }
-                else if (spell.DimsOrigin.X > 1)
-                {
-                    return ProjectileSpellType.Volley;
-                }
+                if (spell.Category >= SpellCategory.AcidStreak && spell.Category <= SpellCategory.SlashingStreak ||
+                         spell.Category == SpellCategory.NetherStreak || spell.Category == SpellCategory.Fireworks)
+                    return ProjectileSpellType.Streak;
+
+                else if (spell.NonTracking)
+                    return ProjectileSpellType.Arc;
+
+                else if (spell.Name.Contains("Rolling Death"))
+                    return ProjectileSpellType.Wall;
+
                 else
-                {
                     return ProjectileSpellType.Bolt;
-                }
             }
 
-            if (spell.Name.Equals("Rolling Death"))
-                return ProjectileSpellType.Wall;    // ??
+            if (spell.Category >= SpellCategory.AcidRing && spell.Category <= SpellCategory.SlashingRing || spell.SpreadAngle == 360)
+                return ProjectileSpellType.Ring;
 
-            if (spell.School == MagicSchool.VoidMagic)
-                return ProjectileSpellType.Bolt;
+            if (spell.Category >= SpellCategory.AcidBurst && spell.Category <= SpellCategory.SlashingBurst ||
+                spell.Category == SpellCategory.NetherDamageOverTimeRaising3)
+                return ProjectileSpellType.Blast;
+
+            // 1481 - Flaming Missile Volley
+            if (spell.Category >= SpellCategory.AcidVolley && spell.Category <= SpellCategory.BladeVolley || spell.Name.Contains("Volley"))
+                return ProjectileSpellType.Volley;
+
+            if (spell.Category >= SpellCategory.AcidWall && spell.Category <= SpellCategory.SlashingWall)
+                return ProjectileSpellType.Wall;
+
+            if (spell.Category >= SpellCategory.AcidStrike && spell.Category <= SpellCategory.SlashingStrike)
+                return ProjectileSpellType.Strike;
 
             return ProjectileSpellType.Undef;
         }
