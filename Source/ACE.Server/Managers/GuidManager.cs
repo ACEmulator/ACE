@@ -110,11 +110,11 @@ namespace ACE.Server.Managers
             private uint current;
             private readonly string name;
 
-            private static readonly TimeSpan recycleTime = TimeSpan.FromMinutes(120);
+            private static readonly TimeSpan recycleTime = TimeSpan.FromMinutes(360);
 
             private readonly Queue<Tuple<DateTime, uint>> recycledGuids = new Queue<Tuple<DateTime, uint>>();
 
-            private const int limitAvailableIDsReturnedInGetSequenceGaps = 10000000;
+            private const int limitAvailableIDsReturnedInGetSequenceGaps = 100000000;
             private bool useSequenceGapExhaustedMessageDisplayed;
             private LinkedList<(uint start, uint end)> availableIDs = new LinkedList<(uint start, uint end)>();
 
