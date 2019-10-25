@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -52,32 +54,28 @@ namespace ACE.Server.WorldObjects
             return skill.InitLevel + skill.Ranks;
         }
 
-        /// <summary>
-        /// Returns the sum of all probabilities from monster's spell_book
-        /// </summary>
-        public float GetSpellProbability()
+        public Spell TryRollSpell()
         {
-            var probability = 0.0f;
+            CurrentSpell = null;
 
             // monster spellbooks have probabilities with base 2.0
             // ie. a 5% chance would be 2.05 instead of 0.05
-            foreach (var spell in Biota.BiotaPropertiesSpellBook.Where(i => i.Probability > 2.0f))
-                probability += spell.Probability - 2.0f;
 
-            return probability;
-        }
+            // much less common, some monsters will have spells with just base 2.0 probability
+            // there were probably other criteria used to select these spells (emote responses, monster ai responses)
+            // for now, 2.0 base just becomes a 2% chance
+            foreach (var spell in Biota.BiotaPropertiesSpellBook)
+            {
+                var probability = spell.Probability > 2.0f ? spell.Probability - 2.0f : spell.Probability / 100.0f;
 
-        /// <summary>
-        /// Rolls for a chance to cast magic spell
-        /// </summary>
-        public bool RollCastMagic()
-        {
-            var probability = GetSpellProbability();
-            //Console.WriteLine("Spell probability: " + probability);
-
-            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-            //var rng = ThreadSafeRandom.Next(0.0f, probability);
-            return rng < probability;
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                if (rng < probability)
+                {
+                    CurrentSpell = spell;
+                    return new Spell(spell.Spell);
+                }
+            }
+            return null;
         }
 
         // todo: monster spellcasting anim speed?
@@ -235,26 +233,6 @@ namespace ACE.Server.WorldObjects
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
             }
-        }
-
-        /// <summary>
-        /// Selects a random spell from the monster's spell book
-        /// according to the probabilities
-        /// </summary>
-        public BiotaPropertiesSpellBook GetRandomSpell()
-        {
-            var probability = GetSpellProbability();
-            var rng = ThreadSafeRandom.Next(0.0f, probability);
-
-            var currentSpell = 0.0f;
-            foreach (var spell in Biota.BiotaPropertiesSpellBook.Where(i => i.Probability > 2.0f))
-            {
-                currentSpell += spell.Probability - 2.0f;
-
-                if (rng < currentSpell)
-                    return spell;
-            }
-            return Biota.BiotaPropertiesSpellBook.Last();
         }
 
         /// <summary>
