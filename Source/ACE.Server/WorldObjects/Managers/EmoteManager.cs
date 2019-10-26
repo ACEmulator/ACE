@@ -335,8 +335,10 @@ namespace ACE.Server.WorldObjects.Managers
 
                     bool success = false;
 
+                    var stackSize = emote.StackSize ?? 1;
+
                     if (player != null && emote.WeenieClassId != null)
-                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, emote.StackSize ?? 1);
+                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, stackSize > 0 ? stackSize : 1);
 
                     break;
 
