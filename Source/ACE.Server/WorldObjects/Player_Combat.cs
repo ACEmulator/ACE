@@ -670,6 +670,9 @@ namespace ACE.Server.WorldObjects
         {
             var currentCombatStance = GetCombatStance();
 
+            var missileWeapon = GetEquippedMissileWeapon();
+            var caster = GetEquippedWand();
+
             switch (newCombatMode)
             {
                 case CombatMode.NonCombat:
@@ -689,11 +692,18 @@ namespace ACE.Server.WorldObjects
                     break;
                 }
                 case CombatMode.Melee:
+
                     // todo expand checks
+                    if (missileWeapon != null || caster != null)
+                        return;
+
                     break;
 
                 case CombatMode.Missile:
                 {
+                    if (missileWeapon == null)
+                        return;
+
                     switch (currentCombatStance)
                     {
                         case MotionStance.BowCombat:
@@ -725,11 +735,14 @@ namespace ACE.Server.WorldObjects
                 }
 
                 case CombatMode.Magic:
+
                     // todo expand checks
+                    if (caster == null)
+                        return;
+
                     break;
 
             }
-
             SetCombatMode(newCombatMode);
         }
 

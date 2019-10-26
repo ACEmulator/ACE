@@ -407,19 +407,19 @@ namespace ACE.Server.Entity
                 // pre-filter: evenly divide between luminance-eligible fellows
                 var shareableMembers = GetFellowshipMembers().Values.Where(f => f.MaximumLuminance != null).ToList();
 
-                if (shareableMembers.Count > 0)
+                if (shareableMembers.Count == 0)
+                    return;
+
+                var perAmount = (long)Math.Round((double)(amount / (ulong)shareableMembers.Count));
+
+                // further filter to fellows in radar range
+                var inRange = shareableMembers.Intersect(WithinRange(player, true)).ToList();
+
+                foreach (var member in inRange)
                 {
-                    var perAmount = (long)Math.Round((double)(amount / (ulong)shareableMembers.Count));
+                    var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
-                    // further filter to fellows in radar range
-                    var inRange = shareableMembers.Intersect(WithinRange(player, true)).ToList();
-
-                    foreach (var member in inRange)
-                    {
-                        var fellowXpType = player == member ? xpType : XpType.Fellowship;
-
-                        member.GrantLuminance(perAmount, fellowXpType, shareType);
-                    }
+                    member.GrantLuminance(perAmount, fellowXpType, shareType);
                 }
             }
         }
