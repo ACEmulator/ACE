@@ -41,7 +41,7 @@ namespace ACE.Server.Factories
             }
 
             var armorType = (LootTables.ArmorType)ThreadSafeRandom.Next((int)minType, (int)maxType);
-            armorType = LootTables.ArmorType.CovenantArmor;
+
             int[] table = LootTables.GetLootTable(armorType);
 
             int rng = ThreadSafeRandom.Next(0, table.Length - 1);
