@@ -41,7 +41,7 @@ namespace ACE.Server.Factories
             }
 
             var armorType = (LootTables.ArmorType)ThreadSafeRandom.Next((int)minType, (int)maxType);
-
+            armorType = LootTables.ArmorType.CovenantArmor;
             int[] table = LootTables.GetLootTable(armorType);
 
             int rng = ThreadSafeRandom.Next(0, table.Length - 1);
@@ -129,7 +129,10 @@ namespace ACE.Server.Factories
             wo = AssignEquipmentSetId(wo, tier);
 
             if (isMagical)
-                wo = AssignMagic(wo, tier);
+            {
+                bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
+                wo = AssignMagic(wo, tier, covenantArmor);
+            }
             else
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
