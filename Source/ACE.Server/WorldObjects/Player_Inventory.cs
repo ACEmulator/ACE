@@ -2711,9 +2711,10 @@ namespace ACE.Server.WorldObjects
             var msg = new GameMessageSystemChat($"{giver.Name} gives you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{(itemBeingGiven.StackSize > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.Name)}.", ChatMessageType.Broadcast);
 
             if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
+            {
                 Session.Network.EnqueueSend(msg);
-
-            EnqueueBroadcast(new GameMessageSound(Guid, Sound.ReceiveItem));
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.ReceiveItem));
+            }
 
             if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                 RushNextPlayerSave(5);
