@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
 
             // send network actions
             var targetDist = GetDistanceToTarget();
-            var turnTo = IsRanged || (CurrentAttack == CombatType.Magic && targetDist <= GetSpellMaxRange());
+            var turnTo = IsRanged || (CurrentAttack == CombatType.Magic && targetDist <= GetSpellMaxRange()) || AiImmobile;
             if (turnTo)
                 TurnTo(AttackTarget);
             else
@@ -149,6 +149,13 @@ namespace ACE.Server.WorldObjects
 
             if (status != WeenieError.None)
                 return;
+
+            if (AiImmobile && CurrentAttack == CombatType.Melee)
+            {
+                var targetDist = GetDistanceToTarget();
+                if (targetDist > MaxRange)
+                    ResetAttack();
+            }
 
             if (MonsterState == State.Return)
                 Sleep();
@@ -391,7 +398,7 @@ namespace ACE.Server.WorldObjects
             // set non-default params for monster movement
             mvp.Flags &= ~MovementParamFlags.CanWalk;
 
-            var turnTo = IsRanged || (CurrentAttack == CombatType.Magic && GetDistanceToTarget() <= GetSpellMaxRange());
+            var turnTo = IsRanged || (CurrentAttack == CombatType.Magic && GetDistanceToTarget() <= GetSpellMaxRange()) || AiImmobile;
 
             if (!turnTo)
                 mvp.Flags |= MovementParamFlags.FailWalk | MovementParamFlags.UseFinalHeading | MovementParamFlags.Sticky | MovementParamFlags.MoveAway;
