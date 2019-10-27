@@ -29,11 +29,14 @@ namespace ACE.Server.WorldObjects
     {
         public static void ConsumeUnlocker(Player player, WorldObject unlocker)
         {
-            if ((unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false))
+            // is Sonic Screwdriver supposed to be consumed on use?
+            // it doesn't have a Structure, and it doesn't have PropertyBool.UnlimitedUse
+            if (unlocker.Structure == null || (unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false))
             {
                 player.SendUseDoneEvent();
                 return;
             }
+
             unlocker.Structure--;
             if (unlocker.Structure < 1)
                 player.TryConsumeFromInventoryWithNetworking(unlocker, 1);
@@ -191,7 +194,17 @@ namespace ACE.Server.WorldObjects
             if (target.IsOpen)
                 return UnlockResults.Open;
 
-            if (keyCode != null && keyCode.Equals(myLockCode, StringComparison.OrdinalIgnoreCase) || (key?.OpensAnyLock == true))
+            // there is only 1 instance of an 'opens all' key in PY16 data, 'keysonicscrewdriver'
+            // which uses keyCode '_bohemund's_magic_key_'
+
+            // when LSD added the rare skeleton key (keyrarevolatileuniversal),
+            // they used PropertyBool.OpensAnyLock, which appears to have been used for something else in retail on Writables:
+
+            // https://github.com/ACEmulator/ACE-World-16PY/blob/master/Database/3-Core/9%20WeenieDefaults/SQL/Key/Key/09181%20Sonic%20Screwdriver.sql
+            // https://github.com/ACEmulator/ACE-World-16PY/search?q=OpensAnyLock
+
+            if (keyCode != null && (keyCode.Equals(myLockCode, StringComparison.OrdinalIgnoreCase) || keyCode.Equals("_bohemund's_magic_key_")) ||
+                    key != null && key.OpensAnyLock)
             {
                 if (!target.IsLocked)
                     return UnlockResults.AlreadyUnlocked;
