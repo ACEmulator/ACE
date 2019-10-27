@@ -39,5 +39,11 @@ namespace ACE.Server.WorldObjects
         }
 
         public int SocietyId => 0;
+
+        public bool PortalIgnoresPkAttackTimer
+        {
+            get => GetProperty(PropertyBool.PortalIgnoresPkAttackTimer) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.PortalIgnoresPkAttackTimer); else SetProperty(PropertyBool.PortalIgnoresPkAttackTimer, value); }
+        }
     }
 }
