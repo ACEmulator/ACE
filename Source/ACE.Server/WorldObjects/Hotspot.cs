@@ -32,17 +32,23 @@ namespace ACE.Server.WorldObjects
                 CycleTime = 1;
         }
 
-        private HashSet<ObjectGuid> Players = new HashSet<ObjectGuid>();
+        private HashSet<ObjectGuid> Creatures = new HashSet<ObjectGuid>();
 
         private ActionChain ActionLoop = null;
 
         public override void OnCollideObject(WorldObject wo)
         {
-            if (!(wo is Player player))
+            if (!(wo is Creature creature))
                 return;
 
-            if (!Players.Contains(player.Guid))
-                Players.Add(player.Guid);
+            if (!AffectsAis && !(wo is Player))
+                return;
+
+            if (!Creatures.Contains(creature.Guid))
+            {
+                //Console.WriteLine($"{Name} ({Guid}).OnCollideObject({creature.Name})");
+                Creatures.Add(creature.Guid);
+            }
 
             if (ActionLoop == null)
             {
@@ -50,6 +56,7 @@ namespace ACE.Server.WorldObjects
                 NextActionLoop.EnqueueChain();
             }
         }
+
         public override void OnCollideObjectEnd(WorldObject wo)
         {
             /*if (!(wo is Player player))
@@ -70,7 +77,7 @@ namespace ACE.Server.WorldObjects
                 ActionLoop.AddDelaySeconds(CycleTimeNext);
                 ActionLoop.AddAction(this, () =>
                 {
-                    if (Players.Any())
+                    if (Creatures.Any())
                     {
                         Activate();
                         NextActionLoop.EnqueueChain();
@@ -134,59 +141,73 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IsHot); else SetProperty(PropertyBool.IsHot, value); }
         }
 
+        public bool AffectsAis
+        {
+            get => GetProperty(PropertyBool.AffectsAis) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AffectsAis); else SetProperty(PropertyBool.AffectsAis, value); }
+        }
+
         private void Activate()
         {
-            foreach (var playerGuid in Players.ToList())
+            foreach (var creatureGuid in Creatures.ToList())
             {
-                var player = PlayerManager.GetOnlinePlayer(playerGuid);
+                var creature = CurrentLandblock.GetObject(creatureGuid) as Creature;
 
                 // verify current state of collision here
-                if (player == null || !player.PhysicsObj.is_touching(PhysicsObj))
+                if (creature == null || !creature.PhysicsObj.is_touching(PhysicsObj))
                 {
-                    Players.Remove(playerGuid);
+                    //Console.WriteLine($"{Name} ({Guid}).OnCollideObjectEnd({creature?.Name})");
+                    Creatures.Remove(creatureGuid);
                     continue;
                 }
-                Activate(player);
+                Activate(creature);
             }
         }
 
-        private void Activate(Player player)
+        private void Activate(Creature creature)
         {
             if (!IsHot) return;
 
             var amount = DamageNext;
             var iAmount = (int)Math.Round(amount);
 
+            var player = creature as Player;
+
             switch (DamageType)
             {
                 default:
-                    if (player.Invincible) return;
-                    amount *= (float)player.GetLifeResistance(DamageType);
-                    iAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
-                    if (player.IsDead && Players.Contains(player.Guid))
-                        Players.Remove(player.Guid);
+                    if (creature.Invincible) return;
+                    amount *= (float)creature.GetLifeResistance(DamageType);
+
+                    if (player != null)
+                        iAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
+                    else
+                        iAmount = (int)creature.TakeDamage(this, DamageType, amount);
+
+                    if (creature.IsDead && Creatures.Contains(creature.Guid))
+                        Creatures.Remove(creature.Guid);
                     break;
 
                 case DamageType.Mana:
-                    iAmount = player.UpdateVitalDelta(player.Mana, -iAmount);
+                    iAmount = creature.UpdateVitalDelta(creature.Mana, -iAmount);
                     break;
                 case DamageType.Stamina:
-                    iAmount = player.UpdateVitalDelta(player.Stamina, -iAmount);
+                    iAmount = creature.UpdateVitalDelta(creature.Stamina, -iAmount);
                     break;
                 case DamageType.Health:
-                    iAmount = player.UpdateVitalDelta(player.Health, -iAmount);
+                    iAmount = creature.UpdateVitalDelta(creature.Health, -iAmount);
                     break;
             }
 
             if (!Visibility)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.TriggerActivated, 1.0f));
 
-            if (!string.IsNullOrWhiteSpace(ActivationTalk) && iAmount != 0)
+            if (player != null && !string.IsNullOrWhiteSpace(ActivationTalk) && iAmount != 0)
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk.Replace("%i", Math.Abs(iAmount).ToString()), ChatMessageType.Broadcast));
 
             // perform activation emote
             if (ActivationResponse.HasFlag(ActivationResponse.Emote))
-                OnEmote(player);
+                OnEmote(creature);
         }
     }
 }

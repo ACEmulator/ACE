@@ -221,7 +221,9 @@ namespace ACE.Server.WorldObjects
 
             var motion = new Motion(this, maneuver.Motion, animSpeed);
             motion.MotionState.TurnSpeed = 2.25f;
-            motion.MotionFlags |= MotionFlags.StickToObject;
+            if (!AiImmobile)
+                motion.MotionFlags |= MotionFlags.StickToObject;
+
             motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 

@@ -130,14 +130,14 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardLuminance:
 
                     if (player != null)
-                        player.EarnLuminance((long)emote.Amount, XpType.Quest, ShareType.None);
+                        player.EarnLuminance(emote.HeroXP64 ?? 0, XpType.Quest, ShareType.None);
 
                     break;
 
                 case EmoteType.AwardNoShareXP:
 
                     if (player != null)
-                        player.EarnXP((long)emote.Amount64, XpType.Quest, ShareType.None);
+                        player.EarnXP(emote.Amount64 ?? 0, XpType.Quest, ShareType.None);
 
                     break;
 
@@ -156,14 +156,14 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardTrainingCredits:
 
                     if (player != null)
-                        player.AddSkillCredits((int)emote.Amount, false);
+                        player.AddSkillCredits(emote.Amount ?? 0, false);
                     break;
 
                 case EmoteType.AwardXP:
 
                     if (player != null)
                     {
-                        var amt = (long)emote.Amount64;
+                        var amt = emote.Amount64 ?? 0;
                         if (amt > 0)
                         {
                             player.EarnXP(amt, XpType.Quest, ShareType.All);
@@ -335,8 +335,10 @@ namespace ACE.Server.WorldObjects.Managers
 
                     bool success = false;
 
+                    var stackSize = emote.StackSize ?? 1;
+
                     if (player != null && emote.WeenieClassId != null)
-                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, emote.StackSize ?? 1);
+                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, stackSize > 0 ? stackSize : 1);
 
                     break;
 

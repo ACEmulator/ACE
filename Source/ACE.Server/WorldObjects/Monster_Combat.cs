@@ -315,7 +315,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="source">The attacker / source of damage</param>
         /// <param name="amount">The amount of damage rounded</param>
-        public virtual void TakeDamage(WorldObject source, DamageType damageType, float amount, bool crit = false)
+        public virtual uint TakeDamage(WorldObject source, DamageType damageType, float amount, bool crit = false)
         {
             var tryDamage = (uint)Math.Round(amount);
             var damage = (uint)-UpdateVitalDelta(Health, (int)-tryDamage);
@@ -332,6 +332,7 @@ namespace ACE.Server.WorldObjects
 
                 Die();
             }
+            return damage;
         }
 
         public void EmitSplatter(Creature target, float damage)

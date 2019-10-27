@@ -3,7 +3,7 @@ using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Combat
 {
-    public class AtkCollisionProfile: ObjCollisionProfile
+    public class AtkCollisionProfile : ObjCollisionProfile
     {
         public int Part;
         public Quadrant Location;

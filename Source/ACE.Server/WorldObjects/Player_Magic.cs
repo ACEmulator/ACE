@@ -78,6 +78,9 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell}");
 
+            if (CombatMode != CombatMode.Magic)
+                return;
+
             if (PKLogout)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
@@ -185,6 +188,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionMagicCastUnTargetedSpell(uint spellId)
         {
+            //Console.WriteLine($"{Name}.HandleActionCastUnTargetedSpell({spellId}");
+
+            if (CombatMode != CombatMode.Magic)
+                return;
+
             if (PKLogout)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));

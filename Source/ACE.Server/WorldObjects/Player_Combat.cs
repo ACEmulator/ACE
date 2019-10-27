@@ -338,48 +338,6 @@ namespace ACE.Server.WorldObjects
             return GetCombatType() == CombatType.Missile ? AccuracyLevel : PowerLevel;
         }
 
-        public double GetLifeResistance(DamageType damageType)
-        {
-            double resistance = 1.0;
-
-            switch (damageType)
-            {
-                case DamageType.Slash:
-                    resistance = ResistSlashMod;
-                    break;
-
-                case DamageType.Pierce:
-                    resistance = ResistPierceMod;
-                    break;
-
-                case DamageType.Bludgeon:
-                    resistance = ResistBludgeonMod;
-                    break;
-
-                case DamageType.Fire:
-                    resistance = ResistFireMod;
-                    break;
-
-                case DamageType.Cold:
-                    resistance = ResistColdMod;
-                    break;
-
-                case DamageType.Acid:
-                    resistance = ResistAcidMod;
-                    break;
-
-                case DamageType.Electric:
-                    resistance = ResistElectricMod;
-                    break;
-
-                case DamageType.Nether:
-                    resistance = ResistNetherMod;
-                    break;
-            }
-
-            return resistance;
-        }
-
         public Sound GetHitSound(WorldObject source, BodyPart bodyPart)
         {
             /*var creature = source as Creature;
@@ -670,6 +628,9 @@ namespace ACE.Server.WorldObjects
         {
             var currentCombatStance = GetCombatStance();
 
+            var missileWeapon = GetEquippedMissileWeapon();
+            var caster = GetEquippedWand();
+
             switch (newCombatMode)
             {
                 case CombatMode.NonCombat:
@@ -689,11 +650,18 @@ namespace ACE.Server.WorldObjects
                     break;
                 }
                 case CombatMode.Melee:
+
                     // todo expand checks
+                    if (missileWeapon != null || caster != null)
+                        return;
+
                     break;
 
                 case CombatMode.Missile:
                 {
+                    if (missileWeapon == null)
+                        return;
+
                     switch (currentCombatStance)
                     {
                         case MotionStance.BowCombat:
@@ -725,11 +693,14 @@ namespace ACE.Server.WorldObjects
                 }
 
                 case CombatMode.Magic:
+
                     // todo expand checks
+                    if (caster == null)
+                        return;
+
                     break;
 
             }
-
             SetCombatMode(newCombatMode);
 
             if (RecordCast.Enabled)
