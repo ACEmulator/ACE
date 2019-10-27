@@ -38,6 +38,9 @@ namespace ACE.Server.WorldObjects
         /// <param name="accuracyLevel">The 0-1 accuracy bar level</param>
         public void HandleActionTargetedMissileAttack(uint targetGuid, uint attackHeight, float accuracyLevel)
         {
+            if (CombatMode != CombatMode.Missile)
+                return;
+
             if (PKLogout)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
