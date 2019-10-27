@@ -289,6 +289,8 @@ namespace ACE.Server.WorldObjects
 
             if (target is Door door)
                 door.OnCollideObject(this);
+            else if (target is Hotspot hotspot)
+                hotspot.OnCollideObject(this);
         }
     }
 }

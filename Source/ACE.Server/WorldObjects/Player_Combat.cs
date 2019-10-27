@@ -338,48 +338,6 @@ namespace ACE.Server.WorldObjects
             return GetCombatType() == CombatType.Missile ? AccuracyLevel : PowerLevel;
         }
 
-        public double GetLifeResistance(DamageType damageType)
-        {
-            double resistance = 1.0;
-
-            switch (damageType)
-            {
-                case DamageType.Slash:
-                    resistance = ResistSlashMod;
-                    break;
-
-                case DamageType.Pierce:
-                    resistance = ResistPierceMod;
-                    break;
-
-                case DamageType.Bludgeon:
-                    resistance = ResistBludgeonMod;
-                    break;
-
-                case DamageType.Fire:
-                    resistance = ResistFireMod;
-                    break;
-
-                case DamageType.Cold:
-                    resistance = ResistColdMod;
-                    break;
-
-                case DamageType.Acid:
-                    resistance = ResistAcidMod;
-                    break;
-
-                case DamageType.Electric:
-                    resistance = ResistElectricMod;
-                    break;
-
-                case DamageType.Nether:
-                    resistance = ResistNetherMod;
-                    break;
-            }
-
-            return resistance;
-        }
-
         public Sound GetHitSound(WorldObject source, BodyPart bodyPart)
         {
             /*var creature = source as Creature;
