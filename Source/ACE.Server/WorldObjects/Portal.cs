@@ -87,7 +87,7 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(false);
             }
 
-            if (player.PKTimerActive)
+            if (player.PKTimerActive && !PortalIgnoresPkAttackTimer)
             {
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
             }
