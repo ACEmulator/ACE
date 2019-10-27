@@ -283,9 +283,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Used for unlocking a chest via a key
         /// </summary>
-        public UnlockResults Unlock(uint unlockerGuid, string keyCode)
+        public UnlockResults Unlock(uint unlockerGuid, Key key, string keyCode = null)
         {
-            var result = LockHelper.Unlock(this, keyCode);
+            var result = LockHelper.Unlock(this, key, keyCode);
 
             if (result == UnlockResults.UnlockSuccess)
                 LastUnlocker = unlockerGuid;
