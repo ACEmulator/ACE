@@ -2294,14 +2294,14 @@ namespace ACE.Server.WorldObjects
                 var itemName = itemToGive.GetNameWithMaterial(stackSize);
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
-                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
                 // send DO to source player if not splitting a stack
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 
                 target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemName}.", ChatMessageType.Broadcast));
-                target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+
+                target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
             });
 
             actionChain.EnqueueChain();
@@ -2347,7 +2347,7 @@ namespace ACE.Server.WorldObjects
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.NameWithMaterial}.", ChatMessageType.Broadcast));
-                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                        target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
                         target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
                     }
@@ -2363,7 +2363,7 @@ namespace ACE.Server.WorldObjects
                             var itemName = item.GetNameWithMaterial(stackSize);
 
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
-                            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                            target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
                             target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
 
@@ -2435,16 +2435,16 @@ namespace ACE.Server.WorldObjects
                                 Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, $"You're in luck! This {item.Name} was just left here the other day.", this, ChatMessageType.Tell));
                                 Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
                                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {iouToTurnIn.Name}.", ChatMessageType.Broadcast));
-                                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                                target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
+
                                 RemoveItemForGive(iouToTurnIn, null, false, null, 1, out _, true);
                                 success = TryCreateInInventoryWithNetworking(item);
 
                                 if (success)
                                 {
                                     Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Here you go.", this, ChatMessageType.Tell));
-                                    var msg = new GameMessageSystemChat($"{target.Name} gives you {item.Name}.", ChatMessageType.Broadcast);
-                                    var sound = new GameMessageSound(Guid, Sound.ReceiveItem, 1);
-                                    Session.Network.EnqueueSend(msg, sound);
+                                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} gives you {item.Name}.", ChatMessageType.Broadcast));
+                                    target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
                                     if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                         RushNextPlayerSave(5);
@@ -2705,22 +2705,21 @@ namespace ACE.Server.WorldObjects
 
         public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
         {
-            if (TryCreateInInventoryWithNetworking(itemBeingGiven))
+            if (!TryCreateInInventoryWithNetworking(itemBeingGiven))
+                return false;
+
+            if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
             {
                 var msg = new GameMessageSystemChat($"{giver.Name} gives you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{(itemBeingGiven.StackSize > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.Name)}.", ChatMessageType.Broadcast);
-                var sound = new GameMessageSound(Guid, Sound.ReceiveItem, 1);
-                if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
-                    Session.Network.EnqueueSend(msg, sound);
-                else
-                    Session.Network.EnqueueSend(sound);
+                Session.Network.EnqueueSend(msg);
 
-                if (PropertyManager.GetBool("player_receive_immediate_save").Item)
-                    RushNextPlayerSave(5);
-
-                return true;
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.ReceiveItem));
             }
-            else
-                return false;
+
+            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                RushNextPlayerSave(5);
+
+            return true;
         }
     }
 }
