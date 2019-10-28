@@ -182,9 +182,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Used for unlocking a door via a key
         /// </summary>
-        public UnlockResults Unlock(uint unlockerGuid, string keyCode)
+        public UnlockResults Unlock(uint unlockerGuid, Key key, string keyCode = null)
         {
-            return LockHelper.Unlock(this, keyCode);
+            return LockHelper.Unlock(this, key, keyCode);
         }
 
         public override void SetLinkProperties(WorldObject wo)

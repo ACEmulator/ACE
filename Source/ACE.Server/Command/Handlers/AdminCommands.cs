@@ -1560,7 +1560,7 @@ namespace ACE.Server.Command.Handlers
 
                     if (!string.IsNullOrWhiteSpace(lockCode))
                     {
-                        res = @lock.Unlock(session.Player.Guid.Full, lockCode);
+                        res = @lock.Unlock(session.Player.Guid.Full, null, lockCode);
                         ChatPacket.SendServerMessage(session, $"Crack {wo.WeenieType} via {lockCode} result: {res}.{opening}", ChatMessageType.Broadcast);
                     }
                     else if (resistLockpick.HasValue && resistLockpick > 0)
