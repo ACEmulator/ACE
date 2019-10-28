@@ -36,6 +36,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.KeyCode); else SetProperty(PropertyString.KeyCode, value); }
         }
 
+        public bool OpensAnyLock
+        {
+            get => GetProperty(PropertyBool.OpensAnyLock) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.OpensAnyLock); else SetProperty(PropertyBool.OpensAnyLock, value); }
+        }
+
         public override void HandleActionUseOnTarget(Player player, WorldObject target)
         {
             UnlockerHelper.UseUnlocker(player, this, target);
