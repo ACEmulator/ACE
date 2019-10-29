@@ -929,7 +929,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = DateTime.Now;
+                    ItemManaConsumptionTimestamp = DateTime.UtcNow;
                 }
             }
         }

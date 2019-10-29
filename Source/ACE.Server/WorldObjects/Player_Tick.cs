@@ -145,12 +145,12 @@ namespace ACE.Server.WorldObjects
                 if (LumAugItemManaUsage != 0)
                     rate *= GetNegativeRatingMod(LumAugItemManaUsage);
 
-                if (!item.ItemManaConsumptionTimestamp.HasValue) item.ItemManaConsumptionTimestamp = DateTime.Now;
+                if (!item.ItemManaConsumptionTimestamp.HasValue) item.ItemManaConsumptionTimestamp = DateTime.UtcNow;
                 DateTime mostRecentBurn = item.ItemManaConsumptionTimestamp.Value;
 
                 var timePerBurn = -1 / rate;
 
-                var secondsSinceLastBurn = (DateTime.Now - mostRecentBurn).TotalSeconds;
+                var secondsSinceLastBurn = (DateTime.UtcNow - mostRecentBurn).TotalSeconds;
 
                 var delta = secondsSinceLastBurn / timePerBurn;
 
@@ -196,9 +196,9 @@ namespace ACE.Server.WorldObjects
                 {
                     // get time until empty
                     var secondsUntilEmpty = ((item.ItemCurMana - deltaExtra) * timePerBurn);
-                    if (secondsUntilEmpty <= 120 && (!item.ItemManaDepletionMessageTimestamp.HasValue || (DateTime.Now - item.ItemManaDepletionMessageTimestamp.Value).TotalSeconds > 120))
+                    if (secondsUntilEmpty <= 120 && (!item.ItemManaDepletionMessageTimestamp.HasValue || (DateTime.UtcNow - item.ItemManaDepletionMessageTimestamp.Value).TotalSeconds > 120))
                     {
-                        item.ItemManaDepletionMessageTimestamp = DateTime.Now;
+                        item.ItemManaDepletionMessageTimestamp = DateTime.UtcNow;
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is low on Mana.", ChatMessageType.Magic));
                     }
                 }
