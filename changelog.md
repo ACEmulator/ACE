@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-30
+[Ripley]
+* Add support to limit the number of accepted connections per IP Address.
+
 ### 2019-10-23
 [Ripley]
 * Adjust the way SpendCurrency spends currency.
