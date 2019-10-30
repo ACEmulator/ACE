@@ -224,7 +224,6 @@ namespace ACE.Server.Network.Managers
             sessionLock.EnterReadLock();
             try
             {
-                //var ipAddresses = new HashSet<IPAddress>();
                 int result = 0;
 
                 foreach (var s in sessionMap)
