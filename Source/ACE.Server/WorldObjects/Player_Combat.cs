@@ -41,6 +41,11 @@ namespace ACE.Server.WorldObjects
 
         public ObjectGuid DebugDamageTarget;
 
+        public int AttackSequence;
+        public bool Attacking;
+
+        public DateTime NextRefillTime;
+
         public double LastPkAttackTimestamp
         {
             get => GetProperty(PropertyFloat.LastPkAttackTimestamp) ?? 0;
