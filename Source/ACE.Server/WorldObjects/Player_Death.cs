@@ -455,7 +455,7 @@ namespace ACE.Server.WorldObjects
             if (numCoinsDropped > 0)
             {
                 // add pyreals to dropped items
-                var pyreals = SpendCurrency((uint)numCoinsDropped, WeenieType.Coin);
+                var pyreals = SpendCurrency(Vendor.CoinStackWCID, (uint)numCoinsDropped);
                 dropItems.AddRange(pyreals);
                 //Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
             }
@@ -515,7 +515,10 @@ namespace ACE.Server.WorldObjects
             {
                 // coins already removed from SpendCurrency
                 if (destroyCoins && dropItem.WeenieType == WeenieType.Coin)
+                {
+                    dropItem.Destroy();
                     continue;
+                }
 
                 if (!corpse.TryAddToInventory(dropItem))
                 {

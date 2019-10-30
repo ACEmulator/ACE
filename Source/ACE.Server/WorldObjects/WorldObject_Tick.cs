@@ -313,21 +313,17 @@ namespace ACE.Server.WorldObjects
 
             if (this is Creature creature)
             {
-                // monsters have separate physics updates
-                if (creature.IsMonster)
-                    return false;
-
-                isDying = creature.IsDead;
-
-                //var pet = this as CombatPet;
-
                 if (LastPhysicsUpdate + UpdateRate_Creature > PhysicsTimer.CurrentTime)
                     return false;
 
                 LastPhysicsUpdate = PhysicsTimer.CurrentTime;
 
+                // monsters have separate physics updates,
+                // except during the first frame of spawning, idle emotes, and dying
+                isDying = creature.IsDead;
+
                 // determine if updates should be run for object
-                var runUpdate = (PhysicsObj.IsAnimating || isDying || PhysicsObj.InitialUpdates <= 1);
+                var runUpdate = PhysicsObj.IsAnimating && (!creature.IsMonster || !creature.IsAwake) || isDying || PhysicsObj.InitialUpdates <= 1;
 
                 if (!runUpdate)
                     return false;
@@ -351,11 +347,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    //var contactPlane = (PhysicsObj.State & PhysicsState.Gravity) != 0 && MotionTableId != 0 && (PhysicsObj.TransientState & TransientStateFlags.Contact) == 0;
-
                     // determine if updates should be run for object
-                    //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
-                    //var runUpdate = isMissile;
                     var runUpdate = PhysicsObj.IsAnimating || PhysicsObj.InitialUpdates <= 1;
 
                     if (!runUpdate)
@@ -368,16 +360,14 @@ namespace ACE.Server.WorldObjects
                 stopwatch.Restart();
 
                 // get position before
-                var pos = PhysicsObj.Position.Frame.Origin;
-                var prevPos = pos;
+                var prevPos = PhysicsObj.Position.Frame.Origin;
                 var cellBefore = PhysicsObj.CurCell != null ? PhysicsObj.CurCell.ID : 0;
 
                 //Console.WriteLine($"{Name} - ticking physics");
                 var updated = PhysicsObj.update_object();
 
                 // get position after
-                pos = PhysicsObj.Position.Frame.Origin;
-                var newPos = pos;
+                var newPos = PhysicsObj.Position.Frame.Origin;
 
                 // handle landblock / cell change
                 var isMoved = (prevPos != newPos);
@@ -400,6 +390,7 @@ namespace ACE.Server.WorldObjects
 
                     Location.Pos = newPos;
                     Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+
                     //if (landblockUpdate)
                     //WorldManager.UpdateLandblock.Add(this);
                 }

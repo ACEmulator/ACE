@@ -716,7 +716,11 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
-            wielder.TryCastSpell(spell, target, this);
+
+            if (spell.NonComponentTargetType == ItemType.None)
+                wielder.TryCastSpell(spell, null, this);
+            else
+                wielder.TryCastSpell(spell, target, this);
         }
 
         private bool? isMasterable;

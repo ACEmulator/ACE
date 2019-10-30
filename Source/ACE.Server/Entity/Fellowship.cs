@@ -407,6 +407,9 @@ namespace ACE.Server.Entity
                 // pre-filter: evenly divide between luminance-eligible fellows
                 var shareableMembers = GetFellowshipMembers().Values.Where(f => f.MaximumLuminance != null).ToList();
 
+                if (shareableMembers.Count == 0)
+                    return;
+
                 var perAmount = (long)Math.Round((double)(amount / (ulong)shareableMembers.Count));
 
                 // further filter to fellows in radar range

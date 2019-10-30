@@ -233,5 +233,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.LuminanceAward);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.LuminanceAward); else SetProperty(PropertyInt.LuminanceAward, value.Value); }
         }
+
+        public bool AiImmobile
+        {
+            get => GetProperty(PropertyBool.AiImmobile) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AiImmobile); else SetProperty(PropertyBool.AiImmobile, value); }
+        }
     }
 }

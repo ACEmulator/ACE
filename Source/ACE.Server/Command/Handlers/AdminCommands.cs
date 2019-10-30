@@ -1560,7 +1560,7 @@ namespace ACE.Server.Command.Handlers
 
                     if (!string.IsNullOrWhiteSpace(lockCode))
                     {
-                        res = @lock.Unlock(session.Player.Guid.Full, lockCode);
+                        res = @lock.Unlock(session.Player.Guid.Full, null, lockCode);
                         ChatPacket.SendServerMessage(session, $"Crack {wo.WeenieType} via {lockCode} result: {res}.{opening}", ChatMessageType.Broadcast);
                     }
                     else if (resistLockpick.HasValue && resistLockpick > 0)
@@ -1796,10 +1796,22 @@ namespace ACE.Server.Command.Handlers
                     returnState += $"{sk.InitLevel}=";
                 }
 
+                // Check string is correctly formatted before altering stats
+                // correctly formatted return string should have 240 entries
+                // if the construction of the string changes - this will need to be updated to match
+                if (returnState.Split("=").Length != 240)
+                {
+                    ChatPacket.SendServerMessage(session, "Godmode is not available at this time.", ChatMessageType.Broadcast);
+                    Console.WriteLine($"Player {session.Player.Name} tried to enter god mode but there was an error with the godString length. (length = {returnState.Split("=").Length}) Godmode not available.");
+                    return;
+                }
+
                 // save return state to db in property string
                 session.Player.SetProperty(PropertyString.GodState, returnState);
                 session.Player.SaveBiotaToDatabase(); 
             }
+
+            
 
             // Begin Godly Stats Increase
 

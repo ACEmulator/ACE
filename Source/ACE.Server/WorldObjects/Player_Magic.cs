@@ -72,6 +72,9 @@ namespace ACE.Server.WorldObjects
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
         public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false)
         {
+            if (CombatMode != CombatMode.Magic)
+                return;
+
             if (PKLogout)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
@@ -153,6 +156,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionMagicCastUnTargetedSpell(uint spellId)
         {
+            if (CombatMode != CombatMode.Magic)
+                return;
+
             if (PKLogout)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
