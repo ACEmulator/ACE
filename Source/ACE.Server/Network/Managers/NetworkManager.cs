@@ -109,7 +109,7 @@ namespace ACE.Server.Network.Managers
                     {
                         log.DebugFormat("Login Request from {0}", endPoint);
 
-                        if (ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress == -1 || GetSessionEndpointTotalByAddressCount(endPoint.Address) <= ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress)
+                        if (ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress == -1 || GetSessionEndpointTotalByAddressCount(endPoint.Address) < ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress)
                         {
                             var session = FindOrCreateSession(connectionListener, endPoint);
                             if (session != null)
