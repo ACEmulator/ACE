@@ -942,8 +942,10 @@ namespace ACE.Server.Factories
             return -manaRate;
         }
 
-        private static WorldObject AssignMagic(WorldObject wo, int tier)
+        private static WorldObject AssignMagic(WorldObject wo, int tier, bool covenantArmor = false)
         {
+            const int armorSpellImpenIndex = 47; // 47th row in the LootTables.ArmorSpells array, starting from zero
+
             int[][] spells;
             int[][] cantrips;
 
@@ -1012,6 +1014,26 @@ namespace ACE.Server.Factories
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
                     int spellID = spells[shuffledValues[a]][col];
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                }
+            }
+
+            // From a discussion on LSD, determined in that if covenant armor includes spells, the armor piece will have at least Impen
+            if (covenantArmor == true)
+            {
+                // Ensure that one of the Impen spells was not already added
+                bool impenFound = false;
+                for (int a = 0; a < 8; a++)
+                {
+                    impenFound = wo.Biota.SpellIsKnown(LootTables.ArmorSpells[armorSpellImpenIndex][a], wo.BiotaDatabaseLock);
+                    if (impenFound == true)
+                        break;
+                }
+
+                if (impenFound == false)
+                {
+                    int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
+                    int spellID = LootTables.ArmorSpells[armorSpellImpenIndex][col];
                     wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
                 }
             }
