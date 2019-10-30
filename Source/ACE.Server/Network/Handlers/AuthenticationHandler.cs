@@ -144,7 +144,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (NetworkManager.Find(account.AccountName) != null)
                 {
-                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.Logon));
+                    session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.Logon));
                     return;
                 }
             }
