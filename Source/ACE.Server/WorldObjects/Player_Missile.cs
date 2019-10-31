@@ -65,28 +65,34 @@ namespace ACE.Server.WorldObjects
                 log.Warn("Unknown target guid " + targetGuid.ToString("X8"));
                 return;
             }
-            if (MissileTarget == null)
-            {
-                AttackTarget = target;
-                MissileTarget = target;
-            }
-            else
+
+            if (Attacking || MissileTarget != null)
                 return;
+
+            AttackTarget = target;
+            MissileTarget = target;
+
+            var attackSequence = ++AttackSequence;
 
             // turn if required
             var rotateTime = Rotate(target);
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(rotateTime);
+
+            var delayTime = rotateTime;
+            if (NextRefillTime > DateTime.UtcNow.AddSeconds(delayTime))
+                delayTime = (float)(NextRefillTime - DateTime.UtcNow).TotalSeconds;
+
+            actionChain.AddDelaySeconds(delayTime);
 
             // do missile attack
-            actionChain.AddAction(this, () => LaunchMissile(target));
+            actionChain.AddAction(this, () => LaunchMissile(target, attackSequence));
             actionChain.EnqueueChain();
         }
 
         /// <summary>
         /// Launches a missile attack from player to target
         /// </summary>
-        public void LaunchMissile(WorldObject target)
+        public void LaunchMissile(WorldObject target, int attackSequence)
         {
             var weapon = GetEquippedMissileWeapon();
             if (weapon == null || CombatMode == CombatMode.NonCombat) return;
@@ -95,13 +101,16 @@ namespace ACE.Server.WorldObjects
             if (ammo == null) return;
 
             var creature = target as Creature;
-            if (!IsAlive || MissileTarget == null || creature == null || !creature.IsAlive)
+            if (!IsAlive || MissileTarget == null || creature == null || !creature.IsAlive || AttackSequence != attackSequence)
             {
                 MissileTarget = null;
                 return;
             }
 
             // launch animation
+            // point of no return beyond this point -- cannot be cancelled
+            Attacking = true;
+
             var actionChain = new ActionChain();
             var launchTime = EnqueueMotion(actionChain, MotionCommand.AimLevel);
 
@@ -132,6 +141,7 @@ namespace ACE.Server.WorldObjects
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
                     SetCombatMode(CombatMode.NonCombat);
+                    Attacking = false;
                 });
 
                 actionChain.EnqueueChain();
@@ -155,17 +165,22 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                Attacking = false;
 
                 if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && !IsBusy)
                 {
                     Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
 
+                    // can be cancelled, but cannot be pre-empted with another attack
                     var nextAttack = new ActionChain();
-                    nextAttack.AddDelaySeconds(AccuracyLevel + 0.1f);
+                    var nextRefillTime = AccuracyLevel + 0.1f;
+
+                    NextRefillTime = DateTime.UtcNow.AddSeconds(nextRefillTime);
+                    nextAttack.AddDelaySeconds(nextRefillTime);
 
                     // perform next attack
-                    nextAttack.AddAction(this, () => { LaunchMissile(target); });
+                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence); });
                     nextAttack.EnqueueChain();
                 }
                 else

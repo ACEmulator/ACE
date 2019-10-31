@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
             PowerLevel = powerLevel;
 
             // already in melee loop?
-            if (MeleeTarget != null)
+            if (Attacking || MeleeTarget != null)
                 return;
 
             // get world object for target creature
@@ -70,14 +70,14 @@ namespace ACE.Server.WorldObjects
 
             if (target == null)
             {
-                log.Warn($"{Name}.HandleActionTargetdMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
+                log.Warn($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
                 return;
             }
 
             var creatureTarget = target as Creature;
             if (creatureTarget == null)
             {
-                log.Warn($"{Name}.HandleActionTargetdMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - target guid not creature");
+                log.Warn($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - target guid not creature");
                 return;
             }
 
@@ -94,13 +94,20 @@ namespace ACE.Server.WorldObjects
             MeleeTarget = target;
             AttackTarget = MeleeTarget;
 
+            var attackSequence = ++AttackSequence;
+
             if (IsStickyDistance(target) && IsDirectVisible(target))
             {
                 // sticky melee
                 var rotateTime = Rotate(target);
+
+                var delayTime = rotateTime;
+                if (NextRefillTime > DateTime.UtcNow.AddSeconds(delayTime))
+                    delayTime = (float)(NextRefillTime - DateTime.UtcNow).TotalSeconds;
+
                 var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(rotateTime);
-                actionChain.AddAction(this, () => Attack(target));
+                actionChain.AddDelaySeconds(delayTime);
+                actionChain.AddAction(this, () => Attack(target, attackSequence));
                 actionChain.EnqueueChain();
             }
             else
@@ -117,7 +124,7 @@ namespace ACE.Server.WorldObjects
                     CreateMoveToChain(target, (success) =>
                     {
                         if (success)
-                            Attack(target);
+                            Attack(target, attackSequence);
                     });
                 }
             }
@@ -139,9 +146,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Performs a player melee attack against a target
         /// </summary>
-        public void Attack(WorldObject target)
+        public void Attack(WorldObject target, int attackSequence)
         {
-            if (CombatMode != CombatMode.Melee || MeleeTarget == null || !IsAlive)
+            if (CombatMode != CombatMode.Melee || MeleeTarget == null || !IsAlive || AttackSequence != attackSequence)
                 return;
 
             var creature = target as Creature;
@@ -151,6 +158,9 @@ namespace ACE.Server.WorldObjects
             var animLength = DoSwingMotion(target, out var attackFrames);
             if (animLength == 0)
                 return;
+
+            // point of no return beyond this point -- cannot be cancelled
+            Attacking = true;
 
             var weapon = GetEquippedMeleeWeapon();
             var attackType = GetWeaponAttackType(weapon);
@@ -186,7 +196,11 @@ namespace ACE.Server.WorldObjects
 
                 actionChain.AddAction(this, () =>
                 {
-                    if (IsDead) return;
+                    if (IsDead)
+                    {
+                        Attacking = false;
+                        return;
+                    }
 
                     var damageEvent = DamageTarget(creature, weapon);
 
@@ -217,6 +231,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                Attacking = false;
 
                 if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
                 {
@@ -226,9 +241,12 @@ namespace ACE.Server.WorldObjects
                     // powerbar refill timing
                     var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
 
+                    var nextRefillTime = PowerLevel * refillMod;
+                    NextRefillTime = DateTime.UtcNow.AddSeconds(nextRefillTime);
+
                     var nextAttack = new ActionChain();
-                    nextAttack.AddDelaySeconds(PowerLevel * refillMod);
-                    nextAttack.AddAction(this, () => Attack(target));
+                    nextAttack.AddDelaySeconds(nextRefillTime);
+                    nextAttack.AddAction(this, () => Attack(target, attackSequence));
                     nextAttack.EnqueueChain();
                 }
                 else

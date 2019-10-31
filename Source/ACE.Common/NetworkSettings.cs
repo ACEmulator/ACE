@@ -24,5 +24,14 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(60)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public uint DefaultSessionTimeout { get; set; }
+
+        /// <summary>
+        /// This setting will allow or restrict sessions based on the IPAddress connecting to the server.
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        [System.ComponentModel.DefaultValue(-1)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public int MaximumAllowedSessionsPerIPAddress { get; set; }
     }
 }

@@ -108,22 +108,31 @@ namespace ACE.Server.Network.Managers
                     else
                     {
                         log.DebugFormat("Login Request from {0}", endPoint);
-                        var session = FindOrCreateSession(connectionListener, endPoint);
-                        if (session != null)
-                        {
-                            if (session.State == SessionState.AuthConnectResponse)
-                            {
-                                // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
-                                // ignore the request and remove the broken session and the client will start a new session.
-                                RemoveSession(session);
-                                log.Warn($"Bad handshake from {endPoint}, aborting session.");
-                            }
 
-                            session.ProcessPacket(packet);
+                        if (ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress == -1 || GetSessionEndpointTotalByAddressCount(endPoint.Address) < ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress)
+                        {
+                            var session = FindOrCreateSession(connectionListener, endPoint);
+                            if (session != null)
+                            {
+                                if (session.State == SessionState.AuthConnectResponse)
+                                {
+                                    // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
+                                    // ignore the request and remove the broken session and the client will start a new session.
+                                    RemoveSession(session);
+                                    log.Warn($"Bad handshake from {endPoint}, aborting session.");
+                                }
+
+                                session.ProcessPacket(packet);
+                            }
+                            else
+                            {
+                                log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
+                                SendLoginRequestReject(connectionListener, endPoint, CharacterError.LogonServerFull);
+                            }
                         }
                         else
                         {
-                            log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
+                            log.InfoFormat("Login Request from {0} rejected. Session would exceed MaximumAllowedSessionsPerIPAddress limit.", endPoint);
                             SendLoginRequestReject(connectionListener, endPoint, CharacterError.LogonServerFull);
                         }
                     }
@@ -203,6 +212,27 @@ namespace ACE.Server.Network.Managers
                 }
 
                 return ipAddresses.Count;
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
+        public static int GetSessionEndpointTotalByAddressCount(IPAddress address)
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                int result = 0;
+
+                foreach (var s in sessionMap)
+                {
+                    if (s != null && s.EndPoint.Address.Equals(address))
+                        result++;
+                }
+
+                return result;
             }
             finally
             {
