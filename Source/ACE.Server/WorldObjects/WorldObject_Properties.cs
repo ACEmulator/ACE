@@ -1694,7 +1694,7 @@ namespace ACE.Server.WorldObjects
         public double? AbsorbMagicDamage
         {
             get => GetProperty(PropertyFloat.AbsorbMagicDamage);
-            set { if (value.HasValue) RemoveProperty(PropertyFloat.AbsorbMagicDamage); else SetProperty(PropertyFloat.AbsorbMagicDamage, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AbsorbMagicDamage); else SetProperty(PropertyFloat.AbsorbMagicDamage, value.Value); }
         }
 
         public int? ArmorType
