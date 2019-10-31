@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-10-31
+[Ripley]
+* Cleanup ActOnUse for Ammo and move to debug only alert.
+
 ### 2019-10-30
 [Ripley]
 * Fix buy issue with AltCurrency Vendors.
