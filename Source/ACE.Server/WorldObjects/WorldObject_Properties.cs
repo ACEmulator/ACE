@@ -1691,6 +1691,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsNether); else SetProperty(PropertyFloat.ArmorModVsNether, value.Value); }
         }
 
+        public double? AbsorbMagicDamage
+        {
+            get => GetProperty(PropertyFloat.AbsorbMagicDamage);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AbsorbMagicDamage); else SetProperty(PropertyFloat.AbsorbMagicDamage, value.Value); }
+        }
+
         public int? ArmorType
         {
             get => GetProperty(PropertyInt.ArmorType);

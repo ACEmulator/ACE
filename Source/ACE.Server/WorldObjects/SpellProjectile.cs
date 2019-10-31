@@ -371,7 +371,7 @@ namespace ACE.Server.WorldObjects
                     criticalHit = true;
             }
 
-            var shieldMod = GetShieldMod(target);
+            var absorbMod = GetAbsorbMod(target);
 
             bool isPVP = sourcePlayer != null && targetPlayer != null;
 
@@ -393,7 +393,7 @@ namespace ACE.Server.WorldObjects
                 if (criticalHit)
                     damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
-                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * shieldMod;
+                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * absorbMod;
                 return finalDamage;
             }
             // war/void magic projectiles
@@ -436,26 +436,50 @@ namespace ACE.Server.WorldObjects
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
                 finalDamage *= target.GetResistanceMod(resistanceType, null, weaponResistanceMod)
-                    * elementalDmgBonus * slayerBonus * shieldMod;
+                    * elementalDmgBonus * slayerBonus * absorbMod;
 
                 return finalDamage;
             }
         }
 
+        public float GetAbsorbMod(Creature target)
+        {
+            switch (target.CombatMode)
+            {
+                case CombatMode.Melee:
+
+                    // does target have shield equipped?
+                    var shield = target.GetEquippedShield();
+                    if (shield != null && shield.AbsorbMagicDamage != null)
+                        return GetShieldMod(target, shield);
+
+                    break;
+
+                case CombatMode.Missile:
+
+                    var weapon = target.GetEquippedMissileWeapon();
+                    if (weapon != null && weapon.AbsorbMagicDamage != null)
+                        return AbsorbMagic(target, weapon);
+
+                    break;
+
+                case CombatMode.Magic:
+
+                    weapon = target.GetEquippedWand();
+                    if (weapon != null && weapon.AbsorbMagicDamage != null)
+                        return AbsorbMagic(target, weapon);
+
+                    break;
+            }
+            return 1.0f;
+        }
+
         /// <summary>
         /// Calculates the amount of damage a shield absorbs from magic projectile
         /// </summary>
-        public float GetShieldMod(Creature target)
+        public float GetShieldMod(Creature target, WorldObject shield)
         {
-            // ensure combat stance
-            if (target.CombatMode == CombatMode.NonCombat)
-                return 1.0f;
-
-            // does the player have a shield equipped?
-            var shield = target.GetEquippedShield();
-            if (shield == null || shield.GetProperty(PropertyFloat.AbsorbMagicDamage) == null) return 1.0f;
-
-            // is spell projectile in front of player,
+            // is spell projectile in front of creature target,
             // within shield effectiveness area?
             var effectiveAngle = 180.0f;
             var angle = target.GetAngle(this);
@@ -489,8 +513,43 @@ namespace ACE.Server.WorldObjects
 
             var reduction = (cap * specMod * baseSkill * 0.003f) - (cap * specMod * 0.3f);
 
-            var shieldMod = 1.0f - reduction;
+            var shieldMod = Math.Min(1.0f, 1.0f - reduction);
             return shieldMod;
+        }
+
+        /// <summary>
+        /// Calculates the damage reduction modifier for bows and casters
+        /// with 'Magic Absorbing' property
+        /// </summary>
+        public float AbsorbMagic(Creature target, WorldObject item)
+        {
+            // https://asheron.fandom.com/wiki/Category:Magic_Absorbing
+
+            // Tomes and Bows
+            // The formula to determine magic absorption for Tomes and the Fetish of the Dark Idols:
+            // - For a 25% maximum item: (magic absorbing %) = 25 - (0.1 * (319 - base magic defense))
+            // - For a 10% maximum item: (magic absorbing %) = 10 - (0.04 * (319 - base magic defense))
+
+            // wiki currently has what is likely a typo for the 10% formula,
+            // where it has a factor of 0.4 instead of 0.04
+            // with 0.4, the 10% items would not start to become effective until base magic defense 294
+            // with 0.04, both formulas start to become effective at base magic defense 69
+
+            // using an equivalent formula that produces the correct results for 10% and 25%,
+            // and also produces the correct results for any %
+
+            if (item.AbsorbMagicDamage == null)
+                return 1.0f;
+
+            var maxPercent = item.AbsorbMagicDamage.Value;
+
+            var baseCap = 319;
+            var magicDefBase = target.GetCreatureSkill(Skill.MagicDefense).Base;
+            var diff = Math.Max(0, baseCap - magicDefBase);
+
+            var percent = maxPercent - maxPercent * diff * 0.004f;
+
+            return Math.Min(1.0f, 1.0f - (float)percent);
         }
 
         /// <summary>
