@@ -136,11 +136,13 @@ namespace ACE.Server.WorldObjects
         {
             // empty base - individual WorldObject types should override
 
+
             var msg = $"{Name}.ActOnUse({activator.Name}) - undefined for wcid {WeenieClassId} type {WeenieType}";
             log.Error(msg);
-
+#if DEBUG
             if (activator is Player _player)
                 _player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+#endif
         }
 
         public virtual void OnAnimate(WorldObject activator)
