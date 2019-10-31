@@ -549,7 +549,7 @@ namespace ACE.Server.WorldObjects
             // - For a 25% maximum item: (magic absorbing %) = 25 - (0.1 * (319 - base magic defense))
             // - For a 10% maximum item: (magic absorbing %) = 10 - (0.04 * (319 - base magic defense))
 
-            // wiki currently has what is likely at typo for the 10% formula
+            // wiki currently has what is likely a typo for the 10% formula,
             // where it has a factor of 0.4 instead of 0.04
             // with 0.4, the 10% items would not start to become effective until base magic defense 294
             // with 0.04, both formulas start to become effective at base magic defense 69
