@@ -1,5 +1,31 @@
 # ACEmulator Change Log
 
+### 2019-10-31
+[Ripley]
+* Cleanup ActOnUse for Ammo and move to debug only alert.
+
+### 2019-10-30
+[Ripley]
+* Fix buy issue with AltCurrency Vendors.
+* Add support to limit the number of accepted connections per IP Address.
+
+### 2019-10-23
+[Ripley]
+* Adjust the way SpendCurrency spends currency.
+
+### 2019-10-20
+[Ripley]
+* Re-order operations in GiveObjectToNPC.
+* Adjust ApproachVendor to track last spent alt-currency better.
+
+[gmriggs]
+* Updated monster spellbook probabilities
+
+### 2019-10-19
+[gmriggs]
+* Fixing some gaps with nested emote chains and EmoteManager.IsBusy
+* Adding support for monster casting untargeted spells (ie. ring spells)
+
 ### 2019-10-18
 [gmriggs]
 * Allow neutral casters and missile launchers to be tailored onto weapons with DamageType

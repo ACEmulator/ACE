@@ -40,16 +40,19 @@ namespace ACE.Server.WorldObjects
 
         private void AddLuminance(long amount, XpType xpType)
         {
-            if (AvailableLuminance == MaximumLuminance)
+            var available = AvailableLuminance ?? 0;
+            var maximum = MaximumLuminance ?? 0;
+
+            if (available == maximum)
                 return;
 
             // this is similar to Player_Xp.UpdateXpAndLevel()
 
-            var remaining = (MaximumLuminance - AvailableLuminance) ?? 0;
+            var remaining = maximum - available;
 
             var addAmount = Math.Min(amount, remaining);
 
-            AvailableLuminance += addAmount;
+            AvailableLuminance = available + addAmount;
 
             UpdateLuminance();
         }
@@ -59,10 +62,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool SpendLuminance(long amount)
         {
-            if (amount > (AvailableLuminance ?? 0))
+            var available = AvailableLuminance ?? 0;
+
+            if (amount > available)
                 return false;
 
-            AvailableLuminance -= amount;
+            AvailableLuminance = available - amount;
 
             UpdateLuminance();
 

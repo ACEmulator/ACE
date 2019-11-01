@@ -1000,7 +1000,7 @@ namespace ACE.Server.Managers
                     // 	Fetish of the Dark Idols
                     case 0x38000046:
                         AddImbuedEffect(player, target, ImbuedEffectType.IgnoreSomeMagicProjectileDamage);
-                        target.SetProperty(PropertyFloat.AbsorbMagicDamage, 1);
+                        target.SetProperty(PropertyFloat.AbsorbMagicDamage, 0.25f);
                         break;
                 }
 

@@ -28,6 +28,8 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly uint CoinStackWCID = DatabaseManager.World.GetCachedWeenie("coinstack").ClassId;
+
         public readonly Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
         // unique items purchased from other players
@@ -112,13 +114,13 @@ namespace ACE.Server.WorldObjects
         /// Sends the latest vendor inventory list to player, rotates vendor towards player, and performs the appropriate emote.
         /// </summary>
         /// <param name="action">The action performed by the player</param>
-        private void ApproachVendor(Player player, VendorType action = VendorType.Undef)
+        private void ApproachVendor(Player player, VendorType action = VendorType.Undef, uint altCurrencySpent = 0)
         {
             var vendorList = AllItemsForSale.Values.ToList();
 
             vendorList = RotUniques(vendorList);
 
-            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorList));
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorList, altCurrencySpent));
 
             var rotateTime = Rotate(player); // vendor rotates to player
 
@@ -441,7 +443,7 @@ namespace ACE.Server.WorldObjects
                 if (wo.ItemType == ItemType.PromissoryNote)
                     sellRate = 1.15;
 
-                goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
+                goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
             }
 
             foreach (WorldObject wo in genlist)
@@ -452,10 +454,10 @@ namespace ACE.Server.WorldObjects
                     if (wo.ItemType == ItemType.PromissoryNote)
                         sellRate = 1.15;
 
-                    goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
+                    goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
                 }
                 else
-                    altcost += (uint)((wo.StackSize ?? 1) * (wo.StackUnitValue ?? 1));
+                    altcost += (uint)(wo.Value ?? 1);
             }
 
             // send transaction to player for further processing and.
@@ -466,7 +468,7 @@ namespace ACE.Server.WorldObjects
         /// Handles the final phase of the transaction
         ///  for player buying items from vendor
         /// </summary>
-        public void BuyItems_FinalTransaction(Player player, List<WorldObject> uqlist, bool valid)
+        public void BuyItems_FinalTransaction(Player player, List<WorldObject> uqlist, bool valid, uint altCurrencySpent)
         {
             if (!valid) // re-add unique temp stock items.
             {
@@ -476,14 +478,14 @@ namespace ACE.Server.WorldObjects
                         UniqueItemsForSale.Add(wo.Guid, wo);
                 }
             }
-            ApproachVendor(player, VendorType.Buy);
+            ApproachVendor(player, VendorType.Buy, altCurrencySpent);
         }
 
         // ==========================
         // Helper Functions - Selling
         // ==========================
 
-        public int CalculatePayoutCoinAmount(IList<WorldObject> items)
+        public int CalculatePayoutCoinAmount(List<WorldObject> items)
         {
             int payout = 0;
 
@@ -495,7 +497,7 @@ namespace ACE.Server.WorldObjects
                     buyRate = 1.0;
 
                 // payout scaled by the vendor's buy rate
-                payout += Math.Max(1, (int)Math.Floor((wo.Value ?? 0) * buyRate + 0.1));
+                payout += Math.Max(1, (int)Math.Floor(((float)buyRate * (wo.Value ?? 0)) + 0.1));
             }
 
             return payout;

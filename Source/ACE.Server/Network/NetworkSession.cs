@@ -322,7 +322,7 @@ namespace ACE.Server.Network
                 if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
                     outOfOrderPackets.TryAdd(packet.Header.Sequence, packet);
 
-                if (desiredSeq + 2 <= packet.Header.Sequence && DateTime.Now - LastRequestForRetransmitTime > new TimeSpan(0, 0, 1))
+                if (desiredSeq + 2 <= packet.Header.Sequence && DateTime.UtcNow - LastRequestForRetransmitTime > new TimeSpan(0, 0, 1))
                     DoRequestForRetransmission(packet.Header.Sequence);
 
                 return;
@@ -372,7 +372,7 @@ namespace ACE.Server.Network
 
             EnqueueSend(reqPacket);
 
-            LastRequestForRetransmitTime = DateTime.Now;
+            LastRequestForRetransmitTime = DateTime.UtcNow;
             packetLog.DebugFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
             NetworkStatistics.S2C_RequestsForRetransmit_Aggregate_Increment();
         }

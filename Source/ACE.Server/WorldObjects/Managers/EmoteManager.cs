@@ -38,7 +38,8 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Returns TRUE if this WorldObject is currently busy processing other emotes
         /// </summary>
-        public bool IsBusy;
+        public bool IsBusy { get; set; }
+        public int Nested { get; set; }
 
         public bool Debug = false;
 
@@ -129,14 +130,14 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardLuminance:
 
                     if (player != null)
-                        player.EarnLuminance((long)emote.Amount, XpType.Quest, ShareType.None);
+                        player.EarnLuminance(emote.HeroXP64 ?? 0, XpType.Quest, ShareType.None);
 
                     break;
 
                 case EmoteType.AwardNoShareXP:
 
                     if (player != null)
-                        player.EarnXP((long)emote.Amount64, XpType.Quest, ShareType.None);
+                        player.EarnXP(emote.Amount64 ?? 0, XpType.Quest, ShareType.None);
 
                     break;
 
@@ -155,14 +156,14 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardTrainingCredits:
 
                     if (player != null)
-                        player.AddSkillCredits((int)emote.Amount, false);
+                        player.AddSkillCredits(emote.Amount ?? 0, false);
                     break;
 
                 case EmoteType.AwardXP:
 
                     if (player != null)
                     {
-                        var amt = (long)emote.Amount64;
+                        var amt = emote.Amount64 ?? 0;
                         if (amt > 0)
                         {
                             player.EarnXP(amt, XpType.Quest, ShareType.All);
@@ -334,8 +335,10 @@ namespace ACE.Server.WorldObjects.Managers
 
                     bool success = false;
 
+                    var stackSize = emote.StackSize ?? 1;
+
                     if (player != null && emote.WeenieClassId != null)
-                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, emote.StackSize ?? 1);
+                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, stackSize > 0 ? stackSize : 1);
 
                     break;
 
@@ -1290,6 +1293,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (IsBusy && !nested) return false;
 
             // start action chain
+            Nested++;
             Enqueue(emoteSet, targetObject);
 
             return true;
@@ -1297,20 +1301,25 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void Enqueue(BiotaPropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx = 0, float delay = 0.0f)
         {
-            if (emoteSet == null) return;
+            if (emoteSet == null)
+            {
+                Nested--;
+                return;
+            }
 
             IsBusy = true;
             var emote = emoteSet.BiotaPropertiesEmoteAction.ElementAt(emoteIdx);
 
             var actionChain = new ActionChain();
 
+            if (Debug)
+                actionChain.AddAction(WorldObject, () => Console.Write($"{emote.Delay} - "));
+
             // post-delay from actual time of previous emote
             actionChain.AddDelaySeconds(delay);
 
             // pre-delay for current emote
             actionChain.AddDelaySeconds(emote.Delay);
-            if (Debug)
-                Console.Write($"{emote.Delay} - ");
 
             actionChain.AddAction(WorldObject, () =>
             {
@@ -1328,7 +1337,13 @@ namespace ACE.Server.WorldObjects.Managers
                 {
                     var delayChain = new ActionChain();
                     delayChain.AddDelaySeconds(nextDelay);
-                    delayChain.AddAction(WorldObject, () => IsBusy = false);
+                    delayChain.AddAction(WorldObject, () =>
+                    {
+                        Nested--;
+
+                        if (Nested == 0)
+                            IsBusy = false;
+                    });
                     delayChain.EnqueueChain();
                 }
             });

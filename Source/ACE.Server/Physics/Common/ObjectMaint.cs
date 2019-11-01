@@ -331,13 +331,13 @@ namespace ACE.Server.Physics.Common
             var visibleObjs = new List<PhysicsObj>();
 
             // add objects from current cell
-            visibleObjs.AddRange(cell.ObjectList);
+            cell.AddObjectListTo(visibleObjs);
 
             // add objects from visible cells
             foreach (var envCell in cell.VisibleCells.Values)
             {
                 if (envCell != null)
-                    visibleObjs.AddRange(envCell.ObjectList);
+                    envCell.AddObjectListTo(visibleObjs);
             }
 
             return ApplyFilter(visibleObjs, type).Where(i => !i.DatObject && i.ID != PhysicsObj.ID).Distinct().ToList();

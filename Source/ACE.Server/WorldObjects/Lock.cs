@@ -22,18 +22,21 @@ namespace ACE.Server.WorldObjects
     }
     public interface Lock
     {
-        UnlockResults Unlock(uint unlockerGuid, string keyCode);
+        UnlockResults Unlock(uint unlockerGuid, Key key, string keyCode = null);
         UnlockResults Unlock(uint unlockerGuid, uint playerLockpickSkillLvl, ref int difficulty);
     }
     public class UnlockerHelper
     {
         public static void ConsumeUnlocker(Player player, WorldObject unlocker)
         {
-            if ((unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false))
+            // is Sonic Screwdriver supposed to be consumed on use?
+            // it doesn't have a Structure, and it doesn't have PropertyBool.UnlimitedUse
+            if (unlocker.Structure == null || (unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false))
             {
                 player.SendUseDoneEvent();
                 return;
             }
+
             unlocker.Structure--;
             if (unlocker.Structure < 1)
                 player.TryConsumeFromInventoryWithNetworking(unlocker, 1);
@@ -81,7 +84,7 @@ namespace ACE.Server.WorldObjects
                                 return;
                             }
                         }
-                        result = @lock.Unlock(player.Guid.Full, woKey.KeyCode);
+                        result = @lock.Unlock(player.Guid.Full, woKey);
                     }
 
                     switch (result)
@@ -180,15 +183,28 @@ namespace ACE.Server.WorldObjects
                 myLockCode = woChest.LockCode;
             return myLockCode;
         }
-        public static UnlockResults Unlock(WorldObject target, string keyCode)
+        public static UnlockResults Unlock(WorldObject target, Key key, string keyCode = null)
         {
+            if (keyCode == null)
+                keyCode = key?.KeyCode;
+
             string myLockCode = GetLockCode(target);
             if (myLockCode == null) return UnlockResults.IncorrectKey;
 
             if (target.IsOpen)
                 return UnlockResults.Open;
 
-            if (keyCode.Equals(myLockCode, StringComparison.OrdinalIgnoreCase))
+            // there is only 1 instance of an 'opens all' key in PY16 data, 'keysonicscrewdriver'
+            // which uses keyCode '_bohemund's_magic_key_'
+
+            // when LSD added the rare skeleton key (keyrarevolatileuniversal),
+            // they used PropertyBool.OpensAnyLock, which appears to have been used for something else in retail on Writables:
+
+            // https://github.com/ACEmulator/ACE-World-16PY/blob/master/Database/3-Core/9%20WeenieDefaults/SQL/Key/Key/09181%20Sonic%20Screwdriver.sql
+            // https://github.com/ACEmulator/ACE-World-16PY/search?q=OpensAnyLock
+
+            if (keyCode != null && (keyCode.Equals(myLockCode, StringComparison.OrdinalIgnoreCase) || keyCode.Equals("_bohemund's_magic_key_")) ||
+                    key != null && key.OpensAnyLock)
             {
                 if (!target.IsLocked)
                     return UnlockResults.AlreadyUnlocked;

@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Threading;
 
 using ACE.Common;
 using ACE.Entity;
@@ -202,15 +201,6 @@ namespace ACE.Server.WorldObjects
         public bool InUpdate;
 
         /// <summary>
-        /// The idea behind using a ReaderWriterLock for updating physics is as follows:
-        /// - Only one player should be updated at a time
-        /// - If a player is being updated, no other object should be updated during that time
-        /// - Multiple non-player objects can be updated simultaneously
-        /// We separate players from non-players because players are the only ones that can cross landblock groups, and thus, thread boundaries.
-        /// </summary>
-        private static readonly ReaderWriterLockSlim updatePhysicsLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
-
-        /// <summary>
         /// Used by physics engine to actually update a player position
         /// Automatically notifies clients of updated position
         /// </summary>
@@ -228,7 +218,6 @@ namespace ACE.Server.WorldObjects
             // possible bug: while teleporting, client can still send AutoPos packets from old landblock
             if (Teleporting && !forceUpdate) return false;
 
-            updatePhysicsLock.EnterWriteLock();
             try
             {
                 if (!forceUpdate) // This is needed beacuse this function might be called recursively
@@ -286,8 +275,14 @@ namespace ACE.Server.WorldObjects
             finally
             {
                 if (!forceUpdate) // This is needed beacuse this function might be called recursively
-                    ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, stopwatch.Elapsed.TotalSeconds);
-                updatePhysicsLock.ExitWriteLock();
+                {
+                    var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
+                    ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, elapsedSeconds);
+                    if (elapsedSeconds >= 1) // Yea, that ain't good....
+                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                    else if (elapsedSeconds >= 0.010)
+                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                }
             }
         }
 
@@ -306,59 +301,73 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool UpdateObjectPhysics()
         {
+            // TODO: Almost all of the CPU time is spent between this note and the first Try block. Mag-nus 2019-10-21
+            // TODO: In the future we should look at improving the way UpdateObjectPhysics() is called from Landblock
+            // TODO: We should exclude objects that never tick physics (Monsters)
+            // TODO: Perhaps for objects that have a throttle (Creatures), we use a list and only iterate through the pending creatures
+
             if (PhysicsObj == null || !PhysicsObj.is_active())
                 return false;
 
-            // arrows / spell projectiles
-            var isMissile = Missile ?? false;
+            bool isDying = false;
 
-            //var contactPlane = (PhysicsObj.State & PhysicsState.Gravity) != 0 && MotionTableId != 0 && (PhysicsObj.TransientState & TransientStateFlags.Contact) == 0;
-
-            // monsters have separate physics updates
-            var creature = this as Creature;
-            var monster = creature != null && creature.IsMonster;
-            //var pet = this as CombatPet;
-
-            // determine if updates should be run for object
-            //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
-            //var runUpdate = isMissile;
-            var runUpdate = !monster && (isMissile || /*IsMoving ||*/ /*!PhysicsObj.IsGrounded || */ PhysicsObj.InitialUpdates <= 1 || PhysicsObj.IsAnimating /*|| contactPlane*/);
-
-            if (creature != null)
+            if (this is Creature creature)
             {
-                if (LastPhysicsUpdate + UpdateRate_Creature <= PhysicsTimer.CurrentTime)
-                    LastPhysicsUpdate = PhysicsTimer.CurrentTime;
+                if (LastPhysicsUpdate + UpdateRate_Creature > PhysicsTimer.CurrentTime)
+                    return false;
+
+                LastPhysicsUpdate = PhysicsTimer.CurrentTime;
+
+                // monsters have separate physics updates,
+                // except during the first frame of spawning, idle emotes, and dying
+                isDying = creature.IsDead;
+
+                // determine if updates should be run for object
+                var runUpdate = PhysicsObj.IsAnimating && (!creature.IsMonster || !creature.IsAwake) || isDying || PhysicsObj.InitialUpdates <= 1;
+
+                if (!runUpdate)
+                    return false;
+            }
+            else
+            {
+                // arrows / spell projectiles
+                //var isMissile = Missile ?? false;
+                if ((PhysicsObj.State & PhysicsState.Missile) != 0) // This is a bit more performant than the line above
+                {
+                    if (physicsCreationTime + ProjectileTimeout <= PhysicsTimer.CurrentTime)
+                    {
+                        // only for projectiles?
+                        //Console.WriteLine("Timeout reached - destroying " + Name);
+                        PhysicsObj.set_active(false);
+                        Destroy();
+                        return false;
+                    }
+
+                    // missiles always run an update
+                }
                 else
-                    runUpdate = false;
+                {
+                    // determine if updates should be run for object
+                    var runUpdate = PhysicsObj.IsAnimating || PhysicsObj.InitialUpdates <= 1;
+
+                    if (!runUpdate)
+                        return false;
+                }
             }
 
-            if (!runUpdate) return false;
-
-            if (isMissile && physicsCreationTime + ProjectileTimeout <= PhysicsTimer.CurrentTime)
-            {
-                // only for projectiles?
-                //Console.WriteLine("Timeout reached - destroying " + Name);
-                PhysicsObj.set_active(false);
-                Destroy();
-                return false;
-            }
-
-            updatePhysicsLock.EnterReadLock();
             try
             {
                 stopwatch.Restart();
 
                 // get position before
-                var pos = PhysicsObj.Position.Frame.Origin;
-                var prevPos = pos;
+                var prevPos = PhysicsObj.Position.Frame.Origin;
                 var cellBefore = PhysicsObj.CurCell != null ? PhysicsObj.CurCell.ID : 0;
 
                 //Console.WriteLine($"{Name} - ticking physics");
                 var updated = PhysicsObj.update_object();
 
                 // get position after
-                pos = PhysicsObj.Position.Frame.Origin;
-                var newPos = pos;
+                var newPos = PhysicsObj.Position.Frame.Origin;
 
                 // handle landblock / cell change
                 var isMoved = (prevPos != newPos);
@@ -373,13 +382,15 @@ namespace ACE.Server.WorldObjects
                 }
 
                 var landblockUpdate = (cellBefore >> 16) != (curCell.ID >> 16);
-                if (isMoved)
+
+                if (isMoved || isDying)
                 {
                     if (curCell.ID != cellBefore)
                         Location.LandblockId = new LandblockId(curCell.ID);
 
                     Location.Pos = newPos;
                     Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+
                     //if (landblockUpdate)
                     //WorldManager.UpdateLandblock.Add(this);
                 }
@@ -408,8 +419,12 @@ namespace ACE.Server.WorldObjects
             }
             finally
             {
-                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, stopwatch.Elapsed.TotalSeconds);
-                updatePhysicsLock.ExitReadLock();
+                var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, elapsedSeconds);
+                if (elapsedSeconds >= 1) // Yea, that ain't good....
+                    log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+                else if (elapsedSeconds >= 0.010)
+                    log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
             }
         }
     }

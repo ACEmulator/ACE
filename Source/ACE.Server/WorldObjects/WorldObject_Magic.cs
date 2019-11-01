@@ -375,7 +375,8 @@ namespace ACE.Server.WorldObjects
 
             // NonComponentTargetType should be 0 for untargeted spells.
             // Return if the spell type is targeted with no target defined or the target is already dead.
-            if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != 0)
+            if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != ItemType.None
+                && (spell.DispelSchool != MagicSchool.ItemEnchantment || !PropertyManager.GetBool("item_dispel").Item))
             {
                 damage = 0;
                 return false;
@@ -1227,6 +1228,9 @@ namespace ACE.Server.WorldObjects
                 var sourceCreature = this as Creature;
                 if (sourceCreature != null && targetCreature != null && sourceCreature != targetCreature)
                     sourceCreature.TryProcEquippedItems(targetCreature, false);
+
+                if (player != null && targetPlayer != null)
+                    Player.UpdatePKTimers(player, targetPlayer);
             }
             else
                 Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), difficultyMod);

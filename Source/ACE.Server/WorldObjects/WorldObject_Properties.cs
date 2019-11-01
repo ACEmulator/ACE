@@ -929,7 +929,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = DateTime.Now;
+                    ItemManaConsumptionTimestamp = DateTime.UtcNow;
                 }
             }
         }
@@ -1033,7 +1033,7 @@ namespace ACE.Server.WorldObjects
         public int? WieldSkillType
         {
             get => GetProperty(PropertyInt.WieldSkillType);
-            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType); else SetProperty(PropertyInt.WieldSkillType, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldSkillType); else SetProperty(PropertyInt.WieldSkillType, value.Value); }
         }
 
         public int? WieldDifficulty
@@ -1054,7 +1054,7 @@ namespace ACE.Server.WorldObjects
         public int? WieldSkillType2
         {
             get => GetProperty(PropertyInt.WieldSkillType2);
-            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType2); else SetProperty(PropertyInt.WieldSkillType2, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldSkillType2); else SetProperty(PropertyInt.WieldSkillType2, value.Value); }
         }
 
         public int? WieldDifficulty2
@@ -1075,7 +1075,7 @@ namespace ACE.Server.WorldObjects
         public int? WieldSkillType3
         {
             get => GetProperty(PropertyInt.WieldSkillType3);
-            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType3); else SetProperty(PropertyInt.WieldSkillType3, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldSkillType3); else SetProperty(PropertyInt.WieldSkillType3, value.Value); }
         }
 
         public int? WieldDifficulty3
@@ -1096,7 +1096,7 @@ namespace ACE.Server.WorldObjects
         public int? WieldSkillType4
         {
             get => GetProperty(PropertyInt.WieldSkillType4);
-            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType4); else SetProperty(PropertyInt.WieldSkillType4, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldSkillType4); else SetProperty(PropertyInt.WieldSkillType4, value.Value); }
         }
 
         public int? WieldDifficulty4
@@ -1691,6 +1691,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsNether); else SetProperty(PropertyFloat.ArmorModVsNether, value.Value); }
         }
 
+        public double? AbsorbMagicDamage
+        {
+            get => GetProperty(PropertyFloat.AbsorbMagicDamage);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AbsorbMagicDamage); else SetProperty(PropertyFloat.AbsorbMagicDamage, value.Value); }
+        }
+
         public int? ArmorType
         {
             get => GetProperty(PropertyInt.ArmorType);
@@ -1942,7 +1948,7 @@ namespace ACE.Server.WorldObjects
         public int? ItemSpellcraft
         {
             get => GetProperty(PropertyInt.ItemSpellcraft);
-            set { if (value.HasValue) RemoveProperty(PropertyInt.ItemSpellcraft); else SetProperty(PropertyInt.ItemSpellcraft, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemSpellcraft); else SetProperty(PropertyInt.ItemSpellcraft, value.Value); }
         }
 
         public double? HealkitMod

@@ -110,10 +110,19 @@ namespace ACE.Server.Managers
             private uint current;
             private readonly string name;
 
-            private static readonly TimeSpan recycleTime = TimeSpan.FromMinutes(120);
+            private static readonly TimeSpan recycleTime = TimeSpan.FromMinutes(360);
 
             private readonly Queue<Tuple<DateTime, uint>> recycledGuids = new Queue<Tuple<DateTime, uint>>();
 
+            /// <summary>
+            /// The value here is the result of two factors:
+            /// - A: The total number of GUIDs that are generated during a period of recycledTime (defined above)
+            /// - B: The total number of GUIDs that are consumed and saved to the shard between server resets
+            /// A safe value might be (2 * A) + (2 * B)
+            /// On a shard with severe id fragmentation, this can end up eating more memory to store all the smaller gaps
+            /// Once sequence gaps are depleted and there are no available id's in the recycle queue, DB Max + 1 is used
+            /// You can monitor the amount of available id's using /serverstatus
+            /// </summary>
             private const int limitAvailableIDsReturnedInGetSequenceGaps = 10000000;
             private bool useSequenceGapExhaustedMessageDisplayed;
             private LinkedList<(uint start, uint end)> availableIDs = new LinkedList<(uint start, uint end)>();

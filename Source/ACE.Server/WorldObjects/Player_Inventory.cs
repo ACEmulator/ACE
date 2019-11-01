@@ -146,6 +146,7 @@ namespace ACE.Server.WorldObjects
         public bool TryConsumeFromInventoryWithNetworking(uint wcid, int amount = int.MaxValue)
         {
             var items = GetInventoryItemsOfWCID(wcid);
+            items = items.OrderBy(o => o.Value).ToList();
 
             var leftReq = amount;
             foreach (var item in items)
@@ -174,7 +175,8 @@ namespace ACE.Server.WorldObjects
 
             ToCorpseOnDeath,
 
-            ConsumeItem
+            ConsumeItem,
+            SpendItem
         }
 
         public bool TryRemoveFromInventoryWithNetworking(uint objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
@@ -190,7 +192,7 @@ namespace ACE.Server.WorldObjects
             if (removeFromInventoryAction != RemoveFromInventoryAction.SellItem && removeFromInventoryAction != RemoveFromInventoryAction.GiveItem)
                 Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid));
 
-            if (removeFromInventoryAction == RemoveFromInventoryAction.GiveItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
+            if (removeFromInventoryAction == RemoveFromInventoryAction.GiveItem || removeFromInventoryAction == RemoveFromInventoryAction.SpendItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
                 Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(item));
 
             if (removeFromInventoryAction != RemoveFromInventoryAction.ToWieldedSlot)
@@ -1956,11 +1958,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!targetStackFoundInContainer.CanAddToContainer(sourceStack, false))
-            {
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
-                return;
-            }
+            //if (!targetStackFoundInContainer.CanAddToContainer(sourceStack, false))
+            //{
+            //    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
+            //    return;
+            //}
 
             if ((sourceStackRootOwner == this && targetStackRootOwner != this)  || (sourceStackRootOwner != this && targetStackRootOwner == this)) // Movement is between the player and the world
             {
@@ -2210,13 +2212,13 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (target is Player targetAsPlayer)
-                    GiveObjecttoPlayer(targetAsPlayer, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
+                    GiveObjectToPlayer(targetAsPlayer, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
                 else
-                    GiveObjecttoNPC(target, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
+                    GiveObjectToNPC(target, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
             });
         }
 
-        private void GiveObjecttoPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
+        private void GiveObjectToPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
         {
             if ((item.Attuned ?? 0) >= 1)
             {
@@ -2292,20 +2294,20 @@ namespace ACE.Server.WorldObjects
                 var itemName = itemToGive.GetNameWithMaterial(stackSize);
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
-                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
                 // send DO to source player if not splitting a stack
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 
                 target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemName}.", ChatMessageType.Broadcast));
-                target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+
+                target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
             });
 
             actionChain.EnqueueChain();
         }
 
-        private void GiveObjecttoNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
+        private void GiveObjectToNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
         {
             if (target == null || item == null) return;
 
@@ -2331,12 +2333,9 @@ namespace ACE.Server.WorldObjects
 
             var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && (item.Attuned ?? 0) != (int)AttunedStatus.Sticky;
 
-            // this logic is a bit backwards here, and should be re-evaluated
-            // currently, HandleNPCReceiveItem checks if NPC can receive item, and if so, starts the emote chain
-            // the item is then removed from the player's inventory, which could possibly fail...
-            if (target.HandleNPCReceiveItem(item, this, out var result) || acceptAll)
+            if (target.HasGiveOrRefuseEmoteForItem(item, out var emoteResult) || acceptAll)
             {
-                if (acceptAll || result.Category == (uint)EmoteCategory.Give)
+                if (acceptAll || emoteResult.Category == (uint)EmoteCategory.Give)
                 {
                     var isStackable = item is Stackable;
 
@@ -2348,7 +2347,9 @@ namespace ACE.Server.WorldObjects
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.NameWithMaterial}.", ChatMessageType.Broadcast));
-                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                        target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
+
+                        target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
                     }
                     else
                     {
@@ -2362,7 +2363,9 @@ namespace ACE.Server.WorldObjects
                             var itemName = item.GetNameWithMaterial(stackSize);
 
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
-                            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                            target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
+
+                            target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
 
                             item.Destroy();
                         }
@@ -2372,11 +2375,13 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 }
-                else if (result.Category == (uint)EmoteCategory.Refuse)
+                else if (emoteResult.Category == (uint)EmoteCategory.Refuse)
                 {
                     // Item rejected by npc
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.NameWithMaterial}.", ChatMessageType.Broadcast));
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeAiRefuseEmote));
+
+                    target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
                 }
             }
             else
@@ -2430,16 +2435,16 @@ namespace ACE.Server.WorldObjects
                                 Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, $"You're in luck! This {item.Name} was just left here the other day.", this, ChatMessageType.Tell));
                                 Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
                                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {iouToTurnIn.Name}.", ChatMessageType.Broadcast));
-                                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+                                target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
+
                                 RemoveItemForGive(iouToTurnIn, null, false, null, 1, out _, true);
                                 success = TryCreateInInventoryWithNetworking(item);
 
                                 if (success)
                                 {
                                     Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Here you go.", this, ChatMessageType.Tell));
-                                    var msg = new GameMessageSystemChat($"{target.Name} gives you {item.Name}.", ChatMessageType.Broadcast);
-                                    var sound = new GameMessageSound(Guid, Sound.ReceiveItem, 1);
-                                    Session.Network.EnqueueSend(msg, sound);
+                                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} gives you {item.Name}.", ChatMessageType.Broadcast));
+                                    target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
                                     if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                                         RushNextPlayerSave(5);
@@ -2700,22 +2705,21 @@ namespace ACE.Server.WorldObjects
 
         public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
         {
-            if (TryCreateInInventoryWithNetworking(itemBeingGiven))
+            if (!TryCreateInInventoryWithNetworking(itemBeingGiven))
+                return false;
+
+            if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
             {
                 var msg = new GameMessageSystemChat($"{giver.Name} gives you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{(itemBeingGiven.StackSize > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.Name)}.", ChatMessageType.Broadcast);
-                var sound = new GameMessageSound(Guid, Sound.ReceiveItem, 1);
-                if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
-                    Session.Network.EnqueueSend(msg, sound);
-                else
-                    Session.Network.EnqueueSend(sound);
+                Session.Network.EnqueueSend(msg);
 
-                if (PropertyManager.GetBool("player_receive_immediate_save").Item)
-                    RushNextPlayerSave(5);
-
-                return true;
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.ReceiveItem));
             }
-            else
-                return false;
+
+            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                RushNextPlayerSave(5);
+
+            return true;
         }
     }
 }
