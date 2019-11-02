@@ -82,6 +82,7 @@ namespace ACE.Server.Entity
             {
                 Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Cast #: {CastNum}", ChatMessageType.Broadcast));
                 Player.RecordCast.Log($"MagicState.OnCastStart({CastNum})");
+                Player.RecordCast.Log($"Player Location: {Player.Location.ToLOCString()}");
             }
         }
 
@@ -99,18 +100,25 @@ namespace ACE.Server.Entity
             CastTurnStarted = false;
             CastGesture = MotionCommand.Invalid;
 
-            CastSpellParams = null;
-
             if (Player.RecordCast.Enabled)
             {
-                Player.RecordCast.Log($"MagicState.OnCastDone()\n================================================================================");
+                Player.RecordCast.Log($"MagicState.OnCastDone()");
+                Player.RecordCast.Log($"Player Location: {Player.Location.ToLOCString()}");
+                if (CastSpellParams?.Target != null)
+                    Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
+                Player.RecordCast.Log("================================================================================");
                 Player.RecordCast.Flush();
             }
+
+            CastSpellParams = null;
         }
 
         public void SetCastParams(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
         {
             CastSpellParams = new CastSpellParams(spell, isWeaponSpell, manaUsed, target, status);
+
+            if (Player.RecordCast.Enabled && CastSpellParams.Target != null)
+                Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
         }
 
         public override string ToString()
