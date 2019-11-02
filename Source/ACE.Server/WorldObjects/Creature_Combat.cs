@@ -1135,7 +1135,7 @@ namespace ACE.Server.WorldObjects
         /// True  = Formula A / ratings method
         /// False = Formula B / critical defense method
         /// </summary>
-        public static bool OverpowerMethod = true;
+        public static bool OverpowerMethod = false;
 
         public static bool GetOverpower(Creature attacker, Creature defender)
         {
