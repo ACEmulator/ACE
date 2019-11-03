@@ -594,7 +594,7 @@ namespace ACE.Server.WorldObjects
                 if (rootContainer != null && rootContainer is Container)
                     container = rootContainer as Container;
             }
-            var pickupMotion = MotionCommand.Pickup;
+            MotionCommand pickupMotion;
 
             var item_location_z = itemBeingPickedUp.Location != null ? itemBeingPickedUp.Location.PositionZ : container.Location.PositionZ;
             var target_top = item_location_z + itemBeingPickedUp.Height;
@@ -608,7 +608,7 @@ namespace ACE.Server.WorldObjects
                 case var n when (n >= 0.6 && n < 1.4):
                     pickupMotion = MotionCommand.Pickup15;
                     break;
-                case var n when (n >= 0.2 && n < 0.6):
+                case var n when (n >= 0.2 && n < 0.6) || (n < 0.0 && n > -0.1):
                     pickupMotion = MotionCommand.Pickup10;
                     break;
                 case var n when (n >= 0.0 && n < 0.2):
