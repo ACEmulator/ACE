@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             // fix bug in magic combat mode after walking to target,
             // crouch animation steps out of range
             if (useRadius == null)
-                useRadius = target.UseRadius ?? 1f;
+                useRadius = target.UseRadius ?? 0.6f;
 
             if (CombatMode == CombatMode.Magic)
                 useRadius = Math.Max(0.0f, useRadius.Value - 0.2f);
