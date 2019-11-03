@@ -1129,5 +1129,100 @@ namespace ACE.Server.WorldObjects
             }
             return damageTypes;
         }
+
+        /// <summary>
+        /// Flag indicates which overpower formula is used
+        /// True  = Formula A / ratings method
+        /// False = Formula B / critical defense method
+        /// </summary>
+        public static bool OverpowerMethod = false;
+
+        public static bool GetOverpower(Creature attacker, Creature defender)
+        {
+            if (OverpowerMethod)
+                return GetOverpower_Method_A(attacker, defender);
+            else
+                return GetOverpower_Method_B(attacker, defender);
+        }
+
+        public static bool GetOverpower_Method_A(Creature attacker, Creature defender)
+        {
+            // implemented similar to ratings
+            if (attacker.Overpower == null)
+                return false;
+
+            var overpowerChance = attacker.Overpower.Value;
+            if (defender.OverpowerResist != null)
+                overpowerChance -= defender.OverpowerResist.Value;
+
+            //Console.WriteLine($"Overpower chance: {GetOverpowerChance_Method_A(attacker, defender)}");
+
+            if (overpowerChance <= 0)
+                return false;
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            return rng < overpowerChance * 0.01f;
+        }
+
+        public static bool GetOverpower_Method_B(Creature attacker, Creature defender)
+        {
+            // implemented similar to critical defense
+            if (attacker.Overpower == null)
+                return false;
+
+            var overpowerChance = attacker.Overpower.Value;
+
+            //Console.WriteLine($"Overpower chance: {GetOverpowerChance_Method_B(attacker, defender)}");
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            if (rng >= overpowerChance * 0.01f)
+                return false;
+
+            if (defender.OverpowerResist == null)
+                return true;
+
+            var resistChance = defender.OverpowerResist.Value;
+
+            rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            return rng >= resistChance * 0.01f;
+        }
+
+        public static float GetOverpowerChance(Creature attacker, Creature defender)
+        {
+            if (OverpowerMethod)
+                return GetOverpowerChance_Method_A(attacker, defender);
+            else
+                return GetOverpowerChance_Method_B(attacker, defender);
+        }
+
+        public static float GetOverpowerChance_Method_A(Creature attacker, Creature defender)
+        {
+            if (attacker.Overpower == null)
+                return 0.0f;
+
+            var overpowerChance = attacker.Overpower.Value;
+            if (defender.OverpowerResist != null)
+                overpowerChance -= defender.OverpowerResist.Value;
+
+            if (overpowerChance <= 0)
+                return 0.0f;
+
+            return overpowerChance * 0.01f;
+        }
+
+        public static float GetOverpowerChance_Method_B(Creature attacker, Creature defender)
+        {
+            if (attacker.Overpower == null)
+                return 0.0f;
+
+            var overpowerChance = (attacker.Overpower ?? 0) * 0.01f;
+            var overpowerResistChance = (defender.OverpowerResist ?? 0) * 0.01f;
+
+            return overpowerChance * (1.0f - overpowerResistChance);
+
+        }
     }
 }

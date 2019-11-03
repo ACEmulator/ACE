@@ -297,7 +297,9 @@ namespace ACE.Server.WorldObjects
 
             var critical = false;
             var critDefended = false;
-            var damage = CalculateDamage(ProjectileSource, target, ref critical, ref critDefended);
+            var overpower = false;
+
+            var damage = CalculateDamage(ProjectileSource, target, ref critical, ref critDefended, ref overpower);
 
             // null damage -> target resisted; damage of -1 -> target already dead
             if (damage != null && damage != -1)
@@ -316,7 +318,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    DamageTarget(target, damage, critical, critDefended);
+                    DamageTarget(target, damage, critical, critDefended, overpower);
                 }
 
                 if (player != null)
@@ -338,7 +340,7 @@ namespace ACE.Server.WorldObjects
         /// Calculates the damage for a spell projectile
         /// Used by war magic, void magic, and life magic projectiles
         /// </summary>
-        public double? CalculateDamage(WorldObject source, Creature target, ref bool criticalHit, ref bool critDefended)
+        public double? CalculateDamage(WorldObject source, Creature target, ref bool criticalHit, ref bool critDefended, ref bool overpower)
         {
             var sourcePlayer = source as Player;
             var targetPlayer = target as Player;
@@ -364,12 +366,15 @@ namespace ACE.Server.WorldObjects
 
             var resistanceType = Creature.GetResistanceType(Spell.DamageType);
 
+            var sourceCreature = source as Creature;
+            if (sourceCreature?.Overpower != null)
+                overpower = Creature.GetOverpower(sourceCreature, target);
+
             var resisted = source.ResistSpell(target, Spell);
-            if (resisted != null && resisted == true)
+            if (resisted == true && !overpower)
                 return null;
 
             CreatureSkill attackSkill = null;
-            var sourceCreature = source as Creature;
             if (sourceCreature != null)
                 attackSkill = sourceCreature.GetCreatureSkill(Spell.School);
 
@@ -574,7 +579,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called for a spell projectile to damage its target
         /// </summary>
-        public void DamageTarget(WorldObject _target, double? damage, bool critical, bool critDefended = false)
+        public void DamageTarget(WorldObject _target, double? damage, bool critical, bool critDefended, bool overpower)
         {
             var player = ProjectileSource as Player;
 
@@ -643,11 +648,13 @@ namespace ACE.Server.WorldObjects
 
                 var critMsg = critical ? "Critical hit! " : "";
                 var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
+                var overpowerMsg = overpower ? "Overpower! " : "";
+
                 if (player != null)
                 {
                     var critProt = critDefended ? " Your target's Critical Protection augmentation allows them to avoid your critical hit!" : "";
 
-                    var attackerMsg = $"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}";
+                    var attackerMsg = $"{critMsg}{overpowerMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}";
 
                     // could these crit / sneak attack?
                     if (Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering)
@@ -666,7 +673,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var critProt = critDefended ? " Your Critical Protection augmentation allows you to avoid a critical hit!" : "";
 
-                    var defenderMsg = $"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}";
+                    var defenderMsg = $"{critMsg}{overpowerMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}";
 
                     if (Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering)
                     {

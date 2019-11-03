@@ -239,5 +239,17 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.AiImmobile) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.AiImmobile); else SetProperty(PropertyBool.AiImmobile, value); }
         }
+
+        public int? Overpower
+        {
+            get => GetProperty(PropertyInt.Overpower);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Overpower); else SetProperty(PropertyInt.Overpower, value.Value); }
+        }
+
+        public int? OverpowerResist
+        {
+            get => GetProperty(PropertyInt.OverpowerResist);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.OverpowerResist); else SetProperty(PropertyInt.OverpowerResist, value.Value); }
+        }
     }
 }

@@ -1696,7 +1696,7 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
-        /// Returns an appropriate material type fo the World Object based on its loot tier.
+        /// Returns an appropriate material type for the World Object based on its loot tier.
         /// </summary>
         /// <param name="wo"></param>
         /// <param name="tier"></param>
@@ -1730,7 +1730,7 @@ namespace ACE.Server.Factories
             foreach (var m in materialBase)
             {
                 probability += m.Probability;
-                if (rng >= probability || probability == totalProbability)
+                if (rng < probability || probability == totalProbability)
                 {
                     // Ivory is unique... It doesn't have a group
                     if (m.MaterialId == (uint)MaterialType.Ivory)
