@@ -144,7 +144,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (NetworkManager.Find(account.AccountName) != null)
                 {
-                    session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.ServerCrash1));
+                    session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.Logon));
                     return;
                 }
             }
@@ -158,7 +158,7 @@ namespace ACE.Server.Network.Handlers
                     else
                         log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
-                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
+                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(session, "The password entered for this account was not correct."));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account

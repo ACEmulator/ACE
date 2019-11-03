@@ -585,10 +585,39 @@ namespace ACE.Server.WorldObjects
         /// This would be used if your pickup action first requires a MoveTo action
         /// It will add a chain to broadcast the pickup motion and then add a delay for the animation length
         /// </summary>
-        private ActionChain AddPickupChainToMoveToChain(Container sourceContainer, Container destContainer)
+        private ActionChain AddPickupChainToMoveToChain(Container sourceContainer, Container destContainer, WorldObject itemBeingPickedUp)
         {
-            var container = destContainer == this ? sourceContainer : destContainer;
-            var pickupMotion = container != null ? container.MotionPickup : MotionCommand.Pickup;
+            var container = destContainer == this ? sourceContainer : destContainer.ContainerId != null && destContainer.ContainerId == Guid.Full ? sourceContainer : destContainer;
+            if (container != null && container.Location == null)
+            {
+                var rootContainer = FindObject((uint)container.ContainerId, SearchLocations.Landblock);
+                if (rootContainer != null && rootContainer is Container)
+                    container = rootContainer as Container;
+            }
+            MotionCommand pickupMotion;
+
+            var item_location_z = itemBeingPickedUp.Location != null ? itemBeingPickedUp.Location.PositionZ : container.Location.PositionZ;
+            var target_top = item_location_z + itemBeingPickedUp.Height;
+            var player_arm_z = Location.PositionZ + Height * 0.66;
+            var diff = target_top - player_arm_z;
+            switch (diff)
+            {
+                case var n when (n >= 1.4):
+                    pickupMotion = MotionCommand.Pickup20;
+                    break;
+                case var n when (n >= 0.6 && n < 1.4):
+                    pickupMotion = MotionCommand.Pickup15;
+                    break;
+                case var n when (n >= 0.2 && n < 0.6) || (n < 0.0 && n > -0.1):
+                    pickupMotion = MotionCommand.Pickup10;
+                    break;
+                case var n when (n >= 0.0 && n < 0.2):
+                    pickupMotion = MotionCommand.Pickup5;
+                    break;
+                default:
+                    pickupMotion = MotionCommand.Pickup;
+                    break;
+            }
 
             // start picking up item animation
             var motion = new Motion(CurrentMotionState.Stance, pickupMotion);
@@ -781,7 +810,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(itemRootOwner, container);
+                    var pickupChain = AddPickupChainToMoveToChain(itemRootOwner, container, item);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -1187,7 +1216,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(rootOwner, this);
+                    var pickupChain = AddPickupChainToMoveToChain(rootOwner, this, item);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -1666,7 +1695,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(stackRootOwner, containerRootOwner);
+                    var pickupChain = AddPickupChainToMoveToChain(stackRootOwner, containerRootOwner, stack);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -2007,7 +2036,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(sourceStackRootOwner, targetStackRootOwner);
+                    var pickupChain = AddPickupChainToMoveToChain(sourceStackRootOwner, targetStackRootOwner, sourceStack);
 
                     pickupChain.AddAction(this, () =>
                     {

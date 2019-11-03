@@ -8,6 +8,7 @@ namespace ACE.Entity.Enum
         None                           = 0x0,
         CriticalProtectionAugmentation = 0x1,
         Recklessness                   = 0x2,
-        SneakAttack                    = 0x4
+        SneakAttack                    = 0x4,
+        Overpower                      = 0x8
     };
 }

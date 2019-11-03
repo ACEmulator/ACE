@@ -104,6 +104,8 @@ namespace ACE.Server.Entity
 
         public bool IgnoreMagicResist => Weapon != null ? Weapon.IgnoreMagicResist : false;     // ignores life armor / prots
 
+        public bool Overpower;
+
 
         // player defender
         public BodyPart BodyPart;
@@ -163,12 +165,19 @@ namespace ACE.Server.Entity
             if (defender.Invincible)
                 return 0.0f;
 
+            // overpower
+            if (attacker.Overpower != null)
+                Overpower = Creature.GetOverpower(attacker, defender);
+
             // evasion chance
-            EvasionChance = GetEvadeChance(attacker, defender);
-            if (EvasionChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+            if (!Overpower)
             {
-                Evaded = true;
-                return 0.0f;
+                EvasionChance = GetEvadeChance(attacker, defender);
+                if (EvasionChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                {
+                    Evaded = true;
+                    return 0.0f;
+                }
             }
 
             // get base damage
@@ -411,6 +420,10 @@ namespace ACE.Server.Entity
             info += $"AccuracyMod: {AccuracyMod}\n";
             info += $"EffectiveAttackSkill: {EffectiveAttackSkill}\n";
             info += $"EffectiveDefenseSkill: {EffectiveDefenseSkill}\n";
+
+            if (Attacker.Overpower != null)
+                info += $"Overpower: {Overpower} ({Creature.GetOverpowerChance(Attacker, Defender)})\n";
+
             info += $"EvasionChance: {EvasionChance}\n";
             info += $"Evaded: {Evaded}\n";
 
@@ -521,6 +534,8 @@ namespace ACE.Server.Entity
                     attackConditions |= AttackConditions.Recklessness;
                 if (SneakAttackMod > 1.0f)
                     attackConditions |= AttackConditions.SneakAttack;
+                if (Overpower)
+                    attackConditions |= AttackConditions.Overpower;
 
                 return attackConditions;
             }

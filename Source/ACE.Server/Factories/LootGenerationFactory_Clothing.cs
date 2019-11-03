@@ -129,7 +129,10 @@ namespace ACE.Server.Factories
             wo = AssignEquipmentSetId(wo, tier);
 
             if (isMagical)
-                wo = AssignMagic(wo, tier);
+            {
+                bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
+                wo = AssignMagic(wo, tier, covenantArmor);
+            }
             else
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);

@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2019-10-31
+[Ripley]
+* Cleanup ActOnUse for Ammo and move to debug only alert.
+
+### 2019-10-30
+[Ripley]
+* Fix buy issue with AltCurrency Vendors.
+* Add support to limit the number of accepted connections per IP Address.
+
 ### 2019-10-23
 [Ripley]
 * Adjust the way SpendCurrency spends currency.

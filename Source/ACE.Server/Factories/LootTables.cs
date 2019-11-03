@@ -1629,6 +1629,8 @@ namespace ACE.Server.Factories
             new int[] { 2621, 2614, 3957, 6085},
             ////Pierce Prot
             new int[] { 2620, 2613, 3956, 6084},
+            ///Shield
+            new int[] { 5886, 5891, 5896, 6069},
         };
 
         public static readonly int[][] JewelryCantrips =
@@ -1727,6 +1729,8 @@ namespace ACE.Server.Factories
             new int[] { 2621, 2614, 3957, 6085},
             ////Pierce Prot
             new int[] { 2620, 2613, 3956, 6084},
+            ///Shield
+            new int[] { 5886, 5891, 5896, 6069},
         };
 
         public static readonly int[][] WandCantrips =
