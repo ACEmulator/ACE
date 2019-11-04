@@ -596,7 +596,7 @@ namespace ACE.Server.WorldObjects
             }
             MotionCommand pickupMotion;
 
-            if ((itemBeingPickedUp == null || itemBeingPickedUp.Location == null) && (container == null || container.Location == null))
+            if (itemBeingPickedUp?.Location == null && container?.Location == null)
                 pickupMotion = MotionCommand.Pickup;
             else
             { 
