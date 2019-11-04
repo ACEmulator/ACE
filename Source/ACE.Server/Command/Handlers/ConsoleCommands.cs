@@ -6,6 +6,12 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 
+// this is for testing making lootgen items
+using ACE.Server.Factories;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+
 namespace ACE.Server.Command.Handlers
 {
     public static class ConsoleCommands
@@ -176,5 +182,53 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"Exported {totalFiles} total files to {exportDir}.");
             }
         }
+        [CommandHandler("testlootgen", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Loot for testing LootFactories", "<number of items> <loot tier>")]
+        public static void TestLootGenerator(Session session, params string[] parameters)
+        {
+            //var numberItemsGenerate = parameters[0];
+            //var itemsTier = parameters[1];
+
+            if (Int32.TryParse(parameters[0], out int numberItemsGenerate))
+                Console.WriteLine("Number of items to generate " + numberItemsGenerate);
+            else
+                Console.WriteLine("numbr of items is not an integer");
+
+            if (Int32.TryParse(parameters[1], out int itemsTier))
+                Console.WriteLine("tier is " + itemsTier);
+            else
+                Console.WriteLine("tier is not an integer");
+
+
+
+            Console.WriteLine($"Creating {numberItemsGenerate} items, that are in tier {itemsTier}");
+
+
+            // Do generate here
+            var testItem = LootGenerationFactory.CreateRandomLootObjects(itemsTier, true);
+            Console.WriteLine(testItem);
+            Console.WriteLine(testItem.Name);
+
+           
+
+            foreach (var prop in testItem.GetType().GetProperties())
+            {
+                if (prop.GetValue(testItem, null) != null)
+                    Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(testItem, null));
+                else
+                {
+                    ;
+                }
+            }
+
+            // Json Ser test
+
+            // string json = JsonSerializer.CreateDefault();
+
+
+
+
+            Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
+        }
+
     }
 }
