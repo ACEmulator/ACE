@@ -186,11 +186,15 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    resisted = ResistSpell(target, spell);
-                    if (resisted == null)
-                        log.Error("Something went wrong with the Magic resistance check");
-                    if (resisted ?? true)
-                        break;
+                    // todo: investigate calling TryResistSpell
+                    if (spell.IsHarmful && spell.IsResistable)
+                    {
+                        resisted = ResistSpell(target, spell);
+                        if (resisted == null)
+                            log.Error("Something went wrong with the Magic resistance check");
+                        if (resisted ?? true)
+                            break;
+                    }
 
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
                     if (targetDeath && target is Creature targetCreature)
@@ -205,11 +209,14 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.CreatureEnchantment:
 
-                    resisted = ResistSpell(target, spell);
-                    if (resisted == null)
-                        log.Error("Something went wrong with the Magic resistance check");
-                    if (resisted ?? true)
-                        break;
+                    if (spell.IsHarmful && spell.IsResistable)
+                    {
+                        resisted = ResistSpell(target, spell);
+                        if (resisted == null)
+                            log.Error("Something went wrong with the Magic resistance check");
+                        if (resisted ?? true)
+                            break;
+                    }
 
                     CreatureMagic(target, spell);
 
@@ -220,7 +227,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.VoidMagic:
 
-                    if (spell.NumProjectiles == 0)
+                    if (spell.NumProjectiles == 0 && spell.IsHarmful && spell.IsResistable)
                     {
                         resisted = ResistSpell(target, spell);
                         if (resisted == null)
