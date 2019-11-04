@@ -596,27 +596,32 @@ namespace ACE.Server.WorldObjects
             }
             MotionCommand pickupMotion;
 
-            var item_location_z = itemBeingPickedUp.Location != null ? itemBeingPickedUp.Location.PositionZ : container.Location.PositionZ;
-            var target_top = item_location_z + itemBeingPickedUp.Height;
-            var player_arm_z = Location.PositionZ + Height * 0.66;
-            var diff = target_top - player_arm_z;
-            switch (diff)
-            {
-                case var n when (n >= 1.4):
-                    pickupMotion = MotionCommand.Pickup20;
-                    break;
-                case var n when (n >= 0.6 && n < 1.4):
-                    pickupMotion = MotionCommand.Pickup15;
-                    break;
-                case var n when (n >= 0.2 && n < 0.6) || (n < 0.0 && n > -0.1):
-                    pickupMotion = MotionCommand.Pickup10;
-                    break;
-                case var n when (n >= 0.0 && n < 0.2):
-                    pickupMotion = MotionCommand.Pickup5;
-                    break;
-                default:
-                    pickupMotion = MotionCommand.Pickup;
-                    break;
+            if (itemBeingPickedUp.Location == null && container == null)
+                pickupMotion = MotionCommand.Pickup;
+            else
+            { 
+                var item_location_z = itemBeingPickedUp.Location != null ? itemBeingPickedUp.Location.PositionZ : container.Location.PositionZ;
+                var target_top = item_location_z + itemBeingPickedUp.Height;
+                var player_arm_z = Location.PositionZ + Height * 0.66;
+                var diff = target_top - player_arm_z;
+                switch (diff)
+                {
+                    case var n when (n >= 1.4):
+                        pickupMotion = MotionCommand.Pickup20;
+                        break;
+                    case var n when (n >= 0.6 && n < 1.4):
+                        pickupMotion = MotionCommand.Pickup15;
+                        break;
+                    case var n when (n >= 0.2 && n < 0.6) || (n < 0.0 && n > -0.1):
+                        pickupMotion = MotionCommand.Pickup10;
+                        break;
+                    case var n when (n >= 0.0 && n < 0.2):
+                        pickupMotion = MotionCommand.Pickup5;
+                        break;
+                    default:
+                        pickupMotion = MotionCommand.Pickup;
+                        break;
+                }
             }
 
             // start picking up item animation
