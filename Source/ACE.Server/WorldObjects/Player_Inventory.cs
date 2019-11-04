@@ -600,7 +600,7 @@ namespace ACE.Server.WorldObjects
                 pickupMotion = MotionCommand.Pickup;
             else
             {
-                var itemWereReachingFor = itemBeingPickedUp ?? container;
+                var itemWereReachingFor = (itemBeingPickedUp?.Location != null) ? itemBeingPickedUp : container;
 
                 var item_location_z = itemWereReachingFor.Location.PositionZ;
                 var target_top = item_location_z + itemWereReachingFor.Height;
