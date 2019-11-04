@@ -599,9 +599,12 @@ namespace ACE.Server.WorldObjects
             if (itemBeingPickedUp?.Location == null && container?.Location == null)
                 pickupMotion = MotionCommand.Pickup;
             else
-            { 
-                var item_location_z = itemBeingPickedUp?.Location?.PositionZ ?? container.Location.PositionZ;
-                var target_top = item_location_z + itemBeingPickedUp.Height;
+            {
+                var itemWereReachingFor = itemBeingPickedUp ?? container;
+
+                var item_location_z = itemWereReachingFor.Location.PositionZ;
+                var target_top = item_location_z + itemWereReachingFor.Height;
+
                 var player_arm_z = Location.PositionZ + Height * 0.66;
                 var diff = target_top - player_arm_z;
                 switch (diff)
