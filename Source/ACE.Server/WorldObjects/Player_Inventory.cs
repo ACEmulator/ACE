@@ -600,7 +600,7 @@ namespace ACE.Server.WorldObjects
                 pickupMotion = MotionCommand.Pickup15; // Reach over and up just a little bit
             else if (item_location_z >= Location.PositionZ + (Height * 0.50))
                 pickupMotion = MotionCommand.Pickup10; // Reach over and down just a little bit
-            else if (item_location_z >= Location.PositionZ + (Height * 0.30))
+            else if (item_location_z >= Location.PositionZ + (Height * 0.20))
                 pickupMotion = MotionCommand.Pickup5; // Bend down a little bit
             else
                 pickupMotion = MotionCommand.Pickup; // At foot height or lower
