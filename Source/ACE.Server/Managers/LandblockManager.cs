@@ -243,15 +243,10 @@ namespace ACE.Server.Managers
             TickPhysics(portalYearTicks);
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics);
 
-            // Tick all of our Landblocks and WorldObjects (Work that can be multi-threaded)
-            ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.LandblockManager_TickMultiThreadedWork);
-            TickMultiThreadedWork();
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_TickMultiThreadedWork);
-
-            // Tick all of our Landblocks and WorldObjects (Work that must be single threaded)
-            ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.LandblockManager_TickSingleThreadedWork);
-            TickSingleThreadedWork();
-            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_TickSingleThreadedWork);
+            // Tick all of our Landblocks and WorldObjects
+            ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
+            Tick();
+            ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_Tick);
 
             // clean up inactive landblocks
             UnloadLandblocks();
@@ -295,7 +290,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        private static void TickMultiThreadedWork()
+        private static void Tick()
         {
             ProcessPendingLandblockGroupAdditions();
 
@@ -304,7 +299,7 @@ namespace ACE.Server.Managers
                 Parallel.ForEach(landblockGroups, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
                 {
                     foreach (var landblock in landblockGroup)
-                        landblock.TickMultiThreadedWork(Time.GetUnixTime());
+                        landblock.Tick(Time.GetUnixTime());
                 });
             }
             else
@@ -312,19 +307,8 @@ namespace ACE.Server.Managers
                 foreach (var landblockGroup in landblockGroups)
                 {
                     foreach (var landblock in landblockGroup)
-                        landblock.TickMultiThreadedWork(Time.GetUnixTime());
+                        landblock.Tick(Time.GetUnixTime());
                 }
-            }
-        }
-
-        private static void TickSingleThreadedWork()
-        {
-            ProcessPendingLandblockGroupAdditions();
-
-            foreach (var landblockGroup in landblockGroups)
-            {
-                foreach (var landblock in landblockGroup)
-                    landblock.TickSingleThreadedWork(Time.GetUnixTime());
             }
         }
 
