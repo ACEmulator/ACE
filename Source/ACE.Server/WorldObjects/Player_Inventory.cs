@@ -593,27 +593,17 @@ namespace ACE.Server.WorldObjects
             MotionCommand pickupMotion;
 
             var item_location_z = objectWereReachingToward.Location.PositionZ;
-            //var target_top = item_location_z + objectWereReachingToward.Height;
-            var player_arm_z = Location.PositionZ + Height * 0.66;
-            var diff = item_location_z - player_arm_z;
-            switch (diff)
-            {
-                case var n when (n >= 1.4):
-                    pickupMotion = MotionCommand.Pickup20;
-                    break;
-                case var n when (n >= 0.6 && n < 1.4):
-                    pickupMotion = MotionCommand.Pickup15;
-                    break;
-                case var n when (n >= 0.2 && n < 0.6) || (n < 0.0 && n > -0.1):
-                    pickupMotion = MotionCommand.Pickup10;
-                    break;
-                case var n when (n >= 0.0 && n < 0.2):
-                    pickupMotion = MotionCommand.Pickup5;
-                    break;
-                default:
-                    pickupMotion = MotionCommand.Pickup;
-                    break;
-            }
+
+            if (item_location_z >= Location.PositionZ + (Height * 0.90))
+                pickupMotion = MotionCommand.Pickup20; // Reach up
+            else if (item_location_z >= Location.PositionZ + (Height * 0.70))
+                pickupMotion = MotionCommand.Pickup15; // Reach over and up just a little bit
+            else if (item_location_z >= Location.PositionZ + (Height * 0.50))
+                pickupMotion = MotionCommand.Pickup10; // Reach over and down just a little bit
+            else if (item_location_z >= Location.PositionZ + (Height * 0.30))
+                pickupMotion = MotionCommand.Pickup5; // Bend down a little bit
+            else
+                pickupMotion = MotionCommand.Pickup; // At foot height or lower
 
             // start picking up item animation
             var motion = new Motion(CurrentMotionState.Stance, pickupMotion);
