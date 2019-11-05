@@ -585,10 +585,25 @@ namespace ACE.Server.WorldObjects
         /// This would be used if your pickup action first requires a MoveTo action
         /// It will add a chain to broadcast the pickup motion and then add a delay for the animation length
         /// </summary>
-        private ActionChain AddPickupChainToMoveToChain(Container sourceContainer, Container destContainer)
+        private ActionChain AddPickupChainToMoveToChain(WorldObject objectWereReachingToward)
         {
-            var container = destContainer == this ? sourceContainer : destContainer;
-            var pickupMotion = container != null ? container.MotionPickup : MotionCommand.Pickup;
+            if (objectWereReachingToward.Location == null)
+                return new ActionChain();
+
+            MotionCommand pickupMotion;
+
+            var item_location_z = objectWereReachingToward.Location.PositionZ;
+
+            if (item_location_z >= Location.PositionZ + (Height * 0.90))
+                pickupMotion = MotionCommand.Pickup20; // Reach up
+            else if (item_location_z >= Location.PositionZ + (Height * 0.70))
+                pickupMotion = MotionCommand.Pickup15; // Reach over and up just a little bit
+            else if (item_location_z >= Location.PositionZ + (Height * 0.50))
+                pickupMotion = MotionCommand.Pickup10; // Reach over and down just a little bit
+            else if (item_location_z >= Location.PositionZ + (Height * 0.20))
+                pickupMotion = MotionCommand.Pickup5; // Bend down a little bit
+            else
+                pickupMotion = MotionCommand.Pickup; // At foot height or lower
 
             // start picking up item animation
             var motion = new Motion(CurrentMotionState.Stance, pickupMotion);
@@ -781,7 +796,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(itemRootOwner, container);
+                    var pickupChain = AddPickupChainToMoveToChain(moveToTarget);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -1187,7 +1202,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(rootOwner, this);
+                    var pickupChain = AddPickupChainToMoveToChain(rootOwner ?? item);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -1666,7 +1681,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(stackRootOwner, containerRootOwner);
+                    var pickupChain = AddPickupChainToMoveToChain(moveToObject);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -2007,7 +2022,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(sourceStackRootOwner, targetStackRootOwner);
+                    var pickupChain = AddPickupChainToMoveToChain(moveToObject);
 
                     pickupChain.AddAction(this, () =>
                     {
