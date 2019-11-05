@@ -54,6 +54,12 @@ namespace ACE.Server.Entity
 
         public int CastNum { get; set; }
 
+        public bool CastMeter { get; set; }
+
+        public float GestureTime { get; set; }
+
+        public DateTime GestureStartTime { get; set; }
+
         public MagicState(Player player)
         {
             Player = player;

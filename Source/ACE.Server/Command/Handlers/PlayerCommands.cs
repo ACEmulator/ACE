@@ -191,6 +191,23 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Record cast {(session.Player.RecordCast.Enabled ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
         }
 
+        [CommandHandler("castmeter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleCastMeter(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                session.Player.MagicState.CastMeter = !session.Player.MagicState.CastMeter;
+            }
+            else
+            {
+                if (parameters[0].Equals("on", StringComparison.OrdinalIgnoreCase))
+                    session.Player.MagicState.CastMeter = true;
+                else
+                    session.Player.MagicState.CastMeter = false;
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Cast efficiency meter {(session.Player.MagicState.CastMeter ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
+        }
+
         private static List<string> configList = new List<string>()
         {
             "Common settings:\nConfirmVolatileRareUse, MainPackPreferred, SalvageMultiple, SideBySideVitals, UseCraftSuccessDialog",

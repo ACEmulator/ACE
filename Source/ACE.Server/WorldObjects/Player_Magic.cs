@@ -429,6 +429,15 @@ namespace ACE.Server.WorldObjects
                     MagicState.CastGesture = caster.UseUserAnimation;
             }
 
+            if (MagicState.CastMeter)
+            {
+                castChain.AddAction(this, () =>
+                {
+                    MagicState.GestureTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MagicState.CastGesture, CastSpeed);
+                    MagicState.GestureStartTime = DateTime.UtcNow;
+                });
+            }
+
             if (RecordCast.Enabled)
             {
                 castChain.AddAction(this, () =>
@@ -437,6 +446,12 @@ namespace ACE.Server.WorldObjects
                     RecordCast.Log($"Cast Gesture: {MagicState.CastGesture}, Cast Time: {animLength}");
                 });
             }
+
+            castChain.AddAction(this, () =>
+            {
+                // not really, just force clears the motion queue?
+                PhysicsObj.PartArray.HandleEnterWorld();
+            });
 
             var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
 
@@ -526,6 +541,13 @@ namespace ACE.Server.WorldObjects
             if (RecordCast.Enabled)
                 RecordCast.Log($"DoCastSpell_Inner()");
 
+            if (MagicState.CastMeter)
+            {
+                var castTime = DateTime.UtcNow - MagicState.GestureStartTime;
+                var efficiency = 1.0f - (float)castTime.TotalSeconds / MagicState.GestureTime;
+                var msg = $"Cast efficiency: {efficiency * 100}%";
+                Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            }
 
             // consume mana
             if (!isWeaponSpell)
