@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database.Models.Shard
@@ -1170,9 +1171,18 @@ namespace ACE.Database.Models.Shard
                 try
                 {
                     entity = new BiotaPropertiesSkill { ObjectId = biota.Id, Type = type, Object = biota };
-                    biota.BiotaPropertiesSkill.Add(entity);
-                    skillAdded = true;
-                    return entity;
+
+                    if (SkillHelper.ValidSkills.Contains((Skill)type))
+                    {
+                        biota.BiotaPropertiesSkill.Add(entity);
+                        skillAdded = true;
+                        return entity;
+                    }
+                    else
+                    {
+                        skillAdded = false;
+                        return entity;
+                    }
                 }
                 finally
                 {
