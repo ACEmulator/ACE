@@ -41,9 +41,9 @@ namespace ACE.Server.WorldObjects
         public double LastSuccessCast_Time;
         public MagicSchool LastSuccessCast_School;
 
-        public bool DebugSpell;
+        public bool DebugSpell { get; set; }
 
-        public RecordCast RecordCast;
+        public RecordCast RecordCast { get; set; }
 
         /// <summary>
         /// Returns the magic skill associated with the magic school
@@ -150,7 +150,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     //Console.WriteLine("Setting requeue");
-                    MagicState.RequeueFirstTurn = true;
+                    MagicState.RequeueWindupTurn = true;
                 }
 
                 //SendUseDoneEvent(WeenieError.ActionCancelled);
@@ -441,6 +441,7 @@ namespace ACE.Server.WorldObjects
         public void DoCastGesture(Spell spell, bool isWeaponSpell, ActionChain castChain)
         {
             MagicState.CastGesture = spell.Formula.CastGesture;
+
             if (isWeaponSpell)
             {
                 var caster = GetEquippedWand();
@@ -448,23 +449,16 @@ namespace ACE.Server.WorldObjects
                     MagicState.CastGesture = caster.UseUserAnimation;
             }
 
-            if (MagicState.CastMeter)
-            {
-                castChain.AddAction(this, () =>
-                {
-                    MagicState.GestureTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MagicState.CastGesture, CastSpeed);
-                    MagicState.GestureStartTime = DateTime.UtcNow;
-                });
-            }
-
             if (RecordCast.Enabled)
             {
                 castChain.AddAction(this, () =>
                 {
                     var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MagicState.CastGesture, CastSpeed);
-                    RecordCast.Log($"Cast Gesture: {MagicState.CastGesture}, Cast Time: {animLength}");
+                    RecordCast.Log($"Cast Gesture: {MagicState.CastGesture}, Cast time: {animLength}");
                 });
             }
+
+            castChain.AddAction(this, () => MagicState.CastGestureStartTime = DateTime.UtcNow);
 
             var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
 
@@ -570,8 +564,9 @@ namespace ACE.Server.WorldObjects
 
             if (MagicState.CastMeter)
             {
-                var castTime = DateTime.UtcNow - MagicState.GestureStartTime;
-                var efficiency = 1.0f - (float)castTime.TotalSeconds / MagicState.GestureTime;
+                var gestureTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MagicState.CastGesture, CastSpeed);
+                var castTime = DateTime.UtcNow - MagicState.CastGestureStartTime;
+                var efficiency = 1.0f - (float)castTime.TotalSeconds / gestureTime;
                 var msg = $"Cast efficiency: {efficiency * 100}%";
                 Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
             }
@@ -1226,7 +1221,7 @@ namespace ACE.Server.WorldObjects
             // we handle this separately here, else the player re-turns too quickly
 
             //if (MagicState.CastMotionDone && MagicState.IsTurning && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
-            if (MagicState.IsTurning && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
+            if (MagicState.IsTurning && MagicState.CastGestureStartTime != DateTime.MinValue && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
             {
                 if (RecordCast.Enabled)
                     RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - turn done");
@@ -1241,14 +1236,13 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"OnMotionQueueDone_Magic()");
 
-            if (MagicState.RequeueFirstTurn)
+            if (MagicState.RequeueWindupTurn)
             {
-                MagicState.RequeueFirstTurn = false;
+                MagicState.RequeueWindupTurn = false;
                 DoWindup(MagicState.WindupParams, true);
                 return;
             }
 
-            //if (!MagicState.IsCasting || !MagicState.CastTurn) return;
             if (!MagicState.IsCasting || !MagicState.IsTurning) return;
 
             if (PhysicsObj.MovementManager.MoveToManager.PendingActions.Count > 0)
