@@ -45,7 +45,6 @@ namespace ACE.Server.WorldObjects
         public bool LastContact = true;
         public bool IsJumping = false;
         public DateTime LastJumpTime = DateTime.MinValue;
-        public bool WasAnimating;
 
         public ACE.Entity.Position LastGroundPos;
         public ACE.Entity.Position SnapPos;
