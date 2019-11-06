@@ -277,164 +277,163 @@ namespace ACE.Server.Factories
             return wield;
         }
 
+        /// <summary>
+        /// Assign a final AL value based upon tier
+        /// Based upon http://acpedia.org/wiki/Loot/Tier_7_Pre2013#Max_Armor_Levels
+        /// and http://acpedia.org/wiki/Loot/Tier_8#Maximum_Armor_Levels given the base AL values on the weenies
+        /// </summary>
+        /// <param name="wo"></param>
+        /// <param name="tier"></param>
+        /// <param name="armorType"></param>
+        /// <returns></returns>
         private static WorldObject AssignArmorLevel(WorldObject wo, int tier, LootTables.ArmorType armorType)
         {
             var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 
-            if (baseArmorLevel > 0)
+            if (wo.ArmorType != null && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear)
             {
-                int adjustedArmorLevel = baseArmorLevel + GetArmorLevelModifier(tier, armorType);
+                int armorModValue = 0;
+
+                // Accouting for Olthoi armor types in ACE-World dbs that have not been reduced to true base levels, similar to other loot clothing
+                var version = wo.GetProperty(PropertyInt.Version) ?? 1;
+                if (armorType > LootTables.ArmorType.HaebreanArmor && armorType <= LootTables.ArmorType.OlthoiAlduressaArmor && version < 3)
+                {
+                    if (armorType != LootTables.ArmorType.OlthoiAlduressaArmor)
+                    {
+                        switch (tier)
+                        {
+                            case 7:
+                                armorModValue = ThreadSafeRandom.Next(0, 40);
+                                break;
+                            case 8:
+                                armorModValue = ThreadSafeRandom.Next(160, 200);
+                                break;
+                            default:
+                                armorModValue = 0;
+                                break;
+                        }
+                    }
+                }
+                else
+                {
+                    // Sets AL variations based on weenie ArmorType field, such as cloth, leather, metal, etc.
+                    switch (tier)
+                    {
+                        case 1:
+                            if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                                armorModValue = ThreadSafeRandom.Next(20, 50);
+                            if (wo.ArmorType == (int)ArmorType.StuddedLeather)
+                                armorModValue = ThreadSafeRandom.Next(50, 70);
+                            if (wo.ArmorType == (int)ArmorType.Metal
+                                || wo.ArmorType == (int)ArmorType.Chainmail
+                                || wo.ArmorType == (int)ArmorType.Scalemail)
+                                armorModValue = ThreadSafeRandom.Next(0, 10);
+                            // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
+                            if (wo.ResistMagic != null && wo.ResistMagic == 9999)
+                                armorModValue = 0;
+                            break;
+                        case 2:
+                            if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                                armorModValue = ThreadSafeRandom.Next(50, 80);
+                            if (wo.ArmorType == (int)ArmorType.StuddedLeather)
+                                armorModValue = ThreadSafeRandom.Next(70, 100);
+                            if (wo.ArmorType == (int)ArmorType.Metal
+                                || wo.ArmorType == (int)ArmorType.Chainmail
+                                || wo.ArmorType == (int)ArmorType.Scalemail)
+                                armorModValue = ThreadSafeRandom.Next(10, 30);
+                            // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
+                            if (wo.ResistMagic != null && wo.ResistMagic == 9999)
+                                armorModValue = 0;
+                            break;
+                        case 3:
+                            if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                                armorModValue = ThreadSafeRandom.Next(80, 110);
+                            if (wo.ArmorType == (int)ArmorType.StuddedLeather)
+                                armorModValue = ThreadSafeRandom.Next(100, 130);
+                            if (wo.ArmorType == (int)ArmorType.Metal
+                                || wo.ArmorType == (int)ArmorType.Chainmail
+                                || wo.ArmorType == (int)ArmorType.Scalemail)
+                                armorModValue = ThreadSafeRandom.Next(30, 60);
+                            // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
+                            if (wo.ResistMagic != null && wo.ResistMagic == 9999)
+                                armorModValue = ThreadSafeRandom.Next(190, 210);
+                            break;
+                        case 4:
+                            if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                                armorModValue = ThreadSafeRandom.Next(110, 140);
+                            if (wo.ArmorType == (int)ArmorType.StuddedLeather)
+                                armorModValue = ThreadSafeRandom.Next(120, 150);
+                            if (wo.ArmorType == (int)ArmorType.Metal
+                                || wo.ArmorType == (int)ArmorType.Chainmail
+                                || wo.ArmorType == (int)ArmorType.Scalemail)
+                                armorModValue = ThreadSafeRandom.Next(60, 90);
+                            // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
+                            if (wo.ResistMagic != null && wo.ResistMagic == 9999)
+                                armorModValue = ThreadSafeRandom.Next(210, 230);
+                            break;
+                        case 5:
+                            if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                                armorModValue = ThreadSafeRandom.Next(140, 170);
+                            if (wo.ArmorType == (int)ArmorType.StuddedLeather)
+                                armorModValue = ThreadSafeRandom.Next(150, 180);
+                            if (wo.ArmorType == (int)ArmorType.Metal
+                                || wo.ArmorType == (int)ArmorType.Chainmail
+                                || wo.ArmorType == (int)ArmorType.Scalemail)
+                                armorModValue = ThreadSafeRandom.Next(90, 120);
+                            // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
+                            if (wo.ResistMagic != null && wo.ResistMagic == 9999)
+                                armorModValue = ThreadSafeRandom.Next(230, 250);
+                            break;
+                        case 6:
+                            if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                                armorModValue = ThreadSafeRandom.Next(170, 200);
+                            if (wo.ArmorType == (int)ArmorType.StuddedLeather)
+                                armorModValue = ThreadSafeRandom.Next(180, 210);
+                            if (wo.ArmorType == (int)ArmorType.Metal
+                                || wo.ArmorType == (int)ArmorType.Chainmail
+                                || wo.ArmorType == (int)ArmorType.Scalemail)
+                                armorModValue = ThreadSafeRandom.Next(120, 150);
+                            // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
+                            if (wo.ResistMagic != null && wo.ResistMagic == 9999)
+                                armorModValue = ThreadSafeRandom.Next(250, 270);
+                            break;
+                        case 7:
+                            if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                                armorModValue = ThreadSafeRandom.Next(200, 230);
+                            if (wo.ArmorType == (int)ArmorType.StuddedLeather)
+                                armorModValue = ThreadSafeRandom.Next(210, 240);
+                            if (wo.ArmorType == (int)ArmorType.Metal
+                                || wo.ArmorType == (int)ArmorType.Chainmail
+                                || wo.ArmorType == (int)ArmorType.Scalemail)
+                                armorModValue = ThreadSafeRandom.Next(150, 180);
+                            // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
+                            if (wo.ResistMagic != null && wo.ResistMagic == 9999)
+                                armorModValue = ThreadSafeRandom.Next(270, 290);
+                            break;
+                        case 8:
+                            if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                                armorModValue = ThreadSafeRandom.Next(230, 260);
+                            if (wo.ArmorType == (int)ArmorType.StuddedLeather)
+                                armorModValue = ThreadSafeRandom.Next(240, 270);
+                            if (wo.ArmorType == (int)ArmorType.Metal
+                                || wo.ArmorType == (int)ArmorType.Chainmail
+                                || wo.ArmorType == (int)ArmorType.Scalemail)
+                                armorModValue = ThreadSafeRandom.Next(180, 210);
+                            // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
+                            if (wo.ResistMagic != null && wo.ResistMagic == 9999)
+                                armorModValue = ThreadSafeRandom.Next(290, 310);
+                            break;
+                    }
+                }
+
+                int adjustedArmorLevel = baseArmorLevel + armorModValue;
                 wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
             }
 
+            if (wo.ArmorType == null)
+                log.Warn($"[LOOT] Missing PropertyInt.ArmorType on loot item {wo.WeenieClassId} - {wo.Name}");
+
             return wo;
-        }
-
-        private static int GetArmorLevelModifier(int tier, LootTables.ArmorType armorType)
-        {
-            // fixed in pending update synced w/ db
-            if (armorType > LootTables.ArmorType.HaebreanArmor && armorType < LootTables.ArmorType.OlthoiAlduressaArmor)
-            {
-                switch (tier)
-                {
-                    case 7:
-                        return ThreadSafeRandom.Next(0, 40);
-
-                    case 8:
-                        return ThreadSafeRandom.Next(160, 200);
-
-                    default:
-                        return 0;
-                }
-            }
-
-            switch (tier)
-            {
-                case 1:
-                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
-                     || armorType == LootTables.ArmorType.Helms
-                     || armorType == LootTables.ArmorType.Shields)
-                        return ThreadSafeRandom.Next(0, 27);
-
-                    else if (armorType == LootTables.ArmorType.LeatherArmor
-                          || armorType == LootTables.ArmorType.MiscClothing)
-                        return ThreadSafeRandom.Next(0, 23);
-
-                    else
-                        return ThreadSafeRandom.Next(0, 40);
-
-                case 2:
-                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
-                     || armorType == LootTables.ArmorType.Helms
-                     || armorType == LootTables.ArmorType.Shields)
-                        return ThreadSafeRandom.Next(27, 54);
-
-                    else if (armorType == LootTables.ArmorType.LeatherArmor
-                          || armorType == LootTables.ArmorType.MiscClothing)
-                        return ThreadSafeRandom.Next(23, 46);
-
-                    else
-                        return ThreadSafeRandom.Next(40, 80);
-
-                case 3:
-                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
-                     || armorType == LootTables.ArmorType.Helms
-                     || armorType == LootTables.ArmorType.Shields)
-                        return ThreadSafeRandom.Next(54, 81);
-
-                    else if (armorType == LootTables.ArmorType.LeatherArmor
-                          || armorType == LootTables.ArmorType.MiscClothing)
-                        return ThreadSafeRandom.Next(46, 69);
-
-                    else if (armorType == LootTables.ArmorType.CovenantArmor)
-                        return ThreadSafeRandom.Next(90, 130);
-
-                    else
-                        return ThreadSafeRandom.Next(80, 120);
-
-                case 4:
-                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
-                     || armorType == LootTables.ArmorType.Helms
-                     || armorType == LootTables.ArmorType.Shields)
-                        return ThreadSafeRandom.Next(81, 108);
-
-                    else if (armorType == LootTables.ArmorType.LeatherArmor
-                          || armorType == LootTables.ArmorType.MiscClothing)
-                        return ThreadSafeRandom.Next(69, 92);
-
-                    else if (armorType == LootTables.ArmorType.CovenantArmor)
-                        return ThreadSafeRandom.Next(130, 170);
-
-                    else
-                        return ThreadSafeRandom.Next(120, 160);
-
-                case 5:
-                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
-                     || armorType == LootTables.ArmorType.Helms
-                     || armorType == LootTables.ArmorType.Shields)
-                        return ThreadSafeRandom.Next(108, 135);
-
-                    else if (armorType == LootTables.ArmorType.LeatherArmor
-                          || armorType == LootTables.ArmorType.MiscClothing)
-                        return ThreadSafeRandom.Next(92, 115);
-
-                    else if (armorType == LootTables.ArmorType.CovenantArmor)
-                        return ThreadSafeRandom.Next(170, 210);
-
-                    else
-                        return ThreadSafeRandom.Next(160, 200);
-
-                case 6:
-                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
-                     || armorType == LootTables.ArmorType.Helms
-                     || armorType == LootTables.ArmorType.Shields)
-                        return ThreadSafeRandom.Next(135, 162);
-
-                    else if (armorType == LootTables.ArmorType.LeatherArmor
-                          || armorType == LootTables.ArmorType.MiscClothing)
-                        return ThreadSafeRandom.Next(115, 138);
-
-                    else if (armorType == LootTables.ArmorType.CovenantArmor)
-                        return ThreadSafeRandom.Next(210, 250);
-
-                    else
-                        return ThreadSafeRandom.Next(200, 240);
-
-                case 7:
-                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
-                     || armorType == LootTables.ArmorType.Helms
-                     || armorType == LootTables.ArmorType.Shields)
-                        return ThreadSafeRandom.Next(162, 189);
-
-                    else if (armorType == LootTables.ArmorType.LeatherArmor
-                          || armorType == LootTables.ArmorType.MiscClothing)
-                        return ThreadSafeRandom.Next(138, 161);
-
-                    else if (armorType == LootTables.ArmorType.CovenantArmor)
-                        return ThreadSafeRandom.Next(250, 290);
-
-                    else
-                        return ThreadSafeRandom.Next(240, 280);
-
-                case 8:
-                    if (armorType == LootTables.ArmorType.StuddedLeatherArmor
-                     || armorType == LootTables.ArmorType.Helms
-                     || armorType == LootTables.ArmorType.Shields)
-                        return ThreadSafeRandom.Next(189, 216);
-
-                    else if (armorType == LootTables.ArmorType.LeatherArmor
-                        || armorType == LootTables.ArmorType.MiscClothing)
-                        return ThreadSafeRandom.Next(161, 184);
-
-                    else if (armorType == LootTables.ArmorType.CovenantArmor)
-                        return ThreadSafeRandom.Next(290, 330);
-
-                    else
-                        return ThreadSafeRandom.Next(280, 320);
-
-                default:
-                    return 0;
-            }
         }
     }
 }
