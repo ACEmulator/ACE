@@ -38,16 +38,19 @@ namespace ACE.Server.WorldObjects
             MoveToCallback = callback;
 
             PhysicsObj.MoveToObject(target.PhysicsObj, mvp);
+            //PhysicsObj.LastMoveWasAutonomous = false;
 
             PhysicsObj.update_object();
         }
 
-        public void CreateTurnToChain(WorldObject target, Action<bool> callback)
+        public void CreateTurnToChain(WorldObject target, Action<bool> callback, bool stopCompletely = false)
         {
             if (IsPlayerMovingTo)
                 StopExistingMoveToChains();
 
-            if (target.Location == null)
+            var rotateTarget = target.GetCurrentOrWielder(CurrentLandblock);
+
+            if (rotateTarget.Location == null)
             {
                 log.Error($"{Name}.TurnTo({target.Name}): target.Location is null");
                 callback(false);
@@ -58,11 +61,11 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine("*** CreateTurnToChain ***");
 
             // send command to client
-            TurnToObject(target);
+            TurnToObject(rotateTarget, stopCompletely);
 
             // start on server
             // forward this to PhysicsObj.MoveManager.MoveToManager
-            var mvp = GetTurnToParams();
+            var mvp = GetTurnToParams(stopCompletely);
 
             if (!PhysicsObj.IsMovingOrAnimating)
                 //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - PhysicsGlobals.MinQuantum;
@@ -71,13 +74,15 @@ namespace ACE.Server.WorldObjects
             IsPlayerMovingTo = true;
             MoveToCallback = callback;
 
-            PhysicsObj.TurnToObject(target.Guid.Full, mvp);
+            PhysicsObj.TurnToObject(rotateTarget.Guid.Full, mvp);
+            //PhysicsObj.LastMoveWasAutonomous = false;
 
             PhysicsObj.update_object();
         }
 
         public void StopExistingMoveToChains()
         {
+            //Console.WriteLine($"CancelMoveTo");
             PhysicsObj.cancel_moveto();
         }
 
@@ -98,12 +103,12 @@ namespace ACE.Server.WorldObjects
             return mvp;
         }
 
-        public MovementParameters GetTurnToParams()
+        public MovementParameters GetTurnToParams(bool stopCompletely = false)
         {
             var mvp = new MovementParameters();
 
             //mvp.HoldKeyToApply = HoldKey.Run;
-            //mvp.StopCompletely = false;
+            mvp.StopCompletely = stopCompletely;
             //mvp.ModifyInterpretedState = false;
 
             return mvp;
@@ -112,7 +117,7 @@ namespace ACE.Server.WorldObjects
         public void OnMoveComplete_MoveTo(WeenieError status, int cycles)
         {
             if (DebugPlayerMoveToStatePhysics)
-                Console.WriteLine($"{Name}.OnMoveComplete_MoveTo({status})");
+                Console.WriteLine($"{Name}.OnMoveComplete_MoveTo({status}, {cycles})");
 
             IsPlayerMovingTo = false;
 

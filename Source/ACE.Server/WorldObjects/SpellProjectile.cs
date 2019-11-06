@@ -223,7 +223,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.set_active(false);
 
             EnqueueBroadcastPhysicsState();
-            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
+            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
 
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddDelaySeconds(5.0);

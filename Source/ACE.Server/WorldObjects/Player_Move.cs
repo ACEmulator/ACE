@@ -188,6 +188,7 @@ namespace ACE.Server.WorldObjects
         public override void OnMoveComplete(WeenieError status, int cycles)
         {
             //Console.WriteLine($"{Name}.OnMoveComplete({status}, IsMoving={IsMoving}, IsPlayerMovingTo={IsPlayerMovingTo}, IsCasting={MagicState.IsCasting}, CastTurn={MagicState.CastTurn}, Cycles={cycles})");
+            //Console.WriteLine($"{Name}.OnMoveComplete({status}, {cycles})");
             IsMoving = false;
 
             if (IsPlayerMovingTo)

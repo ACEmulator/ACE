@@ -37,11 +37,25 @@ namespace ACE.Server.Entity
 
         public bool WindupTurn { get; set; }
 
+        /// <summary>
+        /// Returns TRUE if player is required to turn to target for next move
+        /// </summary>
+        public bool TurnStarted { get; set; }
+
         public bool CastTurn { get; set; }
+
+        /// <summary>
+        /// Returns TRUE if current player animation frame is turning
+        /// </summary>
+        public bool IsTurning { get; set; }
 
         public bool CastTurnStarted { get; set; }
 
+        public bool RequeueFirstTurn { get; set; }
+
         public bool Launched { get; set; }
+
+        public WindupParams WindupParams { get; set; }
 
         public CastSpellParams CastSpellParams { get; set; }
 
@@ -77,6 +91,8 @@ namespace ACE.Server.Entity
             WindupTurn = false;
             CastTurn = false;
             CastTurnStarted = false;
+            TurnStarted = false;
+            IsTurning = false;
             StartTime = DateTime.UtcNow;
 
             if (Player.UnderLifestoneProtection)
@@ -104,6 +120,8 @@ namespace ACE.Server.Entity
             WindupTurn = false;
             CastTurn = false;
             CastTurnStarted = false;
+            TurnStarted = false;
+            IsTurning = false;
             CastGesture = MotionCommand.Invalid;
 
             if (Player.RecordCast.Enabled)
@@ -117,6 +135,7 @@ namespace ACE.Server.Entity
             }
 
             CastSpellParams = null;
+            WindupParams = null;
         }
 
         public void SetCastParams(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
@@ -125,6 +144,11 @@ namespace ACE.Server.Entity
 
             if (Player.RecordCast.Enabled && CastSpellParams.Target != null)
                 Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
+        }
+
+        public void SetWindupParams(uint targetGuid, uint spellId, bool builtInSpell)
+        {
+            WindupParams = new WindupParams(targetGuid, spellId, builtInSpell);
         }
 
         public override string ToString()
