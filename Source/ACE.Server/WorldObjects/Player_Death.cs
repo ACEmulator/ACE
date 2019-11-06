@@ -188,13 +188,20 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, () =>
             {
                 CreateCorpse(topDamager);
-                TeleportOnDeath();      // enter portal space
-                SetLifestoneProtection();
 
-                if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
-                    SetMinimumTimeSincePK();
+                // This can be called from various sources that may be mulit-threaded.
+                // The risk of moving the player immediately is that the player may move onto another landblock group, and thus, cross thread boundaries
+                // By enqueuing the work on WorldManager, we can make sure it's done in a thread safe manner
+                WorldManager.EnqueueAction(new ActionEventDelegate(() =>
+                {
+                    TeleportOnDeath(); // enter portal space
+                    SetLifestoneProtection();
 
-                IsBusy = false;
+                    if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
+                        SetMinimumTimeSincePK();
+
+                    IsBusy = false;
+                }));
             });
 
             dieChain.EnqueueChain();
