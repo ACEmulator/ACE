@@ -11,7 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.MoveToState)]
         public static void Handle(ClientMessage message, Session session)
         {
-            //Console.WriteLine("MoveToState");
+            //Console.WriteLine($"{session.Player.Name}.MoveToState");
 
             var moveToState = new MoveToState(session.Player, message.Payload);
 
@@ -21,7 +21,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 session.Player.LastMoveToState = moveToState;
 
                 // should the server broadcast position updates on MoveToState?
-                session.Player.SetRequestedLocation(moveToState.Position);
+                session.Player.SetRequestedLocation(moveToState.Position, false);
             }
 
             //if (!moveToState.StandingLongJump)

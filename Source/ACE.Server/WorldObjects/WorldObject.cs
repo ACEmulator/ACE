@@ -452,7 +452,13 @@ namespace ACE.Server.WorldObjects
 
         public Position RequestedLocation { get; set; }
 
-        public Position PreviousLocation { get; set; }
+        /// <summary>
+        /// Flag indicates if RequestedLocation should be broadcast to other players
+        /// - For AutoPos packets, this is set to TRUE
+        /// - For MoveToState packets, this is set to FALSE
+        /// </summary>
+        public bool RequestedLocationBroadcast { get; set; }
+
 
 
         ////// Logical Game Data
