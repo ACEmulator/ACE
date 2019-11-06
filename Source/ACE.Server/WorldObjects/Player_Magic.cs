@@ -549,8 +549,6 @@ namespace ACE.Server.WorldObjects
 
             CreateTurnToChain(target, null, stopCompletely);
 
-            //MagicState.CastTurn = true;
-            //MagicState.CastTurnStarted = true;
             MagicState.IsTurning = true;
             MagicState.TurnStarted = true;
         }
@@ -1226,8 +1224,6 @@ namespace ACE.Server.WorldObjects
                 if (RecordCast.Enabled)
                     RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - turn done");
 
-                //MagicState.CastTurn = false;
-                //DoCastSpell(MagicState);
                 PostTurn();
             }
         }
@@ -1257,8 +1253,6 @@ namespace ACE.Server.WorldObjects
             if (RecordCast.Enabled)
                 RecordCast.Log($"{Name}.OnMotionQueueDone_Magic() - DoCastSpell");
 
-            //MagicState.CastTurn = false;
-            //DoCastSpell(MagicState);
             PostTurn();
         }
 
@@ -1266,7 +1260,7 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"OnMoveComplete_Magic({status}, {cycles})");
 
-            //if (!MagicState.IsCasting || !MagicState.CastTurnStarted || status != WeenieError.None)
+            //if (!MagicState.IsCasting || !MagicState.TurnStarted || status != WeenieError.None)
             if (!MagicState.IsCasting || !MagicState.TurnStarted || MagicState.CastMotionDone && status != WeenieError.None)
                 return;
 
@@ -1274,8 +1268,6 @@ namespace ACE.Server.WorldObjects
             if (RecordCast.Enabled)
                 RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoCastSpell");
 
-            //MagicState.CastTurn = false;
-            //DoCastSpell(MagicState);
             PostTurn();
         }
 
