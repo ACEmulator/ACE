@@ -361,8 +361,8 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // move wielded treasure over
-            var wieldedTreasure = Inventory.Values.Concat(EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Treasure));
+            // move wielded treasure over, which also includes Wielded objects not marked for destroy on death
+            var wieldedTreasure = Inventory.Values.Concat(EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Wield) || i.DestinationType.HasFlag(DestinationType.Treasure));
             foreach (var item in wieldedTreasure.ToList())
             {
                 if ((item.Bonded ?? 0) == (int)BondedStatus.Destroy)
