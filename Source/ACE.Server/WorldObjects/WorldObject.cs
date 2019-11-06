@@ -1004,7 +1004,7 @@ namespace ACE.Server.WorldObjects
             // empty base
         }
 
-        public virtual void OnMoveComplete(WeenieError status, int cycles)
+        public virtual void OnMoveComplete(WeenieError status)
         {
             // empty base
         }

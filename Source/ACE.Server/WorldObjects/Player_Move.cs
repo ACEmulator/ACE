@@ -185,18 +185,18 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        public override void OnMoveComplete(WeenieError status, int cycles)
+        public override void OnMoveComplete(WeenieError status)
         {
-            //Console.WriteLine($"{Name}.OnMoveComplete({status}, {cycles})");
+            //Console.WriteLine($"{Name}.OnMoveComplete({status}");
 
             IsMoving = false;
 
             if (IsPlayerMovingTo)
             {
-                OnMoveComplete_MoveTo(status, cycles);
+                OnMoveComplete_MoveTo(status);
 
                 if (MagicState.IsCasting)
-                    OnMoveComplete_Magic(status, cycles);
+                    OnMoveComplete_Magic(status);
 
                 return;
             }
