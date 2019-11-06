@@ -53,16 +53,6 @@ namespace ACE.Server.Entity
         public bool IsTurning { get; set; }
 
         /// <summary>
-        /// Flag indicates if the windup turn was interrupted,
-        /// signalling the server to automatically restart it.
-        ///
-        /// Restarting the windup turn is slightly different from restarting the casti turn,
-        /// in that the windup turn restart completely stops any other motions in progress,
-        /// such as running forward.
-        /// </summary>
-        public bool RequeueWindupTurn { get; set; }
-
-        /// <summary>
         /// Information required for performing the windup
         /// </summary>
         public WindupParams WindupParams { get; set; }
@@ -119,7 +109,6 @@ namespace ACE.Server.Entity
             CastMotionDone = false;
             TurnStarted = false;
             IsTurning = false;
-            RequeueWindupTurn = false;
 
             StartTime = DateTime.UtcNow;
             CastGestureStartTime = DateTime.MinValue;
@@ -147,7 +136,6 @@ namespace ACE.Server.Entity
             CastMotionDone = false;
             TurnStarted = false;
             IsTurning = false;
-            RequeueWindupTurn = false;
 
             CastGesture = MotionCommand.Invalid;
             CastGestureStartTime = DateTime.MinValue;
@@ -187,7 +175,6 @@ namespace ACE.Server.Entity
             str += $"CastMotionDone: {CastMotionDone}\n";
             str += $"TurnStarted: {TurnStarted}\n";
             str += $"IsTurning: {IsTurning}\n";
-            str += $"RequeueWindupTurn: {RequeueWindupTurn}\n";
             str += $"WindupParams: {WindupParams}\n";
             str += $"CastSpellParams: {CastSpellParams}\n";
             str += $"CastGesture: {CastGesture}\n";

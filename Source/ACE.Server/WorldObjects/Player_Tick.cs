@@ -369,19 +369,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (PhysicsObj.IsMovingOrAnimating)
-                {
                     UpdatePlayerPhysics();
-                    WasAnimating = true;
-                }
-                else if (WasAnimating)
-                {
-                    WasAnimating = false;
-
-                    if (DebugPlayerMoveToStatePhysics)
-                        Console.WriteLine("--------------------------");
-
-                    OnMotionQueueDone();
-                }
 
                 InUpdate = false;
 
@@ -534,12 +522,6 @@ namespace ACE.Server.WorldObjects
 
             if (MagicState.IsCasting)
                 HandleMotionDone_Magic(motionID, success);
-        }
-
-        public void OnMotionQueueDone()
-        {
-            if (MagicState.IsCasting)
-                OnMotionQueueDone_Magic();
         }
     }
 }

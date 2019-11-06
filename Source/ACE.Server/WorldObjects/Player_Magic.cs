@@ -11,7 +11,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -124,7 +123,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void DoWindup(WindupParams windupParams, bool requeue = false)
+        public void DoWindup(WindupParams windupParams)
         {
             //Console.WriteLine($"DoWindup");
 
@@ -145,16 +144,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // restart turn if required
-                if (requeue)
-                    TurnTo_Magic(target);
-                else
-                {
-                    //Console.WriteLine("Setting requeue");
-                    MagicState.RequeueWindupTurn = true;
-                }
-
-                //SendUseDoneEvent(WeenieError.ActionCancelled);
-                //MagicState.OnCastDone();
+                TurnTo_Magic(target);
              }
         }
 
@@ -418,6 +408,12 @@ namespace ACE.Server.WorldObjects
             if (spell.Flags.HasFlag(SpellFlags.FastCast) || isWeaponSpell)
                 return;
 
+            castChain.AddAction(this, () =>
+            {
+                MagicState.TurnStarted = false;
+                MagicState.IsTurning = false;
+            });
+
             foreach (var windupGesture in spell.Formula.WindupGestures)
             {
                 if (RecordCast.Enabled)
@@ -547,10 +543,10 @@ namespace ACE.Server.WorldObjects
 
             var stopCompletely = !MagicState.CastMotionDone;
 
-            CreateTurnToChain(target, null, stopCompletely);
-
-            MagicState.IsTurning = true;
             MagicState.TurnStarted = true;
+            MagicState.IsTurning = true;
+
+            CreateTurnToChain(target, null, stopCompletely);
         }
 
         public Position StartPos;
@@ -1214,66 +1210,21 @@ namespace ACE.Server.WorldObjects
                 MagicState.CastMotionDone = true;
                 DoCastSpell(MagicState);
             }
-
-            // this occurs after a normal secondary turn that has been cancelled
-            // we handle this separately here, else the player re-turns too quickly
-
-            //if (MagicState.CastMotionDone && MagicState.IsTurning && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
-            if (MagicState.IsTurning && MagicState.CastGestureStartTime != DateTime.MinValue && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
-            {
-                if (RecordCast.Enabled)
-                    RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - turn done");
-
-                PostTurn();
-            }
-        }
-
-        public void OnMotionQueueDone_Magic()
-        {
-            //Console.WriteLine($"OnMotionQueueDone_Magic()");
-
-            if (MagicState.RequeueWindupTurn)
-            {
-                MagicState.RequeueWindupTurn = false;
-                DoWindup(MagicState.WindupParams, true);
-                return;
-            }
-
-            if (!MagicState.IsCasting || !MagicState.IsTurning) return;
-
-            if (PhysicsObj.MovementManager.MoveToManager.PendingActions.Count > 0)
-            {
-                // this occurs after a jammed up secondary turn
-                if (RecordCast.Enabled)
-                    RecordCast.Log($"{Name}.OnMotionQueueDone_Magic() - restarting bugged turn");
-
-                PhysicsObj.cancel_moveto();
-            }
-
-            if (RecordCast.Enabled)
-                RecordCast.Log($"{Name}.OnMotionQueueDone_Magic() - DoCastSpell");
-
-            PostTurn();
         }
 
         public void OnMoveComplete_Magic(WeenieError status, int cycles)
         {
             //Console.WriteLine($"OnMoveComplete_Magic({status}, {cycles})");
 
-            //if (!MagicState.IsCasting || !MagicState.TurnStarted || status != WeenieError.None)
-            if (!MagicState.IsCasting || !MagicState.TurnStarted || MagicState.CastMotionDone && status != WeenieError.None)
+            if (!MagicState.IsCasting || !MagicState.TurnStarted)
                 return;
 
-            // this occurs after a normal secondary turn
+            // this occurs after the player is done turning
+            // before the windup, or after the first half of the cast motion
+            // either completed or cancelled
+
             if (RecordCast.Enabled)
                 RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoCastSpell");
-
-            PostTurn();
-        }
-
-        public void PostTurn()
-        {
-            //Console.WriteLine("PostTurn");
 
             MagicState.IsTurning = false;
 
