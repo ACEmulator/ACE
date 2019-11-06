@@ -216,16 +216,125 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugPlayerMoveToStatePhysics = false;
 
+        /// <summary>
+        /// For advanced spellcasting / players glitching around during powersliding,
+        /// the reason for this retail bug is from 2 different functions for player movement
+        /// 
+        /// The client's self-player uses DoMotion/StopMotion
+        /// The server and other players on the client use apply_raw_movement
+        ///
+        /// When a 3+ button powerslide is performed, this bugs out apply_raw_movement,
+        /// and causes the player to spin in place. With DoMotion/StopMotion, it performs a powerslide.
+        ///
+        /// The 'fastcast' server option has been added, which defaults to retail / TRUE
+        ///
+        /// If the server operator chooses to disable fastcasting, the server will use the client's
+        /// DoMotion/StopMotion movement method, which will match the server movement up much closer
+        /// with the client movement, and also has the effect of fixing the fastcasting bug from retail
+        /// 
+        /// Note that even with fastcasting disabled, the client will still appear to cut off 
+        /// the tail end of the spell animation, however /castmeter can be used to verify
+        /// casting efficiency is never above 0% with 'fastcast' disabled.
+        ///
+        /// Also note that even with fastcasting disabled, the client will still be using apply_raw_movement
+        /// to simulate the movement of other players, so they will still appear to have the turning / glitching around bug.
+        ///
+        /// If you wish for the positions of other players to be less glitchy, the 'MoveToState_UpdatePosition_Threshold'
+        /// can be lowered to achieve that
+        /// </summary>
+
         public void OnMoveToState(MoveToState moveToState)
         {
-            var rawState = moveToState.RawMotionState;
-
             if (DebugPlayerMoveToStatePhysics)
-                Console.WriteLine(rawState);
+                Console.WriteLine(moveToState.RawMotionState);
 
             if (RecordCast.Enabled)
                 RecordCast.OnMoveToState(moveToState);
 
+            if (!PhysicsObj.IsMovingOrAnimating)
+                PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
+            if (PropertyManager.GetBool("fastcast").Item || moveToState.StandingLongJump)
+                OnMoveToState_ServerMethod(moveToState);
+            else
+                OnMoveToState_ClientMethod(moveToState);
+        }
+
+        public void OnMoveToState_ClientMethod(MoveToState moveToState)
+        {
+            var rawState = moveToState.RawMotionState;
+            var prevState = LastMoveToState?.RawMotionState ?? RawMotionState.None;
+
+            var mvp = new Physics.Animation.MovementParameters();
+            mvp.HoldKeyToApply = rawState.CurrentHoldKey;
+
+            if (!PhysicsObj.IsMovingOrAnimating)
+                PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
+            // ForwardCommand
+            if (rawState.ForwardCommand != MotionCommand.Invalid)
+            {
+                // press new key
+                if (prevState.ForwardCommand == MotionCommand.Invalid)
+                {
+                    PhysicsObj.DoMotion((uint)MotionCommand.Ready, mvp);
+                    PhysicsObj.DoMotion((uint)rawState.ForwardCommand, mvp);
+                }
+                // press alternate key
+                else if (prevState.ForwardCommand != rawState.ForwardCommand)
+                {
+                    PhysicsObj.DoMotion((uint)rawState.ForwardCommand, mvp);
+                }
+            }
+            else if (prevState.ForwardCommand != MotionCommand.Invalid)
+            {
+                // release key
+                PhysicsObj.StopMotion((uint)prevState.ForwardCommand, mvp, true);
+            }
+
+            // StrafeCommand
+            if (rawState.SidestepCommand != MotionCommand.Invalid)
+            {
+                // press new key
+                if (prevState.SidestepCommand == MotionCommand.Invalid)
+                {
+                    PhysicsObj.DoMotion((uint)rawState.SidestepCommand, mvp);
+                }
+                // press alternate key
+                else if (prevState.SidestepCommand != rawState.SidestepCommand)
+                {
+                    PhysicsObj.DoMotion((uint)rawState.SidestepCommand, mvp);
+                }
+            }
+            else if (prevState.SidestepCommand != MotionCommand.Invalid)
+            {
+                // release key
+                PhysicsObj.StopMotion((uint)prevState.SidestepCommand, mvp, true);
+            }
+
+            // TurnCommand
+            if (rawState.TurnCommand != MotionCommand.Invalid)
+            {
+                // press new key
+                if (prevState.TurnCommand == MotionCommand.Invalid)
+                {
+                    PhysicsObj.DoMotion((uint)rawState.TurnCommand, mvp);
+                }
+                // press alternate key
+                else if (prevState.TurnCommand != rawState.TurnCommand)
+                {
+                    PhysicsObj.DoMotion((uint)rawState.TurnCommand, mvp);
+                }
+            }
+            else if (prevState.TurnCommand != MotionCommand.Invalid)
+            {
+                // release key
+                PhysicsObj.StopMotion((uint)prevState.TurnCommand, mvp, true);
+            }
+        }
+
+        public void OnMoveToState_ServerMethod(MoveToState moveToState)
+        {
             var minterp = PhysicsObj.get_minterp();
             minterp.RawState.SetState(moveToState.RawMotionState);
 
@@ -234,10 +343,6 @@ namespace ACE.Server.WorldObjects
                 minterp.RawState.ForwardCommand = (uint)MotionCommand.Ready;
                 minterp.RawState.SideStepCommand = 0;
             }
-
-            if (!PhysicsObj.IsMovingOrAnimating)
-                //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - PhysicsGlobals.MinQuantum;
-                PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
 
             var allowJump = minterp.motion_allows_jump(minterp.InterpretedState.ForwardCommand) == WeenieError.None;
 
@@ -319,6 +424,16 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// The maximum rate UpdatePosition packets from MoveToState will be broadcast for each player
+        /// AutonomousPosition still always broadcasts UpdatePosition
+        ///  
+        /// The default value (1 second) was estimated from this retail video:
+        /// https://youtu.be/o5lp7hWhtWQ?t=112
+        /// 
+        /// If you wish for players to glitch around less during powerslides, lower this value
+        /// </summary>
+        public static TimeSpan MoveToState_UpdatePosition_Threshold = TimeSpan.FromSeconds(1);
 
         /// <summary>
         /// Used by physics engine to actually update a player position
@@ -402,7 +517,7 @@ namespace ACE.Server.WorldObjects
             if (RecordCast.Enabled)
                 RecordCast.Log($"CurPos: {Location.ToLOCString()}");
 
-            if (RequestedLocationBroadcast || DateTime.UtcNow - LastUpdatePosition >= TimeSpan.FromSeconds(1))
+            if (RequestedLocationBroadcast || DateTime.UtcNow - LastUpdatePosition >= MoveToState_UpdatePosition_Threshold)
                 SendUpdatePosition();
             else
                 Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
