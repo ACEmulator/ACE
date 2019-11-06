@@ -400,6 +400,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SendUpdatePosition()
         {
+            //Console.WriteLine($"{Name}.SendUpdatePosition({Location.ToLOCString()})");
+
             EnqueueBroadcast(new GameMessageUpdatePosition(this));
         }
 

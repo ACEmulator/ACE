@@ -246,11 +246,6 @@ namespace ACE.Server.WorldObjects
             minterp.apply_raw_movement(true, allowJump);
         }
 
-        public bool OnAutoPos(ACE.Entity.Position newPosition, bool forceUpdate = false)
-        {
-            return UpdatePlayerPosition(newPosition, forceUpdate);
-        }
-
         public override bool UpdateObjectPhysics()
         {
             try
