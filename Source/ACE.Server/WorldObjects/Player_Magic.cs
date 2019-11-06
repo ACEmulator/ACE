@@ -447,12 +447,6 @@ namespace ACE.Server.WorldObjects
                 });
             }
 
-            castChain.AddAction(this, () =>
-            {
-                // not really, just force clears the motion queue?
-                PhysicsObj.PartArray.HandleEnterWorld();
-            });
-
             var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
 
             //Console.WriteLine($"Cast Gesture: " + MagicState.CastGesture);
