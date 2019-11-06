@@ -4096,27 +4096,29 @@ namespace ACE.Server.Physics
 
             var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
 
+            //Console.WriteLine($"{Name}.update_object_server({forcePos}) - deltaTime: {deltaTime}");
+
+            var isTeleport = WeenieObj.WorldObject?.Teleporting ?? false;
+
             // commented out for debugging
-            if (deltaTime > PhysicsGlobals.HugeQuantum)
+            if (deltaTime > PhysicsGlobals.HugeQuantum && !isTeleport)
             {
                 UpdateTime = PhysicsTimer.CurrentTime;   // consume time?
                 return false;
             }
 
-            var success = true;
-
-            if (GetBlockDist(Position, RequestPos) > 1)
-            {
-                log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}");
-                success = false;
-            }
-
             var requestCell = RequestPos.ObjCellID;
 
-            var wo = WeenieObj.WorldObject;
+            var success = true;
 
-            if (wo != null && !wo.Teleporting && success)
+            if (!isTeleport)
             {
+                if (GetBlockDist(Position, RequestPos) > 1)
+                {
+                    log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}");
+                    success = false;
+                }
+
                 while (deltaTime > PhysicsGlobals.MaxQuantum)
                 {
                     PhysicsTimer_CurrentTime += PhysicsGlobals.MaxQuantum;
@@ -4129,15 +4131,15 @@ namespace ACE.Server.Physics
                     PhysicsTimer_CurrentTime += deltaTime;
                     UpdateObjectInternal(deltaTime);
                 }
-            }
 
-            success &= requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
+                success &= requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
+            }
 
             if (forcePos && success)
                 set_current_pos(RequestPos);
 
             // for teleport, use SetPosition?
-            if (wo.Teleporting)
+            if (isTeleport)
             {
                 //Console.WriteLine($"*** SETTING TELEPORT ***");
 
