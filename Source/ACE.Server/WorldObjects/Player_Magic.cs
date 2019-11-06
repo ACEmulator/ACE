@@ -1190,7 +1190,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void OnMoveComplete_Magic(WeenieError status, int cycles)
+        public void OnMoveComplete_Magic(WeenieError status)
         {
             //Console.WriteLine($"OnMoveComplete_Magic({status}, {cycles})");
 
