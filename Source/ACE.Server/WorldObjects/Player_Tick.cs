@@ -402,7 +402,10 @@ namespace ACE.Server.WorldObjects
             if (RecordCast.Enabled)
                 RecordCast.Log($"CurPos: {Location.ToLOCString()}");
 
-            SendUpdatePosition();
+            if (RequestedLocationBroadcast || DateTime.UtcNow - LastUpdatePosition >= TimeSpan.FromSeconds(1))
+                SendUpdatePosition();
+            else
+                Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
 
             if (!InUpdate)
                 LandblockManager.RelocateObjectForPhysics(this, true);
