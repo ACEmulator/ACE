@@ -273,7 +273,12 @@ namespace ACE.Server.WorldObjects
                 return;
 
             if (target is Portal portal)
-                portal.OnCollideObject(this);
+            {
+                // This gets called via the physics engine, which could be multi-threaded.
+                // The risk of moving the player immediately is that the player may move onto another landblock group, and thus, cross thread boundaries
+                // By enqueuing the work on WorldManager, we can make sure it's done in a thread safe manner
+                WorldManager.EnqueueAction(new ActionEventDelegate(() => portal.OnCollideObject(this)));
+            }
             else if (target is PressurePlate pressurePlate)
                 pressurePlate.OnCollideObject(this);
             else if (target is Hotspot hotspot)
