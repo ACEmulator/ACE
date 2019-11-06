@@ -429,15 +429,6 @@ namespace ACE.Server.WorldObjects
                     MagicState.CastGesture = caster.UseUserAnimation;
             }
 
-            if (MagicState.CastMeter)
-            {
-                castChain.AddAction(this, () =>
-                {
-                    MagicState.GestureTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MagicState.CastGesture, CastSpeed);
-                    MagicState.GestureStartTime = DateTime.UtcNow;
-                });
-            }
-
             if (RecordCast.Enabled)
             {
                 castChain.AddAction(this, () =>
@@ -446,6 +437,8 @@ namespace ACE.Server.WorldObjects
                     RecordCast.Log($"Cast Gesture: {MagicState.CastGesture}, Cast Time: {animLength}");
                 });
             }
+
+            castChain.AddAction(this, () => MagicState.CastGestureStartTime = DateTime.UtcNow);
 
             var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
 
@@ -524,8 +517,8 @@ namespace ACE.Server.WorldObjects
 
             CreateTurnToChain(target, null);
 
-            MagicState.CastTurn = true;
-            MagicState.CastTurnStarted = true;
+            MagicState.IsTurning = true;
+            MagicState.TurnStarted = true;
         }
 
         public Position StartPos;
@@ -537,8 +530,9 @@ namespace ACE.Server.WorldObjects
 
             if (MagicState.CastMeter)
             {
-                var castTime = DateTime.UtcNow - MagicState.GestureStartTime;
-                var efficiency = 1.0f - (float)castTime.TotalSeconds / MagicState.GestureTime;
+                var gestureTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MagicState.CastGesture, CastSpeed);
+                var castTime = DateTime.UtcNow - MagicState.CastGestureStartTime;
+                var efficiency = 1.0f - (float)castTime.TotalSeconds / gestureTime;
                 var msg = $"Cast efficiency: {efficiency * 100}%";
                 Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
             }
@@ -1196,19 +1190,19 @@ namespace ACE.Server.WorldObjects
 
             // this occurs after a normal secondary turn that has been cancelled
             // we handle this separately here, else the player re-turns too quickly
-            if (MagicState.CastTurn && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
+            if (MagicState.IsTurning && PhysicsObj.MovementManager.MoveToManager.PendingActions.Count == 0)
             {
                 if (RecordCast.Enabled)
                     RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - turn done");
 
-                MagicState.CastTurn = false;
+                MagicState.IsTurning = false;
                 DoCastSpell(MagicState);
             }
         }
 
         public void OnMotionQueueDone_Magic()
         {
-            if (!MagicState.IsCasting || !MagicState.CastTurn) return;
+            if (!MagicState.IsCasting || !MagicState.IsTurning) return;
 
             if (PhysicsObj.MovementManager.MoveToManager.PendingActions.Count > 0)
             {
@@ -1222,20 +1216,20 @@ namespace ACE.Server.WorldObjects
             if (RecordCast.Enabled)
                 RecordCast.Log($"{Name}.OnMotionQueueDone_Magic() - DoCastSpell");
 
-            MagicState.CastTurn = false;
+            MagicState.IsTurning = false;
             DoCastSpell(MagicState);
         }
 
         public void OnMoveComplete_Magic(WeenieError status, int cycles)
         {
-            if (!MagicState.IsCasting || !MagicState.CastTurnStarted || status != WeenieError.None)
+            if (!MagicState.IsCasting || !MagicState.TurnStarted || status != WeenieError.None)
                 return;
 
             // this occurs after a normal secondary turn
             if (RecordCast.Enabled)
                 RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoCastSpell");
 
-            MagicState.CastTurn = false;
+            MagicState.IsTurning = false;
             DoCastSpell(MagicState);
         }
     }
