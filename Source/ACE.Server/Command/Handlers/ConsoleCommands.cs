@@ -8,9 +8,9 @@ using ACE.Server.Network;
 
 // this is for testing making lootgen items
 using ACE.Server.Factories;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+
 using Newtonsoft.Json;
+using System.IO;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -185,48 +185,80 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("testlootgen", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Loot for testing LootFactories", "<number of items> <loot tier>")]
         public static void TestLootGenerator(Session session, params string[] parameters)
         {
-            //var numberItemsGenerate = parameters[0];
-            //var itemsTier = parameters[1];
+            // This generates loot items to JSON files to be used in parser to check drop rates of LootFactory
+
+            // Reference for generating individual class of loot
+            // ?? Should clothing and armor be seperate, and is that possible as it stands currently??
+            // 1-Clothing
+            // 2-Jewelry
+            // 3-Magic
+            // 4-Melee
+            // 5-Missile
+            // 6-Rares
+
+            // Switch for different options
+            switch (parameters[0])
+            {
+                case "-info":
+                    Console.WriteLine("This is for more info on how to use this command");
+                    break;
+                default:
+                    break;
+            }
 
             if (Int32.TryParse(parameters[0], out int numberItemsGenerate))
+            {
                 Console.WriteLine("Number of items to generate " + numberItemsGenerate);
+            }
             else
+            {
                 Console.WriteLine("numbr of items is not an integer");
+                return;
+            }
 
             if (Int32.TryParse(parameters[1], out int itemsTier))
+            {
                 Console.WriteLine("tier is " + itemsTier);
+            }
             else
+            {
                 Console.WriteLine("tier is not an integer");
-
-
+                return;
+            }
 
             Console.WriteLine($"Creating {numberItemsGenerate} items, that are in tier {itemsTier}");
 
+            // Creating JSON Serializer using NewtonSoft
+            JsonSerializer serializer = new JsonSerializer();
+            serializer.NullValueHandling = NullValueHandling.Ignore;
+            serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            serializer.Formatting = Formatting.Indented;
 
-            // Do generate here
-            var testItem = LootGenerationFactory.CreateRandomLootObjects(itemsTier, true);
-            Console.WriteLine(testItem);
-            Console.WriteLine(testItem.Name);
-
-           
-
-            foreach (var prop in testItem.GetType().GetProperties())
+            // Loop depending on how many items you are creating
+            string fileName = null;
+            for (int i = 0; i < numberItemsGenerate; i++)
             {
-                if (prop.GetValue(testItem, null) != null)
-                    Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(testItem, null));
+                var testItem = LootGenerationFactory.CreateRandomLootObjects(itemsTier, true);
+                
+                Console.WriteLine("Item " + i);
+
+                if (testItem == null)
+                {
+                    Console.WriteLine("*Name is Null*");
+                    continue;
+                }
                 else
                 {
-                    ;
+                    Console.WriteLine(testItem.Name);
+                }
+                Console.WriteLine(testItem.EpicCantrips.Count);
+                fileName = String.Format(@"c:\ACE\json{0}.txt", i);
+                using (StreamWriter sw = new StreamWriter(fileName))
+                using (JsonWriter writer = new JsonTextWriter(sw))
+                {
+                    serializer.Serialize(writer, testItem.Biota);
                 }
             }
-
-            // Json Ser test
-
-            // string json = JsonSerializer.CreateDefault();
-
-
-
-
             Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
         }
 
