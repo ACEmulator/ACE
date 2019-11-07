@@ -3028,12 +3028,13 @@ namespace ACE.Server.Physics
 
         public void process_hooks()
         {
-            foreach (var hook in Hooks)
+            foreach (var hook in Hooks.ToList())
                 hook.Execute(this);
 
             Hooks.Clear();
 
-            foreach (var animHook in AnimHooks)
+            // collection was modified, only in client movement setup? (/modifybool fastcast false)
+            foreach (var animHook in AnimHooks.ToList())
                 animHook.Execute(this);
 
             AnimHooks.Clear();
@@ -3305,7 +3306,7 @@ namespace ACE.Server.Physics
                 if (State.HasFlag(PhysicsState.Static))
                     return false;
 
-                if (TransientState.HasFlag(TransientStateFlags.Active))
+                if (!TransientState.HasFlag(TransientStateFlags.Active))
                     UpdateTime = PhysicsTimer.CurrentTime;
 
                 TransientState |= TransientStateFlags.Active;

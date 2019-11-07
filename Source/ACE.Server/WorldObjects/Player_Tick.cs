@@ -398,10 +398,17 @@ namespace ACE.Server.WorldObjects
 
             // sync ace position?
 
+            // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
+            //
+            // scenario: start casting a self-spell, and then immediately start holding the run forward key during the windup
+            // on client: player will start running forward after the cast has completed
+            // on server: player will stand still
+            //
             if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
             {
                 // apply latest MoveToState, if applicable
-                if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
+                //if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
+                if ((LastMoveToState.RawMotionState.Flags & RawMotionFlags.ForwardCommand) != 0)
                 {
                     if (DebugPlayerMoveToStatePhysics)
                         Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
@@ -512,6 +519,25 @@ namespace ACE.Server.WorldObjects
 
             if (!InUpdate)
                 LandblockManager.RelocateObjectForPhysics(this, true);
+
+            return landblockUpdate;
+        }
+
+        public bool SyncLocationWithPhysics()
+        {
+            if (PhysicsObj.CurCell == null)
+            {
+                Console.WriteLine($"{Name}.SyncLocationWithPhysics(): CurCell is null!");
+                return false;
+            }
+
+            var blockcell = PhysicsObj.Position.ObjCellID;
+            var pos = PhysicsObj.Position.Frame.Origin;
+            var rotate = PhysicsObj.Position.Frame.Orientation;
+
+            var landblockUpdate = blockcell << 16 != CurrentLandblock.Id.Landblock;
+
+            Location = new ACE.Entity.Position(blockcell, pos, rotate);
 
             return landblockUpdate;
         }
