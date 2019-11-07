@@ -54,6 +54,9 @@ namespace ACE.Server.WorldObjects
 
             AvailableLuminance = available + addAmount;
 
+            if (xpType == XpType.Quest)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} luminance.", ChatMessageType.Broadcast));
+
             UpdateLuminance();
         }
 
