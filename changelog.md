@@ -1,17 +1,72 @@
 # ACEmulator Change Log
 
+### 2019-11-02
+[gmriggs]
+* Added some missing shield cantrips
+* Fixed a bug with material probability
+* Improved handling for monster spell.IsResistable
+* Added support for Overpower and OverpowerResist
+
 ### 2019-10-31
 [Ripley]
 * Cleanup ActOnUse for Ammo and move to debug only alert.
+
+[gmriggs]
+* Enabled magic absorption for missile/magic weapons
 
 ### 2019-10-30
 [Ripley]
 * Fix buy issue with AltCurrency Vendors.
 * Add support to limit the number of accepted connections per IP Address.
 
+[gmriggs]
+* Improved handling for attack sequences
+
+[Ziang]
+* Ensure that Impen spell is present on magical Covenant Armor
+
+### 2019-10-29
+[gmriggs]
+* Fixed some gaps for DST
+
+### 2019-10-27
+[gmriggs]
+* Backported hotspot accuracy from PR 1991
+* Added support for PropertyBool.AffectsAis
+* Added support for PropertyBool.AiImmobile
+* Added support for PropertyBool.OpensAnyLock
+* Added support for PropertyBool.PortalIgnoresPkAttackTimer
+* Broadcasting item give sound to match retail
+
+[slushnas]
+* Allow items that proc to cast untargeted spells
+
+### 2019-10-26
+[gmriggs]
+* Additional checks for CombatMode
+* Updated EmoteType.AwardLuminance to use HeroXP64
+
+### 2019-10-25
+[gmriggs]
+* Fixed monster idle emote update sync
+* Refactored GetProjectileSpellType
+
+### 2019-10-24
+[dirtyelf]
+* Improved /ungod resiliency
+
 ### 2019-10-23
 [Ripley]
 * Adjust the way SpendCurrency spends currency.
+
+[gmriggs]
+* Added item_dispel server config option to fix end of retail bug
+
+### 2019-10-222
+[gmriggs]
+* Improved monster position sync and corpse sync
+* Improved /teledungeon name search
+* Fixed some gaps with PK logout timer
 
 ### 2019-10-20
 [Ripley]
@@ -20,6 +75,7 @@
 
 [gmriggs]
 * Updated monster spellbook probabilities
+* Added player /config command
 
 ### 2019-10-19
 [gmriggs]
