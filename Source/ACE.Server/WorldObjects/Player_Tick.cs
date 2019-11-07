@@ -226,18 +226,11 @@ namespace ACE.Server.WorldObjects
         /// When a 3+ button powerslide is performed, this bugs out apply_raw_movement,
         /// and causes the player to spin in place. With DoMotion/StopMotion, it performs a powerslide.
         ///
-        /// The 'fastcast' server option has been added, which defaults to retail / TRUE
+        /// With this option enabled (retail defaults to false), the player's position on the server
+        /// will match up closely with the player's client during powerslides.
         ///
-        /// If the server operator chooses to disable fastcasting, the server will use the client's
-        /// DoMotion/StopMotion movement method, which will match the server movement up much closer
-        /// with the client movement, and also has the effect of fixing the fastcasting bug from retail
-        /// 
-        /// Note that even with fastcasting disabled, the client will still appear to cut off 
-        /// the tail end of the spell animation, however /castmeter can be used to verify
-        /// casting efficiency is never above 0% with 'fastcast' disabled.
-        ///
-        /// Also note that even with fastcasting disabled, the client will still be using apply_raw_movement
-        /// to simulate the movement of other players, so they will still appear to have the turning / glitching around bug.
+        /// Since the client uses apply_raw_movement to simulate the movement of nearby players,
+        /// the other players will still glitch around on screen, even with this option enabled.
         ///
         /// If you wish for the positions of other players to be less glitchy, the 'MoveToState_UpdatePosition_Threshold'
         /// can be lowered to achieve that
@@ -254,7 +247,7 @@ namespace ACE.Server.WorldObjects
             if (!PhysicsObj.IsMovingOrAnimating)
                 PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
 
-            if (PropertyManager.GetBool("fastcast").Item || moveToState.StandingLongJump)
+            if (!PropertyManager.GetBool("client_movement_formula").Item || moveToState.StandingLongJump)
                 OnMoveToState_ServerMethod(moveToState);
             else
                 OnMoveToState_ClientMethod(moveToState);
