@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects.Managers
         public int Nested { get; set; }
 
         public bool OnDeathEmoteInProgress { get; private set; }
-        public int OnDeathEmmoteNested { get; private set; }
+        public int OnDeathEmoteNested { get; private set; }
 
         public bool Debug = false;
 
@@ -1296,7 +1296,7 @@ namespace ACE.Server.WorldObjects.Managers
             Nested++;
 
             if (OnDeathEmoteInProgress && emoteSet.Category == (uint)EmoteCategory.Death)
-                OnDeathEmmoteNested++;
+                OnDeathEmoteNested++;
 
             Enqueue(emoteSet, targetObject);
 
@@ -1310,7 +1310,7 @@ namespace ACE.Server.WorldObjects.Managers
                 Nested--;
 
                 if (OnDeathEmoteInProgress && emoteSet.Category == (uint)EmoteCategory.Death)
-                    OnDeathEmmoteNested--;
+                    OnDeathEmoteNested--;
 
                 return;
             }
@@ -1350,12 +1350,12 @@ namespace ACE.Server.WorldObjects.Managers
                         Nested--;
 
                         if (OnDeathEmoteInProgress && emoteSet.Category == (uint)EmoteCategory.Death)
-                            OnDeathEmmoteNested--;
+                            OnDeathEmoteNested--;
 
                         if (Nested == 0)
                             IsBusy = false;
 
-                        if (OnDeathEmmoteNested == 0 && emoteSet.Category == (uint)EmoteCategory.Death)
+                        if (OnDeathEmoteNested == 0 && emoteSet.Category == (uint)EmoteCategory.Death)
                             OnDeathEmoteInProgress = false;
 
                     });
