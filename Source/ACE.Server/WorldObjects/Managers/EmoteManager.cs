@@ -1296,7 +1296,6 @@ namespace ACE.Server.WorldObjects.Managers
 
             // start action chain
             Nested++;
-
             Enqueue(emoteSet, targetObject);
 
             return true;
