@@ -127,7 +127,27 @@ namespace ACE.Server.Entity.Actions
                 return this;
             }
 
-            AddAction(WorldManager.DelayManager, new DelayAction(timeInSeconds));
+            AddAction(WorldManager.DelayManager, new DelayAction(DelayAction.DelayType.FixedDelay, timeInSeconds));
+
+            return this;
+        }
+
+        public ActionChain AddDelayUntil(double unixTimeInSeconds)
+        {
+            if (Double.IsNaN(unixTimeInSeconds))
+            {
+                Console.WriteLine("WARNING: ActionChain.DelayUntil(" + unixTimeInSeconds + ")");
+                return this;
+            }
+
+            AddAction(WorldManager.DelayManager, new DelayAction(DelayAction.DelayType.DelayUntil, unixTimeInSeconds));
+
+            return this;
+        }
+
+        public ActionChain AddDelayForOneTick()
+        {
+            AddAction(WorldManager.DelayManager, new DelayAction(DelayAction.DelayType.FixedDelay, 0));
 
             return this;
         }

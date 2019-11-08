@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -172,12 +173,12 @@ namespace ACE.Server.WorldObjects
 
             var rotateTime = Rotate(player);    // vendor rotates towards player
 
-            // TODO: remove this when DelayManager is not forward propagating current tick time
+            var delayUntilTime = Time.GetFutureUnixTime(rotateTime);
 
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(0.001f);  // force to run after rotate.EnqueueBroadcastAction
+            actionChain.AddDelayForOneTick();  // force to run after rotate.EnqueueBroadcastAction
             actionChain.AddAction(this, LoadInventory);
-            actionChain.AddDelaySeconds(rotateTime);
+            actionChain.AddDelayUntil(delayUntilTime);
             actionChain.AddAction(this, () => ApproachVendor(player, VendorType.Open));
             actionChain.EnqueueChain();
 
