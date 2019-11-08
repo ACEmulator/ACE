@@ -6,9 +6,9 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateArmor(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
+        private static WorldObject CreateArmor(int tier, bool isMagical, bool isArmor, LootBias lootBias = LootBias.UnBiased)
         {
-            var minType = LootTables.ArmorType.MiscClothing;
+            var minType = LootTables.ArmorType.Helms;
             var maxType = new LootTables.ArmorType();
 
             switch (tier)
@@ -33,14 +33,14 @@ namespace ACE.Server.Factories
                 case 7:
                 case 8:
                     maxType = LootTables.ArmorType.OlthoiAlduressaArmor;
-
-                    // armor Mana Forge Chests don't include clothing type items
-                    if (lootBias == LootBias.Armor)
-                        minType = LootTables.ArmorType.Helms;
                     break;
             }
 
-            var armorType = (LootTables.ArmorType)ThreadSafeRandom.Next((int)minType, (int)maxType);
+            LootTables.ArmorType armorType;
+            if (isArmor == true)
+                armorType = (LootTables.ArmorType)ThreadSafeRandom.Next((int)minType, (int)maxType);
+            else
+                armorType = LootTables.ArmorType.MiscClothing;
 
             int[] table = LootTables.GetLootTable(armorType);
 

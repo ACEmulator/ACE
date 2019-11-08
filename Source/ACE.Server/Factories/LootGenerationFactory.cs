@@ -237,31 +237,35 @@ namespace ACE.Server.Factories
                     type = 2;
                     break;
                 case LootBias.Weapons:
-                    type = 3;
-                    break;
-                case LootBias.Jewelry:
                     type = 4;
                     break;
+                case LootBias.Jewelry:
+                    type = 5;
+                    break;
                 default:
-                    type = ThreadSafeRandom.Next(1, 4);
+                    type = ThreadSafeRandom.Next(1, 5);
                     break;
             }
 
             switch (type)
             {
                 case 1:
-                    //jewels
+                    // jewels
                     wo = CreateJewels(tier, isMagical);
                     return wo;
                 case 2:
-                    //armor
-                    wo = CreateArmor(tier, isMagical, lootBias);
+                    // armor
+                    wo = CreateArmor(tier, isMagical, true, lootBias);
                     return wo;
                 case 3:
-                    //weapons
-                    wo = CreateWeapon(tier, isMagical);
+                    // shirts/pants
+                    wo = CreateArmor(tier, isMagical, false, lootBias);
                     return wo;
                 case 4:
+                    // weapons
+                    wo = CreateWeapon(tier, isMagical);
+                    return wo;
+                case 5:
                 default:
                     //jewelry
                     wo = CreateJewelry(tier, isMagical);
