@@ -1307,12 +1307,6 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 Nested--;
 
-                if (OnDeathEmoteInProgress)
-                {
-                    OnDeathEmoteInProgress = false;
-                    WorldObject.RemoveObjectAndRecycleGuid();
-                }
-
                 return;
             }
 
