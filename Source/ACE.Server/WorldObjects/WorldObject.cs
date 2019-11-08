@@ -890,12 +890,39 @@ namespace ACE.Server.WorldObjects
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
 
+            if (!(this is Creature))
+            {
+                RemoveObjectAndRecycleGuid();
+            }
+            else
+            {
+                EnqueueActionBroadcast(p => p.RemoveTrackedObject(this, false));
+
+                CheckForOnDeathCompletion();
+            }
+        }
+
+        private void RemoveObjectAndRecycleGuid()
+        {
             CurrentLandblock?.RemoveWorldObject(Guid);
 
             RemoveBiotaFromDatabase();
 
             if (Guid.IsDynamic())
                 GuidManager.RecycleDynamicGuid(Guid);
+        }
+
+        private void CheckForOnDeathCompletion()
+        {
+            if (!EmoteManager.OnDeathEmoteInProgress)
+                RemoveObjectAndRecycleGuid();
+            else
+            {
+                var recheck = new ActionChain();
+                recheck.AddDelaySeconds(5);
+                recheck.AddAction(this, () => CheckForOnDeathCompletion());
+                recheck.EnqueueChain();
+            }
         }
 
         public void FadeOutAndDestroy(bool raiseNotifyOfDestructionEvent = true)

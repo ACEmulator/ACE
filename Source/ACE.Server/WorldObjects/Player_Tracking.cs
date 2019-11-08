@@ -54,6 +54,10 @@ namespace ACE.Server.WorldObjects
             if (worldObject == null || worldObject.Guid == Guid)
                 return;
 
+            // Do not track destroyed objects that are pending removal from landblock.
+            if (worldObject.IsDestroyed)
+                return;
+
             // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
             if (!worldObject.Visibility)
                 Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject, Adminvision, Adminvision));

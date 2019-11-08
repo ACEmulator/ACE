@@ -40,6 +40,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public bool IsBusy { get; set; }
         public int Nested { get; set; }
+        public bool OnDeathEmoteInProgress { get; private set; }
 
         public bool Debug = false;
 
@@ -1342,7 +1343,12 @@ namespace ACE.Server.WorldObjects.Managers
                         Nested--;
 
                         if (Nested == 0)
+                        {
                             IsBusy = false;
+                            if (OnDeathEmoteInProgress)
+                                OnDeathEmoteInProgress = false;
+                        }
+
                     });
                     delayChain.EnqueueChain();
                 }
@@ -1468,6 +1474,7 @@ namespace ACE.Server.WorldObjects.Managers
         public void OnDeath(DamageHistory damageHistory)
         {
             IsBusy = false;
+            OnDeathEmoteInProgress = true;
 
             if (damageHistory.Damagers.Count == 0)
                 ExecuteEmoteSet(EmoteCategory.Death, null, null);
