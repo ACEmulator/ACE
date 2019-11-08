@@ -1272,9 +1272,6 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public void ExecuteEmoteSet(EmoteCategory category, string quest = null, WorldObject targetObject = null, bool nested = false)
         {
-            if (category == EmoteCategory.Death)
-                OnDeathEmoteInProgress = true;
-
             var emoteSet = GetEmoteSet(category, quest);
 
             // TODO: revisit if nested chains need to propagate timers
@@ -1477,7 +1474,11 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void OnDeath(DamageHistory damageHistory)
         {
+            if (GetEmoteSet(EmoteCategory.Death) == null)
+                return;
+
             IsBusy = false;
+            OnDeathEmoteInProgress = true;
 
             if (damageHistory.Damagers.Count == 0)
                 ExecuteEmoteSet(EmoteCategory.Death, null, null);
