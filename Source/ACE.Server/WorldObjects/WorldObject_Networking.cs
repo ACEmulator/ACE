@@ -1050,7 +1050,7 @@ namespace ACE.Server.WorldObjects
             return iterator.CurrentLandblock == null ? null : iterator;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
@@ -1058,10 +1058,9 @@ namespace ACE.Server.WorldObjects
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
             var animLength = 0.0f;
-            if (usePrevCommand)
+            if (prevCommand != null)
             {
-                var prevCommand = CurrentMotionState.MotionState.ForwardCommand;
-                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand.Value, motionCommand, speed);
             }
             else
                 animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
