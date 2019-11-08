@@ -189,7 +189,7 @@ namespace ACE.Server.WorldObjects
             {
                 CreateCorpse(topDamager);
 
-                TeleportOnDeath(); // enter portal space
+                ThreadSafeTeleportOnDeath(); // enter portal space
 
                 SetLifestoneProtection();
 
@@ -205,7 +205,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when the player enters portal space after dying
         /// </summary>
-        public void TeleportOnDeath()
+        public void ThreadSafeTeleportOnDeath()
         {
             // teleport to sanctuary or best location
             var newPosition = Sanctuary ?? Instantiation ?? Location;

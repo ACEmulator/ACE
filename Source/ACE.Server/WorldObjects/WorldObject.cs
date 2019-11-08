@@ -760,13 +760,15 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void AdjustDungeon(Position pos)
+        // todo: This should really be an extension method for Position, or a static method within Position
+        public static void AdjustDungeon(Position pos)
         {
             AdjustDungeonPos(pos);
             AdjustDungeonCells(pos);
         }
 
-        public bool AdjustDungeonCells(Position pos)
+        // todo: This should really be an extension method for Position, or a static method within Position
+        public static bool AdjustDungeonCells(Position pos)
         {
             if (pos == null) return false;
 
@@ -786,7 +788,8 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        public bool AdjustDungeonPos(Position pos)
+        // todo: This should really be an extension method for Position, or a static method within Position
+        public static bool AdjustDungeonPos(Position pos)
         {
             if (pos == null) return false;
 
