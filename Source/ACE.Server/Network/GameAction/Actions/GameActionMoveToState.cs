@@ -11,7 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.MoveToState)]
         public static void Handle(ClientMessage message, Session session)
         {
-            //Console.WriteLine("MoveToState");
+            //Console.WriteLine($"{session.Player.Name}.MoveToState");
 
             var moveToState = new MoveToState(session.Player, message.Payload);
 
@@ -20,12 +20,8 @@ namespace ACE.Server.Network.GameAction.Actions
                 session.Player.OnMoveToState(moveToState);
                 session.Player.LastMoveToState = moveToState;
 
-                // do not do the AutoPos / update_object_server path here,
-                // let update_object handle it naturally
-                // update_object_server can leak deltaTime when spamming keypresses,
-                // if deltaTime < minDeltaTime
-
-                //session.Player.SetRequestedLocation(moveToState.Position);
+                // should the server broadcast position updates on MoveToState?
+                session.Player.SetRequestedLocation(moveToState.Position, false);
             }
 
             //if (!moveToState.StandingLongJump)

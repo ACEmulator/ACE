@@ -178,9 +178,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Records where the client thinks we are, for use by physics engine later
         /// </summary>
-        public void SetRequestedLocation(Position pos)
+        public void SetRequestedLocation(Position pos, bool broadcast = true)
         {
             RequestedLocation = pos;
+            RequestedLocationBroadcast = broadcast;
         }
 
         //public DateTime LastSoulEmote;

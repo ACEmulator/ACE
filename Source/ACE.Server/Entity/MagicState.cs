@@ -25,7 +25,13 @@ namespace ACE.Server.Entity
         public Player Player { get; set; }
 
         /// <summary>
-        /// Returns TRUE is player is currently in the process of casting a spell
+        /// This flag indicates if player is currently casting a spell
+        /// //
+        /// It gets set to TRUE when they press the cast button,
+        /// and becomes FALSE again when their recoil animation has completed.
+        ///
+        /// If server is running with spellcast_recoil_queue = true,
+        /// it becomes FALSE when their recoil animation has started.
         /// </summary>
         public bool IsCasting { get; set; }
 
@@ -35,14 +41,20 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool CastMotionDone { get; set; }
 
-        public bool WindupTurn { get; set; }
+        /// <summary>
+        /// Returns TRUE if player has started turning for either the windup or cast launch
+        /// After turning has completed, this will still be true
+        /// </summary>
+        public bool TurnStarted { get; set; }
 
-        public bool CastTurn { get; set; }
+        /// <summary>
+        /// Returns TRUE if current player animation frame is turning
+        /// </summary>
+        public bool IsTurning { get; set; }
 
-        public bool CastTurnStarted { get; set; }
-
-        public bool Launched { get; set; }
-
+        /// <summary>
+        /// Information required for launching the spell
+        /// </summary>
         public CastSpellParams CastSpellParams { get; set; }
 
         /// <summary>
@@ -50,15 +62,32 @@ namespace ACE.Server.Entity
         /// </summary>
         public MotionCommand CastGesture { get; set; }
 
+        /// <summary>
+        /// The time when the player pressed the key to begin spell casting
+        /// </summary>
         public DateTime StartTime { get; set; }
 
+        /// <summary>
+        /// Tracks the cast # for /recordcast
+        /// </summary>
         public int CastNum { get; set; }
 
+        /// <summary>
+        /// If TRUE, the casting efficiency meter has been enabled with /castmeter
+        /// This shows the player information about how quickly they interrupted the cast motion
+        /// 
+        /// - 0% would be a standard cast, with no additional buttons pressed
+        /// - 50% would mean they interrupted the cast motion 1/2 way through
+        /// - 100% could theoretically be possible, and would indicate the cast motion was completely avoided
+        /// - Negative % indicates the player pressed additional keys which actually slowed down the cast
+        /// </summary>
         public bool CastMeter { get; set; }
 
-        public float GestureTime { get; set; }
-
-        public DateTime GestureStartTime { get; set; }
+        /// <summary>
+        /// The time when the player started performing the 'launch spell' casting gesture
+        /// This is used for CastMeter measurement
+        /// </summary>
+        public DateTime CastGestureStartTime { get; set; }
 
         public MagicState(Player player)
         {
@@ -73,11 +102,11 @@ namespace ACE.Server.Entity
             Player.IsBusy = true;
             IsCasting = true;
             CastMotionDone = false;
-            Launched = false;
-            WindupTurn = false;
-            CastTurn = false;
-            CastTurnStarted = false;
+            TurnStarted = false;
+            IsTurning = false;
+
             StartTime = DateTime.UtcNow;
+            CastGestureStartTime = DateTime.MinValue;
 
             if (Player.UnderLifestoneProtection)
                 Player.LifestoneProtectionDispel();
@@ -100,11 +129,11 @@ namespace ACE.Server.Entity
             Player.IsBusy = false;
             IsCasting = false;
             CastMotionDone = false;
-            Launched = false;
-            WindupTurn = false;
-            CastTurn = false;
-            CastTurnStarted = false;
+            TurnStarted = false;
+            IsTurning = false;
+
             CastGesture = MotionCommand.Invalid;
+            CastGestureStartTime = DateTime.MinValue;
 
             if (Player.RecordCast.Enabled)
             {
@@ -132,12 +161,11 @@ namespace ACE.Server.Entity
             var str = $"Player: {Player.Name} ({Player.Guid})\n";
             str += $"IsCasting: {IsCasting}\n";
             str += $"CastMotionDone: {CastMotionDone}\n";
-            str += $"WindupTurn: {WindupTurn}\n";
-            str += $"CastTurn: {CastTurn}\n";
-            str += $"CastTurnStarted: {CastTurnStarted}\n";
-            str += $"Launched: {Launched} \n";
+            str += $"TurnStarted: {TurnStarted}\n";
+            str += $"IsTurning: {IsTurning}\n";
             str += $"CastSpellParams: {CastSpellParams}\n";
-            str += $"CastGesture: {CastGesture}";
+            str += $"CastGesture: {CastGesture}\n";
+            str += $"StartTime: {StartTime}\n";
             return str;
         }
     }

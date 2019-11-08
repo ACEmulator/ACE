@@ -452,7 +452,13 @@ namespace ACE.Server.WorldObjects
 
         public Position RequestedLocation { get; set; }
 
-        public Position PreviousLocation { get; set; }
+        /// <summary>
+        /// Flag indicates if RequestedLocation should be broadcast to other players
+        /// - For AutoPos packets, this is set to TRUE
+        /// - For MoveToState packets, this is set to FALSE
+        /// </summary>
+        public bool RequestedLocationBroadcast { get; set; }
+
 
 
         ////// Logical Game Data
@@ -998,7 +1004,7 @@ namespace ACE.Server.WorldObjects
             // empty base
         }
 
-        public virtual void OnMoveComplete(WeenieError status, int cycles)
+        public virtual void OnMoveComplete(WeenieError status)
         {
             // empty base
         }

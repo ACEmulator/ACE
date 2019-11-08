@@ -1703,42 +1703,6 @@ namespace ACE.Server.Physics
             return Math.Max(dx, dy);
         }
 
-        public bool UpdateObjectInternalServer(double quantum)
-        {
-            //var offsetFrame = new AFrame();
-            //UpdatePhysicsInternal((float)quantum, ref offsetFrame);
-            if (GetBlockDist(Position, RequestPos) > 1)
-            {
-                log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}");
-                return false;
-            }
-
-            var requestCell = RequestPos.ObjCellID;
-
-            var transit = transition(Position, RequestPos, false);
-            if (transit != null)
-            {
-                CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
-                SetPositionInternal(transit);
-            }
-
-            if (DetectionManager != null) DetectionManager.CheckDetection();
-
-            if (TargetManager != null) TargetManager.HandleTargetting();
-
-            if (MovementManager != null) MovementManager.UseTime();
-
-            if (PartArray != null) PartArray.HandleMovement();
-
-            if (PositionManager != null) PositionManager.UseTime();
-
-            if (ParticleManager != null) ParticleManager.UpdateParticles();
-
-            if (ScriptManager != null) ScriptManager.UpdateScripts();
-
-            return requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
-        }
-
         public void UpdateAnimationInternal(double quantum)
         {
             if (!TransientState.HasFlag(TransientStateFlags.Active))
@@ -3064,12 +3028,13 @@ namespace ACE.Server.Physics
 
         public void process_hooks()
         {
-            foreach (var hook in Hooks)
+            foreach (var hook in Hooks.ToList())
                 hook.Execute(this);
 
             Hooks.Clear();
 
-            foreach (var animHook in AnimHooks)
+            // collection was modified, only in client movement setup? (/modifybool fastcast false)
+            foreach (var animHook in AnimHooks.ToList())
                 animHook.Execute(this);
 
             AnimHooks.Clear();
@@ -3341,7 +3306,7 @@ namespace ACE.Server.Physics
                 if (State.HasFlag(PhysicsState.Static))
                     return false;
 
-                if (TransientState.HasFlag(TransientStateFlags.Active))
+                if (!TransientState.HasFlag(TransientStateFlags.Active))
                     UpdateTime = PhysicsTimer.CurrentTime;
 
                 TransientState |= TransientStateFlags.Active;
@@ -4122,18 +4087,60 @@ namespace ACE.Server.Physics
 
         public bool update_object_server(bool forcePos = true)
         {
+            if (Parent != null || CurCell == null || State.HasFlag(PhysicsState.Frozen))
+            {
+                TransientState &= ~TransientStateFlags.Active;
+                return false;
+            }
+
+            PhysicsTimer_CurrentTime = UpdateTime;
+
             var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
 
-            var wo = WeenieObj.WorldObject;
+            //Console.WriteLine($"{Name}.update_object_server({forcePos}) - deltaTime: {deltaTime}");
+
+            var isTeleport = WeenieObj.WorldObject?.Teleporting ?? false;
+
+            // commented out for debugging
+            if (deltaTime > PhysicsGlobals.HugeQuantum && !isTeleport)
+            {
+                UpdateTime = PhysicsTimer.CurrentTime;   // consume time?
+                return false;
+            }
+
+            var requestCell = RequestPos.ObjCellID;
+
             var success = true;
-            if (wo != null && !wo.Teleporting)
-                success = UpdateObjectInternalServer(deltaTime);
+
+            if (!isTeleport)
+            {
+                if (GetBlockDist(Position, RequestPos) > 1)
+                {
+                    log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}");
+                    success = false;
+                }
+
+                while (deltaTime > PhysicsGlobals.MaxQuantum)
+                {
+                    PhysicsTimer_CurrentTime += PhysicsGlobals.MaxQuantum;
+                    UpdateObjectInternal(PhysicsGlobals.MaxQuantum);
+                    deltaTime -= PhysicsGlobals.MaxQuantum;
+                }
+
+                if (deltaTime > PhysicsGlobals.MinQuantum)
+                {
+                    PhysicsTimer_CurrentTime += deltaTime;
+                    UpdateObjectInternal(deltaTime);
+                }
+
+                success &= requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
+            }
 
             if (forcePos && success)
                 set_current_pos(RequestPos);
 
             // for teleport, use SetPosition?
-            if (wo.Teleporting)
+            if (isTeleport)
             {
                 //Console.WriteLine($"*** SETTING TELEPORT ***");
 
@@ -4144,7 +4151,7 @@ namespace ACE.Server.Physics
                 SetPosition(setPosition);
             }
 
-            UpdateTime = PhysicsTimer.CurrentTime;
+            UpdateTime = PhysicsTimer_CurrentTime;
 
             return success;
         }

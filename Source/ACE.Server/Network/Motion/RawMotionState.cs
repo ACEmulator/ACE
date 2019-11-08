@@ -14,6 +14,8 @@ namespace ACE.Server.Network.Structure
     /// </summary>
     public class RawMotionState
     {
+        public static RawMotionState None = new RawMotionState();
+
         public MoveToState MoveToState;
 
         public uint PackedFlags;
@@ -38,6 +40,8 @@ namespace ACE.Server.Network.Structure
 
         // commands: list of length commandListLength
         public List<MotionItem> Commands;
+
+        public RawMotionState() { }
 
         public RawMotionState(MoveToState moveToState, BinaryReader reader)
         {
