@@ -864,7 +864,7 @@ namespace ACE.Server.WorldObjects
                                 portalRecall.AddAction(targetPlayer, () =>
                                 {
                                     var teleportDest = new Position(portal.Destination);
-                                    targetPlayer.AdjustDungeon(teleportDest);
+                                    WorldObject.AdjustDungeon(teleportDest);
 
                                     targetPlayer.Teleport(teleportDest);
                                 });
@@ -889,7 +889,7 @@ namespace ACE.Server.WorldObjects
                             portalSendingChain.AddAction(targetPlayer, () =>
                             {
                                 var teleportDest = new Position(spell.Position);
-                                targetPlayer.AdjustDungeon(teleportDest);
+                                WorldObject.AdjustDungeon(teleportDest);
 
                                 targetPlayer.Teleport(teleportDest);
 
@@ -920,7 +920,7 @@ namespace ACE.Server.WorldObjects
                                 portalSendingChain.AddAction(fellow, () =>
                                 {
                                     var teleportDest = new Position(spell.Position);
-                                    fellow.AdjustDungeon(teleportDest);
+                                    WorldObject.AdjustDungeon(teleportDest);
 
                                     fellow.Teleport(teleportDest);
 
