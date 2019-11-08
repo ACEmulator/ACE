@@ -40,7 +40,9 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public bool IsBusy { get; set; }
         public int Nested { get; set; }
+
         public bool OnDeathEmoteInProgress { get; private set; }
+        public int OnDeathEmmoteNested { get; private set; }
 
         public bool Debug = false;
 
@@ -1292,6 +1294,10 @@ namespace ACE.Server.WorldObjects.Managers
 
             // start action chain
             Nested++;
+
+            if (OnDeathEmoteInProgress)
+                OnDeathEmmoteNested++;
+
             Enqueue(emoteSet, targetObject);
 
             return true;
@@ -1302,6 +1308,10 @@ namespace ACE.Server.WorldObjects.Managers
             if (emoteSet == null)
             {
                 Nested--;
+
+                if (OnDeathEmoteInProgress)
+                    OnDeathEmmoteNested--;
+
                 return;
             }
 
@@ -1339,12 +1349,14 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         Nested--;
 
+                        if (OnDeathEmoteInProgress)
+                            OnDeathEmmoteNested--;
+
                         if (Nested == 0)
-                        {
                             IsBusy = false;
-                            if (OnDeathEmoteInProgress)
-                                OnDeathEmoteInProgress = false;
-                        }
+
+                        if (OnDeathEmmoteNested == 0)
+                            OnDeathEmoteInProgress = false;
 
                     });
                     delayChain.EnqueueChain();
