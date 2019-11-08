@@ -42,7 +42,6 @@ namespace ACE.Server.WorldObjects.Managers
         public int Nested { get; set; }
 
         public bool OnDeathEmoteInProgress { get; private set; }
-        public int OnDeathEmoteNested { get; private set; }
 
         public bool Debug = false;
 
@@ -1273,6 +1272,9 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public void ExecuteEmoteSet(EmoteCategory category, string quest = null, WorldObject targetObject = null, bool nested = false)
         {
+            if (category == EmoteCategory.Death)
+                OnDeathEmoteInProgress = true;
+
             var emoteSet = GetEmoteSet(category, quest);
 
             // TODO: revisit if nested chains need to propagate timers
@@ -1295,9 +1297,6 @@ namespace ACE.Server.WorldObjects.Managers
             // start action chain
             Nested++;
 
-            if (OnDeathEmoteInProgress && emoteSet.Category == (uint)EmoteCategory.Death)
-                OnDeathEmoteNested++;
-
             Enqueue(emoteSet, targetObject);
 
             return true;
@@ -1309,8 +1308,11 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 Nested--;
 
-                if (OnDeathEmoteInProgress && emoteSet.Category == (uint)EmoteCategory.Death)
-                    OnDeathEmoteNested--;
+                if (OnDeathEmoteInProgress)
+                {
+                    OnDeathEmoteInProgress = false;
+                    WorldObject.RemoveObjectAndRecycleGuid();
+                }
 
                 return;
             }
@@ -1349,14 +1351,14 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         Nested--;
 
-                        if (OnDeathEmoteInProgress && emoteSet.Category == (uint)EmoteCategory.Death)
-                            OnDeathEmoteNested--;
-
                         if (Nested == 0)
                             IsBusy = false;
 
-                        if (OnDeathEmoteNested == 0 && emoteSet.Category == (uint)EmoteCategory.Death)
+                        if (emoteSet.Category == (uint)EmoteCategory.Death)
+                        {
                             OnDeathEmoteInProgress = false;
+                            WorldObject.RemoveObjectAndRecycleGuid();
+                        }
 
                     });
                     delayChain.EnqueueChain();
@@ -1483,7 +1485,6 @@ namespace ACE.Server.WorldObjects.Managers
         public void OnDeath(DamageHistory damageHistory)
         {
             IsBusy = false;
-            OnDeathEmoteInProgress = true;
 
             if (damageHistory.Damagers.Count == 0)
                 ExecuteEmoteSet(EmoteCategory.Death, null, null);
