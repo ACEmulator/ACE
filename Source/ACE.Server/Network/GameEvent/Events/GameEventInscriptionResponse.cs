@@ -1,23 +1,20 @@
-﻿namespace ACE.Server.Network.GameEvent.Events
+using ACE.Server.WorldObjects;
+
+namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventInscriptionResponse : GameEventMessage
     {
         /// <summary>
-        /// Sends our response message to the client once we recieve a Game Event (F7B0) Writing_SetInscription (0x00BF) Og II
+        /// THIS EVENT IS DEPRECIATED AND HAS NO HANDLER IN ACCLIENT
         /// </summary>
-        /// <param name="session">Player Session - used by the base for squence and guid to target</param>
-        /// <param name="objectID">This is the object we are inscribing</param>
-        /// <param name="inscriptionText">This is the inscription - I am sure it is something profound.</param>
-        /// <param name="scribeName">Who is inscribing the object.</param>
-        /// <param name="scribeAccount">This is the scribe account - not sure how it works and passing empty string if null</param>
-        public GameEventInscriptionResponse(Session session, uint objectID, string inscriptionText, string scribeName, string scribeAccount)
+        public GameEventInscriptionResponse(Session session, WorldObject worldObject)
                 : base(GameEventType.GetInscriptionResponse, GameMessageGroup.UIQueue, session)
         {
-            Writer.Write(objectID);
-            Writer.WriteString16L(inscriptionText);
-            Writer.Write(session.Player.Guid.Full);
-            Writer.WriteString16L(scribeName);
-            Writer.WriteString16L(scribeAccount);
+            Writer.WriteGuid(worldObject.Guid);
+            Writer.WriteString16L(worldObject.Inscription);
+            Writer.WriteGuid(session.Player.Guid);
+            Writer.WriteString16L(worldObject.ScribeName);
+            Writer.WriteString16L(worldObject.ScribeAccount);
             Writer.Align();
         }
     }
