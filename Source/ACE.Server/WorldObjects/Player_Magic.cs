@@ -632,20 +632,22 @@ namespace ACE.Server.WorldObjects
 
         public void FinishCast(WeenieError useDone)
         {
+            var castGesture = MagicState.CastGesture;
+
             MagicState.OnCastDone();
 
-            var queue = PropertyManager.GetBool("spellcast_recoil_queue").Item;
+            //var queue = PropertyManager.GetBool("spellcast_recoil_queue").Item;
 
-            if (!queue)
-                IsBusy = true;
+            //if (!queue)
+            IsBusy = true;
 
             // return to magic ready stance
             var actionChain = new ActionChain();
-            EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, true);
+            EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, castGesture);
             actionChain.AddAction(this, () =>
             {
-                if (!queue)
-                    IsBusy = false;
+                //if (!queue)
+                IsBusy = false;
 
                 SendUseDoneEvent(useDone);
 
