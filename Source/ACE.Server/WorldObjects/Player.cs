@@ -148,6 +148,8 @@ namespace ACE.Server.WorldObjects
 
             SquelchManager = new SquelchManager(this);
 
+            MagicState = new MagicState(this);
+
             return; // todo
 
             // =======================================
