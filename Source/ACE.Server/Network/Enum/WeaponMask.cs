@@ -39,7 +39,7 @@ namespace ACE.Server.Network.Enum
                     highlightMask |= WeaponMask.Damage;
                 if (profile.Enchantment_DamageVariance != 1.0f)
                     highlightMask |= WeaponMask.DamageVariance;
-                if (profile.Enchantment_DamageMod != 1.0f)
+                if (profile.Enchantment_DamageMod != 0)
                     highlightMask |= WeaponMask.DamageMod;
             }
 
@@ -69,7 +69,7 @@ namespace ACE.Server.Network.Enum
                     colorMask |= WeaponMask.Damage;
                 if (profile.Enchantment_DamageVariance < 1.0f)
                     colorMask |= WeaponMask.DamageVariance;
-                if (profile.Enchantment_DamageMod > 1.0f)
+                if (profile.Enchantment_DamageMod > 0)
                     colorMask |= WeaponMask.DamageMod;
             }
 

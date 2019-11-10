@@ -103,9 +103,9 @@ namespace ACE.Server.Network.Structure
         {
             var baseMultiplier = weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f;
             var damageMod = weapon.EnchantmentManager.GetDamageMod();
-            var auraDamageMod = wielder != null ? wielder.EnchantmentManager.GetDamageMod() : 1.0f;
-            Enchantment_DamageMod = weapon.IsEnchantable ? damageMod * auraDamageMod : damageMod;
-            return (float)(baseMultiplier * Enchantment_DamageMod);
+            var auraDamageMod = wielder != null ? wielder.EnchantmentManager.GetDamageMod() : 0.0f;
+            Enchantment_DamageMod = weapon.IsEnchantable ? damageMod + auraDamageMod : damageMod;
+            return (float)(baseMultiplier + Enchantment_DamageMod);
         }
 
         /// <summary>
