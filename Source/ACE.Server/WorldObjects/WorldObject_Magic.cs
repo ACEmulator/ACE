@@ -307,7 +307,7 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             // Retrieve target's Magic Defense Skill
-            var difficulty = targetCreature.GetCreatureSkill(Skill.MagicDefense).Current;
+            var difficulty = targetCreature.GetEffectiveMagicDefense();
 
             //Console.WriteLine($"{target.Name}.ResistSpell({Name}, {spell.Name}): magicSkill: {magicSkill}, difficulty: {difficulty}");
             bool resisted = MagicDefenseCheck(magicSkill, difficulty);

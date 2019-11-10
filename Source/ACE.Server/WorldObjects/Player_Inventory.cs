@@ -2643,7 +2643,11 @@ namespace ACE.Server.WorldObjects
                         item.ScribeAccount = Account.AccountName;
                         item.ScribeIID = Guid.Full;
                     }
-                    Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, item.Guid.Full, item.Inscription, item.ScribeName, item.ScribeAccount));
+
+                    // this response was never recorded occuring from retail servers
+                    // Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, item));
+
+                    // There was no direct response from the servers for this event, client just sent it and moved on.
                 }
             }
             else
