@@ -27,7 +27,7 @@ namespace ACE.Server.Entity
         {
             var rawState = moveToState.RawMotionState;
 
-            var line = rawState.ToString(false).Replace("\r\n", " | ");
+            var line = rawState.ToString(false).Replace(Environment.NewLine, " | ");
             line = line.Length >= 8 ? line.Substring(0, line.Length - 8) : "";
 
             Output(line);
