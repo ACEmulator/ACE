@@ -610,7 +610,7 @@ namespace ACE.Server.WorldObjects
 
         public bool IsPKDeath(uint? killerGuid)
         {
-            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PK) && new ObjectGuid(killerGuid ?? 0).IsPlayer();
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PK) && new ObjectGuid(killerGuid ?? 0).IsPlayer() && killerGuid != Guid.Full;
         }
 
         /// <summary>
@@ -623,7 +623,7 @@ namespace ACE.Server.WorldObjects
 
         public bool IsPKLiteDeath(uint? killerGuid)
         {
-            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PKLite) && new ObjectGuid(killerGuid ?? 0).IsPlayer();
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PKLite) && new ObjectGuid(killerGuid ?? 0).IsPlayer() && killerGuid != Guid.Full;
         }
 
         /// <summary>
