@@ -18,9 +18,13 @@ namespace ACE.Server.WorldObjects
 
         public virtual void SetMaxVitals()
         {
+            var missingHealth = Health.Missing;
+
             Health.Current = Health.MaxValue;
             Stamina.Current = Stamina.MaxValue;
             Mana.Current = Mana.MaxValue;
+
+            DamageHistory.OnHeal(missingHealth);
         }
 
         public CreatureVital GetCreatureVital(PropertyAttribute2nd vital)
