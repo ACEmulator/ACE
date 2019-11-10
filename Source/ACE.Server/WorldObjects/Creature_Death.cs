@@ -361,11 +361,8 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // move wielded treasure over, which also includes Wielded objects not marked for destroy on death
-            //var wieldedTreasure = Inventory.Values.Concat(EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Wield) || i.DestinationType.HasFlag(DestinationType.Treasure));
-            //var flags = DestinationType.Treasure;
-            //if (PropertyManager.GetBool("creatures_drop_createlist_wield").Item)
-            //    flags |= DestinationType.Wield;
+            // move wielded treasure over, which also should include Wielded objects not marked for destroy on death.
+            // allow server operators to configure this behavior due to errors in createlist post 16py data
             var dropFlags = PropertyManager.GetBool("creatures_drop_createlist_wield").Item ? DestinationType.WieldTreasure : DestinationType.Treasure;
 
             var wieldedTreasure = Inventory.Values.Concat(EquippedObjects.Values).Where(i => (i.DestinationType & dropFlags) != 0);
