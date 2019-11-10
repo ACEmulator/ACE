@@ -62,7 +62,7 @@ namespace ACE.Server.Entity
 
         public WorldObject GetTopDamager(bool includeSelf = true)
         {
-            var sorted = TotalDamage.Values.Where(wo => wo.Value > 0 && (includeSelf || wo.Guid != Creature.Guid)).OrderByDescending(wo => wo.Value);
+            var sorted = TotalDamage.Values.Where(wo => includeSelf || wo.Guid != Creature.Guid).OrderByDescending(wo => wo.Value);
 
             var topDamager = sorted.FirstOrDefault();
 
