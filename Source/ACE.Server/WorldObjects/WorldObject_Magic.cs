@@ -1262,6 +1262,16 @@ namespace ACE.Server.WorldObjects
                 var spellProjectiles = CreateBlastProjectiles(target, spell);
                 LaunchSpellProjectiles(spellProjectiles);
             }
+            else if (spellType == SpellProjectile.ProjectileSpellType.Ring)
+            {
+                var spellProjectiles = CreateRingProjectiles(spell);
+                LaunchSpellProjectiles(spellProjectiles);
+            }
+            else if (spellType == SpellProjectile.ProjectileSpellType.Wall)
+            {
+                var spellProjectiles = CreateWallProjectiles(spell);
+                LaunchSpellProjectiles(spellProjectiles);
+            }
             else
             {
                 var player = this as Player;
