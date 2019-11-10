@@ -244,8 +244,10 @@ namespace ACE.Server.WorldObjects
 
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
-                if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this
-                    || ((this is Admin || this is Sentinel) && CloakStatus == CloakStatus.On)))
+                if (difficulty == 0 || player == this || player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
+                    chance = 1.0f;
+
+                if ((this is Admin || this is Sentinel) && CloakStatus == CloakStatus.On)
                     chance = 1.0f;
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
