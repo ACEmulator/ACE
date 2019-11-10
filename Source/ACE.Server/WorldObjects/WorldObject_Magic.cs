@@ -481,14 +481,15 @@ namespace ACE.Server.WorldObjects
                     var drainMod = isDrain ? (float)source.GetResistanceMod(GetDrainResistanceType(spell.Source)) : 1.0f;
 
                     srcVitalChange = (uint)Math.Round(source.GetCreatureVital(spell.Source).Current * spell.Proportion * drainMod);
-                    // should healing resistances be applied here?
-                    var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination)) : 1.0f;
 
                     // TransferCap caps both srcVitalChange and destVitalChange
                     // https://asheron.fandom.com/wiki/Announcements_-_2003/01_-_The_Slumbering_Giant#Letter_to_the_Players
 
                     if (spell.TransferCap != 0 && srcVitalChange > spell.TransferCap)
                         srcVitalChange = (uint)spell.TransferCap;
+
+                    // should healing resistances be applied here?
+                    var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination)) : 1.0f;
 
                     destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
 
