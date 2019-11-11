@@ -234,13 +234,75 @@ namespace ACE.Server.Command.Handlers
             serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             serializer.Formatting = Formatting.Indented;
 
+            // Counters
+            float armorCount = 0;
+            float meleeWeaponCount = 0;
+            float casterCount = 0;
+            float missileWeaponCount = 0;
+            float jewelryCount = 0;
+            float gemCount = 0;
+            float clothingCount = 0;
+            float otherCount = 0;
+            float nullCount = 0;
+
+
             // Loop depending on how many items you are creating
-            string fileName = null;
+            //string fileName = null;
             for (int i = 0; i < numberItemsGenerate; i++)
             {
                 var testItem = LootGenerationFactory.CreateRandomLootObjects(itemsTier, true);
-                
-                Console.WriteLine("Item " + i);
+               
+
+
+                if (testItem is null )
+                {
+                    nullCount++;
+                    continue;
+                }
+                string itemType = testItem.ItemType.ToString();
+
+                //Console.WriteLine("Item " + i);
+                //string itemBiota = testItem.Biota.BiotaPropertiesInt.ToString();
+                //Console.WriteLine(itemBiota);
+                //Console.WriteLine(itemType);
+
+
+                // adding in count of object classes of items
+                if (itemType == null)
+                {
+                    nullCount++;
+
+                    continue;
+                }
+                                                          
+                switch (itemType)
+                {
+                    case "Armor":
+                        armorCount++;
+                        break;
+                    case "MeleeWeapon":
+                        meleeWeaponCount++;
+                        break;
+                    case "Caster":
+                        casterCount++;
+                        break;
+                    case "MissileWeapon":
+                        missileWeaponCount++;
+                        break;
+                    case "Jewelry":
+                        jewelryCount++;
+                        break;
+                    case "Gem":
+                        gemCount++;
+                        break;
+                    case "Clothing":
+                        clothingCount++;
+                        break;
+                    default:
+                        otherCount++;
+
+                        break;
+                }
 
                 if (testItem == null)
                 {
@@ -249,16 +311,42 @@ namespace ACE.Server.Command.Handlers
                 }
                 else
                 {
-                    Console.WriteLine(testItem.Name);
+
                 }
-                Console.WriteLine(testItem.EpicCantrips.Count);
-                fileName = String.Format(@"c:\ACE\json{0}.txt", i);
-                using (StreamWriter sw = new StreamWriter(fileName))
-                using (JsonWriter writer = new JsonTextWriter(sw))
-                {
-                    serializer.Serialize(writer, testItem.Biota);
-                }
+                //Console.WriteLine(testItem.EpicCantrips.Count);
+
+                //JsonWrite
+                //fileName = String.Format(@"c:\ACE\json{0}.txt", i);
+                //using (StreamWriter sw = new StreamWriter(fileName))
+                //using (JsonWriter writer = new JsonTextWriter(sw))
+                //{
+                //    serializer.Serialize(writer, testItem.Biota);
+                //}
             }
+            float totalItemsGenerated = armorCount + meleeWeaponCount + casterCount + missileWeaponCount + jewelryCount + gemCount + clothingCount + otherCount;
+
+            Console.WriteLine($" Armor={armorCount} \n " +
+                                $"MeleeWeapon={meleeWeaponCount} \n " +
+                                $"Caster={casterCount} \n " +
+                                $"MissileWeapon={missileWeaponCount} \n " +
+                                $"Jewelry={jewelryCount} \n " +
+                                $"Gem={gemCount} \n " +
+                                $"Clothing={clothingCount} \n " +
+                                $"Other={otherCount} \n " +
+                                $"NullCount={nullCount} \n " +
+                                $"TotalGenerated={totalItemsGenerated}");
+            Console.WriteLine();
+            Console.WriteLine($" Drop Rates \n " +
+                                $"Armor= {armorCount / totalItemsGenerated * 100}% \n " +
+                                $"MeleeWeapon= {meleeWeaponCount / totalItemsGenerated * 100}% \n " +
+                                $"Caster= {casterCount / totalItemsGenerated * 100}% \n " +
+                                $"MissileWeapon= {missileWeaponCount / totalItemsGenerated * 100}% \n " +
+                                $"Jewelry= {jewelryCount / totalItemsGenerated * 100}% \n " +
+                                $"Gem= {gemCount / totalItemsGenerated * 100}% \n " +
+                                $"Clothing= {clothingCount / totalItemsGenerated * 100}% \n " +
+                                $"Other={otherCount / totalItemsGenerated * 100}% \n  ");
+
+
             Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
         }
 
