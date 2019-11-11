@@ -1109,7 +1109,7 @@ namespace ACE.Server.WorldObjects
 
         public static bool EnqueueBroadcastMotion_Physics = true;
 
-        public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null)
+        public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null, bool applyPhysics = true)
         {
             var msg = new GameMessageUpdateMotion(this, motion);
 
@@ -1118,7 +1118,7 @@ namespace ACE.Server.WorldObjects
             else
                 EnqueueBroadcast(msg, maxRange.Value);
 
-            if (EnqueueBroadcastMotion_Physics)
+            if (EnqueueBroadcastMotion_Physics && applyPhysics)
                 ApplyPhysicsMotion(motion);
         }
 

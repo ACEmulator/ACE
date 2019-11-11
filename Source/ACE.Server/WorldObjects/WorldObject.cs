@@ -946,7 +946,7 @@ namespace ACE.Server.WorldObjects
 
             // broadcast to nearby players
             if (sendClient)
-                EnqueueBroadcastMotion(motion, maxRange);
+                EnqueueBroadcastMotion(motion, maxRange, false);
 
             return animLength;
         }
