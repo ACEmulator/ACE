@@ -193,6 +193,12 @@ namespace ACE.Server.WorldObjects
                     break;
                 case DamageType.Health:
                     iAmount = creature.UpdateVitalDelta(creature.Health, -iAmount);
+
+                    if (iAmount > 0)
+                        creature.DamageHistory.OnHeal((uint)iAmount);
+                    else
+                        creature.DamageHistory.Add(this, DamageType.Health, (uint)-iAmount);
+
                     break;
             }
 
