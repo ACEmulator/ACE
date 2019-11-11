@@ -581,14 +581,10 @@ namespace ACE.Server.WorldObjects
             return pickupChain;
         }
 
-        /// <summary>
-        /// This would be used if your pickup action first requires a MoveTo action
-        /// It will add a chain to broadcast the pickup motion and then add a delay for the animation length
-        /// </summary>
-        private ActionChain AddPickupChainToMoveToChain(WorldObject objectWereReachingToward)
+        private MotionCommand GetPickupMotion(WorldObject objectWereReachingToward)
         {
             if (objectWereReachingToward.Location == null)
-                return new ActionChain();
+                return MotionCommand.Invalid;
 
             MotionCommand pickupMotion;
 
@@ -604,6 +600,18 @@ namespace ACE.Server.WorldObjects
                 pickupMotion = MotionCommand.Pickup5; // Bend down a little bit
             else
                 pickupMotion = MotionCommand.Pickup; // At foot height or lower
+
+            return pickupMotion;
+        }
+
+        /// <summary>
+        /// This would be used if your pickup action first requires a MoveTo action
+        /// It will add a chain to broadcast the pickup motion and then add a delay for the animation length
+        /// </summary>
+        private ActionChain AddPickupChainToMoveToChain(MotionCommand pickupMotion)
+        {
+            if (pickupMotion == MotionCommand.Invalid)
+                return new ActionChain();
 
             // start picking up item animation
             var motion = new Motion(CurrentMotionState.Stance, pickupMotion);
@@ -652,6 +660,15 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public void Unbusy(MotionCommand pickupMotion)
+        {
+            var animTime = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(pickupMotion);
+
+            var returnStance = new ActionChain();
+            returnStance.AddDelaySeconds(animTime);
+            returnStance.AddAction(this, () => IsBusy = false);
+            returnStance.EnqueueChain();
+        }
 
         // =========================================
         // Game Action Handlers - Inventory Movement 
@@ -796,7 +813,10 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(moveToTarget);
+                    IsBusy = true;
+
+                    var pickupMotion = GetPickupMotion(moveToTarget);
+                    var pickupChain = AddPickupChainToMoveToChain(pickupMotion);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -807,6 +827,7 @@ namespace ACE.Server.WorldObjects
                         {
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
                             EnqueueBroadcastMotion(returnStance);
+                            Unbusy(pickupMotion);
                             return;
                         }
 
@@ -814,6 +835,7 @@ namespace ACE.Server.WorldObjects
                         if (!VerifyContainerOpenStatus(itemAsContainer, item))
                         {
                             EnqueueBroadcastMotion(returnStance);
+                            Unbusy(pickupMotion);
                             return;
                         }
 
@@ -821,6 +843,7 @@ namespace ACE.Server.WorldObjects
                         {
                             QuestManager.HandleNoQuestError(item);
                             EnqueueBroadcastMotion(returnStance);
+                            Unbusy(pickupMotion);
                             return;
                         }
 
@@ -846,6 +869,7 @@ namespace ACE.Server.WorldObjects
                             {
                                 QuestManager.HandleSolveError(item.Quest);
                                 EnqueueBroadcastMotion(returnStance);
+                                Unbusy(pickupMotion);
                                 return;
                             }
                             else
@@ -897,6 +921,8 @@ namespace ACE.Server.WorldObjects
                         }
 
                         EnqueueBroadcastMotion(returnStance);
+
+                        Unbusy(pickupMotion);
                     });
 
                     pickupChain.EnqueueChain();
@@ -1202,7 +1228,10 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(rootOwner ?? item);
+                    IsBusy = true;
+
+                    var pickupMotion = GetPickupMotion(rootOwner ?? item);
+                    var pickupChain = AddPickupChainToMoveToChain(pickupMotion);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -1213,6 +1242,7 @@ namespace ACE.Server.WorldObjects
                         {
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
                             EnqueueBroadcastMotion(returnStance);
+                            Unbusy(pickupMotion);
                             return;
                         }
 
@@ -1227,6 +1257,8 @@ namespace ACE.Server.WorldObjects
                         }
 
                         EnqueueBroadcastMotion(returnStance);
+
+                        Unbusy(pickupMotion);
                     });
 
                     pickupChain.EnqueueChain();
@@ -1681,7 +1713,10 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(moveToObject);
+                    IsBusy = true;
+
+                    var pickupMotion = GetPickupMotion(moveToObject);
+                    var pickupChain = AddPickupChainToMoveToChain(pickupMotion);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -1692,6 +1727,7 @@ namespace ACE.Server.WorldObjects
                             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split failed!")); // Custom error message
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
                             EnqueueBroadcastMotion(returnStance);
+                            Unbusy(pickupMotion);
                             return;
                         }
 
@@ -1712,6 +1748,8 @@ namespace ACE.Server.WorldObjects
                         }
 
                         EnqueueBroadcastMotion(returnStance);
+
+                        Unbusy(pickupMotion);
                     });
 
                     pickupChain.EnqueueChain();
@@ -2022,7 +2060,10 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain(moveToObject);
+                    IsBusy = true;
+
+                    var pickupMotion = GetPickupMotion(moveToObject);
+                    var pickupChain = AddPickupChainToMoveToChain(pickupMotion);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -2033,6 +2074,7 @@ namespace ACE.Server.WorldObjects
                             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge Failed!")); // Custom error message
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid, WeenieError.ActionCancelled));
                             EnqueueBroadcastMotion(returnStance);
+                            Unbusy(pickupMotion);
                             return;
                         }
 
@@ -2054,6 +2096,8 @@ namespace ACE.Server.WorldObjects
                         }
 
                         EnqueueBroadcastMotion(returnStance);
+
+                        Unbusy(pickupMotion);
                     });
 
                     pickupChain.EnqueueChain();
