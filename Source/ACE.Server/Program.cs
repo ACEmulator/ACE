@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-
+using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using log4net.Config;
 
@@ -11,6 +12,8 @@ using ACE.DatLoader;
 using ACE.Server.Command;
 using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
+using Prometheus;
+using Prometheus.DotNetRuntime;
 
 namespace ACE.Server
 {
@@ -32,6 +35,9 @@ namespace ACE.Server
         public static extern uint MM_EndPeriod(uint uMilliseconds);
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static KestrelMetricServer metricServer;
+        private static IDisposable collector;
 
         public static void Main(string[] args)
         {
@@ -60,6 +66,11 @@ namespace ACE.Server
             {
                 log.Error(ex.ToString());
             }
+
+            metricServer = new KestrelMetricServer(port: 9090);
+            metricServer.Start();
+
+            collector = DotNetRuntimeStatsBuilder.Default().StartCollecting();
 
             log.Info("Starting ACEmulator...");
             Console.Title = @"ACEmulator";
@@ -178,6 +189,9 @@ namespace ACE.Server
             {
                 log.Error(ex.ToString());
             }
+
+            collector.Dispose();
+            metricServer.Stop();
         }
     }
 }
