@@ -36,7 +36,7 @@ namespace ACE.Server.Entity
             DamageBonus += weapon.EnchantmentManager.GetDamageBonus();
             VarianceMod *= weapon.EnchantmentManager.GetVarianceMod();
 
-            DamageMod = (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) * weapon.EnchantmentManager.GetDamageMod();
+            DamageMod = (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) + weapon.EnchantmentManager.GetDamageMod();
 
             if (weapon.IsEnchantable)
             {
@@ -44,7 +44,7 @@ namespace ACE.Server.Entity
                 DamageBonus += wielder.EnchantmentManager.GetDamageBonus();
                 VarianceMod *= wielder.EnchantmentManager.GetVarianceMod();
 
-                DamageMod *= wielder.EnchantmentManager.GetDamageMod();
+                DamageMod += wielder.EnchantmentManager.GetDamageMod();
             }
         }
     }

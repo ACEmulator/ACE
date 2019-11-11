@@ -253,8 +253,8 @@ namespace ACE.Server.WorldObjects
             var critResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritResistRating());
             critRateMod *= critResistRatingMod;
 
-            // 50% cap here, or only in criticalStrikeMod?
-            critRateMod = Math.Min(critRateMod, 0.5f);
+            // 10% cap here, or only in criticalStrikeMod?
+            critRateMod = Math.Min(critRateMod, 0.1f);
 
             return critRateMod;
         }
@@ -526,7 +526,9 @@ namespace ACE.Server.WorldObjects
         public static float GetCriticalStrikeMod(CreatureSkill skill)
         {
             // increases crit chance (additive?)
-            // maximum 50% bonus
+            // maximum 5x bonus
+            // melee/missile: 10% -> 50%
+            // magic: 2% -> 10%
 
             var baseSkill = GetBaseSkillImbued(skill);
 
@@ -539,8 +541,11 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case ImbuedSkillType.Missile:
-                case ImbuedSkillType.Magic:
                     baseMod = Math.Max(0, baseSkill - 60) / 600.0f;
+                    break;
+
+                case ImbuedSkillType.Magic:
+                    baseMod = Math.Max(0, baseSkill - 60) / 3000.0f;
                     break;
 
                 default:
@@ -549,9 +554,9 @@ namespace ACE.Server.WorldObjects
 
             switch (skillType)
             {
-                // minimum 5% for magic
+                // minimum 2% for magic
                 case ImbuedSkillType.Magic:
-                    return Math.Max(0.05f, baseMod);
+                    return Math.Max(0.02f, baseMod);
 
                 // minimum 10% for melee / missile
                 case ImbuedSkillType.Melee:

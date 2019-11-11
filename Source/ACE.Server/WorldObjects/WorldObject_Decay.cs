@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
         public void DeleteObject(Container rootOwner = null)
         {
             if (IsGenerator)
-                ResetGenerator();
+                ProcessGeneratorDestructionDirective(GeneratorDestructionType);
 
             if (Wielder != null)
             {
