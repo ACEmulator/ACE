@@ -270,7 +270,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public Spell ValidateSpell(uint spellId)
+        public Spell ValidateSpell(uint spellId, bool isWeaponSpell = false)
         {
             var spell = new Spell(spellId);
 
@@ -288,7 +288,7 @@ namespace ACE.Server.WorldObjects
                 }
                 return null;
             }
-            if (!HasComponentsForSpell(spell))
+            if (!isWeaponSpell &&!HasComponentsForSpell(spell))
             {
                 SendUseDoneEvent(WeenieError.YouDontHaveAllTheComponents);
                 return null;
@@ -410,6 +410,8 @@ namespace ACE.Server.WorldObjects
 
             castChain.AddAction(this, () =>
             {
+                PhysicsObj.StopCompletely(false);
+
                 MagicState.TurnStarted = false;
                 MagicState.IsTurning = false;
             });
@@ -454,7 +456,11 @@ namespace ACE.Server.WorldObjects
                 });
             }
 
-            castChain.AddAction(this, () => MagicState.CastGestureStartTime = DateTime.UtcNow);
+            castChain.AddAction(this, () =>
+            {
+                MagicState.CastGestureStartTime = DateTime.UtcNow;
+                PhysicsObj.StopCompletely(false);
+            });
 
             var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
 
@@ -693,7 +699,8 @@ namespace ACE.Server.WorldObjects
         {
             var creatureTarget = target as Creature;
 
-            var spell = ValidateSpell(spellId);
+            var spell = ValidateSpell(spellId, builtInSpell);
+
             if (spell == null)
                 return false;
 

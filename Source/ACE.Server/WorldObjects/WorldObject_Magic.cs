@@ -481,11 +481,11 @@ namespace ACE.Server.WorldObjects
 
                     srcVitalChange = (uint)Math.Round(source.GetCreatureVital(spell.Source).Current * spell.Proportion * drainMod);
 
-                    if (spell.TransferCap != 0)
-                    {
-                        if (srcVitalChange > spell.TransferCap)
-                            srcVitalChange = (uint)spell.TransferCap;
-                    }
+                    // TransferCap caps both srcVitalChange and destVitalChange
+                    // https://asheron.fandom.com/wiki/Announcements_-_2003/01_-_The_Slumbering_Giant#Letter_to_the_Players
+
+                    if (spell.TransferCap != 0 && srcVitalChange > spell.TransferCap)
+                        srcVitalChange = (uint)spell.TransferCap;
 
                     // should healing resistances be applied here?
                     var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination)) : 1.0f;
@@ -495,12 +495,16 @@ namespace ACE.Server.WorldObjects
                     // scale srcVitalChange to destVitalChange?
                     var missingDest = destination.GetCreatureVital(spell.Destination).Missing;
 
-                    if (destVitalChange > missingDest)
+                    var maxDestVitalChange = missingDest;
+                    if (spell.TransferCap != 0 && maxDestVitalChange > spell.TransferCap)
+                        maxDestVitalChange = (uint)spell.TransferCap;
+
+                    if (destVitalChange > maxDestVitalChange)
                     {
-                        var scalar = (float)missingDest / destVitalChange;
+                        var scalar = (float)maxDestVitalChange / destVitalChange;
 
                         srcVitalChange = (uint)Math.Round(srcVitalChange * scalar);
-                        destVitalChange = missingDest;
+                        destVitalChange = maxDestVitalChange;
                     }
 
                     // Apply the change in vitals to the source
