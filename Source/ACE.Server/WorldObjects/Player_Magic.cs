@@ -260,7 +260,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public Spell ValidateSpell(uint spellId)
+        public Spell ValidateSpell(uint spellId, bool isWeaponSpell = false)
         {
             var spell = new Spell(spellId);
 
@@ -278,7 +278,7 @@ namespace ACE.Server.WorldObjects
                 }
                 return null;
             }
-            if (!HasComponentsForSpell(spell))
+            if (!isWeaponSpell &&!HasComponentsForSpell(spell))
             {
                 SendUseDoneEvent(WeenieError.YouDontHaveAllTheComponents);
                 return null;
@@ -673,7 +673,7 @@ namespace ACE.Server.WorldObjects
             if (!VerifyBusy())
                 return;
 
-            var spell = ValidateSpell(spellId);
+            var spell = ValidateSpell(spellId, builtInSpell);
             if (spell == null)
                 return;
 
