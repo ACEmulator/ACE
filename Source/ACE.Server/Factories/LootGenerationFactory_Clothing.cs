@@ -295,17 +295,19 @@ namespace ACE.Server.Factories
                 int armorModValue = 0;
 
                 // Account for ACE World Databases that have not yet been updated
-                if (wo.ArmorType != (int)ArmorType.Cloth && wo.GetProperty(PropertyInt.Version) < 3)
+                if (wo.ArmorType != (int)ArmorType.Cloth && (wo.GetProperty(PropertyInt.Version) == null || wo.GetProperty(PropertyInt.Version) < 3))
                     return AssignArmorLevelCompat(wo, tier, armorType);
 
                 // Sets AL variations based on weenie ArmorType field, such as cloth, leather, metal, etc.
                 switch (tier)
                 {
                     case 1:
-                        if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                        if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(20, 50);
+                        if (wo.ArmorType == (int)ArmorType.Leather)
+                            armorModValue = ThreadSafeRandom.Next(0, 29);
                         if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(50, 70);
+                            armorModValue = ThreadSafeRandom.Next(0, 30);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
@@ -315,10 +317,12 @@ namespace ACE.Server.Factories
                             armorModValue = 0;
                         break;
                     case 2:
-                        if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                        if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(50, 80);
+                        if (wo.ArmorType == (int)ArmorType.Leather)
+                            armorModValue = ThreadSafeRandom.Next(29, 52);
                         if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(70, 100);
+                            armorModValue = ThreadSafeRandom.Next(30, 54);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
@@ -328,10 +332,12 @@ namespace ACE.Server.Factories
                             armorModValue = 0;
                         break;
                     case 3:
-                        if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                        if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(80, 110);
+                        if (wo.ArmorType == (int)ArmorType.Leather)
+                            armorModValue = ThreadSafeRandom.Next(52, 75);
                         if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(100, 130);
+                            armorModValue = ThreadSafeRandom.Next(54, 80);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
@@ -341,10 +347,12 @@ namespace ACE.Server.Factories
                             armorModValue = ThreadSafeRandom.Next(190, 210);
                         break;
                     case 4:
-                        if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                        if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(110, 140);
+                        if (wo.ArmorType == (int)ArmorType.Leather)
+                            armorModValue = ThreadSafeRandom.Next(75, 98);
                         if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(120, 150);
+                            armorModValue = ThreadSafeRandom.Next(80, 106);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
@@ -354,10 +362,12 @@ namespace ACE.Server.Factories
                             armorModValue = ThreadSafeRandom.Next(210, 230);
                         break;
                     case 5:
-                        if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                        if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(140, 170);
+                        if (wo.ArmorType == (int)ArmorType.Leather)
+                            armorModValue = ThreadSafeRandom.Next(98, 121);
                         if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(150, 180);
+                            armorModValue = ThreadSafeRandom.Next(106, 132);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
@@ -367,10 +377,12 @@ namespace ACE.Server.Factories
                             armorModValue = ThreadSafeRandom.Next(230, 250);
                         break;
                     case 6:
-                        if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                        if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(170, 200);
+                        if (wo.ArmorType == (int)ArmorType.Leather)
+                            armorModValue = ThreadSafeRandom.Next(121, 144);
                         if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(180, 210);
+                            armorModValue = ThreadSafeRandom.Next(132, 158);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
@@ -380,10 +392,12 @@ namespace ACE.Server.Factories
                             armorModValue = ThreadSafeRandom.Next(250, 270);
                         break;
                     case 7:
-                        if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                        if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(200, 230);
+                        if (wo.ArmorType == (int)ArmorType.Leather)
+                            armorModValue = ThreadSafeRandom.Next(144, 167);
                         if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(210, 240);
+                            armorModValue = ThreadSafeRandom.Next(158, 184);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
@@ -393,14 +407,16 @@ namespace ACE.Server.Factories
                             armorModValue = ThreadSafeRandom.Next(270, 290);
                         break;
                     case 8:
-                        if (wo.ArmorType == (int)ArmorType.Leather || wo.ArmorType == (int)ArmorType.Cloth)
+                        if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(230, 260);
+                        if (wo.ArmorType == (int)ArmorType.Leather)
+                            armorModValue = ThreadSafeRandom.Next(167, 190);
                         if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(240, 270);
+                            armorModValue = ThreadSafeRandom.Next(184, 210);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
-                            armorModValue = ThreadSafeRandom.Next(180, 210);
+                            armorModValue = ThreadSafeRandom.Next(180, 204);
                         // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
                         if (wo.ResistMagic != null && wo.ResistMagic == 9999)
                             armorModValue = ThreadSafeRandom.Next(290, 310);
@@ -419,7 +435,7 @@ namespace ACE.Server.Factories
 
         private static WorldObject AssignArmorLevelCompat(WorldObject wo, int tier, LootTables.ArmorType armorType)
         {
-            log.Warn($"[LOOT] Using AL Assignment Compatibility layer for item {wo.WeenieClassId} - {wo.Name}. Please update ACE-World Database");
+            log.Warn($"[LOOT] Using AL Assignment Compatibility layer for item {wo.WeenieClassId} - {wo.Name}.");
 
             var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 
@@ -427,7 +443,7 @@ namespace ACE.Server.Factories
             {
                 int armorModValue = 0;
 
-                if (armorType > LootTables.ArmorType.HaebreanArmor && armorType < LootTables.ArmorType.OlthoiAlduressaArmor)
+                if (armorType > LootTables.ArmorType.HaebreanArmor && armorType <= LootTables.ArmorType.OlthoiAlduressaArmor)
                 {
                     switch (tier)
                     {
