@@ -11,6 +11,7 @@ using ACE.Server.Factories;
 
 using Newtonsoft.Json;
 using System.IO;
+using ACE.Database;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -185,16 +186,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("testlootgen", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Loot for testing LootFactories", "<number of items> <loot tier>")]
         public static void TestLootGenerator(Session session, params string[] parameters)
         {
-            // This generates loot items to JSON files to be used in parser to check drop rates of LootFactory
-
-            // Reference for generating individual class of loot
-            // ?? Should clothing and armor be seperate, and is that possible as it stands currently??
-            // 1-Clothing
-            // 2-Jewelry
-            // 3-Magic
-            // 4-Melee
-            // 5-Missile
-            // 6-Rares
+            // This generates loot items and displays the drop rates of LootFactory
 
             // Switch for different options
             switch (parameters[0])
@@ -245,29 +237,17 @@ namespace ACE.Server.Command.Handlers
             float otherCount = 0;
             float nullCount = 0;
 
-
             // Loop depending on how many items you are creating
             //string fileName = null;
             for (int i = 0; i < numberItemsGenerate; i++)
             {
-                var testItem = LootGenerationFactory.CreateRandomLootObjects(itemsTier, true);
-               
-
-
+                var testItem = LootGenerationFactory.CreateRandomLootObjects(itemsTier, true);              
                 if (testItem is null )
                 {
                     nullCount++;
                     continue;
                 }
                 string itemType = testItem.ItemType.ToString();
-
-                //Console.WriteLine("Item " + i);
-                //string itemBiota = testItem.Biota.BiotaPropertiesInt.ToString();
-                //Console.WriteLine(itemBiota);
-                //Console.WriteLine(itemType);
-
-
-                // adding in count of object classes of items
                 if (itemType == null)
                 {
                     nullCount++;
@@ -313,15 +293,7 @@ namespace ACE.Server.Command.Handlers
                 {
 
                 }
-                //Console.WriteLine(testItem.EpicCantrips.Count);
 
-                //JsonWrite
-                //fileName = String.Format(@"c:\ACE\json{0}.txt", i);
-                //using (StreamWriter sw = new StreamWriter(fileName))
-                //using (JsonWriter writer = new JsonTextWriter(sw))
-                //{
-                //    serializer.Serialize(writer, testItem.Biota);
-                //}
             }
             float totalItemsGenerated = armorCount + meleeWeaponCount + casterCount + missileWeaponCount + jewelryCount + gemCount + clothingCount + otherCount;
 
