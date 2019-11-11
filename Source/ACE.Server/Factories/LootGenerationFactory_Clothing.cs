@@ -279,8 +279,9 @@ namespace ACE.Server.Factories
 
         /// <summary>
         /// Assign a final AL value based upon tier
-        /// Based upon http://acpedia.org/wiki/Loot/Tier_7_Pre2013#Max_Armor_Levels
-        /// and http://acpedia.org/wiki/Loot/Tier_8#Maximum_Armor_Levels given the base AL values on the weenies
+        /// Used values given at http://acpedia.org/wiki/Loot/Tier_7_Pre2013#Max_Armor_Levels
+        /// and http://acpedia.org/wiki/Loot/Tier_8#Maximum_Armor_Levels for setting the AL mod values
+        /// so as to not exceed the values listed on those tables
         /// </summary>
         /// <param name="wo"></param>
         /// <param name="tier"></param>
@@ -445,13 +446,15 @@ namespace ACE.Server.Factories
 
                 if (armorType > LootTables.ArmorType.HaebreanArmor && armorType <= LootTables.ArmorType.OlthoiAlduressaArmor)
                 {
+                    // Even if most are not using T8, made a change to that outcome to ensure that Olthoi Alduressa doesn't go way out of spec
+                    // Side effect is that Haebrean to Olthoi Celdon may suffer
                     switch (tier)
                     {
                         case 7:
                             armorModValue = ThreadSafeRandom.Next(0, 40);
                             break;
                         case 8:
-                            armorModValue = ThreadSafeRandom.Next(160, 200);
+                            armorModValue = ThreadSafeRandom.Next(91, 115); 
                             break;
                         default:
                             armorModValue = 0;
