@@ -263,15 +263,15 @@ namespace ACE.Server.Factories
                     // jewels (Gems)
                     wo = CreateJewels(tier, isMagical);
                     return wo;
-                case var rate when (type > 14 & type < 39):
+                case var rate when (type > 14 && type < 39):
                     //armor
                     wo = CreateArmor(tier, isMagical, true, lootBias);
                     return wo;
-                case var rate when (type > 38 & type < 53):
+                case var rate when (type > 38 && type < 53):
                     // clothing (shirts/pants)
                     wo = CreateArmor(tier, isMagical, false, lootBias);
                     return wo;
-                case var rate when (type > 52 & type < 83):
+                case var rate when (type > 52 && type < 83):
                     // weapons (Melee/Missile/Casters)
                     wo = CreateWeapon(tier, isMagical);
                     return wo;
@@ -295,7 +295,7 @@ namespace ACE.Server.Factories
             {
                 case var rate when (chance < 43):
                     return CreateMeleeWeapon(tier, isMagical);
-                case var rate when (chance > 42 & chance < 79):
+                case var rate when (chance > 42 && chance < 79):
                     return CreateMissileWeapon(tier, isMagical);
                 default:
                     return CreateCaster(tier, isMagical);
