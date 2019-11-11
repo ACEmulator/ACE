@@ -398,6 +398,8 @@ namespace ACE.Server.WorldObjects
             if (spell.Flags.HasFlag(SpellFlags.FastCast) || isWeaponSpell)
                 return;
 
+            PhysicsObj.StopCompletely(false);
+
             foreach (var windupGesture in spell.Formula.WindupGestures)
             {
                 if (RecordCast.Enabled)
@@ -437,7 +439,11 @@ namespace ACE.Server.WorldObjects
                 });
             }
 
-            castChain.AddAction(this, () => MagicState.CastGestureStartTime = DateTime.UtcNow);
+            castChain.AddAction(this, () =>
+            {
+                MagicState.CastGestureStartTime = DateTime.UtcNow;
+                PhysicsObj.StopCompletely(false);
+            });
 
             var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
 
