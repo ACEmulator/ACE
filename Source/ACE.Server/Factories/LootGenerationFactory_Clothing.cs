@@ -305,14 +305,13 @@ namespace ACE.Server.Factories
                     case 1:
                         if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(20, 50);
-                        if (wo.ArmorType == (int)ArmorType.Leather)
+                        if (wo.ArmorType == (int)ArmorType.Leather
+                            || wo.ArmorType == (int)ArmorType.StuddedLeather)
                             armorModValue = ThreadSafeRandom.Next(0, 29);
-                        if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(0, 30);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
-                            armorModValue = ThreadSafeRandom.Next(0, 10);
+                            armorModValue = ThreadSafeRandom.Next(0, 26);
                         // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
                         if (wo.ResistMagic != null && wo.ResistMagic == 9999)
                             armorModValue = 0;
@@ -320,14 +319,13 @@ namespace ACE.Server.Factories
                     case 2:
                         if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(50, 80);
-                        if (wo.ArmorType == (int)ArmorType.Leather)
+                        if (wo.ArmorType == (int)ArmorType.Leather
+                            || wo.ArmorType == (int)ArmorType.StuddedLeather)
                             armorModValue = ThreadSafeRandom.Next(29, 52);
-                        if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(30, 54);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
-                            armorModValue = ThreadSafeRandom.Next(10, 30);
+                            armorModValue = ThreadSafeRandom.Next(26, 50);
                         // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
                         if (wo.ResistMagic != null && wo.ResistMagic == 9999)
                             armorModValue = 0;
@@ -335,14 +333,13 @@ namespace ACE.Server.Factories
                     case 3:
                         if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(80, 110);
-                        if (wo.ArmorType == (int)ArmorType.Leather)
+                        if (wo.ArmorType == (int)ArmorType.Leather
+                            || wo.ArmorType == (int)ArmorType.StuddedLeather)
                             armorModValue = ThreadSafeRandom.Next(52, 75);
-                        if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(54, 80);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
-                            armorModValue = ThreadSafeRandom.Next(30, 60);
+                            armorModValue = ThreadSafeRandom.Next(50, 74);
                         // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
                         if (wo.ResistMagic != null && wo.ResistMagic == 9999)
                             armorModValue = ThreadSafeRandom.Next(190, 210);
@@ -350,14 +347,13 @@ namespace ACE.Server.Factories
                     case 4:
                         if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(110, 140);
-                        if (wo.ArmorType == (int)ArmorType.Leather)
+                        if (wo.ArmorType == (int)ArmorType.Leather
+                            || wo.ArmorType == (int)ArmorType.StuddedLeather)
                             armorModValue = ThreadSafeRandom.Next(75, 98);
-                        if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(80, 106);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
-                            armorModValue = ThreadSafeRandom.Next(60, 90);
+                            armorModValue = ThreadSafeRandom.Next(74, 98);
                         // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
                         if (wo.ResistMagic != null && wo.ResistMagic == 9999)
                             armorModValue = ThreadSafeRandom.Next(210, 230);
@@ -365,14 +361,13 @@ namespace ACE.Server.Factories
                     case 5:
                         if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(140, 170);
-                        if (wo.ArmorType == (int)ArmorType.Leather)
+                        if (wo.ArmorType == (int)ArmorType.Leather
+                            || wo.ArmorType == (int)ArmorType.StuddedLeather)
                             armorModValue = ThreadSafeRandom.Next(98, 121);
-                        if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(106, 132);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
-                            armorModValue = ThreadSafeRandom.Next(90, 120);
+                            armorModValue = ThreadSafeRandom.Next(98, 122);
                         // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
                         if (wo.ResistMagic != null && wo.ResistMagic == 9999)
                             armorModValue = ThreadSafeRandom.Next(230, 250);
@@ -380,14 +375,13 @@ namespace ACE.Server.Factories
                     case 6:
                         if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(170, 200);
-                        if (wo.ArmorType == (int)ArmorType.Leather)
+                        if (wo.ArmorType == (int)ArmorType.Leather
+                            || wo.ArmorType == (int)ArmorType.StuddedLeather)
                             armorModValue = ThreadSafeRandom.Next(121, 144);
-                        if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(132, 158);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
-                            armorModValue = ThreadSafeRandom.Next(120, 150);
+                            armorModValue = ThreadSafeRandom.Next(122, 146);
                         // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
                         if (wo.ResistMagic != null && wo.ResistMagic == 9999)
                             armorModValue = ThreadSafeRandom.Next(250, 270);
@@ -395,14 +389,13 @@ namespace ACE.Server.Factories
                     case 7:
                         if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(200, 230);
-                        if (wo.ArmorType == (int)ArmorType.Leather)
+                        if (wo.ArmorType == (int)ArmorType.Leather
+                            || wo.ArmorType == (int)ArmorType.StuddedLeather)
                             armorModValue = ThreadSafeRandom.Next(144, 167);
-                        if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(158, 184);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
-                            armorModValue = ThreadSafeRandom.Next(150, 180);
+                            armorModValue = ThreadSafeRandom.Next(146, 170);
                         // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
                         if (wo.ResistMagic != null && wo.ResistMagic == 9999)
                             armorModValue = ThreadSafeRandom.Next(270, 290);
@@ -410,14 +403,13 @@ namespace ACE.Server.Factories
                     case 8:
                         if (wo.ArmorType == (int)ArmorType.Cloth)
                             armorModValue = ThreadSafeRandom.Next(230, 260);
-                        if (wo.ArmorType == (int)ArmorType.Leather)
+                        if (wo.ArmorType == (int)ArmorType.Leather
+                            || wo.ArmorType == (int)ArmorType.StuddedLeather)
                             armorModValue = ThreadSafeRandom.Next(167, 190);
-                        if (wo.ArmorType == (int)ArmorType.StuddedLeather)
-                            armorModValue = ThreadSafeRandom.Next(184, 210);
                         if (wo.ArmorType == (int)ArmorType.Metal
                             || wo.ArmorType == (int)ArmorType.Chainmail
                             || wo.ArmorType == (int)ArmorType.Scalemail)
-                            armorModValue = ThreadSafeRandom.Next(180, 204);
+                            armorModValue = ThreadSafeRandom.Next(170, 194);
                         // Covenant and Olthoi Armor (not Amuli, Celdon, Koujia, or Alduressa types of Olthoi Armor)
                         if (wo.ResistMagic != null && wo.ResistMagic == 9999)
                             armorModValue = ThreadSafeRandom.Next(290, 310);
