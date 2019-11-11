@@ -638,7 +638,7 @@ namespace ACE.Server.WorldObjects
 
         public void FinishCast(WeenieError useDone)
         {
-            var castGesture = MagicState.CastGesture;
+            var castGesture = MagicState.CastSpellParams.HasWindupGestures ? CurrentMotionState.MotionState.ForwardCommand : MagicState.CastGesture;
 
             MagicState.OnCastDone();
 
