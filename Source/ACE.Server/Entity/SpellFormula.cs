@@ -236,6 +236,8 @@ namespace ACE.Server.Entity
             }
         }
 
+        public bool HasWindupGestures => Scarabs.Any(i => i != Scarab.Lead);
+
         /// <summary>
         /// Returns the spell casting gesture, after the initial windup(s) are completed
         /// Based on the talisman (assumed to be the last spell component)
