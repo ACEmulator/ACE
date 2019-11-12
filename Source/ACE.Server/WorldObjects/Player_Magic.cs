@@ -608,7 +608,7 @@ namespace ACE.Server.WorldObjects
             IsBusy = true;
 
             // return to magic ready stance
-            var actionChain = new ActionChain();
+            /*var actionChain = new ActionChain();
             EnqueueMotion_Force(actionChain, MotionStance.Magic, MotionCommand.Ready, castGesture);
             actionChain.AddAction(this, () =>
             {
@@ -619,6 +619,17 @@ namespace ACE.Server.WorldObjects
 
                 //Console.WriteLine("====================================");
             });
+            actionChain.EnqueueChain();*/
+
+            // temporarily old version:
+
+            // return to magic combat stance
+            var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
+            EnqueueBroadcastMotion(returnStance);
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing
+            actionChain.AddAction(this, () => { IsBusy = false; });
             actionChain.EnqueueChain();
         }
 
