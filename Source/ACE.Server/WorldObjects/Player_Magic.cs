@@ -442,7 +442,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoCastSpell(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
         {
-            var actionChain = new ActionChain();
+            //var actionChain = new ActionChain();
 
             if (target != null)
             {
@@ -457,7 +457,7 @@ namespace ACE.Server.WorldObjects
 
                 // do second rotate, if applicable
                 // TODO: investigate this more, difference for GetAngle() between ACE and ac physics engine
-                var angle = 0.0f;
+                /*var angle = 0.0f;
                 if (target != this)
                 {
                     if (target.CurrentLandblock == null)
@@ -481,11 +481,13 @@ namespace ACE.Server.WorldObjects
                 {
                     var rotateTime = Rotate(target);
                     actionChain.AddDelaySeconds(rotateTime);
-                }
+                }*/
             }
 
-            actionChain.AddAction(this, () => DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus));
-            actionChain.EnqueueChain();
+            //actionChain.AddAction(this, () => DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus));
+            //actionChain.EnqueueChain();
+
+            DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
         }
 
         public void TurnTo_Magic(WorldObject target)
@@ -629,7 +631,10 @@ namespace ACE.Server.WorldObjects
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing
-            actionChain.AddAction(this, () => { IsBusy = false; });
+            actionChain.AddAction(this, () => {
+                IsBusy = false;
+                SendUseDoneEvent();
+            });
             actionChain.EnqueueChain();
         }
 
