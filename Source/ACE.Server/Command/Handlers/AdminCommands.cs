@@ -1768,32 +1768,43 @@ namespace ACE.Server.Command.Handlers
                 returnState += $"1={session.Player.TotalExperience}=2={session.Player.AvailableExperience}=";
 
                 // need all attributes
+                // 1 through 6 str, end, coord, quick, focus, self
                 foreach (var att in biota.BiotaPropertiesAttribute)
                 {
-                    returnState += $"{att.Type}=";
-                    returnState += $"{att.InitLevel}=";
-                    returnState += $"{att.LevelFromCP}=";
-                    returnState += $"{att.CPSpent}=";
+                    if(att.Type > 0 && att.Type <= 6)
+                    {
+                        returnState += $"{att.Type}=";
+                        returnState += $"{att.InitLevel}=";
+                        returnState += $"{att.LevelFromCP}=";
+                        returnState += $"{att.CPSpent}=";
+                    }
                 }
 
                 // need all vitals
+                // 1, 3, 5 H,S,M (2,4,6 are current values and are not stored since they will be maxed entering/exiting godmode)
                 foreach (var attSec in biota.BiotaPropertiesAttribute2nd)
                 {
-                    returnState += $"{attSec.Type}=";
-                    returnState += $"{attSec.InitLevel}=";
-                    returnState += $"{attSec.LevelFromCP}=";
-                    returnState += $"{attSec.CPSpent}=";
-                    returnState += $"{attSec.CurrentLevel}=";
+                    if(attSec.Type == 1 || attSec.Type == 3 || attSec.Type == 5)
+                    {
+                        returnState += $"{attSec.Type}=";
+                        returnState += $"{attSec.InitLevel}=";
+                        returnState += $"{attSec.LevelFromCP}=";
+                        returnState += $"{attSec.CPSpent}=";
+                        returnState += $"{attSec.CurrentLevel}="; 
+                    }
                 }
 
                 // need all skills
                 foreach (var sk in biota.BiotaPropertiesSkill)
                 {
-                    returnState += $"{sk.Type}=";
-                    returnState += $"{sk.LevelFromPP}=";
-                    returnState += $"{sk.SAC}=";
-                    returnState += $"{sk.PP}=";
-                    returnState += $"{sk.InitLevel}=";
+                    if (SkillHelper.ValidSkills.Contains((Skill)sk.Type))
+                    {
+                        returnState += $"{sk.Type}=";
+                        returnState += $"{sk.LevelFromPP}=";
+                        returnState += $"{sk.SAC}=";
+                        returnState += $"{sk.PP}=";
+                        returnState += $"{sk.InitLevel}=";
+                    }
                 }
 
                 // Check string is correctly formatted before altering stats
@@ -1810,8 +1821,6 @@ namespace ACE.Server.Command.Handlers
                 session.Player.SetProperty(PropertyString.GodState, returnState);
                 session.Player.SaveBiotaToDatabase(); 
             }
-
-            
 
             // Begin Godly Stats Increase
 
@@ -1878,7 +1887,6 @@ namespace ACE.Server.Command.Handlers
         {
             // @ungod - Returns skills and attributues to pre-god levels.
             Player currentPlayer = session.Player;
-            Biota biota = currentPlayer.Biota;
             string returnString = session.Player.GodState;
             
             if (returnString == null)

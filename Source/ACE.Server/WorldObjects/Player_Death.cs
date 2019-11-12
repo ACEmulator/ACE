@@ -33,7 +33,9 @@ namespace ACE.Server.WorldObjects
         /// <param name="damageType">The damage type for the death message</param>
         public override DeathMessage OnDeath(WorldObject lastDamager, DamageType damageType, bool criticalHit = false)
         {
-            if (DamageHistory.TopDamager is Player pkPlayer)
+            var topDamager = DamageHistory.GetTopDamager(false);
+
+            if (topDamager is Player pkPlayer)
             {
                 if (IsPKDeath(pkPlayer))
                 {
@@ -135,6 +137,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected override void Die(WorldObject lastDamager, WorldObject topDamager)
         {
+            if (topDamager == this && IsPKType)
+            {
+                var topDamagerOther = DamageHistory.GetTopDamager(false);
+
+                if (topDamagerOther is Player)
+                    topDamager = topDamagerOther;
+            }
+
             UpdateVital(Health, 0);
             NumDeaths++;
             suicideInProgress = false;
