@@ -193,6 +193,11 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            if (account.AccessLevel < 1)
+            {
+                session.Terminate(SessionTerminationReason.NotAuthorizedAccessLevel, new GameMessageBootAccount(session, "The access level for this account is too low."));
+            }
+
             // TODO: check for account bans
 
             account.UpdateLastLogin(session.EndPoint.Address);

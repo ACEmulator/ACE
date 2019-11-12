@@ -2,11 +2,12 @@
 {
     public enum AccessLevel
     {
-        Player      = 0,
-        Advocate    = 1,
-        Sentinel    = 2,
-        Envoy       = 3,
-        Developer   = 4,
-        Admin       = 5
+        NoAccess    = 0,
+        Player      = 1,
+        Advocate    = 2,
+        Sentinel    = 3,
+        Envoy       = 4,
+        Developer   = 5,
+        Admin       = 6
     }
 }

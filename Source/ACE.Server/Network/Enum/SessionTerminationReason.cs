@@ -26,7 +26,8 @@ namespace ACE.Server.Network.Enum
         SendToSocketException,
         WorldClosed,
         AbnormalSequenceReceived,
-        AccountLoggedIn
+        AccountLoggedIn,
+        NotAuthorizedAccessLevel
     }
     public static class SessionTerminationReasonHelper
     {
@@ -50,7 +51,8 @@ namespace ACE.Server.Network.Enum
             "MainSocket.SendTo exception occured",
             "World is closed",
             "Client supplied an abnormal sequence",
-            "Account was logged in, booting currently connected account in favor of new connection"
+            "Account was logged in, booting currently connected account in favor of new connection",
+            "Not Authorized: Access level set to NoAccess for this account"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {

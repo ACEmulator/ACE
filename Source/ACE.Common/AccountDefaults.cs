@@ -16,7 +16,7 @@ namespace ACE.Common
         /// Default AccessLevel for new accounts. Used when accesslevel is not specified by user.  for backwards compatibility, this is 0 (Player)
         /// by default.
         /// </summary>
-        [System.ComponentModel.DefaultValue(0)]
+        [System.ComponentModel.DefaultValue(1)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public uint DefaultAccessLevel { get; set; }
 
