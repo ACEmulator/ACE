@@ -2647,5 +2647,14 @@ namespace ACE.Server.Command.Handlers
             if (player != session.Player)
                 session.Network.EnqueueSend(new GameMessageSystemChat("Removed vitae for {player.Name}", ChatMessageType.Broadcast));
         }
+
+        [CommandHandler("debugbusy", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleDebugBusy(Session session, params string[] parameters)
+        {
+            var player = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (player == null) return;
+
+            CommandHandlerHelper.WriteOutputInfo(session, player.LastStackTrace, ChatMessageType.Broadcast);
+        }
     }
 }
