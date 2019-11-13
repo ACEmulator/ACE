@@ -412,7 +412,8 @@ namespace ACE.Server.WorldObjects
 
             foreach (var windupGesture in spell.Formula.WindupGestures)
             {
-                var windupTime = EnqueueMotion(castChain, windupGesture, CastSpeed);
+                // don't mess with CurrentMotionState here?
+                var windupTime = EnqueueMotionMagic(castChain, windupGesture, CastSpeed);
 
                 /*Console.WriteLine($"{spell.Name}");
                 Console.WriteLine($"Windup Gesture: " + windupGesture);
@@ -433,7 +434,7 @@ namespace ACE.Server.WorldObjects
 
             castChain.AddAction(this, () => MagicState.CastGestureStartTime = DateTime.UtcNow);
 
-            var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
+            var castTime = EnqueueMotionMagic(castChain, MagicState.CastGesture, CastSpeed);
 
             //Console.WriteLine($"Cast Gesture: " + MagicState.CastGesture);
             //Console.WriteLine($"Cast time: " + castTime);
