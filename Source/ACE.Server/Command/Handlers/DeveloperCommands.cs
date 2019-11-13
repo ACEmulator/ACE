@@ -2657,5 +2657,35 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, player.LastStackTrace, ChatMessageType.Broadcast);
             CommandHandlerHelper.WriteOutputInfo(session, $"IsBusy={player.IsBusy}, IsBusyCompleted={player.IsBusyCompleted}", ChatMessageType.Broadcast);
         }
+
+        [CommandHandler("castlog", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleCastLog(Session session, params string[] parameters)
+        {
+            var player = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
+            if (player == null) return;
+
+            bool enabled = false;
+
+            if (player.CastLog == null)
+            {
+                player.CastLog = session.Player;
+                enabled = true;
+            }
+            else
+                player.CastLog = null;
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Cast log {(enabled ? "enabled" : "disabled")} for {player.Name}");
+        }
+
+        [CommandHandler("forcecast", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleForceCast(Session session, params string[] parameters)
+        {
+            var player = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
+            if (player == null) return;
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Forcing cast for {player.Name}");
+
+            player.HandleActionCastTargetedSpell(player.Guid.Full, 2067);
+        }
     }
 }

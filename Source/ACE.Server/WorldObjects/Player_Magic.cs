@@ -42,6 +42,8 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugSpell;
 
+        public Player CastLog;
+
         /// <summary>
         /// Returns the magic skill associated with the magic school
         /// for the last collided spell projectile
@@ -67,13 +69,22 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public void DoCastLog(string msg)
+        {
+            CastLog.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+        }
+
         /// <summary>
         /// Handles player targeted casting message
         /// </summary>
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
         public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false)
         {
-            //Console.WriteLine($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell}");
+            if (CastLog != null)
+            {
+                DoCastLog($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell})");
+                DoCastLog($"CombatMode: {CombatMode}");
+            }
 
             if (CombatMode != CombatMode.Magic)
                 return;
@@ -87,6 +98,9 @@ namespace ACE.Server.WorldObjects
             if (!VerifyBusy())
                 return;
 
+            if (CastLog != null)
+                DoCastLog("VerifyBusy success");
+
             // verify spell is contained in player's spellbook,
             // or in the weapon's spellbook in the case of built-in spells
             if (!VerifySpell(spellId, builtInSpell))
@@ -94,6 +108,9 @@ namespace ACE.Server.WorldObjects
                 SendUseDoneEvent(WeenieError.MagicInvalidSpellType);
                 return;
             }
+
+            if (CastLog != null)
+                DoCastLog("VerifySpell success");
 
             var targetCategory = GetTargetCategory(targetGuid, spellId, out var target);
 
@@ -109,6 +126,9 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                if (CastLog != null)
+                    DoCastLog("Starting rotate");
+
                 var rotateTarget = target;
                 if (rotateTarget.WielderId != null)
                     rotateTarget = CurrentLandblock?.GetObject(rotateTarget.WielderId.Value);
@@ -648,17 +668,31 @@ namespace ACE.Server.WorldObjects
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
         public void CreatePlayerSpell(WorldObject target, TargetCategory targetCategory, uint spellId, bool builtInSpell = false)
         {
+            if (CastLog != null)
+                DoCastLog($"CreatePlayerSpell({target?.Name}, {targetCategory}, {spellId}, {builtInSpell})");
+
             var creatureTarget = target as Creature;
 
             if (!VerifyBusy())
                 return;
 
+            if (CastLog != null)
+                DoCastLog($"Busy check passed");
+
             var spell = ValidateSpell(spellId, builtInSpell);
             if (spell == null)
                 return;
 
+            if (CastLog != null)
+                DoCastLog($"Spell validated");
+
+
             if (!VerifySpellTarget(spell, target))
                 return;
+
+            if (CastLog != null)
+                DoCastLog($"Spell target validated");
+
 
             // if casting implement has spell built in,
             // use spellcraft from the item, instead of player's magic skill?
@@ -674,12 +708,18 @@ namespace ACE.Server.WorldObjects
             if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
                 return;
 
+            if (CastLog != null)
+                DoCastLog($"Spell range validated");
+
             // get casting pre-check status
             var castingPreCheckStatus = GetCastingPreCheckStatus(spell, magicSkill, isWeaponSpell);
 
             // calculate mana usage
             if (!CalculateManaUsage(castingPreCheckStatus, spell, target, isWeaponSpell, out var manaUsed))
                 return;
+
+            if (CastLog != null)
+                DoCastLog($"Mana usage validated, doing spell words and starting spell");
 
             // spell words
             DoSpellWords(spell, isWeaponSpell);
