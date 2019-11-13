@@ -756,7 +756,8 @@ namespace ACE.Server.WorldObjects
 
                     if (spell.IsHarmful)
                     {
-                        Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
+                        if (targetCreature != null)
+                            Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
 
                         // handle target procs
                         if (targetCreature != null && targetCreature != this)
@@ -796,14 +797,17 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                    if (target != null)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                     targetDeath = LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
                         if (spell.IsHarmful)
                         {
-                            Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.LifeMagic), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
+                            if (targetCreature != null)
+                                Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.LifeMagic), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
 
                             // handle target procs
                             if (targetCreature != null && targetCreature != this)
@@ -835,7 +839,7 @@ namespace ACE.Server.WorldObjects
                     {
                         var targetResist = targetCreature;
 
-                        if (targetResist == null && target.WielderId != null)
+                        if (targetResist == null && target?.WielderId != null)
                             targetResist = CurrentLandblock?.GetObject(target.WielderId.Value) as Creature;
 
                         if (targetResist != null)
@@ -861,7 +865,8 @@ namespace ACE.Server.WorldObjects
                             // targeting an individual item / wo
                             enchantmentStatus = ItemMagic(target, spell);
 
-                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            if (target != null)
+                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
                             if (enchantmentStatus.Message != null)
                                 Session.Network.EnqueueSend(enchantmentStatus.Message);
@@ -898,7 +903,8 @@ namespace ACE.Server.WorldObjects
                                 else
                                 {
                                     // 'fails to affect'?
-                                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
+                                    if (targetCreature != null)
+                                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
 
                                     if (targetPlayer != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
                                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} fails to affect you with {spell.Name}", ChatMessageType.Magic));
@@ -914,7 +920,8 @@ namespace ACE.Server.WorldObjects
                             // targeting an individual item / wo
                             enchantmentStatus = ItemMagic(target, spell);
 
-                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            if (target != null)
+                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
                             if (enchantmentStatus.Message != null)
                                 Session.Network.EnqueueSend(enchantmentStatus.Message);
@@ -948,7 +955,8 @@ namespace ACE.Server.WorldObjects
                         // all other item spells, cast directly on target
                         enchantmentStatus = ItemMagic(target, spell);
 
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                        if (target != null)
+                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
                         if (enchantmentStatus.Message != null)
                             Session.Network.EnqueueSend(enchantmentStatus.Message);
@@ -960,7 +968,7 @@ namespace ACE.Server.WorldObjects
                     if (spell.IsHarmful)
                     {
                         var playerRedirect = targetPlayer;
-                        if (playerRedirect == null && target.WielderId != null)
+                        if (playerRedirect == null && target?.WielderId != null)
                             playerRedirect = CurrentLandblock?.GetObject(target.WielderId.Value) as Player;
 
                         if (playerRedirect != null)
