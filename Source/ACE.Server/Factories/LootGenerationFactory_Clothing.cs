@@ -437,7 +437,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
             }
 
-            if (wo.GetProperty(PropertyInt.ArmorLevel) >= 340 && (wo.ResistMagic != null && wo.ResistMagic == 9999))
+            if ((wo.ResistMagic == null || wo.ResistMagic < 9999) && wo.GetProperty(PropertyInt.ArmorLevel) >= 340)
                 log.Warn($"[LOOT] Standard armor item exceeding upper AL threshold {wo.WeenieClassId} - {wo.Name}");
 
             if (wo.ArmorType == null)
