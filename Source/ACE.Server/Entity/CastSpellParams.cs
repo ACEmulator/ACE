@@ -1,3 +1,4 @@
+using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -9,6 +10,8 @@ namespace ACE.Server.Entity
         public uint ManaUsed { get; set; }
         public WorldObject Target { get; set; }
         public Player.CastingPreCheckStatus Status { get; set; }
+
+        public bool HasWindupGestures => !Spell.Flags.HasFlag(SpellFlags.FastCast) && !IsWeaponSpell && Spell.Formula.HasWindupGestures;
 
         public CastSpellParams(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
         {

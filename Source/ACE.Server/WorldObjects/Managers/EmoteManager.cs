@@ -257,7 +257,14 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.DeleteSelf:
 
-                    WorldObject.Destroy();
+                    if (player != null)
+                    {
+                        var wo = player.FindObject(WorldObject.Guid.Full, Player.SearchLocations.Everywhere, out _, out Container rootOwner, out bool wasEquipped);
+
+                        WorldObject.DeleteObject(rootOwner);
+                    }
+                    else
+                        WorldObject.DeleteObject();
 
                     break;
 

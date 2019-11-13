@@ -260,7 +260,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public Spell ValidateSpell(uint spellId)
+        public Spell ValidateSpell(uint spellId, bool isWeaponSpell = false)
         {
             var spell = new Spell(spellId);
 
@@ -278,7 +278,7 @@ namespace ACE.Server.WorldObjects
                 }
                 return null;
             }
-            if (!HasComponentsForSpell(spell))
+            if (!isWeaponSpell &&!HasComponentsForSpell(spell))
             {
                 SendUseDoneEvent(WeenieError.YouDontHaveAllTheComponents);
                 return null;
@@ -638,7 +638,7 @@ namespace ACE.Server.WorldObjects
 
         public void FinishCast(WeenieError useDone)
         {
-            var castGesture = MagicState.CastGesture;
+            var castGesture = MagicState.CastSpellParams.HasWindupGestures ? CurrentMotionState.MotionState.ForwardCommand : MagicState.CastGesture;
 
             MagicState.OnCastDone();
 
@@ -673,7 +673,7 @@ namespace ACE.Server.WorldObjects
             if (!VerifyBusy())
                 return;
 
-            var spell = ValidateSpell(spellId);
+            var spell = ValidateSpell(spellId, builtInSpell);
             if (spell == null)
                 return;
 
