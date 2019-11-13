@@ -248,13 +248,21 @@ namespace ACE.Server.Command.Handlers
                     continue;
                 }
                 string itemType = testItem.ItemType.ToString();
+                
                 if (itemType == null)
                 {
                     nullCount++;
 
                     continue;
                 }
-                                                          
+
+                if (testItem.SpellDID != null)
+                {
+                    TestLootGenerationFactory
+                    epicCantrips.
+                    Console.WriteLine($"Spells {testItem.SpellDID.Value}");
+                }
+
                 switch (itemType)
                 {
                     case "Armor":
@@ -262,6 +270,7 @@ namespace ACE.Server.Command.Handlers
                         break;
                     case "MeleeWeapon":
                         meleeWeaponCount++;
+                        Console.WriteLine($"Weapon Offense={testItem.WeaponOffense.Value}  Weapon Defense={testItem.WeaponDefense.Value}  Weapon Wield Req={testItem.WieldDifficulty}  Weapon Damage={testItem.Damage}  Weapon Damage Mod={testItem.DamageMod}");
                         break;
                     case "Caster":
                         casterCount++;
