@@ -598,6 +598,8 @@ namespace ACE.Server.WorldObjects
             FinishCast(useDone);
         }
 
+        public bool IsBusyCompleted;
+
         public void FinishCast(WeenieError useDone)
         {
             var castGesture = MagicState.CastGesture;
@@ -608,6 +610,7 @@ namespace ACE.Server.WorldObjects
 
             //if (!queue)
             IsBusy = true;
+            IsBusyCompleted = false;
 
             // return to magic ready stance
             /*var actionChain = new ActionChain();
@@ -633,6 +636,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing
             actionChain.AddAction(this, () => {
                 IsBusy = false;
+                IsBusyCompleted = true;
                 SendUseDoneEvent();
             });
             actionChain.EnqueueChain();

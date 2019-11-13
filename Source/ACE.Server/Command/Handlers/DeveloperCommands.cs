@@ -2651,10 +2651,11 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("debugbusy", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleDebugBusy(Session session, params string[] parameters)
         {
-            var player = CommandHandlerHelper.GetLastAppraisedObject(session);
+            var player = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
             if (player == null) return;
 
             CommandHandlerHelper.WriteOutputInfo(session, player.LastStackTrace, ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, $"IsBusy={player.IsBusy}, IsBusyCompleted={player.IsBusyCompleted}", ChatMessageType.Broadcast);
         }
     }
 }
