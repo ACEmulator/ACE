@@ -549,6 +549,9 @@ namespace ACE.Server.Entity
 
                 if (!Permaload)
                 {
+                    if (worldObjects.Count(x => x.Value.EmoteManager.OnDeathEmoteInProgress) > 0)
+                        SetActive();
+
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
                         IsDormant = true;
                     if (lastActiveTime + UnloadInterval < thisHeartBeat)
