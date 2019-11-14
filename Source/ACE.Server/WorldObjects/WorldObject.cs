@@ -890,26 +890,6 @@ namespace ACE.Server.WorldObjects
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
 
-            if (!(this is Creature))
-            {
-                RemoveObjectAndRecycleGuid();
-            }
-            else
-            {
-                EnqueueActionBroadcast(p => p.RemoveTrackedObject(this, false));
-
-                if (this is Creature deadCreature && !deadCreature.EmoteManager.OnDeathEmoteInProgress)
-                    RemoveObjectAndRecycleGuid();
-            }
-        }
-
-        public void RemoveObjectAndRecycleGuid()
-        {
-            if (!IsDestroyed)
-                return;
-
-            //Console.WriteLine($"{Name}.RemoveObjectAndRecycleGuid()");
-
             CurrentLandblock?.RemoveWorldObject(Guid);
 
             RemoveBiotaFromDatabase();

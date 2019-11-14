@@ -1303,7 +1303,6 @@ namespace ACE.Server.WorldObjects.Managers
             if (emoteSet == null)
             {
                 Nested--;
-
                 return;
             }
 
@@ -1347,7 +1346,7 @@ namespace ACE.Server.WorldObjects.Managers
                         if (emoteSet.Category == (uint)EmoteCategory.Death)
                         {
                             OnDeathEmoteInProgress = false;
-                            WorldObject.RemoveObjectAndRecycleGuid();
+                            WorldObject.Destroy();
                         }
 
                     });

@@ -109,6 +109,19 @@ namespace ACE.Server.WorldObjects
             dieChain.EnqueueChain();
         }
 
+        public bool IsPendingDestroy { get; private set; }
+
+        public override void Destroy(bool raiseNotifyOfDestructionEvent = true)
+        {
+            if (!EmoteManager.OnDeathEmoteInProgress)
+                base.Destroy(raiseNotifyOfDestructionEvent);
+            else
+            {
+                IsPendingDestroy = true;
+                EnqueueActionBroadcast(p => p.RemoveTrackedObject(this, false));
+            }
+        }
+
         /// <summary>
         /// Called when an admin player uses the /smite command
         /// to instantly kill a creature

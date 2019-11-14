@@ -55,6 +55,9 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // Do not track destroyed objects that are pending removal from landblock.
+            if (worldObject is Creature deadCreature && deadCreature.IsPendingDestroy)
+                return;
+
             if (worldObject.IsDestroyed)
                 return;
 
