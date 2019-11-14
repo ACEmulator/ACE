@@ -775,8 +775,8 @@ namespace ACE.Server.WorldObjects
             var movementData = new MovementData(this, CurrentMoveToState);
             var currentState = movementData.Invalid.State;
 
-            var changed = currentState.ForwardSpeed != prevState.ForwardSpeed ||
-                          currentState.TurnSpeed != prevState.TurnSpeed ||
+            var changed = currentState.ForwardSpeed  != prevState.ForwardSpeed ||
+                          currentState.TurnSpeed     != prevState.TurnSpeed ||
                           currentState.SidestepSpeed != prevState.SidestepSpeed;
 
             if (!changed)

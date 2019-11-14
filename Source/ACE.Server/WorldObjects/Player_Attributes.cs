@@ -3,6 +3,7 @@ using System;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
@@ -56,7 +57,8 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(abilityUpdate, soundEvent, message);
                 }
 
-                if (attribute == PropertyAttribute.Strength || attribute == PropertyAttribute.Quickness)
+                // retail was missing the 'raise attribute' runrate hook here
+                if ((attribute == PropertyAttribute.Strength || attribute == PropertyAttribute.Quickness) && PropertyManager.GetBool("runrate_add_hooks").Item)
                     HandleRunRateUpdate();
             }
             else

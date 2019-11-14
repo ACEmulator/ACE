@@ -5,6 +5,7 @@ using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
@@ -195,10 +196,9 @@ namespace ACE.Server.WorldObjects
                 {
                     OnExhausted();
                 }
-                else if (prevVal == 0)
+                // retail was missing the 'exhausted done' automatic hook here
+                else if (prevVal == 0 && PropertyManager.GetBool("runrate_add_hooks").Item)
                 {
-                    // did retail automatically run faster as soon as stamina ticked back up above 0,
-                    // or did it require the player to release and re-press the forward movement key?
                     HandleRunRateUpdate();
                 }
             }
