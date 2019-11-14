@@ -249,6 +249,9 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
                 Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
+
+                if (skill == Skill.Run)
+                    HandleRunRateUpdate();
             }
             else if (prevXP != creatureSkill.ExperienceSpent)
             {

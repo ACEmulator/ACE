@@ -176,22 +176,31 @@ namespace ACE.Server.WorldObjects
         /// <returns>The actual change in the vital, after clamping between 0 and MaxVital</returns>
         public override int UpdateVital(CreatureVital vital, int newVal)
         {
+            var prevVal = vital.Current;
+
             var change = base.UpdateVital(vital, newVal);
 
-            if (change != 0)
-            {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+            if (change == 0)
+                return 0;
 
-                if (Fellowship != null)
-                    FellowVitalUpdate = true;
-            }
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+
+            if (Fellowship != null)
+                FellowVitalUpdate = true;
 
             // check for exhaustion
             if (vital.Vital == PropertyAttribute2nd.Stamina || vital.Vital == PropertyAttribute2nd.MaxStamina)
             {
-                if (change != 0 && vital.Current <= 0)
+                if (newVal == 0)
+                {
                     OnExhausted();
-
+                }
+                else if (prevVal == 0)
+                {
+                    // did retail automatically run faster as soon as stamina ticked back up above 0,
+                    // or did it require the player to release and re-press the forward movement key?
+                    HandleRunRateUpdate();
+                }
             }
             return change;
         }

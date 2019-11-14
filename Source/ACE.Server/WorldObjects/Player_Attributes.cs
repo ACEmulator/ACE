@@ -55,6 +55,9 @@ namespace ACE.Server.WorldObjects
                 {
                     Session.Network.EnqueueSend(abilityUpdate, soundEvent, message);
                 }
+
+                if (attribute == PropertyAttribute.Strength || attribute == PropertyAttribute.Quickness)
+                    HandleRunRateUpdate();
             }
             else
             {
