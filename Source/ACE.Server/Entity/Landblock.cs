@@ -549,7 +549,7 @@ namespace ACE.Server.Entity
 
                 if (!Permaload)
                 {
-                    if (worldObjects.Values.Any(c => c.EmoteManager.OnDeathEmoteInProgress) > 0)
+                    if (worldObjects.Values.Any(c => c.EmoteManager.OnDeathEmoteInProgress))
                         SetActive();
 
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
