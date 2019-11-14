@@ -765,7 +765,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool HandleRunRateUpdate()
         {
-            Console.WriteLine($"{Name}.HandleRunRateUpdates()");
+            //Console.WriteLine($"{Name}.HandleRunRateUpdates()");
 
             if (CurrentMovementData.MovementType != MovementType.Invalid)
                 return false;
@@ -782,12 +782,12 @@ namespace ACE.Server.WorldObjects
             if (!changed)
                 return false;
 
-            Console.WriteLine($"Old: {prevState.ForwardSpeed}, New: {currentState.ForwardSpeed}");
+            //Console.WriteLine($"Old: {prevState.ForwardSpeed}, New: {currentState.ForwardSpeed}");
 
             if (!CurrentMovementData.Invalid.State.HasMovement() || IsJumping)
                 return false;
 
-            Console.WriteLine($"{Name}.OnRunRateChanged()");
+            //Console.WriteLine($"{Name}.OnRunRateChanged()");
 
             CurrentMovementData = new MovementData(this, CurrentMoveToState);
 
