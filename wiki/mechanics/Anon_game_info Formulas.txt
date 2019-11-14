@@ -1,0 +1,242 @@
+Skill Checks
+	Also before I get into mechanics, just remembered that you were talking about skillcheck formulas. Just wanted to add that AC uses integers only rounded to nearest (99.5% -> 100%), so if you're wondering why you can have 100% success rate, well that's why.
+	I no longer have the source to the dev post where that was made, but I remember it.
+
+Melee/missile Damage scaling: 
+	Base formula: 1.0 + ((Attribute-55)*M) 
+	M = 0.008 for missile, 0.011 for melee 
+	Attribute = Strength for HW/2H/TW, Coord for bow/xbow/finesse 
+	10% base chance to crit, crits do 2x of the top damage of the weapon.
+
+Armor damage reduction: 
+	For AL > 0: AL / (AL + (200/3)), 
+	for AL > 0 For AL < 0: 1.0 + (-AL / (200/3))
+
+Protections/vulns: 
+	+150% = 2.5 damage modifier (vuln 6) 
+	-60% = 0.4 damage modifier (prot 6) 
+	2.5 * 0.4 = 1.0 
+	Equal level vulns/prots cancel out, but I've noticed people adding these instead of multiplying, which makes vulns seem a lot more powerful than prots.
+
+Ratings: 
+	DR : 1 + (DR/100) = damage modifier 
+	DRR: (100 / (DRR/100)) = damage modifier 
+	(most of the ratings and reduction ratings work in a similar way) 
+	Note that ratings can be negative (recklessness debuff), but you have to make sure you don't divide by zero (i.e. rating must be > -100)
+	
+Imbues/Melee: 
+	BS = base skill. These cap at 400 base. Additional base ranks do nothing more. 
+	AR: (BS - 160) / 400 = % of armor ignored 
+	CS: BS / 1000 = crit rate%, minimum 10% (so anything <= 100 base has no effect), caps at 50% (I'm guessing this formula) 
+	CB: 1 + (BS / (400/6)), bonus to crit rate 2x, minimum of 1x, caps at 7x 
+	Resist rends: BS / 160, elemental vuln damage modifier, capped at 2.5. 
+Imbues/Missile and War/Void: (yes, they're different) 
+	BS = base skill. These cap at 360 base. Additional base ranks do nothing more. 
+	AR (missile only): (BS - 144) / 360 
+	CS: BS / 900 
+	CB: 1 + (BS / (360/6)) Resist rends: BS / 144, elemental vuln damage modifier, capped at 2.5.
+Okay, for what I know about the war/void bonus: These are % bonuses for level 7s and 8s, depending on how high your skill is beyond the difficulty of the spell (300 for L7, 400 for L8). Damage bonus for 7s apparently cap at 33% or so, but no cap for L8
+
+Weapon swing animation speed caps at ~180 quickness. But I'm not certain as to the exact formula.
+Attack/defense modifiers: 
+	These ADD to the existing modifiers: 
+	+17% = 1.17 (defender 7) 
+	so if you have an item that has a base +20% (1.20), you get +37% (1.37) 
+	
+Mana C modifiers on casters: 
+	These MULTIPLY on existing modifiers: 
+	+7% = 1.07 (hermetic link 7) 
+	so if you have an item that has a base +20% (1.20), you get +34% (1.34)
+	mana conversion uses 2 skill checks, I only know full info for the first one.
+	the first one is to check whether you save mana at all, and actually I noticed I made a mistake when I mentioned the wrong formula a moment ago
+	it's 25 + half the difficulty of the spellcast
+	so it's 25,50,75,etc. for levels 1,2,3,...
+	37.5,62.5,87.5,etc. for negative debuffs of levels 1,2,3
+	the second skill check, of much higher difficulty, calculates how much mana you save, and that's the one I don't have info for :frowning:
+	but there's incredible variance in how much mana you save, so it might not be a simple straightforward formula
+	I'm sure it has something to do with the distance your random dice roll is to the second skill check value
+	but there's incredible variance in how much mana you save, so it might not be a simple straightforward formula
+	I'm sure it has something to do with the distance your random dice roll is to the second skill check value
+	but exactly what I dunno.
+	
+Speed/Power bar: 0.5x damage at minimum, 1.0x at center, 1.5x at max power
+Speed/accuracy bar: 0.6x missile skill at minimum (used to be 0.5 pre-TOD), 1.0x at center, 1.5x at max accuracy
+
+dual wield: both the charge bar and the animations are 20% faster than normal (+25% DPS effectively)
+
+sneak attack = 20 DR, % chance is M * (skill / weaponSkill), M = 10% if trained, 15% if spec, IIRC
+
+you have an extra +15% melee defense towards whatever you have selected
+
+Aegis
+	aegis effect depends on BASE shield skill = (shield skill / 415)*M; M = 0.25 for aegis, 0.10 for some other shields
+	aegis effect for bows (old pre-shield effect) = (base_magicd / 319)*M
+	also for shield aegis, you have an extra 0.8 modifier (20% reduction) if you only have shield untrained or trained, not spec
+	Aegis effect is 72% as effect for missile and melee in PvP ( 25% full reduction becomes 18%. Partial aegis of 10% would now be 7.2%).
+	"Aegis effect is now inactive while in peace mode. "
+	
+	
+Shield
+	SL follows the same formula as AL: (SL / (SL+(200/3))
+	but the modifier is MULTIPLIED instead of added to AL
+	= 2.4x damage modifier for resist rends, etc.
+	yeah, shield SL is also inactive in peace mode at the end
+	so back to shields - if you have 200 AL (reduces damage by 75%) and 200 SL, your effectively reducing damage by 0.25*0.25=93.75%
+		(that's a lot higher than 400 AL (which reduces damage by ~85.7%))
+	Next, regarding shield skill - SL cap is determined by (skill/2) if shield skill trained/untrained, and (skill*1.0) if spec.
+	Now for the "bug" in AC's implementation...
+	the "bug" is that the cap is done AFTER shield elemental prots are calculated, not before.
+	for example, you have a 200 SL shield, you put imp 6 on it making it 400 SL
+	you bane it making everything 400*2.0 = 800 SL
+	but you would need 800 shield skill to make full use of it, not 400 skill
+	this is a large reason why after they introduced shield skill that partial shield hollowness was too unbalancingly powerful
+	800 buffed shield skill is probably at the very top of what's attainable through regular non-rare buffs
+	making anything beyond 200 base SL kind of worthless in comparison, unless you were fighting hollows
+	rare shields in particular are affected, halving their effective SL at best.
+	I think this issue came about because of how they originally planned to implement it, and then later switched...
+	They initially planned on making trained/untrained shield be (skill * 1.0) capped and spec be (skill * 2.0) capped, which would have solved this issue
+	but when they changed the design, probably after they did the implementation, they forgot to move the cap check to before banes were considered
+	so you end up with about half the SL you think you have
+	
+		
+natural armor (armor self / executor's blessing): these add to your body AL for all elements.
+wards: they multiply their effects.  For example, having a minor ward (10%) and a prot 5 (50%), gives you 55% reduction, NOT 60%
+		
+Natural Resistance / Endurance
+	first, natural resistances cap at 50%, but aren't stackable with prots.  Endurance regen bonuses / drain resistances do stack with regen spells and DRR respectively
+	oh btw, natural resistances were changed one month after introduction to not have any effect on hollow damage
+	ok, to the formulas, or what I remember of them off the top of my head...
+	natural resistances factor off of base (strength + endurance)
+	their effects start at 201, cap at 580 (reachable if you have 100 innate str and endurance)
+	increases linearly
+	so basically it's (((S+E)-200)/380)*0.5
+	
+Regen
+	regen bonuses are based on endurance*2, with the same range, up to +100% regen rate.
+	effective for health and stamina only, NOT for mana
+	regen rates for different sources (regen bonus, base regen, spells, augs) are multiplicative.
+	base regen rate = 1/tick for health, higher if you are laying down
+	base stamina regen = 5/tick, if you're standing up, 10/tick if you're laying down.  Combat mode halves this, running also halves this.
+	base mana regen = 1/tick
+	example: if you have rejuv 7 (+115%) and have full endurance bonus (+100%) and have major stamina gain (+30%) and are standing up, you'll regen 5 x 2.15 x 2.0 x 1.3 = 28 stamina per tick
+	
+recklessness = 20 DR max, -20 DRR to you, if active.   the actual DR/DRR values are proportional to (recklessnessSkill / weaponSkill)
+dirty fighting has a (depending on skill proportion again) up to 20% chance per hit for its effects.
+
+Imbue
+	imbue chance also doesn't suddenly cap at 33%, it's basically the same skill check, but divided by 3
+	(so you have ~17% success rate at the otherwise 50/50 difficulty point)
+	the +5% imbue adds directly to the chance of imbuing, regardless of skill
+	so 17% becomes 22%
+	
+let's see... dying items (final step) is difficulty = 230 for armor, but a lot less (100?  150?) for clothing.
+
+oh, mobs that use missile weapons (lugian rocks, etc.) always fire at the middle of their accuracy bar (100% of skill)
+	that was done so missile defense could work more consistently (how well that worked, lol)
+
+Magic Spellcasting Skill Check: yes, that 0.03 I think is supposed to be around 0.07 for spellcasting
+
+oh, another note about formulas - if you're calculating skill value from attributes, like (strength + coord) / 3 ... the resulting value is an integer that's rounded to nearest... that is 65.333 gets rounded to 65 and 100.6667 gets rounded to 101.
+
+Tinkering: https://web.archive.org/web/20090201015303/http://www.code-poets.org/tinkering.html
+
+Pre Master of Arms Unarmed Damage
+	There's a base damage bonus (added to base weapon damage + blooddrinker effects) that gives 1 point of base damage per 20 buffed UA skill.
+	BUT to offset this balance-wise, the M modifier is 0.008 instead of 0.011, also scaling with strength like most other melee skills.(edited)
+	again, for reference, the melee/ranged damage formula is 1.0 + ((Attribute-55)*M)(edited)
+
+Fighting Unarmed (no weapons, just fists)
+	Now, there's also an unlisted base damage on most hand armor
+	I think this still exists, for those that fight barefisted (lol)
+	For example, at the time of TOD launch, the highest base damage pair of gauntlets was IIRC sunstone gaunlets
+	there was also the tusker paws, which had CB on them
+	there was a kick animation (high power instead of speed), but still I think it used the gauntlets damage
+	but again I'm not 100% sure on that.
+
+Melee/Magic Defense Bonus
+	oh, there's another mechanic added to spec defense skills not too long before the last patch
+	that is if you have melee defense spec, you get +1 DRR to all incoming melee damage for every 60 points of (buffed) melee defense skill you have.  Only active if you're spec, and doesn't apply to monsters, only players.
+	for spec missile defense, it
+	it's +1 DRR per 50 missile defense skill
+	and for spec magic defense, it's +1 DRR per 50 magic defense skill
+	those aren't listed on the player ID panel, but they apply when damage reduction is calculated
+	
+Void Magic
+	For void magic, there's also a +DR bonuses against targets that have DoT effects on them.
+	While I don't have exact formulas for the bonus, I have a good guess as to what they are
+	there are 3 DoT void spells...
+	and each one applies a  +x DR to all damage against that target while the DoT is active.
+	x = level of spell
+	I know all 3 level 7 DoTs give a ~21% damage bonus against the target if they're all active.
+
+Allegiance / XP Passup
+	I once had formulas for leadership/loyalty passup, but I forgot the exact ones.  Still remember a few things though:
+	each had a minimum of 0.5 on their xp modifier (meaning you will pass up 25% of total xp earned even with loyalty and leadership being 0).
+	There's also a factor of how long the vassal is sworn to the patron, capping at 720 days (2 years).  And of course, a factor of how many vassals the patron has.
+
+Healing:
+	yep, but there's also hidden modifiers on skill depending on your spec status
+	Besides what I see the skill check using floats instead of integer percents.... I don't actually see the diff calculation formula in there
+	okay...
+	hmm, looks like wiki has the formula there
+	http://acpedia.org/wiki/Healing
+	only the difficulty of healing, not the amount restored.
+	But I somehow suspect (only guessing) that the amount healed is in proportion to max health.  Not 100% on that.
+	But it could also be a proportion to healing skill itself(edited)
+	just that crit heals heal 2x the normal value
+	
+Also, %-based buffs (hidden entrance quest rewards, asheron's benediction spell) work off of base value.  The stackability of those spells vary, though.
+
+There's also the xp cost per % of vitae penalty, which I don't know the formula to (only that it's related to character level).  It also changed when ToD launched.
+
+Special Weapons
+	Like the soulbound/spectral weapons are 3x crit and ignore 60% armor.
+	For things like slayer modifiers, I think others would probably know more than I do.
+	Most of those are figures from experimentation, but for soulbound set, I think that's the only one that Sev actually gave the numbers to at some point.
+	oh, the new atlan weapons that have resist rending... their rending modifier is 2.0 (for minor and major stones), 2.1 (for blackfire versions), and 2.2 (for enhanced blackfire)
+	there's also the renegade bow that has the highest quest CB modifier of any item at 6x (I think, or 5x, not 100% sure)
+	the renegade living set also has a high CB modifier I think, around 4x?
+	the new explorer weapons also have a rending modifier of 2.0, as they're roughly balanced at the same level as the new minor atlans
+	silifi of crimson night (latest version) has a rending modifier of 2.0 and a crit damage modifier of 3x.
+	there's too many of them to list, and sadly there wasn't that much testing to figure out quest item imbue values before shutdown.
+
+Addendum:
+
+    Base Endurance also reduces stamina cost for melee swings, up to 50% or 75% reduction (can't remember which). Scaling is similar to other Endurance bonuses.
+
+    Melee swing stamina cost in turn scales based on the total burden of what you are holding in your hands (mainhand and offhand), and your power/speed bar. If you're holding really heavy things while swinging at max power (and without significant bonuses from endurance), it can cost 10+ stamina per swing. Minimum cost is 1 stamina per swing (e.g. UA on full speed). Exact formulas were never posted, though someone at one point documented various data points for this. Unfortunately, I don't have it on hand.
+
+    Mana conversion can reduce mana costs down to 1 mana (not zero).
+
+    Base Endurance also grants a chance to avoid losing a point of stamina every time you evade, up to 75% chance. You still always lose a point of stamina every time you're hit with melee or missile. Again, similar scaling.
+
+    Drain resistance: formula identical to natural protections, applies to all drain effects, including stamina/mana drains, life bolts, etc. Void DoTs aren't affected by this.
+
+    Void DoT damage is halved against player targets, not only for PvP (i.e. the 50% modifier also applies if a creature casts it on a player).
+
+    Missile attacks take up 2 stamina (bow) or 3 stamina (xbow) per projectile fired. I don't have TW numbers, but probably similar. IIRC, this is independent of speed/accuracy.
+
+Note that the strength/endurance bonuses (regen, natural prots, etc.) apply only to players.
+
+
+Adjustments to a couple of formulas:
+    1. DRR formula: 100 / (100 + DRR)
+    2. AL > 0 case: (200/3) / (AL + (200/3))
+
+Accurate Imbue formulas for CS/CB:
+    CS/Melee: (Weapon Skill - 100)/600 
+    CS/Missile_Magic: (Weapon Skill - 60)/600 
+    CB/Melee: (Weapon Skill - 40)/60 
+    CB/Missile_Magic: (Weapon Skill)/60
+
+Note that CS/CB scaling/modifiers/caps are different for PvP.
+
+Imbue effect hard caps, PVE (repeating some of the info in the doc):
+    AR minimum of 0%, max of 60% armor ignored
+    CS minimum of 5% (war/void) or 10% (melee/missile) to max 50% crit chance
+    CB minimum of 1x (magic) or 2x (melee/missile) to max 6x crit dmg mod (see note below)
+    Resist Rends min of 1.0x to max 2.5x (equivalent of vuln 6)
+
+CB crit effect calculation input:
+    - Melee/missile: This is a direct multiplier on your maximum non-crit damage.
+    - Magic: My best guess is that the CB modifier modifies the additional crit damage (see notes-2), but I'm not 100% on this.
