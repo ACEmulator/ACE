@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
         {
             base.Open(player);
 
-            if (!ResetMessagePending)
+            if (!ResetMessagePending && !double.IsPositiveInfinity(ChestResetInterval))
             {
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(ChestResetInterval);
