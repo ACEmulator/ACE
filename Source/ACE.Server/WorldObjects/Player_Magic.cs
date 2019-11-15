@@ -1422,6 +1422,12 @@ namespace ACE.Server.WorldObjects
             // send error message?
         }
 
+        public void HandleSpellHooks(Spell spell)
+        {
+            HandleMaxVitalUpdate(spell);
+            HandleRunRateUpdate(spell);
+        }
+
         /// <summary>
         /// Called when an enchantment is added or removed,
         /// checks if the spell affects the max vitals,
@@ -1446,6 +1452,14 @@ namespace ACE.Server.WorldObjects
                 }
             });
             actionChain.EnqueueChain();
+        }
+
+        public bool HandleRunRateUpdate(Spell spell)
+        {
+            if (!spell.UpdatesRunRate)
+                return false;
+
+            return HandleRunRateUpdate();
         }
     }
 }

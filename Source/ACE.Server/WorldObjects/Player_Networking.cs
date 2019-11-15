@@ -228,7 +228,8 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(false, movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
-            CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
+            //CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
+            CurrentMovementData = movementData;
         }
 
         private EnvironChangeType? currentFogColor;

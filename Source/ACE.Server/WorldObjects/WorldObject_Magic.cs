@@ -1344,7 +1344,7 @@ namespace ACE.Server.WorldObjects
             {
                 playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
-                playerTarget.HandleMaxVitalUpdate(spell);
+                playerTarget.HandleSpellHooks(spell);
             }
 
             if (playerTarget == null && target.Wielder is Player wielder)
