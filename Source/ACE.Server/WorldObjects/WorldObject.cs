@@ -467,8 +467,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public double LastAnimatedTicks { get; set; }
 
-        public virtual void PlayScript(Session session) { }
-
 
         ////// Logical Game Data
         public ContainerType ContainerType

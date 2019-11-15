@@ -282,5 +282,20 @@ namespace ACE.Server.WorldObjects
             if (broadcast)
                 EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
         }
+
+        public void SendWeenieError(WeenieError error)
+        {
+            Session.Network.EnqueueSend(new GameEventWeenieError(Session, error));
+        }
+
+        public void SendWeenieErrorWithString(WeenieErrorWithString error, string str)
+        {
+            Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, error, str));
+        }
+
+        public void SendTransientError(string msg)
+        {
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg));
+        }
     }
 }
