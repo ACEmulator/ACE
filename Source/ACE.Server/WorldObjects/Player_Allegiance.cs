@@ -125,6 +125,11 @@ namespace ACE.Server.WorldObjects
             AllegianceXPGenerated = 0;
             AllegianceOfficerRank = null;
 
+            // update instance ids
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(this, PropertyInstanceId.Allegiance, Allegiance.Guid.Full));
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(this, PropertyInstanceId.Patron, PatronId ?? 0));
+            EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(this, PropertyInstanceId.Monarch, new ObjectGuid(MonarchId ?? 0)));            
+
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
 
@@ -170,6 +175,8 @@ namespace ACE.Server.WorldObjects
             // target can be either patron or vassal
             var isPatron = PatronId == target.Guid.Full;
             var isVassal = target.PatronId == Guid.Full;
+
+            var previousAllegianceHouse = Allegiance.GetHouse();
 
             // break ties
             if (isVassal)
@@ -221,6 +228,22 @@ namespace ACE.Server.WorldObjects
 
             // rebuild allegiance tree structures
             AllegianceManager.OnBreakAllegiance(this, target);
+
+            // boot from allegiance housing
+            if (previousAllegianceHouse != null && (Allegiance == null || previousAllegianceHouse.OwnerId != Allegiance.Monarch.PlayerGuid.Full))
+            {
+                if (previousAllegianceHouse.OnProperty(this))
+                {
+                    Teleport(previousAllegianceHouse.BootSpot.Location);
+
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You has been booted from the allegiance house.", ChatMessageType.Broadcast));
+                }
+            }
+
+            // update instances
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(this, PropertyInstanceId.Allegiance, Allegiance != null ? Allegiance.Guid.Full : ObjectGuid.Invalid.Full));
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(this, PropertyInstanceId.Patron, PatronId ?? 0));
+            EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(this, PropertyInstanceId.Monarch, Allegiance != null ? Allegiance.Monarch.PlayerGuid : ObjectGuid.Invalid));
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
