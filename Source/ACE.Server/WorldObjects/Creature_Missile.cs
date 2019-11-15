@@ -130,7 +130,9 @@ namespace ACE.Server.WorldObjects
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
 
-            if (ammo.StackSize == null || ammo.StackSize <= 1)
+            // monsters have infinite ammo?
+
+            /*if (ammo.StackSize == null || ammo.StackSize <= 1)
             {
                 TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
                 ammo.Destroy();
@@ -139,7 +141,7 @@ namespace ACE.Server.WorldObjects
             {
                 ammo.SetStackSize(ammo.StackSize - 1);
                 EnqueueBroadcast(new GameMessageSetStackSize(ammo));
-            }
+            }*/
         }
 
         /// <summary>
