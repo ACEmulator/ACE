@@ -110,9 +110,14 @@ namespace ACE.Server.WorldObjects
             WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, showError: !PhysicsObj.entering_world);
             PhysicsObj.set_active(false);
 
-            var player = ProjectileSource as Player;
-            if (player != null)
+            if (ProjectileSource is Player player)
+            {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
+            }
+            else if (ProjectileSource is Creature creature)
+            {
+                creature.MonsterProjectile_OnCollideEnvironment();
+            }
         }
     }
 }

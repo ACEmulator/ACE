@@ -107,13 +107,13 @@ namespace ACE.Server.WorldObjects
             });
 
             // will ammo be depleted?
-            if (ammo.StackSize == null || ammo.StackSize <= 1)
+            /*if (ammo.StackSize == null || ammo.StackSize <= 1)
             {
                 // compare monsters: lugianmontokrenegade /  sclavusse / zombielichtowerarcher
                 actionChain.EnqueueChain();
                 NextMoveTime = NextAttackTime = Timers.RunningTime + launchTime + MissileDelay;
                 return;
-            }
+            }*/
 
             // reload animation
             var animSpeed = GetAnimSpeed();
@@ -157,6 +157,64 @@ namespace ACE.Server.WorldObjects
             var ammo = GetMissileAmmo();
 
             return ammo.GetDamageMod(this);
+        }
+
+        // reset between targets?
+        public int MonsterProjectile_OnCollideEnvironment_Counter;
+
+        public void MonsterProjectile_OnCollideEnvironment()
+        {
+            //Console.WriteLine($"{Name}.MonsterProjectile_OnCollideEnvironment()");
+            MonsterProjectile_OnCollideEnvironment_Counter++;
+
+            // chance of switching to melee, or static counter in retail?
+            /*var rng = ThreadSafeRandom.Next(1, 3);
+            if (rng == 3)
+                SwitchToMeleeAttack();*/
+
+            if (MonsterProjectile_OnCollideEnvironment_Counter >= 3)
+                SwitchToMeleeAttack();
+        }
+
+        public void SwitchToMeleeAttack()
+        {
+            //Console.WriteLine($"{Name}.SwitchToMeleeAttack()");
+
+            var weapon = GetEquippedMissileWeapon();
+            var ammo = GetEquippedAmmo();
+
+            if (weapon == null && ammo == null)
+                return;
+
+            // actually destroys the missile weapon + ammo here,
+            // to ensure they can't be re-selected from inventory
+            if (weapon != null)
+            {
+                TryUnwieldObjectWithBroadcasting(weapon.Guid, out _, out _);
+                weapon.Destroy();
+            }
+
+            if (ammo != null)
+            {
+                TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
+                ammo.Destroy();
+            }
+
+            EquipInventoryItems(true);
+            DoAttackStance();
+            CurrentAttack = null;
+
+            // this is an unfortunate hack to fix the following scenario:
+
+            // since this function can be called at any point in time now,
+            // including when LaunchMissile -> EnqueueMotion is in the middle of an action queue,
+            // CurrentMotionState.Stance can get reset to the previous combat stance if that happens
+
+            var combatStance = GetCombatStance();
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(2.0f);
+            actionChain.AddAction(this, () => CurrentMotionState.Stance = combatStance);
+            actionChain.EnqueueChain();
         }
     }
 }
