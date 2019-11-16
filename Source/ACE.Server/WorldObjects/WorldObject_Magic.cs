@@ -17,6 +17,7 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Managers;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics;
+using ACE.Server.Physics.Extensions;
 using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.WorldObjects
@@ -1427,6 +1428,16 @@ namespace ACE.Server.WorldObjects
             spellProjectile.ProjectileTarget = target;
             spellProjectile.SetProjectilePhysicsState(spellProjectile.ProjectileTarget, useGravity);
             spellProjectile.SpawnPos = new Position(spellProjectile.Location);
+
+            if (spellProjectile.Velocity == null || !spellProjectile.Velocity.Value.IsValid())
+            {
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Fizzle, 0.5f));
+
+                if (this is Player player)
+                    player.SendWeenieError(WeenieError.YourProjectileSpellMislaunched);
+
+                return null;
+            }
 
             return spellProjectile;
         }
