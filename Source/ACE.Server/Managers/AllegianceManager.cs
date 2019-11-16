@@ -447,7 +447,13 @@ namespace ACE.Server.Managers
                 p.SaveBiotaToDatabase();
 
             foreach (var p in players)
+            {
                 Player.CheckAllegianceHouse(p.Guid);
+
+                var newAllegiance = GetAllegiance(p);
+                if (newAllegiance != null)
+                    newAllegiance.Monarch.Walk((node) => Player.CheckAllegianceHouse(node.PlayerGuid), false);
+            }
         }
     }
 }
