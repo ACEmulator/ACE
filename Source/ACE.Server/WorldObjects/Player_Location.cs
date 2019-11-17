@@ -562,6 +562,24 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// ACE allows for multi-threading with thread boundaries based on the "LandblockGroup" concept
+        /// The risk of moving the player immediately is that the player may move onto another LandblockGroup, and thus, cross thread boundaries
+        /// This will enqueue the work onto WorldManager making the teleport thread safe.
+        /// Note that this work will be done on the next tick, not immediately, so be careful about your order of operations.
+        /// If you must ensure order, pass your follow up work in with the argument actionToFollowUpWith. That work will be enqueued onto the Player.
+        /// </summary>
+        public void ThreadSafeTeleport(Position _newPosition, IAction actionToFollowUpWith = null)
+        {
+            WorldManager.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                Teleport(_newPosition);
+
+                if (actionToFollowUpWith != null)
+                    EnqueueAction(actionToFollowUpWith);
+            }));
+        }
+
         public DateTime LastTeleportTime;
 
         public void Teleport(Position _newPosition)
