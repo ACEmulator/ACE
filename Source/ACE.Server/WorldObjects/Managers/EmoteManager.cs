@@ -1329,16 +1329,26 @@ namespace ACE.Server.WorldObjects.Managers
                 Enqueue(emoteSet, targetObject, emoteIdx + 1, nextDelay);
             else
             {
-                var delayChain = new ActionChain();
-                delayChain.AddDelaySeconds(nextDelay);
-                delayChain.AddAction(WorldObject, () =>
+                if (nextDelay > 0)
+                {
+                    var delayChain = new ActionChain();
+                    delayChain.AddDelaySeconds(nextDelay);
+                    delayChain.AddAction(WorldObject, () =>
+                    {
+                        Nested--;
+
+                        if (Nested == 0)
+                            IsBusy = false;
+                    });
+                    delayChain.EnqueueChain();
+                }
+                else
                 {
                     Nested--;
 
                     if (Nested == 0)
                         IsBusy = false;
-                });
-                delayChain.EnqueueChain();
+                }
             }
         }
 
