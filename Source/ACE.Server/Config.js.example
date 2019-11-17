@@ -68,7 +68,7 @@
       // This will multi-thread world object ticking
       // This is a much more involved process as world object ticking interacts with server global constructs like Allegiances, Fellowships, Housing, etc..
       // There is much more cross-landblock group work happening here
-      // This feature is currently in alpha
+      // This feature is currently in beta
       "MultiThreadedLandblockGroupTicking": false
     },
 
