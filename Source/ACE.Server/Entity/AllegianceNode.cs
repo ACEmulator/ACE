@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ACE.Common;
 using ACE.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
@@ -116,6 +117,68 @@ namespace ACE.Server.Entity
                 if (patronLevel >= vassalLevel)
                     vassal.Player.ExistedBeforeAllegianceXpChanges = true;
             }
+        }
+
+        /// <summary>
+        /// Returns the amount of realtime sworn to patron
+        /// </summary>
+        public TimeSpan CalculateRealTime()
+        {
+            if (Patron == null)
+                return TimeSpan.Zero;
+
+            // TODO: figure out better handling for legacy players
+            // with AllegianceSwearTimestamp null
+            var now = Time.GetUnixTime();
+            var timestamp = Player.AllegianceSwearTimestamp ?? now;
+
+            return TimeSpan.FromSeconds(now - timestamp);
+        }
+
+        /// <summary>
+        /// Returns the amount of gametime sworn to patron
+        /// </summary>
+        public TimeSpan CalculateGameTime()
+        {
+            if (Patron == null)
+                return TimeSpan.Zero;
+
+            // TODO: figure out better handling for legacy players
+            // with AllegianceSwearAge null
+            var current_age = Player.Age ?? 0;
+            var swear_age = Player.AllegianceSwearAge ?? current_age;
+
+            return TimeSpan.FromSeconds(current_age - swear_age);
+        }
+
+        /// <summary>
+        /// Returns the average amount of realtime vassals sworn
+        /// </summary>
+        public TimeSpan CalculateRealTime_VassalAvg()
+        {
+            if (!HasVassals)
+                return TimeSpan.Zero;
+
+            var total = TimeSpan.Zero;
+            foreach (var vassal in Vassals.Values)
+                total += vassal.CalculateRealTime();
+
+            return total / Vassals.Count;
+        }
+
+        /// <summary>
+        /// Returns the average amount of gametime vassals sworn
+        /// </summary>
+        public TimeSpan CalculateGameTime_VassalAvg()
+        {
+            if (!HasVassals)
+                return TimeSpan.Zero;
+
+            var total = TimeSpan.Zero;
+            foreach (var vassal in Vassals.Values)
+                total += vassal.CalculateGameTime();
+
+            return total / Vassals.Count;
         }
     }
 }

@@ -169,14 +169,16 @@ namespace ACE.Server.Managers
         public static float SkillCap = 291.0f;
 
         /// <summary>
-        /// The maximum amount of realtime hours sworn to patron
+        /// The maximum amount of realtime sworn to patron
+        /// before reaching cap (retail default: 730 days / 2 years)
         /// </summary>
-        public static float RealCap = 730.0f;
+        public static TimeSpan RealCap = TimeSpan.FromDays(730);
 
         /// <summary>
-        /// The maximum amount of in-game hours sworn to patron
+        /// The maximum amount of gametime sworn to patron
+        /// before reaching cap (retail default: 720 hours / 1 month)
         /// </summary>
-        public static float GameCap = 720.0f;
+        public static TimeSpan GameCap = TimeSpan.FromHours(720);
 
         public static void PassXP(AllegianceNode vassalNode, ulong amount, bool direct)
         {
@@ -246,19 +248,29 @@ namespace ACE.Server.Managers
             var loyalty = Math.Min(vassal.GetCurrentLoyalty(), SkillCap);
             var leadership = Math.Min(patron.GetCurrentLeadership(), SkillCap);
 
-            var timeReal = Math.Min(RealCap, RealCap);
-            var timeGame = Math.Min(GameCap, GameCap);
+            //var realtime = vassalNode.CalculateRealTime();
+            //var gametime = vassalNode.CalculateGameTime();
+            var realtime = RealCap;
+            var gametime = GameCap;
 
-            var timeRealAvg = Math.Min(RealCap, RealCap);
-            var timeGameAvg = Math.Min(GameCap, GameCap);
+            var timeReal = Math.Min(realtime.TotalDays, RealCap.TotalDays);
+            var timeGame = Math.Min(gametime.TotalHours, GameCap.TotalHours);
+
+            //var realtime_vassal = patronNode.CalculateRealTime_VassalAvg();
+            //var gametime_vassal = patronNode.CalculateGameTime_VassalAvg();
+            var realtime_vassal = RealCap;
+            var gametime_vassal = GameCap;
+
+            var timeRealAvg = Math.Min(realtime_vassal.TotalDays, RealCap.TotalDays);
+            var timeGameAvg = Math.Min(gametime_vassal.TotalHours, GameCap.TotalHours);
 
             var vassalFactor = Math.Min(0.25f * patronNode.TotalVassals, 1.0f);
 
             var factor1 = direct ? 50.0f : 16.0f;
             var factor2 = direct ? 22.5f : 8.0f;
 
-            var generated = (factor1 + factor2 * (loyalty / SkillCap) * (1.0f + (timeReal / RealCap) * (timeGame / GameCap))) * 0.01f;
-            var received = (factor1 + factor2 * (leadership / SkillCap) * (1.0f + vassalFactor * (timeRealAvg / RealCap) * (timeGameAvg / GameCap))) * 0.01f;
+            var generated = (factor1 + factor2 * (loyalty / SkillCap) * (1.0f + (timeReal / RealCap.TotalDays) * (timeGame / GameCap.TotalHours))) * 0.01f;
+            var received = (factor1 + factor2 * (leadership / SkillCap) * (1.0f + vassalFactor * (timeRealAvg / RealCap.TotalDays) * (timeGameAvg / GameCap.TotalHours))) * 0.01f;
             var passup = generated * received;
 
             var generatedAmount = (uint)(amount * generated);

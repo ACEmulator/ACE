@@ -327,6 +327,25 @@ namespace ACE.Server.Entity
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceOfficerRank); else SetProperty(PropertyInt.AllegianceOfficerRank, value.Value); }
         }
 
+        public int? Age
+        {
+            get => GetProperty(PropertyInt.Age);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Age); else SetProperty(PropertyInt.Age, value.Value); }
+        }
+
+        public int? AllegianceSwearAge
+        {
+            get => GetProperty(PropertyInt.AllegianceSwearTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceSwearTimestamp); else SetProperty(PropertyInt.AllegianceSwearTimestamp, value.Value); }
+        }
+
+        public double? AllegianceSwearTimestamp
+        {
+            get => GetProperty(PropertyFloat.AllegianceSwearTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AllegianceSwearTimestamp); else SetProperty(PropertyFloat.AllegianceSwearTimestamp, value.Value); }
+
+        }
+
         /// <summary>
         /// This flag indicates if a player can pass up allegiance XP
         /// </summary>

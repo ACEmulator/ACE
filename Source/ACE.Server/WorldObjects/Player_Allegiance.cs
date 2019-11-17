@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -58,6 +59,26 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges) ?? true;
             set { if (value) RemoveProperty(PropertyBool.ExistedBeforeAllegianceXpChanges); else SetProperty(PropertyBool.ExistedBeforeAllegianceXpChanges, value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the player swore allegiance
+        /// Used to calculate realtime sworn to patron
+        /// </summary>
+        public double? AllegianceSwearTimestamp
+        {
+            get => GetProperty(PropertyFloat.AllegianceSwearTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AllegianceSwearTimestamp); else SetProperty(PropertyFloat.AllegianceSwearTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// The player age when they swore allegiance
+        /// Used to calculate gametime sworn to patron
+        /// </summary>
+        public int? AllegianceSwearAge
+        {
+            get => GetProperty(PropertyInt.AllegianceSwearTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceSwearTimestamp); else SetProperty(PropertyInt.AllegianceSwearTimestamp, value.Value); }
         }
 
         /// <summary>
@@ -124,6 +145,9 @@ namespace ACE.Server.WorldObjects
 
             AllegianceXPGenerated = 0;
             AllegianceOfficerRank = null;
+
+            AllegianceSwearTimestamp = Time.GetUnixTime();
+            AllegianceSwearAge = Age;
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
