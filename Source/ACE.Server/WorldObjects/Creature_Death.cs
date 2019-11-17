@@ -31,7 +31,13 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
+            if (WeenieClassId == 180014)
+                log.Info($"[TURKEY] {Guid}:{Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, Creature_Death OnDeath() Before EmoteManager");
+
             EmoteManager.OnDeath(DamageHistory);
+
+            if (WeenieClassId == 180014)
+                log.Info($"[TURKEY] {Guid}:{Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, Creature_Death OnDeath() After EmoteManager");
 
             OnDeath_GrantXP();
 
@@ -77,6 +83,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected virtual void Die(WorldObject lastDamager, WorldObject topDamager)
         {
+            if (WeenieClassId == 180014)
+                log.Info($"[TURKEY] {Guid}:{Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, Creature_Death Die()");
+
             UpdateVital(Health, 0);
 
             if (topDamager != null)
