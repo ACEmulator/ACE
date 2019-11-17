@@ -497,10 +497,18 @@ namespace ACE.Server.Entity
 
                 if (!Permaload)
                 {
+                    //if (worldObjects.Values.Any(c => c.EmoteManager.OnDeathEmoteInProgress))
+                    //    SetActive();
+
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
                         IsDormant = true;
                     if (lastActiveTime + UnloadInterval < thisHeartBeat)
-                        LandblockManager.AddToDestructionQueue(this);
+                    {
+                        if (worldObjects.Values.Any(c => c.EmoteManager.OnDeathEmoteInProgress))
+                            SetActive();
+                        else
+                            LandblockManager.AddToDestructionQueue(this);
+                    }
                 }
 
                 //log.Info($"Landblock {Id.ToString()}.Tick({currentUnixTime}).Landblock_Tick_Heartbeat: thisHeartBeat: {thisHeartBeat.ToString()} | lastHeartBeat: {lastHeartBeat.ToString()} | worldObjects.Count: {worldObjects.Count()}");
