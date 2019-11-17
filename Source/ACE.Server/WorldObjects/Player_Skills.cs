@@ -249,6 +249,10 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
                 Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
+
+                // retail was missing the 'raise skill' runrate hook here
+                if (skill == Skill.Run && PropertyManager.GetBool("runrate_add_hooks").Item)
+                    HandleRunRateUpdate();
             }
             else if (prevXP != creatureSkill.ExperienceSpent)
             {

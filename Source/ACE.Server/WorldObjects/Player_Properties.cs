@@ -51,7 +51,7 @@ namespace ACE.Server.WorldObjects
 
         public bool IsPlussed
         {
-            get => Character.IsPlussed || (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
+            get => (Character != null && Character.IsPlussed) || (Session != null && ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
         }
 
         public string GodState

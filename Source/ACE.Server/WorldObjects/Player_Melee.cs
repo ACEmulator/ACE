@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The target this player is currently performing a melee attack on
         /// </summary>
-        public WorldObject MeleeTarget;
+        public Creature MeleeTarget;
 
         private float _powerLevel;
 
@@ -46,6 +46,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionTargetedMeleeAttack(uint targetGuid, uint attackHeight, float powerLevel)
         {
+            //log.Info($"-");
+
             if (CombatMode != CombatMode.Melee)
                 return;
 
@@ -62,7 +64,7 @@ namespace ACE.Server.WorldObjects
             PowerLevel = powerLevel;
 
             // already in melee loop?
-            if (Attacking || MeleeTarget != null)
+            if (Attacking || MeleeTarget != null && MeleeTarget.IsAlive)
                 return;
 
             // get world object for target creature
@@ -91,7 +93,9 @@ namespace ACE.Server.WorldObjects
             if (target.Teleporting)
                 return;     // werror?
 
-            MeleeTarget = target;
+            //log.Info($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel})");
+
+            MeleeTarget = creatureTarget;
             AttackTarget = MeleeTarget;
 
             var attackSequence = ++AttackSequence;
@@ -115,14 +119,19 @@ namespace ACE.Server.WorldObjects
                 // turn / move to required
                 if (GetCharacterOption(CharacterOption.UseChargeAttack))
                 {
+                    //log.Info($"{Name}.MoveTo({target.Name})");
+
                     // charge attack
                     MoveTo(target);
                 }
                 else
                 {
-                    
+                    //log.Info($"{Name}.CreateMoveToChain({target.Name})");
+
                     CreateMoveToChain(target, (success) =>
                     {
+                        log.Info($"{Name}.CreateMoveToChain({target.Name}) complete - {success}");
+
                         if (success)
                             Attack(target, attackSequence);
                     });
@@ -135,7 +144,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionCancelAttack()
         {
-            //Console.WriteLine("HandleActionCancelAttack");
+            //Console.WriteLine($"{Name}.HandleActionCancelAttack()");
 
             MeleeTarget = null;
             MissileTarget = null;
@@ -148,6 +157,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Attack(WorldObject target, int attackSequence)
         {
+            //log.Info($"{Name}.Attack({target.Name}, {attackSequence})");
+
             if (CombatMode != CombatMode.Melee || MeleeTarget == null || !IsAlive || AttackSequence != attackSequence)
                 return;
 
