@@ -268,6 +268,33 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// Returns TRUE for any spells which could potentially affect the run rate,
+        /// such as spells which alter run / quickness / strength
+        /// </summary>
+        public bool UpdatesRunRate
+        {
+            get
+            {
+                if (_spell == null)
+                    return false;
+
+                // this is commented out as below in UpdatesMaxVitals
+                // i forget the exact reasoning, are all the proper hooks in places for each vitae %,
+                // and not just add/remove?
+                /*if (_spell.Id == 666)   // vitae
+                    return true;*/
+
+                if (StatModType.HasFlag(EnchantmentTypeFlags.Attribute) && (StatModKey == (uint)PropertyAttribute.Strength || StatModKey == (uint)PropertyAttribute.Quickness))
+                    return true;
+
+                if (StatModType.HasFlag(EnchantmentTypeFlags.Skill) && StatModKey == (uint)Skill.Run)
+                    return true;
+
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Returns a list of MaxVitals affected by this spell
         /// </summary>
         public List<PropertyAttribute2nd> UpdatesMaxVitals
@@ -278,6 +305,15 @@ namespace ACE.Server.Entity
 
                 if (_spell == null)
                     return maxVitals;
+
+                /*if (_spell.Id == 666)   // Vitae
+                {
+                    maxVitals.Add(PropertyAttribute2nd.MaxHealth);
+                    maxVitals.Add(PropertyAttribute2nd.MaxStamina);
+                    maxVitals.Add(PropertyAttribute2nd.MaxMana);
+
+                    return maxVitals;
+                }*/
 
                 if (StatModType.HasFlag(EnchantmentTypeFlags.SecondAtt) && StatModKey != 0)
                     maxVitals.Add((PropertyAttribute2nd)StatModKey);
@@ -296,14 +332,6 @@ namespace ACE.Server.Entity
                             break;
                     }
                 }
-
-                //if (_spell.Id == 666) // Vitae
-                //{
-                //    maxVitals.Add(PropertyAttribute2nd.MaxHealth);
-                //    maxVitals.Add(PropertyAttribute2nd.MaxStamina);
-                //    maxVitals.Add(PropertyAttribute2nd.MaxMana);
-                //}
-
                 return maxVitals;
             }
         }

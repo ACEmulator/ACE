@@ -6,6 +6,13 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 
+// this is for testing making lootgen items
+using ACE.Server.Factories;
+
+using Newtonsoft.Json;
+using System.IO;
+using ACE.Database;
+
 namespace ACE.Server.Command.Handlers
 {
     public static class ConsoleCommands
@@ -176,5 +183,144 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"Exported {totalFiles} total files to {exportDir}.");
             }
         }
+        [CommandHandler("testlootgen", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Loot for testing LootFactories", "<number of items> <loot tier>")]
+        public static void TestLootGenerator(Session session, params string[] parameters)
+        {
+            // This generates loot items and displays the drop rates of LootFactory
+
+            // Switch for different options
+            switch (parameters[0])
+            {
+                case "-info":
+                    Console.WriteLine("This is for more info on how to use this command");
+                    break;
+                default:
+                    break;
+            }
+
+            if (Int32.TryParse(parameters[0], out int numberItemsGenerate))
+            {
+                Console.WriteLine("Number of items to generate " + numberItemsGenerate);
+            }
+            else
+            {
+                Console.WriteLine("numbr of items is not an integer");
+                return;
+            }
+
+            if (Int32.TryParse(parameters[1], out int itemsTier))
+            {
+                Console.WriteLine("tier is " + itemsTier);
+            }
+            else
+            {
+                Console.WriteLine("tier is not an integer");
+                return;
+            }
+
+            Console.WriteLine($"Creating {numberItemsGenerate} items, that are in tier {itemsTier}");
+
+            // Creating JSON Serializer using NewtonSoft
+            JsonSerializer serializer = new JsonSerializer();
+            serializer.NullValueHandling = NullValueHandling.Ignore;
+            serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            serializer.Formatting = Formatting.Indented;
+
+            // Counters
+            float armorCount = 0;
+            float meleeWeaponCount = 0;
+            float casterCount = 0;
+            float missileWeaponCount = 0;
+            float jewelryCount = 0;
+            float gemCount = 0;
+            float clothingCount = 0;
+            float otherCount = 0;
+            float nullCount = 0;
+
+            // Loop depending on how many items you are creating
+            //string fileName = null;
+            for (int i = 0; i < numberItemsGenerate; i++)
+            {
+                var testItem = LootGenerationFactory.CreateRandomLootObjects(itemsTier, true);              
+                if (testItem is null )
+                {
+                    nullCount++;
+                    continue;
+                }
+                string itemType = testItem.ItemType.ToString();
+                if (itemType == null)
+                {
+                    nullCount++;
+
+                    continue;
+                }
+                                                          
+                switch (itemType)
+                {
+                    case "Armor":
+                        armorCount++;
+                        break;
+                    case "MeleeWeapon":
+                        meleeWeaponCount++;
+                        break;
+                    case "Caster":
+                        casterCount++;
+                        break;
+                    case "MissileWeapon":
+                        missileWeaponCount++;
+                        break;
+                    case "Jewelry":
+                        jewelryCount++;
+                        break;
+                    case "Gem":
+                        gemCount++;
+                        break;
+                    case "Clothing":
+                        clothingCount++;
+                        break;
+                    default:
+                        otherCount++;
+
+                        break;
+                }
+
+                if (testItem == null)
+                {
+                    Console.WriteLine("*Name is Null*");
+                    continue;
+                }
+                else
+                {
+
+                }
+
+            }
+            float totalItemsGenerated = armorCount + meleeWeaponCount + casterCount + missileWeaponCount + jewelryCount + gemCount + clothingCount + otherCount;
+
+            Console.WriteLine($" Armor={armorCount} \n " +
+                                $"MeleeWeapon={meleeWeaponCount} \n " +
+                                $"Caster={casterCount} \n " +
+                                $"MissileWeapon={missileWeaponCount} \n " +
+                                $"Jewelry={jewelryCount} \n " +
+                                $"Gem={gemCount} \n " +
+                                $"Clothing={clothingCount} \n " +
+                                $"Other={otherCount} \n " +
+                                $"NullCount={nullCount} \n " +
+                                $"TotalGenerated={totalItemsGenerated}");
+            Console.WriteLine();
+            Console.WriteLine($" Drop Rates \n " +
+                                $"Armor= {armorCount / totalItemsGenerated * 100}% \n " +
+                                $"MeleeWeapon= {meleeWeaponCount / totalItemsGenerated * 100}% \n " +
+                                $"Caster= {casterCount / totalItemsGenerated * 100}% \n " +
+                                $"MissileWeapon= {missileWeaponCount / totalItemsGenerated * 100}% \n " +
+                                $"Jewelry= {jewelryCount / totalItemsGenerated * 100}% \n " +
+                                $"Gem= {gemCount / totalItemsGenerated * 100}% \n " +
+                                $"Clothing= {clothingCount / totalItemsGenerated * 100}% \n " +
+                                $"Other={otherCount / totalItemsGenerated * 100}% \n  ");
+
+
+            Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
+        }
+
     }
 }

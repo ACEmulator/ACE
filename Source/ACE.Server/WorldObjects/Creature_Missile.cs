@@ -11,6 +11,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -91,6 +92,16 @@ namespace ACE.Server.WorldObjects
             origin += dir * 2.0f;
 
             var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out time);
+
+            var player = this as Player;
+            if (!velocity.IsValid())
+            {
+                if (player != null)
+                    player.SendWeenieError(WeenieError.YourAttackMisfired);
+
+                return null;
+            }
+
             proj.Velocity = velocity;
 
             proj.Location = matchIndoors ? Location.FromGlobal(origin) : new Position(Location.Cell, origin, Location.Rotation);
@@ -103,7 +114,6 @@ namespace ACE.Server.WorldObjects
             if (proj.PhysicsObj == null)
                 return null;
 
-            var player = this as Player;
             var pkStatus = player?.PlayerKillerStatus ?? PlayerKillerStatus.Creature;
 
             proj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(proj, PropertyInt.PlayerKillerStatus, (int)pkStatus));
@@ -130,7 +140,9 @@ namespace ACE.Server.WorldObjects
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
 
-            if (ammo.StackSize == null || ammo.StackSize <= 1)
+            // monsters have infinite ammo?
+
+            /*if (ammo.StackSize == null || ammo.StackSize <= 1)
             {
                 TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
                 ammo.Destroy();
@@ -139,7 +151,7 @@ namespace ACE.Server.WorldObjects
             {
                 ammo.SetStackSize(ammo.StackSize - 1);
                 EnqueueBroadcast(new GameMessageSetStackSize(ammo));
-            }
+            }*/
         }
 
         /// <summary>
