@@ -83,13 +83,6 @@ namespace ACE.Server.WorldObjects
 
             if (item.StackSize > 0)
             {
-                // fix lugians only having 1 rock?
-                if (wo.Name.Equals("Rock") && item.StackSize == 1 && item.StackSizeVariance == 0)
-                {
-                    item.StackSize = 10;
-                    item.StackSizeVariance = 0.1f;
-                }
-
                 var stackSize = item.StackSize;
 
                 var hasVariance = item.StackSizeVariance > 0;
@@ -101,7 +94,6 @@ namespace ACE.Server.WorldObjects
                 }
                 wo.SetStackSize(stackSize);
             }
-
             return wo;
         }
 

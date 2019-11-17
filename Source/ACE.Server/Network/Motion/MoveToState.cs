@@ -26,6 +26,8 @@ namespace ACE.Server.Network.Structure
         public bool Contact;                // verify: contact (indicates if player is on ground), or sticky bit?
         public bool StandingLongJump;
 
+        public MoveToState() { }
+
         public MoveToState(WorldObject wo, BinaryReader reader)
         {
             WorldObject = wo;

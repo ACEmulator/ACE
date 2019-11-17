@@ -339,8 +339,24 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetRunRate()
         {
+            var burden = 0.0f;
+
+            // assuming burden only applies to players...
+            if (this is Player player)
+            {
+                var strength = Strength.Current;
+
+                var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, player.AugmentationIncreasedCarryingCapacity);
+                burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
+
+                // TODO: find this exact formula in client
+                // technically this would be based on when the player releases / presses the movement key after stamina > 0
+                if (player.IsExhausted)
+                    burden = 3.0f;
+            }
+
             var runSkill = GetCreatureSkill(Skill.Run).Current;
-            var runRate = MovementSystem.GetRunRate(0.0f, (int)runSkill, 1.0f);
+            var runRate = MovementSystem.GetRunRate(burden, (int)runSkill, 1.0f);
 
             return (float)runRate;
         }

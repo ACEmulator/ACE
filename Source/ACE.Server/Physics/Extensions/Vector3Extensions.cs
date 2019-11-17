@@ -13,7 +13,7 @@ namespace ACE.Server.Physics.Extensions
 
         public static bool IsValid(this Vector3 v)
         {
-            return v.X != float.NaN && v.Y != float.NaN && v.Z != float.NaN;
+            return !float.IsNaN(v.X) && !float.IsNaN(v.Y) && !float.IsNaN(v.Z);
         }
 
         public static double Length2D(this Vector3 v)
