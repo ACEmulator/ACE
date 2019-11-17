@@ -1346,7 +1346,8 @@ namespace ACE.Server.WorldObjects.Managers
                         if (emoteSet.Category == (uint)EmoteCategory.Death)
                         {
                             OnDeathEmoteInProgress = false;
-                            WorldObject.Destroy();
+                            if (WorldObject is Creature creature && creature.IsPendingDestroy)
+                                WorldObject.Destroy();
                         }
 
                     });
