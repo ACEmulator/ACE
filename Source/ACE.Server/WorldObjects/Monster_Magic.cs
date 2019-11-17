@@ -54,9 +54,25 @@ namespace ACE.Server.WorldObjects
             return skill.InitLevel + skill.Ranks;
         }
 
+        public float GetProbabilityAny()
+        {
+            var probabilities = new List<float>();
+
+            foreach (var spell in Biota.BiotaPropertiesSpellBook)
+            {
+                var probability = spell.Probability > 2.0f ? spell.Probability - 2.0f : spell.Probability / 100.0f;
+
+                probabilities.Add(probability);
+            }
+
+            return Probability.GetProbabilityAny(probabilities);
+        }
+
         public Spell TryRollSpell()
         {
             CurrentSpell = null;
+
+            //Console.WriteLine($"{Name}.TryRollSpell(), probability={GetProbabilityAny()}");
 
             // monster spellbooks have probabilities with base 2.0
             // ie. a 5% chance would be 2.05 instead of 0.05

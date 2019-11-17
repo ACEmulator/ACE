@@ -198,7 +198,9 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, () =>
             {
                 CreateCorpse(topDamager);
-                TeleportOnDeath();      // enter portal space
+
+                ThreadSafeTeleportOnDeath(); // enter portal space
+
                 SetLifestoneProtection();
 
                 if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
@@ -213,40 +215,41 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when the player enters portal space after dying
         /// </summary>
-        public void TeleportOnDeath()
+        public void ThreadSafeTeleportOnDeath()
         {
             // teleport to sanctuary or best location
             var newPosition = Sanctuary ?? Instantiation ?? Location;
 
-            Teleport(newPosition);
+            ThreadSafeTeleport(newPosition, new ActionEventDelegate(() =>
+            { 
+                // Stand back up
+                SetCombatMode(CombatMode.NonCombat);
 
-            // Stand back up
-            SetCombatMode(CombatMode.NonCombat);
+                var teleportChain = new ActionChain();
+                teleportChain.AddDelaySeconds(3.0f);
+                teleportChain.AddAction(this, () =>
+                {
+                    // currently happens while in portal space
+                    var newHealth = (uint)Math.Round(Health.MaxValue * 0.75f);
+                    var newStamina = (uint)Math.Round(Stamina.MaxValue * 0.75f);
+                    var newMana = (uint)Math.Round(Mana.MaxValue * 0.75f);
 
-            var teleportChain = new ActionChain();
-            teleportChain.AddDelaySeconds(3.0f);
-            teleportChain.AddAction(this, () =>
-            {
-                // currently happens while in portal space
-                var newHealth = (uint)Math.Round(Health.MaxValue * 0.75f);
-                var newStamina = (uint)Math.Round(Stamina.MaxValue * 0.75f);
-                var newMana = (uint)Math.Round(Mana.MaxValue * 0.75f);
+                    var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, newHealth);
+                    var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, newStamina);
+                    var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, newMana);
 
-                var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, newHealth);
-                var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, newStamina);
-                var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, newMana);
+                    UpdateVital(Health, newHealth);
+                    UpdateVital(Stamina, newStamina);
+                    UpdateVital(Mana, newMana);
 
-                UpdateVital(Health, newHealth);
-                UpdateVital(Stamina, newStamina);
-                UpdateVital(Mana, newMana);
+                    Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
 
-                Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
+                    // reset damage history for this player
+                    DamageHistory.Reset();
+                });
 
-                // reset damage history for this player
-                DamageHistory.Reset();
-            });
-
-            teleportChain.EnqueueChain();
+                teleportChain.EnqueueChain();
+            }));
         }
 
         private bool suicideInProgress;
