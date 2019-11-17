@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 case EmoteType.Act:
                     // short for 'acting' text
-                    var message = Replace(text, WorldObject, targetObject);
+                    var message = Replace(text, WorldObject, targetObject, emoteSet.Quest);
                     WorldObject.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast), 30.0f);
                     break;
 
@@ -259,40 +259,24 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.DeleteSelf:
 
-                    WorldObject.Destroy();
+                    if (player != null)
+                    {
+                        var wo = player.FindObject(WorldObject.Guid.Full, Player.SearchLocations.Everywhere, out _, out Container rootOwner, out bool wasEquipped);
+
+                        WorldObject.DeleteObject(rootOwner);
+                    }
+                    else
+                        WorldObject.DeleteObject();
 
                     break;
 
                 case EmoteType.DirectBroadcast:
 
-                    text = Replace(emote.Message, WorldObject, targetObject);
+                    text = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
 
                     if (player != null)
-                    {
-                        if ((emote.Message).EndsWith("@%tqt", StringComparison.Ordinal))
-                        {
-                            var questName = QuestManager.GetQuestName(emote.Message);
-                            var remainStr = player.QuestManager.GetNextSolveTime(questName).GetFriendlyString();
-                            text = $"{questName}: {remainStr}";
-                        }
-                        else if ((emote.Message).Contains("%CDtime"))
-                        {
-                            var questName = QuestManager.GetQuestName(emote.Message);
-                            TimeSpan timeSpan = player.QuestManager.GetNextSolveTime(questName);
-                            string buffer = (emote.Message).Split("@")[1];
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
 
-                            string time = $"{timeSpan.Minutes} minutes";
-
-                            if (timeSpan.Hours > 0)
-                                time = time.Insert(0, $"{timeSpan.Hours} hours and ");
-
-                            text = buffer.Replace("%CDtime", time);
-                        }
-                        else
-                            text = Replace(emote.Message, WorldObject, targetObject);
-
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));     // CreatureMessage / HearDirectSpeech?
-                    }
                     break;
 
                 case EmoteType.EraseMyQuest:
@@ -311,7 +295,7 @@ namespace ACE.Server.WorldObjects.Managers
                         var fellowship = player.Fellowship;
                         if (fellowship == null)
                         {
-                            text = Replace(emote.Message, WorldObject, player);
+                            text = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
                         }
                         else
@@ -320,7 +304,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                             foreach (var fellow in fellowshipMembers.Values)
                             {
-                                text = Replace(emote.Message, WorldObject, fellow);
+                                text = Replace(emote.Message, WorldObject, fellow, emoteSet.Quest);
                                 fellow.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
                             }
                         }
@@ -642,7 +626,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.LocalBroadcast:
 
-                    message = Replace(emote.Message, WorldObject, targetObject);
+                    message = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
                     WorldObject.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                     break;
 
@@ -1090,8 +1074,8 @@ namespace ACE.Server.WorldObjects.Managers
                         {
                             var destination = new Position(emote.ObjCellId.Value, emote.OriginX.Value, emote.OriginY.Value, emote.OriginZ.Value, emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value);
 
-                            player.AdjustDungeon(destination);
-                            player.Teleport(destination);
+                            WorldObject.AdjustDungeon(destination);
+                            player.ThreadSafeTeleport(destination);
                         }
                     }
                     break;
@@ -1100,7 +1084,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (player != null)
                     {
-                        message = Replace(emote.Message, WorldObject, player);
+                        message = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
                         player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, player, ChatMessageType.Tell));
                     }
                     break;
@@ -1112,7 +1096,7 @@ namespace ACE.Server.WorldObjects.Managers
                         var fellowship = player.Fellowship;
                         if (fellowship == null)
                         {
-                            message = Replace(emote.Message, WorldObject, player);
+                            message = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
                             player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, player, ChatMessageType.Tell));
                         }
                         else
@@ -1121,7 +1105,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                             foreach (var fellow in fellowshipMembers.Values)
                             {
-                                message = Replace(emote.Message, WorldObject, fellow);
+                                message = Replace(emote.Message, WorldObject, fellow, emoteSet.Quest);
                                 player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, fellow, ChatMessageType.Tell));
                             }
                         }
@@ -1132,7 +1116,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (player != null)
                     {
-                        message = Replace(emote.Message, WorldObject, player);
+                        message = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                     }
                     break;
@@ -1219,7 +1203,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.WorldBroadcast:
 
-                    message = Replace(text, WorldObject, targetObject);
+                    message = Replace(text, WorldObject, targetObject, emoteSet.Quest);
 
                     PlayerManager.BroadcastToAll(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
 
@@ -1387,18 +1371,36 @@ namespace ACE.Server.WorldObjects.Managers
             return WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)emoteCategory);
         }
 
-        public string Replace(string message, WorldObject source, WorldObject target)
+        public string Replace(string message, WorldObject source, WorldObject target, string quest)
         {
             var result = message;
 
             var sourceName = source != null ? source.Name : "";
             var targetName = target != null ? target.Name : "";
 
+            // Find quest in standard or LSD custom usage for %tqt and %CDtime
+            var embeddedQuestName = result.Contains("@") ? message.Split("@")[0] : null;
+            var questName = !string.IsNullOrWhiteSpace(embeddedQuestName) ? embeddedQuestName : quest;
+
             result = result.Replace("%n", sourceName);
             result = result.Replace("%mn", sourceName);
             result = result.Replace("%s", targetName);
             result = result.Replace("%tn", targetName);
-            result = result.Replace("%tqt", "some amount of time");
+
+            // LSD custom tqt usage
+            result = result.Replace($"{questName}@%tqt", "You may complete this quest again in %tqt.", StringComparison.OrdinalIgnoreCase);
+
+            // LSD custom CDtime variable
+            if (result.Contains("%CDtime"))
+                result = result.Replace($"{questName}@", "", StringComparison.OrdinalIgnoreCase);
+
+            // TODO: Revist (and revise?) when QuestManager is added to creatures (e.g.: The Chicken)
+            if (target is Player targetPlayer)
+            {
+                result = result.Replace("%tqt", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetNextSolveTime(questName).GetFriendlyString() : "");
+                
+                result = result.Replace("%CDtime", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetNextSolveTime(questName).GetFriendlyString() : "");
+            }
 
             return result;
         }

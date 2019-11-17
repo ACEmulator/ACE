@@ -11,6 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var moveToState = new MoveToState(session.Player, message.Payload);
+            session.Player.CurrentMoveToState = moveToState;
 
             session.Player.SetRequestedLocation(moveToState.Position);
 

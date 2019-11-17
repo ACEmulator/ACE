@@ -18,9 +18,13 @@ namespace ACE.Server.WorldObjects
 
         public virtual void SetMaxVitals()
         {
+            var missingHealth = Health.Missing;
+
             Health.Current = Health.MaxValue;
             Stamina.Current = Stamina.MaxValue;
             Mana.Current = Mana.MaxValue;
+
+            DamageHistory.OnHeal(missingHealth);
         }
 
         public CreatureVital GetCreatureVital(PropertyAttribute2nd vital)
@@ -193,11 +197,13 @@ namespace ACE.Server.WorldObjects
             // does not apply for mana?
             if (vital.Vital == PropertyAttribute2nd.MaxMana) return 1.0f;
 
+            var forwardCommand = CurrentMovementData.MovementType == MovementType.Invalid && CurrentMovementData.Invalid != null ? CurrentMovementData.Invalid.State.ForwardCommand : MotionCommand.Invalid;
+
             // combat mode / running
-            if (CombatMode != CombatMode.NonCombat || CurrentMotionCommand == MotionCommand.RunForward)
+            if (CombatMode != CombatMode.NonCombat || forwardCommand == MotionCommand.RunForward)
                 return 0.5f;
 
-            switch (CurrentMotionCommand)
+            switch (forwardCommand)
             {
                 // TODO: verify multipliers
                 default:

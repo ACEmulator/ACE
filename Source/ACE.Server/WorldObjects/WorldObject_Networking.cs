@@ -1056,6 +1056,19 @@ namespace ACE.Server.WorldObjects
             return iterator.CurrentLandblock == null ? null : iterator;
         }
 
+        public float EnqueueMotionMagic(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            var motion = new Motion(MotionStance.Magic, motionCommand, speed);
+            motion.MotionState.TurnSpeed = 2.25f;  // ??
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, MotionStance.Magic, motionCommand, speed);
+
+            actionChain.AddAction(this, () => EnqueueBroadcastMotion(motion));
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
+        }
+
         public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
