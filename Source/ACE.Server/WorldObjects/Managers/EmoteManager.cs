@@ -1203,10 +1203,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     message = Replace(text, WorldObject, targetObject, emoteSet.Quest);
 
-                    var onlinePlayers = PlayerManager.GetAllOnline();
-
-                    foreach (var session in onlinePlayers)
-                        session.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
+                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
 
                     break;
 
