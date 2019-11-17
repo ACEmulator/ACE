@@ -53,10 +53,13 @@ namespace ACE.Server.WorldObjects.Managers
 
             ClearCache();
 
-            if (entry.SpellCategory != SpellCategory_Cooldown)
+            if (Player != null)
             {
-                var spell = new Spell(entry.SpellId);
-                Player.HandleSpellHooks(spell);
+                if (entry.SpellCategory != SpellCategory_Cooldown)
+                {
+                    var spell = new Spell(entry.SpellId);
+                    Player.HandleSpellHooks(spell);
+                }
             }
         }
 
