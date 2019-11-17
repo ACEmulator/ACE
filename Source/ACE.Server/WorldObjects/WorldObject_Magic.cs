@@ -17,6 +17,7 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Managers;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics;
+using ACE.Server.Physics.Extensions;
 using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.WorldObjects
@@ -308,7 +309,7 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             // Retrieve target's Magic Defense Skill
-            var difficulty = targetCreature.GetCreatureSkill(Skill.MagicDefense).Current;
+            var difficulty = targetCreature.GetEffectiveMagicDefense();
 
             //Console.WriteLine($"{target.Name}.ResistSpell({Name}, {spell.Name}): magicSkill: {magicSkill}, difficulty: {difficulty}");
             bool resisted = MagicDefenseCheck(magicSkill, difficulty);
@@ -482,11 +483,11 @@ namespace ACE.Server.WorldObjects
 
                     srcVitalChange = (uint)Math.Round(source.GetCreatureVital(spell.Source).Current * spell.Proportion * drainMod);
 
-                    if (spell.TransferCap != 0)
-                    {
-                        if (srcVitalChange > spell.TransferCap)
-                            srcVitalChange = (uint)spell.TransferCap;
-                    }
+                    // TransferCap caps both srcVitalChange and destVitalChange
+                    // https://asheron.fandom.com/wiki/Announcements_-_2003/01_-_The_Slumbering_Giant#Letter_to_the_Players
+
+                    if (spell.TransferCap != 0 && srcVitalChange > spell.TransferCap)
+                        srcVitalChange = (uint)spell.TransferCap;
 
                     // should healing resistances be applied here?
                     var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination)) : 1.0f;
@@ -496,12 +497,16 @@ namespace ACE.Server.WorldObjects
                     // scale srcVitalChange to destVitalChange?
                     var missingDest = destination.GetCreatureVital(spell.Destination).Missing;
 
-                    if (destVitalChange > missingDest)
+                    var maxDestVitalChange = missingDest;
+                    if (spell.TransferCap != 0 && maxDestVitalChange > spell.TransferCap)
+                        maxDestVitalChange = (uint)spell.TransferCap;
+
+                    if (destVitalChange > maxDestVitalChange)
                     {
-                        var scalar = (float)missingDest / destVitalChange;
+                        var scalar = (float)maxDestVitalChange / destVitalChange;
 
                         srcVitalChange = (uint)Math.Round(srcVitalChange * scalar);
-                        destVitalChange = missingDest;
+                        destVitalChange = maxDestVitalChange;
                     }
 
                     // Apply the change in vitals to the source
@@ -864,7 +869,7 @@ namespace ACE.Server.WorldObjects
                                 portalRecall.AddAction(targetPlayer, () =>
                                 {
                                     var teleportDest = new Position(portal.Destination);
-                                    targetPlayer.AdjustDungeon(teleportDest);
+                                    WorldObject.AdjustDungeon(teleportDest);
 
                                     targetPlayer.Teleport(teleportDest);
                                 });
@@ -889,7 +894,7 @@ namespace ACE.Server.WorldObjects
                             portalSendingChain.AddAction(targetPlayer, () =>
                             {
                                 var teleportDest = new Position(spell.Position);
-                                targetPlayer.AdjustDungeon(teleportDest);
+                                WorldObject.AdjustDungeon(teleportDest);
 
                                 targetPlayer.Teleport(teleportDest);
 
@@ -920,7 +925,7 @@ namespace ACE.Server.WorldObjects
                                 portalSendingChain.AddAction(fellow, () =>
                                 {
                                     var teleportDest = new Position(spell.Position);
-                                    fellow.AdjustDungeon(teleportDest);
+                                    WorldObject.AdjustDungeon(teleportDest);
 
                                     fellow.Teleport(teleportDest);
 
@@ -1262,6 +1267,16 @@ namespace ACE.Server.WorldObjects
                 var spellProjectiles = CreateBlastProjectiles(target, spell);
                 LaunchSpellProjectiles(spellProjectiles);
             }
+            else if (spellType == SpellProjectile.ProjectileSpellType.Ring)
+            {
+                var spellProjectiles = CreateRingProjectiles(spell);
+                LaunchSpellProjectiles(spellProjectiles);
+            }
+            else if (spellType == SpellProjectile.ProjectileSpellType.Wall)
+            {
+                var spellProjectiles = CreateWallProjectiles(spell);
+                LaunchSpellProjectiles(spellProjectiles);
+            }
             else
             {
                 var player = this as Player;
@@ -1340,7 +1355,7 @@ namespace ACE.Server.WorldObjects
             {
                 playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
-                playerTarget.HandleMaxVitalUpdate(spell);
+                playerTarget.HandleSpellHooks(spell);
             }
 
             if (playerTarget == null && target.Wielder is Player wielder)
@@ -1413,6 +1428,16 @@ namespace ACE.Server.WorldObjects
             spellProjectile.ProjectileTarget = target;
             spellProjectile.SetProjectilePhysicsState(spellProjectile.ProjectileTarget, useGravity);
             spellProjectile.SpawnPos = new Position(spellProjectile.Location);
+
+            if (spellProjectile.Velocity == null || !spellProjectile.Velocity.Value.IsValid())
+            {
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Fizzle, 0.5f));
+
+                if (this is Player player)
+                    player.SendWeenieError(WeenieError.YourProjectileSpellMislaunched);
+
+                return null;
+            }
 
             return spellProjectile;
         }

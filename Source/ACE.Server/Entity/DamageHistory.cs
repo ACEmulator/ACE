@@ -58,18 +58,16 @@ namespace ACE.Server.Entity
         /// Returns the WorldObject that did the most damage to this WorldObject
         /// Used to determine corpse looting rights
         /// </summary>
-        public WorldObject TopDamager
-        {
-            get
-            {
-                var sorted = TotalDamage.OrderByDescending(wo => wo.Value.Value);
-                var topDamager = sorted.FirstOrDefault().Value;
-                //var topDamagerName = topDamager != null ? topDamager.Name : null;
-                //Console.WriteLine($"DamageHistory.TopDamager: {topDamagerName}");
-                return topDamager?.TryGetWorldObject();
-            }
-        }
+        public WorldObject TopDamager => GetTopDamager();
 
+        public WorldObject GetTopDamager(bool includeSelf = true)
+        {
+            var sorted = TotalDamage.Values.Where(wo => includeSelf || wo.Guid != Creature.Guid).OrderByDescending(wo => wo.Value);
+
+            var topDamager = sorted.FirstOrDefault();
+
+            return topDamager?.TryGetWorldObject();
+        }
 
         /// <summary>
         /// Constructs a new DamageHistory for a Player / Creature
@@ -236,6 +234,20 @@ namespace ACE.Server.Entity
                 else
                     OnHealInternal((uint)entry.Amount, entry.CurrentHealth, entry.MaxHealth);
             }
+        }
+
+        public override string ToString()
+        {
+            var table = "";
+
+            foreach (var damager in TotalDamage.Values)
+            {
+                var wo = damager.TryGetWorldObject();
+                var guid = wo?.Guid;
+
+                table += $"{damager.Name} ({guid}) - {damager.Value}\n";
+            }
+            return table;
         }
     }
 }

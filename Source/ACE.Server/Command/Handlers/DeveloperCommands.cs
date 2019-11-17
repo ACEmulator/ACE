@@ -94,7 +94,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleNudge(Session session, params string[] parameters)
         {
             var pos = session.Player.GetPosition(PositionType.Location);
-            if (session.Player.AdjustDungeonCells(pos))
+            if (WorldObject.AdjustDungeonCells(pos))
             {
                 pos.PositionZ += 0.005000f;
                 var posReadable = PostionAsLandblocksGoogleSpreadsheetFormat(pos);
@@ -966,10 +966,20 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            int delta = 0;
+
             if (!relValue)
-                session.Player.UpdateVital(vital, (uint)value);
+                delta = session.Player.UpdateVital(vital, (uint)value);
             else
-                session.Player.UpdateVitalDelta(vital, value);
+                delta = session.Player.UpdateVitalDelta(vital, value);
+
+            if (vital == session.Player.Health)
+            {
+                if (delta > 0)
+                    session.Player.DamageHistory.OnHeal((uint)delta);
+                else
+                    session.Player.DamageHistory.Add(session.Player, DamageType.Health, (uint)-delta);
+            }
         }
 
         [CommandHandler("sethealth", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "sets your current health to a specific value.", "ushort")]
@@ -2130,7 +2140,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
-                session.Player.AdjustDungeon(pos);
+                WorldObject.AdjustDungeon(pos);
 
                 session.Player.Teleport(pos);
             }
@@ -2164,7 +2174,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
-                session.Player.AdjustDungeon(pos);
+                WorldObject.AdjustDungeon(pos);
 
                 session.Player.Teleport(pos);
             }
@@ -2634,6 +2644,12 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj?.Position}", ChatMessageType.Broadcast));
         }
 
+        [CommandHandler("damagehistory", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleDamageHitory(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.DamageHistory.ToString(), ChatMessageType.Broadcast));
+        }
+
         [CommandHandler("remove-vitae", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Removes vitae from last appraised player")]
         public static void HandleRemoveVitae(Session session, params string[] parameters)
         {
@@ -2646,6 +2662,20 @@ namespace ACE.Server.Command.Handlers
 
             if (player != session.Player)
                 session.Network.EnqueueSend(new GameMessageSystemChat("Removed vitae for {player.Name}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("fast", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleFast(Session session, params string[] parameters)
+        {
+            var spell = new Spell(SpellId.QuicknessSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+        }
+
+        [CommandHandler("slow", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleSlow(Session session, params string[] parameters)
+        {
+            var spell = new Spell(SpellId.SlownessSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
         }
     }
 }
