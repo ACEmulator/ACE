@@ -34,7 +34,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void OnAttackMonster(Creature monster)
         {
-            if (!Attackable) return;
+            if (monster == null || !Attackable) return;
 
             /*Console.WriteLine($"{Name}.OnAttackMonster({monster.Name})");
             Console.WriteLine($"Attackable: {monster.Attackable}");

@@ -131,6 +131,32 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine("OK");
         }
 
+        [CommandHandler("debugcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleDebugCast(Session session, params string[] parameters)
+        {
+            var physicsObj = session.Player.PhysicsObj;
+
+            var pendingActions = physicsObj.MovementManager.MoveToManager.PendingActions;
+            var currAnim = physicsObj.PartArray.Sequence.CurrAnim;
+
+            session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.MagicState.ToString(), ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"PendingActions: {pendingActions.Count}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CurrAnim: {currAnim?.Value.Anim.ID:X8}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("fixcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleFixCast(Session session, params string[] parameters)
+        {
+            var magicState = session.Player.MagicState;
+
+            if (magicState.IsCasting && DateTime.UtcNow - magicState.StartTime > TimeSpan.FromSeconds(5))
+            {
+                session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "Fixed casting state"));
+                session.Player.SendUseDoneEvent();
+                magicState.OnCastDone();
+            }
+        }
+
         private static List<string> configList = new List<string>()
         {
             "Common settings:\nConfirmVolatileRareUse, MainPackPreferred, SalvageMultiple, SideBySideVitals, UseCraftSuccessDialog",

@@ -280,7 +280,7 @@ namespace ACE.Server.Entity
             else
             {
                 var resistanceType = Creature.GetResistanceType(DamageType);
-                ResistanceMod = (float)defender.GetResistanceMod(resistanceType, Weapon, WeaponResistanceMod);
+                ResistanceMod = (float)Math.Max(0.0f, defender.GetResistanceMod(resistanceType, Weapon, WeaponResistanceMod));
             }
 
             // damage resistance rating

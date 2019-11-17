@@ -5,7 +5,8 @@ namespace ACE.Entity.Enum
 {
     /// <summary>
     /// note: even though these are unnumbered, order is very important.  values of "none" or commented
-    /// as retired or unused CANNOT be removed
+    /// as retired or unused --ABSOLUTELY CANNOT-- be removed. Skills that are none, retired, or not
+    /// implemented have been removed from the SkillHelper.ValidSkills hashset below.
     /// </summary>
     public enum Skill
     {
@@ -102,6 +103,48 @@ namespace ACE.Entity.Enum
 
     public static class SkillHelper
     {
+        public static HashSet<Skill> ValidSkills = new HashSet<Skill>
+        {
+            Skill.MeleeDefense,
+            Skill.MissileDefense,
+            Skill.ArcaneLore,
+            Skill.MagicDefense,
+            Skill.ManaConversion,
+            Skill.ItemTinkering,
+            Skill.AssessPerson,
+            Skill.Deception,
+            Skill.Healing,
+            Skill.Jump,
+            Skill.Lockpick,
+            Skill.Run,
+            Skill.AssessCreature,
+            Skill.WeaponTinkering,
+            Skill.ArmorTinkering,
+            Skill.MagicItemTinkering,
+            Skill.CreatureEnchantment,
+            Skill.ItemEnchantment,
+            Skill.LifeMagic,
+            Skill.WarMagic,
+            Skill.Leadership,
+            Skill.Loyalty,
+            Skill.Fletching,
+            Skill.Alchemy,
+            Skill.Cooking,
+            Skill.Salvaging,
+            Skill.TwoHandedCombat,
+            Skill.VoidMagic,
+            Skill.HeavyWeapons,
+            Skill.LightWeapons,
+            Skill.FinesseWeapons,
+            Skill.MissileWeapons,
+            Skill.Shield,
+            Skill.DualWield,
+            Skill.Recklessness,
+            Skill.SneakAttack,
+            Skill.DirtyFighting,
+            Skill.Summoning
+        };
+
         public static HashSet<Skill> AttackSkills = new HashSet<Skill>
         {
             Skill.Axe,
