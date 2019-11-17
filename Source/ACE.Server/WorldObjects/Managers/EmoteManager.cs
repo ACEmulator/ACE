@@ -1072,8 +1072,8 @@ namespace ACE.Server.WorldObjects.Managers
                         {
                             var destination = new Position(emote.ObjCellId.Value, emote.OriginX.Value, emote.OriginY.Value, emote.OriginZ.Value, emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value);
 
-                            player.AdjustDungeon(destination);
-                            player.Teleport(destination);
+                            WorldObject.AdjustDungeon(destination);
+                            player.ThreadSafeTeleport(destination);
                         }
                     }
                     break;

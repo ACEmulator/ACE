@@ -94,7 +94,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleNudge(Session session, params string[] parameters)
         {
             var pos = session.Player.GetPosition(PositionType.Location);
-            if (session.Player.AdjustDungeonCells(pos))
+            if (WorldObject.AdjustDungeonCells(pos))
             {
                 pos.PositionZ += 0.005000f;
                 var posReadable = PostionAsLandblocksGoogleSpreadsheetFormat(pos);
@@ -2140,7 +2140,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
-                session.Player.AdjustDungeon(pos);
+                WorldObject.AdjustDungeon(pos);
 
                 session.Player.Teleport(pos);
             }
@@ -2174,7 +2174,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
-                session.Player.AdjustDungeon(pos);
+                WorldObject.AdjustDungeon(pos);
 
                 session.Player.Teleport(pos);
             }
