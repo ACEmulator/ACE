@@ -107,6 +107,9 @@ namespace ACE.Server.WorldObjects.Managers
         {
             base.Dispel(entry);
 
+            if (entry == null)
+                return;
+
             ClearCache();
 
             if (Player != null)
