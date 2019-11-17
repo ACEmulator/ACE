@@ -660,14 +660,17 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public void Unbusy(MotionCommand pickupMotion)
+        public void EnqueuePickupDone(MotionCommand pickupMotion)
         {
+            var returnStance = new Motion(CurrentMotionState.Stance);
+            EnqueueBroadcastMotion(returnStance);
+
             var animTime = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(pickupMotion);
 
-            var returnStance = new ActionChain();
-            returnStance.AddDelaySeconds(animTime);
-            returnStance.AddAction(this, () => IsBusy = false);
-            returnStance.EnqueueChain();
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+            actionChain.AddAction(this, () => IsBusy = false);
+            actionChain.EnqueueChain();
         }
 
         // =========================================
@@ -820,30 +823,25 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
-                        var returnStance = new Motion(CurrentMotionState.Stance);
-
                         // Was this item picked up by someone else?
                         if (itemRootOwner == null && item.CurrentLandblock == null)
                         {
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
-                            EnqueueBroadcastMotion(returnStance);
-                            Unbusy(pickupMotion);
+                            EnqueuePickupDone(pickupMotion);
                             return;
                         }
 
                         // Checking to see if item to pick is an container itself and IsOpen
                         if (!VerifyContainerOpenStatus(itemAsContainer, item))
                         {
-                            EnqueueBroadcastMotion(returnStance);
-                            Unbusy(pickupMotion);
+                            EnqueuePickupDone(pickupMotion);
                             return;
                         }
 
                         if (item.QuestRestriction != null && !QuestManager.HasQuest(item.QuestRestriction))
                         {
                             QuestManager.HandleNoQuestError(item);
-                            EnqueueBroadcastMotion(returnStance);
-                            Unbusy(pickupMotion);
+                            EnqueuePickupDone(pickupMotion);
                             return;
                         }
 
@@ -868,8 +866,7 @@ namespace ACE.Server.WorldObjects
                             if (!QuestManager.CanSolve(item.Quest) && !isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
                             {
                                 QuestManager.HandleSolveError(item.Quest);
-                                EnqueueBroadcastMotion(returnStance);
-                                Unbusy(pickupMotion);
+                                EnqueuePickupDone(pickupMotion);
                                 return;
                             }
                             else
@@ -919,10 +916,7 @@ namespace ACE.Server.WorldObjects
                                 }
                             }
                         }
-
-                        EnqueueBroadcastMotion(returnStance);
-
-                        Unbusy(pickupMotion);
+                        EnqueuePickupDone(pickupMotion);
                     });
 
                     pickupChain.EnqueueChain();
@@ -1235,14 +1229,11 @@ namespace ACE.Server.WorldObjects
 
                     pickupChain.AddAction(this, () =>
                     {
-                        var returnStance = new Motion(CurrentMotionState.Stance);
-
                         // Was this item picked up by someone else?
                         if (rootOwner == null && item.CurrentLandblock == null)
                         {
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
-                            EnqueueBroadcastMotion(returnStance);
-                            Unbusy(pickupMotion);
+                            EnqueuePickupDone(pickupMotion);
                             return;
                         }
 
@@ -1255,10 +1246,7 @@ namespace ACE.Server.WorldObjects
                             item.EmoteManager.OnPickup(this);
                             item.NotifyOfEvent(RegenerationType.PickUp);
                         }
-
-                        EnqueueBroadcastMotion(returnStance);
-
-                        Unbusy(pickupMotion);
+                        EnqueuePickupDone(pickupMotion);
                     });
 
                     pickupChain.EnqueueChain();
@@ -1696,8 +1684,6 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var returnStance = new Motion(CurrentMotionState.Stance);
-
                     if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
@@ -1726,8 +1712,7 @@ namespace ACE.Server.WorldObjects
                             log.DebugFormat("Player 0x{0:X8}:{1} tried to split an item that's no longer valid 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
                             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split failed!")); // Custom error message
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
-                            EnqueueBroadcastMotion(returnStance);
-                            Unbusy(pickupMotion);
+                            EnqueuePickupDone(pickupMotion);
                             return;
                         }
 
@@ -1746,10 +1731,7 @@ namespace ACE.Server.WorldObjects
                             else if (containerRootOwner == this)
                                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
                         }
-
-                        EnqueueBroadcastMotion(returnStance);
-
-                        Unbusy(pickupMotion);
+                        EnqueuePickupDone(pickupMotion);
                     });
 
                     pickupChain.EnqueueChain();
@@ -2043,8 +2025,6 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var returnStance = new Motion(CurrentMotionState.Stance);
-
                     if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid, WeenieError.ActionCancelled));
@@ -2073,8 +2053,7 @@ namespace ACE.Server.WorldObjects
                             log.DebugFormat("Player 0x{0}:{1} tried to merge an item that's no longer valid 0x{2:X8}:{3}.", Guid.Full, Name, sourceStack.Guid.Full, sourceStack.Name);
                             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge Failed!")); // Custom error message
                             Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid, WeenieError.ActionCancelled));
-                            EnqueueBroadcastMotion(returnStance);
-                            Unbusy(pickupMotion);
+                            EnqueuePickupDone(pickupMotion);
                             return;
                         }
 
@@ -2094,10 +2073,7 @@ namespace ACE.Server.WorldObjects
                             else if (targetStackRootOwner == this)
                                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
                         }
-
-                        EnqueueBroadcastMotion(returnStance);
-
-                        Unbusy(pickupMotion);
+                        EnqueuePickupDone(pickupMotion);
                     });
 
                     pickupChain.EnqueueChain();

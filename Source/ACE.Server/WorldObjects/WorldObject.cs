@@ -460,7 +460,6 @@ namespace ACE.Server.WorldObjects
         public bool RequestedLocationBroadcast { get; set; }
 
 
-
         ////// Logical Game Data
         public ContainerType ContainerType
         {

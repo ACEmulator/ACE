@@ -231,39 +231,52 @@ namespace ACE.Server.Factories
             int type;
             WorldObject wo;
 
+            // Adjusting rolls for changing drop rates for clothing - HarliQ 11/11/19 
+
             switch (lootBias)
             {
                 case LootBias.Armor:
-                    type = 2;
+                    type = 30;
                     break;
                 case LootBias.Weapons:
-                    type = 3;
+                    type = 60;
                     break;
                 case LootBias.Jewelry:
-                    type = 4;
+                    type = 90;
                     break;
                 default:
-                    type = ThreadSafeRandom.Next(1, 4);
+                    type = ThreadSafeRandom.Next(1, 100);
                     break;
             }
 
+
+            // converting to a percentage base roll for items (to better align with retail drop rate data from Magnus) - HarliQ 11/11/19
+            // Gems 14%
+            // Armor 24%
+            // Weapons 30%
+            // Clothing 14%
+            // Jewelry 18%
+
             switch (type)
             {
-                case 1:
-                    //jewels
+                case var rate when (type < 15):
+                    // jewels (Gems)
                     wo = CreateJewels(tier, isMagical);
                     return wo;
-                case 2:
+                case var rate when (type > 14 && type < 39):
                     //armor
-                    wo = CreateArmor(tier, isMagical, lootBias);
+                    wo = CreateArmor(tier, isMagical, true, lootBias);
                     return wo;
-                case 3:
-                    //weapons
+                case var rate when (type > 38 && type < 53):
+                    // clothing (shirts/pants)
+                    wo = CreateArmor(tier, isMagical, false, lootBias);
+                    return wo;
+                case var rate when (type > 52 && type < 83):
+                    // weapons (Melee/Missile/Casters)
                     wo = CreateWeapon(tier, isMagical);
                     return wo;
-                case 4:
                 default:
-                    //jewelry
+                    // jewelry
                     wo = CreateJewelry(tier, isMagical);
                     return wo;
             }
@@ -271,13 +284,18 @@ namespace ACE.Server.Factories
 
         private static WorldObject CreateWeapon(int tier, bool isMagical)
         {
-            int chance = ThreadSafeRandom.Next(1, 3);
+            int chance = ThreadSafeRandom.Next(1, 100);
+
+            // Aligning drop ratio to better align with retail - HarliQ 11/11/19
+            // Melee - 42%
+            // Missile - 36%
+            // Casters - 22%
 
             switch (chance)
             {
-                case 1:
+                case var rate when (chance < 43):
                     return CreateMeleeWeapon(tier, isMagical);
-                case 2:
+                case var rate when (chance > 42 && chance < 79):
                     return CreateMissileWeapon(tier, isMagical);
                 default:
                     return CreateCaster(tier, isMagical);

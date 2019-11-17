@@ -17,6 +17,7 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Managers;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics;
+using ACE.Server.Physics.Extensions;
 using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.WorldObjects
@@ -1265,6 +1266,16 @@ namespace ACE.Server.WorldObjects
                 var spellProjectiles = CreateBlastProjectiles(target, spell);
                 LaunchSpellProjectiles(spellProjectiles);
             }
+            else if (spellType == SpellProjectile.ProjectileSpellType.Ring)
+            {
+                var spellProjectiles = CreateRingProjectiles(spell);
+                LaunchSpellProjectiles(spellProjectiles);
+            }
+            else if (spellType == SpellProjectile.ProjectileSpellType.Wall)
+            {
+                var spellProjectiles = CreateWallProjectiles(spell);
+                LaunchSpellProjectiles(spellProjectiles);
+            }
             else
             {
                 var player = this as Player;
@@ -1343,7 +1354,7 @@ namespace ACE.Server.WorldObjects
             {
                 playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
-                playerTarget.HandleMaxVitalUpdate(spell);
+                playerTarget.HandleSpellHooks(spell);
             }
 
             if (playerTarget == null && target.Wielder is Player wielder)
@@ -1416,6 +1427,16 @@ namespace ACE.Server.WorldObjects
             spellProjectile.ProjectileTarget = target;
             spellProjectile.SetProjectilePhysicsState(spellProjectile.ProjectileTarget, useGravity);
             spellProjectile.SpawnPos = new Position(spellProjectile.Location);
+
+            if (spellProjectile.Velocity == null || !spellProjectile.Velocity.Value.IsValid())
+            {
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Fizzle, 0.5f));
+
+                if (this is Player player)
+                    player.SendWeenieError(WeenieError.YourProjectileSpellMislaunched);
+
+                return null;
+            }
 
             return spellProjectile;
         }

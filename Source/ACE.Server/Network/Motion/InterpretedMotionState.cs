@@ -94,6 +94,11 @@ namespace ACE.Server.Network.Structure
 
             Commands.Add(new MotionItem(worldObject, motionCommand, speed));
         }
+
+        public bool HasMovement()
+        {
+            return (ForwardCommand != MotionCommand.Invalid && ForwardCommand != MotionCommand.Ready) || TurnCommand != MotionCommand.Invalid || SidestepCommand != MotionCommand.Invalid;
+        }
     }
 
     public static class InterpretedMotionStateExtensions

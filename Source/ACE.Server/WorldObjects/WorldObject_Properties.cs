@@ -12,6 +12,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -558,13 +559,15 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-
         // ========================================
         // ======== Physics Desc Properties =======
         // ========================================
         // used in CalculatedPhysicsDescriptionFlag()
         public Motion CurrentMotionState { get; set; }
-        public MotionCommand CurrentMotionCommand { get; set; }
+
+        public MoveToState CurrentMoveToState { get; set; } = new MoveToState();
+        public MovementData CurrentMovementData { get; set; } = new MovementData();
+
 
         public Placement? Placement // Sometimes known as AnimationFrame
         {
