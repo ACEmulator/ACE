@@ -64,7 +64,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static bool Debug = true;
+        public static bool Debug = false;
 
         /// <summary>
         /// Constructs a new QuestManager for a Player
