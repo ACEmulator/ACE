@@ -337,49 +337,49 @@ namespace ACE.Server.Factories
                                 wield = 250;
                             break;
                         case 3:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 0;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 250;
                             else
                                 wield = 270;
                             break;
                         case 4:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 0;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 250;
                             else
                                 wield = 270;
                             break;
                         case 5:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 270;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 290;
                             else
                                 wield = 315;
                             break;
                         case 6:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 315;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 335;
                             else
                                 wield = 360;
                             break;
                         case 7:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 335;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 360;
                             else
                                 wield = 375;
                             break;
                         case 8:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 360;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 375;
                             else
                                 wield = 385;

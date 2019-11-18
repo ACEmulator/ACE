@@ -9,31 +9,14 @@ namespace ACE.Server.Factories
         private static WorldObject CreateMissileWeapon(int tier, bool isMagical)
         {
             int weaponWeenie;
-            int chance;
             int elemenatalBonus = 0;
 
             int wieldDifficulty = GetWield(tier, 1);
 
-            if (tier < 4)
+           // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
+            if (wieldDifficulty < 315)
                 weaponWeenie = GetNonElementalMissileWeapon();
-
-            // If tier is between 4-6 then a chance for non elemental missile weapon.  HarliQ 11/17/19
-            else if (tier < 6)
-            {
-                chance = ThreadSafeRandom.Next(0, 1);
-                switch (chance)
-                {
-                    case 0:
-                        weaponWeenie = GetNonElementalMissileWeapon();
-                        break;
-                    default:
-                        elemenatalBonus = GetElementalBonus(wieldDifficulty);
-                        weaponWeenie = GetElementalMissileWeapon();
-                        break;
-                }
-            }
             else
-            // Tier 6 and up, Only elemental missile weapons are supposed to drop per retail. HarliQ 11/17/19
             {
                 elemenatalBonus = GetElementalBonus(wieldDifficulty);
                 weaponWeenie = GetElementalMissileWeapon();

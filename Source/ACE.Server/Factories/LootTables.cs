@@ -333,9 +333,9 @@ namespace ACE.Server.Factories
 
         public static readonly float[][] MissileDamageMod =
         {
-            new float[] { 2.1f, 2.20f, 2.3f, 2.4f, 2.4f, 2.4f, 2.4f, 2.4f, 2.4f }, // Bow
-            new float[] { 2.4f, 2.5f, 2.55f, 2.65f, 2.65f, 2.65f, 2.65f, 2.65f, 2.65f }, // Crossbow
-            new float[] { 2.3f, 2.4f, 2.5f, 2.6f, 2.6f, 2.6f, 2.6f, 2.6f, 2.6f }  // Thrown
+            new float[] { 2.1f, 2.1f, 2.2f, 2.3f, 2.4f, 2.4f, 2.4f, 2.4f, 2.4f }, // Bow
+            new float[] { 2.4f, 2.4f, 2.5f, 2.55f, 2.65f, 2.65f, 2.65f, 2.65f, 2.65f }, // Crossbow
+            new float[] { 2.3f, 2.3f, 2.4f, 2.5f, 2.6f, 2.6f, 2.6f, 2.6f, 2.6f }  // Thrown
         };
 
         public static readonly int[][] NonElementalMissileWeaponsMatrix =
