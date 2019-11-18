@@ -529,9 +529,24 @@ namespace ACE.Server.WorldObjects
 
             // ( +500% sounds like it would be 6.0 multiplier)
 
-            var interval = GetImbuedInterval(skill);
+            var baseSkill = GetBaseSkillImbued(skill);
 
-            var cripplingBlowMod = SetInterval(interval, 1.0f, MaxCripplingBlowMod);
+            var baseMod = 1.0f;
+
+            switch(GetImbuedSkillType(skill))
+            {
+                case ImbuedSkillType.Melee:
+                    baseMod = Math.Max(0, baseSkill - 40) / 60.0f;
+                    break;
+
+                case ImbuedSkillType.Missile:
+                case ImbuedSkillType.Magic:
+
+                    baseMod = baseSkill / 60.0f;
+                    break;
+            }
+
+            var cripplingBlowMod = Math.Max(1.0f, baseMod);
 
             //Console.WriteLine($"CripplingBlowMod: {cripplingBlowMod}");
 
