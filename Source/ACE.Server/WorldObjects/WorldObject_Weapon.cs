@@ -345,7 +345,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Quest weapon fixed Resistance Cleaving equivalent to Level 5 Life Vulnerability spell
+        /// Returns the resistance modifier or rending modifier
         /// </summary>
         public static float GetWeaponResistanceModifier(Creature wielder, CreatureSkill skill, DamageType damageType)
         {
@@ -356,25 +356,21 @@ namespace ACE.Server.WorldObjects
             if (wielder == null || weapon == null)
                 return defaultModifier;
 
-            var weaponResistanceModifierType = weapon.ResistanceModifierType ?? (int)DamageType.Undef;
+            // handle quest weapon fixed resistance cleaving
+            if (weapon.ResistanceModifierType != null && weapon.ResistanceModifierType == damageType)
+                resistMod = 1.0f + (float)(weapon.ResistanceModifier ?? defaultModifier);       // 1.0 in the data, equivalent to a level 5 vuln
 
-            if (weaponResistanceModifierType != (int)DamageType.Undef && weaponResistanceModifierType == damageType)
-                resistMod = 1.0f + (float)(weapon.ResistanceModifier ?? defaultModifier);       // verify
-
-            // handle rends
-
-            // should this be combined with weapon resistance, or elemental damage mod?
-            // i think its the latter, but its already here, and resistance mod is already being handled in both physical and magic damage calcs,
-            // and it seems like the calcs should work out the same (although the cap is now applied in different places)
-
+            // handle elemental resistance rending
             var rendDamageType = GetRendDamageType(damageType);
+
             if (rendDamageType == ImbuedEffectType.Undef)
                 log.Debug($"{wielder.Name}.GetRendDamageType({damageType}) unexpected damage type for {weapon.Name} ({weapon.Guid})");
 
             if (rendDamageType != ImbuedEffectType.Undef && weapon.HasImbuedEffect(rendDamageType) && skill != null)
             {
                 var rendingMod = GetRendingMod(skill);
-                resistMod *= rendingMod;
+
+                resistMod = Math.Max(resistMod, rendingMod);
             }
 
             return resistMod;
@@ -494,39 +490,26 @@ namespace ACE.Server.WorldObjects
         // - Magic: my best guess here is that the CB modifier modifies the additional crit damage (see note-2), but i'm not 100% on this
 
 
-        // elemental vuln damage modifier, capped at 2.5
-        public static float MaxRendingMod = 2.5f;
-
-        public static float GetRendingMod(CreatureSkill skill)
-        {
-            // was MaxRendingMod 2.25 for magic/missile?
-            var rendingMod = GetImbuedInterval(skill, false) * MaxRendingMod;
-
-            return rendingMod;
-        }
-
-        public static float MaxArmorRendingMod = 0.6f;
-
-        public static float GetArmorRendingMod(CreatureSkill skill)
-        {
-            // % of armor ignored, min 0%, max 60%
-
-            var armorRendingMod = GetImbuedInterval(skill, false) * MaxArmorRendingMod;
-
-            return 1.0f - armorRendingMod;
-        }
-
-        // http://acpedia.org/wiki/Announcements_-_2004/07_-_Treaties_in_Stone#Letter_to_the_Players
-
-        // for PvP, this gets halved
         public static float MaxCriticalStrikeMod = 0.5f;
 
         public static float GetCriticalStrikeMod(CreatureSkill skill, bool isPvP = false)
         {
-            var criticalStrikeMod = GetImbuedInterval(skill) * MaxCriticalStrikeMod;
+            // http://acpedia.org/wiki/Announcements_-_2004/07_-_Treaties_in_Stone#Letter_to_the_Players
 
-            if (isPvP)
-                criticalStrikeMod *= 0.5f;
+            var skillType = GetImbuedSkillType(skill);
+
+            // for PvP, this gets halved
+            var maxCriticalStrikeMod = MaxCriticalStrikeMod;
+            if (skillType == ImbuedSkillType.Magic && isPvP)
+                maxCriticalStrikeMod *= 0.5f;
+
+            var interval = GetImbuedInterval(skill);
+
+            var baseCritChance = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
+
+            var criticalStrikeMod = SetInterval(interval, baseCritChance, maxCriticalStrikeMod);
+
+            //Console.WriteLine($"CriticalStrikeMod: {criticalStrikeMod}");
 
             return criticalStrikeMod;
         }
@@ -546,9 +529,41 @@ namespace ACE.Server.WorldObjects
 
             // ( +500% sounds like it would be 6.0 multiplier)
 
-            var cripplingBlowBonus = GetImbuedInterval(skill) * MaxCripplingBlowMod;
+            var interval = GetImbuedInterval(skill);
 
-            return cripplingBlowBonus;
+            var cripplingBlowMod = SetInterval(interval, 1.0f, MaxCripplingBlowMod);
+
+            //Console.WriteLine($"CripplingBlowMod: {cripplingBlowMod}");
+
+            return cripplingBlowMod;
+        }
+
+        // elemental rending cap, equivalent to level 6 vuln
+        public static float MaxRendingMod = 2.5f;
+
+        public static float GetRendingMod(CreatureSkill skill)
+        {
+            // no min skill?
+            var interval = GetImbuedInterval(skill, false);
+
+            var rendingMod = SetInterval(interval, 1.0f, MaxRendingMod);
+
+            //Console.WriteLine($"RendingMod: {rendingMod}");
+
+            return rendingMod;
+        }
+
+        public static float MaxArmorRendingMod = 0.6f;
+
+        public static float GetArmorRendingMod(CreatureSkill skill)
+        {
+            // % of armor ignored, min 0%, max 60%
+
+            var armorRendingMod = 1.0f - GetImbuedInterval(skill, false) * MaxArmorRendingMod;
+
+            //Console.WriteLine($"ArmorRendingMod: {armorRendingMod}");
+
+            return armorRendingMod;
         }
 
         public enum ImbuedSkillType
@@ -603,6 +618,43 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the base skill multiplier to the maximum bonus
+        /// </summary>
+        public static float GetImbuedInterval(CreatureSkill skill, bool useMin = true)
+        {
+            var skillType = GetImbuedSkillType(skill);
+
+            var min = 0;
+            if (useMin)
+                min = skillType == ImbuedSkillType.Melee ? 150 : 125;
+            var max = skillType == ImbuedSkillType.Melee ? 400 : 360;
+
+            return GetInterval((int)skill.Base, min, max);
+        }
+
+        /// <summary>
+        /// Returns an interval between 0-1
+        /// </summary>
+        public static float GetInterval(int num, int min, int max)
+        {
+            if (num <= min) return 0.0f;
+            if (num >= max) return 1.0f;
+
+            var range = max - min;
+
+            return (float)(num - min) / range;
+        }
+
+        /// <summary>
+        /// Projects a 0-1 interval between min and max
+        /// </summary>
+        public static float SetInterval(float interval, float min, float max)
+        {
+            var range = max - min;
+
+            return interval * range + min;
+        }
+
         /// Spell ID for 'Cast on Strike'
         /// </summary>
         public uint? ProcSpell
@@ -837,34 +889,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
             return attackType;
-        }
-
-        /// <summary>
-        /// Returns the base skill multiplier to the maximum bonus
-        /// </summary>
-        public static float GetImbuedInterval(CreatureSkill skill, bool useMin = true)
-        {
-            var skillType = GetImbuedSkillType(skill);
-
-            var min = 0;
-            if (useMin)
-                min = skillType == ImbuedSkillType.Melee ? 150 : 125;
-            var max = skillType == ImbuedSkillType.Melee ? 400 : 360;
-
-            return GetInterval((int)skill.Base, min, max);
-        }
-
-        /// <summary>
-        /// Returns an interval between 0-1
-        /// </summary>
-        public static float GetInterval(int num, int min, int max)
-        {
-            if (num <= min) return 0.0f;
-            if (num >= max) return 1.0f;
-
-            var range = max - min;
-
-            return (float)(num - min) / range;
         }
     }
 }
