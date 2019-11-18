@@ -2252,7 +2252,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Will return correct meleeMod for bow wields (some debate on what 375 top out at, leaving at 18 for now). HarliQ 11/17/19
         /// </summary>
-        private static double GetBowMeleeDMod(int wield)
+        private static double GetWieldReqMeleeDMod(int wield)
         {
             double meleeMod = 0;
 

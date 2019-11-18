@@ -53,9 +53,9 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
-            double meleeDMod = GetBowMeleeDMod(wieldDifficulty);
+            double meleeDMod = GetWieldReqMeleeDMod(wieldDifficulty);
             // double meleeDMod = GetMeleeDMod(tier);
-            if (meleeDMod > 0.0f)
+            if (meleeDMod > 0.0f) 
                 wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
 
             double missileDMod = GetMissileDMod(tier);
