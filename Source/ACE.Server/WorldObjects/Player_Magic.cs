@@ -821,7 +821,7 @@ namespace ACE.Server.WorldObjects
 
                     if (targetDeath == true)
                     {
-                        targetCreature.OnDeath(this, DamageType.Health, false);
+                        targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
                         targetCreature.Die();
                     }
                     else
