@@ -2260,7 +2260,7 @@ namespace ACE.Server.Factories
             switch (wield)
             {
                 case 0:
-                case 250:
+                case 250: // Missile
                     if (chance < 20)
                         meleeMod = 0.01;
                     else if (chance < 45)
@@ -2274,7 +2274,7 @@ namespace ACE.Server.Factories
                     else
                     meleeMod = 0.01;
                     break;
-                case 270:
+                case 270: // Missile
                     if (chance < 10)
                         meleeMod = 0.05;
                     else if (chance < 20)
@@ -2294,7 +2294,7 @@ namespace ACE.Server.Factories
                     else
                     meleeMod = 0.05;
                     break;
-                case 290:
+                case 290: // Missile
                     if (chance < 10)
                         meleeMod = 0.09;
                     else if (chance < 20)
@@ -2310,8 +2310,8 @@ namespace ACE.Server.Factories
                     else
                         meleeMod = 0.09;
                     break;
-                case 315:
-                case 335:
+                case 315: // Missile
+                case 335: // Missile
                     if (chance < 10)
                         meleeMod = 0.10;
                     else if (chance < 20)
@@ -2327,8 +2327,7 @@ namespace ACE.Server.Factories
                     else
                         meleeMod = 0.10;
                     break;
-                case 360:
-                case 375:
+                case 360: // Missile
                     if (chance > 95)
                         meleeMod = 0.18;
                     else if (chance > 80)
@@ -2343,6 +2342,25 @@ namespace ACE.Server.Factories
                         meleeMod = 0.13;
                     else
                         meleeMod = 0.12;
+                    break;
+                case 375: // Missile
+                case 385: // Missile
+                    if (chance > 95)
+                        meleeMod = 0.20;
+                    else if (chance > 85)
+                        meleeMod = 0.19;
+                    else if (chance > 70)
+                        meleeMod = 0.18;
+                    else if (chance > 50)
+                        meleeMod = 0.17;
+                    else if (chance > 35)
+                        meleeMod = 0.16;
+                    else if (chance > 20)
+                        meleeMod = 0.15;
+                    else if (chance > 5)
+                        meleeMod = 0.14;
+                    else
+                        meleeMod = 0.13;
                     break;
                 default:
                     break;
