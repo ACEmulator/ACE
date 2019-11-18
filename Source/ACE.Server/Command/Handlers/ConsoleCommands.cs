@@ -236,11 +236,11 @@ namespace ACE.Server.Command.Handlers
             string casterWeapons = $"-----Caster Weapons----\n";
 
             // Loop depending on how many items you are creating
-            //string fileName = null;
+            // string fileName = null;
             for (int i = 0; i < numberItemsGenerate; i++)
             {
                 var testItem = LootGenerationFactory.CreateRandomLootObjects(itemsTier, true);              
-                if (testItem is null )
+                if (testItem is null)
                 {
                     nullCount++;
                     continue;
@@ -267,9 +267,7 @@ namespace ACE.Server.Command.Handlers
                         else
                         {
                             meleeWeapons = meleeWeapons + $" {testItem.WieldDifficulty.Value}\t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\n";
-                        }//Console.WriteLine(testItem.WieldDifficulty.Value);
-                        //Console.WriteLine(testItem.Damage.Value);
-                        //Console.WriteLine(testItem.DamageVariance.Value);
+                        }
                         break;
                     case "Caster":
                         casterCount++;
@@ -330,17 +328,13 @@ namespace ACE.Server.Command.Handlers
                             if (testItem.ElementalDamageBonus == null)
                             {
                                 missileWeapons = missileWeapons + $"{missileType}\t Wield={testItem.WieldDifficulty.Value}\t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus=0 \t DefenseMod={testItem.WeaponDefense.Value}\n";
-
                             }
                             else
                             {
-
-
-
                                 missileWeapons = missileWeapons + $"{missileType}\t Wield={testItem.WieldDifficulty.Value}\t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus={testItem.ElementalDamageBonus.Value}\t DefenseMod={testItem.WeaponDefense.Value}\n";
                             }
                         }
-                        //missileWeapons = missileWeapons + $"Wield= {testItem.WieldDifficulty.Value}  Modifier= {testItem.DamageMod.Value}  ElementalBonus= {testItem.ElementalDamageBonus.Value}  DefenseMod= {testItem.WeaponDefense.Value}\n";
+                        // missileWeapons = missileWeapons + $"Wield= {testItem.WieldDifficulty.Value}  Modifier= {testItem.DamageMod.Value}  ElementalBonus= {testItem.ElementalDamageBonus.Value}  DefenseMod= {testItem.WeaponDefense.Value}\n";
                         break;
                     case "Jewelry":
                         jewelryCount++;
@@ -364,12 +358,9 @@ namespace ACE.Server.Command.Handlers
                 }
                 else
                 {
-
                 }
-
             }
             float totalItemsGenerated = armorCount + meleeWeaponCount + casterCount + missileWeaponCount + jewelryCount + gemCount + clothingCount + otherCount;
-
             Console.WriteLine($" Armor={armorCount} \n " +
                                 $"MeleeWeapon={meleeWeaponCount} \n " +
                                 $"Caster={casterCount} \n " +
@@ -397,6 +388,5 @@ namespace ACE.Server.Command.Handlers
 
             Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
         }
-
     }
 }

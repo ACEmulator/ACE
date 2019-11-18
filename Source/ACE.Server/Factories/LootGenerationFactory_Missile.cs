@@ -54,7 +54,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
             double meleeDMod = GetBowMeleeDMod(wieldDifficulty);
-            //double meleeDMod = GetMeleeDMod(tier);
+            // double meleeDMod = GetMeleeDMod(tier);
             if (meleeDMod > 0.0f)
                 wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
 
@@ -167,7 +167,7 @@ namespace ACE.Server.Factories
                     break;
             }
             // Added varaiance for Damage Modifier.  Full Modifier was rare in retail
-            int modChance =ThreadSafeRandom.Next(0, 100);
+            int modChance = ThreadSafeRandom.Next(0, 100);
             if (modChance < 20)
                 damageMod = damageMod - 0.09f;
             else if (modChance < 35)
@@ -187,11 +187,8 @@ namespace ACE.Server.Factories
             else if (modChance < 98)
                 damageMod = damageMod - 0.01f;
 
-
-
             return damageMod;
         }
-
         private static int GetElementalBonus(int wield)
         {
             int chance = 0;
