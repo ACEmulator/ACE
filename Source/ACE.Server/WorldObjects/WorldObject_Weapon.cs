@@ -543,10 +543,23 @@ namespace ACE.Server.WorldObjects
 
         public static float GetRendingMod(CreatureSkill skill)
         {
-            // no min skill?
-            var interval = GetImbuedInterval(skill, false);
+            var baseSkill = GetBaseSkillImbued(skill);
 
-            var rendingMod = SetInterval(interval, 1.0f, MaxRendingMod);
+            var rendingMod = 1.0f;
+
+            switch (GetImbuedSkillType(skill))
+            {
+                case ImbuedSkillType.Melee:
+                    rendingMod = baseSkill / 160.0f;
+                    break;
+
+                case ImbuedSkillType.Missile:
+                case ImbuedSkillType.Magic:
+                    rendingMod = baseSkill / 144.0f;
+                    break;
+            }
+
+            rendingMod = Math.Clamp(rendingMod, 1.0f, MaxRendingMod);
 
             //Console.WriteLine($"RendingMod: {rendingMod}");
 
@@ -564,6 +577,20 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"ArmorRendingMod: {armorRendingMod}");
 
             return armorRendingMod;
+        }
+
+        public static uint GetBaseSkillImbued(CreatureSkill skill)
+        {
+            switch (GetImbuedSkillType(skill))
+            {
+                case ImbuedSkillType.Melee:
+                    return Math.Min(skill.Base, 400);
+
+                case ImbuedSkillType.Missile:
+                case ImbuedSkillType.Magic:
+                default:
+                    return Math.Min(skill.Base, 360);
+            }
         }
 
         public enum ImbuedSkillType
