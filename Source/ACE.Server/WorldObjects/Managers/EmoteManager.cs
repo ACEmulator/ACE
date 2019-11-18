@@ -282,8 +282,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.EraseQuest:
 
-                    if (player != null)
-                        player.QuestManager.Erase(emote.Message);
+                    if (creature != null)
+                        creature.QuestManager.Erase(emote.Message);
                     break;
 
                 case EmoteType.FellowBroadcast:
@@ -354,8 +354,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.IncrementQuest:
 
-                    if (player != null)
-                        player.QuestManager.Increment(emote.Message);     // kill task?
+                    if (creature != null)
+                        creature.QuestManager.Increment(emote.Message);     // kill task?
                     break;
 
                 case EmoteType.InflictVitaePenalty:
@@ -490,10 +490,10 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.InqQuest:
 
-                    if (player != null)
+                    if (creature != null)
                     {
-                        var hasQuest = player.QuestManager.HasQuest(emote.Message);
-                        var canSolve = player.QuestManager.CanSolve(emote.Message);
+                        var hasQuest = creature.QuestManager.HasQuest(emote.Message);
+                        var canSolve = creature.QuestManager.CanSolve(emote.Message);
 
                         // verify: QuestSuccess = player has quest, and their last completed time + quest minDelta <= currentTime
                         success = hasQuest && !canSolve;
@@ -508,9 +508,9 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
                 case EmoteType.InqQuestSolves:
 
-                    if (player != null)
+                    if (creature != null)
                     {
-                        var questSolves = player.QuestManager.HasQuestSolves(emote.Message, emote.Min, emote.Max);
+                        var questSolves = creature.QuestManager.HasQuestSolves(emote.Message, emote.Min, emote.Max);
 
                         ExecuteEmoteSet(questSolves ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                     }
@@ -950,12 +950,14 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.SetQuestBitsOn:
                     break;
                 case EmoteType.SetQuestCompletions:
-                    if (player != null)
+
+                    if (creature != null)
                     {
                         if (emote.Amount != null)
-                            player.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
+                            creature.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
                     }
                     break;
+
                 case EmoteType.SetSanctuaryPosition:
 
                     if (player != null)
@@ -973,6 +975,7 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.StampFellowQuest:
+
                     if (player != null)
                     {
                         if (player.Fellowship != null)
@@ -989,20 +992,21 @@ namespace ACE.Server.WorldObjects.Managers
                         }
                     }
                     break;
+
                 case EmoteType.StampMyQuest:
                     break;
                 case EmoteType.StampQuest:
 
-                    if (player != null)
+                    if (creature != null)
                     {
                         var questName = emote.Message;
 
                         if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                         {
-                            player.QuestManager.HandleKillTask(questName, WorldObject);
+                            creature.QuestManager.HandleKillTask(questName, WorldObject);
                         }
                         else
-                            player.QuestManager.Stamp(emote.Message);
+                            creature.QuestManager.Stamp(emote.Message);
                     }
                     break;
 
@@ -1147,6 +1151,7 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.UpdateFellowQuest:
+
                     if (player != null)
                     {
                         if (player.Fellowship != null)
@@ -1173,27 +1178,28 @@ namespace ACE.Server.WorldObjects.Managers
                             ExecuteEmoteSet(EmoteCategory.QuestNoFellow, emote.Message, targetObject, true);
                     }
                     break;
+
                 case EmoteType.UpdateMyQuest:
                     break;
                 case EmoteType.UpdateQuest:
 
-                    if (player != null)
+                    if (creature != null)
                     {
                         var questName = emote.Message;
 
-                        var hasQuest = player.QuestManager.HasQuest(questName);
+                        var hasQuest = creature.QuestManager.HasQuest(questName);
 
                         if (!hasQuest)
                         {
                             // add new quest
-                            player.QuestManager.Update(questName);
-                            hasQuest = player.QuestManager.HasQuest(questName);
+                            creature.QuestManager.Update(questName);
+                            hasQuest = creature.QuestManager.HasQuest(questName);
                             ExecuteEmoteSet(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                         }
                         else
                         {
                             // update existing quest
-                            var canSolve = player.QuestManager.CanSolve(questName);
+                            var canSolve = creature.QuestManager.CanSolve(questName);
                             ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                         }
                     }
