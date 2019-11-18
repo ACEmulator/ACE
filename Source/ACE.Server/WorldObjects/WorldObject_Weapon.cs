@@ -572,24 +572,37 @@ namespace ACE.Server.WorldObjects
         {
             // % of armor ignored, min 0%, max 60%
 
-            var armorRendingMod = 1.0f - GetImbuedInterval(skill, false) * MaxArmorRendingMod;
+            var baseSkill = GetBaseSkillImbued(skill);
+
+            var armorRendingMod = 1.0f;
+
+            switch (GetImbuedSkillType(skill))
+            {
+                case ImbuedSkillType.Melee:
+                    armorRendingMod -= Math.Max(0, baseSkill - 160) / 400.0f;
+                    break;
+
+                case ImbuedSkillType.Missile:
+                    armorRendingMod -= Math.Max(0, baseSkill - 144) / 360.0f;
+                    break;
+            }
 
             //Console.WriteLine($"ArmorRendingMod: {armorRendingMod}");
 
             return armorRendingMod;
         }
 
-        public static uint GetBaseSkillImbued(CreatureSkill skill)
+        public static int GetBaseSkillImbued(CreatureSkill skill)
         {
             switch (GetImbuedSkillType(skill))
             {
                 case ImbuedSkillType.Melee:
-                    return Math.Min(skill.Base, 400);
+                    return (int)Math.Min(skill.Base, 400);
 
                 case ImbuedSkillType.Missile:
                 case ImbuedSkillType.Magic:
                 default:
-                    return Math.Min(skill.Base, 360);
+                    return (int)Math.Min(skill.Base, 360);
             }
         }
 
