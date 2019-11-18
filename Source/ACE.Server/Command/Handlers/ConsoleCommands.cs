@@ -220,12 +220,6 @@ namespace ACE.Server.Command.Handlers
 
             Console.WriteLine($"Creating {numberItemsGenerate} items, that are in tier {itemsTier}");
 
-            // Creating JSON Serializer using NewtonSoft
-            JsonSerializer serializer = new JsonSerializer();
-            serializer.NullValueHandling = NullValueHandling.Ignore;
-            serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            serializer.Formatting = Formatting.Indented;
-
             // Counters
             float armorCount = 0;
             float meleeWeaponCount = 0;
@@ -236,6 +230,10 @@ namespace ACE.Server.Command.Handlers
             float clothingCount = 0;
             float otherCount = 0;
             float nullCount = 0;
+
+            string meleeWeapons = $"-----Melee Weapons----\n Wield \t Damage \t Variance \t DefenseMod\n";
+            string missileWeapons = $"-----Missile Weapons----\n";
+            string casterWeapons = $"-----Caster Weapons----\n";
 
             // Loop depending on how many items you are creating
             //string fileName = null;
@@ -254,7 +252,7 @@ namespace ACE.Server.Command.Handlers
 
                     continue;
                 }
-                                                          
+
                 switch (itemType)
                 {
                     case "Armor":
@@ -262,12 +260,87 @@ namespace ACE.Server.Command.Handlers
                         break;
                     case "MeleeWeapon":
                         meleeWeaponCount++;
+                        if (testItem.WieldDifficulty == null)
+                        {
+                            meleeWeapons = meleeWeapons + $" 0 \t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\n";
+                        }
+                        else
+                        {
+                            meleeWeapons = meleeWeapons + $" {testItem.WieldDifficulty.Value}\t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\n";
+                        }//Console.WriteLine(testItem.WieldDifficulty.Value);
+                        //Console.WriteLine(testItem.Damage.Value);
+                        //Console.WriteLine(testItem.DamageVariance.Value);
                         break;
                     case "Caster":
                         casterCount++;
+                        if (testItem.WieldDifficulty == null)
+                        {
+                            casterWeapons = casterWeapons + $"Wield=0 \t ElementalDamageMod= 0.00 \t DefenseMod={testItem.WeaponDefense.Value}\n";
+                        }
+                        else
+                        {
+                            if (testItem.ElementalDamageMod == null)
+                            {
+                                casterWeapons = casterWeapons + $"Wield={testItem.WieldDifficulty.Value}\t ElementalDamageMod= 0.00 \t DefenseMod={testItem.WeaponDefense.Value}\n";
+                            }
+                            else
+                            {
+                                casterWeapons = casterWeapons + $"Wield={testItem.WieldDifficulty.Value}\t ElementalDamageMod={testItem.ElementalDamageMod.Value}\t DefenseMod={testItem.WeaponDefense.Value}\n";
+                            }
+                        }
                         break;
                     case "MissileWeapon":
                         missileWeaponCount++;
+                        string missileType = "Other";
+                        switch (testItem.AmmoType.Value)
+                        {
+                            case AmmoType.None:
+                                break;
+                            case AmmoType.Arrow:
+                                missileType = "Bow";
+                                break;
+                            case AmmoType.Bolt:
+                                missileType = "X Bow";
+                                break;
+                            case AmmoType.Atlatl:
+                                missileType = "Thrown";
+                                break;
+                            case AmmoType.ArrowCrystal:
+                                break;
+                            case AmmoType.BoltCrystal:
+                                break;
+                            case AmmoType.AtlatlCrystal:
+                                break;
+                            case AmmoType.ArrowChorizite:
+                                break;
+                            case AmmoType.BoltChorizite:
+                                break;
+                            case AmmoType.AtlatlChorizite:
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (testItem.WieldDifficulty == null)
+                        {
+                            missileWeapons = missileWeapons + $"{missileType}\t Wield=0 \t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus=0 \t DefenseMod={testItem.WeaponDefense.Value}\n";
+                        }
+                        else
+                        {
+                            if (testItem.ElementalDamageBonus == null)
+                            {
+                                missileWeapons = missileWeapons + $"{missileType}\t Wield={testItem.WieldDifficulty.Value}\t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus=0 \t DefenseMod={testItem.WeaponDefense.Value}\n";
+
+                            }
+                            else
+                            {
+
+
+
+                                missileWeapons = missileWeapons + $"{missileType}\t Wield={testItem.WieldDifficulty.Value}\t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus={testItem.ElementalDamageBonus.Value}\t DefenseMod={testItem.WeaponDefense.Value}\n";
+                            }
+                        }
+                        //missileWeapons = missileWeapons + $"Wield= {testItem.WieldDifficulty.Value}  Modifier= {testItem.DamageMod.Value}  ElementalBonus= {testItem.ElementalDamageBonus.Value}  DefenseMod= {testItem.WeaponDefense.Value}\n";
                         break;
                     case "Jewelry":
                         jewelryCount++;
@@ -318,6 +391,9 @@ namespace ACE.Server.Command.Handlers
                                 $"Clothing= {clothingCount / totalItemsGenerated * 100}% \n " +
                                 $"Other={otherCount / totalItemsGenerated * 100}% \n  ");
 
+            Console.WriteLine(meleeWeapons);
+            Console.WriteLine(missileWeapons);
+            Console.WriteLine(casterWeapons);
 
             Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
         }

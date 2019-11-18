@@ -16,7 +16,9 @@ namespace ACE.Server.Factories
 
             if (tier < 4)
                 weaponWeenie = GetNonElementalMissileWeapon();
-            else
+
+            // If tier is between 4-6 then a chance for non elemental missile weapon.  HarliQ 11/17/19
+            else if (tier < 6)
             {
                 chance = ThreadSafeRandom.Next(0, 1);
                 switch (chance)
@@ -29,6 +31,12 @@ namespace ACE.Server.Factories
                         weaponWeenie = GetElementalMissileWeapon();
                         break;
                 }
+            }
+            else
+            // Tier 6 and up, Only elemental missile weapons are supposed to drop per retail. HarliQ 11/17/19
+            {
+                elemenatalBonus = GetElementalBonus(wieldDifficulty);
+                weaponWeenie = GetElementalMissileWeapon();
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
@@ -45,7 +53,8 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
-            double meleeDMod = GetMeleeDMod(tier);
+            double meleeDMod = GetBowMeleeDMod(wieldDifficulty);
+            //double meleeDMod = GetMeleeDMod(tier);
             if (meleeDMod > 0.0f)
                 wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
 
@@ -157,6 +166,28 @@ namespace ACE.Server.Factories
                     damageMod = 1.5f;
                     break;
             }
+            // Added varaiance for Damage Modifier.  Full Modifier was rare in retail
+            int modChance =ThreadSafeRandom.Next(0, 100);
+            if (modChance < 20)
+                damageMod = damageMod - 0.09f;
+            else if (modChance < 35)
+                damageMod = damageMod - 0.08f;
+            else if (modChance < 50)
+                damageMod = damageMod - 0.07f;
+            else if (modChance < 65)
+                damageMod = damageMod - 0.06f;
+            else if (modChance < 75)
+                damageMod = damageMod - 0.05f;
+            else if (modChance < 85)
+                damageMod = damageMod - 0.04f;
+            else if (modChance < 90)
+                damageMod = damageMod - 0.03f;
+            else if (modChance < 94)
+                damageMod = damageMod - 0.02f;
+            else if (modChance < 98)
+                damageMod = damageMod - 0.01f;
+
+
 
             return damageMod;
         }
@@ -210,22 +241,24 @@ namespace ACE.Server.Factories
                     else
                         eleMod = 16;
                     break;
-                case 375:
+                case 375: // Added +19 Elemental (like retail) and readjusted odds (odds are approximate, no hard data).  HarliQ 11/17/19  
                     chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 20)
+                    if (chance < 5)
                         eleMod = 12;
-                    else if (chance < 30)
+                    else if (chance < 15)
                         eleMod = 13;
-                    else if (chance < 45)
+                    else if (chance < 30)
                         eleMod = 14;
-                    else if (chance < 60)
+                    else if (chance < 50)
                         eleMod = 15;
-                    else if (chance < 75)
+                    else if (chance < 65)
                         eleMod = 16;
-                    else if (chance < 95)
+                    else if (chance < 80)
                         eleMod = 17;
-                    else
+                    else if (chance < 95)
                         eleMod = 18;
+                    else
+                        eleMod = 19;
                     break;
                 case 385:
                     chance = ThreadSafeRandom.Next(0, 100);
