@@ -163,7 +163,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The last time the log was pruned
         /// </summary>
-        public static DateTime LastPruneTime = DateTime.UtcNow;
+        public DateTime LastPruneTime = DateTime.UtcNow;
 
         private static readonly TimeSpan minimumPruneInverval = TimeSpan.FromSeconds(30);
 
