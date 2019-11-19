@@ -489,25 +489,70 @@ namespace ACE.Server.WorldObjects
         // - Melee/missile: this is a direct multiplier of your maximum non-crit damage.
         // - Magic: my best guess here is that the CB modifier modifies the additional crit damage (see note-2), but i'm not 100% on this
 
+        // http://acpedia.org/wiki/Announcements_-_2004/07_-_Treaties_in_Stone#Letter_to_the_Players
+
+        // For PvE only:
+
+        // Critical Strike for War Magic currently scales from 5% critical hit chance to 25% critical hit chance at maximum effectiveness.
+        // In July, the maximum effectiveness will be increased to 50% chance.
+
+        public static float MinCriticalStrikeMagicMod = 0.05f;
 
         public static float MaxCriticalStrikeMod = 0.5f;
 
         public static float GetCriticalStrikeMod(CreatureSkill skill, bool isPvP = false)
         {
-            // http://acpedia.org/wiki/Announcements_-_2004/07_-_Treaties_in_Stone#Letter_to_the_Players
+            var baseMod = 0.0f;
 
             var skillType = GetImbuedSkillType(skill);
 
-            // for PvP, this gets halved
-            var maxCriticalStrikeMod = MaxCriticalStrikeMod;
+            var baseSkill = GetBaseSkillImbued(skill);
+
+            switch (skillType)
+            {
+                case ImbuedSkillType.Melee:
+
+                    baseMod = Math.Max(0, baseSkill - 100) / 600.0f;
+                    break;
+
+                case ImbuedSkillType.Missile:
+                case ImbuedSkillType.Magic:
+
+                    baseMod = Math.Max(0, baseSkill - 60) / 600.0f;
+                    break;
+
+                default:
+                    return 0.0f;
+            }
+
+            // http://acpedia.org/wiki/Announcements_-_2004/07_-_Treaties_in_Stone#Letter_to_the_Players
+
+            // For PvE only:
+
+            // Critical Strike for War Magic currently scales from 5% critical hit chance to 25% critical hit chance at maximum effectiveness.
+            // In July, the maximum effectiveness will be increased to 50% chance.
+
             if (skillType == ImbuedSkillType.Magic && isPvP)
-                maxCriticalStrikeMod *= 0.5f;
+                baseMod *= 0.5f;
 
-            var interval = GetImbuedInterval(skill);
+            // In the original formula for CS Magic pre-July 2004, (BS - 60) / 1200.0f, the minimum 5% crit rate would have been achieved at BS 120,
+            // which is exactly equal to the minimum base skill for CS Missile becoming effective.
 
-            var baseCritChance = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
+            // CS Magic is slightly different from all the other skill/imbue combinations, in that the MinCriticalStrikeMagicMod
+            // is different from the defaultMagicCritFrequency (5% vs. 2%)
 
-            var criticalStrikeMod = SetInterval(interval, baseCritChance, maxCriticalStrikeMod);
+            // If we simply clamp to min. 5% here, then a player will be getting a +3% bonus from from base skill 0-90 in PvE,
+            // and base skill 0-120 in PvP
+
+            // This code is checking if the player has reached the skill threshold for receiving the 5% bonus
+            // (base skill 90 in PvE, base skill 120 in PvP)
+
+            var criticalStrikeMod = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
+
+            var minEffective = skillType == ImbuedSkillType.Magic ? MinCriticalStrikeMagicMod : defaultPhysicalCritFrequency;
+
+            if (baseMod >= minEffective)
+                criticalStrikeMod = baseMod;
 
             //Console.WriteLine($"CriticalStrikeMod: {criticalStrikeMod}");
 
