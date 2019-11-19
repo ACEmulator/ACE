@@ -231,9 +231,9 @@ namespace ACE.Server.Command.Handlers
             float otherCount = 0;
             float nullCount = 0;
 
-            string meleeWeapons = $"-----Melee Weapons----\n Wield \t Damage \t Variance \t DefenseMod\n";
-            string missileWeapons = $"-----Missile Weapons----\n";
-            string casterWeapons = $"-----Caster Weapons----\n";
+            string meleeWeapons = $"-----Melee Weapons----\n Wield \t Damage \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
+            string missileWeapons = $"-----Missile Weapons----\n Wield \t Modifier \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
+            string casterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
 
             // Loop depending on how many items you are creating
             // string fileName = null;
@@ -271,21 +271,22 @@ namespace ACE.Server.Command.Handlers
                         break;
                     case "Caster":
                         casterCount++;
-                        if (testItem.WieldDifficulty == null)
-                        {
-                            casterWeapons = casterWeapons + $"Wield=0 \t ElementalDamageMod= 0.00 \t DefenseMod={testItem.WeaponDefense.Value}\n";
-                        }
-                        else
-                        {
-                            if (testItem.ElementalDamageMod == null)
-                            {
-                                casterWeapons = casterWeapons + $"Wield={testItem.WieldDifficulty.Value}\t ElementalDamageMod= 0.00 \t DefenseMod={testItem.WeaponDefense.Value}\n";
-                            }
-                            else
-                            {
-                                casterWeapons = casterWeapons + $"Wield={testItem.WieldDifficulty.Value}\t ElementalDamageMod={testItem.ElementalDamageMod.Value}\t DefenseMod={testItem.WeaponDefense.Value}\n";
-                            }
-                        }
+                        double missileDefMod = 0.00f;
+                        double magicDefMod = 0.00f;
+                        double wield = 0.00f;
+                        double eleMod = 0.00f;
+                        if (testItem.WeaponMissileDefense != null)
+                            missileDefMod = testItem.WeaponMissileDefense.Value;
+                        if (testItem.WieldDifficulty != null)                      
+                            wield = testItem.WieldDifficulty.Value;
+                        if (testItem.ElementalDamageMod != null)
+                            eleMod = testItem.ElementalDamageMod.Value;
+                   
+                        if (testItem.WeaponMagicDefense != null)
+                            magicDefMod = testItem.WeaponMagicDefense.Value;
+
+                                casterWeapons = casterWeapons + $" {wield}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\n";
+
                         break;
                     case "MissileWeapon":
                         missileWeaponCount++;
@@ -319,6 +320,7 @@ namespace ACE.Server.Command.Handlers
                                 break;
                         }
 
+                      
                         if (testItem.WieldDifficulty == null)
                         {
                             missileWeapons = missileWeapons + $"{missileType}\t Wield=0 \t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus=0 \t DefenseMod={testItem.WeaponDefense.Value}\n";
