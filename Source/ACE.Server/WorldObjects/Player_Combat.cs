@@ -446,7 +446,7 @@ namespace ACE.Server.WorldObjects
 
             if (Health.Current <= 0)
             {
-                OnDeath(source, damageType, crit);
+                OnDeath(new DamageHistoryInfo(source), damageType, crit);
                 Die();
                 return (int)damageTaken;
             }
@@ -603,7 +603,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if this player is PK and died to another player
         /// </summary>
-        public bool IsPKDeath(WorldObject topDamager)
+        public bool IsPKDeath(DamageHistoryInfo topDamager)
         {
             return IsPKDeath(topDamager?.Guid.Full);
         }
@@ -616,7 +616,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if this player is PKLite and died to another player
         /// </summary>
-        public bool IsPKLiteDeath(WorldObject topDamager)
+        public bool IsPKLiteDeath(DamageHistoryInfo topDamager)
         {
             return IsPKLiteDeath(topDamager?.Guid.Full);
         }

@@ -281,7 +281,7 @@ namespace ACE.Server.WorldObjects
 
             if (Health.Current <= 0)
             {
-                OnDeath(this, DamageType.Bludgeon, false);
+                OnDeath(new DamageHistoryInfo(this), DamageType.Bludgeon, false);
                 Die();
             }
             else

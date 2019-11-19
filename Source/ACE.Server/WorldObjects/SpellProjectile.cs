@@ -689,7 +689,8 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                target.OnDeath(ProjectileSource, Spell.DamageType, critical);
+                var lastDamager = ProjectileSource != null ? new DamageHistoryInfo(ProjectileSource) : null;
+                target.OnDeath(lastDamager, Spell.DamageType, critical);
                 target.Die();
             }
         }
