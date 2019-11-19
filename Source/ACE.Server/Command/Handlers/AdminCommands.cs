@@ -2371,17 +2371,17 @@ namespace ACE.Server.Command.Handlers
 
             var wo = session.Player.CurrentLandblock?.GetObject(objectId);
 
-            if (wo != null && wo is Player player)
+            if (wo != null && wo is Creature creature)
             {
                 if (parameters[0].Equals("list"))
                 {
-                    var questsHdr = $"Quest Registry for {player.Name} (0x{player.Guid}):\n";
+                    var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";
                     questsHdr += "================================================\n";
                     var quests = "";
-                    foreach (var quest in player.QuestManager.Quests)
+                    foreach (var quest in creature.QuestManager.Quests)
                     {
                         quests += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
-                        var nextSolve = player.QuestManager.GetNextSolveTime(quest.QuestName);
+                        var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
 
                         if (nextSolve == TimeSpan.MinValue)
                             quests += "Can Solve: Immediately\n";
@@ -2406,22 +2406,22 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
                     var questName = parameters[1];
-                    if (player.QuestManager.HasQuest(questName))
+                    if (creature.QuestManager.HasQuest(questName))
                     {
-                        session.Player.SendMessage($"{player.Name} already has {questName}");
+                        session.Player.SendMessage($"{creature.Name} already has {questName}");
                         return;
                     }
 
-                    var canSolve = player.QuestManager.CanSolve(questName);
+                    var canSolve = creature.QuestManager.CanSolve(questName);
                     if (canSolve)
                     {
-                        player.QuestManager.Update(questName);
-                        session.Player.SendMessage($"{questName} bestowed on {player.Name}");
+                        creature.QuestManager.Update(questName);
+                        session.Player.SendMessage($"{questName} bestowed on {creature.Name}");
                         return;
                     }
                     else
                     {
-                        session.Player.SendMessage($"Couldn't bestow {questName} on {player.Name}");
+                        session.Player.SendMessage($"Couldn't bestow {questName} on {creature.Name}");
                         return;
                     }
                 }
@@ -2439,17 +2439,17 @@ namespace ACE.Server.Command.Handlers
 
                     if (questName == "*")
                     {
-                        player.QuestManager.EraseAll();
+                        creature.QuestManager.EraseAll();
                         session.Player.SendMessage($"All quests erased.");
                         return;
                     }
 
-                    if (!player.QuestManager.HasQuest(questName))
+                    if (!creature.QuestManager.HasQuest(questName))
                     {
                         session.Player.SendMessage($"{questName} not found.");
                         return;
                     }
-                    player.QuestManager.Erase(questName);
+                    creature.QuestManager.Erase(questName);
                     session.Player.SendMessage($"{questName} erased.");
                     return;
                 }
