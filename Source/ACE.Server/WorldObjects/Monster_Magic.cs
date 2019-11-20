@@ -215,7 +215,7 @@ namespace ACE.Server.WorldObjects
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
                     if (targetDeath && target is Creature targetCreature)
                     {
-                        targetCreature.OnDeath(this, DamageType.Health, false);
+                        targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
                         targetCreature.Die();
                     }
                     if (target != null)

@@ -1522,17 +1522,14 @@ namespace ACE.Server.WorldObjects.Managers
             ExecuteEmoteSet(EmoteCategory.ReceiveCritical, null, attacker);
         }
 
-        public void OnDeath(DamageHistory damageHistory)
+        public void OnDeath(WorldObject lastDamager)
         {
             if (WorldObject.WeenieClassId == 180014)
                 log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager OnDeath()");
 
             IsBusy = false;
 
-            if (damageHistory.Damagers.Count == 0)
-                ExecuteEmoteSet(EmoteCategory.Death, null, null);
-            else 
-                ExecuteEmoteSet(EmoteCategory.Death, null, damageHistory.LastDamager);
+            ExecuteEmoteSet(EmoteCategory.Death, null, lastDamager);
         }
 
         /// <summary>

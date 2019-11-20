@@ -172,8 +172,7 @@ namespace ACE.Server.Network.Sequence
                             break;
 
                         case SequenceType.Motion:
-                            sequence = new UShortSequence(1,
-                                0x7FFF); // MSB is reserved, so set max value to exclude it.
+                            sequence = new UShortSequence(1, 0x7FFF); // MSB is reserved, so set max value to exclude it.
                             break;
 
                         default:
@@ -193,12 +192,7 @@ namespace ACE.Server.Network.Sequence
             var key = (uint)type << 16;
 
             lock (sequenceList)
-            {
-                if (sequenceList.ContainsKey(key))
-                    sequenceList[key] = sequence;
-                else
-                    sequenceList.Add(key, sequence);
-            }
+                sequenceList[key] = sequence;
         }
     }
 }
