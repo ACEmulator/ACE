@@ -63,7 +63,7 @@ namespace ACE.Server.Physics.Common
 
         public bool IsImpenetrable()
         {
-            return false;   // ?
+            return WorldObject is Player player && player.PlayerKillerStatus == PlayerKillerStatus.Free;
         }
 
         public bool IsPK()
