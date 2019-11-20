@@ -102,7 +102,7 @@ namespace ACE.Server.Factories
             return LootTables.Level8SpellComps[chance];
         }
         /// <summary>
-        /// Creates Caster (Wand, Staff, Orb)
+        /// Creates Caster (Wand, Staff, Orb).  Refactored 11/20/19  - HarliQ
         /// </summary>
         private static WorldObject CreateCaster(int tier, bool isMagical)
         {
@@ -164,23 +164,41 @@ namespace ACE.Server.Factories
             // Setting MagicD and MissileD Bonuses to null (some weenies have a value)
             wo.WeaponMagicDefense = null;
             wo.WeaponMissileDefense = null;
+            //Not sure why this is here, guessing some wienies have it by default
+            wo.ItemSkillLevelLimit = null;
 
             // int workmanship = GetWorkmanship(tier);
             // wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+
+            // Setting general traits of weapon
             wo.ItemWorkmanship = GetWorkmanship(tier);
 
             int materialType = GetMaterialType(wo, tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
-
+            // is this duplicate from above??
             wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
+
+            // Not sure what these setting these properties do
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
-
             wo.GemCount = ThreadSafeRandom.Next(1, 5);
+            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
+            
+            // Is this right??
+            // wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+            wo.LongDesc = wo.Name;
 
+            // Getting Value of weapon (can this be simplified??)
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            var value = GetValue(tier, wo.ItemWorkmanship.Value, gemMaterialMod, materialMod);
+            wo.Value = value;
+
+            // Setting Weapon defensive mods 
+            wo.WeaponDefense = GetWieldReqMeleeDMod(wield);
             // A 5% chance to get any MagicD/Missile Bonus
             if (wield > 355)
-            { 
+            {
                 int chance = ThreadSafeRandom.Next(1, 40);
                 if (chance > 39)
                 {
@@ -192,44 +210,13 @@ namespace ACE.Server.Factories
                 {
                     wo.WeaponMissileDefense = GetMagicMissileDefenseBonus();
                 }
-            }  
-
-            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
-
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(tier, wo.ItemWorkmanship.Value, gemMaterialMod, materialMod);
-            wo.Value = value;
-
-
-            // I feel this is wrong, MissileDMod and MeleeDMod shouldn't be an either or, MissileD and MagicD mod should be based on a roll
-            //if (ThreadSafeRandom.Next(0, 100) > 95)
-            //{
-            //    double missileDMod = GetMissileDMod(tier);
-            //    if (missileDMod > 0.0f)
-            //        wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDMod);
-            //}
-            //else
-            //{
-            //    double meleeDMod = GetWieldReqMeleeDMod(wield);
-            //    if (meleeDMod > 0.0f)
-            //wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
-            //}
-
-            wo.WeaponDefense = GetWieldReqMeleeDMod(wield);
-
-            double manaConMod = GetManaCMod(tier);
-            if (manaConMod > 0.0f)
-
-                //wo.SetProperty(PropertyFloat.ManaConversionMod, manaConMod);
-                wo.ManaConversionMod = manaConMod;
-
+            }
+            // Setting weapon Offensive Mods
             if (elementalDamageMod > 1.0f)
                 //wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
                 wo.ElementalDamageMod = elementalDamageMod;
 
+            // Setting Wield Reqs for weapon
             if (wield > 0 || wieldRequirement == WieldRequirement.Level)
             {
                 //wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirement);
@@ -252,10 +239,14 @@ namespace ACE.Server.Factories
 
 
             }
+           
+            // Adjusting Properties if weapon has magic (spells)
+            double manaConMod = GetManaCMod(tier);
+            if (manaConMod > 0.0f)
 
-            wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+                //wo.SetProperty(PropertyFloat.ManaConversionMod, manaConMod);
+                wo.ManaConversionMod = manaConMod;
 
-            
             if (isMagical)
                 wo = AssignMagic(wo, tier);
             else
@@ -270,8 +261,7 @@ namespace ACE.Server.Factories
                 wo.ItemCurMana = null;
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
-            }
-            
+            }          
 
             wo = RandomizeColor(wo);
             return wo;
@@ -284,49 +274,53 @@ namespace ACE.Server.Factories
             {
                 case 290:
                     if (chance > 95)
-                        elementBonus = 0.01;
+                        elementBonus = 0.03;
                     else if (chance > 65)
                         elementBonus = 0.02;
                     else
-                        elementBonus = 0.03;
+                        elementBonus = 0.01;
                     break;
                 case 310:
                     if (chance > 95)
-                        elementBonus = 0.04;
+                        elementBonus = 0.06;
                     else if (chance > 65)
                         elementBonus = 0.05;
                     else
-                        elementBonus = 0.06;
+                        elementBonus = 0.04;
                     break;
 
                 case 330:
                     if (chance > 95)
-                        elementBonus = 0.07;
+                        elementBonus = 0.09;
                     else if (chance > 65)
                         elementBonus = 0.08;
                     else
-                        elementBonus = 0.09;
+                        elementBonus = 0.07;
                     break;
 
                 case 355:
                     if (chance > 95)
-                        elementBonus = 0.18;
-                    else if (chance > 65)
-                        elementBonus = 0.17;
+                        elementBonus = 0.13;
+                    else if (chance > 80)
+                        elementBonus = 0.12;
+                    else if (chance > 55)
+                        elementBonus = 0.11;
+                    else if (chance > 20)
+                        elementBonus = 0.10;
                     else
-                        elementBonus = 0.16;
+                        elementBonus = 0.09;
                     break;
 
                 case 375:
                     if (chance > 95)
                         elementBonus = 0.16;
-                    else if (chance > 80)
+                    else if (chance > 85)
                         elementBonus = 0.15;
-                    else if (chance > 65)
+                    else if (chance > 60)
                         elementBonus = 0.14;
-                    else if (chance > 45)
+                    else if (chance > 30)
                         elementBonus = 0.13;
-                    else if (chance > 20)
+                    else if (chance > 10)
                         elementBonus = 0.12;
                     else
                         elementBonus = 0.11;

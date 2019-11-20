@@ -2400,6 +2400,8 @@ namespace ACE.Server.Factories
                 mBonus = 0.005;
 
             return mBonus +1;
+
+            
         }
     } 
         

@@ -236,10 +236,6 @@ namespace ACE.Server.Command.Handlers
             string missileWeapons = $"-----Missile Weapons----\n Wield \t Modifier \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
             string casterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
 
-            int profile = 999;
-            var myTreasure = new TreasureDeath(profile);
-
-
 
 
             // Loop depending on how many items you are creating
