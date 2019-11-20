@@ -378,5 +378,13 @@ namespace ACE.Server.Entity
         public Allegiance Allegiance { get; set; }
 
         public AllegianceNode AllegianceNode { get; set; }
+
+        public void UpdateProperty(PropertyInstanceId prop, uint? value, bool broadcast = false)
+        {
+            if (value != null)
+                SetProperty(prop, value.Value);
+            else
+                RemoveProperty(prop);
+        }
     }
 }

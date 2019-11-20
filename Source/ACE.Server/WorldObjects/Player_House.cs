@@ -1061,10 +1061,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when player is exiting portal space
         /// </summary>
-        public void CheckHouse()
+        /// <returns>TRUE if player was booted from house property they don't have access to, upon exiting portal space</returns>
+        public bool CheckHouse()
         {
-            if (CurrentLandblock == null)
-                return;
+            if (CurrentLandblock == null || IgnoreHouseBarriers)
+                return false;
 
             foreach (var house in CurrentLandblock.Houses)
             {
@@ -1073,24 +1074,22 @@ namespace ACE.Server.WorldObjects
                 if (!rootHouse.OnProperty(this))
                     continue;
 
-                if (IgnoreHouseBarriers)
-                    continue;
-
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
                     if (!rootHouse.IsOpen || (rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.IsDungeon))
                     {
                         Teleport(rootHouse.BootSpot.Location);
-                        break;
+                        return true;
                     }
                 }
 
                 if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.IsDungeon)
                 {
                     Teleport(rootHouse.BootSpot.Location);
-                    break;
+                    return true;
                 }
             }
+            return false;
         }
 
         /// <summary>
