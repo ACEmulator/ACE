@@ -1649,6 +1649,9 @@ namespace ACE.Server.Physics
                 }
                 else
                 {
+                    if (IsPlayer)
+                        log.Debug($"{Name}.UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
+
                     newPos.Frame.Origin = Position.Frame.Origin;
                     set_initial_frame(newPos.Frame);
                     CachedVelocity = Vector3.Zero;
@@ -1783,11 +1786,6 @@ namespace ACE.Server.Physics
                 UpdatePhysicsInternal((float)quantum, ref newFrame);
 
             process_hooks();
-        }
-
-        public void UpdatePositionInternalServer(double quantum, ref AFrame offsetFrame)
-        {
-            UpdatePositionInternal(quantum, ref offsetFrame);
         }
 
         public void UpdateViewerDistance(float cypt, Vector3 heading)
