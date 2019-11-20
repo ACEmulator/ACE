@@ -101,19 +101,22 @@ namespace ACE.Server.Factories
 
             return LootTables.Level8SpellComps[chance];
         }
+
         /// <summary>
-        /// Creates Caster (Wand, Staff, Orb).  Refactored 11/20/19  - HarliQ
+        /// Creates Caster (Wand, Staff, Orb)
         /// </summary>
         private static WorldObject CreateCaster(int tier, bool isMagical)
         {
-            int casterWeenie = 0; //done
+            // Refactored 11/20/19  - HarliQ
+
+            int casterWeenie = 0; 
             double elementalDamageMod = 0;
             Skill wieldSkillType = Skill.None;
             WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int subType = 0;
             int wield = GetWield(tier, 2);
 
-            ////Getting the caster Weenie needed.
+            // Getting the caster Weenie needed.
             if (wield == 0)
             {
                 // Determine plain caster type: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
@@ -164,11 +167,8 @@ namespace ACE.Server.Factories
             // Setting MagicD and MissileD Bonuses to null (some weenies have a value)
             wo.WeaponMagicDefense = null;
             wo.WeaponMissileDefense = null;
-            //Not sure why this is here, guessing some wienies have it by default
+            // Not sure why this is here, guessing some wienies have it by default
             wo.ItemSkillLevelLimit = null;
-
-            // int workmanship = GetWorkmanship(tier);
-            // wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             // Setting general traits of weapon
             wo.ItemWorkmanship = GetWorkmanship(tier);
@@ -176,23 +176,11 @@ namespace ACE.Server.Factories
             int materialType = GetMaterialType(wo, tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
-            // is this duplicate from above??
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(wo, tier));
-
-            // Not sure what these setting these properties do
-            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
             wo.GemCount = ThreadSafeRandom.Next(1, 5);
-            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
-            
+            wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
+            wo.Value = GetValue(tier, wo.ItemWorkmanship.Value, LootTables.getMaterialValueModifier(wo), LootTables.getGemMaterialValueModifier(wo));
             // Is this right??
-            // wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
             wo.LongDesc = wo.Name;
-
-            // Getting Value of weapon (can this be simplified??)
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(tier, wo.ItemWorkmanship.Value, gemMaterialMod, materialMod);
-            wo.Value = value;
 
             // Setting Weapon defensive mods 
             wo.WeaponDefense = GetWieldReqMeleeDMod(wield);
@@ -213,49 +201,31 @@ namespace ACE.Server.Factories
             }
             // Setting weapon Offensive Mods
             if (elementalDamageMod > 1.0f)
-                //wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
                 wo.ElementalDamageMod = elementalDamageMod;
 
             // Setting Wield Reqs for weapon
             if (wield > 0 || wieldRequirement == WieldRequirement.Level)
             {
-                //wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirement);
-                //wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
-                //wo.SetProperty(PropertyInt.WieldDifficulty, wield);
-
                 wo.WieldRequirements = wieldRequirement;
                 wo.WieldSkillType = (int)wieldSkillType;
                 wo.WieldDifficulty = wield;
-
             }
             else
             {
-                wo.RemoveProperty(PropertyInt.WieldRequirements);
-                //wo.RemoveProperty(PropertyInt.WieldSkillType);
-                //wo.RemoveProperty(PropertyInt.WieldDifficulty);
-                //wo.WieldRequirements = null;
+                wo.WieldRequirements = WieldRequirement.Invalid;
                 wo.WieldSkillType = null;
                 wo.WieldDifficulty = null;
-
-
             }
            
             // Adjusting Properties if weapon has magic (spells)
             double manaConMod = GetManaCMod(tier);
             if (manaConMod > 0.0f)
-
-                //wo.SetProperty(PropertyFloat.ManaConversionMod, manaConMod);
                 wo.ManaConversionMod = manaConMod;
 
             if (isMagical)
                 wo = AssignMagic(wo, tier);
             else
             {
-                //wo.RemoveProperty(PropertyInt.ItemManaCost);
-                //wo.RemoveProperty(PropertyInt.ItemMaxMana);
-                //wo.RemoveProperty(PropertyInt.ItemCurMana);
-                //wo.RemoveProperty(PropertyInt.ItemSpellcraft);
-                //wo.RemoveProperty(PropertyInt.ItemDifficulty);
                 wo.ItemManaCost = null;
                 wo.ItemMaxMana = null;
                 wo.ItemCurMana = null;
@@ -264,8 +234,10 @@ namespace ACE.Server.Factories
             }          
 
             wo = RandomizeColor(wo);
+
             return wo;
-        }private static double DetermineElementMod(int wield)
+        }
+        private static double DetermineElementMod(int wield)
         {
             double elementBonus = 0;
 
@@ -336,7 +308,6 @@ namespace ACE.Server.Factories
                         elementBonus = 0.16;
                     break;
             }
-
 
             elementBonus = elementBonus + 1;
 

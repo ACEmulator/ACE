@@ -234,7 +234,7 @@ namespace ACE.Server.Command.Handlers
 
             string meleeWeapons = $"-----Melee Weapons----\n Wield \t Damage \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
             string missileWeapons = $"-----Missile Weapons----\n Wield \t Modifier \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
-            string casterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
+            string casterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value\n";
 
 
 
@@ -278,6 +278,8 @@ namespace ACE.Server.Command.Handlers
                         double magicDefMod = 0.00f;
                         double wield = 0.00f;
                         double eleMod = 0.00f;
+                        int value = 0;
+
                         if (testItem.WeaponMissileDefense != null)
                             missileDefMod = testItem.WeaponMissileDefense.Value;
                         if (testItem.WieldDifficulty != null)                      
@@ -288,7 +290,11 @@ namespace ACE.Server.Command.Handlers
                         if (testItem.WeaponMagicDefense != null)
                             magicDefMod = testItem.WeaponMagicDefense.Value;
 
-                                casterWeapons = casterWeapons + $" {wield}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\n";
+                        if (testItem.Value != null)
+                            value = testItem.Value.Value;
+
+                                casterWeapons = casterWeapons + $" {wield}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\n";
+
 
                         break;
                     case "MissileWeapon":
