@@ -236,8 +236,6 @@ namespace ACE.Server.Command.Handlers
             string missileWeapons = $"-----Missile Weapons----\n Wield \t Modifier \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
             string casterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value\n";
 
-
-
             // Loop depending on how many items you are creating
             // string fileName = null;
             for (int i = 0; i < numberItemsGenerate; i++)
@@ -294,8 +292,6 @@ namespace ACE.Server.Command.Handlers
                             value = testItem.Value.Value;
 
                                 casterWeapons = casterWeapons + $" {wield}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\n";
-
-
                         break;
                     case "MissileWeapon":
                         missileWeaponCount++;
@@ -329,7 +325,6 @@ namespace ACE.Server.Command.Handlers
                                 break;
                         }
 
-                      
                         if (testItem.WieldDifficulty == null)
                         {
                             missileWeapons = missileWeapons + $"{missileType}\t Wield=0 \t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus=0 \t DefenseMod={testItem.WeaponDefense.Value}\n";
