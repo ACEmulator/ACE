@@ -101,7 +101,9 @@ namespace ACE.Server.Factories
 
             return LootTables.Level8SpellComps[chance];
         }
-
+        /// <summary>
+        /// Creates Caster (Wand, Staff, Orb)
+        /// </summary>
         private static WorldObject CreateCaster(int tier, bool isMagical)
         {
             int casterWeenie = 0; //done
@@ -154,9 +156,11 @@ namespace ACE.Server.Factories
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
+
             // Why is this here?  Should not get a null object
             if (wo == null)
                 return null;
+
             // Setting MagicD and MissileD Bonuses to null (some weenies have a value)
             wo.WeaponMagicDefense = null;
             wo.WeaponMissileDefense = null;
@@ -174,13 +178,19 @@ namespace ACE.Server.Factories
 
             wo.GemCount = ThreadSafeRandom.Next(1, 5);
 
-            // A 10% chance to get any MagicD Bonus
+            // A 5% chance to get any MagicD/Missile Bonus
             if (wield > 355)
             { 
-                int chance = ThreadSafeRandom.Next(1, 10);
-                if (chance > 9)
+                int chance = ThreadSafeRandom.Next(1, 40);
+                if (chance > 39)
                 {
                     wo.WeaponMagicDefense = GetMagicMissileDefenseBonus();
+                }
+
+                chance = ThreadSafeRandom.Next(1, 40);
+                if (chance > 39)
+                {
+                    wo.WeaponMissileDefense = GetMagicMissileDefenseBonus();
                 }
             }  
 

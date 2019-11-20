@@ -12,6 +12,7 @@ using ACE.Server.Factories;
 using Newtonsoft.Json;
 using System.IO;
 using ACE.Database;
+using ACE.Database.Models.World;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -234,6 +235,12 @@ namespace ACE.Server.Command.Handlers
             string meleeWeapons = $"-----Melee Weapons----\n Wield \t Damage \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
             string missileWeapons = $"-----Missile Weapons----\n Wield \t Modifier \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
             string casterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
+
+            int profile = 999;
+            var myTreasure = new TreasureDeath(profile);
+
+
+
 
             // Loop depending on how many items you are creating
             // string fileName = null;

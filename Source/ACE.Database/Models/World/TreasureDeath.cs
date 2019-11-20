@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.World
@@ -23,5 +23,29 @@ namespace ACE.Database.Models.World
         public int MundaneItemMaxAmount { get; set; }
         public int MundaneItemTypeSelectionChances { get; set; }
         public DateTime LastModified { get; set; }
+
+        public TreasureDeath() { }
+
+        public TreasureDeath(TreasureDeath profile)
+        {
+            Id = profile.Id;
+            TreasureType = profile.TreasureType;
+            Tier = profile.Tier;
+            LootQualityMod = profile.LootQualityMod;
+            UnknownChances = profile.UnknownChances;
+            ItemChance = profile.ItemChance;
+            ItemMinAmount = profile.ItemMinAmount;
+            ItemMaxAmount = profile.ItemMaxAmount;
+            ItemTreasureTypeSelectionChances = profile.ItemTreasureTypeSelectionChances;
+            MagicItemChance = profile.MagicItemChance;
+            MagicItemMinAmount = profile.MagicItemMinAmount;
+            MagicItemMaxAmount = profile.MagicItemMaxAmount;
+            MagicItemTreasureTypeSelectionChances = profile.MagicItemTreasureTypeSelectionChances;
+            MundaneItemChance = profile.MundaneItemChance;
+            MundaneItemMinAmount = profile.MundaneItemMinAmount;
+            MundaneItemMaxAmount = profile.MundaneItemMaxAmount;
+            MundaneItemTypeSelectionChances = profile.MundaneItemTypeSelectionChances;
+            LastModified = profile.LastModified;
+        }
     }
 }
