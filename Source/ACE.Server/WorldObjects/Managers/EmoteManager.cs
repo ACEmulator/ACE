@@ -1468,14 +1468,11 @@ namespace ACE.Server.WorldObjects.Managers
             ExecuteEmoteSet(EmoteCategory.ReceiveCritical, null, attacker);
         }
 
-        public void OnDeath(DamageHistory damageHistory)
+        public void OnDeath(WorldObject lastDamager)
         {
             IsBusy = false;
 
-            if (damageHistory.Damagers.Count == 0)
-                ExecuteEmoteSet(EmoteCategory.Death, null, null);
-            else 
-                ExecuteEmoteSet(EmoteCategory.Death, null, damageHistory.LastDamager);
+            ExecuteEmoteSet(EmoteCategory.Death, null, lastDamager);
         }
 
         /// <summary>

@@ -211,7 +211,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called to generate rare and add to corpse inventory
         /// </summary>
-        public void GenerateRare(WorldObject killer)
+        public void GenerateRare(DamageHistoryInfo killer)
         {
             //todo: calculate chances for killer's luck (rare timers)
 

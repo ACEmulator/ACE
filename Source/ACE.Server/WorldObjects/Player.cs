@@ -770,7 +770,7 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleRunRateUpdates()");
 
-            if (CurrentMovementData.MovementType != MovementType.Invalid)
+            if (CurrentMovementData.MovementType != MovementType.Invalid || CurrentMovementData.Invalid == null)
                 return false;
 
             var prevState = CurrentMovementData.Invalid.State;

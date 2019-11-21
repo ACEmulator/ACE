@@ -94,5 +94,7 @@ namespace ACE.Server.Entity
         /// lock-step with other players
         /// </summary>
         void SaveBiotaToDatabase(bool enqueueSave = true);
+
+        void UpdateProperty(PropertyInstanceId prop, uint? value, bool broadcast = false);
     }
 }
