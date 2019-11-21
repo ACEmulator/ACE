@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -1467,14 +1468,11 @@ namespace ACE.Server.WorldObjects.Managers
             ExecuteEmoteSet(EmoteCategory.ReceiveCritical, null, attacker);
         }
 
-        public void OnDeath(DamageHistory damageHistory)
+        public void OnDeath(WorldObject lastDamager)
         {
             IsBusy = false;
 
-            if (damageHistory.Damagers.Count == 0)
-                ExecuteEmoteSet(EmoteCategory.Death, null, null);
-            else 
-                ExecuteEmoteSet(EmoteCategory.Death, null, damageHistory.LastDamager);
+            ExecuteEmoteSet(EmoteCategory.Death, null, lastDamager);
         }
 
         /// <summary>

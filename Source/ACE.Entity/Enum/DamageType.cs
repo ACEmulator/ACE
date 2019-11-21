@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Common;
 using ACE.Common.Extensions;
 
 namespace ACE.Entity.Enum
