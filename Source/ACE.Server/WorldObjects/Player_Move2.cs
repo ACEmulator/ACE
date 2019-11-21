@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
         public Action<bool> MoveToCallback { get; set; }
         public bool IsPlayerMovingTo { get; set; }
 
-        public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null)
+        public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null, bool rotate = true)
         {
             if (IsPlayerMovingTo)
                 StopExistingMoveToChains();
@@ -20,6 +20,14 @@ namespace ACE.Server.WorldObjects
             {
                 log.Error($"{Name}.MoveTo({target.Name}): target.Location is null");
                 callback(false);
+                return;
+            }
+
+            var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid, useRadius);
+
+            if (withinUseRadius && !rotate)
+            {
+                callback(true);
                 return;
             }
 

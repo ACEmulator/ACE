@@ -920,7 +920,8 @@ namespace ACE.Server.WorldObjects
                     });
 
                     pickupChain.EnqueueChain();
-                });
+
+                }, null, false);    // if player is within UseRadius of moveToTarget, do not perform rotation
             }
             else // This is a self-contained movement
             {
@@ -1250,7 +1251,8 @@ namespace ACE.Server.WorldObjects
                     });
 
                     pickupChain.EnqueueChain();
-                });
+
+                }, null, false);    // if player is within UseRadius of moveToTarget, do not perform rotation
             }
             else
             {
@@ -1735,7 +1737,8 @@ namespace ACE.Server.WorldObjects
                     });
 
                     pickupChain.EnqueueChain();
-                });
+
+                }, null, false);    // if player is within UseRadius of moveToTarget, do not perform rotation
             }
             else // This is a self-contained movement
             {
@@ -2077,7 +2080,9 @@ namespace ACE.Server.WorldObjects
                     });
 
                     pickupChain.EnqueueChain();
-                });
+
+                }, null, false);    // if player is within UseRadius of moveToTarget, do not perform rotation
+
             }
             else // This is a self-contained movement
             {
@@ -2250,7 +2255,8 @@ namespace ACE.Server.WorldObjects
                     GiveObjectToPlayer(targetAsPlayer, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
                 else
                     GiveObjectToNPC(target, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
-            });
+
+            });    // if player is within UseRadius of moveToTarget, perform rotation?
         }
 
         private void GiveObjectToPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
