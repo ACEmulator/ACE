@@ -34,7 +34,7 @@ namespace ACE.Server.WorldObjects
             lastCompletedMove = moveToChainCounter;
         }*/
 
-        /*public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null)
+        /*public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null, bool rotate = true)
         {
             var thisMoveToChainNumber = GetNextMoveToChainNumber();
 
@@ -59,16 +59,24 @@ namespace ACE.Server.WorldObjects
             var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid, useRadius);
             if (withinUseRadius)
             {
-                // send TurnTo motion
-                var rotateTime = Rotate(target);
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(rotateTime);
-                actionChain.AddAction(this, () =>
+                if (rotate)
+                {
+                    // send TurnTo motion
+                    var rotateTime = Rotate(target);
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelaySeconds(rotateTime);
+                    actionChain.AddAction(this, () =>
+                    {
+                        lastCompletedMove = thisMoveToChainNumber;
+                        callback(true);
+                    });
+                    actionChain.EnqueueChain();
+                }
+                else
                 {
                     lastCompletedMove = thisMoveToChainNumber;
                     callback(true);
-                });
-                actionChain.EnqueueChain();
+                }
                 return;
             }
 

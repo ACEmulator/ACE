@@ -2242,6 +2242,8 @@ namespace ACE.Server.Factories
         };
 
         // for logging epic/legendary drops
+        public static HashSet<int> MinorCantrips;
+        public static HashSet<int> MajorCantrips;
         public static HashSet<int> EpicCantrips;
         public static HashSet<int> LegendaryCantrips;
 
@@ -2249,6 +2251,8 @@ namespace ACE.Server.Factories
 
         static LootTables()
         {
+            BuildCantripsTable(ref MinorCantrips, 0);
+            BuildCantripsTable(ref MajorCantrips, 1);
             BuildCantripsTable(ref EpicCantrips, 2);
             BuildCantripsTable(ref LegendaryCantrips, 3);
         }
