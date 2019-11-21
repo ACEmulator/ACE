@@ -385,11 +385,13 @@ namespace ACE.Server.Physics
             transition.SpherePath.ObstructionEthereal = ethereal;
 
             var state = transition.ObjectInfo.State;
-            var exemption = (WeenieObj == null || !WeenieObj.IsPlayer() || !state.HasFlag(ObjectInfoState.IsPlayer) ||
-                state.HasFlag(ObjectInfoState.IsImpenetrable) || WeenieObj.IsImpenetable() ||
+
+            var exemption = !(WeenieObj == null || !WeenieObj.IsPlayer() || !state.HasFlag(ObjectInfoState.IsPlayer) ||
+                state.HasFlag(ObjectInfoState.IsImpenetrable) || WeenieObj.IsImpenetrable() ||
                 state.HasFlag(ObjectInfoState.IsPK) && WeenieObj.IsPK() || state.HasFlag(ObjectInfoState.IsPKLite) && WeenieObj.IsPKLite());
 
             var missileIgnore = transition.ObjectInfo.MissileIgnore(this);
+
             var isCreature = State.HasFlag(PhysicsState.Missile) || WeenieObj != null && WeenieObj.IsCreature();
             //isCreature = false; // hack?
 
@@ -518,7 +520,7 @@ namespace ACE.Server.Physics
         {
             if (newCell == null) return SetPositionError.NoCell;
             set_frame(pos.Frame);
-            if (!CurCell.Equals(newCell))
+            if (CurCell != newCell)
             {
                 change_cell(newCell);
                 calc_cross_cells();
@@ -1716,6 +1718,8 @@ namespace ACE.Server.Physics
                 CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
                 SetPositionInternal(transit);
             }
+            else
+                log.Debug($"{Name}.UpdateObjectInternalServer({quantum}) - failed transition from {Position} to {RequestPos}");
 
             if (DetectionManager != null) DetectionManager.CheckDetection();
 
