@@ -1307,6 +1307,10 @@ namespace ACE.Server.WorldObjects.Managers
                     continue;
                 }
 
+                // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
+                if (WorldObject is Player _player && damager is Player && !_player.IsPKType)
+                    continue;
+
                 // get damage / damage resistance rating here for now?
                 var heritageMod = 1.0f;
                 if (damager is Player player)
