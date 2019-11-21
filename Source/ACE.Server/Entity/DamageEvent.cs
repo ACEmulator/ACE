@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -212,7 +213,7 @@ namespace ACE.Server.Entity
 
             // critical hit?
             var attackSkill = attacker.GetCreatureSkill(attacker.GetCurrentWeaponSkill());
-            CriticalChance = WorldObject.GetWeaponCritChanceModifier(attacker, attackSkill, defender);
+            CriticalChance = WorldObject.GetWeaponCriticalChance(attacker, attackSkill, defender);
             if (CriticalChance > ThreadSafeRandom.Next(0.0f, 1.0f))
             {
                 if (playerDefender != null && playerDefender.AugmentationCriticalDefense > 0)
@@ -429,7 +430,8 @@ namespace ACE.Server.Entity
 
             if (!(Attacker is Player))
             {
-                info += $"CombatManeuver: {CombatManeuver.Style} - {CombatManeuver.Motion}\n";
+                if (CombatManeuver != null)
+                    info += $"CombatManeuver: {CombatManeuver.Style} - {CombatManeuver.Motion}\n";
                 if (AttackPart != null)
                     info += $"AttackPart: {(CombatBodyPart)AttackPart.Key}\n";
             }
