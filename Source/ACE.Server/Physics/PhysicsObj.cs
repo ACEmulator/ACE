@@ -1718,6 +1718,8 @@ namespace ACE.Server.Physics
                 CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
                 SetPositionInternal(transit);
             }
+            else
+                log.Debug($"{Name}.UpdateObjectInternalServer({quantum}) - failed transition from {Position} to {RequestPos}");
 
             if (DetectionManager != null) DetectionManager.CheckDetection();
 
