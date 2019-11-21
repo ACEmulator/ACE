@@ -52,6 +52,8 @@ namespace ACE.Server.WorldObjects
 
             SetCombatMode(CombatMode.NonCombat);
 
+            CurrentAttack = null;
+            firstUpdate = true;
             AttackTarget = null;
             IsAwake = false;
             IsMoving = false;
