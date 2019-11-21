@@ -30,7 +30,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadWeeniesInParallel(string folder, out List<Models.Landblock> results)
+        public static bool TryLoadLandblocksInParallel(string folder, out List<Models.Landblock> results)
         {
             try
             {
