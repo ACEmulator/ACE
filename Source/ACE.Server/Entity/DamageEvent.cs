@@ -429,7 +429,8 @@ namespace ACE.Server.Entity
 
             if (!(Attacker is Player))
             {
-                info += $"CombatManeuver: {CombatManeuver.Style} - {CombatManeuver.Motion}\n";
+                if (CombatManeuver != null)
+                    info += $"CombatManeuver: {CombatManeuver.Style} - {CombatManeuver.Motion}\n";
                 if (AttackPart != null)
                     info += $"AttackPart: {(CombatBodyPart)AttackPart.Key}\n";
             }

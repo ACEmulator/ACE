@@ -96,6 +96,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the Missile Defense skill modifier for the current weapon
+        /// </summary>
+        public static float GetWeaponMissileDefenseModifier(Creature wielder)
+        {
+            WorldObject weapon = GetWeapon(wielder as Player);
+
+            if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
+                return defaultBonusModifier;
+
+            // no enchantments?
+            return (float)(weapon.WeaponMissileDefense ?? 1.0f);
+        }
+
+        /// <summary>
+        /// Returns the Magic Defense skill modifier for the current weapon
+        /// </summary>
+        public static float GetWeaponMagicDefenseModifier(Creature wielder)
+        {
+            WorldObject weapon = GetWeapon(wielder as Player);
+
+            if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
+                return defaultBonusModifier;
+
+            // no enchantments?
+            return (float)(weapon.WeaponMagicDefense ?? 1.0f);
+        }
+
+        /// <summary>
         /// Returns the attack skill modifier for the current weapon
         /// </summary>
         public static float GetWeaponOffenseModifier(Creature wielder)
