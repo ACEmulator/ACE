@@ -103,7 +103,7 @@ namespace ACE.Server.WorldObjects
             WorldObject weapon = GetWeapon(wielder as Player);
 
             if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
-                return defaultBonusModifier;
+                return defaultModifier;
 
             // no enchantments?
             return (float)(weapon.WeaponMissileDefense ?? 1.0f);
@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
             WorldObject weapon = GetWeapon(wielder as Player);
 
             if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
-                return defaultBonusModifier;
+                return defaultModifier;
 
             // no enchantments?
             return (float)(weapon.WeaponMagicDefense ?? 1.0f);
