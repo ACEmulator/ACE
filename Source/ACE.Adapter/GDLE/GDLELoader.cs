@@ -79,9 +79,9 @@ namespace ACE.Adapter.GDLE
         {
             try
             {
-                TryLoadWeeniesInParallel(folder, out var landblocks);
+                TryLoadLandblocksInParallel(folder, out var landblocks);
 
-                ReGuidLandblocks(out results, out links, startingIdOffset, landblocks);
+                ReGuidAndConvertLandblocks(out results, out links, startingIdOffset, landblocks);
 
                 return true;
 
@@ -94,7 +94,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        private static void ReGuidLandblocks(out List<LandblockInstance> results, out List<LandblockInstanceLink> links, ushort startingIdOffset, List<Models.Landblock> landblocks)
+        private static void ReGuidAndConvertLandblocks(out List<LandblockInstance> results, out List<LandblockInstanceLink> links, ushort startingIdOffset, List<Models.Landblock> landblocks)
         {
             var idChanges = new Dictionary<uint /*LBID*/, Dictionary<uint /*from*/, uint /*to*/>>();
 
@@ -139,6 +139,11 @@ namespace ACE.Adapter.GDLE
                 }
             }
 
+            TryConvertLandblocks(out results, out links, landblocks);
+        }
+
+        private static void TryConvertLandblocks(out List<LandblockInstance> results, out List<LandblockInstanceLink> links, List<Models.Landblock> landblocks)
+        {
             results = new List<LandblockInstance>();
             links = new List<LandblockInstanceLink>();
 
@@ -180,7 +185,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<Models.WorldSpawns>(fileText);
 
-                ReGuidLandblocks(out results, out links, startingIdOffset, gdleModel.Landblocks);
+                ReGuidAndConvertLandblocks(out results, out links, startingIdOffset, gdleModel.Landblocks);
 
                 return true;
 
