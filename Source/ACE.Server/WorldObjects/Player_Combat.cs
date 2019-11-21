@@ -818,6 +818,9 @@ namespace ACE.Server.WorldObjects
         {
             if (attacker == defender) return;
 
+            if (attacker.PlayerKillerStatus == PlayerKillerStatus.Free || defender.PlayerKillerStatus == PlayerKillerStatus.Free)
+                return;
+
             attacker.UpdatePKTimer();
             defender.UpdatePKTimer();
         }
