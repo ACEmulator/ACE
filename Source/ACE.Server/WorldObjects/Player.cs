@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
@@ -769,7 +770,7 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleRunRateUpdates()");
 
-            if (CurrentMovementData.MovementType != MovementType.Invalid)
+            if (CurrentMovementData.MovementType != MovementType.Invalid || CurrentMovementData.Invalid == null)
                 return false;
 
             var prevState = CurrentMovementData.Invalid.State;

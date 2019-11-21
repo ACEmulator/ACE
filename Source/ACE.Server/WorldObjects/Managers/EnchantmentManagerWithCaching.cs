@@ -51,6 +51,9 @@ namespace ACE.Server.WorldObjects.Managers
         {
             base.Remove(entry, sound);
 
+            if (entry == null)
+                return;
+
             ClearCache();
 
             if (Player != null)
