@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
 
             var mvp = GetMovementParameters();
             if (turnTo)
-                PhysicsObj.TurnToObject(AttackTarget.PhysicsObj.ID, mvp);
+                PhysicsObj.TurnToObject(AttackTarget.PhysicsObj, mvp);
             else
                 PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
         }

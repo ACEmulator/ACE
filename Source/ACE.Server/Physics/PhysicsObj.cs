@@ -1549,14 +1549,13 @@ namespace ACE.Server.Physics
             MovementManager.PerformMovement(mvs);
         }
 
-        public bool TurnToObject(uint objectID, MovementParameters movementParams)
+        public bool TurnToObject(PhysicsObj obj, MovementParameters movementParams)
         {
-            var obj = ServerObjectManager.GetObjectA(objectID);
             if (obj == null) return false;
 
             var parent = obj.Parent != null ? obj.Parent : obj;
 
-            TurnToObject_Internal(objectID, parent.ID, movementParams);
+            TurnToObject_Internal(obj.ID, parent.ID, movementParams);
 
             return true;
         }

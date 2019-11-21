@@ -25,9 +25,13 @@ namespace ACE.Server.WorldObjects
 
             var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid, useRadius);
 
-            if (withinUseRadius && !rotate)
+            if (withinUseRadius)
             {
-                callback(true);
+                if (rotate)
+                    CreateTurnToChain(target, callback);
+                else
+                    callback(true);
+
                 return;
             }
 
@@ -79,7 +83,7 @@ namespace ACE.Server.WorldObjects
             IsPlayerMovingTo = true;
             MoveToCallback = callback;
 
-            PhysicsObj.TurnToObject(target.Guid.Full, mvp);
+            PhysicsObj.TurnToObject(target.PhysicsObj, mvp);
 
             PhysicsObj.update_object();
         }
