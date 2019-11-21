@@ -50,7 +50,7 @@ namespace ACE.Server.Physics.Animation
             var wobj = Object.WeenieObj;
             if (wobj != null)
             {
-                if (wobj.IsImpenetable())
+                if (wobj.IsImpenetrable())
                     State |= ObjectInfoState.IsImpenetrable;
                 if (wobj.IsPlayer())
                     State |= ObjectInfoState.IsPlayer;

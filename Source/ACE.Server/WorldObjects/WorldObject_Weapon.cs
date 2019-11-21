@@ -1,4 +1,6 @@
 using System;
+
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -9,18 +11,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public AttackType W_AttackType
-        {
-            get => (AttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
-            set { if (value == 0) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
-        }
-
-        public WeaponType W_WeaponType
-        {
-            get => (WeaponType)(GetProperty(PropertyInt.WeaponType) ?? 0);
-            set { if (value == 0) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, (int)value); }
-        }
-
         public Skill WeaponSkill
         {
             get => (Skill)(GetProperty(PropertyInt.WeaponSkill) ?? 0);
@@ -33,32 +23,16 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.DamageType); else SetProperty(PropertyInt.DamageType, (int)value); }
         }
 
-        /// <summary>
-        /// Spell ID for 'Cast on Strike'
-        /// </summary>
-        public uint? ProcSpell
+        public AttackType W_AttackType
         {
-            get => GetProperty(PropertyDataId.ProcSpell);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ProcSpell); else SetProperty(PropertyDataId.ProcSpell, value.Value); }
+            get => (AttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
         }
 
-        /// <summary>
-        /// The chance for activating 'Cast on strike' spell
-        /// </summary>
-        public double? ProcSpellRate
+        public WeaponType W_WeaponType
         {
-            get => GetProperty(PropertyFloat.ProcSpellRate);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ProcSpellRate); else SetProperty(PropertyFloat.ProcSpellRate, value.Value); }
-        }
-
-        /// <summary>
-        /// If TRUE, 'Cast on strike' spell targets self
-        /// instead of the target
-        /// </summary>
-        public bool ProcSpellSelfTargeted
-        {
-            get => GetProperty(PropertyBool.ProcSpellSelfTargeted) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.ProcSpellSelfTargeted); else SetProperty(PropertyBool.ProcSpellSelfTargeted, value); }
+            get => (WeaponType)(GetProperty(PropertyInt.WeaponType) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, (int)value); }
         }
 
         /// <summary>
@@ -81,12 +55,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        const float defaultPhysicalCritFrequency = 0.10f;
-        const float defaultMagicCritFrequency = 0.02f;
-        const float defaultCritMultiplier = 1.0f;
-        const float defaultBonusModifier = 1.0f;
-        const uint defaultSpeed = 40;   // TODO: find default speed
-
         /// <summary>
         /// Returns the primary weapon equipped by a player
         /// (melee, missile, or wand)
@@ -104,33 +72,7 @@ namespace ACE.Server.WorldObjects
             return weapon;
         }
 
-        /// <summary>
-        /// Returns the weapon speed, with enchantments factored in
-        /// </summary>
-        public static uint GetWeaponSpeed(Creature wielder)
-        {
-            WorldObject weapon = GetWeapon(wielder as Player);
-
-            var baseSpeed = weapon != null ? weapon.GetProperty(PropertyInt.WeaponTime) ?? (int)defaultSpeed : (int)defaultSpeed;
-
-            var speedMod = weapon != null ? weapon.EnchantmentManager.GetWeaponSpeedMod() : 0;
-            var auraSpeedMod = wielder != null ? wielder.EnchantmentManager.GetWeaponSpeedMod() : 0;
-
-            return (uint)Math.Max(0, baseSpeed + speedMod + auraSpeedMod);
-        }
-
-        /// <summary>
-        /// Returns the Mana Conversion skill modifier for the current weapon
-        /// </summary>
-        public static float GetWeaponManaConversionModifier(Creature wielder)
-        {
-            WorldObject weapon = GetWeapon(wielder as Player);
-
-            if (weapon == null)
-                return defaultBonusModifier;
-
-            return defaultBonusModifier + (float)(weapon.GetProperty(PropertyFloat.ManaConversionMod) ?? 0.0f) * wielder.EnchantmentManager.GetManaConvMod();
-        }
+        private const float defaultModifier = 1.0f;
 
         /// <summary>
         /// Returns the Melee Defense skill modifier for the current weapon
@@ -140,11 +82,11 @@ namespace ACE.Server.WorldObjects
             WorldObject weapon = GetWeapon(wielder as Player);
 
             if (weapon == null)
-                return defaultBonusModifier;
+                return defaultModifier;
 
             if (wielder.CombatMode != CombatMode.NonCombat)
             {
-                var defenseMod = (float)(weapon.GetProperty(PropertyFloat.WeaponDefense) + weapon.EnchantmentManager.GetDefenseMod() ?? defaultBonusModifier);
+                var defenseMod = (float)(weapon.WeaponDefense ?? defaultModifier) + weapon.EnchantmentManager.GetDefenseMod();
 
                 if (weapon.IsEnchantable)
                     defenseMod += wielder.EnchantmentManager.GetDefenseMod();
@@ -152,7 +94,35 @@ namespace ACE.Server.WorldObjects
                 return defenseMod;
             }
 
-            return defaultBonusModifier;
+            return defaultModifier;
+        }
+
+        /// <summary>
+        /// Returns the Missile Defense skill modifier for the current weapon
+        /// </summary>
+        public static float GetWeaponMissileDefenseModifier(Creature wielder)
+        {
+            WorldObject weapon = GetWeapon(wielder as Player);
+
+            if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
+                return defaultModifier;
+
+            // no enchantments?
+            return (float)(weapon.WeaponMissileDefense ?? 1.0f);
+        }
+
+        /// <summary>
+        /// Returns the Magic Defense skill modifier for the current weapon
+        /// </summary>
+        public static float GetWeaponMagicDefenseModifier(Creature wielder)
+        {
+            WorldObject weapon = GetWeapon(wielder as Player);
+
+            if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
+                return defaultModifier;
+
+            // no enchantments?
+            return (float)(weapon.WeaponMagicDefense ?? 1.0f);
         }
 
         /// <summary>
@@ -163,11 +133,11 @@ namespace ACE.Server.WorldObjects
             WorldObject weapon = GetWeapon(wielder as Player);
 
             if (weapon == null)
-                return defaultBonusModifier;
+                return defaultModifier;
 
             if (wielder.CombatMode != CombatMode.NonCombat)
             {
-                var offenseMod = (float)(weapon.GetProperty(PropertyFloat.WeaponOffense) + weapon.EnchantmentManager.GetAttackMod() ?? defaultBonusModifier);
+                var offenseMod = (float)(weapon.WeaponOffense ?? defaultModifier) + weapon.EnchantmentManager.GetAttackMod();
 
                 if (weapon.IsEnchantable)
                     offenseMod += wielder.EnchantmentManager.GetAttackMod();
@@ -175,89 +145,116 @@ namespace ACE.Server.WorldObjects
                 return offenseMod;
             }
 
-            return defaultBonusModifier;
+            return defaultModifier;
         }
 
         /// <summary>
-        /// Returns the critical chance modifier for the current weapon
+        /// Returns the Mana Conversion skill modifier for the current weapon
         /// </summary>
-        public static float GetWeaponCritChanceModifier(Creature wielder, CreatureSkill skill, Creature target)
+        public static float GetWeaponManaConversionModifier(Creature wielder)
+        {
+            WorldObject weapon = GetWeapon(wielder as Player);
+
+            if (weapon == null)
+                return defaultModifier;
+
+            return defaultModifier + (float)(weapon.ManaConversionMod ?? 0.0f) * wielder.EnchantmentManager.GetManaConvMod();
+        }
+
+        private const uint defaultSpeed = 40;   // TODO: find default speed
+
+        /// <summary>
+        /// Returns the weapon speed, with enchantments factored in
+        /// </summary>
+        public static uint GetWeaponSpeed(Creature wielder)
+        {
+            WorldObject weapon = GetWeapon(wielder as Player);
+
+            var baseSpeed = weapon?.WeaponTime ?? (int)defaultSpeed;
+
+            var speedMod = weapon != null ? weapon.EnchantmentManager.GetWeaponSpeedMod() : 0;
+            var auraSpeedMod = wielder != null ? wielder.EnchantmentManager.GetWeaponSpeedMod() : 0;
+
+            return (uint)Math.Max(0, baseSpeed + speedMod + auraSpeedMod);
+        }
+
+        /// <summary>
+        /// Biting Strike
+        /// </summary>
+        public double? CriticalFrequency
+        {
+            get => GetProperty(PropertyFloat.CriticalFrequency);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CriticalFrequency); else SetProperty(PropertyFloat.CriticalFrequency, value.Value); }
+        }
+
+        private const float defaultPhysicalCritFrequency = 0.1f;    // 10% base chance
+
+        /// <summary>
+        /// Returns the critical chance for the current weapon
+        /// </summary>
+        public static float GetWeaponCriticalChance(Creature wielder, CreatureSkill skill, Creature target)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
             if (weapon == null)
                 return defaultPhysicalCritFrequency;
 
-            var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultPhysicalCritFrequency);
+            var critRate = (float)(weapon.CriticalFrequency ?? defaultPhysicalCritFrequency);
 
-            // multipliers before additives?
-            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.GetCritRating());
-            critRateMod *= chanceRatingMod;
-
-            // TODO: handle AlwaysCritical upstream
             if (weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
             {
-                var criticalStrikeMod = GetCriticalStrikeMod(skill);
-                critRateMod += criticalStrikeMod;
+                var criticalStrikeBonus = GetCriticalStrikeMod(skill);
+
+                critRate = Math.Max(critRate, criticalStrikeBonus);
             }
+
+            critRate += wielder.GetCritRating() * 0.01f;
 
             // mitigation
             var critResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritResistRating());
-            critRateMod *= critResistRatingMod;
+            critRate *= critResistRatingMod;
 
-            // 50% cap here, or only in criticalStrikeMod?
-            critRateMod = Math.Min(critRateMod, 0.5f);
-
-            return critRateMod;
+            return critRate;
         }
 
-        public ImbuedEffectType GetImbuedEffects()
-        {
-            return (ImbuedEffectType)(
-                (GetProperty(PropertyInt.ImbuedEffect) ?? 0) |
-                (GetProperty(PropertyInt.ImbuedEffect2) ?? 0) |
-                (GetProperty(PropertyInt.ImbuedEffect3) ?? 0) |
-                (GetProperty(PropertyInt.ImbuedEffect4) ?? 0) |
-                (GetProperty(PropertyInt.ImbuedEffect5) ?? 0) );
-        }
+        // http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
 
-        public bool HasImbuedEffect(ImbuedEffectType type)
-        {
-            return (GetImbuedEffects() & type) != 0;
-        }
+        private const float defaultMagicCritFrequency = 0.02f;      // 2% base chance
 
         /// <summary>
-        /// Returns the magic critical chance modifier for the current weapon
+        /// Returns the critical chance for the current magic weapon
         /// </summary>
-        public static float GetWeaponMagicCritFrequencyModifier(Creature wielder, CreatureSkill skill, Creature target)
+        public static float GetWeaponMagicCritFrequency(Creature wielder, CreatureSkill skill, Creature target)
         {
+            // TODO : merge with above function
+            // FIXME: do not use GetWeapon for spell projectiles
+
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (wielder == null || weapon == null)
+            if (weapon == null)
                 return defaultMagicCritFrequency;
 
-            var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultMagicCritFrequency);
+            var critRate = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultMagicCritFrequency);
 
-            // multipliers before additives?
-            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.GetCritRating());
-            critRateMod *= chanceRatingMod;
-
-            // TODO: handle AlwaysCritical upstream
-            if (weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike) && skill != null)
+            if (weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
             {
-                var criticalStrikeMod = GetCriticalStrikeMod(skill);
-                critRateMod += criticalStrikeMod;
+                var isPvP = wielder is Player && target is Player;
+
+                var criticalStrikeMod = GetCriticalStrikeMod(skill, isPvP);
+
+                critRate = Math.Max(critRate, criticalStrikeMod);
             }
+
+            critRate += wielder.GetCritRating() * 0.01f;
 
             // mitigation
             var critResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritResistRating());
-            critRateMod *= critResistRatingMod;
+            critRate *= critResistRatingMod;
 
-            // 10% cap here, or only in criticalStrikeMod?
-            critRateMod = Math.Min(critRateMod, 0.1f);
-
-            return critRateMod;
+            return critRate;
         }
+
+        private const float defaultCritDamageMultiplier = 1.0f;
 
         /// <summary>
         /// Returns the critical damage multiplier for the current weapon
@@ -266,49 +263,25 @@ namespace ACE.Server.WorldObjects
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (wielder == null || weapon == null)
-                return defaultCritMultiplier;
+            if (weapon == null)
+                return defaultCritDamageMultiplier;     // 1.0 would be normal crit damage here
 
-            var critDamageMod = (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritMultiplier);
-
-            // multipliers before additive?
-            var critDamageRatingMod = Creature.GetPositiveRatingMod(wielder.GetCritDamageRating());
-            critDamageMod *= critDamageRatingMod;
+            var critDamageMod = (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritDamageMultiplier);
 
             if (weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
             {
                 var cripplingBlowMod = GetCripplingBlowMod(skill);
-                critDamageMod += cripplingBlowMod;      // additive float?
+
+                critDamageMod = Math.Max(critDamageMod, cripplingBlowMod); 
             }
+
+            critDamageMod += wielder.GetCritDamageRating() * 0.01f;
 
             // mitigation
             var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritDamageResistRating());
             critDamageMod *= critDamageResistRatingMod;
 
-            // caps at 6x upstream?
-            critDamageMod = Math.Min(critDamageMod, 5.0f);
-
             return critDamageMod;
-        }
-
-        /// <summary>
-        /// Returns the slayer 2x+ damage bonus for the current weapon
-        /// against a particular creature type
-        /// </summary>
-        public static float GetWeaponCreatureSlayerModifier(Creature wielder, Creature target)
-        {
-            float modifier = defaultBonusModifier;
-
-            WorldObject weapon = GetWeapon(wielder as Player);
-
-            if (wielder == null || weapon == null)
-                return modifier;
-
-            if (weapon.GetProperty(PropertyInt.SlayerCreatureType) != null && target != null)
-                if ((CreatureType)weapon.GetProperty(PropertyInt.SlayerCreatureType) == target.CreatureType)
-                    modifier = (float)(weapon.GetProperty(PropertyFloat.SlayerDamageBonus) ?? modifier);
-
-            return modifier;
         }
 
         /// <summary>
@@ -347,63 +320,105 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static int GetMissileElementalDamageBonus(Creature wielder, DamageType damageType)
         {
-            // An additive bonus, so the default is zero
-            int modifier = 0;
+            WorldObject weapon = GetWeapon(wielder as Player);
 
-            var wielderAsPlayer = wielder as Player;
-
-            WorldObject weapon = GetWeapon(wielderAsPlayer);
-
-            if (weapon is MissileLauncher)
+            if (weapon is MissileLauncher && weapon.ElementalDamageBonus != null)
             {
-                var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
-                if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
-                {
-                    var launcherElementalDmgMod = weapon.GetProperty(PropertyInt.ElementalDamageBonus) ?? modifier;
-                    modifier = launcherElementalDmgMod;
-                }
-            }
+                var elementalDamageType = weapon.W_DamageType;
 
-            return modifier;
+                if (elementalDamageType != DamageType.Undef && elementalDamageType == damageType)
+                    return weapon.ElementalDamageBonus.Value;
+            }
+            return 0;
+        }
+
+        public CreatureType? SlayerCreatureType
+        {
+            get => (CreatureType?)GetProperty(PropertyInt.SlayerCreatureType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.SlayerCreatureType); else SetProperty(PropertyInt.SlayerCreatureType, (int)value.Value); }
+        }
+
+        public double? SlayerDamageBonus
+        {
+            get => GetProperty(PropertyFloat.SlayerDamageBonus);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SlayerDamageBonus); else SetProperty(PropertyFloat.SlayerDamageBonus, value.Value); }
         }
 
         /// <summary>
-        /// Quest weapon fixed Resistance Cleaving equivalent to Level 5 Life Vulnerability spell
+        /// Returns the slayer damage multiplier for the current weapon
+        /// against a particular creature type
+        /// </summary>
+        public static float GetWeaponCreatureSlayerModifier(Creature wielder, Creature target)
+        {
+            WorldObject weapon = GetWeapon(wielder as Player);
+
+            if (weapon != null && weapon.SlayerCreatureType != null && weapon.SlayerDamageBonus != null &&
+                target != null && weapon.SlayerCreatureType == target.CreatureType)
+            {
+                // TODO: scale with base weapon skill?
+                return (float)weapon.SlayerDamageBonus;
+            }
+            else
+                return defaultModifier;
+        }
+
+        public DamageType? ResistanceModifierType
+        {
+            get => (DamageType?)GetProperty(PropertyInt.ResistanceModifierType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistanceModifierType); else SetProperty(PropertyInt.ResistanceModifierType, (int)value.Value); }
+        }
+
+        public double? ResistanceModifier
+        {
+            get => GetProperty(PropertyFloat.ResistanceModifier);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistanceModifier); else SetProperty(PropertyFloat.ResistanceModifier, value.Value); }
+        }
+
+        /// <summary>
+        /// Returns the resistance modifier or rending modifier
         /// </summary>
         public static float GetWeaponResistanceModifier(Creature wielder, CreatureSkill skill, DamageType damageType)
         {
-            float resistMod = defaultBonusModifier;
+            float resistMod = defaultModifier;
 
             WorldObject weapon = GetWeapon(wielder as Player);
 
             if (wielder == null || weapon == null)
-                return defaultBonusModifier;
+                return defaultModifier;
 
-            var weaponResistanceModifierType = weapon.GetProperty(PropertyInt.ResistanceModifierType) ?? (int)DamageType.Undef;
-            if (weaponResistanceModifierType != (int)DamageType.Undef)
-                if (weaponResistanceModifierType == (int)damageType)
-                    resistMod = (float)(weapon.GetProperty(PropertyFloat.ResistanceModifier) ?? defaultBonusModifier) + 1.0f;
+            // handle quest weapon fixed resistance cleaving
+            if (weapon.ResistanceModifierType != null && weapon.ResistanceModifierType == damageType)
+                resistMod = 1.0f + (float)(weapon.ResistanceModifier ?? defaultModifier);       // 1.0 in the data, equivalent to a level 5 vuln
 
-            // handle rends
-
-            // should this be combined with weapon resistance, or elemental damage mod?
-            // i think its the latter, but its already here, and resistance mod is already being handled in both physical and magic damage calcs,
-            // and it seems like the calcs should work out the same (although the cap is now applied in different places)
-
+            // handle elemental resistance rending
             var rendDamageType = GetRendDamageType(damageType);
+
             if (rendDamageType == ImbuedEffectType.Undef)
-                Console.WriteLine($"{wielder.Name}.GetRendDamageType({damageType}) unexpected damage type for {weapon.Name} ({weapon.Guid})");
+                log.Debug($"{wielder.Name}.GetRendDamageType({damageType}) unexpected damage type for {weapon.Name} ({weapon.Guid})");
 
             if (rendDamageType != ImbuedEffectType.Undef && weapon.HasImbuedEffect(rendDamageType) && skill != null)
             {
                 var rendingMod = GetRendingMod(skill);
-                resistMod *= rendingMod;
+
+                resistMod = Math.Max(resistMod, rendingMod);
             }
 
-            // caps at 250% here?
-            resistMod = Math.Min(resistMod, 2.5f);
-
             return resistMod;
+        }
+
+        public ImbuedEffectType GetImbuedEffects()
+        {
+            return (ImbuedEffectType)(
+                (GetProperty(PropertyInt.ImbuedEffect) ?? 0) |
+                (GetProperty(PropertyInt.ImbuedEffect2) ?? 0) |
+                (GetProperty(PropertyInt.ImbuedEffect3) ?? 0) |
+                (GetProperty(PropertyInt.ImbuedEffect4) ?? 0) |
+                (GetProperty(PropertyInt.ImbuedEffect5) ?? 0));
+        }
+
+        public bool HasImbuedEffect(ImbuedEffectType type)
+        {
+            return (GetImbuedEffects() & type) != 0;
         }
 
         public static ImbuedEffectType GetRendDamageType(DamageType damageType)
@@ -427,7 +442,7 @@ namespace ACE.Server.WorldObjects
                 case DamageType.Nether:
                     return ImbuedEffectType.NetherRending;
                 default:
-                    //Console.WriteLine($"GetRendDamageType({damageType}) unexpected damage type");
+                    //log.Debug($"GetRendDamageType({damageType}) unexpected damage type");
                     return ImbuedEffectType.Undef;
             }
         }
@@ -504,78 +519,96 @@ namespace ACE.Server.WorldObjects
         // - Melee/missile: this is a direct multiplier of your maximum non-crit damage.
         // - Magic: my best guess here is that the CB modifier modifies the additional crit damage (see note-2), but i'm not 100% on this
 
-        public static float GetArmorRendingMod(CreatureSkill skill)
+        // http://acpedia.org/wiki/Announcements_-_2004/07_-_Treaties_in_Stone#Letter_to_the_Players
+
+        // For PvE only:
+
+        // Critical Strike for War Magic currently scales from 5% critical hit chance to 25% critical hit chance at maximum effectiveness.
+        // In July, the maximum effectiveness will be increased to 50% chance.
+
+        public static float MinCriticalStrikeMagicMod = 0.05f;
+
+        public static float MaxCriticalStrikeMod = 0.5f;
+
+        public static float GetCriticalStrikeMod(CreatureSkill skill, bool isPvP = false)
         {
-            // % of armor ignored, min 0%, max 60%
-
-            var baseSkill = GetBaseSkillImbued(skill);
-
-            switch (GetImbuedSkillType(skill))
-            {
-                case ImbuedSkillType.Melee:
-                    return 1.0f - Math.Max(0, baseSkill - 160) / 400.0f;
-
-                case ImbuedSkillType.Missile:
-                    return 1.0f - Math.Max(0, baseSkill - 144) / 360.0f;
-
-                default:
-                    return 1.0f;
-            }
-        }
-
-        public static float GetCriticalStrikeMod(CreatureSkill skill)
-        {
-            // increases crit chance (additive?)
-            // maximum 5x bonus
-            // melee/missile: 10% -> 50%
-            // magic: 2% -> 10%
-
-            var baseSkill = GetBaseSkillImbued(skill);
-
             var baseMod = 0.0f;
+
             var skillType = GetImbuedSkillType(skill);
+
+            var baseSkill = GetBaseSkillImbued(skill);
+
             switch (skillType)
             {
                 case ImbuedSkillType.Melee:
+
                     baseMod = Math.Max(0, baseSkill - 100) / 600.0f;
                     break;
 
                 case ImbuedSkillType.Missile:
-                    baseMod = Math.Max(0, baseSkill - 60) / 600.0f;
-                    break;
-
                 case ImbuedSkillType.Magic:
-                    baseMod = Math.Max(0, baseSkill - 60) / 3000.0f;
+
+                    baseMod = Math.Max(0, baseSkill - 60) / 600.0f;
                     break;
 
                 default:
                     return 0.0f;
             }
 
-            switch (skillType)
-            {
-                // minimum 2% for magic
-                case ImbuedSkillType.Magic:
-                    return Math.Max(0.02f, baseMod);
+            // http://acpedia.org/wiki/Announcements_-_2004/07_-_Treaties_in_Stone#Letter_to_the_Players
 
-                // minimum 10% for melee / missile
-                case ImbuedSkillType.Melee:
-                case ImbuedSkillType.Missile:
-                    return Math.Max(0.10f, baseMod);
-            }
-            return 0.0f;
+            // For PvE only:
+
+            // Critical Strike for War Magic currently scales from 5% critical hit chance to 25% critical hit chance at maximum effectiveness.
+            // In July, the maximum effectiveness will be increased to 50% chance.
+
+            if (skillType == ImbuedSkillType.Magic && isPvP)
+                baseMod *= 0.5f;
+
+            // In the original formula for CS Magic pre-July 2004, (BS - 60) / 1200.0f, the minimum 5% crit rate would have been achieved at BS 120,
+            // which is exactly equal to the minimum base skill for CS Missile becoming effective.
+
+            // CS Magic is slightly different from all the other skill/imbue combinations, in that the MinCriticalStrikeMagicMod
+            // is different from the defaultMagicCritFrequency (5% vs. 2%)
+
+            // If we simply clamp to min. 5% here, then a player will be getting a +3% bonus from from base skill 0-90 in PvE,
+            // and base skill 0-120 in PvP
+
+            // This code is checking if the player has reached the skill threshold for receiving the 5% bonus
+            // (base skill 90 in PvE, base skill 120 in PvP)
+
+            var criticalStrikeMod = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
+
+            var minEffective = skillType == ImbuedSkillType.Magic ? MinCriticalStrikeMagicMod : defaultPhysicalCritFrequency;
+
+            if (baseMod >= minEffective)
+                criticalStrikeMod = baseMod;
+
+            //Console.WriteLine($"CriticalStrikeMod: {criticalStrikeMod}");
+
+            return criticalStrikeMod;
         }
+
+        public static float MaxCripplingBlowMod = 6.0f;
 
         public static float GetCripplingBlowMod(CreatureSkill skill)
         {
-            // increases crit damage (additive?)
-            // caps at 6x here, possibly 7x cap upstream?
+            // increases the critical damage multiplier, additive
+
+            // http://acpedia.org/wiki/Announcements_-_2004/07_-_Treaties_in_Stone#Letter_to_the_Players
+
+            // PvP only:
+
+            // Crippling Blow for War Magic currently scales from adding 50% of the spells damage on critical hits to adding 100% at maximum effectiveness.
+            // In July, the maximum effectiveness will be increased to adding up to 500% of the spell's damage.
+
+            // ( +500% sounds like it would be 6.0 multiplier)
 
             var baseSkill = GetBaseSkillImbued(skill);
 
-            var baseMod = 0.0f;
-            var skillType = GetImbuedSkillType(skill);
-            switch (skillType)
+            var baseMod = 1.0f;
+
+            switch(GetImbuedSkillType(skill))
             {
                 case ImbuedSkillType.Melee:
                     baseMod = Math.Max(0, baseSkill - 40) / 60.0f;
@@ -583,54 +616,83 @@ namespace ACE.Server.WorldObjects
 
                 case ImbuedSkillType.Missile:
                 case ImbuedSkillType.Magic:
+
                     baseMod = baseSkill / 60.0f;
                     break;
-
-                default:
-                    return 0.0f;
             }
 
-            switch (skillType)
-            {
-                // minimum bonus for physical only?
-                case ImbuedSkillType.Melee:
-                case ImbuedSkillType.Missile:
-                    return Math.Max(1.0f, baseMod);
-            }
-            return baseMod;
+            var cripplingBlowMod = Math.Max(1.0f, baseMod);
+
+            //Console.WriteLine($"CripplingBlowMod: {cripplingBlowMod}");
+
+            return cripplingBlowMod;
         }
+
+        // elemental rending cap, equivalent to level 6 vuln
+        public static float MaxRendingMod = 2.5f;
 
         public static float GetRendingMod(CreatureSkill skill)
         {
-            // elemental vuln damage modifier, capped at 2.5
-
             var baseSkill = GetBaseSkillImbued(skill);
+
+            var rendingMod = 1.0f;
 
             switch (GetImbuedSkillType(skill))
             {
                 case ImbuedSkillType.Melee:
-                    return baseSkill / 160.0f;
+                    rendingMod = baseSkill / 160.0f;
+                    break;
 
                 case ImbuedSkillType.Missile:
                 case ImbuedSkillType.Magic:
-                    return baseSkill / 144.0f;
-
-                default:
-                    return 1.0f;
+                    rendingMod = baseSkill / 144.0f;
+                    break;
             }
+
+            rendingMod = Math.Clamp(rendingMod, 1.0f, MaxRendingMod);
+
+            //Console.WriteLine($"RendingMod: {rendingMod}");
+
+            return rendingMod;
         }
 
-        public static uint GetBaseSkillImbued(CreatureSkill skill)
+        public static float MaxArmorRendingMod = 0.6f;
+
+        public static float GetArmorRendingMod(CreatureSkill skill)
+        {
+            // % of armor ignored, min 0%, max 60%
+
+            var baseSkill = GetBaseSkillImbued(skill);
+
+            var armorRendingMod = 1.0f;
+
+            switch (GetImbuedSkillType(skill))
+            {
+                case ImbuedSkillType.Melee:
+                    armorRendingMod -= Math.Max(0, baseSkill - 160) / 400.0f;
+                    break;
+
+                case ImbuedSkillType.Missile:
+                    armorRendingMod -= Math.Max(0, baseSkill - 144) / 360.0f;
+                    break;
+            }
+
+            //Console.WriteLine($"ArmorRendingMod: {armorRendingMod}");
+
+            return armorRendingMod;
+        }
+
+        public static int GetBaseSkillImbued(CreatureSkill skill)
         {
             switch (GetImbuedSkillType(skill))
             {
                 case ImbuedSkillType.Melee:
-                    return Math.Min(skill.Base, 400);
+                    return (int)Math.Min(skill.Base, 400);
 
                 case ImbuedSkillType.Missile:
                 case ImbuedSkillType.Magic:
                 default:
-                    return Math.Min(skill.Base, 360);
+                    return (int)Math.Min(skill.Base, 360);
             }
         }
 
@@ -644,7 +706,7 @@ namespace ACE.Server.WorldObjects
 
         public static ImbuedSkillType GetImbuedSkillType(CreatureSkill skill)
         {
-            switch (skill.Skill)
+            switch (skill?.Skill)
             {
                 case Skill.LightWeapons:
                 case Skill.HeavyWeapons:
@@ -680,9 +742,74 @@ namespace ACE.Server.WorldObjects
                     return ImbuedSkillType.Magic;
 
                 default:
-                    Console.WriteLine($"WorldObject_Weapon.GetImbuedSkillType({skill.Skill}): unexpected skill");
+                    log.Debug($"WorldObject_Weapon.GetImbuedSkillType({skill?.Skill}): unexpected skill");
                     return ImbuedSkillType.Undef;
             }
+        }
+
+        /// <summary>
+        /// Returns the base skill multiplier to the maximum bonus
+        /// </summary>
+        public static float GetImbuedInterval(CreatureSkill skill, bool useMin = true)
+        {
+            var skillType = GetImbuedSkillType(skill);
+
+            var min = 0;
+            if (useMin)
+                min = skillType == ImbuedSkillType.Melee ? 150 : 125;
+            var max = skillType == ImbuedSkillType.Melee ? 400 : 360;
+
+            return GetInterval((int)skill.Base, min, max);
+        }
+
+        /// <summary>
+        /// Returns an interval between 0-1
+        /// </summary>
+        public static float GetInterval(int num, int min, int max)
+        {
+            if (num <= min) return 0.0f;
+            if (num >= max) return 1.0f;
+
+            var range = max - min;
+
+            return (float)(num - min) / range;
+        }
+
+        /// <summary>
+        /// Projects a 0-1 interval between min and max
+        /// </summary>
+        public static float SetInterval(float interval, float min, float max)
+        {
+            var range = max - min;
+
+            return interval * range + min;
+        }
+
+        /// Spell ID for 'Cast on Strike'
+        /// </summary>
+        public uint? ProcSpell
+        {
+            get => GetProperty(PropertyDataId.ProcSpell);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ProcSpell); else SetProperty(PropertyDataId.ProcSpell, value.Value); }
+        }
+
+        /// <summary>
+        /// The chance for activating 'Cast on strike' spell
+        /// </summary>
+        public double? ProcSpellRate
+        {
+            get => GetProperty(PropertyFloat.ProcSpellRate);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ProcSpellRate); else SetProperty(PropertyFloat.ProcSpellRate, value.Value); }
+        }
+
+        /// <summary>
+        /// If TRUE, 'Cast on strike' spell targets self
+        /// instead of the target
+        /// </summary>
+        public bool ProcSpellSelfTargeted
+        {
+            get => GetProperty(PropertyBool.ProcSpellSelfTargeted) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.ProcSpellSelfTargeted); else SetProperty(PropertyBool.ProcSpellSelfTargeted, value); }
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
