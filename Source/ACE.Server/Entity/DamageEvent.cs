@@ -124,6 +124,11 @@ namespace ACE.Server.Entity
 
         public bool CriticalDefended;
 
+        public static HashSet<uint> AllowDamageTypeUndef = new HashSet<uint>()
+        {
+            22545   // Obsidian Spines
+        };
+
         public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, CombatManeuver combatManeuver = null)
         {
             var damageEvent = new DamageEvent();
@@ -187,7 +192,7 @@ namespace ACE.Server.Entity
             else
                 GetBaseDamage(attacker, CombatManeuver);
 
-            if (DamageType == DamageType.Undef)
+            if (DamageType == DamageType.Undef && !AllowDamageTypeUndef.Contains(damageSource.WeenieClassId))
             {
                 log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
                 GeneralFailure = true;
