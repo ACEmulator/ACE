@@ -14,7 +14,7 @@ using ACE.Database;
 
 namespace ACE.Server.Command.Handlers
 {
-    public static partial class ConsoleCommands
+    public static class ConsoleCommands
     {
         [CommandHandler("cell-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Export contents of CELL DAT file.", "<export-directory-without-spaces>")]
         public static void ExportCellDatContents(Session session, params string[] parameters)
