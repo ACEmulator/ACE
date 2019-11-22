@@ -1,5 +1,7 @@
 using System;
 using System.Numerics;
+
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
@@ -96,7 +98,7 @@ namespace ACE.Server.Physics
 
         public double GetRandomStartScale()
         {
-            var result = ACE.ThreadSafeRandom.Next(-1.0f, 1.0f) * ScaleRand + StartScale;
+            var result = ThreadSafeRandom.Next(-1.0f, 1.0f) * ScaleRand + StartScale;
             result = result.Clamp(0.1f, 10.0f);
 
             return result;
@@ -104,7 +106,7 @@ namespace ACE.Server.Physics
 
         public double GetRandomFinalScale()
         {
-            var result = ACE.ThreadSafeRandom.Next(-1.0f, 1.0f) * ScaleRand * FinalScale;
+            var result = ThreadSafeRandom.Next(-1.0f, 1.0f) * ScaleRand * FinalScale;
             result = result.Clamp(0.1f, 10.0f);
 
             return result;
@@ -112,7 +114,7 @@ namespace ACE.Server.Physics
 
         public double GetRandomStartTrans()
         {
-            var result = ACE.ThreadSafeRandom.Next(-1.0f, 1.0f) * TransRand * StartTrans;
+            var result = ThreadSafeRandom.Next(-1.0f, 1.0f) * TransRand * StartTrans;
             result = result.Clamp(0.0f, 1.0f);
 
             return result;
@@ -120,7 +122,7 @@ namespace ACE.Server.Physics
 
         public double GetRandomFinalTrans()
         {
-            var result = ACE.ThreadSafeRandom.Next(-1.0f, 1.0f) * TransRand * FinalTrans;
+            var result = ThreadSafeRandom.Next(-1.0f, 1.0f) * TransRand * FinalTrans;
             result = result.Clamp(0.0f, 1.0f);
 
             return result;
@@ -128,7 +130,7 @@ namespace ACE.Server.Physics
 
         public double GetRandomLifespan()
         {
-            var result = ACE.ThreadSafeRandom.Next(-1.0f, 1.0f) * LifeSpanRand + LifeSpan;
+            var result = ThreadSafeRandom.Next(-1.0f, 1.0f) * LifeSpanRand + LifeSpan;
             result = Math.Max(0.0f, result);
 
             return result;
@@ -171,22 +173,22 @@ namespace ACE.Server.Physics
         public Vector3 GetRandomOffset()
         {
             var rng = new Vector3(
-                ACE.ThreadSafeRandom.Next(-1.0f, 1.0f),
-                ACE.ThreadSafeRandom.Next(-1.0f, 1.0f),
-                ACE.ThreadSafeRandom.Next(-1.0f, 1.0f));
+                ThreadSafeRandom.Next(-1.0f, 1.0f),
+                ThreadSafeRandom.Next(-1.0f, 1.0f),
+                ThreadSafeRandom.Next(-1.0f, 1.0f));
 
             var randomAngle = rng - OffsetDir * Vector3.Dot(OffsetDir, rng);
 
             if (Vec.NormalizeCheckSmall(ref randomAngle))
                 return Vector3.Zero;
 
-            var scaled = randomAngle * ((MaxOffset - MinOffset) + MinOffset) * ACE.ThreadSafeRandom.Next(0.0f, 1.0f);
+            var scaled = randomAngle * ((MaxOffset - MinOffset) + MinOffset) * ThreadSafeRandom.Next(0.0f, 1.0f);
             return scaled;
         }
 
         public Vector3 GetRandomA()
         {
-            var rng = ACE.ThreadSafeRandom.Next(0.0f, 1.0f);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var magnitude = (MaxA - MinA) * rng + MinA;
 
             return A * magnitude;
@@ -194,7 +196,7 @@ namespace ACE.Server.Physics
 
         public Vector3 GetRandomB()
         {
-            var rng = ACE.ThreadSafeRandom.Next(0.0f, 1.0f);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var magnitude = (MaxB - MinB) * rng + MinB;
 
             return B * magnitude;
@@ -202,7 +204,7 @@ namespace ACE.Server.Physics
 
         public Vector3 GetRandomC()
         {
-            var rng = ACE.ThreadSafeRandom.Next(0.0f, 1.0f);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var magnitude = (MaxC - MinC) * rng + MinC;
 
             return C * magnitude;

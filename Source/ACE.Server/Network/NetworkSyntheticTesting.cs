@@ -1,5 +1,7 @@
 using System;
 
+using ACE.Common;
+
 namespace ACE.Server.Network
 {
 

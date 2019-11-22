@@ -6,13 +6,11 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 
-// this is for testing making lootgen items
-using ACE.Server.Factories;
 
+using ACE.Server.Factories;
 using Newtonsoft.Json;
 using System.IO;
 using ACE.Database;
-using ACE.Database.Models.World;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -121,7 +119,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             string exportDir = parameters[0];
-            if(exportDir.Length == 0 || !System.IO.Directory.Exists(exportDir))
+            if (exportDir.Length == 0 || !System.IO.Directory.Exists(exportDir))
             {
                 Console.WriteLine(syntax);
                 return;
@@ -133,7 +131,7 @@ namespace ACE.Server.Command.Handlers
                 if (parameters[1].StartsWith("0x"))
                 {
                     string hex = parameters[1].Substring(2);
-                    if(!uint.TryParse(hex, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.CurrentCulture, out imageId))
+                    if (!uint.TryParse(hex, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.CurrentCulture, out imageId))
                     {
                         Console.WriteLine(syntax);
                         return;
@@ -183,216 +181,6 @@ namespace ACE.Server.Command.Handlers
                 int totalFiles = portalFiles + highresFiles;
                 Console.WriteLine($"Exported {totalFiles} total files to {exportDir}.");
             }
-        }
-        [CommandHandler("testlootgen", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Loot for testing LootFactories", "<number of items> <loot tier>")]
-        public static void TestLootGenerator(Session session, params string[] parameters)
-        {
-            // This generates loot items and displays the drop rates of LootFactory
-
-            // Switch for different options
-            switch (parameters[0])
-            {
-                case "-info":
-                    Console.WriteLine("This is for more info on how to use this command");
-                    break;
-                default:
-                    break;
-            }
-
-            if (Int32.TryParse(parameters[0], out int numberItemsGenerate))
-            {
-                Console.WriteLine("Number of items to generate " + numberItemsGenerate);
-            }
-            else
-            {
-                Console.WriteLine("numbr of items is not an integer");
-                return;
-            }
-
-            if (Int32.TryParse(parameters[1], out int itemsTier))
-            {
-                Console.WriteLine("tier is " + itemsTier);
-            }
-            else
-            {
-                Console.WriteLine("tier is not an integer");
-                return;
-            }
-
-            Console.WriteLine($"Creating {numberItemsGenerate} items, that are in tier {itemsTier}");
-
-            // Counters
-            float armorCount = 0;
-            float meleeWeaponCount = 0;
-            float casterCount = 0;
-            float missileWeaponCount = 0;
-            float jewelryCount = 0;
-            float gemCount = 0;
-            float clothingCount = 0;
-            float otherCount = 0;
-            float nullCount = 0;
-
-            string meleeWeapons = $"-----Melee Weapons----\n Wield \t Damage \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
-            string missileWeapons = $"-----Missile Weapons----\n Wield \t Modifier \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\n";
-            string casterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value\n";
-
-            // Loop depending on how many items you are creating
-            // string fileName = null;
-            for (int i = 0; i < numberItemsGenerate; i++)
-            {
-                var testItem = LootGenerationFactory.CreateRandomLootObjects(itemsTier, true);              
-                if (testItem is null)
-                {
-                    nullCount++;
-                    continue;
-                }
-                string itemType = testItem.ItemType.ToString();
-                if (itemType == null)
-                {
-                    nullCount++;
-
-                    continue;
-                }
-
-                switch (itemType)
-                {
-                    case "Armor":
-                        armorCount++;
-                        break;
-                    case "MeleeWeapon":
-                        meleeWeaponCount++;
-                        if (testItem.WieldDifficulty == null)
-                        {
-                            meleeWeapons = meleeWeapons + $" 0 \t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\n";
-                        }
-                        else
-                        {
-                            meleeWeapons = meleeWeapons + $" {testItem.WieldDifficulty.Value}\t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\n";
-                        }
-                        break;
-                    case "Caster":
-                        casterCount++;
-                        double missileDefMod = 0.00f;
-                        double magicDefMod = 0.00f;
-                        double wield = 0.00f;
-                        double eleMod = 0.00f;
-                        int value = 0;
-
-                        if (testItem.WeaponMissileDefense != null)
-                            missileDefMod = testItem.WeaponMissileDefense.Value;
-                        if (testItem.WieldDifficulty != null)                      
-                            wield = testItem.WieldDifficulty.Value;
-                        if (testItem.ElementalDamageMod != null)
-                            eleMod = testItem.ElementalDamageMod.Value;
-                   
-                        if (testItem.WeaponMagicDefense != null)
-                            magicDefMod = testItem.WeaponMagicDefense.Value;
-
-                        if (testItem.Value != null)
-                            value = testItem.Value.Value;
-
-                                casterWeapons = casterWeapons + $" {wield}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\n";
-                        break;
-                    case "MissileWeapon":
-                        missileWeaponCount++;
-                        string missileType = "Other";
-                        switch (testItem.AmmoType.Value)
-                        {
-                            case AmmoType.None:
-                                break;
-                            case AmmoType.Arrow:
-                                missileType = "Bow";
-                                break;
-                            case AmmoType.Bolt:
-                                missileType = "X Bow";
-                                break;
-                            case AmmoType.Atlatl:
-                                missileType = "Thrown";
-                                break;
-                            case AmmoType.ArrowCrystal:
-                                break;
-                            case AmmoType.BoltCrystal:
-                                break;
-                            case AmmoType.AtlatlCrystal:
-                                break;
-                            case AmmoType.ArrowChorizite:
-                                break;
-                            case AmmoType.BoltChorizite:
-                                break;
-                            case AmmoType.AtlatlChorizite:
-                                break;
-                            default:
-                                break;
-                        }
-
-                        if (testItem.WieldDifficulty == null)
-                        {
-                            missileWeapons = missileWeapons + $"{missileType}\t Wield=0 \t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus=0 \t DefenseMod={testItem.WeaponDefense.Value}\n";
-                        }
-                        else
-                        {
-                            if (testItem.ElementalDamageBonus == null)
-                            {
-                                missileWeapons = missileWeapons + $"{missileType}\t Wield={testItem.WieldDifficulty.Value}\t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus=0 \t DefenseMod={testItem.WeaponDefense.Value}\n";
-                            }
-                            else
-                            {
-                                missileWeapons = missileWeapons + $"{missileType}\t Wield={testItem.WieldDifficulty.Value}\t Modifier={Math.Round(testItem.DamageMod.Value, 2)}\t ElementalBonus={testItem.ElementalDamageBonus.Value}\t DefenseMod={testItem.WeaponDefense.Value}\n";
-                            }
-                        }
-                        // missileWeapons = missileWeapons + $"Wield= {testItem.WieldDifficulty.Value}  Modifier= {testItem.DamageMod.Value}  ElementalBonus= {testItem.ElementalDamageBonus.Value}  DefenseMod= {testItem.WeaponDefense.Value}\n";
-                        break;
-                    case "Jewelry":
-                        jewelryCount++;
-                        break;
-                    case "Gem":
-                        gemCount++;
-                        break;
-                    case "Clothing":
-                        clothingCount++;
-                        break;
-                    default:
-                        otherCount++;
-
-                        break;
-                }
-
-                if (testItem == null)
-                {
-                    Console.WriteLine("*Name is Null*");
-                    continue;
-                }
-                else
-                {
-                }
-            }
-            float totalItemsGenerated = armorCount + meleeWeaponCount + casterCount + missileWeaponCount + jewelryCount + gemCount + clothingCount + otherCount;
-            Console.WriteLine($" Armor={armorCount} \n " +
-                                $"MeleeWeapon={meleeWeaponCount} \n " +
-                                $"Caster={casterCount} \n " +
-                                $"MissileWeapon={missileWeaponCount} \n " +
-                                $"Jewelry={jewelryCount} \n " +
-                                $"Gem={gemCount} \n " +
-                                $"Clothing={clothingCount} \n " +
-                                $"Other={otherCount} \n " +
-                                $"NullCount={nullCount} \n " +
-                                $"TotalGenerated={totalItemsGenerated}");
-            Console.WriteLine();
-            Console.WriteLine($" Drop Rates \n " +
-                                $"Armor= {armorCount / totalItemsGenerated * 100}% \n " +
-                                $"MeleeWeapon= {meleeWeaponCount / totalItemsGenerated * 100}% \n " +
-                                $"Caster= {casterCount / totalItemsGenerated * 100}% \n " +
-                                $"MissileWeapon= {missileWeaponCount / totalItemsGenerated * 100}% \n " +
-                                $"Jewelry= {jewelryCount / totalItemsGenerated * 100}% \n " +
-                                $"Gem= {gemCount / totalItemsGenerated * 100}% \n " +
-                                $"Clothing= {clothingCount / totalItemsGenerated * 100}% \n " +
-                                $"Other={otherCount / totalItemsGenerated * 100}% \n  ");
-
-            Console.WriteLine(meleeWeapons);
-            Console.WriteLine(missileWeapons);
-            Console.WriteLine(casterWeapons);
-
-            Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
         }
     }
 }
