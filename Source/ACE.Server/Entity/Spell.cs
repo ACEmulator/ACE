@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+
+using log4net;
+
+using ACE.Common;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -7,7 +11,6 @@ using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
-using log4net;
 
 namespace ACE.Server.Entity
 {

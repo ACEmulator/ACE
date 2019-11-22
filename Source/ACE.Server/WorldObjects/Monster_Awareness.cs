@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -180,14 +181,14 @@ namespace ACE.Server.WorldObjects
 
                     case TargetingTactic.LastDamager:
 
-                        var lastDamager = DamageHistory.LastDamager as Creature;
+                        var lastDamager = DamageHistory.LastDamager?.TryGetAttacker() as Creature;
                         if (lastDamager != null)
                             AttackTarget = lastDamager;
                         break;
 
                     case TargetingTactic.TopDamager:
 
-                        var topDamager = DamageHistory.TopDamager as Creature;
+                        var topDamager = DamageHistory.TopDamager?.TryGetAttacker() as Creature;
                         if (topDamager != null)
                             AttackTarget = topDamager;
                         break;
