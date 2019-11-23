@@ -19,7 +19,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public static readonly float DestructionTime = 25.0f;
 
-        private static readonly ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+        private readonly ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
         /// <summary>
         /// The owner of this ObjectMaint instance
