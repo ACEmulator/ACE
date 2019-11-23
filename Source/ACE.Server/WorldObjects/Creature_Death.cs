@@ -31,7 +31,11 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
+<<<<<<< HEAD
             EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
+=======
+            EmoteManager.OnDeath(DamageHistory);
+>>>>>>> parent of fc044cd3... Add debug info
 
             OnDeath_GrantXP();
 
