@@ -168,15 +168,15 @@ namespace ACE.Server.Physics.Common
                 // maintain KnownPlayers for both parties
                 if (obj.IsPlayer)
                     AddKnownPlayer(obj);
-
-                obj.ObjMaint.AddKnownPlayer(PhysicsObj);
-
-                return true;
             }
             finally
             {
                 rwLock.ExitWriteLock();
             }
+
+            obj.ObjMaint.AddKnownPlayer(PhysicsObj);
+
+            return true;
         }
 
         /// <summary>
@@ -399,16 +399,16 @@ namespace ACE.Server.Physics.Common
 
                 //Console.WriteLine($"{PhysicsObj.Name}.AddVisibleObject({obj.Name})");
                 VisibleObjects.TryAdd(obj.ID, obj);
-
-                if (obj.WeenieObj.IsMonster)
-                    obj.ObjMaint.AddVisibleTarget(PhysicsObj, false);
-
-                return true;
             }
             finally
             {
                 rwLock.ExitWriteLock();
             }
+
+            if (obj.WeenieObj.IsMonster)
+                obj.ObjMaint.AddVisibleTarget(PhysicsObj, false);
+
+            return true;
         }
 
         /// <summary>
@@ -445,20 +445,22 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool RemoveVisibleObject(PhysicsObj obj, bool inverseTarget = true)
         {
+            bool removed;
+
             rwLock.EnterWriteLock();
             try
             {
-                var removed = VisibleObjects.Remove(obj.ID, out _);
-
-                if (inverseTarget)
-                    obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
-
-                return removed;
+                removed = VisibleObjects.Remove(obj.ID, out _);
             }
             finally
             {
                 rwLock.ExitWriteLock();
             }
+
+            if (inverseTarget)
+                obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
+
+            return removed;
         }
 
 
@@ -934,7 +936,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public void DestroyObject()
         {
-            rwLock.EnterWriteLock();
+            rwLock.EnterUpgradeableReadLock();
             try
             {
                 foreach (var obj in KnownObjects.Values)
@@ -948,14 +950,22 @@ namespace ACE.Server.Physics.Common
                 foreach (var obj in VisibleTargets.Values)
                     obj.ObjMaint.RemoveObject(PhysicsObj, false);
 
-                RemoveAllObjects();
-
-                ServerObjectManager.RemoveServerObject(PhysicsObj);
+                rwLock.EnterWriteLock();
+                try
+                {
+                    RemoveAllObjects();
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
             }
             finally
             {
-                rwLock.ExitWriteLock();
+                rwLock.ExitUpgradeableReadLock();
             }
+
+            ServerObjectManager.RemoveServerObject(PhysicsObj);
         }
     }
 }
