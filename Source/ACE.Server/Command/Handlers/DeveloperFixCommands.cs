@@ -73,7 +73,7 @@ namespace ACE.Server.Command.Handlers
                         // ensure this delay 1 should be delay 0
                         var hash = CalculateEmoteHash(emote);
                         var weenieEmotes = weenieEmoteCache[biota.WeenieClassId];
-                        if (!weenieEmotes.TryGetValue(hash, out var list) || !list.Contains(action.Order))
+                        if (!weenieEmotes.TryGetValue(hash, out var list))
                         {
                             //CommandHandlerHelper.WriteOutputInfo(session, $"Skipping emote for {biota.WeenieClassId} not found in hash list");
                             continue;
