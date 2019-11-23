@@ -1303,7 +1303,7 @@ namespace ACE.Server.WorldObjects.Managers
         public void Enqueue(BiotaPropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx = 0, float delay = 0.0f)
         {
             if (WorldObject.WeenieClassId == 180014 && emoteSet != null && emoteSet.Category == (uint)EmoteCategory.Death)
-                log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager Enqueue(), emoteIdx: {emoteIdx}, delay: {delay}");
+                log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager Enqueue()");
 
             if (emoteSet == null)
             {
@@ -1317,9 +1317,6 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (delay + emote.Delay > 0)
             {
-                if (WorldObject.WeenieClassId == 180014 && emoteSet != null && emoteSet.Category == (uint)EmoteCategory.Death)
-                    log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager Enqueue(), emoteIdx: {emoteIdx}, delay: {delay}, emote.Delay: {emote.Delay}, With ActionChain");
-
                 var actionChain = new ActionChain();
 
                 if (Debug)
@@ -1334,9 +1331,6 @@ namespace ACE.Server.WorldObjects.Managers
             }
             else
             {
-                if (WorldObject.WeenieClassId == 180014 && emoteSet != null && emoteSet.Category == (uint)EmoteCategory.Death)
-                    log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager Enqueue(), emoteIdx: {emoteIdx}, delay: {delay}, emote.Delay: {emote.Delay}, No ActionChain");
-
                 DoEnqueue(emoteSet, targetObject, emoteIdx, emote);
             }
         }
@@ -1346,9 +1340,6 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         private void DoEnqueue(BiotaPropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx, BiotaPropertiesEmoteAction emote)
         {
-            if (WorldObject.WeenieClassId == 180014 && emoteSet != null && emoteSet.Category == (uint)EmoteCategory.Death)
-                log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager DoEnqueue(), emoteIdx: {emoteIdx}");
-
             if (Debug)
                 Console.Write($"{(EmoteType)emote.Type}");
 
@@ -1363,9 +1354,6 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 if (nextDelay > 0)
                 {
-                    if (WorldObject.WeenieClassId == 180014 && emoteSet != null && emoteSet.Category == (uint)EmoteCategory.Death)
-                        log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager DoEnqueue(), emoteIdx: {emoteIdx}, nextDelay: {nextDelay}, With ActionChain");
-
                     var delayChain = new ActionChain();
                     delayChain.AddDelaySeconds(nextDelay);
                     delayChain.AddAction(WorldObject, () =>
@@ -1379,9 +1367,6 @@ namespace ACE.Server.WorldObjects.Managers
                 }
                 else
                 {
-                    if (WorldObject.WeenieClassId == 180014 && emoteSet != null && emoteSet.Category == (uint)EmoteCategory.Death)
-                        log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager DoEnqueue(), emoteIdx: {emoteIdx}, nextDelay: {nextDelay}, No ActionChain");
-
                     Nested--;
 
                     if (Nested == 0)
