@@ -741,14 +741,14 @@ namespace ACE.Server.Physics.Common
         {
             //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
 
-            rwLock.EnterReadLock();
+            rwLock.EnterWriteLock();
             try
             {
                 return KnownPlayers.Remove(obj.ID, out _);
             }
             finally
             {
-                rwLock.ExitReadLock();
+                rwLock.ExitWriteLock();
             }
         }
 
