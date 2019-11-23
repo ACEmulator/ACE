@@ -436,10 +436,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            DoCastSpell(state.Spell, state.IsWeaponSpell, state.ManaUsed, state.Target, state.Status);
+            DoCastSpell(state.Spell, state.IsWeaponSpell, state.MagicSkill, state.ManaUsed, state.Target, state.Status);
         }
 
-        public void DoCastSpell(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
+        public void DoCastSpell(Spell spell, bool isWeaponSpell, uint magicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
         {
             //var actionChain = new ActionChain();
 
@@ -481,6 +481,13 @@ namespace ACE.Server.WorldObjects
                     var rotateTime = Rotate(target);
                     actionChain.AddDelaySeconds(rotateTime);
                 }*/
+
+                // verify spell range
+                if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
+                {
+                    FinishCast(WeenieError.None);
+                    return;
+                }
             }
 
             //actionChain.AddAction(this, () => DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus));
@@ -691,7 +698,7 @@ namespace ACE.Server.WorldObjects
             // cast spell
             DoCastGesture(spell, isWeaponSpell, spellChain);
 
-            MagicState.SetCastParams(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, isWeaponSpell, magicSkill, manaUsed, target, castingPreCheckStatus);
             spellChain.AddAction(this, () => DoCastSpell(MagicState));
 
             spellChain.EnqueueChain();
@@ -1014,7 +1021,7 @@ namespace ACE.Server.WorldObjects
             DoCastGesture(spell, false, spellChain);
 
             // cast untargeted spell
-            MagicState.SetCastParams(spell, false, manaUsed, null, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, false, magicSkill, manaUsed, null, castingPreCheckStatus);
             spellChain.AddAction(this, () => DoCastSpell(MagicState));
 
             spellChain.EnqueueChain();
