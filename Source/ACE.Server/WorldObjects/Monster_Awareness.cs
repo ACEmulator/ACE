@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -52,6 +53,8 @@ namespace ACE.Server.WorldObjects
 
             SetCombatMode(CombatMode.NonCombat);
 
+            CurrentAttack = null;
+            firstUpdate = true;
             AttackTarget = null;
             IsAwake = false;
             IsMoving = false;
