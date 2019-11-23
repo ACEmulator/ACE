@@ -19,6 +19,9 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public static readonly float DestructionTime = 25.0f;
 
+        /// <summary>
+        /// Only public functions should manage access using this rwLock
+        /// </summary>
         private readonly ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
         /// <summary>
@@ -936,7 +939,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public void DestroyObject()
         {
-            rwLock.EnterUpgradeableReadLock();
+            rwLock.EnterReadLock();
             try
             {
                 foreach (var obj in KnownObjects.Values)
@@ -949,20 +952,20 @@ namespace ACE.Server.Physics.Common
 
                 foreach (var obj in VisibleTargets.Values)
                     obj.ObjMaint.RemoveObject(PhysicsObj, false);
-
-                rwLock.EnterWriteLock();
-                try
-                {
-                    RemoveAllObjects();
-                }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
             }
             finally
             {
-                rwLock.ExitUpgradeableReadLock();
+                rwLock.ExitReadLock();
+            }
+
+            rwLock.EnterWriteLock();
+            try
+            {
+                RemoveAllObjects();
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
             }
 
             ServerObjectManager.RemoveServerObject(PhysicsObj);
