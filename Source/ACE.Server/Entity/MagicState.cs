@@ -148,9 +148,9 @@ namespace ACE.Server.Entity
             CastSpellParams = null;
         }
 
-        public void SetCastParams(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
+        public void SetCastParams(Spell spell, bool isWeaponSpell, uint magicSkill, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
         {
-            CastSpellParams = new CastSpellParams(spell, isWeaponSpell, manaUsed, target, status);
+            CastSpellParams = new CastSpellParams(spell, isWeaponSpell, magicSkill, manaUsed, target, status);
 
             if (Player.RecordCast.Enabled && CastSpellParams.Target != null)
                 Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
