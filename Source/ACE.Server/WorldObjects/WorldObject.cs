@@ -860,6 +860,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
         {
+            if (WeenieClassId == 180014)
+                log.Info($"[TURKEY] {Guid}:{Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, WorldObject Destroy()");
+
             if (IsDestroyed)
             {
                 log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);

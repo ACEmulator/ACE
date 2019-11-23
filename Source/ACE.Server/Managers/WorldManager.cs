@@ -272,6 +272,16 @@ namespace ACE.Server.Managers
         private static readonly RateLimiter updateGameWorldRateLimiter = new RateLimiter(60, TimeSpan.FromSeconds(1));
 
         /// <summary>
+        /// DEBUGGING
+        /// </summary>
+        public static long UpdateWorldTick;
+
+        /// <summary>
+        /// DEBUGGING
+        /// </summary>
+        public static long DebugSequenceNumber;
+
+        /// <summary>
         /// Manages updating all entities on the world.
         ///  - Server-side command-line commands are handled in their own thread.
         ///  - Database I/O is handled in its own thread.
@@ -287,6 +297,8 @@ namespace ACE.Server.Managers
 
             while (!pendingWorldStop)
             {
+                UpdateWorldTick++;
+
                 /*
                 When it comes to thread safety for Landblocks and WorldObjects, ACE makes the following assumptions:
 
