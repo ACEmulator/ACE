@@ -200,20 +200,22 @@ namespace ACE.Server.Physics.Common
 
         public bool RemoveKnownObject(PhysicsObj obj, bool inversePlayer = true)
         {
+            bool result;
+
             rwLock.EnterWriteLock();
             try
             {
-                var result = KnownObjects.Remove(obj.ID, out _);
-
-                if (inversePlayer && PhysicsObj.IsPlayer)
-                    obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
-
-                return result;
+                result = KnownObjects.Remove(obj.ID, out _);
             }
             finally
             {
                 rwLock.ExitWriteLock();
             }
+
+            if (inversePlayer && PhysicsObj.IsPlayer)
+                obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
+
+            return result;
         }
 
 
