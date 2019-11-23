@@ -11,10 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Factories\TestLootGenerationFactory.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="Config.json" />
     <None Remove="starterGear.json" />
   </ItemGroup>
