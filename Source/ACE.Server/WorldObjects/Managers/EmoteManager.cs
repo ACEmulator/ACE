@@ -625,15 +625,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.LocalBroadcast:
 
-                    if (WorldObject.WeenieClassId == 180014)
-                        log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager ExecuteEmote() LocalBroadcast Pre");
-
                     message = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
                     WorldObject.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
-
-                    if (WorldObject.WeenieClassId == 180014)
-                        log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager ExecuteEmote() LocalBroadcast Post");
-
                     break;
 
                 case EmoteType.LocalSignal:
@@ -1209,15 +1202,9 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.WorldBroadcast:
 
-                    if (WorldObject.WeenieClassId == 180014)
-                        log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager ExecuteEmote() WorldBroadcast Pre");
-
                     message = Replace(text, WorldObject, targetObject, emoteSet.Quest);
 
                     PlayerManager.BroadcastToAll(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
-
-                    if (WorldObject.WeenieClassId == 180014)
-                        log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager ExecuteEmote() WorldBroadcast Post");
 
                     break;
 
@@ -1268,9 +1255,6 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public void ExecuteEmoteSet(EmoteCategory category, string quest = null, WorldObject targetObject = null, bool nested = false)
         {
-            if (WorldObject.WeenieClassId == 180014 && category == EmoteCategory.Death)
-                log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager ExecuteEmoteSet() 1");
-
             var emoteSet = GetEmoteSet(category, quest);
 
             // TODO: revisit if nested chains need to propagate timers
@@ -1285,9 +1269,6 @@ namespace ACE.Server.WorldObjects.Managers
         /// <param name="actionChain">For adding delays between emotes</param>
         public bool ExecuteEmoteSet(BiotaPropertiesEmote emoteSet, WorldObject targetObject = null, bool nested = false)
         {
-            if (WorldObject.WeenieClassId == 180014 && emoteSet != null && emoteSet.Category == (uint)EmoteCategory.Death)
-                log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager ExecuteEmoteSet() 2");
-
             // detect busy state
             // TODO: maybe eventually we should consider having categories that can be queued?
             // there are some categories that shouldn't be queued, like heartbeats...
@@ -1302,9 +1283,6 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void Enqueue(BiotaPropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx = 0, float delay = 0.0f)
         {
-            if (WorldObject.WeenieClassId == 180014 && emoteSet != null && emoteSet.Category == (uint)EmoteCategory.Death)
-                log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager Enqueue()");
-
             if (emoteSet == null)
             {
                 Nested--;
@@ -1510,9 +1488,6 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void OnDeath(WorldObject lastDamager)
         {
-            if (WorldObject.WeenieClassId == 180014)
-                log.Info($"[TURKEY] {WorldObject.Guid}:{WorldObject.Name}, UpdateWorldTick: {WorldManager.UpdateWorldTick}, DebugSequenceNumber: {System.Threading.Interlocked.Increment(ref WorldManager.DebugSequenceNumber)}, EmoteManager OnDeath()");
-
             IsBusy = false;
 
             ExecuteEmoteSet(EmoteCategory.Death, null, lastDamager);
