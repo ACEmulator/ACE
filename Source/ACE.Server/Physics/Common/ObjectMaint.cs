@@ -939,7 +939,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public void DestroyObject()
         {
-            rwLock.EnterReadLock();
+            rwLock.EnterUpgradeableReadLock();
             try
             {
                 foreach (var obj in KnownObjects.Values)
@@ -952,23 +952,23 @@ namespace ACE.Server.Physics.Common
 
                 foreach (var obj in VisibleTargets.Values)
                     obj.ObjMaint.RemoveObject(PhysicsObj, false);
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    RemoveAllObjects();
+
+                    ServerObjectManager.RemoveServerObject(PhysicsObj);
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
             }
             finally
             {
-                rwLock.ExitReadLock();
+                rwLock.ExitUpgradeableReadLock();
             }
-
-            rwLock.EnterWriteLock();
-            try
-            {
-                RemoveAllObjects();
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
-
-            ServerObjectManager.RemoveServerObject(PhysicsObj);
         }
     }
 }
