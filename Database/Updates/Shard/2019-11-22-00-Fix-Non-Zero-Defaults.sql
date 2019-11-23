@@ -18,3 +18,6 @@ CHANGE COLUMN `init_Create` `init_Create` INT(10) NOT NULL DEFAULT '0' COMMENT '
 CHANGE COLUMN `max_Create` `max_Create` INT(10) NOT NULL DEFAULT '0' COMMENT 'Maximum amount of objects to generate' ,
 CHANGE COLUMN `when_Create` `when_Create` INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT 'When to generate the weenie object' ,
 CHANGE COLUMN `where_Create` `where_Create` INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Where to generate the weenie object' ;
+
+ALTER TABLE `biota_properties_spell_book` 
+CHANGE COLUMN `probability` `probability` FLOAT NOT NULL DEFAULT '0' COMMENT 'Chance to cast this spell' ;

@@ -576,7 +576,7 @@ CREATE TABLE `biota_properties_spell_book` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Id of the object this property belongs to',
   `spell` int(10) NOT NULL DEFAULT '0' COMMENT 'Id of Spell',
-  `probability` float NOT NULL DEFAULT '2' COMMENT 'Chance to cast this spell',
+  `probability` float NOT NULL DEFAULT '0' COMMENT 'Chance to cast this spell',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_spellbook_type_uidx` (`object_Id`,`spell`),
   CONSTRAINT `wcid_spellbook` FOREIGN KEY (`object_Id`) REFERENCES `biota` (`id`) ON DELETE CASCADE
