@@ -2344,7 +2344,18 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("testdeathitems", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Test death item selection", "")]
         public static void HandleTestDeathItems(Session session, params string[] parameters)
         {
-            var inventory = session.Player.GetAllPossessions();
+            var target = session.Player;
+            if (parameters.Length > 0)
+            {
+                target = PlayerManager.GetOnlinePlayer(parameters[0]);
+                if (target == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            var inventory = target.GetAllPossessions();
             var sorted = new DeathItems(inventory);
 
             var i = 0;
