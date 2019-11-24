@@ -92,8 +92,6 @@ namespace ACE.Server.WorldObjects
                 Mana.Current = Mana.MaxValue;
             }
 
-            QuestManager = new QuestManager(this);
-
             SetMonsterState();
 
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);

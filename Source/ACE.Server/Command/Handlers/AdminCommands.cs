@@ -2374,6 +2374,9 @@ namespace ACE.Server.Command.Handlers
 
             if (wo != null && wo is Creature creature)
             {
+                if (creature.QuestManager == null)
+                    creature.QuestManager = new QuestManager(creature);
+
                 if (parameters[0].Equals("list"))
                 {
                     var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";
@@ -2469,8 +2472,6 @@ namespace ACE.Server.Command.Handlers
                     }
                     var questName = parameters[1];
 
-                    if (!creature.QuestManager.HasQuest(questName))
-                        creature.QuestManager.Stamp(questName);
                     creature.QuestManager.SetQuestCompletions(questName, numCompletions);
                     var quest = creature.QuestManager.GetQuest(questName);
                     if (quest != null)
@@ -2490,7 +2491,7 @@ namespace ACE.Server.Command.Handlers
                 if (wo == null)
                     session.Player.SendMessage($"Selected object (0x{objectId}) not found.");
                 else
-                    session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a player.");
+                    session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a creature.");
             }
         }
 

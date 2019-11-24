@@ -1209,10 +1209,18 @@ namespace ACE.Server.WorldObjects.Managers
             return delay;
         }
 
+        private static void CheckForQuestManager(Creature creature)
+        {
+            if (creature != null && creature.QuestManager == null)
+                creature.QuestManager = new QuestManager(creature);
+        }
+
         private void UpdateQuest(BiotaPropertiesEmoteAction emote, WorldObject targetObject, Creature creature)
         {
             if (creature != null)
             {
+                CheckForQuestManager(creature);
+
                 var questName = emote.Message;
 
                 var hasQuest = creature.QuestManager.HasQuest(questName);
@@ -1237,6 +1245,8 @@ namespace ACE.Server.WorldObjects.Managers
         {
             if (creature != null)
             {
+                CheckForQuestManager(creature);
+
                 var questName = emote.Message;
 
                 if (questName.EndsWith("@#kt", StringComparison.Ordinal))
@@ -1252,6 +1262,8 @@ namespace ACE.Server.WorldObjects.Managers
         {
             if (creature != null)
             {
+                CheckForQuestManager(creature);
+
                 if (emote.Amount != null)
                     creature.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
             }
@@ -1261,6 +1273,8 @@ namespace ACE.Server.WorldObjects.Managers
         {
             if (creature != null)
             {
+                CheckForQuestManager(creature);
+
                 var questSolves = creature.QuestManager.HasQuestSolves(emote.Message, emote.Min, emote.Max);
 
                 ExecuteEmoteSet(questSolves ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
@@ -1271,6 +1285,8 @@ namespace ACE.Server.WorldObjects.Managers
         {
             if (creature != null)
             {
+                CheckForQuestManager(creature);
+
                 var hasQuest = creature.QuestManager.HasQuest(emote.Message);
                 var canSolve = creature.QuestManager.CanSolve(emote.Message);
 
@@ -1284,19 +1300,31 @@ namespace ACE.Server.WorldObjects.Managers
         private void IncrementQuest(BiotaPropertiesEmoteAction emote, Creature creature)
         {
             if (creature != null)
+            {
+                CheckForQuestManager(creature);
+
                 creature.QuestManager.Increment(emote.Message);     // kill task?
+            }
         }
 
         private void EraseQuest(BiotaPropertiesEmoteAction emote, Creature creature)
         {
             if (creature != null)
+            {
+                CheckForQuestManager(creature);
+
                 creature.QuestManager.Erase(emote.Message);
+            }
         }
 
         private void DecrementQuest(BiotaPropertiesEmoteAction emote, Creature creature)
         {
             if (creature != null)
+            {
+                CheckForQuestManager(creature);
+
                 creature.QuestManager.Decrement(emote.Message);
+            }
         }
 
         /// <summary>
