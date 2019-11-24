@@ -197,6 +197,10 @@ namespace ACE.Server.Managers
         {
             var questName = GetQuestName(questFormat);
 
+            var maxSolves = GetMaxSolves(questName);
+
+            var numTimeCompleted = maxSolves > -1 ? Math.Min(questCompletions, maxSolves) : Math.Abs(questCompletions);
+
             var existing = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
 
             if (existing == null)
@@ -207,12 +211,12 @@ namespace ACE.Server.Managers
                     QuestName = questName,
                     //CharacterId = Player.Guid.Full,
                     LastTimeCompleted = (uint)Time.GetUnixTime(),
-                    NumTimesCompleted = questCompletions   // initialize the quest to the given completions
+                    NumTimesCompleted = numTimeCompleted   // initialize the quest to the given completions
                 };
 
                 info.CharacterId = IDtoUseForQuestRegistry;
 
-                if (Debug) Console.WriteLine($"{Name}.QuestManager.Update({questFormat}): initialized quest to {info.NumTimesCompleted}");
+                if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {info.NumTimesCompleted}");
                 Quests.Add(info);
                 if (Player != null)
                 {
@@ -224,8 +228,8 @@ namespace ACE.Server.Managers
             {
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
-                existing.NumTimesCompleted = questCompletions;
-                if (Debug) Console.WriteLine($"{Name}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
+                existing.NumTimesCompleted = numTimeCompleted;
+                if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {existing.NumTimesCompleted}");
                 if (Player != null)
                 {
                     Player.CharacterChangesDetected = true;
@@ -268,6 +272,17 @@ namespace ACE.Server.Managers
 
             // return TRUE if quest has solve limit, and it has been reached
             return quest.MaxSolves > -1 && playerQuest.NumTimesCompleted >= quest.MaxSolves;
+        }
+
+        /// <summary>
+        /// Returns the maximum # of solves for this quest
+        /// </summary>
+        public int GetMaxSolves(string questName)
+        {
+            var quest = DatabaseManager.World.GetCachedQuest(questName);
+            if (quest == null) return 0;
+
+            return quest.MaxSolves;
         }
 
         /// <summary>

@@ -2345,6 +2345,7 @@ namespace ACE.Server.Command.Handlers
             "[list | bestow | erase]\n"
             + "qst list - List the quest flags for the targeted player\n"
             + "qst bestow - Stamps the specific quest flag on the targeted player. If this fails, it's probably because you spelled the quest flag wrong.\n"
+            + "qst stamp - Stamps the specific quest flag on the targeted player the specified number of times. If this fails, it's probably because you spelled the quest flag wrong.\n"
             + "qst erase - Erase the specific quest flag from the targeted player. If no quest flag is given, it erases the entire quest table for the targeted player.\n")]
         public static void Handleqst(Session session, params string[] parameters)
         {
@@ -2451,6 +2452,36 @@ namespace ACE.Server.Command.Handlers
                     }
                     creature.QuestManager.Erase(questName);
                     session.Player.SendMessage($"{questName} erased.");
+                    return;
+                }
+
+                if (parameters[0].Equals("stamp"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        session.Player.SendMessage($"You must specify a quest to stamp and number completions using the following command: /qst stamp questname number");
+                        return;
+                    }
+                    if (!int.TryParse(parameters[2], out var numCompletions))
+                    {
+                        session.Player.SendMessage($"{parameters[2]} is not a valid int");
+                        return;
+                    }
+                    var questName = parameters[1];
+
+                    if (!creature.QuestManager.HasQuest(questName))
+                        creature.QuestManager.Stamp(questName);
+                    creature.QuestManager.SetQuestCompletions(questName, numCompletions);
+                    var quest = creature.QuestManager.GetQuest(questName);
+                    if (quest != null)
+                    {
+                        var numTimesCompleted = quest.NumTimesCompleted;
+                        session.Player.SendMessage($"{questName} stamped with {numTimesCompleted} completions.");
+                    }
+                    else
+                    {
+                        session.Player.SendMessage($"Couldn't stamp {questName} on {creature.Name}");
+                    }
                     return;
                 }
             }
