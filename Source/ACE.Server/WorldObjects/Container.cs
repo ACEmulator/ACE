@@ -12,6 +12,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
@@ -620,9 +621,15 @@ namespace ACE.Server.WorldObjects
                     Close(player);
                 else
                 {
-                    // TODO: find retail message
-                    var viewerName = CurrentLandblock?.GetObject(Viewer)?.Name ?? "someone else";
-                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"{Name} is already in use by {viewerName}!"));
+                    var currentViewer = "someone else";
+                    if (PropertyManager.GetBool("container_opener_name").Item)
+                    {
+                        var name = CurrentLandblock?.GetObject(Viewer)?.Name;
+                        if (name != null)
+                            currentViewer = name;
+                    }
+
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is already in use by {currentViewer}!"));
                 }
             }
         }
