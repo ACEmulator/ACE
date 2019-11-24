@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -232,14 +234,19 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Returns the creature's effective magic defense skill
-        /// with imbues factored in
+        /// with item.WeaponMagicDefense and imbues factored in
         /// </summary>
         public uint GetEffectiveMagicDefense()
         {
             var current = GetCreatureSkill(Skill.MagicDefense).Current;
+            var weaponDefenseMod = GetWeaponMagicDefenseModifier(this);
             var defenseImbues = (uint)GetDefenseImbues(ImbuedEffectType.MagicDefense);
 
-            return current + defenseImbues;
+            var effectiveMagicDefense = (uint)Math.Round((current * weaponDefenseMod) + defenseImbues);
+
+            //Console.WriteLine($"EffectiveMagicDefense: {effectiveMagicDefense}");
+
+            return effectiveMagicDefense;
         }
     }
 }

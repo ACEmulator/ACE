@@ -12,6 +12,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -558,13 +559,15 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-
         // ========================================
         // ======== Physics Desc Properties =======
         // ========================================
         // used in CalculatedPhysicsDescriptionFlag()
         public Motion CurrentMotionState { get; set; }
-        public MotionCommand CurrentMotionCommand { get; set; }
+
+        public MoveToState CurrentMoveToState { get; set; } = new MoveToState();
+        public MovementData CurrentMovementData { get; set; } = new MovementData();
+
 
         public Placement? Placement // Sometimes known as AnimationFrame
         {
@@ -993,6 +996,18 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.WeaponDefense);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.WeaponDefense); else SetProperty(PropertyFloat.WeaponDefense, value.Value); }
+        }
+
+        public double? WeaponMissileDefense
+        {
+            get => GetProperty(PropertyFloat.WeaponMissileDefense);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.WeaponMissileDefense); else SetProperty(PropertyFloat.WeaponMissileDefense, value.Value); }
+        }
+
+        public double? WeaponMagicDefense
+        {
+            get => GetProperty(PropertyFloat.WeaponMagicDefense);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.WeaponMagicDefense); else SetProperty(PropertyFloat.WeaponMagicDefense, value.Value); }
         }
 
         public double? WeaponOffense

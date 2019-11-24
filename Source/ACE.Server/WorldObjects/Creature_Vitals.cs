@@ -197,11 +197,13 @@ namespace ACE.Server.WorldObjects
             // does not apply for mana?
             if (vital.Vital == PropertyAttribute2nd.MaxMana) return 1.0f;
 
+            var forwardCommand = CurrentMovementData.MovementType == MovementType.Invalid && CurrentMovementData.Invalid != null ? CurrentMovementData.Invalid.State.ForwardCommand : MotionCommand.Invalid;
+
             // combat mode / running
-            if (CombatMode != CombatMode.NonCombat || CurrentMotionCommand == MotionCommand.RunForward)
+            if (CombatMode != CombatMode.NonCombat || forwardCommand == MotionCommand.RunForward)
                 return 0.5f;
 
-            switch (CurrentMotionCommand)
+            switch (forwardCommand)
             {
                 // TODO: verify multipliers
                 default:

@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
         public Action<bool> MoveToCallback { get; set; }
         public bool IsPlayerMovingTo { get; set; }
 
-        public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null)
+        public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null, bool rotate = true)
         {
             if (IsPlayerMovingTo)
                 StopExistingMoveToChains();
@@ -20,6 +20,18 @@ namespace ACE.Server.WorldObjects
             {
                 log.Error($"{Name}.MoveTo({target.Name}): target.Location is null");
                 callback(false);
+                return;
+            }
+
+            var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid, useRadius);
+
+            if (withinUseRadius)
+            {
+                if (rotate)
+                    CreateTurnToChain(target, callback);
+                else
+                    callback(true);
+
                 return;
             }
 
@@ -42,7 +54,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
         }
 
-        public void CreateTurnToChain(WorldObject target, Action<bool> callback)
+        public void CreateTurnToChain(WorldObject target, Action<bool> callback, bool stopCompletely = false)
         {
             if (IsPlayerMovingTo)
                 StopExistingMoveToChains();
@@ -58,7 +70,7 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine("*** CreateTurnToChain ***");
 
             // send command to client
-            TurnToObject(target);
+            TurnToObject(target, stopCompletely);
 
             // start on server
             // forward this to PhysicsObj.MoveManager.MoveToManager
@@ -71,7 +83,7 @@ namespace ACE.Server.WorldObjects
             IsPlayerMovingTo = true;
             MoveToCallback = callback;
 
-            PhysicsObj.TurnToObject(target.Guid.Full, mvp);
+            PhysicsObj.TurnToObject(target.PhysicsObj, mvp);
 
             PhysicsObj.update_object();
         }

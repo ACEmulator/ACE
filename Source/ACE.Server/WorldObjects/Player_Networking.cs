@@ -229,7 +229,8 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(false, movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
-            CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
+            //CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
+            CurrentMovementData = movementData;
         }
 
         private EnvironChangeType? currentFogColor;
@@ -281,6 +282,21 @@ namespace ACE.Server.WorldObjects
 
             if (broadcast)
                 EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
+        }
+
+        public void SendWeenieError(WeenieError error)
+        {
+            Session.Network.EnqueueSend(new GameEventWeenieError(Session, error));
+        }
+
+        public void SendWeenieErrorWithString(WeenieErrorWithString error, string str)
+        {
+            Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, error, str));
+        }
+
+        public void SendTransientError(string msg)
+        {
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg));
         }
     }
 }

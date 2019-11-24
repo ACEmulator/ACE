@@ -51,7 +51,19 @@ namespace ACE.Server.WorldObjects.Managers
         {
             base.Remove(entry, sound);
 
+            if (entry == null)
+                return;
+
             ClearCache();
+
+            if (Player != null)
+            {
+                if (entry.SpellCategory != SpellCategory_Cooldown)
+                {
+                    var spell = new Spell(entry.SpellId);
+                    Player.HandleSpellHooks(spell);
+                }
+            }
         }
 
         /// <summary>
@@ -98,7 +110,16 @@ namespace ACE.Server.WorldObjects.Managers
         {
             base.Dispel(entry);
 
+            if (entry == null)
+                return;
+
             ClearCache();
+
+            if (Player != null)
+            {
+                var spell = new Spell(entry.SpellId);
+                Player.HandleSpellHooks(spell);
+            }
         }
 
         /// <summary>
@@ -109,6 +130,15 @@ namespace ACE.Server.WorldObjects.Managers
             base.Dispel(entries);
 
             ClearCache();
+
+            if (Player != null)
+            {
+                foreach (var entry in entries)
+                {
+                    var spell = new Spell(entry.SpellId);
+                    Player.HandleSpellHooks(spell);
+                }
+            }
         }
 
 

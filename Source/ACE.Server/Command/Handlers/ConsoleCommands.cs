@@ -6,6 +6,12 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 
+
+using ACE.Server.Factories;
+using Newtonsoft.Json;
+using System.IO;
+using ACE.Database;
+
 namespace ACE.Server.Command.Handlers
 {
     public static class ConsoleCommands
@@ -113,7 +119,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             string exportDir = parameters[0];
-            if(exportDir.Length == 0 || !System.IO.Directory.Exists(exportDir))
+            if (exportDir.Length == 0 || !System.IO.Directory.Exists(exportDir))
             {
                 Console.WriteLine(syntax);
                 return;
@@ -125,7 +131,7 @@ namespace ACE.Server.Command.Handlers
                 if (parameters[1].StartsWith("0x"))
                 {
                     string hex = parameters[1].Substring(2);
-                    if(!uint.TryParse(hex, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.CurrentCulture, out imageId))
+                    if (!uint.TryParse(hex, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.CurrentCulture, out imageId))
                     {
                         Console.WriteLine(syntax);
                         return;

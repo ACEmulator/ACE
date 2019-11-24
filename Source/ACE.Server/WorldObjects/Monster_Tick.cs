@@ -80,17 +80,13 @@ namespace ACE.Server.WorldObjects
 
             // select a new weapon if missile launcher is out of ammo
             var weapon = GetEquippedWeapon();
-            if (weapon != null && weapon.IsAmmoLauncher)
+            /*if (weapon != null && weapon.IsAmmoLauncher)
             {
                 var ammo = GetEquippedAmmo();
                 if (ammo == null)
-                {
-                    TryUnwieldObjectWithBroadcasting(weapon.Guid, out _, out _);
-                    EquipInventoryItems(true);
-                    DoAttackStance();
-                    CurrentAttack = null;
-                }
-            }
+                    SwitchToMeleeAttack();
+            }*/
+
             if (weapon == null && CurrentAttack != null && CurrentAttack == CombatType.Missile)
             {
                 EquipInventoryItems(true);
@@ -149,6 +145,15 @@ namespace ACE.Server.WorldObjects
                     // perform attack
                     if (AttackReady())
                         Attack();
+                }
+                else
+                {
+                    // monster switches to melee combat immediately,
+                    // if target is beyond max range?
+
+                    // should ranged mobs only get CurrentTargets within MaxRange?
+                    //Console.WriteLine($"{Name}.MissileAttack({AttackTarget.Name}): targetDist={targetDist}, MaxRange={MaxRange}, switching to melee");
+                    SwitchToMeleeAttack();
                 }
             }
 

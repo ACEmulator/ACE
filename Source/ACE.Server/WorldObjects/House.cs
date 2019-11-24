@@ -197,7 +197,7 @@ namespace ACE.Server.WorldObjects
             var house = this;
             if (CurrentLandblock != null && CurrentLandblock.IsDungeon && HouseType != HouseType.Apartment)
             {
-                var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
+                var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).Where(bio => bio.BiotaPropertiesPosition.Count > 0).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
                 if (biota != null)
                 {
                     house = WorldObjectFactory.CreateWorldObject(biota) as House;
@@ -517,7 +517,7 @@ namespace ACE.Server.WorldObjects
                     return Guid;
                 }
 
-                var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location?.Landblock);
+                var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).Where(bio => bio.BiotaPropertiesPosition.Count > 0).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location?.Landblock);
                 if (biota == null)
                 {
                     var instance = DatabaseManager.World.GetLandblockInstancesByWcid(WeenieClassId).FirstOrDefault(w => w.ObjCellId >> 16 != Location?.Landblock);

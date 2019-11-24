@@ -460,7 +460,6 @@ namespace ACE.Server.WorldObjects
         public bool RequestedLocationBroadcast { get; set; }
 
 
-
         ////// Logical Game Data
         public ContainerType ContainerType
         {
@@ -741,13 +740,15 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void AdjustDungeon(Position pos)
+        // todo: This should really be an extension method for Position, or a static method within Position or even AdjustPos
+        public static void AdjustDungeon(Position pos)
         {
             AdjustDungeonPos(pos);
             AdjustDungeonCells(pos);
         }
 
-        public bool AdjustDungeonCells(Position pos)
+        // todo: This should really be an extension method for Position, or a static method within Position or even AdjustPos
+        public static bool AdjustDungeonCells(Position pos)
         {
             if (pos == null) return false;
 
@@ -767,7 +768,8 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        public bool AdjustDungeonPos(Position pos)
+        // todo: This should really be an extension method for Position, or a static method within Position, or even AdjustPos
+        public static bool AdjustDungeonPos(Position pos)
         {
             if (pos == null) return false;
 

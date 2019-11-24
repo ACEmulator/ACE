@@ -14,6 +14,7 @@ namespace ACE.Server.Network.GameAction.Actions
             //Console.WriteLine($"{session.Player.Name}.MoveToState");
 
             var moveToState = new MoveToState(session.Player, message.Payload);
+            session.Player.CurrentMoveToState = moveToState;
 
             if (!session.Player.Teleporting)
             {

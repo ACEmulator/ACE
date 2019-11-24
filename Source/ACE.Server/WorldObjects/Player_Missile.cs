@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
             set => _accuracyLevel = value;
         }
 
-        public WorldObject MissileTarget;
+        public Creature MissileTarget;
 
         public PowerAccuracy GetAccuracyRange()
         {
@@ -59,14 +59,14 @@ namespace ACE.Server.WorldObjects
             AccuracyLevel = accuracyLevel;
 
             // get world object of target guid
-            var target = CurrentLandblock?.GetObject(targetGuid);
+            var target = CurrentLandblock?.GetObject(targetGuid) as Creature;
             if (target == null || target.Teleporting)
             {
-                log.Warn("Unknown target guid " + targetGuid.ToString("X8"));
+                log.Warn($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {AttackHeight}, {accuracyLevel}) - couldn't find creature target guid");
                 return;
             }
 
-            if (Attacking || MissileTarget != null)
+            if (Attacking || MissileTarget != null && MissileTarget.IsAlive)
                 return;
 
             AttackTarget = target;

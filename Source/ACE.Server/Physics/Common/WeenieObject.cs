@@ -103,39 +103,37 @@ namespace ACE.Server.Physics.Common
 
         public bool IsCorpse()
         {
-            return false;
+            return WorldObject is Corpse;
         }
 
-        public bool IsImpenetable()
+        public bool IsImpenetrable()
         {
-            return false;
+            return WorldObject is Player player && player.PlayerKillerStatus == PlayerKillerStatus.Free;
         }
 
         public bool IsPK()
         {
-            return false;
+            return WorldObject is Player player && player.IsPK;
         }
 
         public bool IsPKLite()
         {
-            return false;
+            return WorldObject is Player player && player.IsPKL;
         }
 
         public bool IsPlayer()
         {
-            return true;
+            return WorldObject is Player;
         }
 
         public bool IsCreature()
         {
             return WorldObject is Creature;
-
-            //return true;
         }
 
         public bool IsStorage()
         {
-            return false;
+            return WorldObject is Storage;
         }
 
         public float JumpStaminaCost(float extent, int staminaCost)

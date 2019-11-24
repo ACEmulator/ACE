@@ -245,7 +245,7 @@ namespace ACE.Server.WorldObjects
                     EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out crit, out ec, this, targetPlayer);
+                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out crit, out ec, targetPlayer, this);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {
@@ -451,6 +451,12 @@ namespace ACE.Server.WorldObjects
             return Inventory.Values.FirstOrDefault(i => i.WeenieClassId == wcid) != null;
         }
 
+        public void HandleSpellHooks(Spell spell)
+        {
+            HandleMaxVitalUpdate(spell);
+            HandleRunRateUpdate(spell);
+        }
+
         /// <summary>
         /// Called when an enchantment is added or removed,
         /// checks if the spell affects the max vitals,
@@ -475,6 +481,14 @@ namespace ACE.Server.WorldObjects
                 }
             });
             actionChain.EnqueueChain();
+        }
+
+        public bool HandleRunRateUpdate(Spell spell)
+        {
+            if (!spell.UpdatesRunRate)
+                return false;
+
+            return HandleRunRateUpdate();
         }
 
         public void AuditItemSpells()

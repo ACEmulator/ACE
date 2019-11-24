@@ -296,10 +296,7 @@ namespace ACE.Server.WorldObjects
                 // if changed, update monarch id
                 if ((player.MonarchId ?? 0) != member.Value.Allegiance.MonarchId)
                 {
-                    player.MonarchId = member.Value.Allegiance.MonarchId;
-
-                    if (onlinePlayer != null)
-                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, player.MonarchId.Value));
+                    player.UpdateProperty(PropertyInstanceId.Monarch, member.Value.Allegiance.MonarchId, true);
 
                     updated = true;
                 }
