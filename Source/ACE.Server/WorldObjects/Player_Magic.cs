@@ -137,7 +137,8 @@ namespace ACE.Server.WorldObjects
                     }
 
                     CreatePlayerSpell(target, targetCategory, spellId, builtInSpell);
-                });
+
+                }, true);   // stop completely
             }
         }
 

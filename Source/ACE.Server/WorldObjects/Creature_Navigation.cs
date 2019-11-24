@@ -122,9 +122,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends a TurnToObject command to the client
         /// </summary>
-        public void TurnToObject(WorldObject target)
+        public void TurnToObject(WorldObject target, bool stopCompletely = false)
         {
             var turnToMotion = new Motion(this, target, MovementType.TurnToObject);
+
+            if (stopCompletely)
+                turnToMotion.MoveToParameters.MovementParameters |= MovementParams.StopCompletely;
+
             EnqueueBroadcastMotion(turnToMotion);
         }
 

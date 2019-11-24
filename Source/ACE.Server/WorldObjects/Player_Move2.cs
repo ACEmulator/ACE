@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
         }
 
-        public void CreateTurnToChain(WorldObject target, Action<bool> callback)
+        public void CreateTurnToChain(WorldObject target, Action<bool> callback, bool stopCompletely = false)
         {
             if (IsPlayerMovingTo)
                 StopExistingMoveToChains();
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine("*** CreateTurnToChain ***");
 
             // send command to client
-            TurnToObject(target);
+            TurnToObject(target, stopCompletely);
 
             // start on server
             // forward this to PhysicsObj.MoveManager.MoveToManager
