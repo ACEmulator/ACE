@@ -308,6 +308,35 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Decrement the number of times completed for a quest
+        /// </summary>
+        public void Decrement(string quest)
+        {
+            var questName = GetQuestName(quest);
+
+            var existing = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+            if (existing != null)
+            {
+                if (existing.NumTimesCompleted == 0)
+                {
+                    if (Debug) Console.WriteLine($"{Name}.QuestManager.Decrement({quest}): can not Decrement existing quest. {questName}.NumTimesCompleted is already 0.");
+                    return;
+                }
+
+                // update existing quest
+                existing.LastTimeCompleted = (uint)Time.GetUnixTime();
+                existing.NumTimesCompleted--;
+                if (Debug) Console.WriteLine($"{Name}.QuestManager.Decrement({quest}): updated quest ({existing.NumTimesCompleted})");
+                if (Player != null)
+                {
+                    Player.CharacterChangesDetected = true;
+                    Player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                }
+            }
+        }
+
+        /// <summary>
         /// Removes an existing quest from the Player's registry
         /// </summary>
         public void Erase(string questFormat)

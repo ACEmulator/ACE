@@ -251,10 +251,15 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.DecrementMyQuest:
+
+                    if (creature != null)
+                        creature.QuestManager.Decrement(emote.Message);
                     break;
 
                 case EmoteType.DecrementQuest:
-                    // Used as part of the test drudge for events
+
+                    if (targetCreatureOrSelf != null)
+                        targetCreatureOrSelf.QuestManager.Decrement(emote.Message);
                     break;
 
                 case EmoteType.DeleteSelf:
@@ -280,8 +285,11 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.EraseMyQuest:
-                    break;
 
+                    if (creature != null)
+                        creature.QuestManager.Erase(emote.Message);
+                    break;
+                    
                 case EmoteType.EraseQuest:
 
                     if (targetCreatureOrSelf != null)
@@ -352,6 +360,9 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.IncrementMyQuest:
+
+                    if (creature != null)
+                        creature.QuestManager.Increment(emote.Message);     // kill task?
                     break;
 
                 case EmoteType.IncrementQuest:
@@ -453,13 +464,34 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.InqMyQuest:
+
+                    if (creature != null)
+                    {
+                        var hasQuest = creature.QuestManager.HasQuest(emote.Message);
+                        var canSolve = creature.QuestManager.CanSolve(emote.Message);
+
+                        // verify: QuestSuccess = player has quest, and their last completed time + quest minDelta <= currentTime
+                        success = hasQuest && !canSolve;
+
+                        ExecuteEmoteSet(success ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                    }
                     break;
+
                 case EmoteType.InqMyQuestBitsOff:
                     break;
                 case EmoteType.InqMyQuestBitsOn:
                     break;
+
                 case EmoteType.InqMyQuestSolves:
+
+                    if (creature != null)
+                    {
+                        var questSolves = creature.QuestManager.HasQuestSolves(emote.Message, emote.Min, emote.Max);
+
+                        ExecuteEmoteSet(questSolves ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                    }
                     break;
+
                 case EmoteType.InqNumCharacterTitles:
 
                     //if (player != null)
@@ -942,8 +974,16 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
                 case EmoteType.SetMyQuestBitsOn:
                     break;
+
                 case EmoteType.SetMyQuestCompletions:
+
+                    if (creature != null)
+                    {
+                        if (emote.Amount != null)
+                            creature.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
+                    }
                     break;
+
                 case EmoteType.SetNosePalette:
                     break;
 
@@ -1001,7 +1041,20 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.StampMyQuest:
+
+                    if (creature != null)
+                    {
+                        var questName = emote.Message;
+
+                        if (questName.EndsWith("@#kt", StringComparison.Ordinal))
+                        {
+                            creature.QuestManager.HandleKillTask(questName, WorldObject);
+                        }
+                        else
+                            creature.QuestManager.Stamp(emote.Message);
+                    }
                     break;
+
                 case EmoteType.StampQuest:
 
                     if (targetCreatureOrSelf != null)
@@ -1188,7 +1241,29 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.UpdateMyQuest:
+
+                    if (creature != null)
+                    {
+                        var questName = emote.Message;
+
+                        var hasQuest = creature.QuestManager.HasQuest(questName);
+
+                        if (!hasQuest)
+                        {
+                            // add new quest
+                            creature.QuestManager.Update(questName);
+                            hasQuest = creature.QuestManager.HasQuest(questName);
+                            ExecuteEmoteSet(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            // update existing quest
+                            var canSolve = creature.QuestManager.CanSolve(questName);
+                            ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                        }
+                    }
                     break;
+
                 case EmoteType.UpdateQuest:
 
                     if (targetCreatureOrSelf != null)
