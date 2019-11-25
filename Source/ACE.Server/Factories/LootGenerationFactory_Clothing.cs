@@ -290,7 +290,8 @@ namespace ACE.Server.Factories
 
                     wo.SetProperty(PropertyInt.EquipmentSetId, (int)equipSetId);
 
-                    wo.Name = string.Join(" ", equipSetId.GetDescription(), wo.Name);
+                    if (PropertyManager.GetBool("equipmentsetid_name_decoration").Item)
+                        wo.Name = string.Join(" ", equipSetId.GetDescription(), wo.Name);
                 }
             }
 

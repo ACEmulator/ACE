@@ -514,6 +514,7 @@ namespace ACE.Server.Managers
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
                 ("equipmentsetid_enabled", new Property<bool>(false, "enable this to allow adding EquipmentSetIDs to loot armor")),
+                ("equipmentsetid_name_decoration", new Property<bool>(false, "enable this to add the EquipmentSet name to loot armor name")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
 
