@@ -282,6 +282,7 @@ namespace ACE.Server.Factories
                 double dropRate = PropertyManager.GetDouble("equipmentsetid_drop_rate").Item;
                 double dropRateMod = 1.0 / dropRate;
 
+                // Initial base 10% chance to add a random EquipmentSetID, which can be adjusted via property mod
                 int chance = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod));
                 if (chance < 11)
                 {
