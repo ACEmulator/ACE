@@ -56,7 +56,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (player.IsBusy) return;
+            if (player.IsBusy)
+            {
+                player.SendWeenieError(WeenieError.YoureTooBusy);
+                return;
+            }
 
             player.IsBusy = true;
 
