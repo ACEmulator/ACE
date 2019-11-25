@@ -42,7 +42,7 @@ namespace ACE.Server.Factories
             double wield = 0.00f;
             int value = 0;
 
-            string meleeWeapons = $"-----Melee Weapons----\n Wield \t Damage \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\n";
+            string meleeWeapons = $"-----Melee Weapons----\n Skill \t\t\t Wield \t Damage \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\t type \n";
             string missileWeapons = $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\n";
             string casterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value\n";
 
@@ -79,8 +79,11 @@ namespace ACE.Server.Factories
                             missileDefMod = testItem.WeaponMissileDefense.Value;
                         if (testItem.WieldDifficulty != null)
                             wield = testItem.WieldDifficulty.Value;
+                        if (testItem.WeaponSkill == Skill.TwoHandedCombat)
+                            meleeWeapons = meleeWeapons + $" {testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
+                        else
+                            meleeWeapons = meleeWeapons + $" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
 
-                        meleeWeapons = meleeWeapons + $" {wield}\t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\n";
                         break;
                     case "Caster":
                         casterCount++;
