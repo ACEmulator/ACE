@@ -111,9 +111,9 @@ namespace ACE.Server.Entity
             CastGestureStartTime = DateTime.MinValue;
         }
 
-        public void SetCastParams(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
+        public void SetCastParams(Spell spell, bool isWeaponSpell, uint magicSkill, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
         {
-            CastSpellParams = new CastSpellParams(spell, isWeaponSpell, manaUsed, target, status);
+            CastSpellParams = new CastSpellParams(spell, isWeaponSpell, magicSkill, manaUsed, target, status);
         }
 
         public override string ToString()

@@ -52,6 +52,9 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            if (player.IgnoreHouseBarriers)
+                return new ActivationResult(true);
+
             if (!House.RootHouse.HasPermission(player, true))
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You do not have permission to access {Name}"));

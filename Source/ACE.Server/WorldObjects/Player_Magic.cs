@@ -136,43 +136,49 @@ namespace ACE.Server.WorldObjects
 
         public TargetCategory GetTargetCategory(uint targetGuid, uint spellId, out WorldObject target)
         {
-            target = CurrentLandblock?.GetObject(targetGuid);
-            var targetCategory = TargetCategory.Undef;
-
-            if (target != null)
-            {
-                if (targetGuid == Guid.Full)
-                    targetCategory = TargetCategory.Self;
-                else
-                    targetCategory = TargetCategory.WorldObject;
-            }
-            else
-            {
-                target = GetEquippedItem(targetGuid);
-                if (target != null)
-                    targetCategory = TargetCategory.Wielded;
-                else
-                {
-                    target = GetInventoryItem(targetGuid);
-                    if (target != null)
-                        targetCategory = TargetCategory.Inventory;
-                    else
-                    {
-                        target = CurrentLandblock?.GetWieldedObject(targetGuid);
-                        if (target != null)
-                            targetCategory = TargetCategory.Wielded;
-                    }
-                }
-            }
-
+            // fellowship spell
             var spell = new Spell(spellId);
             if ((spell.Flags & SpellFlags.FellowshipSpell) != 0)
             {
-                targetCategory = TargetCategory.Fellowship;
                 target = this;
+                return TargetCategory.Fellowship;
             }
 
-            return targetCategory;
+            // direct landblock object
+            target = CurrentLandblock?.GetObject(targetGuid);
+
+            if (target != null)
+                return targetGuid == Guid.Full ? TargetCategory.Self : TargetCategory.WorldObject;
+
+            // self-wielded
+            target = GetEquippedItem(targetGuid);
+            if (target != null)
+                return TargetCategory.Wielded;
+
+            // inventory item
+            target = GetInventoryItem(targetGuid);
+            if (target != null)
+                return TargetCategory.Inventory;
+
+            // other selectable wielded
+            target = CurrentLandblock?.GetWieldedObject(targetGuid, true);
+            if (target != null)
+                return TargetCategory.Wielded;
+
+            // known trade objects
+            var tradePartner = GetKnownTradeObj(new ObjectGuid(targetGuid));
+            if (tradePartner != null)
+            {
+                target = tradePartner.GetEquippedItem(targetGuid);
+                if (target != null)
+                    return TargetCategory.Wielded;
+
+                target = tradePartner.GetInventoryItem(targetGuid);
+                if (target != null)
+                    return TargetCategory.Inventory;
+            }
+
+            return TargetCategory.Undef;
         }
 
         /// <summary>
@@ -436,10 +442,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            DoCastSpell(state.Spell, state.IsWeaponSpell, state.ManaUsed, state.Target, state.Status);
+            DoCastSpell(state.Spell, state.IsWeaponSpell, state.MagicSkill, state.ManaUsed, state.Target, state.Status);
         }
 
-        public void DoCastSpell(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
+        public void DoCastSpell(Spell spell, bool isWeaponSpell, uint magicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
         {
             //var actionChain = new ActionChain();
 
@@ -481,6 +487,13 @@ namespace ACE.Server.WorldObjects
                     var rotateTime = Rotate(target);
                     actionChain.AddDelaySeconds(rotateTime);
                 }*/
+
+                // verify spell range
+                if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
+                {
+                    FinishCast(WeenieError.None);
+                    return;
+                }
             }
 
             //actionChain.AddAction(this, () => DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus));
@@ -691,7 +704,7 @@ namespace ACE.Server.WorldObjects
             // cast spell
             DoCastGesture(spell, isWeaponSpell, spellChain);
 
-            MagicState.SetCastParams(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, isWeaponSpell, magicSkill, manaUsed, target, castingPreCheckStatus);
             spellChain.AddAction(this, () => DoCastSpell(MagicState));
 
             spellChain.EnqueueChain();
@@ -1014,7 +1027,7 @@ namespace ACE.Server.WorldObjects
             DoCastGesture(spell, false, spellChain);
 
             // cast untargeted spell
-            MagicState.SetCastParams(spell, false, manaUsed, null, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, false, magicSkill, manaUsed, null, castingPreCheckStatus);
             spellChain.AddAction(this, () => DoCastSpell(MagicState));
 
             spellChain.EnqueueChain();
