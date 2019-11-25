@@ -286,7 +286,7 @@ namespace ACE.Server.Factories
                 int chance = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod));
                 if (chance < 11)
                 {
-                    equipSetId = ThreadSafeRandom.Next(13, 30);
+                    equipSetId = ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
 
                     wo.SetProperty(PropertyInt.EquipmentSetId, equipSetId);
                 }
