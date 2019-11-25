@@ -1,6 +1,8 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using log4net;
 using log4net.Config;
@@ -39,6 +41,7 @@ namespace ACE.Server
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
             // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
             var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
