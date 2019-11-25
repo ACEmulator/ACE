@@ -231,7 +231,7 @@ namespace ACE.Server.WorldObjects
             // teleport to sanctuary or best location
             var newPosition = Sanctuary ?? Instantiation ?? Location;
 
-            ThreadSafeTeleport(newPosition, new ActionEventDelegate(() =>
+            WorldManager.ThreadSafeTeleport(this, newPosition, new ActionEventDelegate(() =>
             { 
                 // Stand back up
                 SetCombatMode(CombatMode.NonCombat);
