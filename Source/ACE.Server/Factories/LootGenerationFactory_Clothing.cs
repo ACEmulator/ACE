@@ -2,6 +2,7 @@
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -152,16 +153,6 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static WorldObject AssignEquipmentSetId(WorldObject wo, int tier)
-        {
-            int equipSetId = 0;
-
-            if (tier > 6)
-                wo.SetProperty(PropertyInt.EquipmentSetId, equipSetId);
-
-            return wo;
-        }
-
         private static int GetCovenantWieldReq(int tier, Skill skill)
         {
             int index, wield;
@@ -280,6 +271,27 @@ namespace ACE.Server.Factories
             }
 
             return wield;
+        }
+
+        private static WorldObject AssignEquipmentSetId(WorldObject wo, int tier)
+        {
+            int equipSetId = 0;
+
+            if (PropertyManager.GetBool("equipmentsetid_enabled").Item && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && tier > 6)
+            {
+                double dropRate = PropertyManager.GetDouble("equipmentsetid_drop_rate").Item;
+                double dropRateMod = 1.0 / dropRate;
+
+                int chance = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod));
+                if (chance < 11)
+                {
+                    equipSetId = ThreadSafeRandom.Next(13, 30);
+
+                    wo.SetProperty(PropertyInt.EquipmentSetId, equipSetId);
+                }
+            }
+
+            return wo;
         }
 
         private static WorldObject AssignArmorLevel(WorldObject wo, int tier, LootTables.ArmorType armorType)
