@@ -36,11 +36,19 @@ namespace ACE.Server.Command.Handlers
                 var biotas = ctx.Biota.Where(i => weenieEmoteCache.ContainsKey(i.WeenieClassId)).ToList();
 
                 var distinct = biotas.Select(i => i.WeenieClassId).Distinct();
+                var counts = new Dictionary<uint, uint>();
+                foreach (var biota in biotas)
+                {
+                    if (!counts.ContainsKey(biota.WeenieClassId))
+                        counts[biota.WeenieClassId] = 1;
+                    else
+                        counts[biota.WeenieClassId]++;
+                }
 
                 CommandHandlerHelper.WriteOutputInfo(session, $"Found {biotas.Count} biotas matching {distinct.Count()} distinct wcids");
 
-                foreach (var wcid in distinct.OrderBy(i => i))
-                    CommandHandlerHelper.WriteOutputInfo(session, $"{wcid} - {(WeenieClassName)wcid}");
+                foreach (var kvp in counts.OrderBy(i => i.Key))
+                    CommandHandlerHelper.WriteOutputInfo(session, $"{kvp.Key} - {(WeenieClassName)kvp.Key} ({kvp.Value})");
 
                 if (!fix)
                 {
