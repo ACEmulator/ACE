@@ -279,19 +279,22 @@ namespace ACE.Server.Factories
 
             if (PropertyManager.GetBool("equipmentsetid_enabled").Item && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && tier > 6)
             {
-                double dropRate = PropertyManager.GetDouble("equipmentsetid_drop_rate").Item;
-                double dropRateMod = 1.0 / dropRate;
-
-                // Initial base 10% chance to add a random EquipmentSetID, which can be adjusted via property mod
-                int chance = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod));
-                if (chance < 11)
+                if (wo.WieldRequirements == WieldRequirement.Level || wo.WieldRequirements == WieldRequirement.RawSkill)
                 {
-                    equipSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
+                    double dropRate = PropertyManager.GetDouble("equipmentsetid_drop_rate").Item;
+                    double dropRateMod = 1.0 / dropRate;
 
-                    wo.SetProperty(PropertyInt.EquipmentSetId, (int)equipSetId);
+                    // Initial base 10% chance to add a random EquipmentSetID, which can be adjusted via property mod
+                    int chance = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod));
+                    if (chance < 11)
+                    {
+                        equipSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
 
-                    if (PropertyManager.GetBool("equipmentsetid_name_decoration").Item)
-                        wo.Name = string.Join(" ", equipSetId.GetDescription(), wo.Name);
+                        wo.EquipmentSetId = equipSetId;
+
+                        if (PropertyManager.GetBool("equipmentsetid_name_decoration").Item)
+                            wo.Name = string.Join(" ", equipSetId.GetDescription(), wo.Name);
+                    }
                 }
             }
 
