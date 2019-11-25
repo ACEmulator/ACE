@@ -167,6 +167,11 @@
     "PurgeDeletedCharacters": false,
 
     // Number of days a character must have been deleted for before eligible for purging
-    "PurgeDeletedCharactersDays": 30
+    "PurgeDeletedCharactersDays": 30,
+
+    // This will purge biotas that are completely disconnected from the world
+    // These may have been items that were never deleted properly, items that were given to the town crier before delete was implemented, etc...
+    // This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
+    "PurgeOrphanedBiotas": false
   }
 }

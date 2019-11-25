@@ -144,43 +144,49 @@ namespace ACE.Server.WorldObjects
 
         public TargetCategory GetTargetCategory(uint targetGuid, uint spellId, out WorldObject target)
         {
-            target = CurrentLandblock?.GetObject(targetGuid);
-            var targetCategory = TargetCategory.Undef;
-
-            if (target != null)
-            {
-                if (targetGuid == Guid.Full)
-                    targetCategory = TargetCategory.Self;
-                else
-                    targetCategory = TargetCategory.WorldObject;
-            }
-            else
-            {
-                target = GetEquippedItem(targetGuid);
-                if (target != null)
-                    targetCategory = TargetCategory.Wielded;
-                else
-                {
-                    target = GetInventoryItem(targetGuid);
-                    if (target != null)
-                        targetCategory = TargetCategory.Inventory;
-                    else
-                    {
-                        target = CurrentLandblock?.GetWieldedObject(targetGuid);
-                        if (target != null)
-                            targetCategory = TargetCategory.Wielded;
-                    }
-                }
-            }
-
+            // fellowship spell
             var spell = new Spell(spellId);
             if ((spell.Flags & SpellFlags.FellowshipSpell) != 0)
             {
-                targetCategory = TargetCategory.Fellowship;
                 target = this;
+                return TargetCategory.Fellowship;
             }
 
-            return targetCategory;
+            // direct landblock object
+            target = CurrentLandblock?.GetObject(targetGuid);
+
+            if (target != null)
+                return targetGuid == Guid.Full ? TargetCategory.Self : TargetCategory.WorldObject;
+
+            // self-wielded
+            target = GetEquippedItem(targetGuid);
+            if (target != null)
+                return TargetCategory.Wielded;
+
+            // inventory item
+            target = GetInventoryItem(targetGuid);
+            if (target != null)
+                return TargetCategory.Inventory;
+
+            // other selectable wielded
+            target = CurrentLandblock?.GetWieldedObject(targetGuid, true);
+            if (target != null)
+                return TargetCategory.Wielded;
+
+            // known trade objects
+            var tradePartner = GetKnownTradeObj(new ObjectGuid(targetGuid));
+            if (tradePartner != null)
+            {
+                target = tradePartner.GetEquippedItem(targetGuid);
+                if (target != null)
+                    return TargetCategory.Wielded;
+
+                target = tradePartner.GetInventoryItem(targetGuid);
+                if (target != null)
+                    return TargetCategory.Inventory;
+            }
+
+            return TargetCategory.Undef;
         }
 
         /// <summary>
