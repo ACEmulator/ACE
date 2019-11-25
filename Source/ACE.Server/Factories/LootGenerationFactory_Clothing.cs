@@ -275,7 +275,7 @@ namespace ACE.Server.Factories
 
         private static WorldObject AssignEquipmentSetId(WorldObject wo, int tier)
         {
-            int equipSetId = 0;
+            EquipmentSet equipSetId = EquipmentSet.Invalid;
 
             if (PropertyManager.GetBool("equipmentsetid_enabled").Item && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && tier > 6)
             {
@@ -286,9 +286,11 @@ namespace ACE.Server.Factories
                 int chance = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod));
                 if (chance < 11)
                 {
-                    equipSetId = ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
+                    equipSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
 
-                    wo.SetProperty(PropertyInt.EquipmentSetId, equipSetId);
+                    wo.SetProperty(PropertyInt.EquipmentSetId, (int)equipSetId);
+
+                    wo.Name = string.Join(" ", equipSetId.GetDescription(), wo.Name);
                 }
             }
 

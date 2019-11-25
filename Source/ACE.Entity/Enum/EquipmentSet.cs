@@ -1,4 +1,6 @@
-﻿namespace ACE.Entity.Enum
+using System.ComponentModel;
+
+namespace ACE.Entity.Enum
 {
     // List of equipment sets for armor/weapons. Compiled from aclogview, and the client.
     public enum EquipmentSet
@@ -16,23 +18,40 @@
         ArmMindHeart                     = 10,
         ArmorPerfectLight                = 11,
         ArmorPerfectLight2               = 12,
+        [Description("Soldier's")]
         Soldiers                         = 13,
-        Adepts                           = 14,
-        Archers                          = 15,
-        Defenders                        = 16,
-        Tinkers                          = 17,
-        Crafters                         = 18,
-        Hearty                           = 19,
-        Dexterous                        = 20,
-        Wise                             = 21,
-        Swift                            = 22,
-        Hardened                         = 23,
-        Reinforced                       = 24,
-        Interlocking                     = 25,
-        Flameproof                       = 26,
-        Acidproof                        = 27,
-        Coldproof                        = 28,
-        Lightningproof                   = 29,
+        [Description("Adept's")]
+        Adepts = 14,
+        [Description("Archer's")]
+        Archers = 15,
+        [Description("Defender's")]
+        Defenders = 16,
+        [Description("Tinker's")]
+        Tinkers = 17,
+        [Description("Crafter's")]
+        Crafters = 18,
+        [Description("Hearty")]
+        Hearty = 19,
+        [Description("Dexterous")]
+        Dexterous = 20,
+        [Description("Wise")]
+        Wise = 21,
+        [Description("Swift")]
+        Swift = 22,
+        [Description("Hardened")]
+        Hardened = 23,
+        [Description("Reinforced")]
+        Reinforced = 24,
+        [Description("Interlocking")]
+        Interlocking = 25,
+        [Description("Flameproof")]
+        Flameproof = 26,
+        [Description("Acidproof")]
+        Acidproof = 27,
+        [Description("Coldproof")]
+        Coldproof = 28,
+        [Description("Lightningproof")]
+        Lightningproof = 29,
         SocietyArmor                     = 30,
         ColosseumClothing                = 31,
         GraveyardClothing                = 32,
@@ -148,5 +167,14 @@
         UNKNOWN_139                      = 139,
         // Possibly Paragon Melee Weapons
         UNKNOWN_140                      = 140,
+    }
+
+    public static class EquipmentSetStringExtensions
+    {
+        public static string GetDescription(this EquipmentSet prop)
+        {
+            var description = prop.GetAttributeOfType<DescriptionAttribute>();
+            return description?.Description ?? prop.ToString();
+        }
     }
 }
