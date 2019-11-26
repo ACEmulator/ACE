@@ -277,7 +277,8 @@ namespace ACE.Server.Factories
         {
             EquipmentSet equipSetId = EquipmentSet.Invalid;
 
-            if (PropertyManager.GetBool("equipmentsetid_enabled").Item && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && tier > 6)
+            if (PropertyManager.GetBool("equipmentsetid_enabled").Item
+                && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && !wo.IsShield && tier > 6)
             {
                 if (wo.WieldRequirements == WieldRequirement.Level || wo.WieldRequirements == WieldRequirement.RawSkill)
                 {
