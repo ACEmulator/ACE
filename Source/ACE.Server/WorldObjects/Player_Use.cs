@@ -1,3 +1,5 @@
+using System;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
@@ -118,7 +120,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public float LastUseTime;
+        public DateTime NextUseTime { get; set; }
+        public float LastUseTime { get; set; }
 
         /// <summary>
         /// Attempts to use an item - checks activation requirements
@@ -135,6 +138,8 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(LastUseTime);
             actionChain.AddAction(this, () => SendUseDoneEvent());
             actionChain.EnqueueChain();
+
+            NextUseTime = DateTime.UtcNow + TimeSpan.FromSeconds(LastUseTime);
         }
 
         /// <summary>

@@ -629,7 +629,20 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)
         /// </summary>
-        public void HandleGameActionChangeCombatMode(CombatMode newCombatMode)
+        public void HandleActionChangeCombatMode(CombatMode newCombatMode)
+        {
+            if (DateTime.UtcNow >= NextUseTime)
+                HandleActionChangeCombatMode_Inner(newCombatMode);
+            else
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds((NextUseTime - DateTime.UtcNow).TotalSeconds);
+                actionChain.AddAction(this, () => HandleActionChangeCombatMode_Inner(newCombatMode));
+                actionChain.EnqueueChain();
+            }
+        }
+
+        public void HandleActionChangeCombatMode_Inner(CombatMode newCombatMode)
         {
             var currentCombatStance = GetCombatStance();
 
@@ -639,21 +652,21 @@ namespace ACE.Server.WorldObjects
             switch (newCombatMode)
             {
                 case CombatMode.NonCombat:
-                {
-                    switch (currentCombatStance)
                     {
-                        case MotionStance.BowCombat:
-                        case MotionStance.CrossbowCombat:
-                        case MotionStance.AtlatlCombat:
+                        switch (currentCombatStance)
                         {
-                            var equippedAmmo = GetEquippedAmmo();
-                            if (equippedAmmo != null)
-                                ClearChild(equippedAmmo); // We must clear the placement/parent when going back to peace
-                            break;
+                            case MotionStance.BowCombat:
+                            case MotionStance.CrossbowCombat:
+                            case MotionStance.AtlatlCombat:
+                                {
+                                    var equippedAmmo = GetEquippedAmmo();
+                                    if (equippedAmmo != null)
+                                        ClearChild(equippedAmmo); // We must clear the placement/parent when going back to peace
+                                    break;
+                                }
                         }
+                        break;
                     }
-                    break;
-                }
                 case CombatMode.Melee:
 
                     // todo expand checks
@@ -663,39 +676,39 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case CombatMode.Missile:
-                {
-                    if (missileWeapon == null)
-                        return;
-
-                    switch (currentCombatStance)
                     {
-                        case MotionStance.BowCombat:
-                        case MotionStance.CrossbowCombat:
-                        case MotionStance.AtlatlCombat:
-                        {
-                            var equippedAmmo = GetEquippedAmmo();
-                            if (equippedAmmo == null)
-                            {
-                                var animTime = SetCombatMode(newCombatMode);
-                                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+                        if (missileWeapon == null)
+                            return;
 
-                                var actionChain = new ActionChain();
-                                actionChain.AddDelaySeconds(animTime);
-                                actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
-                                actionChain.EnqueueChain();
-                                return;
-                            }
-                            else
-                            {
-                                // We must set the placement/parent when going into combat
-                                equippedAmmo.Placement = ACE.Entity.Enum.Placement.RightHandCombat;
-                                equippedAmmo.ParentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
-                            }
-                            break;
+                        switch (currentCombatStance)
+                        {
+                            case MotionStance.BowCombat:
+                            case MotionStance.CrossbowCombat:
+                            case MotionStance.AtlatlCombat:
+                                {
+                                    var equippedAmmo = GetEquippedAmmo();
+                                    if (equippedAmmo == null)
+                                    {
+                                        var animTime = SetCombatMode(newCombatMode);
+                                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+
+                                        var actionChain = new ActionChain();
+                                        actionChain.AddDelaySeconds(animTime);
+                                        actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
+                                        actionChain.EnqueueChain();
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        // We must set the placement/parent when going into combat
+                                        equippedAmmo.Placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                                        equippedAmmo.ParentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
+                                    }
+                                    break;
+                                }
                         }
+                        break;
                     }
-                    break;
-                }
 
                 case CombatMode.Magic:
 
