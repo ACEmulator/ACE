@@ -107,7 +107,10 @@ namespace ACE.Server.Entity
         /// </summary>
         private void AddInternal(ObjectGuid attacker, uint amount)
         {
-            TotalDamage[attacker].TotalDamage += amount;
+            // todo: investigate, this shouldn't happen?
+            // key 0 from BuildTotalDamage()
+            if (TotalDamage.ContainsKey(attacker))      
+                TotalDamage[attacker].TotalDamage += amount;
         }
 
         /// <summary>
