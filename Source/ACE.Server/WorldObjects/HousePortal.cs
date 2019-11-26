@@ -66,10 +66,12 @@ namespace ACE.Server.WorldObjects
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
-            if (activator is null || House is null || House.RootHouse is null)
+            var rootHouse = House?.RootHouse;
+
+            if (activator == null || rootHouse == null)
             {
                 log.Warn($"HousePortal.CheckUseRequirements: 0x{Guid} - {Location.ToLOCString()}");
-                log.Warn($"HousePortal.CheckUseRequirements: activator is null - {activator is null} | House is null - {House is null} | RootHouse is null - {House.RootHouse is null}");
+                log.Warn($"HousePortal.CheckUseRequirements: activator is null - {activator == null} | House is null - {House == null} | RootHouse is null - {rootHouse == null}");
                 return new ActivationResult(false);
             }
 
@@ -77,18 +79,20 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(false);
 
             if (player.CurrentLandblock.IsDungeon && Destination.LandblockId != player.CurrentLandblock.Id)
-                return new ActivationResult(true); // Allow escape to overworld always.
+                return new ActivationResult(true);   // allow escape to overworld always
 
             if (player.IgnorePortalRestrictions)
                 return new ActivationResult(true);
 
-            if (!House.RootHouse.HouseOwner.HasValue || House.RootHouse.HouseOwner == 0)
+            var houseOwner = rootHouse.HouseOwner;
+
+            if (houseOwner == null)
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
 
-            if (House.RootHouse.IsOpen && House.RootHouse.HouseOwner > 0)
+            if (rootHouse.IsOpen)
                 return new ActivationResult(true);
 
-            if (!House.RootHouse.HasPermission(player))
+            if (!rootHouse.HasPermission(player))
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
 
             return new ActivationResult(true);

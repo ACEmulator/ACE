@@ -523,7 +523,7 @@ namespace ACE.Server.WorldObjects
                     {
                         if (currentTradePartner.ItemsInTradeWindow.Contains(objectGuid))
                         {
-                            result = currentTradePartner.GetInventoryItem(objectGuid);
+                            result = currentTradePartner.GetEquippedItem(objectGuid) ?? currentTradePartner.GetInventoryItem(objectGuid);
 
                             if (result != null)
                                 return result;
