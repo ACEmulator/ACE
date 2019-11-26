@@ -1252,7 +1252,7 @@ namespace ACE.Server.WorldObjects.Managers
         public void ApplyHealingTick(List<BiotaPropertiesEnchantmentRegistry> enchantments)
         {
             var creature = WorldObject as Creature;
-            if (creature == null) return;
+            if (creature == null || creature.IsDead) return;
 
             // get the total tick amount
             var tickAmountTotal = 0.0f;
@@ -1283,7 +1283,7 @@ namespace ACE.Server.WorldObjects.Managers
         public void ApplyDamageTick(List<BiotaPropertiesEnchantmentRegistry> enchantments, DamageType damageType)
         {
             var creature = WorldObject as Creature;
-            if (creature == null) return;
+            if (creature == null || creature.IsDead) return;
 
             bool isDead = false;
             var damagers = new Dictionary<WorldObject, float>();
