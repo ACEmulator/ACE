@@ -87,13 +87,17 @@ namespace ACE.Server.WorldObjects
             var dest = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
             dest.Z += target.Height / GetAimHeight(target);
 
+            var player = this as Player;
+
             var speed = 35.0f;  // TODO: get correct speed
+            if (player != null && player.GetCharacterOption(CharacterOption.UseFastMissiles))
+                speed = 50.0f;      // this still seems kind of slow, but setting any higher hits the max velocity cap in physics engine
+
             var dir = GetDir2D(origin, dest);
             origin += dir * 2.0f;
 
             var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out time);
 
-            var player = this as Player;
             if (!velocity.IsValid())
             {
                 if (player != null)
