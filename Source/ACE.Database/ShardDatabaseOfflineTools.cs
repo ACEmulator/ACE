@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 using log4net;
 
+using ACE.Database.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -70,7 +71,8 @@ namespace ACE.Database
                 .ToList();
         }
 
-        public static void PurgeCharacter(ShardDbContext context, uint characterId, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged)
+
+        public static void PurgeCharacter(ShardDbContext context, uint characterId, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged, string reason = null)
         {
             charactersPurged = 0;
             playerBiotasPurged = 0;
@@ -118,10 +120,13 @@ namespace ACE.Database
                 charactersPurged++;
             }
 
+            var message = $"[DATABASE][PURGE] Character 0x{characterId:X8}";
             if (character != null)
-                log.Debug($"[DATABASE][PURGE] Character 0x{characterId:X8}:{character.Name}, deleted on {Common.Time.GetDateTimeFromTimestamp(character.DeleteTime).ToLocalTime()}, and {possessionsPurged} of their possessions has been purged.");
-            else
-                log.Debug($"[DATABASE][PURGE] Character 0x{characterId:X8} and {possessionsPurged} of their possessions has been purged.");
+               message += $":{character.Name}, deleted on {Common.Time.GetDateTimeFromTimestamp(character.DeleteTime).ToLocalTime()}";
+            message += $", and {possessionsPurged} of their possessions has been purged.";
+            if (!String.IsNullOrWhiteSpace(reason))
+                message += $" Reason: {reason}.";
+            log.Debug(message);
 
             try
             {
@@ -129,18 +134,17 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                // Character name might be in use or some other fault
                 log.Error($"PurgeCharacter 0x{characterId:X8} failed with exception: {ex}");
             }
         }
 
-        public static void PurgeCharacter(uint characterId, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged)
+        public static void PurgeCharacter(uint characterId, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged, string reason = null)
         {
             using (var context = new ShardDbContext())
-                PurgeCharacter(context, characterId, out charactersPurged, out playerBiotasPurged, out possessionsPurged);
+                PurgeCharacter(context, characterId, out charactersPurged, out playerBiotasPurged, out possessionsPurged, reason);
         }
 
-        public static void PurgeCharacters(ShardDbContext context, int daysLimiter, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged)
+        public static void PurgeCharactersInParallel(ShardDbContext context, int daysLimiter, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged)
         {
             var deleteLimit = Common.Time.GetUnixTime(DateTime.UtcNow.AddDays(-daysLimiter));
 
@@ -167,19 +171,314 @@ namespace ACE.Database
             possessionsPurged = possessionsPurgedTotal;
         }
 
-        public static void PurgeCharacters(int daysLimiter, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged)
+        public static void PurgeCharactersInParallel(int daysLimiter, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged)
         {
             using (var context = new ShardDbContext())
-                PurgeCharacters(context, daysLimiter, out charactersPurged, out playerBiotasPurged, out possessionsPurged);
+                PurgeCharactersInParallel(context, daysLimiter, out charactersPurged, out playerBiotasPurged, out possessionsPurged);
         }
 
 
-        /*public static bool PurgeOrphanedBiotas(ShardDbContext context, out int numberOfBiotasPurged)
+        public static void PurgePlayer(ShardDbContext context, uint playerId, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged, string reason = null)
         {
-            numberOfBiotasPurged = 0;
+            charactersPurged = 0;
+            playerBiotasPurged = 0;
+            possessionsPurged = 0;
+
+            // First purge the inventory
+            var inventoryBiotas = GetInventoryBiotas(context, playerId, true);
+
+            foreach (var biota in inventoryBiotas)
+            {
+                context.Biota.Remove(biota);
+
+                possessionsPurged++;
+            }
+
+            // Then the wielded items
+            var wieldedGuids = GetWieldedGuids(context, playerId);
+
+            foreach (var guid in wieldedGuids)
+            {
+                var stub = new Biota { Id = guid };
+                context.Biota.Attach(stub);
+                context.Biota.Remove(stub);
+
+                possessionsPurged++;
+            }
+
+            // Second to last, the character record
+            if (context.Character.Any(r => r.Id == playerId))
+            {
+                var stub = new Character { Id = playerId };
+                context.Character.Attach(stub);
+                context.Character.Remove(stub);
+
+                charactersPurged++;
+            }
+
+            // Lastly, the payer biota
+            var player = context.Biota.Include(r => r.BiotaPropertiesString).FirstOrDefault(r => r.Id == playerId);
+
+            if (player != null)
+            {
+                context.Biota.Remove(player);
+
+                playerBiotasPurged++;
+            }
+
+            var message = $"[DATABASE][PURGE] Player 0x{playerId:X8}";
+            if (player != null)
+            {
+                var name = player.GetProperty(PropertyString.Name);
+                if (!String.IsNullOrWhiteSpace(name))
+                    message += $":{name}";
+            }
+            message += $", and {possessionsPurged} of their possessions has been purged.";
+            if (!String.IsNullOrWhiteSpace(reason))
+                message += $" Reason: {reason}.";
+            log.Debug(message);
+
+            try
+            {
+                context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                log.Error($"PurgePlayer 0x{playerId:X8} failed with exception: {ex}");
+            }
+        }
+
+        public static void PurgePlayer(uint playerId, out int charactersPurged, out int playerBiotasPurged, out int possessionsPurged, string reason = null)
+        {
+            using (var context = new ShardDbContext())
+                PurgePlayer(context, playerId, out charactersPurged, out playerBiotasPurged, out possessionsPurged, reason);
+        }
+
+
+        public static readonly HashSet<WeenieType> NonPurgeableWeenieTypes = new HashSet<WeenieType>
+        {
+            WeenieType.Allegiance,
+        };
+
+        public static bool PurgeBiota(ShardDbContext context, uint id, string reason = null)
+        {
+            var biota = context.Biota
+                .Include(r => r.BiotaPropertiesString)
+                .FirstOrDefault(r => r.Id == id);
+
+            if (biota != null)
+            {
+                var message = $"[DATABASE][PURGE] Biota 0x{id:X8}";
+                var name = biota.GetProperty(PropertyString.Name);
+                if (!String.IsNullOrWhiteSpace(name))
+                    message += $":{name}";
+                message += $", WeenieType: {(WeenieType)biota.WeenieType}";
+
+                if (NonPurgeableWeenieTypes.Contains((WeenieType)biota.WeenieType))
+                {
+                    message += ", has NOT been purged due to non-purgeable WeenieType.";
+                    if (!String.IsNullOrWhiteSpace(reason))
+                        message += $" Reason: {reason}.";
+                    log.Debug(message);
+
+                    return false;
+                }
+
+                message += $", has been purged.";
+                if (!String.IsNullOrWhiteSpace(reason))
+                    message += $" Reason: {reason}.";
+                log.Debug(message);
+
+                context.Biota.Remove(biota);
+
+                try
+                {
+                    context.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"PurgeBiota 0x{id:X8} failed with exception: {ex}");
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool PurgeBiota(uint id, string reason = null)
+        {
+            using (var context = new ShardDbContext())
+                return PurgeBiota(context, id, reason);
+        }
+
+        public static void PurgeOrphanedBiotasInParallel(ShardDbContext context, out int numberOfBiotasPurged)
+        {
+            int totalNumberOfBiotasPurged = 0;
+
+            // Purge characters that do not have an associated biota
+            {
+                // select * from `character` left join biota on biota.id=`character`.id where biota.id is null;
+
+                var query = from character in context.Character
+                    join biota in context.Biota on character.Id equals biota.Id into combined
+                    from b in combined.DefaultIfEmpty()
+                    where b == null
+                    select new
+                    {
+                        id = character.Id,
+                    };
+
+                // SELECT `character`.`id`
+                // FROM `character` AS `character`
+                // LEFT JOIN `biota` AS `biota` ON `character`.`id` = `biota`.`id`
+                // WHERE `biota`.`id` IS NULL
+
+                var results = query.ToList();
+
+                Parallel.ForEach(results, result =>
+                {
+                    PurgeCharacter(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Player biota counterpart found");
+
+                    if (charactersPurged != 1)
+                        log.Error("PurgeOrphanedBiotasInParallel failed to purge exactly 1 character. This should not happen!");
+
+                    if (playerBiotasPurged != 0)
+                        log.Error("PurgeOrphanedBiotasInParallel purged a player biota and character record. This should not happen!");
+
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, posessionsPurged);
+                });
+            }
+
+            // Purge player biotas that do not have an associated character
+            {
+                // select * from biota left join `character` on character.id=biota.id where biota.id >= 0x50000000 and biota.id <= 0x5FFFFFFF and character.id is null;
+
+                var query = from biota in context.Biota
+                    join character in context.Character on biota.Id equals character.Id into combined
+                    where biota.Id >= 0x50000000 && biota.Id <= 0x5FFFFFFF
+                    from c in combined.DefaultIfEmpty()
+                    where c == null
+                    select new
+                    {
+                        id = biota.Id,
+                    };
+
+                // SELECT `biota`.`id` AS `id0`, `biota`.`populated_Collection_Flags`, `biota`.`weenie_Class_Id`, `biota`.`weenie_Type`, `character`.`id`, `character`.`account_Id`, `character`.`character_Options_1`, `character`.`character_Options_2`, `character`.`default_Hair_Texture`, `character`.`delete_Time`, `character`.`gameplay_Options`, `character`.`hair_Texture`, `character`.`is_Deleted`, `character`.`is_Plussed`, `character`.`last_Login_Timestamp`, `character`.`name`, `character`.`spellbook_Filters`, `character`.`total_Logins`
+                // FROM `biota` AS `biota`
+                // LEFT JOIN `character` AS `character` ON `biota`.`id` = `character`.`id`
+                // WHERE ((`biota`.`id` >= 1342177280) AND (`biota`.`id` <= 1610612735)) AND `character`.`id` IS NULL
+                // ORDER BY `id0`
+
+                var results = query.ToList();
+
+                Parallel.ForEach(results, result =>
+                {
+                    PurgePlayer(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Character record counterpart found");
+
+                    if (charactersPurged != 0)
+                        log.Error("PurgeOrphanedBiotasInParallel purged a character record and a player biota. This should not happen!");
+
+                    if (playerBiotasPurged != 1)
+                        log.Error("PurgeOrphanedBiotasInParallel failed to purge exactly 1 player biota. This should not happen!");
+
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, posessionsPurged);
+                });
+            }
+
+            // Purge contained items that belong to a parent container that no longer exists
+            {
+                // select * from biota_properties_i_i_d iid left join biota on biota.id=iid.`value` where iid.`type`=2 and biota.id is null;
+
+                var query = from iid in context.BiotaPropertiesIID
+                    join biota in context.Biota on iid.Value equals biota.Id into combined
+                    where iid.Type == (ushort)PropertyInstanceId.Container
+                    from b in combined.DefaultIfEmpty()
+                    where b == null
+                    select new
+                    {
+                        id = iid.ObjectId,
+                    };
+
+                // SELECT `iid`.`id`, `iid`.`object_Id` AS `id0`, `iid`.`type`, `iid`.`value`, `biota`.`id`, `biota`.`populated_Collection_Flags`, `biota`.`weenie_Class_Id`, `biota`.`weenie_Type`
+                // FROM `biota_properties_i_i_d` AS `iid`
+                // LEFT JOIN `biota` AS `biota` ON `iid`.`value` = `biota`.`id`
+                // WHERE (`iid`.`type` = 2) AND `biota`.`id` IS NULL
+                // ORDER BY `iid`.`value`
+
+                var results = query.ToList();
+
+                Parallel.ForEach(results, result =>
+                {
+                    if (PurgeBiota(result.id, "Parent container not found"))
+                        Interlocked.Increment(ref totalNumberOfBiotasPurged);
+                });
+
+            }
+
+            // Purge wielded items that belong to a parent container that no longer exists
+            {
+                // select * from biota_properties_i_i_d iid left join biota on biota.id=iid.`value` where iid.`type`=3 and biota.id is null;
+
+                var query = from iid in context.BiotaPropertiesIID
+                    join biota in context.Biota on iid.Value equals biota.Id into combined
+                    where iid.Type == (ushort)PropertyInstanceId.Wielder
+                    from b in combined.DefaultIfEmpty()
+                    where b == null
+                    select new
+                    {
+                        id = iid.ObjectId,
+                    };
+
+                // SELECT `iid`.`id`, `iid`.`object_Id` AS `id0`, `iid`.`type`, `iid`.`value`, `biota`.`id`, `biota`.`populated_Collection_Flags`, `biota`.`weenie_Class_Id`, `biota`.`weenie_Type`
+                // FROM `biota_properties_i_i_d` AS `iid`
+                // LEFT JOIN `biota` AS `biota` ON `iid`.`value` = `biota`.`id`
+                // WHERE (`iid`.`type` = 3) AND `biota`.`id` IS NULL
+                // ORDER BY `iid`.`value`
+
+                var results = query.ToList();
+
+                Parallel.ForEach(results, result =>
+                {
+                    if (PurgeBiota(result.id, "Parent wielder not found"))
+                        Interlocked.Increment(ref totalNumberOfBiotasPurged);
+                });
+
+            }
+
+            // Purge biotas that don't have a parent Container, Wielder or Location
+            {
+                var results = context.Biota
+                    .Include(r => r.BiotaPropertiesIID)
+                    .Include(r => r.BiotaPropertiesPosition)
+                    .Where(r => r.BiotaPropertiesIID.All(y => y.Type != (ushort)PropertyInstanceId.Container && y.Type != (ushort)PropertyInstanceId.Wielder))
+                    .Where(r => r.BiotaPropertiesPosition.All(y => y.PositionType != (ushort)PositionType.Location))
+                    .AsNoTracking()
+                    .ToList();
+
+                // This is very time consuming
+                Parallel.ForEach(results, result =>
+                {
+                    if (PurgeBiota(result.Id, "No parent Container, parent Wielder, or Location"))
+                        Interlocked.Increment(ref totalNumberOfBiotasPurged);
+                });
+            }
+
+            numberOfBiotasPurged = totalNumberOfBiotasPurged;
+
+
+
 
             // WIP code, not ready for production
-            return false;
+
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // NOTE: Fixing things like Allegiances, houses, etc.. where biotas aren't being pruned, but instead modified and integrity is being validated should be a different function
+            // NOTE: Perhaps FixBiotasWithBrokenLinks()
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             //var context = new ShardDbContext();
 
@@ -506,10 +805,10 @@ namespace ACE.Database
             //return true;
         }
 
-        public static bool PurgeOrphanedBiotas(out int numberOfBiotasPurged)
+        public static void PurgeOrphanedBiotasInParallel(out int numberOfBiotasPurged)
         {
             using (var context = new ShardDbContext())
-                return PurgeOrphanedBiotas(context, out numberOfBiotasPurged);
-        }*/
+                PurgeOrphanedBiotasInParallel(context, out numberOfBiotasPurged);
+        }
     }
 }

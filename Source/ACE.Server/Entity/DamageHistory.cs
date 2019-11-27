@@ -51,6 +51,8 @@ namespace ACE.Server.Entity
             }
         }
 
+        public float TotalHealth => TotalDamage.Values.Sum(i => i.TotalDamage);
+
         /// <summary>
         /// Returns the DamageHistoryInfo for the top damager
         /// for determining 'Killed by' corpse looting rights
@@ -79,7 +81,7 @@ namespace ACE.Server.Entity
         /// <param name="amount">The amount of damage hit for</param>
         public void Add(WorldObject attacker, DamageType damageType, uint amount)
         {
-            //Console.WriteLine($"DamageHistory.Add({Creature.Name}, {amount})");
+            //Console.WriteLine($"{Creature.Name}.DamageHistory.Add({attacker.Name}, {damageType}, {amount})");
 
             if (amount == 0) return;
 
@@ -105,7 +107,10 @@ namespace ACE.Server.Entity
         /// </summary>
         private void AddInternal(ObjectGuid attacker, uint amount)
         {
-            TotalDamage[attacker].TotalDamage += amount;
+            // todo: investigate, this shouldn't happen?
+            // key 0 from BuildTotalDamage()
+            if (TotalDamage.ContainsKey(attacker))      
+                TotalDamage[attacker].TotalDamage += amount;
         }
 
         /// <summary>

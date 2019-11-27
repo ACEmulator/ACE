@@ -2688,5 +2688,13 @@ namespace ACE.Server.Command.Handlers
             var spell = new Spell(SpellId.SlownessSelf8);
             session.Player.CreateEnchantment(session.Player, session.Player, spell);
         }
+
+        [CommandHandler("rip", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleRip(Session session, params string[] parameters)
+        {
+            // insta-death, without the confirmation dialog from /die
+            // useful during developer testing
+            session.Player.TakeDamage(session.Player, DamageType.Bludgeon, session.Player.Health.Current);
+        }
     }
 }

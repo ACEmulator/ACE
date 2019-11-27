@@ -92,7 +92,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoHealMotion(Player healer, Player target, bool success)
         {
-            if (!success)
+            if (!success || target.IsDead || target.Teleporting)
             {
                 healer.SendUseDoneEvent();
                 return;
@@ -134,6 +134,8 @@ namespace ACE.Server.WorldObjects
 
         public void DoHealing(Player healer, Player target)
         {
+            if (target.IsDead || target.Teleporting) return;
+
             var remainingMsg = "";
 
             if (!UnlimitedUse)

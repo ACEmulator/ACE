@@ -1074,7 +1074,7 @@ namespace ACE.Server.WorldObjects.Managers
                             var destination = new Position(emote.ObjCellId.Value, emote.OriginX.Value, emote.OriginY.Value, emote.OriginZ.Value, emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value);
 
                             WorldObject.AdjustDungeon(destination);
-                            player.ThreadSafeTeleport(destination);
+                            WorldManager.ThreadSafeTeleport(player, destination);
                         }
                     }
                     break;
@@ -1204,10 +1204,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     message = Replace(text, WorldObject, targetObject, emoteSet.Quest);
 
-                    var onlinePlayers = PlayerManager.GetAllOnline();
-
-                    foreach (var session in onlinePlayers)
-                        session.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
+                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
 
                     break;
 
@@ -1293,32 +1290,47 @@ namespace ACE.Server.WorldObjects.Managers
             }
 
             IsBusy = true;
+
             var emote = emoteSet.BiotaPropertiesEmoteAction.ElementAt(emoteIdx);
 
-            var actionChain = new ActionChain();
+            if (delay + emote.Delay > 0)
+            {
+                var actionChain = new ActionChain();
+
+                if (Debug)
+                    actionChain.AddAction(WorldObject, () => Console.Write($"{emote.Delay} - "));
+
+                // delay = post-delay from actual time of previous emote
+                // emote.Delay = pre-delay for current emote
+                actionChain.AddDelaySeconds(delay + emote.Delay);
+
+                actionChain.AddAction(WorldObject, () => DoEnqueue(emoteSet, targetObject, emoteIdx, emote));
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                DoEnqueue(emoteSet, targetObject, emoteIdx, emote);
+            }
+        }
+
+        /// <summary>
+        /// This should only be called by Enqueue
+        /// </summary>
+        private void DoEnqueue(BiotaPropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx, BiotaPropertiesEmoteAction emote)
+        {
+            if (Debug)
+                Console.Write($"{(EmoteType)emote.Type}");
+
+            var nextDelay = ExecuteEmote(emoteSet, emote, targetObject);
 
             if (Debug)
-                actionChain.AddAction(WorldObject, () => Console.Write($"{emote.Delay} - "));
+                Console.WriteLine($" - { nextDelay}");
 
-            // post-delay from actual time of previous emote
-            actionChain.AddDelaySeconds(delay);
-
-            // pre-delay for current emote
-            actionChain.AddDelaySeconds(emote.Delay);
-
-            actionChain.AddAction(WorldObject, () =>
+            if (emoteIdx < emoteSet.BiotaPropertiesEmoteAction.Count - 1)
+                Enqueue(emoteSet, targetObject, emoteIdx + 1, nextDelay);
+            else
             {
-                if (Debug)
-                    Console.Write($"{(EmoteType)emote.Type}");
-
-                var nextDelay = ExecuteEmote(emoteSet, emote, targetObject);
-
-                if (Debug)
-                    Console.WriteLine($" - { nextDelay}");
-
-                if (emoteIdx < emoteSet.BiotaPropertiesEmoteAction.Count - 1)
-                    Enqueue(emoteSet, targetObject, emoteIdx + 1, nextDelay);
-                else
+                if (nextDelay > 0)
                 {
                     var delayChain = new ActionChain();
                     delayChain.AddDelaySeconds(nextDelay);
@@ -1331,8 +1343,14 @@ namespace ACE.Server.WorldObjects.Managers
                     });
                     delayChain.EnqueueChain();
                 }
-            });
-            actionChain.EnqueueChain();
+                else
+                {
+                    Nested--;
+
+                    if (Nested == 0)
+                        IsBusy = false;
+                }
+            }
         }
 
         /// <summary>
