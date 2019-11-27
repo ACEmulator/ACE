@@ -212,8 +212,6 @@ namespace ACE.Server.WorldObjects
 
                 ThreadSafeTeleportOnDeath(); // enter portal space
 
-                SetLifestoneProtection();
-
                 if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
                     SetMinimumTimeSincePK();
 
@@ -232,9 +230,11 @@ namespace ACE.Server.WorldObjects
             var newPosition = Sanctuary ?? Instantiation ?? Location;
 
             WorldManager.ThreadSafeTeleport(this, newPosition, new ActionEventDelegate(() =>
-            { 
+            {
                 // Stand back up
                 SetCombatMode(CombatMode.NonCombat);
+
+                SetLifestoneProtection();
 
                 var teleportChain = new ActionChain();
                 teleportChain.AddDelaySeconds(3.0f);
