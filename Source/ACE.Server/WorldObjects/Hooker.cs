@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
             if (!IsHooked(player, out var hook))
                 return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemOnlyUsableOnHook, Name));
 
-            if (!hook.HouseOwner.HasValue || hook.HouseOwner.Value == 0 || (!hook.House.OpenStatus && !hook.House.HasPermission(player)))
+            if (hook.HouseOwner == null || (!hook.House.OpenStatus && !hook.House.HasPermission(player)))
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouAreNotPermittedToUseThatHook));
 
             var baseRequirements = base.CheckUseRequirements(activator);

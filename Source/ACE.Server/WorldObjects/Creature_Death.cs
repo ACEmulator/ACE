@@ -149,6 +149,11 @@ namespace ACE.Server.WorldObjects
             if (this is Player && PlayerKillerStatus == PlayerKillerStatus.PKLite)
                 return;
 
+            var totalHealth = DamageHistory.TotalHealth;
+
+            if (totalHealth == 0)
+                return;
+
             foreach (var kvp in DamageHistory.TotalDamage)
             {
                 var damager = kvp.Value.TryGetAttacker();
@@ -163,7 +168,8 @@ namespace ACE.Server.WorldObjects
 
                 var totalDamage = kvp.Value.TotalDamage;
 
-                var damagePercent = totalDamage / Health.MaxValue;
+                var damagePercent = totalDamage / totalHealth;
+
                 var totalXP = (XpOverride ?? 0) * damagePercent;
 
                 // should this be passed upstream to fellowship / allegiance?

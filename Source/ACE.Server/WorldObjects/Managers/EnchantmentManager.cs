@@ -1252,7 +1252,7 @@ namespace ACE.Server.WorldObjects.Managers
         public void ApplyHealingTick(List<BiotaPropertiesEnchantmentRegistry> enchantments)
         {
             var creature = WorldObject as Creature;
-            if (creature == null) return;
+            if (creature == null || creature.IsDead) return;
 
             // get the total tick amount
             var tickAmountTotal = 0.0f;
@@ -1283,8 +1283,9 @@ namespace ACE.Server.WorldObjects.Managers
         public void ApplyDamageTick(List<BiotaPropertiesEnchantmentRegistry> enchantments, DamageType damageType)
         {
             var creature = WorldObject as Creature;
-            if (creature == null) return;
+            if (creature == null || creature.IsDead) return;
 
+            bool isDead = false;
             var damagers = new Dictionary<WorldObject, float>();
 
             // get the total tick amount
@@ -1308,6 +1309,10 @@ namespace ACE.Server.WorldObjects.Managers
                     continue;
                 }
 
+                // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
+                if (WorldObject is Player _player && damager is Player && !_player.IsPKType)
+                    continue;
+
                 // get damage / damage resistance rating here for now?
                 var heritageMod = 1.0f;
                 if (damager is Player player)
@@ -1324,6 +1329,13 @@ namespace ACE.Server.WorldObjects.Managers
 
                 tickAmount *= damageRatingMod * damageResistRatingMod * dotResistRatingMod;
 
+                // make sure the target's current health is not exceeded
+                if (tickAmountTotal + tickAmount >= creature.Health.Current)
+                {
+                    tickAmount = creature.Health.Current - tickAmountTotal;
+                    isDead = true;
+                }
+
                 if (damagers.ContainsKey(damager))
                     damagers[damager] += tickAmount;
                 else
@@ -1332,6 +1344,8 @@ namespace ACE.Server.WorldObjects.Managers
                 creature.DamageHistory.Add(damager, damageType, (uint)Math.Round(tickAmount));
 
                 tickAmountTotal += tickAmount;
+
+                if (isDead) break;
             }
 
             creature.TakeDamageOverTime(tickAmountTotal, damageType);

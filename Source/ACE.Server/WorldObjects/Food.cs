@@ -95,6 +95,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void ApplyConsumable(Player player)
         {
+            if (player.IsDead) return;
+
             var buffType = (ConsumableBuffType)BoosterEnum;
             GameMessageSystemChat buffMessage = null;
 

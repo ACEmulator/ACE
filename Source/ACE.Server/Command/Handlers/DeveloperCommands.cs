@@ -2344,7 +2344,18 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("testdeathitems", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Test death item selection", "")]
         public static void HandleTestDeathItems(Session session, params string[] parameters)
         {
-            var inventory = session.Player.GetAllPossessions();
+            var target = session.Player;
+            if (parameters.Length > 0)
+            {
+                target = PlayerManager.GetOnlinePlayer(parameters[0]);
+                if (target == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            var inventory = target.GetAllPossessions();
             var sorted = new DeathItems(inventory);
 
             var i = 0;
@@ -2676,6 +2687,14 @@ namespace ACE.Server.Command.Handlers
         {
             var spell = new Spell(SpellId.SlownessSelf8);
             session.Player.CreateEnchantment(session.Player, session.Player, spell);
+        }
+
+        [CommandHandler("rip", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleRip(Session session, params string[] parameters)
+        {
+            // insta-death, without the confirmation dialog from /die
+            // useful during developer testing
+            session.Player.TakeDamage(session.Player, DamageType.Bludgeon, session.Player.Health.Current);
         }
     }
 }
