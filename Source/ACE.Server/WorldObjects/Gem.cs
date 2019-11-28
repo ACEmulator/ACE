@@ -46,10 +46,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject activator)
         {
-            ActOnUse_Gem(activator);
+            ActOnUse(activator, false);
         }
 
-        public void ActOnUse_Gem(WorldObject activator, bool confirmed = false)
+        public void ActOnUse(WorldObject activator, bool confirmed)
         {
             if (!(activator is Player player))
                 return;
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
             if (RareId != null && player.GetCharacterOption(CharacterOption.ConfirmUseOfRareGems) && !confirmed)
             {
                 var msg = $"Are you sure you want to use {Name}?";
-                var confirm = new Confirmation_Custom(player.Guid, () => ActOnUse_Gem(activator, true));
+                var confirm = new Confirmation_Custom(player.Guid, () => ActOnUse(activator, true));
                 player.ConfirmationManager.EnqueueSend(confirm, msg);
                 return;
             }
