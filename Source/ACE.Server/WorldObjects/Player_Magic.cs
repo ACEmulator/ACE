@@ -554,6 +554,15 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            //actionChain.AddAction(this, () => DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus));
+            //actionChain.EnqueueChain();
+
+            if (IsDead)
+            {
+                FinishCast(WeenieError.None);
+                return;
+            }
+
             DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
         }
 
