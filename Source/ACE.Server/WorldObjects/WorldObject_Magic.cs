@@ -1463,7 +1463,7 @@ namespace ACE.Server.WorldObjects
             }
 
             LandblockManager.AddObject(sp);
-            sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, ACE.Entity.Enum.PlayScript.Launch, sp.GetProjectileScriptIntensity(sp.SpellType)));
+            sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(sp.SpellType)));
 
             if (sp.ProjectileTarget == null || sp.PhysicsObj == null || sp.ProjectileTarget.PhysicsObj == null)
                 return;
