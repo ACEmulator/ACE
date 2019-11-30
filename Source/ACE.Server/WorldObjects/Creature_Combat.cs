@@ -881,7 +881,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             target.EnchantmentManager.Add(spell, this);
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDefenseDebuff));
 
             FightDirty_SendMessage(target, spell);
         }
@@ -902,7 +902,7 @@ namespace ACE.Server.WorldObjects
             target.EnchantmentManager.Add(spell, this);
 
             // only send if not already applied?
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDamageOverTime));
 
             FightDirty_SendMessage(target, spell);
         }
@@ -921,7 +921,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             target.EnchantmentManager.Add(spell, this);
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingAttackDebuff));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingAttackDebuff));
 
             FightDirty_SendMessage(target, spell);
 
@@ -933,7 +933,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             target.EnchantmentManager.Add(spell, this);
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingHealDebuff));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingHealDebuff));
 
             FightDirty_SendMessage(target, spell);
         }

@@ -32,7 +32,7 @@ namespace ACE.Server.WorldObjects
                 if (IsVitalMaxRank(creatureVital.Ranks))
                 {
                     // fireworks
-                    PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {attribute.ToSentence()} is now {creatureVital.Base} and has reached its upper limit!";
                 }
                 else
