@@ -70,7 +70,7 @@ namespace ACE.Server.Entity
                 player.GrantXP(totalXPGranted, XpType.Proficiency, ShareType.None);
 
                 // send PP to player as skill XP, which gets spent from the CP sent
-                player.RaiseSkillGameAction(skill.Skill, pp);
+                player.HandleActionRaiseSkill(skill.Skill, pp);
             }
         }
 
