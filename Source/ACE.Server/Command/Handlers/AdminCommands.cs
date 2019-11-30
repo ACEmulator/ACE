@@ -2375,9 +2375,6 @@ namespace ACE.Server.Command.Handlers
 
             if (wo != null && wo is Creature creature)
             {
-                if (creature.QuestManager == null)
-                    creature.QuestManager = new QuestManager(creature);
-
                 if (parameters[0].Equals("list"))
                 {
                     var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";

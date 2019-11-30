@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects
         public ContractManager ContractManager;
 
         public bool LastContact = true;
-        public bool IsJumping = false;
+        public bool IsJumping;
 
         public ConfirmationManager ConfirmationManager;
 
@@ -55,10 +55,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Player(Weenie weenie, ObjectGuid guid, uint accountId) : base(weenie, guid)
         {
-            Character = new Character();
-            Character.Id = guid.Full;
-            Character.AccountId = accountId;
-            Character.Name = GetProperty(PropertyString.Name);
+            Character = new Character
+            {
+                Id = guid.Full,
+                AccountId = accountId,
+                Name = GetProperty(PropertyString.Name)
+            };
+
             CharacterChangesDetected = true;
 
             Account = DatabaseManager.Authentication.GetAccountById(Character.AccountId);
@@ -115,14 +118,10 @@ namespace ACE.Server.WorldObjects
 
             if (Session != null && Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
-                if (Session.AccessLevel == AccessLevel.Admin)
-                    IsAdmin = true;
-                if (Session.AccessLevel == AccessLevel.Developer)
-                    IsArch = true;
-                if (Session.AccessLevel == AccessLevel.Envoy || Session.AccessLevel == AccessLevel.Sentinel)
-                    IsSentinel = true;
-                if (Session.AccessLevel == AccessLevel.Advocate)
-                    IsAdvocate = true;
+                IsAdmin |= Session.AccessLevel == AccessLevel.Admin;
+                IsArch |= Session.AccessLevel == AccessLevel.Developer;
+                IsSentinel |= (Session.AccessLevel == AccessLevel.Envoy || Session.AccessLevel == AccessLevel.Sentinel);
+                IsAdvocate |= Session.AccessLevel == AccessLevel.Advocate;
             }
 
             ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
@@ -131,13 +130,10 @@ namespace ACE.Server.WorldObjects
             {
                 if (Session.AccessLevel == AccessLevel.Player)
                     Session.SetAccessLevel(AccessLevel.Advocate); // Elevate to Advocate permissions
-                if (AdvocateLevel > 4)
-                    IsPsr = true; // Enable AdvocateTeleport via MapClick
+                IsPsr |= AdvocateLevel > 4; // Enable AdvocateTeleport via MapClick
             }
 
             CombatTable = DatManager.PortalDat.ReadFromDat<CombatManeuverTable>(CombatTableDID.Value);
-
-            QuestManager = new QuestManager(this);
 
             ContractManager = new ContractManager(this);
 
@@ -246,8 +242,7 @@ namespace ACE.Server.WorldObjects
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
             }
 
-            if (creature is Pet || creature is CombatPet)
-                success = true;
+            success |= (creature is Pet || creature is CombatPet);
 
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
@@ -442,9 +437,7 @@ namespace ACE.Server.WorldObjects
                 // close any open landblock containers (chests / corpses)
                 if (LastOpenedContainerId != ObjectGuid.Invalid)
                 {
-                    var container = CurrentLandblock.GetObject(LastOpenedContainerId) as Container;
-
-                    if (container != null)
+                    if (CurrentLandblock.GetObject(LastOpenedContainerId) is Container container)
                         container.Close(this);
                 }
 
@@ -739,9 +732,12 @@ namespace ACE.Server.WorldObjects
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
             // running forward and then performing a charged jump does an uncharged shallow arc jump instead
             // this hack fixes that...
-            var movementData = new MovementData(this);
-            movementData.IsAutonomous = true;
-            movementData.MovementType = MovementType.Invalid;
+            var movementData = new MovementData(this)
+            {
+                IsAutonomous = true,
+                MovementType = MovementType.Invalid
+            };
+
             movementData.Invalid = new MovementInvalid(movementData);
             EnqueueBroadcast(new GameMessageUpdateMotion(this, movementData));
 
@@ -790,11 +786,13 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"{Name}.OnRunRateChanged()");
 
-            CurrentMovementData = new MovementData(this, CurrentMoveToState);
+            CurrentMovementData = new MovementData(this, CurrentMoveToState)
+            {
 
-            // verify - forced commands from server should be non-autonomous, but could have been sent as autonomous in retail?
-            // if set to autonomous here, the desired effect doesn't happen
-            CurrentMovementData.IsAutonomous = false;
+                // verify - forced commands from server should be non-autonomous, but could have been sent as autonomous in retail?
+                // if set to autonomous here, the desired effect doesn't happen
+                IsAutonomous = false
+            };
 
             var movementEvent = new GameMessageUpdateMotion(this, CurrentMovementData);
             EnqueueBroadcast(movementEvent);    // broadcast to all players, including self

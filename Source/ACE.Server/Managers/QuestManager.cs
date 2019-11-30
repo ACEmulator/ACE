@@ -21,15 +21,13 @@ namespace ACE.Server.Managers
         public Creature Creature { get; }
 
         public Fellowship Fellowship { get; }
-        private ICollection<CharacterPropertiesQuestRegistry> FellowQuests { get; set; } = new HashSet<CharacterPropertiesQuestRegistry>();
+        private ICollection<CharacterPropertiesQuestRegistry> RuntimeQuests { get; set; } = new HashSet<CharacterPropertiesQuestRegistry>();
 
         public string Name
         {
             get
             {
-                if (Creature is Player player)
-                    return player.Name;
-                else if (Creature != null)
+                if (Creature != null)
                     return Creature.Name;
                 else
                     return $"Fellowship({Fellowship.FellowshipName})";
@@ -40,9 +38,7 @@ namespace ACE.Server.Managers
         {
             get
             {
-                if (Creature is Player player)
-                    return player.Guid.Full;
-                else if (Creature != null)
+                if (Creature != null)
                     return Creature.Guid.Full;
                 else
                     return 1;
@@ -57,19 +53,11 @@ namespace ACE.Server.Managers
                 if ((Creature as Player) != null)
                     return (Creature as Player).Character.CharacterPropertiesQuestRegistry;
                 else
-                    return FellowQuests;
+                    return RuntimeQuests;
             }
         }
 
-        public static bool Debug = false;
-
-        /// <summary>
-        /// Constructs a new QuestManager for a Player
-        /// </summary>
-        public QuestManager(Creature creature)
-        {
-            Creature = creature;
-        }
+        public static bool Debug;
 
         /// <summary>
         /// Constructs a new QuestManager for a Fellowship
@@ -77,6 +65,14 @@ namespace ACE.Server.Managers
         public QuestManager(Fellowship fellowship)
         {
             Fellowship = fellowship;
+        }
+
+        /// <summary>
+        /// Constructs a new QuestManager for a Creature
+        /// </summary>
+        public QuestManager(Creature creature)
+        {
+            Creature = creature;
         }
 
         /// <summary>
@@ -156,11 +152,7 @@ namespace ACE.Server.Managers
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.Update({quest}): added quest");
 
                 Quests.Add(info);
-                if (player != null)
-                {
-                    player.CharacterChangesDetected = true;
-                    player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
-                }
+                NotifyPlayerOfUpdate(info);
             }
             else
             {
@@ -174,11 +166,16 @@ namespace ACE.Server.Managers
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted++;
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
-                if (player != null)
-                {
-                    player.CharacterChangesDetected = true;
-                    player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
-                }
+                NotifyPlayerOfUpdate(existing);
+            }
+        }
+
+        private void NotifyPlayerOfUpdate(CharacterPropertiesQuestRegistry quest)
+        {
+            if (Creature is Player player)
+            {
+                player.CharacterChangesDetected = true;
+                player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
             }
         }
 
@@ -212,11 +209,7 @@ namespace ACE.Server.Managers
 
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {info.NumTimesCompleted}");
                 Quests.Add(info);
-                if (player != null)
-                {
-                    player.CharacterChangesDetected = true;
-                    player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
-                }
+                NotifyPlayerOfUpdate(info);
             }
             else
             {
@@ -224,11 +217,7 @@ namespace ACE.Server.Managers
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted = numTimeCompleted;
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {existing.NumTimesCompleted}");
-                if (player != null)
-                {
-                    player.CharacterChangesDetected = true;
-                    player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
-                }
+                NotifyPlayerOfUpdate(existing);
             }
         }
 

@@ -1,4 +1,4 @@
-﻿namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum
 {
     /// <summary>
     /// exported from the decompiled client.  actual usage of these is 100% speculative.
@@ -128,5 +128,16 @@
         AddContract                   = 119,
         RemoveContract                = 120,
         InqContractsFull              = 121
+    }
+
+    public static class EmoteTypeExtensions
+    {
+        public static bool IsMyQuestEmote(this EmoteType emoteType)
+        {
+            return emoteType >= EmoteType.UpdateMyQuest && emoteType <= EmoteType.SetMyQuestCompletions
+                || emoteType >= EmoteType.InqMyQuestBitsOn && emoteType <= EmoteType.InqMyQuestBitsOff
+                || emoteType >= EmoteType.SetMyQuestBitsOn && emoteType <= EmoteType.SetMyQuestBitsOff;
+        }
+
     }
 }
