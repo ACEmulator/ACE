@@ -351,7 +351,7 @@ namespace ACE.Server.Command.Handlers
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
                     message += "-------------------\n";
                     foreach (var character in characters.Where(x => !x.IsDeleted && x.DeleteTime == 0))
-                        message += $"\"{(character.IsPlussed ? "+" : "")}{character.Name}\", ID 0x{character.Id.ToString("X8")}\n";                    
+                        message += $"\"{(character.IsPlussed ? "+" : "")}{character.Name}\", ID 0x{character.Id.ToString("X8")}\n";
                     var pendingDeletedCharacters = characters.Where(x => !x.IsDeleted && x.DeleteTime > 0).ToList();
                     if (pendingDeletedCharacters.Count > 0)
                     {
@@ -855,7 +855,7 @@ namespace ACE.Server.Command.Handlers
                             creature.Smite(session.Player, useTakeDamage);
                     }
 
-                    PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} used smite all.");
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite all.");
                 }
                 else
                 {
@@ -950,7 +950,7 @@ namespace ACE.Server.Command.Handlers
             player.SetPosition(PositionType.TeleportedCharacter, currentPos);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you.", ChatMessageType.Magic));
 
-            PlayerManager.BroadcastToAuditChannel(session.Player,$"{session.Player.Name} has teleported {player.Name} to them.");
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has teleported {player.Name} to them.");
         }
 
         /// <summary>
@@ -1009,7 +1009,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a named Point of Interest",
             "[POI|list]\n" +
-            "@telepoi Arwic\n"+
+            "@telepoi Arwic\n" +
             "Get the list of POIs\n" +
             "@telepoi list")]
         public static void HandleTeleportPoi(Session session, params string[] parameters)
@@ -1731,7 +1731,7 @@ namespace ACE.Server.Command.Handlers
             biotas.Add((session.Player.Biota, session.Player.BiotaDatabaseLock));
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
         }
-            
+
         private static void DoGodMode(bool playerSaved, Session session, bool exceptionReturn = false)
         {
             if (!playerSaved)
@@ -1771,7 +1771,7 @@ namespace ACE.Server.Command.Handlers
                 // 1 through 6 str, end, coord, quick, focus, self
                 foreach (var att in biota.BiotaPropertiesAttribute)
                 {
-                    if(att.Type > 0 && att.Type <= 6)
+                    if (att.Type > 0 && att.Type <= 6)
                     {
                         returnState += $"{att.Type}=";
                         returnState += $"{att.InitLevel}=";
@@ -1784,13 +1784,13 @@ namespace ACE.Server.Command.Handlers
                 // 1, 3, 5 H,S,M (2,4,6 are current values and are not stored since they will be maxed entering/exiting godmode)
                 foreach (var attSec in biota.BiotaPropertiesAttribute2nd)
                 {
-                    if(attSec.Type == 1 || attSec.Type == 3 || attSec.Type == 5)
+                    if (attSec.Type == 1 || attSec.Type == 3 || attSec.Type == 5)
                     {
                         returnState += $"{attSec.Type}=";
                         returnState += $"{attSec.InitLevel}=";
                         returnState += $"{attSec.LevelFromCP}=";
                         returnState += $"{attSec.CPSpent}=";
-                        returnState += $"{attSec.CurrentLevel}="; 
+                        returnState += $"{attSec.CurrentLevel}=";
                     }
                 }
 
@@ -1819,7 +1819,7 @@ namespace ACE.Server.Command.Handlers
 
                 // save return state to db in property string
                 session.Player.SetProperty(PropertyString.GodState, returnState);
-                session.Player.SaveBiotaToDatabase(); 
+                session.Player.SaveBiotaToDatabase();
             }
 
             // Begin Godly Stats Increase
@@ -1888,7 +1888,7 @@ namespace ACE.Server.Command.Handlers
             // @ungod - Returns skills and attributues to pre-god levels.
             Player currentPlayer = session.Player;
             string returnString = session.Player.GodState;
-            
+
             if (returnString == null)
             {
                 ChatPacket.SendServerMessage(session, "Can't get any more ungodly than you already are...", ChatMessageType.Broadcast);
@@ -1898,7 +1898,7 @@ namespace ACE.Server.Command.Handlers
             {
                 try
                 {
-                   string[] returnStringArr = returnString.Split("=");
+                    string[] returnStringArr = returnString.Split("=");
 
                     // correctly formatted return string should have 240 entries
                     // if the construction of the string changes - this will need to be updated to match
@@ -1996,7 +1996,7 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, "You are now a magic god!!!", ChatMessageType.Broadcast);
         }
 
-        
+
         [CommandHandler("modifyvital", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts the maximum vital attribute for the last appraised mob/player and restores full vitals", "<Health|Stamina|Mana> <delta>")]
         public static void HandleModifyVital(Session session, params string[] parameters)
         {
@@ -2250,7 +2250,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));            
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));
 
             var guid = GuidManager.NewPlayerGuid();
 
@@ -3006,35 +3006,416 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("verify-xp", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes skill ranks from spec temple")]
-        public static void HandleVerifySkill(Session session, params string[] parameters)
+        [CommandHandler("verify-ranks", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes various legacy bugs with attribute/vital/skill ranks and xp")]
+        public static void HandleVerifyRanks(Session session, params string[] parameters)
+        {
+            HandleVerifyAttributes(session, parameters);
+            HandleVerifyVitals(session, parameters);
+            HandleVerifySkills(session, parameters);
+        }
+
+        [CommandHandler("verify-skills", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes various legacy bugs with skill ranks and xp")]
+        public static void HandleVerifySkills(Session session, params string[] parameters)
         {
             var players = PlayerManager.GetAllOffline();
 
+            uint totalSkillsVerified = 0;
+            uint totalPlayersVerified = 0;
+
+            var unknownSkillPlayers = new HashSet<uint>();
+
             foreach (var player in players)
             {
+                totalPlayersVerified++;
                 var updated = false;
 
                 foreach (var skill in player.Biota.BiotaPropertiesSkill)
                 {
+                    if (!Player.PlayerSkills.Contains((Skill)skill.Type))
+                    {
+                        unknownSkillPlayers.Add(player.Guid.Full);
+
+                        // if no pp/ranks, silently remove/continue?
+                        if (skill.PP == 0 && skill.LevelFromPP == 0)
+                            continue;
+
+                        Console.WriteLine($"{player.Name} has unknown skill {(Skill)skill.Type}");
+                        Console.WriteLine($"Advancement class: {(SkillAdvancementClass)skill.SAC}, Proficiency points: {skill.PP:N0}, Rank: {skill.LevelFromPP}");
+                        continue;
+                    }
+
                     var rank = skill.LevelFromPP;
 
                     var sac = (SkillAdvancementClass)skill.SAC;
                     if (sac < SkillAdvancementClass.Trained)
                         continue;
 
-                    var correctRank = Player.CalcSkillRank(sac, skill.PP);
+                    totalSkillsVerified++;
 
+                    // verify skill rank
+                    var correctRank = Player.CalcSkillRank(sac, skill.PP);
                     if (rank != correctRank)
                     {
                         Console.WriteLine($"{player.Name}'s {(Skill)skill.Type} rank is {rank}, should be {correctRank}");
                         skill.LevelFromPP = (ushort)correctRank;
                         updated = true;
                     }
+
+                    // verify skill xp is within bounds
+
+                    // in retail, if a player had a trained skill maxed out, and then they speced it in spec temple,
+                    // they would sort of temporarily 'lose' that ~103m xp, unless they reset the trained skill, and then speced it
+
+                    // so the data can be in a legit situation here where a character has a skill speced,
+                    // but their xp is beyond the spec xp cap (4,100,490,438) and <= the trained xp cap (4,203,819,496)
+
+                    //var skillXPTable = Player.GetSkillXPTable(sac);
+                    var skillXPTable = Player.GetSkillXPTable(SkillAdvancementClass.Trained);
+                    var maxSkillXp = skillXPTable[skillXPTable.Count - 1];
+
+                    if (skill.PP > maxSkillXp)
+                    {
+                        var specTempleAte = skill.PP - maxSkillXp;
+                        Console.WriteLine($"{player.Name}'s {sac} {(Skill)skill.Type} skill total xp is {skill.PP:N0}, should be capped at {maxSkillXp:N0}");
+                        skill.PP = maxSkillXp;
+                        updated = true;
+
+                        // we could refund specTempleAte by adding it to AvailableExperience here
+                        // however, instead of operating with deltas, i think it would be much more consistent
+                        // to have a formula that adds up all of the XP consumed, and verify AvailableExperience = TotalExperience - calculated XP consumed
+                    }
+
                 }
-                if (updated)
-                    player.SaveBiotaToDatabase();
+                //if (updated)
+                //player.SaveBiotaToDatabase();
             }
+
+            Console.WriteLine($"Total players verified: {totalPlayersVerified:N0}");
+            Console.WriteLine($"Total skills verified: {totalSkillsVerified:N0}");
+            Console.WriteLine($"Unknown skill players: {unknownSkillPlayers.Count:N0}");
+        }
+
+        [CommandHandler("verify-heritage-augs", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies all players have their heritage augs.")]
+        public static void HandleVerifyHeritageAugs(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllOffline();
+
+            foreach (var player in players)
+            {
+                var heritage = (HeritageGroup?)player.GetProperty(PropertyInt.HeritageGroup);
+                if (heritage == null)
+                {
+                    Console.WriteLine($"Couldn't find heritage for {player.Name}");
+                    continue;
+                }
+
+                var heritageAug = GetHeritageAug(heritage.Value);
+                if (heritageAug == null)
+                {
+                    Console.WriteLine($"Couldn't find heritage aug for {heritage} player {player.Name}");
+                    continue;
+                }
+
+                var numAugs = player.GetProperty(heritageAug.Value) ?? 0;
+                if (numAugs < 1)
+                {
+                    Console.WriteLine($"{heritageAug}={numAugs} for {heritage} player {player.Name} -- fixing");
+
+                    player.SetProperty(heritageAug.Value, 1);
+                    player.SaveBiotaToDatabase();
+                }
+            }
+        }
+
+        public static Dictionary<PropertyInt, string> AugmentationDevices = new Dictionary<PropertyInt, string>()
+        {
+            { PropertyInt.AugmentationBonusImbueChance,             "gemaugmentationluckonimbues" },
+            { PropertyInt.AugmentationBonusSalvage,                 "gemaugmentationbonussalvage" },
+            { PropertyInt.AugmentationBonusXp,                      "gemaugmentationbonusxp" },
+            { PropertyInt.AugmentationCriticalDefense,              "gemaugmentationcriticaldefense" },
+            { PropertyInt.AugmentationCriticalExpertise,            "ace41482-eyeoftheremorseless" },
+            { PropertyInt.AugmentationCriticalPower,                "ace41481-handoftheremorseless" },
+            { PropertyInt.AugmentationDamageBonus,                  "ace41478-frenzyoftheslayer" },
+            { PropertyInt.AugmentationDamageReduction,              "ace41480-ironskinoftheinvincible" },
+            { PropertyInt.AugmentationExtraPackSlot,                "gemaugmentationpackslot" },
+            { PropertyInt.AugmentationFasterRegen,                  "gemaugmentationfastregen" },
+            { PropertyInt.AugmentationIncreasedCarryingCapacity,    "gemaugmentationcarryingcapacityi" },
+            { PropertyInt.AugmentationIncreasedSpellDuration,       "gemaugmentationspellduration" },
+            { PropertyInt.AugmentationInfusedCreatureMagic,         "ace41472-infusedcreaturemagic" },
+            { PropertyInt.AugmentationInfusedItemMagic,             "ace41473-infuseditemmagic" },
+            { PropertyInt.AugmentationInfusedLifeMagic,             "ace41474-infusedlifemagic" },
+            { PropertyInt.AugmentationInfusedVoidMagic,             "ace41479-infusedvoidmagic" },
+            { PropertyInt.AugmentationInfusedWarMagic,              "ace41475-infusedwarmagic" },
+            { PropertyInt.AugmentationInnateCoordination,           "gemaugmentationattcoordination" },
+            { PropertyInt.AugmentationInnateEndurance,              "gemaugmentationattendurance" },
+            { PropertyInt.AugmentationInnateFocus,                  "gemaugmentationattfocus" },
+            { PropertyInt.AugmentationInnateQuickness,              "gemaugmentationattquickness" },
+            { PropertyInt.AugmentationInnateSelf,                   "gemaugmentationattself" },
+            { PropertyInt.AugmentationInnateStrength,               "gemaugmentationattstrength" },
+            { PropertyInt.AugmentationJackOfAllTrades,              "ace43167-jackofalltrades" },
+            { PropertyInt.AugmentationLessDeathItemLoss,            "gemaugmentationdeathreduceditems" },
+            { PropertyInt.AugmentationResistanceAcid,               "gemaugmentationnaturalresistanceacid" },
+            { PropertyInt.AugmentationResistanceBlunt,              "gemaugmentationnaturalresistancebludg" },
+            { PropertyInt.AugmentationResistanceFire,               "gemaugmentationnaturalresistancefire" },
+            { PropertyInt.AugmentationResistanceFrost,              "gemaugmentationnaturalresistancefrost" },
+            { PropertyInt.AugmentationResistanceLightning,          "gemaugmentationnaturalresistanceelectric" },
+            { PropertyInt.AugmentationResistancePierce,             "gemaugmentationnaturalresistancepierc" },
+            { PropertyInt.AugmentationResistanceSlash,              "gemaugmentationnaturalresistanceslash" },
+            { PropertyInt.AugmentationSkilledMagic,                 "ace41476-masterofthefivefoldpath" },
+            { PropertyInt.AugmentationSkilledMelee,                 "ace41477-masterofthesteelcircle" },
+            { PropertyInt.AugmentationSkilledMissile,               "ace41490-masterofthefocusedeye" },
+            { PropertyInt.AugmentationSpecializeArmorTinkering,     "gemaugmentationtinkeringspecarmor" },
+            { PropertyInt.AugmentationSpecializeItemTinkering,      "gemaugmentationtinkeringspecitem" },
+            { PropertyInt.AugmentationSpecializeMagicItemTinkering, "gemaugmentationtinkeringspecmagic" },
+            { PropertyInt.AugmentationSpecializeSalvaging,          "gemaugmentationtinkeringspecsalv" },
+            { PropertyInt.AugmentationSpecializeWeaponTinkering,    "gemaugmentationtinkeringspecweap" },
+            { PropertyInt.AugmentationSpellsRemainPastDeath,        "gemaugmentationdeathspellsremain" },
+        };
+
+        [CommandHandler("verify-xp", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies the amount of xp for all players")]
+        public static void HandleVerifyExperience(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllOffline();
+
+            var diffPlayers = 0;
+            var results = new List<VerifyXpResult>();
+
+            foreach (var player in players)
+            {
+                var totalXP = player.GetProperty(PropertyInt64.TotalExperience) ?? 0;
+                var unassignedXP = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+
+                // loop through all attributes/vitals/skills, add up assigned xp
+                long attributeXP = 0;
+                long vitalXP = 0;
+                long skillXP = 0;
+                long augXP = 0;
+                long diffXP = Math.Min(0, player.GetProperty(PropertyInt64.VerifyXp) ?? 0);
+
+                foreach (var attribute in player.Biota.BiotaPropertiesAttribute)
+                    attributeXP += attribute.CPSpent;
+
+                foreach (var vital in player.Biota.BiotaPropertiesAttribute2nd)
+                    vitalXP += vital.CPSpent;
+
+                foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                    skillXP += skill.PP;
+
+                var heritage = (HeritageGroup?)player.GetProperty(PropertyInt.HeritageGroup);
+                if (heritage == null)
+                    continue;       // ignore admins who have morphed into asheron / bael'zharon
+
+                var heritageAug = GetHeritageAug(heritage.Value);
+
+                foreach (var kvp in AugmentationDevices)
+                {
+                    var augProperty = kvp.Key;
+
+                    var numAugs = player.GetProperty(augProperty) ?? 0;
+                    if (augProperty == heritageAug)
+                        numAugs--;
+
+                    if (numAugs <= 0)
+                        continue;
+
+                    var aug = DatabaseManager.World.GetCachedWeenie(kvp.Value);
+                    var costPer = aug.GetProperty(PropertyInt64.AugmentationCost).Value;
+
+                    augXP += costPer * numAugs;
+                }
+
+                // todo: luminance auras
+
+                var calculatedSpent = attributeXP + vitalXP + skillXP + augXP + diffXP;
+
+                var currentSpent = totalXP - unassignedXP;
+
+                if (calculatedSpent != currentSpent)
+                {
+                    var diff = currentSpent - calculatedSpent;
+                    results.Add(new VerifyXpResult(player, calculatedSpent, currentSpent));
+                    diffPlayers++;
+                }
+            }
+
+            var xpList = DatManager.PortalDat.XpTable.CharacterLevelXPList;
+            var maxTotalXp = (long)xpList[xpList.Count - 1];
+
+            foreach (var result in results.OrderBy(i => i.Player.Name).OrderBy(i => i.Diff))
+            {
+                var player = result.Player;
+                var diff = result.Diff;
+
+                Console.WriteLine($"{player.Name}.HandleVerifyExperience() - calculatedSpent({result.Calculated:N0}) != currentSpent({result.Current:N0}) - diff({diff:N0}) -- fixed");
+
+                if (diff > 0)
+                {
+                    // add to unassigned xp
+                    var unassignedXP = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+                    player.SetProperty(PropertyInt64.AvailableExperience, unassignedXP + diff);
+                    player.SetProperty(PropertyInt64.VerifyXp, diff);
+                }
+                else
+                {
+                    var totalXP = player.GetProperty(PropertyInt64.TotalExperience) ?? 0;
+                    if (totalXP - diff > maxTotalXp)
+                    {
+                        Console.WriteLine($"{player.Name} has {totalXP:N0} total experience, {-diff:N0} would put them beyond max, attempting to subtract from unassigned..");
+                        var unassignedXP = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+                        if (unassignedXP + diff >= 0)
+                        {
+                            // do not assign diff in this case, or else re-running this command will still show differences for this branch
+                            player.SetProperty(PropertyInt64.AvailableExperience, unassignedXP + diff);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{player.Name} has {unassignedXP:N0} unassigned experience, {diff:N0} would put them < 0");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        // setting the diff property below, which will be handled on player login
+                        // to properly handle possibly leveling up / skill credits
+                        player.SetProperty(PropertyInt64.VerifyXp, diff);
+                    }
+                }
+                player.SaveBiotaToDatabase();
+            }
+
+            Console.WriteLine($"\nDiff players: {diffPlayers:N0}");
+        }
+
+        public static PropertyInt? GetHeritageAug(HeritageGroup heritage)
+        {
+            switch (heritage)
+            {
+                case HeritageGroup.Aluvian:
+                case HeritageGroup.Gharundim:
+                case HeritageGroup.Sho:
+                case HeritageGroup.Viamontian:
+                    return PropertyInt.AugmentationJackOfAllTrades;
+
+                case HeritageGroup.Shadowbound:
+                case HeritageGroup.Penumbraen:
+                    return PropertyInt.AugmentationCriticalExpertise;
+
+                case HeritageGroup.Gearknight:
+                    return PropertyInt.AugmentationDamageReduction;
+
+                case HeritageGroup.Undead:
+                    return PropertyInt.AugmentationCriticalDefense;
+
+                case HeritageGroup.Empyrean:
+                    return PropertyInt.AugmentationInfusedLifeMagic;
+
+                case HeritageGroup.Tumerok:
+                    return PropertyInt.AugmentationCriticalPower;
+
+                case HeritageGroup.Lugian:
+                    return PropertyInt.AugmentationIncreasedCarryingCapacity;
+            }
+            return null;
+        }
+
+        [CommandHandler("verify-attributes", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes various legacy bugs with attribute ranks and xp")]
+        public static void HandleVerifyAttributes(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllOffline();
+
+            uint totalAttributesVerified = 0;
+            uint totalPlayersVerified = 0;
+
+            foreach (var player in players)
+            {
+                var updated = false;
+
+                foreach (var attr in player.Biota.BiotaPropertiesAttribute)
+                {
+                    var rank = attr.LevelFromCP;
+
+                    // verify attribute rank
+                    var correctRank = Player.CalcAttributeRank(attr.CPSpent);
+                    if (rank != correctRank)
+                    {
+                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute)attr.Type} rank is {rank}, should be {correctRank}");
+                        attr.LevelFromCP = (ushort)correctRank;
+                        updated = true;
+                    }
+
+                    // verify attribute xp is within bounds
+                    var attributeXPTable = DatManager.PortalDat.XpTable.AttributeXpList;
+                    var maxAttributeXp = attributeXPTable[attributeXPTable.Count - 1];
+
+                    if (attr.CPSpent > maxAttributeXp)
+                    {
+                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute)attr.Type} attribute total xp is {attr.CPSpent:N0}, should be capped at {maxAttributeXp:N0}");
+                        attr.CPSpent = maxAttributeXp;
+                        updated = true;
+                        // do AvailableExperience refund via non-delta method?
+                    }
+
+                    totalAttributesVerified++;
+                }
+
+                //if (updated)
+                    //player.SaveBiotaToDatabase();
+
+                totalPlayersVerified++;
+            }
+
+            Console.WriteLine($"Total players verified: {totalPlayersVerified:N0}");
+            Console.WriteLine($"Total attributes verified: {totalAttributesVerified:N0}");
+        }
+
+        [CommandHandler("verify-vitals", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes various legacy bugs with vital ranks and xp")]
+        public static void HandleVerifyVitals(Session session, params string[] parameters)
+        {
+            var players = PlayerManager.GetAllOffline();
+
+            uint totalVitalsVerified = 0;
+            uint totalPlayersVerified = 0;
+
+            foreach (var player in players)
+            {
+                var updated = false;
+
+                foreach (var vital in player.Biota.BiotaPropertiesAttribute2nd)
+                {
+                    var rank = vital.LevelFromCP;
+
+                    // verify vital rank
+                    var correctRank = Player.CalcVitalRank(vital.CPSpent);
+                    if (rank != correctRank)
+                    {
+                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute2nd)vital.Type} rank is {rank}, should be {correctRank}");
+                        vital.LevelFromCP = (ushort)correctRank;
+                        updated = true;
+                    }
+
+                    // verify vital xp is within bounds
+                    var vitalXPTable = DatManager.PortalDat.XpTable.VitalXpList;
+                    var maxVitalXp = vitalXPTable[vitalXPTable.Count - 1];
+
+                    if (vital.CPSpent > maxVitalXp)
+                    {
+                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute2nd)vital.Type} vital total xp is {vital.CPSpent:N0}, should be capped at {maxVitalXp:N0}");
+                        vital.CPSpent = maxVitalXp;
+                        updated = true;
+                        // do AvailableExperience refund via non-delta method?
+                    }
+
+                    totalVitalsVerified++;
+                }
+
+                //if (updated)
+                    //player.SaveBiotaToDatabase();
+
+                totalPlayersVerified++;
+            }
+
+            Console.WriteLine($"Total players verified: {totalPlayersVerified:N0}");
+            Console.WriteLine($"Total vitals verified: {totalVitalsVerified:N0}");
         }
 
         [CommandHandler("verify-skill-credits", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and fixes player skill credits from Asheron's Castle.")]
@@ -3042,93 +3423,131 @@ namespace ACE.Server.Command.Handlers
         {
             var players = PlayerManager.GetAllOffline();
 
-            foreach (var player in players)
+            using (var ctx = new ShardDbContext())
             {
-                // player starts with 52 skill credits
-                var startCredits = 52;
-
-                // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
-                // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
-                startCredits += 4;
-
-                var levelCredits = GetAdditionalCredits(player.Level ?? 1);
-
-                var totalCredits = startCredits + levelCredits;
-
-                var used = 0;
-
-                foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                foreach (var player in players)
                 {
-                    var sac = (SkillAdvancementClass)skill.SAC;
-                    if (sac < SkillAdvancementClass.Trained)
+                    // skip admins
+                    if (player.Account == null || player.Account.AccessLevel == (uint)AccessLevel.Admin)
                         continue;
 
-                    var skillInfo = DatManager.PortalDat.SkillTable.SkillBaseHash[skill.Type];
-                    //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
+                    // player starts with 52 skill credits
+                    var startCredits = 52;
 
-                    if (sac == SkillAdvancementClass.Trained)
-                        used += skillInfo.TrainedCost;
-                    else if (sac == SkillAdvancementClass.Specialized)
+                    // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
+                    // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
+                    startCredits += 4;
+
+                    var levelCredits = GetAdditionalCredits(player.Level ?? 1);
+
+                    var totalCredits = startCredits + levelCredits;
+
+                    var used = 0;
+
+                    foreach (var skill in player.Biota.BiotaPropertiesSkill)
                     {
-                        switch ((Skill)skill.Type)
+                        var sac = (SkillAdvancementClass)skill.SAC;
+                        if (sac < SkillAdvancementClass.Trained)
+                            continue;
+
+                        if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue(skill.Type, out var skillInfo))
                         {
-                            // these can only be speced through augs, they have >= 999 in the spec data
-                            case Skill.ArmorTinkering:
-                            case Skill.ItemTinkering:
-                            case Skill.MagicItemTinkering:
-                            case Skill.WeaponTinkering:
-                            case Skill.Salvaging:
-                                continue;
+                            Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({(Skill)skill.Type}): unknown skill");
+                            continue;
                         }
 
-                        used += skillInfo.SpecializedCost;
+                        //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
+
+                        used += skillInfo.TrainedCost;
+
+                        if (sac == SkillAdvancementClass.Specialized)
+                        {
+                            switch ((Skill)skill.Type)
+                            {
+                                // these can only be speced through augs, they have >= 999 in the spec data
+                                case Skill.ArmorTinkering:
+                                case Skill.ItemTinkering:
+                                case Skill.MagicItemTinkering:
+                                case Skill.WeaponTinkering:
+                                case Skill.Salvaging:
+                                    continue;
+                            }
+
+                            used += skillInfo.UpgradeCostFromTrainedToSpecialized;
+                        }
                     }
-                    else
+
+                    // 2 possible skill credits from quests
+                    // - ChasingOswaldDone
+                    // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
+                    var questCredits = ctx.CharacterPropertiesQuestRegistry.Count(i => i.CharacterId == player.Guid.Full && (i.QuestName.Equals("ChasingOswaldDone") || i.QuestName.Equals("ArantahKill1")));
+
+                    totalCredits += questCredits;
+
+                    // TODO: 2 lum augs
+
+                    var targetCredits = totalCredits - used;
+                    if (targetCredits < 0)
                     {
-                        Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({(Skill)skill.Type}): unknown sac {sac}");
+                        // if the player has already spent more skill credits than they should have,
+                        // unfortunately this situation requires a partial reset..
+                        Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): targetCredits({targetCredits}) < 0");
+                        UntrainSkills(player, targetCredits);
                         continue;
                     }
+
+                    var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+
+                    if (availableCredits != targetCredits)
+                    {
+                        Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): availableCredits({availableCredits}) != targetCredits({targetCredits}) -- fixing");
+                        player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
+                        player.SaveBiotaToDatabase();
+                    }
+
+                    //Console.WriteLine("--------------------");
                 }
-
-                var questCredits = 0;
-
-                // 2 possible skill credits from quests
-                // - ChasingOswaldDone
-                // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
-                var character = DatabaseManager.Shard.GetFullCharacter(player.Name);
-                if (character != null)
-                {
-                    if (character.CharacterPropertiesQuestRegistry.FirstOrDefault(i => i.QuestName.Equals("ChasingOswaldDone")) != null)
-                        questCredits++;
-
-                    if (character.CharacterPropertiesQuestRegistry.FirstOrDefault(i => i.QuestName.Equals("ArantahKill1")) != null)
-                        questCredits++;
-                }
-
-                totalCredits += questCredits;
-
-                // TODO: 2 lum augs
-
-                if (used > totalCredits)
-                    Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): used({used}) > totalCredits({totalCredits})");
-
-                var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
-
-                var targetCredits = totalCredits - used;
-                if (targetCredits < 0)
-                    Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): targetCredits({targetCredits}) < 0");
-
-                targetCredits = Math.Max(0, targetCredits);
-
-                if (availableCredits != targetCredits)
-                {
-                    Console.WriteLine($"{player.Name}.HandleVerifySkillCredits(): availableCredits({availableCredits}) != targetCredits({targetCredits}) -- fixing");
-                    player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
-                    player.SaveBiotaToDatabase();
-                }
-
-                //Console.WriteLine("--------------------");
             }
+        }
+
+        private static void UntrainSkills(OfflinePlayer player, int targetCredits)
+        {
+            long refundXP = 0;
+
+            foreach (var skill in player.Biota.BiotaPropertiesSkill)
+            {
+                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue(skill.Type, out var skillBase))
+                {
+                    Console.WriteLine($"{player.Name}.UntrainSkills({(Skill)skill.Type}) - unknown skill");
+                    continue;
+                }
+
+                var sac = (SkillAdvancementClass)skill.SAC;
+
+                if (sac != SkillAdvancementClass.Trained)
+                    continue;
+
+                refundXP += skill.PP;
+
+                skill.PP = 0;
+                skill.LevelFromPP = 0;
+
+                if (Player.IsSkillUntrainable((Skill)skill.Type))
+                {
+                    skill.SAC = (uint)SkillAdvancementClass.Untrained;
+                    skill.InitLevel -= 5;
+                    targetCredits += skillBase.TrainedCost;
+                }
+            }
+
+            var availableExperience = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+            player.SetProperty(PropertyInt64.AvailableExperience, availableExperience + refundXP);
+
+            player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
+
+            player.SetProperty(PropertyBool.UntrainedSkills, true);
+
+            player.SaveBiotaToDatabase();
         }
 
         public static int GetAdditionalCredits(int level)

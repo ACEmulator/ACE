@@ -338,6 +338,35 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(xpUpdate);
         }
 
+        public void HandleMissingXp()
+        {
+            var verifyXp = GetProperty(PropertyInt64.VerifyXp) ?? 0;
+            if (verifyXp == 0) return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
+            {
+                var xpType = verifyXp > 0 ? "unassigned experience" : "experience points";
+
+                var msg = $"This character was missing some {xpType} --\nYou have gained an additional {Math.Abs(verifyXp).ToString("N0")} {xpType}!";
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+                if (verifyXp < 0)
+                {
+                    // add to character's total XP
+                    TotalExperience -= verifyXp;
+
+                    CheckForLevelup();
+                }
+
+                RemoveProperty(PropertyInt64.VerifyXp);
+            });
+
+            actionChain.EnqueueChain();
+        }
+
         /// <summary>
         /// Returns the total amount of XP required to go from vitae to vitae + 0.01
         /// </summary>

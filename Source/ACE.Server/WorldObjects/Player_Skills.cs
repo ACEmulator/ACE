@@ -660,7 +660,7 @@ namespace ACE.Server.WorldObjects
                 return WeaponType.Undef;
         }
 
-        public Dictionary<Skill, WeaponType> SkillToWeaponType = new Dictionary<Skill, WeaponType>()
+        public static Dictionary<Skill, WeaponType> SkillToWeaponType = new Dictionary<Skill, WeaponType>()
         {
             { Skill.UnarmedCombat, WeaponType.Unarmed },
             { Skill.Sword, WeaponType.Sword },
@@ -679,6 +679,21 @@ namespace ACE.Server.WorldObjects
             { Skill.WarMagic, WeaponType.Magic },
             { Skill.VoidMagic, WeaponType.Magic },
         };
+
+        public void HandleSkillCreditRefund()
+        {
+            if (!(GetProperty(PropertyBool.UntrainedSkills) ?? false)) return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your trained skills have been reset due to an error with skill credits.\nYou have received a refund for these skill credits and experience.", ChatMessageType.Broadcast));
+
+                RemoveProperty(PropertyBool.UntrainedSkills);
+            });
+            actionChain.EnqueueChain();
+        }
 
         /// <summary>
         /// Resets the skill, refunds all experience and skill credits, if allowed.
@@ -761,5 +776,50 @@ namespace ACE.Server.WorldObjects
 
             return true;
         }
+
+        /// <summary>
+        /// All of the skills players have access to @ end of retail
+        /// </summary>
+        public static HashSet<Skill> PlayerSkills = new HashSet<Skill>()
+        {
+            Skill.MeleeDefense,
+            Skill.MissileDefense,
+            Skill.ArcaneLore,
+            Skill.MagicDefense,
+            Skill.ManaConversion,
+            Skill.ItemTinkering,
+            Skill.AssessPerson,
+            Skill.Deception,
+            Skill.Healing,
+            Skill.Jump,
+            Skill.Lockpick,
+            Skill.Run,
+            Skill.AssessCreature,
+            Skill.WeaponTinkering,
+            Skill.ArmorTinkering,
+            Skill.MagicItemTinkering,
+            Skill.CreatureEnchantment,
+            Skill.ItemEnchantment,
+            Skill.LifeMagic,
+            Skill.WarMagic,
+            Skill.Leadership,
+            Skill.Loyalty,
+            Skill.Fletching,
+            Skill.Alchemy,
+            Skill.Cooking,
+            Skill.Salvaging,
+            Skill.TwoHandedCombat,
+            Skill.VoidMagic,
+            Skill.HeavyWeapons,
+            Skill.LightWeapons,
+            Skill.FinesseWeapons,
+            Skill.MissileWeapons,
+            Skill.Shield,
+            Skill.DualWield,
+            Skill.Recklessness,
+            Skill.SneakAttack,
+            Skill.DirtyFighting,
+            Skill.Summoning
+        };
     }
 }
