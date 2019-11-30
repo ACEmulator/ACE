@@ -10,6 +10,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Database.Models.Shard;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
@@ -21,6 +22,8 @@ namespace ACE.Server.WorldObjects
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool IsExhausted { get => Stamina.Current == 0; }
+
+        public QuestManager QuestManager;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

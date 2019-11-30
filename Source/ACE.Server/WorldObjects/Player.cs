@@ -39,8 +39,6 @@ namespace ACE.Server.WorldObjects
 
         public Session Session { get; }
 
-        public QuestManager QuestManager;
-
         public ContractManager ContractManager;
 
         public bool LastContact = true;

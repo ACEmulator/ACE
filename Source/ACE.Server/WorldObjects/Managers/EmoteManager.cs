@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects.Managers
         public bool IsBusy { get; set; }
         public int Nested { get; set; }
 
-        public bool Debug = false;
+        public bool Debug;
 
         public EmoteManager(WorldObject worldObject)
         {
@@ -55,12 +55,13 @@ namespace ACE.Server.WorldObjects.Managers
         /// <param name="emoteSet">The parent set of this emote</param>
         /// <param name="emote">The emote to execute</param>
         /// <param name="targetObject">A target object, usually player</param>
-        /// <param name="actionChain">Only used for passing to further sets</param>
         public float ExecuteEmote(BiotaPropertiesEmote emoteSet, BiotaPropertiesEmoteAction emote, WorldObject targetObject = null)
         {
             var player = targetObject as Player;
             var creature = WorldObject as Creature;
             var targetCreature = targetObject as Creature;
+
+            var targetCreatureOrSelf = targetCreature ?? creature;
 
             var delay = 0.0f;
             var emoteType = (EmoteType)emote.Type;
@@ -250,10 +251,15 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.DecrementMyQuest:
-                    break;
-
                 case EmoteType.DecrementQuest:
-                    // Used as part of the test drudge for events
+
+                    if (targetCreatureOrSelf != null)
+                    {
+                        if (targetCreatureOrSelf == creature && creature.QuestManager == null)
+                            targetCreatureOrSelf.QuestManager = new QuestManager(targetCreatureOrSelf);
+
+                        targetCreatureOrSelf.QuestManager.Decrement(emote.Message);
+                    }
                     break;
 
                 case EmoteType.DeleteSelf:
@@ -279,12 +285,15 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.EraseMyQuest:
-                    break;
-
                 case EmoteType.EraseQuest:
 
-                    if (player != null)
-                        player.QuestManager.Erase(emote.Message);
+                    if (targetCreatureOrSelf != null)
+                    {
+                        if (targetCreatureOrSelf == creature && creature.QuestManager == null)
+                            targetCreatureOrSelf.QuestManager = new QuestManager(targetCreatureOrSelf);
+
+                        targetCreatureOrSelf.QuestManager.Erase(emote.Message);
+                    }
                     break;
 
                 case EmoteType.FellowBroadcast:
@@ -351,12 +360,15 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.IncrementMyQuest:
-                    break;
-
                 case EmoteType.IncrementQuest:
 
-                    if (player != null)
-                        player.QuestManager.Increment(emote.Message);     // kill task?
+                    if (targetCreatureOrSelf != null)
+                    {
+                        if (targetCreatureOrSelf == creature && creature.QuestManager == null)
+                            targetCreatureOrSelf.QuestManager = new QuestManager(targetCreatureOrSelf);
+
+                        targetCreatureOrSelf.QuestManager.Increment(emote.Message);     // kill task?
+                    }
                     break;
 
                 case EmoteType.InflictVitaePenalty:
@@ -451,14 +463,14 @@ namespace ACE.Server.WorldObjects.Managers
                     }
                     break;
 
-                case EmoteType.InqMyQuest:
-                    break;
                 case EmoteType.InqMyQuestBitsOff:
+
                     break;
+
                 case EmoteType.InqMyQuestBitsOn:
+
                     break;
-                case EmoteType.InqMyQuestSolves:
-                    break;
+
                 case EmoteType.InqNumCharacterTitles:
 
                     //if (player != null)
@@ -489,12 +501,16 @@ namespace ACE.Server.WorldObjects.Managers
                     //}
                     break;
 
+                case EmoteType.InqMyQuest:
                 case EmoteType.InqQuest:
 
-                    if (player != null)
+                    if (targetCreatureOrSelf != null)
                     {
-                        var hasQuest = player.QuestManager.HasQuest(emote.Message);
-                        var canSolve = player.QuestManager.CanSolve(emote.Message);
+                        if (targetCreatureOrSelf == creature && creature.QuestManager == null)
+                            targetCreatureOrSelf.QuestManager = new QuestManager(targetCreatureOrSelf);
+
+                        var hasQuest = targetCreatureOrSelf.QuestManager.HasQuest(emote.Message);
+                        var canSolve = targetCreatureOrSelf.QuestManager.CanSolve(emote.Message);
 
                         // verify: QuestSuccess = player has quest, and their last completed time + quest minDelta <= currentTime
                         success = hasQuest && !canSolve;
@@ -504,14 +520,22 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.InqQuestBitsOff:
+
                     break;
+
                 case EmoteType.InqQuestBitsOn:
+
                     break;
+
+                case EmoteType.InqMyQuestSolves:
                 case EmoteType.InqQuestSolves:
 
-                    if (player != null)
+                    if (targetCreatureOrSelf != null)
                     {
-                        var questSolves = player.QuestManager.HasQuestSolves(emote.Message, emote.Min, emote.Max);
+                        if (targetCreatureOrSelf == creature && creature.QuestManager == null)
+                            targetCreatureOrSelf.QuestManager = new QuestManager(targetCreatureOrSelf);
+
+                        var questSolves = targetCreatureOrSelf.QuestManager.HasQuestSolves(emote.Message, emote.Min, emote.Max);
 
                         ExecuteEmoteSet(questSolves ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                     }
@@ -615,6 +639,7 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.Invalid:
+
                     break;
 
                 case EmoteType.KillSelf:
@@ -630,6 +655,7 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.LocalSignal:
+
                     if (player != null)
                     {
                         if (player.CurrentLandblock != null)
@@ -705,7 +731,7 @@ namespace ACE.Server.WorldObjects.Managers
                                 {
                                     // FIXME: better cycle handling
                                     var cmd = WorldObject.CurrentMotionState.MotionState.ForwardCommand;
-                                    if (cmd != MotionCommand.Dead && cmd != MotionCommand.Sleeping && cmd != MotionCommand.Sitting && !cmd.ToString().EndsWith("State"))
+                                    if (cmd != MotionCommand.Dead && cmd != MotionCommand.Sleeping && cmd != MotionCommand.Sitting && !cmd.ToString().EndsWith("State", StringComparison.Ordinal))
                                     {
                                         if (debugMotion)
                                             Console.WriteLine($"{WorldObject.Name} running starting motion again {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
@@ -756,7 +782,7 @@ namespace ACE.Server.WorldObjects.Managers
                             Console.WriteLine(newPos.ToLOCString());
 
                         // get new cell
-                        newPos.LandblockId = new LandblockId(PositionExtensions.GetCell(newPos));
+                        newPos.LandblockId = new LandblockId(newPos.GetCell());
 
                         // TODO: handle delay for this?
                         creature.MoveTo(newPos, creature.GetRunRate());
@@ -801,9 +827,11 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         var currentPos = creature.Location;
 
-                        var newPos = new Position();
-                        newPos.LandblockId = new LandblockId(currentPos.LandblockId.Raw);
-                        newPos.Pos = new Vector3(emote.OriginX ?? currentPos.Pos.X, emote.OriginY ?? currentPos.Pos.Y, emote.OriginZ ?? currentPos.Pos.Z);
+                        var newPos = new Position
+                        {
+                            LandblockId = new LandblockId(currentPos.LandblockId.Raw),
+                            Pos = new Vector3(emote.OriginX ?? currentPos.Pos.X, emote.OriginY ?? currentPos.Pos.Y, emote.OriginZ ?? currentPos.Pos.Z)
+                        };
 
                         if (emote.AnglesX == null || emote.AnglesY == null || emote.AnglesZ == null || emote.AnglesW == null)
                             newPos.Rotation = new Quaternion(currentPos.Rotation.X, currentPos.Rotation.Y, currentPos.Rotation.Z, currentPos.Rotation.W);
@@ -872,27 +900,32 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.SetAltRacialSkills:
+
                     break;
 
                 case EmoteType.SetBoolStat:
+
                     if (player != null)
                     {
-                        player.UpdateProperty(player, (PropertyBool)emote.Stat, emote.Amount == 0 ? false : true);
-                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyBool(player, (PropertyBool)emote.Stat, emote.Amount == 0 ? false : true));
+                        player.UpdateProperty(player, (PropertyBool)emote.Stat, emote.Amount != 0);
+                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyBool(player, (PropertyBool)emote.Stat, emote.Amount != 0));
                     }
                     break;
 
                 case EmoteType.SetEyePalette:
+
                     //if (creature != null)
                     //    creature.EyesPaletteDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetEyeTexture:
+
                     //if (creature != null)
                     //    creature.EyesTextureDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetFloatStat:
+
                     if (player != null)
                     {
                         player.UpdateProperty(player, (PropertyFloat)emote.Stat, emote.Percent);
@@ -901,14 +934,17 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.SetHeadObject:
+
                     //if (creature != null)
                     //    creature.HeadObjectDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetHeadPalette:
+
                     break;
 
                 case EmoteType.SetInt64Stat:
+
                     if (player != null)
                     {
                         player.UpdateProperty(player, (PropertyInt64)emote.Stat, emote.Amount64);
@@ -917,6 +953,7 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.SetIntStat:
+
                     if (player != null)
                     {
                         player.UpdateProperty(player, (PropertyInt)emote.Stat, emote.Amount);
@@ -925,38 +962,54 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.SetMouthPalette:
+
                     break;
 
                 case EmoteType.SetMouthTexture:
+
                     //if (creature != null)
                     //    creature.MouthTextureDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetMyQuestBitsOff:
+
                     break;
+
                 case EmoteType.SetMyQuestBitsOn:
+
                     break;
-                case EmoteType.SetMyQuestCompletions:
-                    break;
+
                 case EmoteType.SetNosePalette:
+
                     break;
 
                 case EmoteType.SetNoseTexture:
+
                     //if (creature != null)
                     //    creature.NoseTextureDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetQuestBitsOff:
+
                     break;
+
                 case EmoteType.SetQuestBitsOn:
+
                     break;
+
+                case EmoteType.SetMyQuestCompletions:
                 case EmoteType.SetQuestCompletions:
-                    if (player != null)
+
+                    if (targetCreatureOrSelf != null)
                     {
+                        if (targetCreatureOrSelf == creature && targetCreatureOrSelf.QuestManager == null)
+                            targetCreatureOrSelf.QuestManager = new QuestManager(targetCreatureOrSelf);
+
                         if (emote.Amount != null)
-                            player.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
+                            targetCreatureOrSelf.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
                     }
                     break;
+
                 case EmoteType.SetSanctuaryPosition:
 
                     if (player != null)
@@ -969,11 +1022,13 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.SpendLuminance:
+
                     if (player != null)
                         player.SpendLuminance((long)emote.Amount);
                     break;
 
                 case EmoteType.StampFellowQuest:
+
                     if (player != null)
                     {
                         if (player.Fellowship != null)
@@ -990,24 +1045,28 @@ namespace ACE.Server.WorldObjects.Managers
                         }
                     }
                     break;
+
                 case EmoteType.StampMyQuest:
-                    break;
                 case EmoteType.StampQuest:
 
-                    if (player != null)
+                    if (targetCreatureOrSelf != null)
                     {
+                        if (targetCreatureOrSelf == creature && targetCreatureOrSelf.QuestManager == null)
+                            targetCreatureOrSelf.QuestManager = new QuestManager(targetCreatureOrSelf);
+
                         var questName = emote.Message;
 
                         if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                         {
-                            player.QuestManager.HandleKillTask(questName, WorldObject);
+                            targetCreatureOrSelf.QuestManager.HandleKillTask(questName, WorldObject);
                         }
                         else
-                            player.QuestManager.Stamp(emote.Message);
+                            targetCreatureOrSelf.QuestManager.Stamp(emote.Message);
                     }
                     break;
 
                 case EmoteType.StartBarber:
+
                     if (player != null)
                         player.StartBarber();
                     break;
@@ -1126,8 +1185,10 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         // turn to heading
                         var rotation = new Quaternion(emote.AnglesX ?? 0, emote.AnglesY ?? 0, emote.AnglesZ ?? 0, emote.AnglesW ?? 1);
-                        var newPos = new Position(creature.Location);
-                        newPos.Rotation = rotation;
+                        var newPos = new Position(creature.Location)
+                        {
+                            Rotation = rotation
+                        };
 
                         var rotateTime = creature.TurnTo(newPos);
                         delay = rotateTime;
@@ -1174,27 +1235,30 @@ namespace ACE.Server.WorldObjects.Managers
                             ExecuteEmoteSet(EmoteCategory.QuestNoFellow, emote.Message, targetObject, true);
                     }
                     break;
+
                 case EmoteType.UpdateMyQuest:
-                    break;
                 case EmoteType.UpdateQuest:
 
-                    if (player != null)
+                    if (targetCreatureOrSelf != null)
                     {
+                        if (targetCreatureOrSelf == creature && targetCreatureOrSelf.QuestManager == null)
+                            targetCreatureOrSelf.QuestManager = new QuestManager(targetCreatureOrSelf);
+
                         var questName = emote.Message;
 
-                        var hasQuest = player.QuestManager.HasQuest(questName);
+                        var hasQuest = targetCreatureOrSelf.QuestManager.HasQuest(questName);
 
                         if (!hasQuest)
                         {
                             // add new quest
-                            player.QuestManager.Update(questName);
-                            hasQuest = player.QuestManager.HasQuest(questName);
+                            targetCreatureOrSelf.QuestManager.Update(questName);
+                            hasQuest = targetCreatureOrSelf.QuestManager.HasQuest(questName);
                             ExecuteEmoteSet(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                         }
                         else
                         {
                             // update existing quest
-                            var canSolve = player.QuestManager.CanSolve(questName);
+                            var canSolve = targetCreatureOrSelf.QuestManager.CanSolve(questName);
                             ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                         }
                     }
@@ -1266,7 +1330,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         /// <param name="emoteSet">A list of emotes to execute</param>
         /// <param name="targetObject">An optional target, usually player</param>
-        /// <param name="actionChain">For adding delays between emotes</param>
+        /// <param name="nested">Optionally nested</param>
         public bool ExecuteEmoteSet(BiotaPropertiesEmote emoteSet, WorldObject targetObject = null, bool nested = false)
         {
             // detect busy state
@@ -1338,8 +1402,7 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         Nested--;
 
-                        if (Nested == 0)
-                            IsBusy = false;
+                        IsBusy &= Nested != 0;
                     });
                     delayChain.EnqueueChain();
                 }
@@ -1347,8 +1410,7 @@ namespace ACE.Server.WorldObjects.Managers
                 {
                     Nested--;
 
-                    if (Nested == 0)
-                        IsBusy = false;
+                    IsBusy &= Nested != 0;
                 }
             }
         }
