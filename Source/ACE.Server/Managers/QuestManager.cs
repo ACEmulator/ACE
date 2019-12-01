@@ -197,7 +197,7 @@ namespace ACE.Server.Managers
 
             var maxSolves = GetMaxSolves(questName);
 
-            var numTimeCompleted = maxSolves > -1 ? Math.Min(questCompletions, maxSolves) : Math.Abs(questCompletions);
+            var numTimesCompleted = maxSolves > -1 ? Math.Min(questCompletions, maxSolves) : Math.Abs(questCompletions);
 
             var existing = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
 
@@ -209,7 +209,7 @@ namespace ACE.Server.Managers
                     QuestName = questName,
                     //CharacterId = Player.Guid.Full,
                     LastTimeCompleted = (uint)Time.GetUnixTime(),
-                    NumTimesCompleted = numTimeCompleted   // initialize the quest to the given completions
+                    NumTimesCompleted = numTimesCompleted   // initialize the quest to the given completions
                 };
 
                 info.CharacterId = IDtoUseForQuestRegistry;
@@ -229,7 +229,7 @@ namespace ACE.Server.Managers
             {
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
-                existing.NumTimesCompleted = numTimeCompleted;
+                existing.NumTimesCompleted = numTimesCompleted;
 
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {existing.NumTimesCompleted}");
 
