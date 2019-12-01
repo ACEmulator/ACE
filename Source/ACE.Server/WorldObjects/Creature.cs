@@ -30,7 +30,12 @@ namespace ACE.Server.WorldObjects
             get
             {
                 if (_questManager == null)
+                {
+                    if (!(this is Player))
+                        log.Debug($"Initializing non-player QuestManager for {Name} (0x{Guid})");   // verify this almost never happens
+
                     _questManager = new QuestManager(this);
+                }
 
                 return _questManager;
             }
