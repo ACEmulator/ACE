@@ -21,7 +21,7 @@ namespace ACE.Server.Command.Handlers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        [CommandHandler("verify-all", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any bugs with player data. Runs all of the verify* commands.")]
+        [CommandHandler("verify-player-data", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any bugs with player data. Runs all of the verify* commands.")]
         public static void HandleVerifyAll(Session session, params string[] parameters)
         {
             HandleVerifyAttributes(session, parameters);
@@ -365,10 +365,9 @@ namespace ACE.Server.Command.Handlers
                         foundIssues = true;
 
                         if (fix)
-                        {
                             UntrainSkills(player, targetCredits);
-                            continue;
-                        }
+
+                        continue;
                     }
 
                     var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
@@ -801,6 +800,8 @@ namespace ACE.Server.Command.Handlers
                 if (!fix)
                     Console.WriteLine($"Dry run completed. Type 'verify-xp fix' to fix any issues.");
             }
+            else
+                Console.WriteLine($"Verified XP for {players.Count:N0} players");
         }
 
 
