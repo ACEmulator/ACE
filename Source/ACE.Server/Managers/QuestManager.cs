@@ -18,34 +18,34 @@ namespace ACE.Server.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public Player Player { get; }
-
+        /// <summary>
+        /// This is almost always a Player
+        /// 
+        /// however there are some rare cases of Creatures having quests
+        /// such as 'chickencrossingroad'
+        /// </summary>
         public Creature Creature { get; }
 
         public Fellowship Fellowship { get; }
 
-        private ICollection<CharacterPropertiesQuestRegistry> RuntimeQuests { get; set; } = new HashSet<CharacterPropertiesQuestRegistry>();
+        private ICollection<CharacterPropertiesQuestRegistry> runtimeQuests { get; set; } = new HashSet<CharacterPropertiesQuestRegistry>();
 
         public string Name
         {
             get
             {
-                if (Player != null)
-                    return Player.Name;
-                else if (Creature != null)
+                if (Creature != null)
                     return Creature.Name;
                 else
                     return $"Fellowship({Fellowship.FellowshipName})";
             }
-        }
 
+        }
         public uint IDtoUseForQuestRegistry
         {
             get
             {
-                if (Player != null)
-                    return Player.Guid.Full;
-                else if (Creature != null)
+                if (Creature != null)
                     return Creature.Guid.Full;
                 else
                     return 1; 
@@ -57,21 +57,21 @@ namespace ACE.Server.Managers
         {
             get
             {
-                if (Player != null)
-                    return Player.Character.CharacterPropertiesQuestRegistry;
+                if (Creature is Player player)
+                    return player.Character.CharacterPropertiesQuestRegistry;
                 else
-                    return RuntimeQuests;
+                    return runtimeQuests;
             }
         }
 
         public static bool Debug = false;
 
         /// <summary>
-        /// Constructs a new QuestManager for a Player
+        /// Constructs a new QuestManager for a Player / Creature
         /// </summary>
-        public QuestManager(Player player)
+        public QuestManager(Creature creature)
         {
-            Player = player;
+            Creature = creature;
         }
 
         /// <summary>
@@ -80,14 +80,6 @@ namespace ACE.Server.Managers
         public QuestManager(Fellowship fellowship)
         {
             Fellowship = fellowship;
-        }
-
-        /// <summary>
-        /// Constructs a new QuestManager for a Creature
-        /// </summary>
-        public QuestManager(Creature creature)
-        {
-            Creature = creature;
         }
 
         /// <summary>
@@ -163,11 +155,14 @@ namespace ACE.Server.Managers
                 info.CharacterId = IDtoUseForQuestRegistry;
 
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.Update({quest}): added quest");
+
                 Quests.Add(info);
-                if (Player != null)
+
+                if (Creature is Player player)
                 {
-                    Player.CharacterChangesDetected = true;
-                    Player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
+                    player.CharacterChangesDetected = true;
+
+                    player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
                 }
             }
             else
@@ -181,11 +176,14 @@ namespace ACE.Server.Managers
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted++;
+
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
-                if (Player != null)
+
+                if (Creature is Player player)
                 {
-                    Player.CharacterChangesDetected = true;
-                    Player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                    player.CharacterChangesDetected = true;
+
+                    player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
                 }
             }
         }
@@ -217,11 +215,14 @@ namespace ACE.Server.Managers
                 info.CharacterId = IDtoUseForQuestRegistry;
 
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {info.NumTimesCompleted}");
+
                 Quests.Add(info);
-                if (Player != null)
+
+                if (Creature is Player player)
                 {
-                    Player.CharacterChangesDetected = true;
-                    Player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
+                    player.CharacterChangesDetected = true;
+
+                    player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
                 }
             }
             else
@@ -229,11 +230,14 @@ namespace ACE.Server.Managers
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted = numTimeCompleted;
+
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {existing.NumTimesCompleted}");
-                if (Player != null)
+
+                if (Creature is Player player)
                 {
-                    Player.CharacterChangesDetected = true;
-                    Player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                    player.CharacterChangesDetected = true;
+
+                    player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
                 }
             }
         }
@@ -342,11 +346,13 @@ namespace ACE.Server.Managers
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted--;
+
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.Decrement({quest}): updated quest ({existing.NumTimesCompleted})");
-                if (Player != null)
+
+                if (Creature is Player player)
                 {
-                    Player.CharacterChangesDetected = true;
-                    Player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                    player.CharacterChangesDetected = true;
+                    player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
                 }
             }
         }
@@ -365,10 +371,12 @@ namespace ACE.Server.Managers
             foreach (var quest in quests)
             {
                 Quests.Remove(quest);
-                if (Player != null)
+
+                if (Creature is Player player)
                 {
-                    Player.CharacterChangesDetected = true;
-                    Player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
+                    player.CharacterChangesDetected = true;
+
+                    player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
                 }
             }
         }
@@ -385,10 +393,11 @@ namespace ACE.Server.Managers
             foreach (var quest in quests)
             {
                 Quests.Remove(quest);
-                if (Player != null)
+
+                if (Creature is Player player)
                 {
-                    Player.CharacterChangesDetected = true;
-                    Player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
+                    player.CharacterChangesDetected = true;
+                    player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
                 }
             }
         }
@@ -461,14 +470,18 @@ namespace ACE.Server.Managers
         /// </summary>
         public void HandleNoQuestError(WorldObject wo)
         {
+            var player = Creature as Player;
+
+            if (player == null) return;
+
             if (wo is Portal)
             {
-                Player.Session.Network.EnqueueSend(new GameEventWeenieError(Player.Session, WeenieError.YouMustCompleteQuestToUsePortal));
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustCompleteQuestToUsePortal));
             }
             else
             {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, wo.Guid.Full, WeenieError.ItemRequiresQuestToBePickedUp);
-                Player.Session.Network.EnqueueSend(error);
+                var error = new GameEventInventoryServerSaveFailed(player.Session, wo.Guid.Full, WeenieError.ItemRequiresQuestToBePickedUp);
+                player.Session.Network.EnqueueSend(error);
             }
         }
 
@@ -477,20 +490,23 @@ namespace ACE.Server.Managers
         /// </summary>
         public void HandleSolveError(string questName)
         {
+            var player = Creature as Player;
+            if (player == null) return;
+
             if (IsMaxSolves(questName))
             {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, 0, WeenieError.YouHaveSolvedThisQuestTooManyTimes);
+                var error = new GameEventInventoryServerSaveFailed(player.Session, 0, WeenieError.YouHaveSolvedThisQuestTooManyTimes);
                 var text = new GameMessageSystemChat("You have solved this quest too many times!", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, error);
+                player.Session.Network.EnqueueSend(text, error);
             }
             else
             {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, 0, WeenieError.YouHaveSolvedThisQuestTooRecently);
+                var error = new GameEventInventoryServerSaveFailed(player.Session, 0, WeenieError.YouHaveSolvedThisQuestTooRecently);
                 var text = new GameMessageSystemChat("You have solved this quest too recently!", ChatMessageType.Broadcast);
 
                 var remainStr = GetNextSolveTime(questName).GetFriendlyString();
                 var remain = new GameMessageSystemChat($"You may complete this quest again in {remainStr}.", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, remain, error);
+                player.Session.Network.EnqueueSend(text, remain, error);
             }
         }
 
@@ -499,6 +515,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public void HandleKillTask(string _questName, WorldObject obj, bool shareable = true)
         {
+            var player = Creature as Player;
+            if (player == null) return;
+
             // http://acpedia.org/wiki/Announcements_-_2012/12_-_A_Growing_Twilight#Release_Notes
 
             if (HasQuest(_questName))
@@ -535,7 +554,7 @@ namespace ACE.Server.Managers
                 else
                     msg = $"You have killed {playerQuest.NumTimesCompleted} {obj.GetPluralName()}. You must kill {quest.MaxSolves} to complete your task!";
 
-                Player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
             }
             else if (PropertyManager.GetBool("fellow_kt_killer").Item)
             {
@@ -545,10 +564,10 @@ namespace ACE.Server.Managers
             }
 
             // is player in fellowship?
-            if (Player.Fellowship != null && shareable)
+            if (player.Fellowship != null && shareable)
             {
                 // if so, share with fellows within range
-                var fellows = Player.Fellowship.WithinRange(Player);
+                var fellows = player.Fellowship.WithinRange(player);
 
                 foreach (var fellow in fellows)
                     fellow.QuestManager.HandleKillTask(_questName, obj, false);

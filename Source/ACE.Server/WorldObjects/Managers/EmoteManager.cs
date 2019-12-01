@@ -61,8 +61,6 @@ namespace ACE.Server.WorldObjects.Managers
             var creature = WorldObject as Creature;
             var targetCreature = targetObject as Creature;
 
-            var targetCreatureOrSelf = targetCreature != null ? targetCreature : creature;
-
             var delay = 0.0f;
             var emoteType = (EmoteType)emote.Type;
 
@@ -251,13 +249,13 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.DecrementMyQuest:
-
-                    DecrementQuest(emote, creature);
-                    break;
-
                 case EmoteType.DecrementQuest:
 
-                    DecrementQuest(emote, targetCreatureOrSelf);
+                    var questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null)
+                        questTarget.QuestManager.Decrement(emote.Message);
+
                     break;
 
                 case EmoteType.DeleteSelf:
@@ -283,13 +281,13 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.EraseMyQuest:
-
-                    EraseQuest(emote, creature);
-                    break;
-
                 case EmoteType.EraseQuest:
 
-                    EraseQuest(emote, targetCreatureOrSelf);
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null)
+                        questTarget.QuestManager.Erase(emote.Message);
+
                     break;
 
                 case EmoteType.FellowBroadcast:
@@ -356,13 +354,13 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.IncrementMyQuest:
-
-                    IncrementQuest(emote, creature);
-                    break;
-
                 case EmoteType.IncrementQuest:
 
-                    IncrementQuest(emote, targetCreatureOrSelf);
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null)
+                        questTarget.QuestManager.Increment(emote.Message);     // kill task?
+
                     break;
 
                 case EmoteType.InflictVitaePenalty:
@@ -457,21 +455,6 @@ namespace ACE.Server.WorldObjects.Managers
                     }
                     break;
 
-                case EmoteType.InqMyQuest:
-
-                    InqQuest(emote, targetObject, creature);
-                    break;
-
-                case EmoteType.InqMyQuestBitsOff:
-                    break;
-                case EmoteType.InqMyQuestBitsOn:
-                    break;
-
-                case EmoteType.InqMyQuestSolves:
-
-                    InqQuestSolves(emote, targetObject, creature);
-                    break;
-
                 case EmoteType.InqNumCharacterTitles:
 
                     //if (player != null)
@@ -502,19 +485,43 @@ namespace ACE.Server.WorldObjects.Managers
                     //}
                     break;
 
+                case EmoteType.InqMyQuest:
                 case EmoteType.InqQuest:
 
-                    InqQuest(emote, targetObject, targetCreatureOrSelf);
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null)
+                    {
+                        var hasQuest = questTarget.QuestManager.HasQuest(emote.Message);
+                        var canSolve = questTarget.QuestManager.CanSolve(emote.Message);
+
+                        //  verify: QuestSuccess = player has quest, but their quest timer is currently still on cooldown
+                        success = hasQuest && !canSolve;
+
+                        ExecuteEmoteSet(success ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                    }
+
                     break;
 
+                case EmoteType.InqMyQuestBitsOff:
                 case EmoteType.InqQuestBitsOff:
                     break;
+
+                case EmoteType.InqMyQuestBitsOn:
                 case EmoteType.InqQuestBitsOn:
                     break;
 
+                case EmoteType.InqMyQuestSolves:
                 case EmoteType.InqQuestSolves:
 
-                    InqQuestSolves(emote, targetObject, targetCreatureOrSelf);
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null)
+                    {
+                        var questSolves = questTarget.QuestManager.HasQuestSolves(emote.Message, emote.Min, emote.Max);
+
+                        ExecuteEmoteSet(questSolves ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                    }
                     break;
 
                 case EmoteType.InqRawAttributeStat:
@@ -937,16 +944,6 @@ namespace ACE.Server.WorldObjects.Managers
                     //    creature.MouthTextureDID = (uint)emote.Display;
                     break;
 
-                case EmoteType.SetMyQuestBitsOff:
-                    break;
-                case EmoteType.SetMyQuestBitsOn:
-                    break;
-
-                case EmoteType.SetMyQuestCompletions:
-
-                    SetQuestCompletions(emote, creature);
-                    break;
-
                 case EmoteType.SetNosePalette:
                     break;
 
@@ -955,14 +952,22 @@ namespace ACE.Server.WorldObjects.Managers
                     //    creature.NoseTextureDID = (uint)emote.Display;
                     break;
 
+                case EmoteType.SetMyQuestBitsOff:
                 case EmoteType.SetQuestBitsOff:
                     break;
+
+                case EmoteType.SetMyQuestBitsOn:
                 case EmoteType.SetQuestBitsOn:
                     break;
 
+                case EmoteType.SetMyQuestCompletions:
                 case EmoteType.SetQuestCompletions:
 
-                    SetQuestCompletions(emote, targetCreatureOrSelf);
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null && emote.Amount != null)
+                        questTarget.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
+
                     break;
 
                 case EmoteType.SetSanctuaryPosition:
@@ -1001,13 +1006,21 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.StampMyQuest:
-
-                    StampQuest(emote, creature);
-                    break;
-
                 case EmoteType.StampQuest:
 
-                    StampQuest(emote, targetCreatureOrSelf);
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null)
+                    {
+                        var questName = emote.Message;
+
+                        if (questName.EndsWith("@#kt", StringComparison.Ordinal))
+                        {
+                            questTarget.QuestManager.HandleKillTask(questName, WorldObject);
+                        }
+                        else
+                            questTarget.QuestManager.Stamp(emote.Message);
+                    }
                     break;
 
                 case EmoteType.StartBarber:
@@ -1181,13 +1194,31 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.UpdateMyQuest:
-
-                    UpdateQuest(emote, targetObject, creature);
-                    break;
-
                 case EmoteType.UpdateQuest:
 
-                    UpdateQuest(emote, targetObject, targetCreatureOrSelf);
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null)
+                    {
+                        var questName = emote.Message;
+
+                        var hasQuest = questTarget.QuestManager.HasQuest(questName);
+
+                        if (!hasQuest)
+                        {
+                            // add new quest
+                            questTarget.QuestManager.Update(questName);
+                            hasQuest = questTarget.QuestManager.HasQuest(questName);
+                            ExecuteEmoteSet(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            // update existing quest
+                            var canSolve = questTarget.QuestManager.CanSolve(questName);
+                            ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                        }
+                    }
+
                     break;
 
                 case EmoteType.WorldBroadcast:
@@ -1207,124 +1238,6 @@ namespace ACE.Server.WorldObjects.Managers
             }
 
             return delay;
-        }
-
-        private static void CheckForQuestManager(Creature creature)
-        {
-            if (creature != null && creature.QuestManager == null)
-                creature.QuestManager = new QuestManager(creature);
-        }
-
-        private void UpdateQuest(BiotaPropertiesEmoteAction emote, WorldObject targetObject, Creature creature)
-        {
-            if (creature != null)
-            {
-                CheckForQuestManager(creature);
-
-                var questName = emote.Message;
-
-                var hasQuest = creature.QuestManager.HasQuest(questName);
-
-                if (!hasQuest)
-                {
-                    // add new quest
-                    creature.QuestManager.Update(questName);
-                    hasQuest = creature.QuestManager.HasQuest(questName);
-                    ExecuteEmoteSet(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
-                }
-                else
-                {
-                    // update existing quest
-                    var canSolve = creature.QuestManager.CanSolve(questName);
-                    ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
-                }
-            }
-        }
-
-        private void StampQuest(BiotaPropertiesEmoteAction emote, Creature creature)
-        {
-            if (creature != null)
-            {
-                CheckForQuestManager(creature);
-
-                var questName = emote.Message;
-
-                if (questName.EndsWith("@#kt", StringComparison.Ordinal))
-                {
-                    creature.QuestManager.HandleKillTask(questName, WorldObject);
-                }
-                else
-                    creature.QuestManager.Stamp(emote.Message);
-            }
-        }
-
-        private void SetQuestCompletions(BiotaPropertiesEmoteAction emote, Creature creature)
-        {
-            if (creature != null)
-            {
-                CheckForQuestManager(creature);
-
-                if (emote.Amount != null)
-                    creature.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
-            }
-        }
-
-        private void InqQuestSolves(BiotaPropertiesEmoteAction emote, WorldObject targetObject, Creature creature)
-        {
-            if (creature != null)
-            {
-                CheckForQuestManager(creature);
-
-                var questSolves = creature.QuestManager.HasQuestSolves(emote.Message, emote.Min, emote.Max);
-
-                ExecuteEmoteSet(questSolves ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
-            }
-        }
-
-        private void InqQuest(BiotaPropertiesEmoteAction emote, WorldObject targetObject, Creature creature)
-        {
-            if (creature != null)
-            {
-                CheckForQuestManager(creature);
-
-                var hasQuest = creature.QuestManager.HasQuest(emote.Message);
-                var canSolve = creature.QuestManager.CanSolve(emote.Message);
-
-                // verify: QuestSuccess = player has quest, and their last completed time + quest minDelta <= currentTime
-                var success = hasQuest && !canSolve;
-
-                ExecuteEmoteSet(success ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
-            }
-        }
-
-        private void IncrementQuest(BiotaPropertiesEmoteAction emote, Creature creature)
-        {
-            if (creature != null)
-            {
-                CheckForQuestManager(creature);
-
-                creature.QuestManager.Increment(emote.Message);     // kill task?
-            }
-        }
-
-        private void EraseQuest(BiotaPropertiesEmoteAction emote, Creature creature)
-        {
-            if (creature != null)
-            {
-                CheckForQuestManager(creature);
-
-                creature.QuestManager.Erase(emote.Message);
-            }
-        }
-
-        private void DecrementQuest(BiotaPropertiesEmoteAction emote, Creature creature)
-        {
-            if (creature != null)
-            {
-                CheckForQuestManager(creature);
-
-                creature.QuestManager.Decrement(emote.Message);
-            }
         }
 
         /// <summary>
@@ -1505,6 +1418,35 @@ namespace ACE.Server.WorldObjects.Managers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Returns the creature target for quest emotes
+        /// </summary>
+        public static Creature GetQuestTarget(EmoteType emote, Creature target, Creature self)
+        {
+            switch (emote)
+            {
+                // MyQuest always targets self
+                case EmoteType.DecrementMyQuest:
+                case EmoteType.EraseMyQuest:
+                case EmoteType.IncrementMyQuest:
+                case EmoteType.InqMyQuest:
+                case EmoteType.InqMyQuestBitsOff:
+                case EmoteType.InqMyQuestBitsOn:
+                case EmoteType.InqMyQuestSolves:
+                case EmoteType.SetMyQuestBitsOff:
+                case EmoteType.SetMyQuestBitsOn:
+                case EmoteType.SetMyQuestCompletions:
+                case EmoteType.StampMyQuest:
+                case EmoteType.UpdateMyQuest:
+
+                    return self;
+
+                default:
+
+                    return target ?? self;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

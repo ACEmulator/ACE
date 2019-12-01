@@ -136,7 +136,7 @@ namespace ACE.Server.WorldObjects
 
             CombatTable = DatManager.PortalDat.ReadFromDat<CombatManeuverTable>(CombatTableDID.Value);
 
-            QuestManager = new QuestManager(this);
+            _questManager = new QuestManager(this);
 
             ContractManager = new ContractManager(this);
 

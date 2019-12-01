@@ -23,7 +23,18 @@ namespace ACE.Server.WorldObjects
 
         public bool IsExhausted { get => Stamina.Current == 0; }
 
-        public QuestManager QuestManager;
+        protected QuestManager _questManager;
+
+        public QuestManager QuestManager
+        {
+            get
+            {
+                if (_questManager == null)
+                    _questManager = new QuestManager(this);
+
+                return _questManager;
+            }
+        }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

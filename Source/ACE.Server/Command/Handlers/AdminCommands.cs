@@ -2374,9 +2374,6 @@ namespace ACE.Server.Command.Handlers
 
             if (wo != null && wo is Creature creature)
             {
-                if (creature.QuestManager == null)
-                    creature.QuestManager = new QuestManager(creature);
-
                 if (parameters[0].Equals("list"))
                 {
                     var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";
@@ -2460,7 +2457,7 @@ namespace ACE.Server.Command.Handlers
 
                 if (parameters[0].Equals("stamp"))
                 {
-                    if (parameters.Length < 2)
+                    if (parameters.Length < 3)
                     {
                         session.Player.SendMessage($"You must specify a quest to stamp and number completions using the following command: /qst stamp questname number");
                         return;
