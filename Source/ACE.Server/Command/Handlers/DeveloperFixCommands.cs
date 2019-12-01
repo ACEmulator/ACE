@@ -796,7 +796,7 @@ namespace ACE.Server.Command.Handlers
 
             if (foundIssues)
             {
-                Console.WriteLine($"{(fix ? "Fixed" : "Found")} issues for {results.Count} players");
+                Console.WriteLine($"{(fix ? "Fixed" : "Found")} issues for {results.Count:N0} players");
 
                 if (!fix)
                     Console.WriteLine($"Dry run completed. Type 'verify-xp fix' to fix any issues.");
