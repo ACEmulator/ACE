@@ -236,13 +236,7 @@ namespace ACE.Server.Network
             var removalList = cachedPackets.Values.Where(x => (currentTime >= x.Header.Time ? currentTime : currentTime + ushort.MaxValue) - x.Header.Time > cachedPacketRetentionTime);
 
             foreach (var packet in removalList)
-            {
-                if (cachedPackets.TryRemove(packet.Header.Sequence, out var removedPacket))
-                {
-                    if (removedPacket.Data != null)
-                        removedPacket.Data.Dispose();
-                }
-            }
+                cachedPackets.TryRemove(packet.Header.Sequence, out _);
         }
 
         // This is called from ConnectionListener.OnDataReceieve()->Session.ProcessPacket()->This
@@ -546,13 +540,7 @@ namespace ACE.Server.Network
             var removalList = cachedPackets.Keys.Where(x => x < sequence);
 
             foreach (var key in removalList)
-            {
-                if (cachedPackets.TryRemove(key, out var removedPacket))
-                {
-                    if (removedPacket.Data != null)
-                        removedPacket.Data.Dispose();
-                }
-            }
+                cachedPackets.TryRemove(key, out _);
         }
 
         private void Retransmit(uint sequence)
