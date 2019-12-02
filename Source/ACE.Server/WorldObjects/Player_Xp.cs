@@ -245,7 +245,7 @@ namespace ACE.Server.WorldObjects
                 // break if we reach max
                 if (Level == maxLevel)
                 {
-                    PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(PlayScript.WeddingBliss, Guid);
                     break;
                 }
             }
@@ -285,7 +285,7 @@ namespace ACE.Server.WorldObjects
                 SetMaxVitals();
 
                 // play level up effect
-                PlayParticleEffect(ACE.Entity.Enum.PlayScript.LevelUp, Guid);
+                PlayParticleEffect(PlayScript.LevelUp, Guid);
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement), currentCredits);
             }
@@ -397,7 +397,7 @@ namespace ACE.Server.WorldObjects
                     var msg = $"Your {item.Name} has increased in power to level {newItemLevel}!";
                     Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
-                    EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
+                    EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.AetheriaLevelUp));
                 });
                 actionChain.EnqueueChain();
             }
