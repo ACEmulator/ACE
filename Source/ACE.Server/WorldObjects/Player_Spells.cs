@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
             if (uiOutput == true)
             {
                 // Always seems to be this SkillUpPurple effect
-                ApplyVisualEffects(ACE.Entity.Enum.PlayScript.SkillUpPurple);
+                ApplyVisualEffects(PlayScript.SkillUpPurple);
 
                 string message = $"You learn the {spells.Spells[spellId].Name} spell.\n";
                 GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);

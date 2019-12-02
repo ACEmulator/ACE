@@ -62,10 +62,14 @@ namespace ACE.Server.Physics.Common
             SeenOutside = envCell.SeenOutside;
 
             EnvironmentID = envCell.EnvironmentId;
-            Environment = DBObj.GetEnvironment(EnvironmentID);
+
+            if (EnvironmentID != 0)
+                Environment = DBObj.GetEnvironment(EnvironmentID);
+
             CellStructureID = envCell.CellStructure;    // environment can contain multiple?
-            if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
-                CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
+
+            if (Environment?.Cells != null && Environment.Cells.TryGetValue(CellStructureID, out var cellStruct))
+                CellStructure = new CellStruct(cellStruct);
 
             NumSurfaces = envCell.Surfaces.Count;
         }

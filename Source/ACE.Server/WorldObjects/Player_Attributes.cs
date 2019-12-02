@@ -29,7 +29,7 @@ namespace ACE.Server.WorldObjects
                 if (IsAttributeMaxRank(creatureAttribute.Ranks))
                 {
                     // fireworks
-                    PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {attribute} is now {creatureAttribute.Base} and has reached its upper limit!";
                 }
                 else

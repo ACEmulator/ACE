@@ -88,6 +88,11 @@ namespace ACE.Entity.Enum.Properties
         CombatUse                                = 51,
         [ServerOnly]
         ParentLocation                           = 52,
+        /// <summary>
+        /// TODO: Migrate inventory order away from this and instead use the new InventoryOrder property
+        /// TODO: PlacementPosition is used (very sparingly) in cache.bin, so it has (or had) a meaning at one point before we hijacked it
+        /// TODO: and used it for our own inventory order
+        /// </summary>
         [ServerOnly]
         PlacementPosition                        = 53,
         WeaponEncumbrance                        = 54,
@@ -586,7 +591,7 @@ namespace ACE.Entity.Enum.Properties
         ///  Stores the player's selected hairstyle at creation or after a barber use. This is used only for Gear Knights and Olthoi characters who have more than a single part/texture for a "hairstyle" (BodyStyle)
         /// </summary>
         [ServerOnly]
-        Hairstyle = 9012,
+        Hairstyle                               = 9012,
         /// <summary>
         /// Used to store the calculated Clothing Priority for use with armor reduced items and items like Over-Robes.
         /// </summary>
@@ -594,6 +599,13 @@ namespace ACE.Entity.Enum.Properties
         VisualClothingPriority                  = 9013,
         [ServerOnly]
         SquelchGlobal                           = 9014,
+
+        /// <summary>
+        /// TODO: This is a place holder for future use. See PlacementPosition
+        /// This is the sort order for items in a container
+        /// </summary>
+        [ServerOnly]
+        InventoryOrder                          = 9015,
     }
 
     public static class PropertyIntExtensions
