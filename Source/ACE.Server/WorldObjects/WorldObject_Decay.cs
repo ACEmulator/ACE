@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
@@ -130,7 +131,7 @@ namespace ACE.Server.WorldObjects
 
             if (corpse != null)
             {
-                EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Destroy));
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Destroy));
 
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(1.0f);

@@ -49,7 +49,7 @@ namespace ACE.Server.WorldObjects
             killChain.AddDelaySeconds(5);
             killChain.AddAction(this, () =>
             {
-                ApplyVisualEffects(global::ACE.Entity.Enum.PlayScript.Destroy);
+                ApplyVisualEffects(PlayScript.Destroy);
             });
             killChain.AddDelaySeconds(1);
             killChain.AddAction(this, () => Destroy());

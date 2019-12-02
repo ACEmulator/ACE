@@ -879,7 +879,7 @@ namespace ACE.Server.WorldObjects
         public void HandleLifestoneProtection()
         {
             Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.LifestoneMagicProtectsYou));
-            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.ShieldUpBlue));
+            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.ShieldUpBlue));
         }
 
         public static TimeSpan LifestoneProtectionTime = TimeSpan.FromMinutes(1);

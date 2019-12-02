@@ -253,7 +253,7 @@ namespace ACE.Server.Managers
                 return TimeSpan.MaxValue;   // cannot solve this quest again - max solves reached / exceeded
 
             var currentTime = (uint)Time.GetUnixTime();
-            var nextSolveTime = playerQuest.LastTimeCompleted + quest.MinDelta;
+            var nextSolveTime = playerQuest.LastTimeCompleted + (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate", 1).Item);
 
             if (currentTime >= nextSolveTime)
                 return TimeSpan.MinValue;   // can solve again now - next solve time expired

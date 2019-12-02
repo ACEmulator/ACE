@@ -270,7 +270,7 @@ namespace ACE.Server.WorldObjects
             // splatter effects
             var hitSound = new GameMessageSound(Guid, Sound.HitFlesh1, 0.5f);
             //var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + playerSource.GetSplatterHeight() + playerSource.GetSplatterDir(this));
-            var splatter = new GameMessageScript(Guid, damageType == DamageType.Nether ? ACE.Entity.Enum.PlayScript.HealthDownVoid : ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime);
+            var splatter = new GameMessageScript(Guid, damageType == DamageType.Nether ? PlayScript.HealthDownVoid : PlayScript.DirtyFightingDamageOverTime);
             EnqueueBroadcast(hitSound, splatter);
 
             if (Health.Current <= 0) return;
