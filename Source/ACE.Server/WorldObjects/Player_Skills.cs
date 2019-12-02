@@ -239,7 +239,7 @@ namespace ACE.Server.WorldObjects
                 if (IsSkillMaxRank(creatureSkill.Ranks, creatureSkill.AdvancementClass))
                 {
                     // fireworks on rank up is 0x8D
-                    PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
+                    PlayParticleEffect(PlayScript.WeddingBliss, Guid);
                     messageText = $"Your base {skill.ToSentence()} is now {creatureSkill.Base} and has reached its upper limit!";
                 }
                 else

@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
                 || WeenieClassId == 7276 || WeenieClassId == 7277 || WeenieClassId == 7279 || WeenieClassId == 7280)
             {
-                PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
+                PhysicsObj.DefaultScript = PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
             }
 
@@ -96,7 +96,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (spellId == 3818)
                 {
-                    PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.Explode;
+                    PhysicsObj.DefaultScript = PlayScript.Explode;
                     PhysicsObj.DefaultScriptIntensity = 1.0f;
                     ScriptedCollision = true;
                 }
@@ -314,8 +314,8 @@ namespace ACE.Server.WorldObjects
                         player.Session.Network.EnqueueSend(dot.Message);
 
                     // corruption / corrosion playscript?
-                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.HealthDownVoid));
-                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
+                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.HealthDownVoid));
+                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDefenseDebuff));
                 }
                 else
                 {
