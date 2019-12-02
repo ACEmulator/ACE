@@ -416,28 +416,6 @@ namespace ACE.Server.WorldObjects
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
@@ -445,28 +423,8 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
-
-
-        public static float MaxObjectTrackingRange { get; } = 20000f;
-
-        public Position ForcedLocation { get; private set; }
 
         public Position RequestedLocation { get; set; }
-
-        public Position PreviousLocation { get; set; }
-
-
-        /// <summary>
-        /// Time when this object will despawn, -1 is never.
-        /// </summary>
-        public double DespawnTime { get; set; } = -1;
-
-        /// <summary>
-        /// tick-stamp for the server time of the last time the player moved.
-        /// TODO: implement
-        /// </summary>
-        public double LastAnimatedTicks { get; set; }
-
 
         ////// Logical Game Data
         public ContainerType ContainerType
