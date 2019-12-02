@@ -77,7 +77,7 @@ namespace ACE.Database.SQLFormatters.Shard
 
         public void CreateSQLINSERTStatement(uint characterId, IList<CharacterPropertiesContractRegistry> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `character_properties_contract` (`character_Id`, `contract_Id`, `delete_Contract`, `set_As_Display_Contract`)");
+            writer.WriteLine("INSERT INTO `character_properties_contract_registry` (`character_Id`, `contract_Id`, `delete_Contract`, `set_As_Display_Contract`)");
 
             var lineGenerator = new Func<int, string>(i => $"{characterId}, {input[i].ContractId}, {input[i].DeleteContract}, {input[i].SetAsDisplayContract})");
 

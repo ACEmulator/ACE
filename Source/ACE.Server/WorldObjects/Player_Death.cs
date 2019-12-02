@@ -212,8 +212,6 @@ namespace ACE.Server.WorldObjects
 
                 ThreadSafeTeleportOnDeath(); // enter portal space
 
-                SetLifestoneProtection();
-
                 if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
                     SetMinimumTimeSincePK();
 
@@ -231,10 +229,12 @@ namespace ACE.Server.WorldObjects
             // teleport to sanctuary or best location
             var newPosition = Sanctuary ?? Instantiation ?? Location;
 
-            ThreadSafeTeleport(newPosition, new ActionEventDelegate(() =>
-            { 
+            WorldManager.ThreadSafeTeleport(this, newPosition, new ActionEventDelegate(() =>
+            {
                 // Stand back up
                 SetCombatMode(CombatMode.NonCombat);
+
+                SetLifestoneProtection();
 
                 var teleportChain = new ActionChain();
                 teleportChain.AddDelaySeconds(3.0f);
@@ -879,7 +879,7 @@ namespace ACE.Server.WorldObjects
         public void HandleLifestoneProtection()
         {
             Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.LifestoneMagicProtectsYou));
-            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.ShieldUpBlue));
+            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.ShieldUpBlue));
         }
 
         public static TimeSpan LifestoneProtectionTime = TimeSpan.FromMinutes(1);

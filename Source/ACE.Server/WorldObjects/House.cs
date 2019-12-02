@@ -61,7 +61,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            DefaultScriptId = (uint)ACE.Entity.Enum.PlayScript.RestrictionEffectBlue;
+            DefaultScriptId = (uint)PlayScript.RestrictionEffectBlue;
 
             BuildGuests();
 

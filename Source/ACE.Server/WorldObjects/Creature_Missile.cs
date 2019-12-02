@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
             var pkStatus = player?.PlayerKillerStatus ?? PlayerKillerStatus.Creature;
 
             proj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(proj, PropertyInt.PlayerKillerStatus, (int)pkStatus));
-            proj.EnqueueBroadcast(new GameMessageScript(proj.Guid, ACE.Entity.Enum.PlayScript.Launch, 0f));
+            proj.EnqueueBroadcast(new GameMessageScript(proj.Guid, PlayScript.Launch, 0f));
 
             // detonate point-blank projectiles immediately
             /*var radsum = target.PhysicsObj.GetRadius() + proj.PhysicsObj.GetRadius();
