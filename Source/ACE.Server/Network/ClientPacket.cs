@@ -32,6 +32,12 @@ namespace ACE.Server.Network
         {
             try
             {
+                if (data.Length < PacketHeader.HeaderSize)
+                {
+                    IsValid = false;
+                    return;
+                }
+
                 Header = new PacketHeader(data);
 
                 if (Header.Size > data.Length - PacketHeader.HeaderSize)
@@ -40,21 +46,14 @@ namespace ACE.Server.Network
                     return;
                 }
 
-                using (MemoryStream stream = new MemoryStream(data))
-                {
-                    stream.Position = PacketHeader.HeaderSize;
+                Data = new MemoryStream(data, PacketHeader.HeaderSize, Header.Size, false, true);
+                Payload = new BinaryReader(Data);
+                HeaderOptional = new PacketHeaderOptional(Payload, Header);
 
-                    using (BinaryReader reader = new BinaryReader(stream))
-                    {
-                        Data = new MemoryStream(reader.ReadBytes(Header.Size), 0, Header.Size, false, true);
-                        Payload = new BinaryReader(Data);
-                        HeaderOptional = new PacketHeaderOptional(Payload, Header);
-                        if (!HeaderOptional.IsValid)
-                        {
-                            IsValid = false;
-                            return;
-                        }
-                    }
+                if (!HeaderOptional.IsValid)
+                {
+                    IsValid = false;
+                    return;
                 }
 
                 IsValid = true;
