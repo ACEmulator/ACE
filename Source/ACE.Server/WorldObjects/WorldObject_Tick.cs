@@ -197,9 +197,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public uint prevCell;
-        public bool InUpdate;
-
         public double lastDist;
 
         public static double ProjectileTimeout = 30.0f;
