@@ -139,7 +139,7 @@ namespace ACE.Server.Network
             return headerChecksum + (payloadChecksum ^ issacXor) == Header.Checksum;
         }
 
-        private bool VerifyEncryptedCRC(CryptoSystem fq, out string keyOffsetForLogging, bool rangeAdvance)
+        private bool VerifyEncryptedCRC(CryptoSystem fq, out string keyOffsetForLogging)
         {
             var verifiedKey = new Tuple<int, uint>(0, 0);
             Func<Tuple<int, uint>, bool> cbSearch = new Func<Tuple<int, uint>, bool>((pair) =>
@@ -155,7 +155,7 @@ namespace ACE.Server.Network
                 }
             });
 
-            if (fq.Search(cbSearch, rangeAdvance))
+            if (fq.Search(cbSearch))
             {
                 keyOffsetForLogging = verifiedKey.Item1.ToString();
                 return true;
@@ -164,18 +164,19 @@ namespace ACE.Server.Network
             return false;
         }
 
-        private bool VerifyEncryptedCRCAndLogResult(CryptoSystem fq, bool rangeAdvance)
+        private bool VerifyEncryptedCRCAndLogResult(CryptoSystem fq)
         {
-            bool result = VerifyEncryptedCRC(fq, out string key, rangeAdvance);
+            bool result = VerifyEncryptedCRC(fq, out string key);
             key = (key == "") ? $"" : $" Key: {key}";
             packetLog.Debug($"{fq} {this}{key}");
             return result;
         }
-        public bool VerifyCRC(CryptoSystem fq, bool rangeAdvance)
+
+        public bool VerifyCRC(CryptoSystem fq)
         {
             if (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
-                if (VerifyEncryptedCRCAndLogResult(fq, rangeAdvance))
+                if (VerifyEncryptedCRCAndLogResult(fq))
                 {
                     CRCVerified = true;
                     return true;
