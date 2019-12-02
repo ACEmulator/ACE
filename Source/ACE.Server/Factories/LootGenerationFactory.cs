@@ -402,7 +402,7 @@ namespace ACE.Server.Factories
                                 wield = 290;
                             break;
                         case 5:
-                            if (chance < 60)
+                            if (chance < 40)
                                 wield = 0;
                             else if (chance < 90)
                                 wield = 290;
@@ -410,9 +410,9 @@ namespace ACE.Server.Factories
                                 wield = 310;
                             break;
                         case 6:
-                            if (chance < 40)
+                            if (chance < 20)
                                 wield = 0;
-                            else if (chance < 70)
+                            else if (chance < 45)
                                 wield = 310;
                             else if (chance < 90)
                                 wield = 330;
@@ -420,11 +420,11 @@ namespace ACE.Server.Factories
                                 wield = 355;
                             break;
                         case 7:
-                            if (chance < 30)
+                            if (chance < 10)
                                 wield = 0;
-                            else if (chance < 60)
+                            else if (chance < 40)
                                 wield = 330;
-                            else if (chance < 90)
+                            else if (chance < 85)
                                 wield = 355;
                             else
                                 wield = 375;
@@ -2273,7 +2273,7 @@ namespace ACE.Server.Factories
                     else if (chance < 95)
                         meleeMod = 0.05;
                     else
-                    meleeMod = 0.01;
+                        meleeMod = 0.01;
                     break;
                 case 270: // Missile
                     if (chance < 10)
@@ -2293,9 +2293,10 @@ namespace ACE.Server.Factories
                     else if (chance < 95)
                         meleeMod = 0.12;
                     else
-                    meleeMod = 0.05;
+                        meleeMod = 0.05;
                     break;
-                case 290: // Missile
+                case 310: // Casters
+                case 290: // Missile & Casters
                     if (chance < 10)
                         meleeMod = 0.09;
                     else if (chance < 20)
@@ -2311,6 +2312,7 @@ namespace ACE.Server.Factories
                     else
                         meleeMod = 0.09;
                     break;
+                case 330: // Casters    
                 case 315: // Missile
                 case 335: // Missile
                     if (chance < 10)
@@ -2328,6 +2330,8 @@ namespace ACE.Server.Factories
                     else
                         meleeMod = 0.10;
                     break;
+                case 150: // No wield Casters
+                case 355: // Casters
                 case 360: // Missile
                     if (chance > 95)
                         meleeMod = 0.18;
@@ -2344,8 +2348,9 @@ namespace ACE.Server.Factories
                     else
                         meleeMod = 0.12;
                     break;
-                case 375: // Missile
-                case 385: // Missile
+                case 180: // No wield Casters
+                case 375: // Missile/Caster
+                case 385: // Missile/Caster
                     if (chance > 95)
                         meleeMod = 0.20;
                     else if (chance > 85)
@@ -2369,5 +2374,36 @@ namespace ACE.Server.Factories
             meleeMod = meleeMod + 1.0;
             return meleeMod;
         }
-    }
+        /// <summary>
+        /// Returns Values for Magic & Missile Defense Bonus. HarliQ 11/17/19
+        /// </summary>
+        private static double GetMagicMissileDefenseBonus()
+        {
+            double mBonus = 0;
+
+            int chance = ThreadSafeRandom.Next(1, 100);
+
+            if (chance > 98)
+                mBonus = 0.04;
+            else if (chance > 95)
+                mBonus = 0.035;
+            else if (chance > 90)
+                mBonus = 0.030;
+            else if (chance > 80)
+                mBonus = 0.025;
+            else if (chance > 65)
+                mBonus = 0.02;
+            else if (chance > 50)
+                mBonus = 0.015;
+            else if (chance > 25)
+                mBonus = 0.010;
+            else 
+                mBonus = 0.005;
+
+            return mBonus +1;
+
+            
+        }
+    } 
+        
 }
