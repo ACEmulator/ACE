@@ -1,3 +1,4 @@
+using System;
 using System.Buffers;
 using System.IO;
 
@@ -21,13 +22,27 @@ namespace ACE.Server.Network
 
         public PacketHeader(BinaryReader payload)
         {
-            Sequence = payload.ReadUInt32();
-            Flags = (PacketHeaderFlags)payload.ReadUInt32();
-            Checksum = payload.ReadUInt32();
-            Id = payload.ReadUInt16();
-            Time = payload.ReadUInt16();
-            Size = payload.ReadUInt16();
-            Iteration = payload.ReadUInt16();
+            Sequence    = payload.ReadUInt32();
+            Flags       = (PacketHeaderFlags)payload.ReadUInt32();
+            Checksum    = payload.ReadUInt32();
+            Id          = payload.ReadUInt16();
+            Time        = payload.ReadUInt16();
+            Size        = payload.ReadUInt16();
+            Iteration   = payload.ReadUInt16();
+        }
+
+        public PacketHeader(byte[] payload)
+        {
+            int offset = 0;
+
+            Sequence    =              (uint)(payload[offset++] | (payload[offset++] << 8) | (payload[offset++] << 16) | (payload[offset++] << 24));
+            Flags       = (PacketHeaderFlags)(payload[offset++] | (payload[offset++] << 8) | (payload[offset++] << 16) | (payload[offset++] << 24));
+            Checksum    =              (uint)(payload[offset++] | (payload[offset++] << 8) | (payload[offset++] << 16) | (payload[offset++] << 24));
+
+            Id          = (ushort)(payload[offset++] | (payload[offset++] << 8));
+            Time        = (ushort)(payload[offset++] | (payload[offset++] << 8));
+            Size        = (ushort)(payload[offset++] | (payload[offset++] << 8));
+            Iteration   = (ushort)(payload[offset++] | (payload[offset++] << 8));
         }
 
         public void AddPayloadToBuffer(byte[] buffer)
@@ -75,6 +90,7 @@ namespace ACE.Server.Network
 
                 var checksum = Hash32.Calculate(buffer, HeaderSize);
                 Checksum = original;
+
                 return checksum;
             }
             finally

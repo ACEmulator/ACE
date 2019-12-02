@@ -1,7 +1,9 @@
-using ACE.Common.Cryptography;
-using log4net;
 using System;
 using System.IO;
+
+using log4net;
+
+using ACE.Common.Cryptography;
 
 namespace ACE.Server.Network
 {
@@ -21,26 +23,29 @@ namespace ACE.Server.Network
             data = NetworkSyntheticTesting.SyntheticCorruption_C2S(data);
 
             ParsePacketData(data);
+
             if (IsValid)
-            {
                 ReadFragments();
-            }
         }
 
         private void ParsePacketData(byte[] data)
         {
             try
             {
+                Header = new PacketHeader(data);
+
+                if (Header.Size > data.Length - PacketHeader.HeaderSize)
+                {
+                    IsValid = false;
+                    return;
+                }
+
                 using (MemoryStream stream = new MemoryStream(data))
                 {
+                    stream.Position = PacketHeader.HeaderSize;
+
                     using (BinaryReader reader = new BinaryReader(stream))
                     {
-                        Header = new PacketHeader(reader);
-                        if (Header.Size > data.Length - reader.BaseStream.Position)
-                        {
-                            IsValid = false;
-                            return;
-                        }
                         Data = new MemoryStream(reader.ReadBytes(Header.Size), 0, Header.Size, false, true);
                         Payload = new BinaryReader(Data);
                         HeaderOptional = new PacketHeaderOptional(Payload, Header);
@@ -51,6 +56,7 @@ namespace ACE.Server.Network
                         }
                     }
                 }
+
                 IsValid = true;
             }
             catch (Exception ex)
@@ -88,48 +94,49 @@ namespace ACE.Server.Network
                 if (_fragmentChecksum == null)
                 {
                     uint fragmentChecksum = 0u;
+
                     foreach (ClientPacketFragment fragment in Fragments)
-                    {
                         fragmentChecksum += fragment.CalculateHash32();
-                    }
+
                     _fragmentChecksum = fragmentChecksum;
                 }
+
                 return _fragmentChecksum.Value;
             }
         }
+
         private uint? _headerChecksum;
         private uint headerChecksum
         {
             get
             {
                 if (_headerChecksum == null)
-                {
                     _headerChecksum = Header.CalculateHash32();
-                }
+
                 return _headerChecksum.Value;
             }
         }
+
         private uint? _headerOptionalChecksum;
         private uint headerOptionalChecksum
         {
             get
             {
                 if (_headerOptionalChecksum == null)
-                {
                     _headerOptionalChecksum = HeaderOptional.CalculateHash32();
-                }
+
                 return _headerOptionalChecksum.Value;
             }
         }
+
         private uint? _payloadChecksum;
         private uint payloadChecksum
         {
             get
             {
                 if (_payloadChecksum == null)
-                {
                     _payloadChecksum = headerOptionalChecksum + fragmentChecksum;
-                }
+
                 return _payloadChecksum.Value;
             }
         }
@@ -142,6 +149,7 @@ namespace ACE.Server.Network
         private bool VerifyEncryptedCRC(CryptoSystem fq, out string keyOffsetForLogging)
         {
             var verifiedKey = new Tuple<int, uint>(0, 0);
+
             Func<Tuple<int, uint>, bool> cbSearch = new Func<Tuple<int, uint>, bool>((pair) =>
             {
                 if (VerifyChecksum(pair.Item2))
@@ -149,10 +157,8 @@ namespace ACE.Server.Network
                     verifiedKey = pair;
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
+
+                return false;
             });
 
             if (fq.Search(cbSearch))
@@ -160,6 +166,7 @@ namespace ACE.Server.Network
                 keyOffsetForLogging = verifiedKey.Item1.ToString();
                 return true;
             }
+
             keyOffsetForLogging = "???";
             return false;
         }
@@ -167,8 +174,10 @@ namespace ACE.Server.Network
         private bool VerifyEncryptedCRCAndLogResult(CryptoSystem fq)
         {
             bool result = VerifyEncryptedCRC(fq, out string key);
+
             key = (key == "") ? $"" : $" Key: {key}";
             packetLog.Debug($"{fq} {this}{key}");
+
             return result;
         }
 
@@ -192,20 +201,18 @@ namespace ACE.Server.Network
                     // and it's more secure to only accept the trusted version
                     return false;
                 }
-                else
+
+                if (VerifyChecksum(0))
                 {
-                    if (VerifyChecksum(0))
-                    {
-                        packetLog.Debug($"{this}");
-                        return true;
-                    }
-                    else
-                    {
-                        packetLog.Debug($"{this}, Checksum Failed");
-                    }
+                    packetLog.Debug($"{this}");
+                    return true;
                 }
+
+                packetLog.Debug($"{this}, Checksum Failed");
             }
+
             NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
+
             return false;
         }
 
