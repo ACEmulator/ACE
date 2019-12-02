@@ -338,49 +338,49 @@ namespace ACE.Server.Factories
                                 wield = 250;
                             break;
                         case 3:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 0;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 250;
                             else
                                 wield = 270;
                             break;
                         case 4:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 0;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 250;
                             else
                                 wield = 270;
                             break;
                         case 5:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 270;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 290;
                             else
                                 wield = 315;
                             break;
                         case 6:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 315;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 335;
                             else
                                 wield = 360;
                             break;
                         case 7:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 335;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 360;
                             else
                                 wield = 375;
                             break;
                         case 8:
-                            if (chance < 60)
+                            if (chance < 30)
                                 wield = 360;
-                            else if (chance < 90)
+                            else if (chance < 80)
                                 wield = 375;
                             else
                                 wield = 385;
@@ -1724,7 +1724,7 @@ namespace ACE.Server.Factories
         {
             int defaultMaterialType = (int)SetDefaultMaterialType(wo);
 
-            if(wo.TsysMutationData == null)
+            if (wo.TsysMutationData == null)
             {
                 log.Warn($"[LOOT] Missing PropertyInt.TsysMutationData on loot item {wo.WeenieClassId} - {wo.Name}");
                 return defaultMaterialType;
@@ -2131,9 +2131,9 @@ namespace ACE.Server.Factories
         /// <returns>WorldObject with a random applicable PaletteTemplate and Shade applied, if available</returns>
         private static WorldObject RandomizeColor(WorldObject wo)
         {
-            if(wo.MaterialType > 0 && wo.TsysMutationData != null && wo.ClothingBase != null)
+            if (wo.MaterialType > 0 && wo.TsysMutationData != null && wo.ClothingBase != null)
             {
-                byte colorCode = (byte)( ((uint)wo.TsysMutationData >> 16) & 0xFF );
+                byte colorCode = (byte)(((uint)wo.TsysMutationData >> 16) & 0xFF);
 
                 // BYTE spellCode = (tsysMutationData >> 24) & 0xFF;
                 // BYTE colorCode = (tsysMutationData >> 16) & 0xFF;
@@ -2250,5 +2250,124 @@ namespace ACE.Server.Factories
             return totalSum;
         }
 
+        /// <summary>
+        /// Will return correct meleeMod for bow wields (some debate on what 375 top out at, leaving at 18 for now). HarliQ 11/17/19
+        /// </summary>
+        private static double GetWieldReqMeleeDMod(int wield)
+        {
+            double meleeMod = 0;
+
+            int chance = ThreadSafeRandom.Next(1, 100);
+            switch (wield)
+            {
+                case 0:
+                case 250: // Missile
+                    if (chance < 20)
+                        meleeMod = 0.01;
+                    else if (chance < 45)
+                        meleeMod = 0.02;
+                    else if (chance < 65)
+                        meleeMod = 0.03;
+                    else if (chance < 85)
+                        meleeMod = 0.04;
+                    else if (chance < 95)
+                        meleeMod = 0.05;
+                    else
+                    meleeMod = 0.01;
+                    break;
+                case 270: // Missile
+                    if (chance < 10)
+                        meleeMod = 0.05;
+                    else if (chance < 20)
+                        meleeMod = 0.06;
+                    else if (chance < 30)
+                        meleeMod = 0.07;
+                    else if (chance < 45)
+                        meleeMod = 0.08;
+                    else if (chance < 55)
+                        meleeMod = 0.09;
+                    else if (chance < 70)
+                        meleeMod = 0.10;
+                    else if (chance < 85)
+                        meleeMod = 0.11;
+                    else if (chance < 95)
+                        meleeMod = 0.12;
+                    else
+                    meleeMod = 0.05;
+                    break;
+                case 290: // Missile
+                    if (chance < 10)
+                        meleeMod = 0.09;
+                    else if (chance < 20)
+                        meleeMod = 0.10;
+                    else if (chance < 40)
+                        meleeMod = 0.11;
+                    else if (chance < 60)
+                        meleeMod = 0.12;
+                    else if (chance < 80)
+                        meleeMod = 0.13;
+                    else if (chance < 95)
+                        meleeMod = 0.14;
+                    else
+                        meleeMod = 0.09;
+                    break;
+                case 315: // Missile
+                case 335: // Missile
+                    if (chance < 10)
+                        meleeMod = 0.10;
+                    else if (chance < 20)
+                        meleeMod = 0.11;
+                    else if (chance < 40)
+                        meleeMod = 0.12;
+                    else if (chance < 60)
+                        meleeMod = 0.13;
+                    else if (chance < 80)
+                        meleeMod = 0.14;
+                    else if (chance < 95)
+                        meleeMod = 0.15;
+                    else
+                        meleeMod = 0.10;
+                    break;
+                case 360: // Missile
+                    if (chance > 95)
+                        meleeMod = 0.18;
+                    else if (chance > 80)
+                        meleeMod = 0.17;
+                    else if (chance > 65)
+                        meleeMod = 0.16;
+                    else if (chance > 45)
+                        meleeMod = 0.15;
+                    else if (chance > 30)
+                        meleeMod = 0.14;
+                    else if (chance > 20)
+                        meleeMod = 0.13;
+                    else
+                        meleeMod = 0.12;
+                    break;
+                case 375: // Missile
+                case 385: // Missile
+                    if (chance > 95)
+                        meleeMod = 0.20;
+                    else if (chance > 85)
+                        meleeMod = 0.19;
+                    else if (chance > 70)
+                        meleeMod = 0.18;
+                    else if (chance > 50)
+                        meleeMod = 0.17;
+                    else if (chance > 35)
+                        meleeMod = 0.16;
+                    else if (chance > 20)
+                        meleeMod = 0.15;
+                    else if (chance > 5)
+                        meleeMod = 0.14;
+                    else
+                        meleeMod = 0.13;
+                    break;
+                default:
+                    break;
+            }
+            meleeMod = meleeMod + 1.0;
+            return meleeMod;
+        }
     }
 }
