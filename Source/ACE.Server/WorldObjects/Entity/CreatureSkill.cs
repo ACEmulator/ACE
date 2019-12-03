@@ -92,7 +92,14 @@ namespace ACE.Server.WorldObjects.Entity
                 if (skillXPTable == null)
                     return 0;
 
-                return skillXPTable[skillXPTable.Count - 1] - ExperienceSpent;
+                // a player can actually have negative experience remaining,
+                // if they had a Trained skill maxed, and then specialized it in skill temple afterwards.
+
+                // (confirmed this is how it was in retail)
+
+                var remainingXP = (long)skillXPTable[skillXPTable.Count - 1] - ExperienceSpent;
+
+                return (uint)Math.Max(0, remainingXP);
             }
         }
 
