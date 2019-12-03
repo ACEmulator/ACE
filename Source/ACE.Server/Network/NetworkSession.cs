@@ -252,7 +252,7 @@ namespace ACE.Server.Network
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
             NetworkStatistics.C2S_Packets_Aggregate_Increment();
 
-            if (!packet.VerifyCRC(ConnectionData.CryptoClient))
+            if (!packet.VerifyCRC(ConnectionData.CryptoClient, true))
             {
                 return;
             }
