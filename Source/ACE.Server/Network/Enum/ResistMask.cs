@@ -53,13 +53,14 @@ namespace ACE.Server.Network.Enum
                 highlightMask |= ResistMask.ResistManaDrain;
             if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Mana) != 1.0f)
                 highlightMask |= ResistMask.ResistManaBoost;
-            if (wielder.EnchantmentManager.GetManaConvMod() != 1.0f)     // only for items?
+
+            // ManaConversionMod and ElementalDamageMod are only needed for weapons
+            var manaConversionMod = GetManaConversionMod(wielder, weapon);
+
+            if (manaConversionMod != 1.0f)
                 highlightMask |= ResistMask.ManaConversionMod;
 
-            var wielderElementalDamageMod = wielder.EnchantmentManager.GetElementalDamageMod();
-            var weaponElementalDamageMod = weapon != null ? weapon.EnchantmentManager.GetElementalDamageMod() : 0.0f;
-
-            var elementalDamageMod = wielderElementalDamageMod + weaponElementalDamageMod;
+            var elementalDamageMod = GetElementalDamageBonus(wielder, weapon);
 
             if (elementalDamageMod != 0.0f)
                 highlightMask |= ResistMask.ElementalDamageMod;
@@ -96,13 +97,14 @@ namespace ACE.Server.Network.Enum
                 colorMask |= ResistMask.ResistManaDrain;
             if (wielder.EnchantmentManager.GetResistanceMod(DamageType.Mana) > 1.0f)
                 colorMask |= ResistMask.ResistManaBoost;
-            if (wielder.EnchantmentManager.GetManaConvMod() > 1.0f)      // only for items?
+
+            // ManaConversionMod and ElementalDamageMod are only needed for weapons
+            var manaConversionMod = GetManaConversionMod(wielder, weapon);
+
+            if (manaConversionMod > 1.0f)
                 colorMask |= ResistMask.ManaConversionMod;
 
-            var wielderElementalDamageMod = wielder.EnchantmentManager.GetElementalDamageMod();
-            var weaponElementalDamageMod = weapon != null ? weapon.EnchantmentManager.GetElementalDamageMod() : 0.0f;
-
-            var elementalDamageMod = wielderElementalDamageMod + weaponElementalDamageMod;
+            var elementalDamageMod = GetElementalDamageBonus(wielder, weapon);
 
             if (elementalDamageMod > 0.0f)
                 colorMask |= ResistMask.ElementalDamageMod;
@@ -111,6 +113,26 @@ namespace ACE.Server.Network.Enum
                 colorMask |= ResistMask.ResistNether;
 
             return colorMask;
+        }
+
+        public static float GetManaConversionMod(WorldObject wielder, WorldObject weapon)
+        {
+            var wielderManaConvMod = wielder?.EnchantmentManager.GetManaConvMod() ?? 1.0f;
+            var weaponManaConvMod = weapon?.EnchantmentManager.GetManaConvMod() ?? 1.0f;
+
+            var manaConversionMod = wielderManaConvMod * weaponManaConvMod;
+
+            return manaConversionMod;
+        }
+
+        public static float GetElementalDamageBonus(WorldObject wielder, WorldObject weapon)
+        {
+            var wielderElementalDamageMod = wielder?.EnchantmentManager.GetElementalDamageMod() ?? 0.0f;
+            var weaponElementalDamageMod = weapon?.EnchantmentManager.GetElementalDamageMod() ?? 0.0f;
+
+            var elementalDamageMod = wielderElementalDamageMod + weaponElementalDamageMod;
+
+            return elementalDamageMod;
         }
     }
 }

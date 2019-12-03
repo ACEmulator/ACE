@@ -365,28 +365,32 @@ namespace ACE.Server.Network.Structure
                 PropertiesFloat[PropertyFloat.WeaponDefense] += defenseMod + auraDefenseMod;
             }
 
-            if (PropertiesFloat.ContainsKey(PropertyFloat.ManaConversionMod))
+            if (PropertiesFloat.TryGetValue(PropertyFloat.ManaConversionMod, out var manaConvMod))
             {
-                var manaConvMod = wielder.EnchantmentManager.GetManaConvMod();
-                if (manaConvMod != 1.0f)
+                if (manaConvMod != 0)
                 {
-                    PropertiesFloat[PropertyFloat.ManaConversionMod] *= manaConvMod;
+                    // hermetic link/void
+                    var enchantmentMod = ResistMaskHelper.GetManaConversionMod(wielder, wo);
 
-                    ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder);
-                    ResistColor = ResistMaskHelper.GetColorMask(wielder);
+                    if (enchantmentMod != 1.0f)
+                    {
+                        PropertiesFloat[PropertyFloat.ManaConversionMod] *= enchantmentMod;
+
+                        ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder, wo);
+                        ResistColor = ResistMaskHelper.GetColorMask(wielder, wo);
+                    }
                 }
+                else
+                    PropertiesFloat.Remove(PropertyFloat.ManaConversionMod);
             }
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.ElementalDamageMod))
             {
-                var weaponEnchantments = wo.EnchantmentManager.GetElementalDamageMod();
-                var wielderEnchantments = wielder.EnchantmentManager.GetElementalDamageMod();
+                var enchantmentBonus = ResistMaskHelper.GetElementalDamageBonus(wielder, wo);
 
-                var enchantments = weaponEnchantments + wielderEnchantments;
-
-                if (enchantments != 0)
+                if (enchantmentBonus != 0)
                 {
-                    PropertiesFloat[PropertyFloat.ElementalDamageMod] += enchantments;
+                    PropertiesFloat[PropertyFloat.ElementalDamageMod] += enchantmentBonus;
 
                     ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder, wo);
                     ResistColor = ResistMaskHelper.GetColorMask(wielder, wo);
