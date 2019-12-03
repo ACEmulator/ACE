@@ -163,10 +163,28 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the maximum possible character level
         /// </summary>
-        /// <returns></returns>
-        public uint GetMaxLevel()
+        public static uint GetMaxLevel()
         {
             return (uint)DatManager.PortalDat.XpTable.CharacterLevelXPList.Count - 1;
+        }
+
+        /// <summary>
+        /// Returns TRUE if player >= MaxLevel
+        /// </summary>
+        public bool IsMaxLevel => Level >= GetMaxLevel();
+
+        /// <summary>
+        /// Returns the remaining XP required to reach a level
+        /// </summary>
+        public long? GetRemainingXP(uint level)
+        {
+            var maxLevel = GetMaxLevel();
+            if (level < 1 || level > maxLevel)
+                return null;
+
+            var levelTotalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[(int)level];
+
+            return (long)levelTotalXP - TotalExperience.Value;
         }
 
         /// <summary>
@@ -185,7 +203,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the total XP required to reach a level
         /// </summary>
-        public ulong GetTotalXP(int level)
+        public static ulong GetTotalXP(int level)
         {
             var maxLevel = GetMaxLevel();
             if (level < 0 || level > maxLevel)
@@ -193,6 +211,20 @@ namespace ACE.Server.WorldObjects
 
             return DatManager.PortalDat.XpTable.CharacterLevelXPList[level];
         }
+
+        /// <summary>
+        /// Returns the total amount of XP required for a player reach max level
+        /// </summary>
+        public static long MaxLevelXP
+        {
+            get
+            {
+                var xpTable = DatManager.PortalDat.XpTable.CharacterLevelXPList;
+
+                return (long)xpTable[xpTable.Count - 1];
+            }
+        }
+
         /// <summary>
         /// Returns the XP required to go from level A to level B
         /// </summary>
