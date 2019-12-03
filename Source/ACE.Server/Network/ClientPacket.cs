@@ -13,8 +13,8 @@ namespace ACE.Server.Network
 
         public static int MaxPacketSize { get; } = 1024;
 
-        public BinaryReader Payload { get; private set; }
-        public PacketHeaderOptional HeaderOptional { get; private set; }
+        public BinaryReader DataReader { get; private set; }
+        public PacketHeaderOptional HeaderOptional { get; } = new PacketHeaderOptional();
         public bool IsValid { get; private set; } = false;
         public bool CRCVerified { get; private set; } = false;
 
@@ -22,13 +22,13 @@ namespace ACE.Server.Network
         {
             data = NetworkSyntheticTesting.SyntheticCorruption_C2S(data);
 
-            ParsePacketData(data);
+            Unpack(data);
 
             if (IsValid)
                 ReadFragments();
         }
 
-        private void ParsePacketData(byte[] data)
+        private void Unpack(byte[] data)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace ACE.Server.Network
                     return;
                 }
 
-                Header = new PacketHeader(data);
+                Header.Unpack(data);
 
                 if (Header.Size > data.Length - PacketHeader.HeaderSize)
                 {
@@ -47,8 +47,8 @@ namespace ACE.Server.Network
                 }
 
                 Data = new MemoryStream(data, PacketHeader.HeaderSize, Header.Size, false, true);
-                Payload = new BinaryReader(Data);
-                HeaderOptional = new PacketHeaderOptional(Payload, Header);
+                DataReader = new BinaryReader(Data);
+                HeaderOptional.Unpack(DataReader, Header);
 
                 if (!HeaderOptional.IsValid)
                 {
@@ -69,11 +69,13 @@ namespace ACE.Server.Network
         {
             if (Header.HasFlag(PacketHeaderFlags.BlobFragments))
             {
-                while (Payload.BaseStream.Position != Payload.BaseStream.Length)
+                while (DataReader.BaseStream.Position != DataReader.BaseStream.Length)
                 {
                     try
                     {
-                        Fragments.Add(new ClientPacketFragment(Payload));
+                        var fragment = new ClientPacketFragment(DataReader); // TODO: Improve the ClientPacketFragment ctor to take a Span<byte>, or a byte[]
+
+                        Fragments.Add(fragment);
                     }
                     catch (Exception)
                     {

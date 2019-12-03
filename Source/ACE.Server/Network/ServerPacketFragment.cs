@@ -8,7 +8,6 @@ namespace ACE.Server.Network
     {
         public ServerPacketFragment(byte[] data)
         {
-            Header = new PacketFragmentHeader();
             Data = data;
         }
 
@@ -19,7 +18,7 @@ namespace ACE.Server.Network
         {
             Header.Size = (ushort)(PacketFragmentHeader.HeaderSize + Data.Length);
 
-            var headerHash32 = Header.AddPayloadToBuffer(buffer, ref offset);
+            var headerHash32 = Header.PackAndReturnHash32(buffer, ref offset);
 
             Buffer.BlockCopy(Data, 0, buffer, offset, Data.Length);
             offset += Data.Length;

@@ -31,11 +31,6 @@ namespace ACE.Server.Network
             }
         }
 
-        public ServerPacket()
-        {
-            Header = new PacketHeader();
-        }
-
         /// <summary>
         /// This will initailize BodyWriter for use.
         /// </summary>
@@ -73,7 +68,7 @@ namespace ACE.Server.Network
             var headerChecksum = Header.CalculateHash32();
             finalChecksum = headerChecksum + payloadChecksum;
             Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
-            Header.AddPayloadToBuffer(buffer);
+            Header.Pack(buffer);
         }
 
         public override string ToString()
