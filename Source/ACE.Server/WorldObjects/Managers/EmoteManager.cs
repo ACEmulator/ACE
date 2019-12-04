@@ -759,7 +759,7 @@ namespace ACE.Server.WorldObjects.Managers
                         newPos.LandblockId = new LandblockId(PositionExtensions.GetCell(newPos));
 
                         // TODO: handle delay for this?
-                        creature.MoveTo(newPos, creature.GetRunRate());
+                        creature.MoveTo(newPos, creature.GetRunRate(), true, null, emote.Extent);
                     }
                     break;
 
@@ -790,7 +790,7 @@ namespace ACE.Server.WorldObjects.Managers
                                 Console.Write($" - {creature.Home.ToLOCString()}");
 
                             // how to get delay with this, callback required?
-                            creature.MoveTo(creature.Home, creature.GetRunRate());
+                            creature.MoveTo(creature.Home, creature.GetRunRate(), true, null, emote.Extent);
                         }
                     }
                     break;
@@ -814,7 +814,7 @@ namespace ACE.Server.WorldObjects.Managers
                             newPos.LandblockId = new LandblockId(emote.ObjCellId.Value);
 
                         // TODO: handle delay for this?
-                        creature.MoveTo(newPos, creature.GetRunRate());
+                        creature.MoveTo(newPos, creature.GetRunRate(), true, null, emote.Extent);
                     }
                     break;
 
@@ -833,8 +833,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.PhysScript:
 
-                    // TODO: landblock broadcast
-                    WorldObject.PhysicsObj.play_script((PlayScript)emote.PScript, 1.0f);
+                    WorldObject.PlayParticleEffect((PlayScript)emote.PScript, WorldObject.Guid, emote.Extent);
                     break;
 
                 case EmoteType.PopUp:
