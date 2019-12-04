@@ -15,57 +15,43 @@ namespace ACE.Server.Network
 
         public BinaryReader DataReader { get; private set; }
         public PacketHeaderOptional HeaderOptional { get; } = new PacketHeaderOptional();
-        public bool IsValid { get; private set; } = false;
-        public bool CRCVerified { get; private set; } = false;
 
-        public ClientPacket(byte[] data)
-        {
-            data = NetworkSyntheticTesting.SyntheticCorruption_C2S(data);
-
-            Unpack(data);
-
-            if (IsValid)
-                ReadFragments();
-        }
-
-        private void Unpack(byte[] data)
+        public bool Unpack(byte[] data)
         {
             try
             {
+                // This won't actually do anything by default unless some bools in NetworkSyntheticTesting are enabled manually
+                data = NetworkSyntheticTesting.SyntheticCorruption_C2S(data);
+
                 if (data.Length < PacketHeader.HeaderSize)
-                {
-                    IsValid = false;
-                    return;
-                }
+                    return false;
 
                 Header.Unpack(data);
 
                 if (Header.Size > data.Length - PacketHeader.HeaderSize)
-                {
-                    IsValid = false;
-                    return;
-                }
+                    return false;
 
                 Data = new MemoryStream(data, PacketHeader.HeaderSize, Header.Size, false, true);
                 DataReader = new BinaryReader(Data);
                 HeaderOptional.Unpack(DataReader, Header);
 
                 if (!HeaderOptional.IsValid)
-                {
-                    IsValid = false;
-                    return;
-                }
+                    return false;
 
-                IsValid = true;
+                if (!ReadFragments())
+                    return false;
+
+                return true;
             }
             catch (Exception ex)
             {
-                IsValid = false;
                 packetLog.Error("Invalid packet data", ex);
+
+                return false;
             }
         }
 
-        private void ReadFragments()
+        private bool ReadFragments()
         {
             if (Header.HasFlag(PacketHeaderFlags.BlobFragments))
             {
@@ -73,18 +59,20 @@ namespace ACE.Server.Network
                 {
                     try
                     {
-                        var fragment = new ClientPacketFragment(DataReader); // TODO: Improve the ClientPacketFragment ctor to take a Span<byte>, or a byte[]
+                        var fragment = new ClientPacketFragment();
+                        fragment.Unpack(DataReader); // TODO: Improve the ClientPacketFragment ctor to take a Span<byte>, or a byte[]
 
                         Fragments.Add(fragment);
                     }
                     catch (Exception)
                     {
                         // corrupt packet
-                        IsValid = false;
-                        break;
+                        return false;
                     }
                 }
             }
+
+            return true;
         }
 
         private uint? _fragmentChecksum;
@@ -181,15 +169,13 @@ namespace ACE.Server.Network
 
             return result;
         }
+
         public bool VerifyCRC(CryptoSystem fq, bool rangeAdvance)
         {
             if (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
                 if (VerifyEncryptedCRCAndLogResult(fq, rangeAdvance))
-                {
-                    CRCVerified = true;
                     return true;
-                }
             }
             else
             {

@@ -1,3 +1,4 @@
+
 namespace ACE.Server.Network
 {
     public abstract class PacketFragment
@@ -8,6 +9,6 @@ namespace ACE.Server.Network
         public PacketFragmentHeader Header { get; } = new PacketFragmentHeader();
         public byte[] Data { get; protected set; }
 
-        public int Length => Data.Length + PacketFragmentHeader.HeaderSize;
+        public int Length => PacketFragmentHeader.HeaderSize + Data.Length;
     }
 }

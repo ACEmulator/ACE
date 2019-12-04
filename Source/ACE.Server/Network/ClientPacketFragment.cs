@@ -7,7 +7,7 @@ namespace ACE.Server.Network
 {
     public class ClientPacketFragment : PacketFragment
     {
-        public ClientPacketFragment(BinaryReader payload)
+        public void Unpack(BinaryReader payload)
         {
             Header.Unpack(payload);
             Data = payload.ReadBytes(Header.Size - PacketFragmentHeader.HeaderSize);
