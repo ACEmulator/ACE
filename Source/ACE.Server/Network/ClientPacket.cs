@@ -60,7 +60,7 @@ namespace ACE.Server.Network
                     try
                     {
                         var fragment = new ClientPacketFragment();
-                        fragment.Unpack(DataReader); // TODO: Improve the ClientPacketFragment ctor to take a Span<byte>, or a byte[]
+                        fragment.Unpack(DataReader);
 
                         Fragments.Add(fragment);
                     }

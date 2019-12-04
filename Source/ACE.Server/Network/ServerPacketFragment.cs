@@ -14,7 +14,7 @@ namespace ACE.Server.Network
         /// <summary>
         /// Returns the Hash32 of the payload added to buffer
         /// </summary>
-        public uint AddPayloadToBuffer(byte[] buffer, ref int offset)
+        public uint PackAndReturnHash32(byte[] buffer, ref int offset)
         {
             Header.Size = (ushort)(PacketFragmentHeader.HeaderSize + Data.Length);
 
