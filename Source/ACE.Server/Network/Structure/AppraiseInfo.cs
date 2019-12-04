@@ -355,12 +355,10 @@ namespace ACE.Server.Network.Structure
             if (wo.ItemSkillLimit != null)
                 PropertiesInt[PropertyInt.AppraisalItemSkill] = (int)wo.ItemSkillLimit;
 
-            if (wielder == null || !wo.IsEnchantable) return;
-
             if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Missile) && !(wo is Ammunition))
             {
                 var defenseMod = wo.EnchantmentManager.GetDefenseMod();
-                var auraDefenseMod = wo.IsEnchantable ? wielder.EnchantmentManager.GetDefenseMod() : 0.0f;
+                var auraDefenseMod = wielder != null && wo.IsEnchantable ? wielder.EnchantmentManager.GetDefenseMod() : 0.0f;
 
                 PropertiesFloat[PropertyFloat.WeaponDefense] += defenseMod + auraDefenseMod;
             }
@@ -380,8 +378,10 @@ namespace ACE.Server.Network.Structure
                         ResistColor = ResistMaskHelper.GetColorMask(wielder, wo);
                     }
                 }
-                else
+                else if (!PropertyManager.GetBool("show_mana_conv_bonus_0").Item)
+                {
                     PropertiesFloat.Remove(PropertyFloat.ManaConversionMod);
+                }
             }
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.ElementalDamageMod))
