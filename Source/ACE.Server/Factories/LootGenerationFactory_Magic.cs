@@ -170,6 +170,8 @@ namespace ACE.Server.Factories
             wo.WeaponMissileDefense = null;
             // Not sure why this is here, guessing some wienies have it by default
             wo.ItemSkillLevelLimit = null;
+            // Null ManaC - For appraisal
+            wo.ManaConversionMod = null;
 
             // Setting general traits of weapon
             wo.ItemWorkmanship = GetWorkmanship(tier);
