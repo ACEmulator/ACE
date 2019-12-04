@@ -122,7 +122,7 @@ namespace ACE.Server.Network.Enum
 
         public static float GetManaConversionMod(WorldObject wielder, WorldObject weapon)
         {
-            var wielderManaConvMod = wielder != null && weapon.IsEnchantable ? wielder.EnchantmentManager.GetManaConvMod() : 1.0f;
+            var wielderManaConvMod = wielder != null && weapon != null && weapon.IsEnchantable ? wielder.EnchantmentManager.GetManaConvMod() : 1.0f;
             var weaponManaConvMod = weapon != null ? weapon.EnchantmentManager.GetManaConvMod() : 1.0f;
 
             var manaConversionMod = wielderManaConvMod * weaponManaConvMod;
@@ -132,7 +132,7 @@ namespace ACE.Server.Network.Enum
 
         public static float GetElementalDamageBonus(WorldObject wielder, WorldObject weapon)
         {
-            var wielderElementalDamageMod = wielder != null && weapon.IsEnchantable ? wielder.EnchantmentManager.GetElementalDamageMod() : 0.0f;
+            var wielderElementalDamageMod = wielder != null && weapon != null && weapon.IsEnchantable ? wielder.EnchantmentManager.GetElementalDamageMod() : 0.0f;
             var weaponElementalDamageMod = weapon != null ? weapon.EnchantmentManager.GetElementalDamageMod() : 0.0f;
 
             var elementalDamageMod = wielderElementalDamageMod + weaponElementalDamageMod;
