@@ -176,8 +176,8 @@ namespace ACE.Server.Network
         {
             bool result = VerifyEncryptedCRC(fq, out string key, rangeAdvance);
 
-            key = (key == "") ? $"" : $" Key: {key}";
-            packetLog.Debug($"{fq} {this}{key}");
+            key = (key == "") ? "" : $" Key: {key}";
+            packetLog.DebugFormat("{0} {1}{2}", fq, this, key);
 
             return result;
         }
@@ -204,11 +204,11 @@ namespace ACE.Server.Network
 
                 if (VerifyChecksum(0))
                 {
-                    packetLog.Debug($"{this}");
+                    packetLog.DebugFormat("{0}", this);
                     return true;
                 }
 
-                packetLog.Debug($"{this}, Checksum Failed");
+                packetLog.DebugFormat("{0}, Checksum Failed", this);
             }
 
             NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();

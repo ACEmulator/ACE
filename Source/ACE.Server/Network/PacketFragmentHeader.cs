@@ -37,6 +37,11 @@ namespace ACE.Server.Network
 
         public void Pack(byte[] buffer, int offset = 0)
         {
+            Pack(buffer, ref offset);
+        }
+
+        public void Pack(byte[] buffer, ref int offset)
+        {
             buffer[offset++] = (byte)Sequence;
             buffer[offset++] = (byte)(Sequence >> 8);
             buffer[offset++] = (byte)(Sequence >> 16);
@@ -65,9 +70,7 @@ namespace ACE.Server.Network
         /// </summary>
         public uint PackAndReturnHash32(byte[] buffer, ref int offset)
         {
-            Pack(buffer, offset);
-
-            offset += HeaderSize;
+            Pack(buffer, ref offset);
 
             return Hash32.Calculate(buffer, offset - HeaderSize, HeaderSize);
         }

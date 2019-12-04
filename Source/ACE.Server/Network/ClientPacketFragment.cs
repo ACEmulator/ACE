@@ -15,7 +15,7 @@ namespace ACE.Server.Network
 
         public uint CalculateHash32()
         {
-            /*byte[] buffer = ArrayPool<byte>.Shared.Rent(PacketFragmentHeader.HeaderSize);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(PacketFragmentHeader.HeaderSize);
 
             try
             {
@@ -28,15 +28,7 @@ namespace ACE.Server.Network
             finally
             {
                 ArrayPool<byte>.Shared.Return(buffer);
-            }*/
-
-
-            byte[] fragmentHeaderBytes = new byte[PacketFragmentHeader.HeaderSize];
-            Header.Pack(fragmentHeaderBytes);
-
-            uint fragmentChecksum = Hash32.Calculate(fragmentHeaderBytes, fragmentHeaderBytes.Length) + Hash32.Calculate(Data, Data.Length);
-
-            return fragmentChecksum;
+            }
         }
     }
 }
