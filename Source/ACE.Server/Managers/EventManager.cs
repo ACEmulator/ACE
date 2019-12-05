@@ -70,7 +70,7 @@ namespace ACE.Server.Managers
             if (eventName.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
                 return false;
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            if (!Events.TryGetValue(eventName, out Event evnt))
                 return false;
 
             var state = (GameEventState)evnt.State;
@@ -101,7 +101,7 @@ namespace ACE.Server.Managers
                 return serverPkState;
             }
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            if (!Events.TryGetValue(eventName, out Event evnt))
                 return false;
 
             return evnt.State == (int)GameEventState.On;
