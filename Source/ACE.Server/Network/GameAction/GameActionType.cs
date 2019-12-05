@@ -35,7 +35,7 @@ namespace ACE.Server.Network.GameAction
         AllegianceChatGag                    = 0x0041,
         DoAllegianceHouseAction              = 0x0042,
         RaiseVital                           = 0x0044,
-        RaiseAbility                         = 0x0045,
+        RaiseAttribute                       = 0x0045,
         RaiseSkill                           = 0x0046,
         TrainSkill                           = 0x0047,
         CastUntargetedSpell                  = 0x0048,
