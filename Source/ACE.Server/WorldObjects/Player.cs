@@ -39,8 +39,6 @@ namespace ACE.Server.WorldObjects
 
         public Session Session { get; }
 
-        public QuestManager QuestManager;
-
         public ContractManager ContractManager;
 
         public bool LastContact = true;
@@ -143,7 +141,7 @@ namespace ACE.Server.WorldObjects
 
             CombatTable = DatManager.PortalDat.ReadFromDat<CombatManeuverTable>(CombatTableDID.Value);
 
-            QuestManager = new QuestManager(this);
+            _questManager = new QuestManager(this);
 
             ContractManager = new ContractManager(this);
 

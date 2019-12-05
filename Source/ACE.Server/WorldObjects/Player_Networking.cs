@@ -66,6 +66,9 @@ namespace ACE.Server.WorldObjects
 
             AuditItemSpells();
 
+            HandleMissingXp();
+            HandleSkillCreditRefund();
+
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
             {
                 var actionChain = new ActionChain();

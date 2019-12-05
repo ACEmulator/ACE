@@ -158,7 +158,27 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultModifier;
 
-            return defaultModifier + (float)(weapon.ManaConversionMod ?? 0.0f) * wielder.EnchantmentManager.GetManaConvMod();
+            if (wielder.CombatMode != CombatMode.NonCombat)
+            {
+                // hermetic link / void
+
+                // base mod starts at 0
+                var baseMod = (float)(weapon.ManaConversionMod ?? 0.0f);
+
+                // enchantments are multiplicative, so they are only effective if there is a base mod
+                var manaConvMod = weapon.EnchantmentManager.GetManaConvMod();
+
+                var auraManaConvMod = 1.0f;
+
+                if (weapon.IsEnchantable)
+                    auraManaConvMod = wielder?.EnchantmentManager.GetManaConvMod() ?? 1.0f;
+
+                var enchantmentMod = manaConvMod * auraManaConvMod;
+
+                return 1.0f + baseMod * enchantmentMod;
+            }
+
+            return defaultModifier;
         }
 
         private const uint defaultSpeed = 40;   // TODO: find default speed

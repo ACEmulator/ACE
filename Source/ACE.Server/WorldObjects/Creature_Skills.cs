@@ -14,20 +14,34 @@ namespace ACE.Server.WorldObjects
         /// This will get a CreatureSkill wrapper around the BiotaPropertiesSkill record for this player.
         /// If the skill doesn't exist for this Biota, one will be created with a status of Untrained.
         /// </summary>
-        public CreatureSkill GetCreatureSkill(Skill skill)
+        /// <param name="add">If the skill doesn't exist for this biota, adds it</param>
+        public CreatureSkill GetCreatureSkill(Skill skill, bool add = true)
         {
             if (Skills.TryGetValue(skill, out var value))
                 return value;
 
-            var biotaPropertiesSkill = Biota.GetOrAddSkill((ushort)skill, BiotaDatabaseLock, out var skillAdded);
-
-            if (skillAdded)
+            BiotaPropertiesSkill biotaPropertiesSkill = null;
+            if (add)
             {
-                biotaPropertiesSkill.SAC = (uint)SkillAdvancementClass.Untrained;
-                ChangesDetected = true;
-            }
+                biotaPropertiesSkill = Biota.GetOrAddSkill((ushort)skill, BiotaDatabaseLock, out var skillAdded);
 
-            Skills[skill] = new CreatureSkill(this, biotaPropertiesSkill);
+                if (skillAdded)
+                {
+                    biotaPropertiesSkill.SAC = (uint)SkillAdvancementClass.Untrained;
+                    ChangesDetected = true;
+                }
+
+                Skills[skill] = new CreatureSkill(this, biotaPropertiesSkill);
+            }
+            else
+            {
+                biotaPropertiesSkill = Biota.GetSkill((ushort)skill, BiotaDatabaseLock);
+
+                if (biotaPropertiesSkill != null)
+                    Skills[skill] = new CreatureSkill(this, biotaPropertiesSkill);
+                else
+                    return null;
+            }
 
             return Skills[skill];
         }
