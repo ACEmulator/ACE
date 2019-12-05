@@ -386,15 +386,19 @@ namespace ACE.Server.Entity
                 // TODO: handle players the same as everything else
                 if (wo is Player player)
                 {
-                    wo.InUpdate = true;
+                    player.InUpdate = true;
 
-                    var newPosition = HandlePlayerPhysics(player);
+                    var newPosition = player.RequestedLocation;
 
-                    // update position through physics engine
                     if (newPosition != null)
-                        landblockUpdate = wo.UpdatePlayerPhysics(newPosition);
+                    {
+                        // update position through physics engine
+                        landblockUpdate = player.UpdatePlayerPhysics(newPosition);
 
-                    wo.InUpdate = false;
+                        player.RequestedLocation = null;
+                    }
+
+                    player.InUpdate = false;
                 }
                 else
                     landblockUpdate = wo.UpdateObjectPhysics();
@@ -405,24 +409,6 @@ namespace ACE.Server.Entity
 
             Monitor5m.Pause();
             Monitor1h.Pause();
-        }
-
-        /// <summary>
-        /// Detects if player has moved through ForcedLocation or RequestedLocation
-        /// </summary>
-        private static Position HandlePlayerPhysics(Player player)
-        {
-            Position newPosition = null;
-
-            if (player.ForcedLocation != null)
-                newPosition = player.ForcedLocation;
-            else if (player.RequestedLocation != null)
-                newPosition = player.RequestedLocation;
-
-            if (newPosition != null)
-                player.ClearRequestedPositions();
-
-            return newPosition;
         }
 
         /// <summary>

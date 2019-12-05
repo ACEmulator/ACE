@@ -2344,6 +2344,7 @@ namespace ACE.Server.Command.Handlers
             "[list | bestow | erase]\n"
             + "qst list - List the quest flags for the targeted player\n"
             + "qst bestow - Stamps the specific quest flag on the targeted player. If this fails, it's probably because you spelled the quest flag wrong.\n"
+            + "qst stamp - Stamps the specific quest flag on the targeted player the specified number of times. If this fails, it's probably because you spelled the quest flag wrong.\n"
             + "qst erase - Erase the specific quest flag from the targeted player. If no quest flag is given, it erases the entire quest table for the targeted player.\n")]
         public static void Handleqst(Session session, params string[] parameters)
         {
@@ -2370,17 +2371,17 @@ namespace ACE.Server.Command.Handlers
 
             var wo = session.Player.CurrentLandblock?.GetObject(objectId);
 
-            if (wo != null && wo is Player player)
+            if (wo != null && wo is Creature creature)
             {
                 if (parameters[0].Equals("list"))
                 {
-                    var questsHdr = $"Quest Registry for {player.Name} (0x{player.Guid}):\n";
+                    var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";
                     questsHdr += "================================================\n";
                     var quests = "";
-                    foreach (var quest in player.QuestManager.Quests)
+                    foreach (var quest in creature.QuestManager.Quests)
                     {
                         quests += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
-                        var nextSolve = player.QuestManager.GetNextSolveTime(quest.QuestName);
+                        var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
 
                         if (nextSolve == TimeSpan.MinValue)
                             quests += "Can Solve: Immediately\n";
@@ -2405,22 +2406,22 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
                     var questName = parameters[1];
-                    if (player.QuestManager.HasQuest(questName))
+                    if (creature.QuestManager.HasQuest(questName))
                     {
-                        session.Player.SendMessage($"{player.Name} already has {questName}");
+                        session.Player.SendMessage($"{creature.Name} already has {questName}");
                         return;
                     }
 
-                    var canSolve = player.QuestManager.CanSolve(questName);
+                    var canSolve = creature.QuestManager.CanSolve(questName);
                     if (canSolve)
                     {
-                        player.QuestManager.Update(questName);
-                        session.Player.SendMessage($"{questName} bestowed on {player.Name}");
+                        creature.QuestManager.Update(questName);
+                        session.Player.SendMessage($"{questName} bestowed on {creature.Name}");
                         return;
                     }
                     else
                     {
-                        session.Player.SendMessage($"Couldn't bestow {questName} on {player.Name}");
+                        session.Player.SendMessage($"Couldn't bestow {questName} on {creature.Name}");
                         return;
                     }
                 }
@@ -2438,18 +2439,46 @@ namespace ACE.Server.Command.Handlers
 
                     if (questName == "*")
                     {
-                        player.QuestManager.EraseAll();
+                        creature.QuestManager.EraseAll();
                         session.Player.SendMessage($"All quests erased.");
                         return;
                     }
 
-                    if (!player.QuestManager.HasQuest(questName))
+                    if (!creature.QuestManager.HasQuest(questName))
                     {
                         session.Player.SendMessage($"{questName} not found.");
                         return;
                     }
-                    player.QuestManager.Erase(questName);
+                    creature.QuestManager.Erase(questName);
                     session.Player.SendMessage($"{questName} erased.");
+                    return;
+                }
+
+                if (parameters[0].Equals("stamp"))
+                {
+                    if (parameters.Length < 3)
+                    {
+                        session.Player.SendMessage($"You must specify a quest to stamp and number completions using the following command: /qst stamp questname number");
+                        return;
+                    }
+                    if (!int.TryParse(parameters[2], out var numCompletions))
+                    {
+                        session.Player.SendMessage($"{parameters[2]} is not a valid int");
+                        return;
+                    }
+                    var questName = parameters[1];
+
+                    creature.QuestManager.SetQuestCompletions(questName, numCompletions);
+                    var quest = creature.QuestManager.GetQuest(questName);
+                    if (quest != null)
+                    {
+                        var numTimesCompleted = quest.NumTimesCompleted;
+                        session.Player.SendMessage($"{questName} stamped with {numTimesCompleted} completions.");
+                    }
+                    else
+                    {
+                        session.Player.SendMessage($"Couldn't stamp {questName} on {creature.Name}");
+                    }
                     return;
                 }
             }
@@ -2458,7 +2487,7 @@ namespace ACE.Server.Command.Handlers
                 if (wo == null)
                     session.Player.SendMessage($"Selected object (0x{objectId}) not found.");
                 else
-                    session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a player.");
+                    session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a creature.");
             }
         }
 
