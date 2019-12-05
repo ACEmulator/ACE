@@ -425,7 +425,6 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
 
-
         public MoveToState LastMoveToState { get; set; }
 
         public Position RequestedLocation { get; set; }
@@ -436,7 +435,6 @@ namespace ACE.Server.WorldObjects
         /// - For MoveToState packets, this is set to FALSE
         /// </summary>
         public bool RequestedLocationBroadcast { get; set; }
-
 
         ////// Logical Game Data
         public ContainerType ContainerType

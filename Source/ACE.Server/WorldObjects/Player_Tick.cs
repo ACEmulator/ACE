@@ -6,12 +6,12 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
-using ACE.Server.Physics;
-using ACE.Server.Physics.Common;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Network.Structure;
+using ACE.Server.Physics;
+using ACE.Server.Physics.Common;
 
 namespace ACE.Server.WorldObjects
 {
