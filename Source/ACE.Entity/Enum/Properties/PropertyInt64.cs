@@ -29,6 +29,8 @@ namespace ACE.Entity.Enum.Properties
         AllegianceXPGenerated = 9001,
         [ServerOnly]
         AllegianceXPReceived  = 9002,
+        [ServerOnly]
+        VerifyXp              = 9003
     }
 
     public static class PropertyInt64Extensions

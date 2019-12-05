@@ -38,10 +38,12 @@ namespace ACE.Server.Managers
 
         public static bool StartEvent(string e)
         {
-            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
+            var eventName = GetEventName(e);
+
+            if (eventName.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
                 return false;
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            if (!Events.TryGetValue(eventName, out Event evnt))
                 return false;
 
             var state = (GameEventState)evnt.State;
@@ -63,10 +65,12 @@ namespace ACE.Server.Managers
 
         public static bool StopEvent(string e)
         {
-            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
+            var eventName = GetEventName(e);
+
+            if (eventName.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
                 return false;
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            if (!Events.TryGetValue(eventName, out Event evnt))
                 return false;
 
             var state = (GameEventState)evnt.State;
@@ -88,14 +92,16 @@ namespace ACE.Server.Managers
 
         public static bool IsEventStarted(string e)
         {
-            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
+            var eventName = GetEventName(e);
+
+            if (eventName.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
             {
                 var serverPkState = PropertyManager.GetBool("pk_server").Item;
 
                 return serverPkState;
             }
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            if (!Events.TryGetValue(eventName, out Event evnt))
                 return false;
 
             return evnt.State == (int)GameEventState.On;
@@ -103,7 +109,9 @@ namespace ACE.Server.Managers
 
         public static bool IsEventEnabled(string e)
         {
-            if (!Events.TryGetValue(e, out Event evnt))
+            var eventName = GetEventName(e);
+
+            if (!Events.TryGetValue(eventName, out Event evnt))
                 return false;
 
             return evnt.State == (int)GameEventState.Enabled || evnt.State == (int)GameEventState.On || evnt.State == (int)GameEventState.Off;
@@ -111,12 +119,16 @@ namespace ACE.Server.Managers
 
         public static bool IsEventAvailable(string e)
         {
-            return Events.ContainsKey(e);
+            var eventName = GetEventName(e);
+
+            return Events.ContainsKey(eventName);
         }
 
         public static GameEventState GetEventStatus(string e)
         {
-            if (e.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
+            var eventName = GetEventName(e);
+
+            if (eventName.Equals("EventIsPKWorld", StringComparison.OrdinalIgnoreCase)) // special event
             {
                 if (PropertyManager.GetBool("pk_server").Item)
                     return GameEventState.On;
@@ -124,10 +136,24 @@ namespace ACE.Server.Managers
                     return GameEventState.Off;
             }
 
-            if (!Events.TryGetValue(e, out Event evnt))
+            if (!Events.TryGetValue(eventName, out Event evnt))
                 return GameEventState.Undef;
 
             return (GameEventState)evnt.State;
+        }
+
+        /// <summary>
+        /// Returns the event name without the @ comment
+        /// </summary>
+        /// <param name="eventFormat">A event name with an optional @comment on the end</param>
+        public static string GetEventName(string eventFormat)
+        {
+            var idx = eventFormat.IndexOf('@');     // strip comment
+            if (idx == -1)
+                return eventFormat;
+
+            var eventName = eventFormat.Substring(0, idx);
+            return eventName;
         }
     }
 }

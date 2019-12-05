@@ -163,10 +163,28 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the maximum possible character level
         /// </summary>
-        /// <returns></returns>
-        public uint GetMaxLevel()
+        public static uint GetMaxLevel()
         {
             return (uint)DatManager.PortalDat.XpTable.CharacterLevelXPList.Count - 1;
+        }
+
+        /// <summary>
+        /// Returns TRUE if player >= MaxLevel
+        /// </summary>
+        public bool IsMaxLevel => Level >= GetMaxLevel();
+
+        /// <summary>
+        /// Returns the remaining XP required to reach a level
+        /// </summary>
+        public long? GetRemainingXP(uint level)
+        {
+            var maxLevel = GetMaxLevel();
+            if (level < 1 || level > maxLevel)
+                return null;
+
+            var levelTotalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[(int)level];
+
+            return (long)levelTotalXP - TotalExperience.Value;
         }
 
         /// <summary>
@@ -178,21 +196,35 @@ namespace ACE.Server.WorldObjects
             if (Level >= maxLevel)
                 return 0;
 
-            var nextLevelTotalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[Level.Value + 2];
+            var nextLevelTotalXP = DatManager.PortalDat.XpTable.CharacterLevelXPList[Level.Value + 1];
             return nextLevelTotalXP - (ulong)TotalExperience.Value;
         }
 
         /// <summary>
         /// Returns the total XP required to reach a level
         /// </summary>
-        public ulong GetTotalXP(int level)
+        public static ulong GetTotalXP(int level)
         {
             var maxLevel = GetMaxLevel();
-            if (level >= maxLevel)
+            if (level < 0 || level > maxLevel)
                 return 0;
 
-            return DatManager.PortalDat.XpTable.CharacterLevelXPList[level + 1];
+            return DatManager.PortalDat.XpTable.CharacterLevelXPList[level];
         }
+
+        /// <summary>
+        /// Returns the total amount of XP required for a player reach max level
+        /// </summary>
+        public static long MaxLevelXP
+        {
+            get
+            {
+                var xpTable = DatManager.PortalDat.XpTable.CharacterLevelXPList;
+
+                return (long)xpTable[xpTable.Count - 1];
+            }
+        }
+
         /// <summary>
         /// Returns the XP required to go from level A to level B
         /// </summary>
@@ -294,42 +326,37 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Spends the amount of XP specified, deducting it from available experience
         /// </summary>
-        public bool SpendXP(long amount, bool sendNetworkPropertyUpdate = true)
+        public bool SpendXP(long amount, bool sendNetworkUpdate = true)
         {
-            if (AvailableExperience >= amount)
-            {
-                AvailableExperience -= amount;
+            if (amount > AvailableExperience)
+                return false;
 
-                if (sendNetworkPropertyUpdate)
-                {
-                    var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
-                    Session.Network.EnqueueSend(xpUpdate);
-                }
+            AvailableExperience -= amount;
 
-                return true;
-            }
+            if (sendNetworkUpdate)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0));
 
-            return false;
+            return true;
         }
 
         /// <summary>
         /// Tries to spend all of the players Xp into Attributes, Vitals and Skills
         /// </summary>
-        public void SpendAllXp(bool sendNetworkPropertyUpdate = true)
+        public void SpendAllXp(bool sendNetworkUpdate = true)
         {
-            SpendAllAvailableAttributeXp(Strength, sendNetworkPropertyUpdate);
-            SpendAllAvailableAttributeXp(Endurance, sendNetworkPropertyUpdate);
-            SpendAllAvailableAttributeXp(Coordination, sendNetworkPropertyUpdate);
-            SpendAllAvailableAttributeXp(Quickness, sendNetworkPropertyUpdate);
-            SpendAllAvailableAttributeXp(Focus, sendNetworkPropertyUpdate);
-            SpendAllAvailableAttributeXp(Self, sendNetworkPropertyUpdate);
+            SpendAllAvailableAttributeXp(Strength, sendNetworkUpdate);
+            SpendAllAvailableAttributeXp(Endurance, sendNetworkUpdate);
+            SpendAllAvailableAttributeXp(Coordination, sendNetworkUpdate);
+            SpendAllAvailableAttributeXp(Quickness, sendNetworkUpdate);
+            SpendAllAvailableAttributeXp(Focus, sendNetworkUpdate);
+            SpendAllAvailableAttributeXp(Self, sendNetworkUpdate);
 
-            SpendAllAvailableVitalXp(Health, sendNetworkPropertyUpdate);
-            SpendAllAvailableVitalXp(Stamina, sendNetworkPropertyUpdate);
-            SpendAllAvailableVitalXp(Mana, sendNetworkPropertyUpdate);
+            SpendAllAvailableVitalXp(Health, sendNetworkUpdate);
+            SpendAllAvailableVitalXp(Stamina, sendNetworkUpdate);
+            SpendAllAvailableVitalXp(Mana, sendNetworkUpdate);
 
             foreach (var skill in Skills)
-                SpendAllAvailableSkillXp(skill.Value, sendNetworkPropertyUpdate);
+                SpendAllAvailableSkillXp(skill.Value, sendNetworkUpdate);
         }
 
         /// <summary>
@@ -341,6 +368,35 @@ namespace ACE.Server.WorldObjects
 
             var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
             Session.Network.EnqueueSend(xpUpdate);
+        }
+
+        public void HandleMissingXp()
+        {
+            var verifyXp = GetProperty(PropertyInt64.VerifyXp) ?? 0;
+            if (verifyXp == 0) return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
+            {
+                var xpType = verifyXp > 0 ? "unassigned experience" : "experience points";
+
+                var msg = $"This character was missing some {xpType} --\nYou have gained an additional {Math.Abs(verifyXp).ToString("N0")} {xpType}!";
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+                if (verifyXp < 0)
+                {
+                    // add to character's total XP
+                    TotalExperience -= verifyXp;
+
+                    CheckForLevelup();
+                }
+
+                RemoveProperty(PropertyInt64.VerifyXp);
+            });
+
+            actionChain.EnqueueChain();
         }
 
         /// <summary>
