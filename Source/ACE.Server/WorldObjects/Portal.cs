@@ -1,5 +1,4 @@
-using System;
-
+using System.Numerics;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -36,6 +35,21 @@ namespace ACE.Server.WorldObjects
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Portal;
 
             UpdatePortalDestination(Destination);
+        }
+
+        public override void EnterWorld()
+        {
+            base.EnterWorld();
+
+            if (RelativeDestination != null && Location != null && Destination == null)
+            {
+                var relativeDestination = new Position(Location);
+                relativeDestination.Pos += new Vector3(RelativeDestination.PositionX, RelativeDestination.PositionY, RelativeDestination.PositionZ);
+                relativeDestination.Rotation = new Quaternion(RelativeDestination.RotationX, relativeDestination.RotationY, relativeDestination.RotationZ, relativeDestination.RotationW);
+                relativeDestination.LandblockId = new LandblockId(relativeDestination.GetCell());
+
+                UpdatePortalDestination(relativeDestination);
+            }
         }
 
         public void UpdatePortalDestination(Position destination)

@@ -11,7 +11,8 @@ namespace ACE.Server.WorldObjects.Entity
     public class CreatureSkill
     {
         private readonly Creature creature;
-        // This is the underlying database record
+
+        // The underlying database record
         public readonly BiotaPropertiesSkill BiotaPropertiesSkill;
 
         public readonly Skill Skill;
@@ -22,6 +23,15 @@ namespace ACE.Server.WorldObjects.Entity
             this.BiotaPropertiesSkill = biotaPropertiesSkill;
 
             Skill = (Skill)biotaPropertiesSkill.Type;
+        }
+
+        /// <summary>
+        /// A bonus from character creation: +5 for trained, +10 for specialized
+        /// </summary>
+        public uint InitLevel
+        {
+            get => BiotaPropertiesSkill.InitLevel;
+            set => BiotaPropertiesSkill.InitLevel = value;
         }
 
         public SkillAdvancementClass AdvancementClass
@@ -50,14 +60,13 @@ namespace ACE.Server.WorldObjects.Entity
                     if (skillTableRecord?.MinLevel == 1)
                         return true;
                 }
-
                 return false;
             }
         }
 
         /// <summary>
-        /// Total experience for this skill,
-        /// both spent and earned
+        /// The amount of experience put into this skill,
+        /// from raising directly and earned through use
         /// </summary>
         public uint ExperienceSpent
         {
@@ -72,8 +81,31 @@ namespace ACE.Server.WorldObjects.Entity
         }
 
         /// <summary>
-        /// Total skill level due to
-        /// directly raising the skill
+        /// Returns the amount of skill experience remaining
+        /// until max rank is reached
+        /// </summary>
+        public uint ExperienceLeft
+        {
+            get
+            {
+                var skillXPTable = Player.GetSkillXPTable(AdvancementClass);
+                if (skillXPTable == null)
+                    return 0;
+
+                // a player can actually have negative experience remaining,
+                // if they had a Trained skill maxed, and then specialized it in skill temple afterwards.
+
+                // (confirmed this is how it was in retail)
+
+                var remainingXP = (long)skillXPTable[skillXPTable.Count - 1] - ExperienceSpent;
+
+                return (uint)Math.Max(0, remainingXP);
+            }
+        }
+
+        /// <summary>
+        /// The number of levels a skill has been raised,
+        /// derived from ExperienceSpent
         /// </summary>
         public ushort Ranks
         {
@@ -84,6 +116,21 @@ namespace ACE.Server.WorldObjects.Entity
                     creature.ChangesDetected = true;
 
                 BiotaPropertiesSkill.LevelFromPP = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns TRUE if this skill has been raised the maximum # of times
+        /// </summary>
+        public bool IsMaxRank
+        {
+            get
+            {
+                var skillXPTable = Player.GetSkillXPTable(AdvancementClass);
+                if (skillXPTable == null)
+                    return false;
+
+                return Ranks >= (skillXPTable.Count - 1);
             }
         }
 
@@ -123,13 +170,13 @@ namespace ACE.Server.WorldObjects.Entity
                     if (vitae != 1.0f)
                         total = (uint)(total * vitae).Round();
 
-                    // it seems this gets applied after vitae?
+                    // everything beyond this point does not get scaled by vitae
                     total += GetAugBonus(player, true);
                 }
 
                 var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
 
-                total = (uint)Math.Max(0, total + skillMod);    // account for negatives, minimum skill 0
+                total = (uint)Math.Max(0, total + skillMod);    // skill level cannot be debuffed below 0
 
                 return total;
             }
@@ -173,15 +220,6 @@ namespace ACE.Server.WorldObjects.Entity
                 total += (uint)player.Enlightenment;
 
             return total;
-        }
-
-        /// <summary>
-        /// A bonus from character creation: +5 for trained, +10 for specialized
-        /// </summary>
-        public uint InitLevel
-        {
-            get => BiotaPropertiesSkill.InitLevel;
-            set => BiotaPropertiesSkill.InitLevel = value;
         }
     }
 }

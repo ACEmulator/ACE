@@ -1,20 +1,20 @@
-using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePrivateUpdateVital : GameMessage
     {
-        public GameMessagePrivateUpdateVital(WorldObject worldObject, PropertyAttribute2nd attribute, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
+        public GameMessagePrivateUpdateVital(WorldObject worldObject, CreatureVital creatureVital)
             : base(GameMessageOpcode.PrivateUpdateVital, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateAttribute2ndLevel, attribute));
+            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateAttribute2ndLevel, creatureVital.Vital));
 
-            Writer.Write((uint)attribute);
-            Writer.Write(ranks);
-            Writer.Write(baseValue);
-            Writer.Write(totalInvestment);
-            Writer.Write(currentValue);
+            Writer.Write((uint)creatureVital.Vital);
+            Writer.Write(creatureVital.Ranks);
+            Writer.Write(creatureVital.StartingValue);
+            Writer.Write(creatureVital.ExperienceSpent);
+            Writer.Write(creatureVital.Current);
         }
     }
 }

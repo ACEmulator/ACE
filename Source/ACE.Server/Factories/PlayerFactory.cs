@@ -477,9 +477,6 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Set Heritage based Melee and Ranged Masteries
         /// </summary>
-        /// <param name="heritageGroup"></param>
-        /// <param name="meleeMastery"></param>
-        /// <param name="rangedMastery"></param>
         private static void GetMasteries(HeritageGroup heritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery)
         {
             switch (heritageGroup)
@@ -677,17 +674,17 @@ namespace ACE.Server.Factories
             // todo add the creature/item/life skills here and remove them from the above base array once we have augmentations added in LevelUpPlayer()
 
             // Specialize Heavy Weapon specific skills
-            player.TrainSkill(Skill.HeavyWeapons, 6);
-            player.SpecializeSkill(Skill.HeavyWeapons, 6);
-            player.TrainSkill(Skill.Healing, 6);
-            player.SpecializeSkill(Skill.Healing, 4);
-            player.TrainSkill(Skill.Shield, 2);
-            player.SpecializeSkill(Skill.Shield, 2);
+            player.TrainSkill(Skill.HeavyWeapons);
+            player.SpecializeSkill(Skill.HeavyWeapons);
+            player.TrainSkill(Skill.Healing);
+            player.SpecializeSkill(Skill.Healing);
+            player.TrainSkill(Skill.Shield);
+            player.SpecializeSkill(Skill.Shield);
 
             // Raise base skills
-            player.TrainSkill(Skill.MissileDefense, 6);
-            player.SpecializeSkill(Skill.MeleeDefense, 10);
-            player.SpecializeSkill(Skill.MagicDefense, 12);
+            player.TrainSkill(Skill.MissileDefense);
+            player.SpecializeSkill(Skill.MeleeDefense);
+            player.SpecializeSkill(Skill.MagicDefense);
 
             // todo 0 skill points. When we add the 4 skill points in LevelUpPlayer, we can spend them here
 

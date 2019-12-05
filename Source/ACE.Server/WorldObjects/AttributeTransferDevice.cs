@@ -88,8 +88,8 @@ namespace ACE.Server.WorldObjects
             fromAttr.StartingValue -= amount;
             toAttr.StartingValue += amount;
 
-            var updateFrom = new GameMessagePrivateUpdateAttribute(player, TransferFromAttribute, fromAttr.Ranks, fromAttr.StartingValue, fromAttr.ExperienceSpent);
-            var updateTo = new GameMessagePrivateUpdateAttribute(player, TransferToAttribute, toAttr.Ranks, toAttr.StartingValue, toAttr.ExperienceSpent);
+            var updateFrom = new GameMessagePrivateUpdateAttribute(player, fromAttr);
+            var updateTo = new GameMessagePrivateUpdateAttribute(player, toAttr);
 
             var msgFrom = new GameMessageSystemChat($"Your base {TransferFromAttribute} is now {fromAttr.Base}!", ChatMessageType.Broadcast);
             var msgTo = new GameMessageSystemChat($"Your base {TransferToAttribute} is now {toAttr.Base}!", ChatMessageType.Broadcast);

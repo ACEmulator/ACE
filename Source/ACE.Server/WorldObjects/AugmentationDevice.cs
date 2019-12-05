@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
                 var attr = AugTypeHelper.GetAttribute(type);
                 var playerAttr = player.Attributes[attr];
                 playerAttr.StartingValue += 5;
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, attr, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, playerAttr));
             }
             else if (AugTypeHelper.IsResist(type))
                 player.AugmentationResistanceFamily++;
