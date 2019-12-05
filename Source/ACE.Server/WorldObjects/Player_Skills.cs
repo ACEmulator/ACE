@@ -300,17 +300,13 @@ namespace ACE.Server.WorldObjects
 
             for (var i = 0; i < amount; i++)
             {
-                if (creatureSkill.IsMaxRank)
-                    return;
-
                 // get skill xp required for next rank
-                var xpToRank = GetXpToNextRank(creatureSkill);
-                if (xpToRank == uint.MaxValue)
-                    return;
+                var xpToNextRank = GetXpToNextRank(creatureSkill);
 
-                // should this always award the full skill xp between current rank and next rank,
-                // or the remaining skill xp to next rank?
-                AwardSkillXP(skill, xpToRank);
+                if (xpToNextRank != null)
+                    AwardSkillXP(skill, xpToNextRank.Value);
+                else
+                    return;
             }
         }
 
@@ -321,11 +317,13 @@ namespace ACE.Server.WorldObjects
         {
             var playerSkill = GetCreatureSkill(skill);
 
-            if (!playerSkill.IsMaxRank)
-            {
-                GrantXP(amount, XpType.Emote, ShareType.None);
-                HandleActionRaiseSkill(skill, amount);
-            }
+            if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained || playerSkill.IsMaxRank)
+                return;
+
+            amount = Math.Min(amount, playerSkill.ExperienceLeft);
+
+            GrantXP(amount, XpType.Emote, ShareType.None);
+            HandleActionRaiseSkill(skill, amount);
         }
 
         public void SpendAllAvailableSkillXp(CreatureSkill creatureSkill, bool sendNetworkUpdate = true)
@@ -351,7 +349,12 @@ namespace ACE.Server.WorldObjects
             if (nextLevelXP == null)
                 return;
 
-            var amount = (uint)Math.Min(nextLevelXP.Value * percent, max);
+            var amount = (uint)Math.Min(Math.Round(nextLevelXP.Value * percent), max);
+
+            amount = Math.Min(amount, creatureSkill.ExperienceLeft);
+
+            //Console.WriteLine($"{Name}.GrantLevelProportionalSkillXP({skill}, {percent}, {max:N0})");
+            //Console.WriteLine($"Amount: {amount:N0}");
 
             AwardSkillXP(skill, amount);
         }
@@ -359,11 +362,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the remaining XP required to the next skill level
         /// </summary>
-        public uint GetXpToNextRank(CreatureSkill skill)
+        public uint? GetXpToNextRank(CreatureSkill skill)
         {
+            if (skill.AdvancementClass < SkillAdvancementClass.Trained || skill.IsMaxRank)
+                return null;
+
             var skillXPTable = GetSkillXPTable(skill.AdvancementClass);
-            if (skillXPTable == null)
-                return uint.MaxValue;
 
             return skillXPTable[skill.Ranks + 1] - skill.ExperienceSpent;
         }
@@ -389,15 +393,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the XP required to go between skill level A and skill level B
+        /// Returns the skill XP required to go between fromRank and toRank
         /// </summary>
-        public ulong? GetXPBetweenSkillLevels(SkillAdvancementClass status, int levelA, int levelB)
+        public ulong? GetXPBetweenSkillLevels(SkillAdvancementClass status, int fromRank, int toRank)
         {
-            var xpTable = GetSkillXPTable(status);
-            if (xpTable == null)
+            var skillXPTable = GetSkillXPTable(status);
+            if (skillXPTable == null)
                 return null;
 
-            return xpTable[levelB + 1] - xpTable[levelA + 1];
+            return skillXPTable[toRank] - skillXPTable[fromRank];
         }
 
         /// <summary>
