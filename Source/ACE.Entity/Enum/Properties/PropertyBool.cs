@@ -173,6 +173,8 @@ namespace ACE.Entity.Enum.Properties
         LinkedPortalTwoSummon            = 9002,
         [ServerOnly]
         HouseEvicted                     = 9003,
+        [ServerOnly]
+        UntrainedSkills                  = 9004,
     }
 
     public static class PropertyBoolExtensions
