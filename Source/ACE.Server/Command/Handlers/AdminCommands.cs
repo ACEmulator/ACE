@@ -1845,7 +1845,7 @@ namespace ACE.Server.Command.Handlers
                 playerSkill.Ranks = 226;
                 playerSkill.ExperienceSpent = 4100490438u;
                 playerSkill.InitLevel = 5000;
-                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, s.Key, playerSkill.AdvancementClass, playerSkill.Ranks, playerSkill.InitLevel, playerSkill.ExperienceSpent));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill));
             }
 
             foreach (var a in currentPlayer.Attributes)
@@ -1854,7 +1854,7 @@ namespace ACE.Server.Command.Handlers
                 playerAttr.StartingValue = 9809u;
                 playerAttr.Ranks = 190u;
                 playerAttr.ExperienceSpent = 4019438644u;
-                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(currentPlayer, a.Key, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(currentPlayer, playerAttr));
             }
 
             currentPlayer.SetMaxVitals();
@@ -1866,7 +1866,7 @@ namespace ACE.Server.Command.Handlers
                 playerVital.ExperienceSpent = 4285430197u;
                 // my OCD will not let health/stam not be equal due to the endurance calc
                 playerVital.StartingValue = (v.Key == PropertyAttribute2nd.MaxHealth) ? 94803u : 89804u;
-                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, v.Key, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, playerVital));
             }
 
             currentPlayer.PlayParticleEffect(PlayScript.LevelUp, currentPlayer.Guid);
@@ -1926,7 +1926,7 @@ namespace ACE.Server.Command.Handlers
                                 playerAttr.StartingValue = uint.Parse(returnStringArr[i + 1]);
                                 playerAttr.Ranks = uint.Parse(returnStringArr[i + 2]);
                                 playerAttr.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
-                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(currentPlayer, playerAttr.Attribute, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(currentPlayer, playerAttr));
                                 i += 4;
                                 break;
                             case int n when (n <= 48):
@@ -1935,7 +1935,7 @@ namespace ACE.Server.Command.Handlers
                                 playerVital.Ranks = uint.Parse(returnStringArr[i + 2]);
                                 playerVital.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
                                 playerVital.Current = uint.Parse(returnStringArr[i + 4]);
-                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, playerVital.Vital, playerVital.Ranks, playerVital.StartingValue, playerVital.ExperienceSpent, playerVital.Current));
+                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(currentPlayer, playerVital));
                                 i += 5;
                                 break;
                             case int n when (n <= 238):
@@ -1944,7 +1944,7 @@ namespace ACE.Server.Command.Handlers
                                 playerSkill.AdvancementClass = (SkillAdvancementClass)uint.Parse(returnStringArr[i + 2]);
                                 playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
                                 playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
-                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill.Skill, playerSkill.AdvancementClass, playerSkill.Ranks, playerSkill.InitLevel, playerSkill.ExperienceSpent));
+                                currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill));
                                 i += 5;
                                 break;
                             case 239: //end of returnString, this will need to be updated if the length of the string changes
@@ -2054,7 +2054,7 @@ namespace ACE.Server.Command.Handlers
             if (creature is Player)
             {
                 Player player = creature as Player;
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(player, maxVital.Vital, maxVital.Ranks, maxVital.StartingValue, maxVital.ExperienceSpent, maxVital.Current));
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(player, maxVital));
             }
 
             creature.SetMaxVitals();
@@ -2105,7 +2105,7 @@ namespace ACE.Server.Command.Handlers
             if (creature is Player)
             {
                 Player player = creature as Player;
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, creatureSkill.Skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, creatureSkill.ExperienceSpent));
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, creatureSkill));
             }
         }
 
@@ -2146,7 +2146,7 @@ namespace ACE.Server.Command.Handlers
             if (creature is Player)
             {
                 Player player = creature as Player;
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, attr.Attribute, attr.Ranks, attr.StartingValue, attr.ExperienceSpent));
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, attr));
             }
         }
 
