@@ -447,7 +447,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoCastSpell(Spell spell, bool isWeaponSpell, uint magicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
         {
-            //var actionChain = new ActionChain();
+            var actionChain = new ActionChain();
 
             if (target != null)
             {
@@ -460,10 +460,9 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                // do second rotate, if applicable
-                // TODO: investigate this more, difference for GetAngle() between ACE and ac physics engine
-                /*var angle = 0.0f;
-                if (target != this)
+                // temporary for current branch -- second turn can only happen in PvE
+                var angle = 0.0f;
+                if (!(target is Player))
                 {
                     if (target.CurrentLandblock == null)
                     {
@@ -486,7 +485,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var rotateTime = Rotate(target);
                     actionChain.AddDelaySeconds(rotateTime);
-                }*/
+                }
 
                 // verify spell range
                 if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
@@ -496,16 +495,14 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            //actionChain.AddAction(this, () => DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus));
-            //actionChain.EnqueueChain();
-
             if (IsDead)
             {
                 FinishCast(WeenieError.None);
                 return;
             }
 
-            DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
+            actionChain.AddAction(this, () => DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus));
+            actionChain.EnqueueChain();
         }
 
         public void TurnTo_Magic(WorldObject target)
