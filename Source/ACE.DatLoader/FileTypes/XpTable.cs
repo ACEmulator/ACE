@@ -11,7 +11,7 @@ namespace ACE.DatLoader.FileTypes
     {
         internal const uint FILE_ID = 0x0E000018;
 
-        public List<uint> AbilityXpList { get; } = new List<uint>();
+        public List<uint> AttributeXpList { get; } = new List<uint>();
         public List<uint> VitalXpList { get; } = new List<uint>();
         public List<uint> TrainedSkillXpList { get; } = new List<uint>();
         public List<uint> SpecializedSkillXpList { get; } = new List<uint>();
@@ -31,15 +31,15 @@ namespace ACE.DatLoader.FileTypes
             Id = reader.ReadUInt32();
 
             // The counts for each "Table" are at the top of the file.
-            int abilityCount            = reader.ReadInt32();
+            int attributeCount          = reader.ReadInt32();
             int vitalCount              = reader.ReadInt32();
             int trainedSkillCount       = reader.ReadInt32();
             int specializedSkillCount   = reader.ReadInt32();
 
             uint levelCount             = reader.ReadUInt32();
 
-            for (int i = 0; i <= abilityCount; i++)
-                AbilityXpList.Add(reader.ReadUInt32());
+            for (int i = 0; i <= attributeCount; i++)
+                AttributeXpList.Add(reader.ReadUInt32());
 
             for (int i = 0; i <= vitalCount; i++)
                 VitalXpList.Add(reader.ReadUInt32());

@@ -31,34 +31,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="lastDamager">The last damager that landed the death blow</param>
         /// <param name="damageType">The damage type for the death message</param>
-        public override DeathMessage OnDeath(WorldObject lastDamager, DamageType damageType, bool criticalHit = false)
+        public override DeathMessage OnDeath(DamageHistoryInfo lastDamager, DamageType damageType, bool criticalHit = false)
         {
             var topDamager = DamageHistory.GetTopDamager(false);
 
-            if (topDamager is Player pkPlayer)
-            {
-                if (IsPKDeath(pkPlayer))
-                {
-                    pkPlayer.PkTimestamp = Time.GetUnixTime();
-                    pkPlayer.PlayerKillsPk++;
-
-                    var globalPKDe = $"{lastDamager.Name} has defeated {Name}!";
-
-                    if ((Location.Cell & 0xFFFF) < 0x100)
-                        globalPKDe += $" The kill occured at {Location.GetMapCoordStr()}";
-
-                    globalPKDe += "\n[PKDe]";
-
-                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalPKDe, ChatMessageType.Broadcast));
-                }
-                else if (IsPKLiteDeath(pkPlayer))
-                    pkPlayer.PlayerKillsPkl++;
-            }
+            HandlePKDeathBroadcast(lastDamager, topDamager);
 
             var deathMessage = base.OnDeath(lastDamager, damageType, criticalHit);
 
-            if (lastDamager != null)
-                lastDamager.EmoteManager.OnKill(this);
+            var lastDamagerObj = lastDamager?.TryGetAttacker();
+
+            if (lastDamagerObj != null)
+                lastDamagerObj.EmoteManager.OnKill(this);
 
             var playerMsg = "";
             if (lastDamager != null)
@@ -81,7 +65,7 @@ namespace ACE.Server.WorldObjects
             log.Debug("[CORPSE] " + nearbyMsg);
 
             var excludePlayers = new List<Player>();
-            if (lastDamager is Player lastDamagerPlayer)
+            if (lastDamagerObj is Player lastDamagerPlayer)
                 excludePlayers.Add(lastDamagerPlayer);
 
             var nearbyPlayers = EnqueueBroadcast(excludePlayers, false, broadcastMsg);
@@ -107,6 +91,33 @@ namespace ACE.Server.WorldObjects
             }
 
             return deathMessage;
+        }
+
+        public void HandlePKDeathBroadcast(DamageHistoryInfo lastDamager, DamageHistoryInfo topDamager)
+        {
+            if (topDamager == null || !topDamager.IsPlayer)
+                return;
+
+            var pkPlayer = topDamager.TryGetAttacker() as Player;
+            if (pkPlayer == null)
+                return;
+
+            if (IsPKDeath(topDamager))
+            {
+                pkPlayer.PkTimestamp = Time.GetUnixTime();
+                pkPlayer.PlayerKillsPk++;
+
+                var globalPKDe = $"{lastDamager.Name} has defeated {Name}!";
+
+                if ((Location.Cell & 0xFFFF) < 0x100)
+                    globalPKDe += $" The kill occured at {Location.GetMapCoordStr()}";
+
+                globalPKDe += "\n[PKDe]";
+
+                PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalPKDe, ChatMessageType.Broadcast));
+            }
+            else if (IsPKLiteDeath(topDamager))
+                pkPlayer.PlayerKillsPkl++;
         }
 
         /// <summary>
@@ -135,13 +146,13 @@ namespace ACE.Server.WorldObjects
         /// Broadcasts the player death animation, updates vitae, and sends network messages for player death
         /// Queues the action to call TeleportOnDeath and enter portal space soon
         /// </summary>
-        protected override void Die(WorldObject lastDamager, WorldObject topDamager)
+        protected override void Die(DamageHistoryInfo lastDamager, DamageHistoryInfo topDamager)
         {
-            if (topDamager == this && IsPKType)
+            if (topDamager?.Guid == Guid && IsPKType)
             {
                 var topDamagerOther = DamageHistory.GetTopDamager(false);
 
-                if (topDamagerOther is Player)
+                if (topDamagerOther != null && topDamagerOther.IsPlayer)
                     topDamager = topDamagerOther;
             }
 
@@ -201,8 +212,6 @@ namespace ACE.Server.WorldObjects
 
                 ThreadSafeTeleportOnDeath(); // enter portal space
 
-                SetLifestoneProtection();
-
                 if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
                     SetMinimumTimeSincePK();
 
@@ -220,10 +229,12 @@ namespace ACE.Server.WorldObjects
             // teleport to sanctuary or best location
             var newPosition = Sanctuary ?? Instantiation ?? Location;
 
-            ThreadSafeTeleport(newPosition, new ActionEventDelegate(() =>
-            { 
+            WorldManager.ThreadSafeTeleport(this, newPosition, new ActionEventDelegate(() =>
+            {
                 // Stand back up
                 SetCombatMode(CombatMode.NonCombat);
+
+                SetLifestoneProtection();
 
                 var teleportChain = new ActionChain();
                 teleportChain.AddDelaySeconds(3.0f);
@@ -271,7 +282,7 @@ namespace ACE.Server.WorldObjects
             suicideInProgress = true;
 
             if (PropertyManager.GetBool("suicide_instant_death").Item)
-                Die(this, DamageHistory.TopDamager);
+                Die(new DamageHistoryInfo(this), DamageHistory.TopDamager);
             else
                 HandleSuicide(NumDeaths);
         }
@@ -300,7 +311,7 @@ namespace ACE.Server.WorldObjects
                 suicideChain.EnqueueChain();
             }
             else
-                Die(this, DamageHistory.TopDamager);
+                Die(new DamageHistoryInfo(this), DamageHistory.TopDamager);
         }
 
         public List<WorldObject> CalculateDeathItems(Corpse corpse)
@@ -452,7 +463,7 @@ namespace ACE.Server.WorldObjects
 
             // exclude wielded items if < level 35
             if (!canDropWielded)
-                inventory = inventory.Where(i => i.CurrentWieldedLocation != null).ToList();
+                inventory = inventory.Where(i => i.CurrentWieldedLocation == null).ToList();
 
             // exclude bonded items
             inventory = inventory.Where(i => (i.GetProperty(PropertyInt.Bonded) ?? 0) == 0).ToList();
@@ -868,7 +879,7 @@ namespace ACE.Server.WorldObjects
         public void HandleLifestoneProtection()
         {
             Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.LifestoneMagicProtectsYou));
-            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.ShieldUpBlue));
+            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.ShieldUpBlue));
         }
 
         public static TimeSpan LifestoneProtectionTime = TimeSpan.FromMinutes(1);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -379,12 +379,12 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.MaxNumCharsPerPage)
                     .HasColumnName("max_Num_Chars_Per_Page")
                     .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'1000'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.MaxNumPages)
                     .HasColumnName("max_Num_Pages")
                     .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
@@ -503,7 +503,7 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.StackSize)
                     .HasColumnName("stack_Size")
                     .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.TryToBond)
                     .HasColumnName("try_To_Bond")
@@ -570,7 +570,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Probability)
                     .HasColumnName("probability")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Quest)
                     .HasColumnName("quest")
@@ -620,7 +620,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Delay)
                     .HasColumnName("delay")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.DestinationType)
                     .HasColumnName("destination_Type")
@@ -636,7 +636,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Extent)
                     .HasColumnName("extent")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.HeroXP64)
                     .HasColumnName("hero_X_P_64")
@@ -905,12 +905,12 @@ namespace ACE.Database.Models.Shard
                 entity.Property(e => e.InitCreate)
                     .HasColumnName("init_Create")
                     .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.MaxCreate)
                     .HasColumnName("max_Create")
                     .HasColumnType("int(10)")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
 
@@ -928,7 +928,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Probability)
                     .HasColumnName("probability")
-                    .HasDefaultValueSql("'1'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Shade).HasColumnName("shade");
 
@@ -942,11 +942,11 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.WhenCreate)
                     .HasColumnName("when_Create")
-                    .HasDefaultValueSql("'2'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.WhereCreate)
                     .HasColumnName("where_Create")
-                    .HasDefaultValueSql("'4'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.HasOne(d => d.Object)
                     .WithMany(p => p.BiotaPropertiesGenerator)
@@ -1171,7 +1171,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Probability)
                     .HasColumnName("probability")
-                    .HasDefaultValueSql("'2'");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Spell)
                     .HasColumnName("spell")

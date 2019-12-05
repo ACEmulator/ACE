@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -499,7 +500,7 @@ namespace ACE.Server.WorldObjects
 
             NextCancelTime = Timers.RunningTime + 5.0f;
 
-            MoveTo(home, RunRate, false);
+            MoveTo(home, RunRate, false, 1.0f);
 
             var mvp = GetMovementParameters();
             mvp.DistanceToObject = 0.6f;

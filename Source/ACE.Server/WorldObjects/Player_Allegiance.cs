@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -95,7 +94,10 @@ namespace ACE.Server.WorldObjects
             log.Debug($"[ALLEGIANCE] {Name} swearing allegiance to {patron.Name}");
 
             PatronId = targetGuid;
-            MonarchId = AllegianceManager.GetMonarch(patron).Guid.Full;
+
+            var monarchGuid = AllegianceManager.GetMonarch(patron).Guid.Full;
+
+            UpdateProperty(PropertyInstanceId.Monarch, monarchGuid, true);
 
             ExistedBeforeAllegianceXpChanges = (patron.Level ?? 1) >= (Level ?? 1);
 
@@ -139,9 +141,11 @@ namespace ACE.Server.WorldObjects
             // walk the allegiance tree from this node, update monarch ids
             AllegianceNode.Walk((node) =>
             {
-                node.Player.MonarchId = MonarchId;
+                node.Player.UpdateProperty(PropertyInstanceId.Monarch, MonarchId, true);
 
                 node.Player.SaveBiotaToDatabase();
+
+                // update node.Player.House.Monarch, if not null?
             });
 
             // TODO: allegiance officers should probably be stored in their own table
@@ -150,6 +154,8 @@ namespace ACE.Server.WorldObjects
                 var officer = PlayerManager.FindByGuid(kvp.Key);
                 if (officer != null)
                     officer.AllegianceOfficerRank = null;
+
+                officer.SaveBiotaToDatabase();
             }
         }
 
@@ -174,16 +180,19 @@ namespace ACE.Server.WorldObjects
             // break ties
             if (isVassal)
             {
+                // patron breaking from vassal
                 target.PatronId = null;
 
                 Allegiance.Members.TryGetValue(target.Guid, out var targetNode);
 
-                target.MonarchId = targetNode.HasVassals ? (uint?)target.Guid.Full : null;
+                var monarchId = targetNode.HasVassals ? (uint?)target.Guid.Full : null;
+
+                target.UpdateProperty(PropertyInstanceId.Monarch, monarchId, true);
 
                 // walk the allegiance tree from this node, update monarch ids
                 targetNode.Walk((node) =>
                 {
-                    node.Player.MonarchId = target.Guid.Full;
+                    node.Player.UpdateProperty(PropertyInstanceId.Monarch, target.Guid.Full, true);
 
                     node.Player.SaveBiotaToDatabase();
 
@@ -193,13 +202,14 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                // vassal breaking from patron
                 PatronId = null;
-                MonarchId = null;
+                UpdateProperty(PropertyInstanceId.Monarch, null, true);
 
                 // walk the allegiance tree from this node, update monarch ids
                 AllegianceNode.Walk((node) =>
                 {
-                    node.Player.MonarchId = Guid.Full;
+                    node.Player.UpdateProperty(PropertyInstanceId.Monarch, Guid.Full, true);
 
                     node.Player.SaveBiotaToDatabase();
 
@@ -222,18 +232,44 @@ namespace ACE.Server.WorldObjects
             // rebuild allegiance tree structures
             AllegianceManager.OnBreakAllegiance(this, target);
 
-            // refresh ui panel
-            Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
-
-            // TODO: update chat channel for orphaned players in OnBreakAllegiance()
-            if (isVassal && targetIsOnline)
+            if (isVassal)
             {
-                var targetPlayer = PlayerManager.GetOnlinePlayer(targetGuid);
-                if (targetPlayer != null)
-                    targetPlayer.UpdateChatChannels();
+                // patron broke from vassal
+                CheckAllegianceHouse(target.Guid);
+
+                var vassalAllegiance = AllegianceManager.GetAllegiance(target);
+                if (vassalAllegiance != null)
+                    vassalAllegiance.Monarch.Walk((node) => CheckAllegianceHouse(node.PlayerGuid), false);
             }
             else
-                UpdateChatChannels();
+            {
+                // vassal broke from patron
+                CheckAllegianceHouse(Guid);
+
+                if (AllegianceNode != null)
+                    AllegianceNode.Walk((node) => CheckAllegianceHouse(node.PlayerGuid), false);
+            }
+
+            // refresh ui panel
+
+            // move this to function below?
+            Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
+        }
+
+        public static void CheckAllegianceHouse(ObjectGuid playerGuid)
+        {
+            // handle player.House.Monarch updates?
+
+            // instead of walking, would it be more appropriate for House
+            // to boot any players who don't belong there?
+
+            var player = PlayerManager.GetOnlinePlayer(playerGuid);
+            if (player == null) return;
+
+            if (player.CheckHouse())
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have been booted from the allegiance house.", ChatMessageType.Broadcast));
+
+            player.UpdateChatChannels();
         }
 
         //public static float Allegiance_MaxSwearDistance = 4.0f;
@@ -1379,20 +1415,26 @@ namespace ACE.Server.WorldObjects
             }
 
             player.PatronId = null;
-            player.MonarchId = null;
+            player.UpdateProperty(PropertyInstanceId.Monarch, null, true);
 
             // walk the allegiance tree from this node, update monarch ids
             Allegiance.Members.TryGetValue(player.Guid, out var targetNode);
 
             targetNode.Walk((node) =>
             {
-                node.Player.MonarchId = player.Guid.Full;
+                node.Player.UpdateProperty(PropertyInstanceId.Monarch, player.Guid.Full, true);
 
                 node.Player.SaveBiotaToDatabase();
             });
 
             // rebuild allegiance tree structures
             AllegianceManager.OnBreakAllegiance(player, patron);
+
+            CheckAllegianceHouse(player.Guid);
+
+            var newAllegiance = AllegianceManager.GetAllegiance(player);
+            if (newAllegiance != null)
+                newAllegiance.Monarch.Walk((node) => CheckAllegianceHouse(node.PlayerGuid), false);
 
             // update allegiance ui panels?
 

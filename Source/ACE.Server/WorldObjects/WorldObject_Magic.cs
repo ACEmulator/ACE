@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -63,7 +64,7 @@ namespace ACE.Server.WorldObjects
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out status, target, caster);
                     if (targetDeath && target is Creature targetCreature)
                     {
-                        targetCreature.OnDeath(this, DamageType.Health, false);
+                        targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
                         targetCreature.Die();
                     }
                     break;
@@ -644,7 +645,9 @@ namespace ACE.Server.WorldObjects
                     if (caster.Health.Current <= 0)
                     {
                         // should this be possible?
-                        caster.OnDeath(caster, damageType, false);
+                        var lastDamager = caster != null ? new DamageHistoryInfo(caster) : null;
+
+                        caster.OnDeath(lastDamager, damageType, false);
                         caster.Die();
                     }
                     break;
@@ -1460,7 +1463,7 @@ namespace ACE.Server.WorldObjects
             }
 
             LandblockManager.AddObject(sp);
-            sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, ACE.Entity.Enum.PlayScript.Launch, sp.GetProjectileScriptIntensity(sp.SpellType)));
+            sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(sp.SpellType)));
 
             if (sp.ProjectileTarget == null || sp.PhysicsObj == null || sp.ProjectileTarget.PhysicsObj == null)
                 return;

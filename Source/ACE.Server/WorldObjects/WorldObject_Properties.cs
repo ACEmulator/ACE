@@ -998,6 +998,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.WeaponDefense); else SetProperty(PropertyFloat.WeaponDefense, value.Value); }
         }
 
+        public double? WeaponMissileDefense
+        {
+            get => GetProperty(PropertyFloat.WeaponMissileDefense);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.WeaponMissileDefense); else SetProperty(PropertyFloat.WeaponMissileDefense, value.Value); }
+        }
+
+        public double? WeaponMagicDefense
+        {
+            get => GetProperty(PropertyFloat.WeaponMagicDefense);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.WeaponMagicDefense); else SetProperty(PropertyFloat.WeaponMagicDefense, value.Value); }
+        }
+
         public double? WeaponOffense
         {
             get => GetProperty(PropertyFloat.WeaponOffense);

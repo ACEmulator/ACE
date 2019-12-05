@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
             if (uiOutput == true)
             {
                 // Always seems to be this SkillUpPurple effect
-                ApplyVisualEffects(ACE.Entity.Enum.PlayScript.SkillUpPurple);
+                ApplyVisualEffects(PlayScript.SkillUpPurple);
 
                 string message = $"You learn the {spells.Spells[spellId].Name} spell.\n";
                 GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
@@ -245,7 +245,7 @@ namespace ACE.Server.WorldObjects
                     EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out crit, out ec, this, targetPlayer);
+                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out crit, out ec, targetPlayer, this);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {

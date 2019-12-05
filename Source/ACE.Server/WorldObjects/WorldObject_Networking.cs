@@ -853,18 +853,6 @@ namespace ACE.Server.WorldObjects
                 ObjectDescriptionFlags &= ~flag;
         }
 
-        public void ClearRequestedPositions()
-        {
-            ForcedLocation = null;
-            RequestedLocation = null;
-        }
-
-        public void ClearPreviousLocation()
-        {
-            PreviousLocation = null;
-        }
-
-
         public bool? IgnoreCloIcons
         {
             get => GetProperty(PropertyBool.IgnoreCloIcons);

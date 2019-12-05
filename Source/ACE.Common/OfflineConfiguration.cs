@@ -24,5 +24,14 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(30)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public int PurgeDeletedCharactersDays { get; set; } = 30;
+
+        /// <summary>
+        /// This will purge biotas that are completely disconnected from the world
+        /// These may have been items that were never deleted properly, items that were given to the town crier before delete was implemented, etc...
+        /// This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool PurgeOrphanedBiotas { get; set; }
     }
 }
