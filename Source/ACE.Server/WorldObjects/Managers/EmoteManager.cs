@@ -1420,6 +1420,26 @@ namespace ACE.Server.WorldObjects.Managers
             result = result.Replace("%s", targetName);
             result = result.Replace("%tn", targetName);
 
+            result = result.Replace("%ml", $"{source.Level ?? 0}");
+            result = result.Replace("%tl", $"{target.Level ?? 0}");
+
+            //result = result.Replace("%mt", $"{source.GetProperty(PropertyString.Title)}");
+            //result = result.Replace("%tt", $"{target.GetProperty(PropertyString.Title)}");
+
+            result = result.Replace("%mt", $"{source.GetProperty(PropertyString.Template)}");
+            result = result.Replace("%tt", $"{target.GetProperty(PropertyString.Template)}");
+
+            result = result.Replace("%mh", $"{source.HeritageGroupName}");
+            result = result.Replace("%th", $"{target.HeritageGroupName}");
+
+            //result = result.Replace("%mf", $"{source.GetProperty(PropertyString.Fellowship)}");
+            //result = result.Replace("%tf", $"{target.GetProperty(PropertyString.Fellowship)}");
+
+            //result = result.Replace("%l", $"{???}"); // level?
+            //result = result.Replace("%pk", $"{???}"); // pk status?
+            //result = result.Replace("%a", $"{???}"); // allegiance?
+            //result = result.Replace("%p", $"{???}"); // patron?
+
             // LSD custom tqt usage
             result = result.Replace($"{questName}@%tqt", "You may complete this quest again in %tqt.", StringComparison.OrdinalIgnoreCase);
 
@@ -1427,12 +1447,22 @@ namespace ACE.Server.WorldObjects.Managers
             if (result.Contains("%CDtime"))
                 result = result.Replace($"{questName}@", "", StringComparison.OrdinalIgnoreCase);
 
-            // TODO: Revist (and revise?) when QuestManager is added to creatures (e.g.: The Chicken)
             if (target is Player targetPlayer)
             {
                 result = result.Replace("%tqt", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetNextSolveTime(questName).GetFriendlyString() : "");
                 
                 result = result.Replace("%CDtime", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetNextSolveTime(questName).GetFriendlyString() : "");
+
+                result = result.Replace("%tf", $"{(targetPlayer.Fellowship != null ? targetPlayer.Fellowship.FellowshipName : "")}");
+            }
+
+            if (source is Creature sourceCreature)
+            {
+                result = result.Replace("%mqt", !string.IsNullOrWhiteSpace(quest) ? sourceCreature.QuestManager.GetNextSolveTime(questName).GetFriendlyString() : "");
+
+                result = result.Replace("%mlqt", !string.IsNullOrWhiteSpace(quest) ? sourceCreature.QuestManager.GetNextSolveTime(questName).GetFriendlyLongString() : "");
+
+                //result = result.Replace("%CDtime", !string.IsNullOrWhiteSpace(quest) ? sourceCreature.QuestManager.GetNextSolveTime(questName).GetFriendlyString() : "");
             }
 
             return result;
