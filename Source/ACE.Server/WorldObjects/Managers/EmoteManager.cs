@@ -1411,26 +1411,27 @@ namespace ACE.Server.WorldObjects.Managers
             var sourceName = source != null ? source.Name : "";
             var targetName = target != null ? target.Name : "";
 
-            // Find quest in standard or LSD custom usage for %tqt and %CDtime
-            var embeddedQuestName = result.Contains("@") ? message.Split("@")[0] : null;
-            var questName = !string.IsNullOrWhiteSpace(embeddedQuestName) ? embeddedQuestName : quest;
-
             result = result.Replace("%n", sourceName);
             result = result.Replace("%mn", sourceName);
             result = result.Replace("%s", targetName);
             result = result.Replace("%tn", targetName);
 
-            result = result.Replace("%ml", $"{source.Level ?? 0}");
-            result = result.Replace("%tl", $"{target.Level ?? 0}");
+            var sourceLevel = source != null ? $"{source.Level ?? 0}" : "";
+            var targetLevel = target != null ? $"{target.Level ?? 0}" : "";
+            result = result.Replace("%ml", sourceLevel);
+            result = result.Replace("%tl", targetLevel);
 
-            //result = result.Replace("%mt", $"{source.GetProperty(PropertyString.Title)}");
-            //result = result.Replace("%tt", $"{target.GetProperty(PropertyString.Title)}");
+            //var sourceTemplate = source != null ? source.GetProperty(PropertyString.Title) : "";
+            //var targetTemplate = source != null ? target.GetProperty(PropertyString.Title) : "";
+            var sourceTemplate = source != null ? source.GetProperty(PropertyString.Template) : "";
+            var targetTemplate = target != null ? target.GetProperty(PropertyString.Template) : "";
+            result = result.Replace("%mt", sourceTemplate);
+            result = result.Replace("%tt", targetTemplate);
 
-            result = result.Replace("%mt", $"{source.GetProperty(PropertyString.Template)}");
-            result = result.Replace("%tt", $"{target.GetProperty(PropertyString.Template)}");
-
-            result = result.Replace("%mh", $"{source.HeritageGroupName}");
-            result = result.Replace("%th", $"{target.HeritageGroupName}");
+            var sourceHeritage = source != null ? source.HeritageGroupName : "";
+            var targetHeritage = target != null ? target.HeritageGroupName : "";
+            result = result.Replace("%mh", sourceHeritage);
+            result = result.Replace("%th", targetHeritage);
 
             //result = result.Replace("%mf", $"{source.GetProperty(PropertyString.Fellowship)}");
             //result = result.Replace("%tf", $"{target.GetProperty(PropertyString.Fellowship)}");
@@ -1439,6 +1440,10 @@ namespace ACE.Server.WorldObjects.Managers
             //result = result.Replace("%pk", $"{???}"); // pk status?
             //result = result.Replace("%a", $"{???}"); // allegiance?
             //result = result.Replace("%p", $"{???}"); // patron?
+
+            // Find quest in standard or LSD custom usage for %tqt and %CDtime
+            var embeddedQuestName = result.Contains("@") ? message.Split("@")[0] : null;
+            var questName = !string.IsNullOrWhiteSpace(embeddedQuestName) ? embeddedQuestName : quest;
 
             // LSD custom tqt usage
             result = result.Replace($"{questName}@%tqt", "You may complete this quest again in %tqt.", StringComparison.OrdinalIgnoreCase);
