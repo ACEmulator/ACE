@@ -174,143 +174,143 @@ namespace ACE.Server.WorldObjects
 
             // ============ Grievvers ============
 
-            { 49366, new Tuple<uint, DamageType>(7978, DamageType.Acid) }, // acid grievver (50)
-            { 49367, new Tuple<uint, DamageType>(7980, DamageType.Acid) }, // acid grievver (80)
-            { 49368, new Tuple<uint, DamageType>(7981, DamageType.Acid) }, // acid grievver (100)
-            { 49369, new Tuple<uint, DamageType>(7982, DamageType.Acid) }, // acid grievver (125)
-            { 49370, new Tuple<uint, DamageType>(7983, DamageType.Acid) }, // acid grievver (150)
-            { 49371, new Tuple<uint, DamageType>(8538, DamageType.Acid) }, // acid grievver (180)
-            { 49372, new Tuple<uint, DamageType>(30756, DamageType.Acid) }, // caustic grievver (200)
+            { 49366, new Tuple<uint, DamageType>(49052, DamageType.Acid) }, // acid grievver (50)
+            { 49367, new Tuple<uint, DamageType>(49053, DamageType.Acid) }, // acid grievver (80)
+            { 49368, new Tuple<uint, DamageType>(49054, DamageType.Acid) }, // acid grievver (100)
+            { 49369, new Tuple<uint, DamageType>(49055, DamageType.Acid) }, // acid grievver (125)
+            { 49370, new Tuple<uint, DamageType>(49056, DamageType.Acid) }, // acid grievver (150)
+            { 49371, new Tuple<uint, DamageType>(49057, DamageType.Acid) }, // acid grievver (180)
+            { 49372, new Tuple<uint, DamageType>(49058, DamageType.Acid) }, // caustic grievver (200)
 
-            { 49380, new Tuple<uint, DamageType>(7978, DamageType.Fire) }, // fire grievver (50)
-            { 49381, new Tuple<uint, DamageType>(7980, DamageType.Fire) }, // fire grievver (80)
-            { 49382, new Tuple<uint, DamageType>(7981, DamageType.Fire) }, // fire grievver (100)
-            { 49383, new Tuple<uint, DamageType>(7982, DamageType.Fire) }, // fire grievver (125)
-            { 49384, new Tuple<uint, DamageType>(7983, DamageType.Fire) }, // fire grievver (150)
-            { 49385, new Tuple<uint, DamageType>(8538, DamageType.Fire) }, // fire grievver (180)
-            { 49386, new Tuple<uint, DamageType>(30756, DamageType.Fire) }, // scorched grievver (200)
+            { 49380, new Tuple<uint, DamageType>(49066, DamageType.Fire) }, // fire grievver (50)
+            { 49381, new Tuple<uint, DamageType>(49067, DamageType.Fire) }, // fire grievver (80)
+            { 49382, new Tuple<uint, DamageType>(49068, DamageType.Fire) }, // fire grievver (100)
+            { 49383, new Tuple<uint, DamageType>(49069, DamageType.Fire) }, // fire grievver (125)
+            { 49384, new Tuple<uint, DamageType>(49070, DamageType.Fire) }, // fire grievver (150)
+            { 49385, new Tuple<uint, DamageType>(49071, DamageType.Fire) }, // fire grievver (180)
+            { 49386, new Tuple<uint, DamageType>(49072, DamageType.Fire) }, // scorched grievver (200)
 
-            { 49387, new Tuple<uint, DamageType>(7978, DamageType.Cold) }, // frost grievver (50)
-            { 49388, new Tuple<uint, DamageType>(7980, DamageType.Cold) }, // frost grievver (80)
-            { 49389, new Tuple<uint, DamageType>(7981, DamageType.Cold) }, // frost grievver (100)
-            { 49390, new Tuple<uint, DamageType>(7982, DamageType.Cold) }, // frost grievver (125)
-            { 49391, new Tuple<uint, DamageType>(7983, DamageType.Cold) }, // frost grievver (150)
-            { 49392, new Tuple<uint, DamageType>(8538, DamageType.Cold) }, // frost grievver (180)
-            { 49365, new Tuple<uint, DamageType>(30756, DamageType.Cold) }, // arctic grievver (200)
+            { 49387, new Tuple<uint, DamageType>(49073, DamageType.Cold) }, // frost grievver (50)
+            { 49388, new Tuple<uint, DamageType>(49074, DamageType.Cold) }, // frost grievver (80)
+            { 49389, new Tuple<uint, DamageType>(49075, DamageType.Cold) }, // frost grievver (100)
+            { 49390, new Tuple<uint, DamageType>(49076, DamageType.Cold) }, // frost grievver (125)
+            { 49391, new Tuple<uint, DamageType>(49077, DamageType.Cold) }, // frost grievver (150)
+            { 49392, new Tuple<uint, DamageType>(49078, DamageType.Cold) }, // frost grievver (180)
+            { 49365, new Tuple<uint, DamageType>(49051, DamageType.Cold) }, // arctic grievver (200)
             //{ -1, -1 }, // glacial grievver (200) ?
 
-            { 49373, new Tuple<uint, DamageType>(7978, DamageType.Electric) }, // lightning grievver (50)
-            { 49374, new Tuple<uint, DamageType>(7980, DamageType.Electric) }, // lightning grievver (80)
-            { 49375, new Tuple<uint, DamageType>(7981, DamageType.Electric) }, // lightning grievver (100)
-            { 49376, new Tuple<uint, DamageType>(7982, DamageType.Electric) }, // lightning grievver (125)
-            { 49377, new Tuple<uint, DamageType>(7983, DamageType.Electric) }, // lightning grievver (150)
-            { 49378, new Tuple<uint, DamageType>(8538, DamageType.Electric) }, // lightning grievver (180)
-            { 49379, new Tuple<uint, DamageType>(30756, DamageType.Electric) }, // excited grievver (200)
+            { 49373, new Tuple<uint, DamageType>(49059, DamageType.Electric) }, // lightning grievver (50)
+            { 49374, new Tuple<uint, DamageType>(49060, DamageType.Electric) }, // lightning grievver (80)
+            { 49375, new Tuple<uint, DamageType>(49061, DamageType.Electric) }, // lightning grievver (100)
+            { 49376, new Tuple<uint, DamageType>(49062, DamageType.Electric) }, // lightning grievver (125)
+            { 49377, new Tuple<uint, DamageType>(49063, DamageType.Electric) }, // lightning grievver (150)
+            { 49378, new Tuple<uint, DamageType>(49064, DamageType.Electric) }, // lightning grievver (180)
+            { 49379, new Tuple<uint, DamageType>(49065, DamageType.Electric) }, // excited grievver (200)
 
             // ============ Moars ============
 
-            { 49338, new Tuple<uint, DamageType>(22745, DamageType.Acid) }, // acid moar (50)
-            { 49339, new Tuple<uint, DamageType>(24311, DamageType.Acid) }, // acid moar (80)
-            { 49340, new Tuple<uint, DamageType>(22746, DamageType.Acid) }, // acid moar (100)
-            { 49341, new Tuple<uint, DamageType>(22747, DamageType.Acid) }, // acid moar (125)
-            { 49342, new Tuple<uint, DamageType>(24134, DamageType.Acid) }, // acid moar (150)
-            { 49343, new Tuple<uint, DamageType>(25880, DamageType.Acid) }, // acid moar (180)
-            { 49344, new Tuple<uint, DamageType>(25848, DamageType.Acid) }, // blistering moar (200)
+            { 49338, new Tuple<uint, DamageType>(49108, DamageType.Acid) }, // acid moar (50)
+            { 49339, new Tuple<uint, DamageType>(49109, DamageType.Acid) }, // acid moar (80)
+            { 49340, new Tuple<uint, DamageType>(49110, DamageType.Acid) }, // acid moar (100)
+            { 49341, new Tuple<uint, DamageType>(49111, DamageType.Acid) }, // acid moar (125)
+            { 49342, new Tuple<uint, DamageType>(49112, DamageType.Acid) }, // acid moar (150)
+            { 49343, new Tuple<uint, DamageType>(49113, DamageType.Acid) }, // acid moar (180)
+            { 49344, new Tuple<uint, DamageType>(49114, DamageType.Acid) }, // blistering moar (200)
             //{ 49344, 49114 },   // blistering moar (200)
 
-            { 49352, new Tuple<uint, DamageType>(22745, DamageType.Fire) }, // fire moar (50)
-            { 49353, new Tuple<uint, DamageType>(24311, DamageType.Fire) }, // fire moar (80)
-            { 49354, new Tuple<uint, DamageType>(22746, DamageType.Fire) }, // fire moar (100)
-            { 49355, new Tuple<uint, DamageType>(22747, DamageType.Fire) }, // fire moar (125)
-            { 49356, new Tuple<uint, DamageType>(24134, DamageType.Fire) }, // fire moar (150)
-            { 49357, new Tuple<uint, DamageType>(25880, DamageType.Fire) }, // fire moar (180)
-            { 49358, new Tuple<uint, DamageType>(25848, DamageType.Fire) }, // volcanic moar (200)
+            { 49352, new Tuple<uint, DamageType>(49122, DamageType.Fire) }, // fire moar (50)
+            { 49353, new Tuple<uint, DamageType>(49123, DamageType.Fire) }, // fire moar (80)
+            { 49354, new Tuple<uint, DamageType>(49124, DamageType.Fire) }, // fire moar (100)
+            { 49355, new Tuple<uint, DamageType>(49125, DamageType.Fire) }, // fire moar (125)
+            { 49356, new Tuple<uint, DamageType>(49126, DamageType.Fire) }, // fire moar (150)
+            { 49357, new Tuple<uint, DamageType>(49127, DamageType.Fire) }, // fire moar (180)
+            { 49358, new Tuple<uint, DamageType>(49128, DamageType.Fire) }, // volcanic moar (200)
 
-            { 49359, new Tuple<uint, DamageType>(22745, DamageType.Cold) }, // frost moar (50)
-            { 49360, new Tuple<uint, DamageType>(24311, DamageType.Cold) }, // frost moar (80)
-            { 49361, new Tuple<uint, DamageType>(22746, DamageType.Cold) }, // frost moar (100)
-            { 49362, new Tuple<uint, DamageType>(22747, DamageType.Cold) }, // frost moar (125)
-            { 49363, new Tuple<uint, DamageType>(24134, DamageType.Cold) }, // frost moar (150)
-            { 49364, new Tuple<uint, DamageType>(25880, DamageType.Cold) }, // frost moar (180)
-            { 49337, new Tuple<uint, DamageType>(25848, DamageType.Cold) }, // freezing moar (200)
+            { 49359, new Tuple<uint, DamageType>(49129, DamageType.Cold) }, // frost moar (50)
+            { 49360, new Tuple<uint, DamageType>(49130, DamageType.Cold) }, // frost moar (80)
+            { 49361, new Tuple<uint, DamageType>(49131, DamageType.Cold) }, // frost moar (100)
+            { 49362, new Tuple<uint, DamageType>(49132, DamageType.Cold) }, // frost moar (125)
+            { 49363, new Tuple<uint, DamageType>(49133, DamageType.Cold) }, // frost moar (150)
+            { 49364, new Tuple<uint, DamageType>(49134, DamageType.Cold) }, // frost moar (180)
+            { 49337, new Tuple<uint, DamageType>(49107, DamageType.Cold) }, // freezing moar (200)
 
-            { 49345, new Tuple<uint, DamageType>(22745, DamageType.Electric) }, // lightning moar (50)
-            { 49346, new Tuple<uint, DamageType>(24311, DamageType.Electric) }, // lightning moar (80)
-            { 49347, new Tuple<uint, DamageType>(22746, DamageType.Electric) }, // lightning moar (100)
-            { 49348, new Tuple<uint, DamageType>(22747, DamageType.Electric) }, // lightning moar (125)
-            { 49349, new Tuple<uint, DamageType>(24134, DamageType.Electric) }, // lightning moar (150)
-            { 49350, new Tuple<uint, DamageType>(25880, DamageType.Electric) }, // lightning moar (180)
-            { 49351, new Tuple<uint, DamageType>(25848, DamageType.Electric) }, // electrified moar (200)
+            { 49345, new Tuple<uint, DamageType>(49115, DamageType.Electric) }, // lightning moar (50)
+            { 49346, new Tuple<uint, DamageType>(49116, DamageType.Electric) }, // lightning moar (80)
+            { 49347, new Tuple<uint, DamageType>(49117, DamageType.Electric) }, // lightning moar (100)
+            { 49348, new Tuple<uint, DamageType>(49118, DamageType.Electric) }, // lightning moar (125)
+            { 49349, new Tuple<uint, DamageType>(49119, DamageType.Electric) }, // lightning moar (150)
+            { 49350, new Tuple<uint, DamageType>(49120, DamageType.Electric) }, // lightning moar (180)
+            { 49351, new Tuple<uint, DamageType>(49121, DamageType.Electric) }, // electrified moar (200)
 
             // ============ Phyntos Wasps ============
 
-            { 49524, new Tuple<uint, DamageType>(217, DamageType.Acid) }, // acid phyntos wasp (50)
-            { 49525, new Tuple<uint, DamageType>(28248, DamageType.Acid) }, // acid phyntos wasp (80)
-            { 49526, new Tuple<uint, DamageType>(30904, DamageType.Acid) }, // acid phyntos wasp (100)
-            { 49527, new Tuple<uint, DamageType>(28253, DamageType.Acid) }, // acid phyntos wasp (125)
-            { 49528, new Tuple<uint, DamageType>(30757, DamageType.Acid) }, // acid phyntos wasp (150)
-            { 49529, new Tuple<uint, DamageType>(28051, DamageType.Acid) }, // acid phyntos wasp (180)
-            { 49530, new Tuple<uint, DamageType>(28052, DamageType.Acid) }, // acid phyntos swarm (200)
+            { 49524, new Tuple<uint, DamageType>(49136, DamageType.Acid) }, // acid phyntos wasp (50)
+            { 49525, new Tuple<uint, DamageType>(49137, DamageType.Acid) }, // acid phyntos wasp (80)
+            { 49526, new Tuple<uint, DamageType>(49138, DamageType.Acid) }, // acid phyntos wasp (100)
+            { 49527, new Tuple<uint, DamageType>(49139, DamageType.Acid) }, // acid phyntos wasp (125)
+            { 49528, new Tuple<uint, DamageType>(49140, DamageType.Acid) }, // acid phyntos wasp (150)
+            { 49529, new Tuple<uint, DamageType>(49141, DamageType.Acid) }, // acid phyntos wasp (180)
+            { 49530, new Tuple<uint, DamageType>(49142, DamageType.Acid) }, // acid phyntos swarm (200)
 
-            { 49531, new Tuple<uint, DamageType>(217, DamageType.Fire) }, // fire phyntos wasp (50)
-            { 49532, new Tuple<uint, DamageType>(28248, DamageType.Fire) }, // fire phyntos wasp (80)
-            { 49533, new Tuple<uint, DamageType>(30904, DamageType.Fire) }, // fire phyntos wasp (100)
-            { 49534, new Tuple<uint, DamageType>(28253, DamageType.Fire) }, // fire phyntos wasp (125)
-            { 49535, new Tuple<uint, DamageType>(30757, DamageType.Fire) }, // fire phyntos wasp (150)
-            { 49536, new Tuple<uint, DamageType>(28051, DamageType.Fire) }, // fire phyntos wasp (180)
-            { 49537, new Tuple<uint, DamageType>(28052, DamageType.Fire) }, // fire phyntos swarm (200)
+            { 49531, new Tuple<uint, DamageType>(49143, DamageType.Fire) }, // fire phyntos wasp (50)
+            { 49532, new Tuple<uint, DamageType>(49144, DamageType.Fire) }, // fire phyntos wasp (80)
+            { 49533, new Tuple<uint, DamageType>(49145, DamageType.Fire) }, // fire phyntos wasp (100)
+            { 49534, new Tuple<uint, DamageType>(49146, DamageType.Fire) }, // fire phyntos wasp (125)
+            { 49535, new Tuple<uint, DamageType>(49147, DamageType.Fire) }, // fire phyntos wasp (150)
+            { 49536, new Tuple<uint, DamageType>(49148, DamageType.Fire) }, // fire phyntos wasp (180)
+            { 49537, new Tuple<uint, DamageType>(49149, DamageType.Fire) }, // fire phyntos swarm (200)
 
-            { 49538, new Tuple<uint, DamageType>(217, DamageType.Cold) }, // frost phyntos wasp (50)
-            { 49539, new Tuple<uint, DamageType>(28248, DamageType.Cold) }, // frost phyntos wasp (80)
-            { 49540, new Tuple<uint, DamageType>(30904, DamageType.Cold) }, // frost phyntos wasp (100)
-            { 49541, new Tuple<uint, DamageType>(28253, DamageType.Cold) }, // frost phyntos wasp (125)
-            { 49542, new Tuple<uint, DamageType>(30757, DamageType.Cold) }, // frost phyntos wasp (150)
-            { 49543, new Tuple<uint, DamageType>(28051, DamageType.Cold) }, // frost phyntos wasp (180)
-            { 49544, new Tuple<uint, DamageType>(28052, DamageType.Cold) }, // frost phyntos swarm (200)
+            { 49538, new Tuple<uint, DamageType>(49150, DamageType.Cold) }, // frost phyntos wasp (50)
+            { 49539, new Tuple<uint, DamageType>(49151, DamageType.Cold) }, // frost phyntos wasp (80)
+            { 49540, new Tuple<uint, DamageType>(49152, DamageType.Cold) }, // frost phyntos wasp (100)
+            { 49541, new Tuple<uint, DamageType>(49153, DamageType.Cold) }, // frost phyntos wasp (125)
+            { 49542, new Tuple<uint, DamageType>(49154, DamageType.Cold) }, // frost phyntos wasp (150)
+            { 49543, new Tuple<uint, DamageType>(49155, DamageType.Cold) }, // frost phyntos wasp (180)
+            { 49544, new Tuple<uint, DamageType>(49156, DamageType.Cold) }, // frost phyntos swarm (200)
 
-            { 49545, new Tuple<uint, DamageType>(217, DamageType.Electric) }, // lightning phyntos wasp (50)
-            { 49546, new Tuple<uint, DamageType>(28248, DamageType.Electric) }, // lightning phyntos wasp (80)
-            { 49547, new Tuple<uint, DamageType>(30904, DamageType.Electric) }, // lightning phyntos wasp (100)
-            { 49548, new Tuple<uint, DamageType>(28253, DamageType.Electric) }, // lightning phyntos wasp (125)
-            { 49549, new Tuple<uint, DamageType>(30757, DamageType.Electric) }, // lightning phyntos wasp (150)
-            { 49550, new Tuple<uint, DamageType>(28051, DamageType.Electric) }, // lightning phyntos wasp (180)
-            { 49551, new Tuple<uint, DamageType>(28052, DamageType.Electric) }, // lightning phyntos swarm (200)
+            { 49545, new Tuple<uint, DamageType>(49157, DamageType.Electric) }, // lightning phyntos wasp (50)
+            { 49546, new Tuple<uint, DamageType>(49158, DamageType.Electric) }, // lightning phyntos wasp (80)
+            { 49547, new Tuple<uint, DamageType>(49159, DamageType.Electric) }, // lightning phyntos wasp (100)
+            { 49548, new Tuple<uint, DamageType>(49160, DamageType.Electric) }, // lightning phyntos wasp (125)
+            { 49549, new Tuple<uint, DamageType>(49161, DamageType.Electric) }, // lightning phyntos wasp (150)
+            { 49550, new Tuple<uint, DamageType>(49162, DamageType.Electric) }, // lightning phyntos wasp (180)
+            { 49551, new Tuple<uint, DamageType>(49135, DamageType.Electric) }, // lightning phyntos swarm (200)
 
             // ============================ Necromancer ============================
 
             // ============ Skeletons ============
 
-            { 49213, new Tuple<uint, DamageType>(1762, DamageType.Acid) }, // acid skeleton minion (50)
-            { 49214, new Tuple<uint, DamageType>(6773, DamageType.Acid) }, // acid skeleton minion (80)
-            { 49215, new Tuple<uint, DamageType>(7178, DamageType.Acid) }, // acid skeleton minion (100)
-            { 49216, new Tuple<uint, DamageType>(24313, DamageType.Acid) }, // acid skeleton bushi (125)
-            { 49217, new Tuple<uint, DamageType>(25804, DamageType.Acid) }, // acid skeleton bushi (150)
-            { 49218, new Tuple<uint, DamageType>(8593, DamageType.Acid) }, // acid skeleton bushi (180)
-            { 49219, new Tuple<uint, DamageType>(22050, DamageType.Acid) }, // acid skeleton samurai (200)
+            { 49213, new Tuple<uint, DamageType>(49164, DamageType.Acid) }, // acid skeleton minion (50)
+            { 49214, new Tuple<uint, DamageType>(49165, DamageType.Acid) }, // acid skeleton minion (80)
+            { 49215, new Tuple<uint, DamageType>(49166, DamageType.Acid) }, // acid skeleton minion (100)
+            { 49216, new Tuple<uint, DamageType>(49167, DamageType.Acid) }, // acid skeleton bushi (125)
+            { 49217, new Tuple<uint, DamageType>(49168, DamageType.Acid) }, // acid skeleton bushi (150)
+            { 49218, new Tuple<uint, DamageType>(49169, DamageType.Acid) }, // acid skeleton bushi (180)
+            { 49219, new Tuple<uint, DamageType>(49163, DamageType.Acid) }, // acid skeleton samurai (200)
 
-            { 48942, new Tuple<uint, DamageType>(1762, DamageType.Fire) }, // fire skeleton minion (50)
-            { 48943, new Tuple<uint, DamageType>(6773, DamageType.Fire) }, // fire skeleton minion (80)
-            { 48944, new Tuple<uint, DamageType>(7178, DamageType.Fire) }, // fire skeleton minion (100)
-            { 48945, new Tuple<uint, DamageType>(24313, DamageType.Fire) }, // fire skeleton bushi (125)
-            { 48946, new Tuple<uint, DamageType>(25804, DamageType.Fire) }, // fire skeleton bushi (150)
-            { 48947, new Tuple<uint, DamageType>(8593, DamageType.Fire) }, // fire skeleton bushi (180)
-            { 48956, new Tuple<uint, DamageType>(22050, DamageType.Fire) }, // fire skeleton samurai (200)
+            { 48942, new Tuple<uint, DamageType>(48943, DamageType.Fire) }, // fire skeleton minion (50)
+            { 48943, new Tuple<uint, DamageType>(48950, DamageType.Fire) }, // fire skeleton minion (80)
+            { 48944, new Tuple<uint, DamageType>(48951, DamageType.Fire) }, // fire skeleton minion (100)
+            { 48945, new Tuple<uint, DamageType>(48952, DamageType.Fire) }, // fire skeleton bushi (125)
+            { 48946, new Tuple<uint, DamageType>(48953, DamageType.Fire) }, // fire skeleton bushi (150)
+            { 48947, new Tuple<uint, DamageType>(48949, DamageType.Fire) }, // fire skeleton bushi (180)
+            { 48956, new Tuple<uint, DamageType>(48955, DamageType.Fire) }, // fire skeleton samurai (200)
 
-            { 49227, new Tuple<uint, DamageType>(1762, DamageType.Cold) }, // frost skeleton minion (50)
-            { 49228, new Tuple<uint, DamageType>(6773, DamageType.Cold) }, // frost skeleton minion (80)
-            { 49229, new Tuple<uint, DamageType>(7178, DamageType.Cold) }, // frost skeleton minion (100)
-            { 49230, new Tuple<uint, DamageType>(24313, DamageType.Cold) }, // frost skeleton bushi (125)
-            { 49231, new Tuple<uint, DamageType>(25804, DamageType.Cold) }, // frost skeleton bushi (150)
-            { 49232, new Tuple<uint, DamageType>(8593, DamageType.Cold) }, // frost skeleton bushi (180)
-            { 49212, new Tuple<uint, DamageType>(22050, DamageType.Cold) }, // frost skeleton samurai (200)
+            { 49227, new Tuple<uint, DamageType>(49178, DamageType.Cold) }, // frost skeleton minion (50)
+            { 49228, new Tuple<uint, DamageType>(49179, DamageType.Cold) }, // frost skeleton minion (80)
+            { 49229, new Tuple<uint, DamageType>(49180, DamageType.Cold) }, // frost skeleton minion (100)
+            { 49230, new Tuple<uint, DamageType>(49181, DamageType.Cold) }, // frost skeleton bushi (125)
+            { 49231, new Tuple<uint, DamageType>(49182, DamageType.Cold) }, // frost skeleton bushi (150)
+            { 49232, new Tuple<uint, DamageType>(49183, DamageType.Cold) }, // frost skeleton bushi (180)
+            { 49212, new Tuple<uint, DamageType>(49177, DamageType.Cold) }, // frost skeleton samurai (200)
 
-            { 49220, new Tuple<uint, DamageType>(1762, DamageType.Electric) }, // lightning skeleton minion (50)
-            { 49221, new Tuple<uint, DamageType>(6773, DamageType.Electric) }, // lightning skeleton minion (80)
-            { 49222, new Tuple<uint, DamageType>(7178, DamageType.Electric) }, // lightning skeleton minion (100)
-            { 49223, new Tuple<uint, DamageType>(24313, DamageType.Electric) }, // lightning skeleton bushi (125)
-            { 49224, new Tuple<uint, DamageType>(25804, DamageType.Electric) }, // lightning skeleton bushi (150)
-            { 49225, new Tuple<uint, DamageType>(8593, DamageType.Electric) }, // lightning skeleton bushi (180)
-            { 49226, new Tuple<uint, DamageType>(22050, DamageType.Electric) }, // lightning skeleton samurai (200)
+            { 49220, new Tuple<uint, DamageType>(49171, DamageType.Electric) }, // lightning skeleton minion (50)
+            { 49221, new Tuple<uint, DamageType>(49172, DamageType.Electric) }, // lightning skeleton minion (80)
+            { 49222, new Tuple<uint, DamageType>(49173, DamageType.Electric) }, // lightning skeleton minion (100)
+            { 49223, new Tuple<uint, DamageType>(49174, DamageType.Electric) }, // lightning skeleton bushi (125)
+            { 49224, new Tuple<uint, DamageType>(49175, DamageType.Electric) }, // lightning skeleton bushi (150)
+            { 49225, new Tuple<uint, DamageType>(49176, DamageType.Electric) }, // lightning skeleton bushi (180)
+            { 49226, new Tuple<uint, DamageType>(49170, DamageType.Electric) }, // lightning skeleton samurai (200)
 
             // ============ Spectres ============
 
@@ -501,9 +501,17 @@ namespace ACE.Server.WorldObjects
         {
             // TODO: this should be moved to recipe system
             if (!IsEncapsulatedSpirit(spirit))
+            {
+                player.SendUseDoneEvent();
                 return;
+            }
 
-            if (player.IsBusy) return;
+            if (player.IsBusy)
+            {
+                player.SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             player.IsBusy = true;
 
             var actionChain = new ActionChain();
@@ -530,6 +538,7 @@ namespace ACE.Server.WorldObjects
 
                 player.IsBusy = false;
             });
+
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
