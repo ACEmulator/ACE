@@ -1,13 +1,12 @@
-using System;
 using System.Runtime.CompilerServices;
 
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 
@@ -15,145 +14,99 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public void HandleActionRaiseVital(PropertyAttribute2nd attribute, uint amount)
+        /// <summary>
+        /// Handles the GameAction 0x44 - RaiseVital network message from client
+        /// </summary>
+        public bool HandleActionRaiseVital(PropertyAttribute2nd vital, uint amount)
         {
-            var creatureVital = new CreatureVital(this, attribute);
-
-            uint result = SpendVitalXp(creatureVital, amount);
-
-            if (result > 0u)
+            if (!Vitals.TryGetValue(vital, out var creatureVital))
             {
-                GameMessage abilityUpdate = new GameMessagePrivateUpdateVital(this, attribute, creatureVital.Ranks, creatureVital.StartingValue, result, creatureVital.Current);
+                log.Error($"{Name}.HandleActionRaiseVital({vital}, {amount}) - invalid vital");
+                return false;
+            }
 
+            if (amount > AvailableExperience)
+            {
+                // there is a client bug for vitals only,
+
+                // where the client will enable the button to raise a vital by 10
+                // if the player only has enough AvailableExperience to raise it by 1
+
+                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {vital.ToSentence()} has failed.", ChatMessageType.Broadcast);
+
+                log.Error($"{Name}.HandleActionRaiseVital({vital}, {amount}) - amount > AvailableExperience ({AvailableExperience})");
+                return false;
+            }
+
+            var prevRank = creatureVital.Ranks;
+
+            if (!SpendVitalXp(creatureVital, amount))
+                return false;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateVital(this, creatureVital));
+
+            if (prevRank != creatureVital.Ranks)
+            {
                 // checks if max rank is achieved and plays fireworks w/ special text
-                string messageText;
-
-                if (IsVitalMaxRank(creatureVital.Ranks))
+                var suffix = "";
+                if (creatureVital.IsMaxRank)
                 {
                     // fireworks
-                    PlayParticleEffect(ACE.Entity.Enum.PlayScript.WeddingBliss, Guid);
-                    messageText = $"Your base {attribute.ToSentence()} is now {creatureVital.Base} and has reached its upper limit!";
-                }
-                else
-                {
-                    messageText = $"Your base {attribute.ToSentence()} is now {creatureVital.Base}!";
+                    PlayParticleEffect(PlayScript.WeddingBliss, Guid);
+                    suffix = $" and has reached its upper limit";
                 }
 
-                var soundEvent = new GameMessageSound(Guid, Sound.RaiseTrait, 1f);
-                var message = new GameMessageSystemChat(messageText, ChatMessageType.Advancement);
+                var sound = new GameMessageSound(Guid, Sound.RaiseTrait);
+                var msg = new GameMessageSystemChat($"Your base {vital.ToSentence()} is now {creatureVital.Base}{suffix}!", ChatMessageType.Advancement);
 
-                // This seems to be needed to keep health up to date properly.
-                // Needed when increasing health and endurance.
-                //if (attribute == PropertyAttribute2nd.Endurance)
-                //{
-                //    var healthUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Health, Health.Ranks, Health.StartingValue, Health.ExperienceSpent, Health.Current);
-                //    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, healthUpdate);
-                //}
-                //else if (attribute == PropertyAttribute2nd.Self)
-                //{
-                //    var manaUpdate = new GameMessagePrivateUpdateVital(Session, Ability.Mana, Mana.Ranks, Mana.StartingValue, Mana.ExperienceSpent, Mana.Current);
-                //    Session.Network.EnqueueSend(abilityUpdate, soundEvent, message, manaUpdate);
-                //}
-                //else
-                //{
-                Session.Network.EnqueueSend(abilityUpdate, soundEvent, message);
-                //}
+                Session.Network.EnqueueSend(sound, msg);
             }
-            else
-            {
-                ChatPacket.SendServerMessage(Session, $"Your attempt to raise {attribute.ToSentence()} has failed.", ChatMessageType.Broadcast);
-            }
+            return true;
         }
 
-        /// <summary>
-        /// spends the xp on this ability.
-        /// </summary>
-        /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        private uint SpendVitalXp(CreatureVital ability, uint amount, bool sendNetworkPropertyUpdate = true)
+        private bool SpendVitalXp(CreatureVital creatureVital, uint amount, bool sendNetworkUpdate = true)
         {
-            uint result = 0;
-
-            var xpList = DatManager.PortalDat.XpTable.VitalXpList;
-
-            // do not advance if we cannot spend xp to rank up our skill by 1 point
-            if (ability.Ranks >= (xpList.Count - 1))
-                return result;
-
-            uint rankUps = 0u;
-            uint currentRankXp = xpList[Convert.ToInt32(ability.Ranks)];
-            uint rank1 = xpList[Convert.ToInt32(ability.Ranks) + 1] - currentRankXp;
-            uint rank10;
-            int rank10Offset = 0;
-
-            if (ability.Ranks + 10 >= (xpList.Count))
+            // ensure vital is not already max rank
+            if (creatureVital.IsMaxRank)
             {
-                rank10Offset = 10 - (Convert.ToInt32(ability.Ranks + 10) - (xpList.Count - 1));
-                rank10 = xpList[Convert.ToInt32(ability.Ranks) + rank10Offset] - currentRankXp;
-            }
-            else
-            {
-                rank10 = xpList[Convert.ToInt32(ability.Ranks) + 10] - currentRankXp;
+                log.Error($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - player tried to raise vital beyond max rank");
+                return false;
             }
 
-            if (amount == rank1)
-                rankUps = 1u;
-            else if (amount == rank10)
+            // the client should already handle this naturally,
+            // but ensure player can't spent xp beyond the max rank
+            var amountToEnd = creatureVital.ExperienceLeft;
+
+            if (amount > amountToEnd)
             {
-                if (rank10Offset > 0u)
-                    rankUps = Convert.ToUInt32(rank10Offset);
-                else
-                    rankUps = 10u;
+                log.Error($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - player tried to raise vital beyond {amountToEnd} experience");
+                return false;   // returning error here, instead of setting amount to amountToEnd
             }
 
-            if (rankUps > 0)
+            // everything looks good at this point,
+            // spend xp on vital
+            if (!SpendXP(amount, sendNetworkUpdate))
             {
-                if (SpendXP(amount, sendNetworkPropertyUpdate))
-                {
-                    ability.Ranks += rankUps;
-                    ability.ExperienceSpent += amount;
-                    result = ability.ExperienceSpent;
-                }
+                log.Error($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - SpendXP failed");
+                return false;
             }
 
-            return result;
+            creatureVital.ExperienceSpent += amount;
+
+            // calculate new rank
+            creatureVital.Ranks = (ushort)CalcVitalRank(creatureVital.ExperienceSpent);
+
+            return true;
         }
 
-        public void SpendAllAvailableVitalXp(CreatureVital ability, bool sendNetworkPropertyUpdate = true)
+        public void SpendAllAvailableVitalXp(CreatureVital creatureVital, bool sendNetworkUpdate = true)
         {
-            var xpList = DatManager.PortalDat.XpTable.VitalXpList;
+            var amountRemaining = creatureVital.ExperienceLeft;
 
-            while (true)
-            {
-                uint currentRankXp = xpList[Convert.ToInt32(ability.Ranks)];
-                uint rank10;
+            if (amountRemaining > AvailableExperience)
+                amountRemaining = (uint)AvailableExperience;
 
-                if (ability.Ranks + 10 >= (xpList.Count))
-                {
-                    var rank10Offset = 10 - (Convert.ToInt32(ability.Ranks + 10) - (xpList.Count - 1));
-                    rank10 = xpList[Convert.ToInt32(ability.Ranks) + rank10Offset] - currentRankXp;
-                }
-                else
-                {
-                    rank10 = xpList[Convert.ToInt32(ability.Ranks) + 10] - currentRankXp;
-                }
-
-                if (SpendVitalXp(ability, rank10, sendNetworkPropertyUpdate) == 0)
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Check a rank against the ability charts too determine if the skill is at max
-        /// </summary>
-        /// <returns>Returns true if ability is max rank; false if ability is below max rank</returns>
-        private static bool IsVitalMaxRank(uint rank)
-        {
-            var xpList = DatManager.PortalDat.XpTable.VitalXpList;
-
-            if (rank == (xpList.Count - 1))
-                return true;
-
-            return false;
+            SpendVitalXp(creatureVital, amountRemaining, sendNetworkUpdate);
         }
 
         public override void SetMaxVitals()
@@ -176,22 +129,30 @@ namespace ACE.Server.WorldObjects
         /// <returns>The actual change in the vital, after clamping between 0 and MaxVital</returns>
         public override int UpdateVital(CreatureVital vital, int newVal)
         {
+            var prevVal = vital.Current;
+
             var change = base.UpdateVital(vital, newVal);
 
-            if (change != 0)
-            {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+            if (change == 0)
+                return 0;
 
-                if (Fellowship != null)
-                    FellowVitalUpdate = true;
-            }
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, vital.ToEnum(), vital.Current));
+
+            if (Fellowship != null)
+                FellowVitalUpdate = true;
 
             // check for exhaustion
             if (vital.Vital == PropertyAttribute2nd.Stamina || vital.Vital == PropertyAttribute2nd.MaxStamina)
             {
-                if (change != 0 && vital.Current <= 0)
+                if (newVal == 0)
+                {
                     OnExhausted();
-
+                }
+                // retail was missing the 'exhausted done' automatic hook here
+                else if (prevVal == 0 && PropertyManager.GetBool("runrate_add_hooks").Item)
+                {
+                    HandleRunRateUpdate();
+                }
             }
             return change;
         }
@@ -224,6 +185,7 @@ namespace ACE.Server.WorldObjects
         public static int CalcVitalRank(uint xpAmount)
         {
             var rankXpTable = DatManager.PortalDat.XpTable.VitalXpList;
+
             for (var i = rankXpTable.Count - 1; i >= 0; i--)
             {
                 var rankAmount = rankXpTable[i];

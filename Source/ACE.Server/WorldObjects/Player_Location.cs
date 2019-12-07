@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -564,6 +565,9 @@ namespace ACE.Server.WorldObjects
 
         public DateTime LastTeleportTime;
 
+        /// <summary>
+        /// This is not thread-safe. Consider using WorldManager.ThreadSafeTeleport() instead if you're calling this from a multi-threaded subsection.
+        /// </summary>
         public void Teleport(Position _newPosition)
         {
             var newPosition = new Position(_newPosition);
@@ -582,7 +586,7 @@ namespace ACE.Server.WorldObjects
                 var delayTelport = new ActionChain();
                 delayTelport.AddAction(this, () => ClearFogColor());
                 delayTelport.AddDelaySeconds(1);
-                delayTelport.AddAction(this, () => Teleport(_newPosition));
+                delayTelport.AddAction(this, () => WorldManager.ThreadSafeTeleport(this, _newPosition));
 
                 delayTelport.EnqueueChain();
 
@@ -617,7 +621,7 @@ namespace ACE.Server.WorldObjects
         public void DoPreTeleportHide()
         {
             if (Teleporting) return;
-            PlayParticleEffect(ACE.Entity.Enum.PlayScript.Hide, Guid);
+            PlayParticleEffect(PlayScript.Hide, Guid);
         }
 
         public void DoTeleportPhysicsStateChanges()

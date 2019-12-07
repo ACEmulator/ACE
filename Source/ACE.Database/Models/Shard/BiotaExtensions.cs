@@ -1153,6 +1153,19 @@ namespace ACE.Database.Models.Shard
         // =====================================
         // BiotaPropertiesSkill
         // =====================================
+        public static BiotaPropertiesSkill GetSkill(this Biota biota, ushort type, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                return biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == type);
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
 
         public static BiotaPropertiesSkill GetOrAddSkill(this Biota biota, ushort type, ReaderWriterLockSlim rwLock, out bool skillAdded)
         {

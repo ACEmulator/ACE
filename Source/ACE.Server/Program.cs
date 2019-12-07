@@ -1,6 +1,8 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using log4net;
 using log4net.Config;
@@ -39,6 +41,7 @@ namespace ACE.Server
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
             // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
             var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
@@ -70,8 +73,15 @@ namespace ACE.Server
             if (ConfigManager.Config.Offline.PurgeDeletedCharacters)
             {
                 log.Info($"Purging deleted characters, and their possessions, older than {ConfigManager.Config.Offline.PurgeDeletedCharactersDays} days ({DateTime.Now.AddDays(-ConfigManager.Config.Offline.PurgeDeletedCharactersDays)})...");
-                ShardDatabaseOfflineTools.PurgeCharacters(ConfigManager.Config.Offline.PurgeDeletedCharactersDays, out var charactersPurged, out var playerBiotasPurged, out var possessionsPurged);
+                ShardDatabaseOfflineTools.PurgeCharactersInParallel(ConfigManager.Config.Offline.PurgeDeletedCharactersDays, out var charactersPurged, out var playerBiotasPurged, out var possessionsPurged);
                 log.Info($"Purged {charactersPurged:N0} characters, {playerBiotasPurged:N0} player biotas and {possessionsPurged:N0} possessions.");
+            }
+
+            if (ConfigManager.Config.Offline.PurgeOrphanedBiotas)
+            {
+                log.Info($"Purging orphaned biotas...");
+                ShardDatabaseOfflineTools.PurgeOrphanedBiotasInParallel(out var numberOfBiotasPurged);
+                log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
             }
 
             log.Info("Initializing ServerManager...");

@@ -22,7 +22,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Entity;
 using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
@@ -94,7 +93,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleNudge(Session session, params string[] parameters)
         {
             var pos = session.Player.GetPosition(PositionType.Location);
-            if (session.Player.AdjustDungeonCells(pos))
+            if (WorldObject.AdjustDungeonCells(pos))
             {
                 pos.PositionZ += 0.005000f;
                 var posReadable = PostionAsLandblocksGoogleSpreadsheetFormat(pos);
@@ -966,10 +965,20 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            int delta = 0;
+
             if (!relValue)
-                session.Player.UpdateVital(vital, (uint)value);
+                delta = session.Player.UpdateVital(vital, (uint)value);
             else
-                session.Player.UpdateVitalDelta(vital, value);
+                delta = session.Player.UpdateVitalDelta(vital, value);
+
+            if (vital == session.Player.Health)
+            {
+                if (delta > 0)
+                    session.Player.DamageHistory.OnHeal((uint)delta);
+                else
+                    session.Player.DamageHistory.Add(session.Player, DamageType.Health, (uint)-delta);
+            }
         }
 
         [CommandHandler("sethealth", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "sets your current health to a specific value.", "ushort")]
@@ -2130,7 +2139,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
-                session.Player.AdjustDungeon(pos);
+                WorldObject.AdjustDungeon(pos);
 
                 session.Player.Teleport(pos);
             }
@@ -2164,7 +2173,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 var pos = new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW);
-                session.Player.AdjustDungeon(pos);
+                WorldObject.AdjustDungeon(pos);
 
                 session.Player.Teleport(pos);
             }
@@ -2334,7 +2343,18 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("testdeathitems", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Test death item selection", "")]
         public static void HandleTestDeathItems(Session session, params string[] parameters)
         {
-            var inventory = session.Player.GetAllPossessions();
+            var target = session.Player;
+            if (parameters.Length > 0)
+            {
+                target = PlayerManager.GetOnlinePlayer(parameters[0]);
+                if (target == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            var inventory = target.GetAllPossessions();
             var sorted = new DeathItems(inventory);
 
             var i = 0;
@@ -2634,6 +2654,12 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj?.Position}", ChatMessageType.Broadcast));
         }
 
+        [CommandHandler("damagehistory", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleDamageHitory(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.DamageHistory.ToString(), ChatMessageType.Broadcast));
+        }
+
         [CommandHandler("remove-vitae", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Removes vitae from last appraised player")]
         public static void HandleRemoveVitae(Session session, params string[] parameters)
         {
@@ -2646,6 +2672,60 @@ namespace ACE.Server.Command.Handlers
 
             if (player != session.Player)
                 session.Network.EnqueueSend(new GameMessageSystemChat("Removed vitae for {player.Name}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("fast", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleFast(Session session, params string[] parameters)
+        {
+            var spell = new Spell(SpellId.QuicknessSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+        }
+
+        [CommandHandler("slow", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleSlow(Session session, params string[] parameters)
+        {
+            var spell = new Spell(SpellId.SlownessSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+        }
+
+        [CommandHandler("rip", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
+        public static void HandleRip(Session session, params string[] parameters)
+        {
+            // insta-death, without the confirmation dialog from /die
+            // useful during developer testing
+            session.Player.TakeDamage(session.Player, DamageType.Bludgeon, session.Player.Health.Current);
+        }
+
+        public static List<PropertyFloat> ResistProperties = new List<PropertyFloat>()
+        {
+            PropertyFloat.ResistSlash,
+            PropertyFloat.ResistPierce,
+            PropertyFloat.ResistBludgeon,
+            PropertyFloat.ResistFire,
+            PropertyFloat.ResistCold,
+            PropertyFloat.ResistAcid,
+            PropertyFloat.ResistElectric,
+            PropertyFloat.ResistNether
+        };
+
+        [CommandHandler("resist-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the resistance info for the last appraised creature.")]
+        public static void HandleResistInfo(Session session, params string[] parameters)
+        {
+            var creature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+            if (creature == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You must appraise a creature to use this command.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} ({creature.Guid}):", ChatMessageType.Broadcast));
+
+            var resistInfo = new Dictionary<PropertyFloat, double?>();
+            foreach (var prop in ResistProperties)
+                resistInfo.Add(prop, creature.GetProperty(prop));
+
+            foreach (var kvp in resistInfo.OrderByDescending(i => i.Value))
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{kvp.Key} - {kvp.Value}", ChatMessageType.Broadcast));
         }
     }
 }

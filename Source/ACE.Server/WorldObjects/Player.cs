@@ -4,6 +4,7 @@ using System.Linq;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
@@ -37,8 +38,6 @@ namespace ACE.Server.WorldObjects
         public Character Character { get; }
 
         public Session Session { get; }
-
-        public QuestManager QuestManager;
 
         public ContractManager ContractManager;
 
@@ -138,7 +137,7 @@ namespace ACE.Server.WorldObjects
 
             CombatTable = DatManager.PortalDat.ReadFromDat<CombatManeuverTable>(CombatTableDID.Value);
 
-            QuestManager = new QuestManager(this);
+            _questManager = new QuestManager(this);
 
             ContractManager = new ContractManager(this);
 
@@ -147,6 +146,8 @@ namespace ACE.Server.WorldObjects
             LootPermission = new Dictionary<ObjectGuid, DateTime>();
 
             SquelchManager = new SquelchManager(this);
+
+            MagicState = new MagicState(this);
 
             return; // todo
 
@@ -236,8 +237,10 @@ namespace ACE.Server.WorldObjects
 
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
-                if (difficulty == 0 || player != null && (!player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers) || player == this
-                    || ((this is Admin || this is Sentinel) && CloakStatus == CloakStatus.On)))
+                if (difficulty == 0 || player == this || player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
+                    chance = 1.0f;
+
+                if ((this is Admin || this is Sentinel) && CloakStatus == CloakStatus.On)
                     chance = 1.0f;
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -751,20 +754,52 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void OnExhausted()
         {
-            // adjust player speed if running
-            if (CurrentMotionCommand == MotionCommand.RunForward && !IsJumping)
-            {
-                // verify - forced commands from server should be non-autonomous, but could have been sent as autonomous in retail?
-                // if set to autonomous here, the desired effect doesn't happen
-                // motion.IsAutonomous = true;
-                var motion = new Motion(this, MotionCommand.RunForward);
+            // adjust player speed if they are currently pressing movement keys
+            HandleRunRateUpdate();
 
-                CurrentMotionState = motion;
-
-                if (CurrentLandblock != null)
-                    EnqueueBroadcastMotion(motion);
-            }
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
+        }
+
+        /// <summary>
+        /// Detects changes in the player's RunRate --
+        /// If there are changes, re-broadcasts player movement packet
+        /// </summary>
+        public bool HandleRunRateUpdate()
+        {
+            //Console.WriteLine($"{Name}.HandleRunRateUpdates()");
+
+            if (CurrentMovementData.MovementType != MovementType.Invalid || CurrentMovementData.Invalid == null)
+                return false;
+
+            var prevState = CurrentMovementData.Invalid.State;
+
+            var movementData = new MovementData(this, CurrentMoveToState);
+            var currentState = movementData.Invalid.State;
+
+            var changed = currentState.ForwardSpeed  != prevState.ForwardSpeed ||
+                          currentState.TurnSpeed     != prevState.TurnSpeed ||
+                          currentState.SidestepSpeed != prevState.SidestepSpeed;
+
+            if (!changed)
+                return false;
+
+            //Console.WriteLine($"Old: {prevState.ForwardSpeed}, New: {currentState.ForwardSpeed}");
+
+            if (!CurrentMovementData.Invalid.State.HasMovement() || IsJumping)
+                return false;
+
+            //Console.WriteLine($"{Name}.OnRunRateChanged()");
+
+            CurrentMovementData = new MovementData(this, CurrentMoveToState);
+
+            // verify - forced commands from server should be non-autonomous, but could have been sent as autonomous in retail?
+            // if set to autonomous here, the desired effect doesn't happen
+            CurrentMovementData.IsAutonomous = false;
+
+            var movementEvent = new GameMessageUpdateMotion(this, CurrentMovementData);
+            EnqueueBroadcast(movementEvent);    // broadcast to all players, including self
+
+            return true;
         }
 
         /// <summary>

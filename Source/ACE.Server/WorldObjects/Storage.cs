@@ -14,6 +14,8 @@ namespace ACE.Server.WorldObjects
     {
         public House House { get => ParentLink as House; }
 
+        public override double Default_ChestResetInterval => double.PositiveInfinity;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -49,6 +51,9 @@ namespace ACE.Server.WorldObjects
 
             if (!(activator is Player player))
                 return new ActivationResult(false);
+
+            if (player.IgnoreHouseBarriers)
+                return new ActivationResult(true);
 
             if (!House.RootHouse.HasPermission(player, true))
             {

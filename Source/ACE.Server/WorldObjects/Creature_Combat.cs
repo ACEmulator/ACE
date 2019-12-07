@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -455,15 +456,18 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Returns the effective defense skill for a player or creature,
-        /// ie. with Defender bonus
+        /// ie. with Defender bonus and imbues
         /// </summary>
         public uint GetEffectiveDefenseSkill(CombatType combatType)
         {
             var defenseSkill = combatType == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(this) : 1.0f;
+            var defenseMod = defenseSkill == Skill.MissileDefense ? GetWeaponMissileDefenseModifier(this) : GetWeaponMeleeDefenseModifier(this);
             var burdenMod = GetBurdenMod();
 
-            var effectiveDefense = (uint)Math.Round(GetCreatureSkill(defenseSkill).Current * defenseMod * burdenMod);
+            var imbuedEffectType = defenseSkill == Skill.MissileDefense ? ImbuedEffectType.MissileDefense : ImbuedEffectType.MeleeDefense;
+            var defenseImbues = GetDefenseImbues(imbuedEffectType);
+
+            var effectiveDefense = (uint)Math.Round(GetCreatureSkill(defenseSkill).Current * defenseMod * burdenMod + defenseImbues);
 
             if (IsExhausted) effectiveDefense = 0;
 
@@ -877,7 +881,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             target.EnchantmentManager.Add(spell, this);
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDefenseDebuff));
 
             FightDirty_SendMessage(target, spell);
         }
@@ -898,7 +902,7 @@ namespace ACE.Server.WorldObjects
             target.EnchantmentManager.Add(spell, this);
 
             // only send if not already applied?
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDamageOverTime));
 
             FightDirty_SendMessage(target, spell);
         }
@@ -917,7 +921,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             target.EnchantmentManager.Add(spell, this);
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingAttackDebuff));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingAttackDebuff));
 
             FightDirty_SendMessage(target, spell);
 
@@ -929,7 +933,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             target.EnchantmentManager.Add(spell, this);
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingHealDebuff));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingHealDebuff));
 
             FightDirty_SendMessage(target, spell);
         }
@@ -1222,7 +1226,14 @@ namespace ACE.Server.WorldObjects
             var overpowerResistChance = (defender.OverpowerResist ?? 0) * 0.01f;
 
             return overpowerChance * (1.0f - overpowerResistChance);
+        }
 
+        /// <summary>
+        /// Returns the number of equipped items with a particular imbue type
+        /// </summary>
+        public int GetDefenseImbues(ImbuedEffectType imbuedEffectType)
+        {
+            return EquippedObjects.Values.Count(i => i.GetImbuedEffects().HasFlag(imbuedEffectType));
         }
     }
 }

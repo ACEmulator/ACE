@@ -363,6 +363,9 @@ namespace ACE.Server.Entity
             Scenery = Entity.Scenery.Load(this);
         }
 
+        /// <summary>
+        /// This should be called before TickLandblockGroupThreadSafeWork() and before Tick()
+        /// </summary>
         public void TickPhysics(double portalYearTicks, ConcurrentBag<WorldObject> movedObjects)
         {
             if (IsDormant)
@@ -383,15 +386,19 @@ namespace ACE.Server.Entity
                 // TODO: handle players the same as everything else
                 if (wo is Player player)
                 {
-                    wo.InUpdate = true;
+                    player.InUpdate = true;
 
-                    var newPosition = HandlePlayerPhysics(player);
+                    var newPosition = player.RequestedLocation;
 
-                    // update position through physics engine
                     if (newPosition != null)
-                        landblockUpdate = wo.UpdatePlayerPhysics(newPosition);
+                    {
+                        // update position through physics engine
+                        landblockUpdate = player.UpdatePlayerPhysics(newPosition);
 
-                    wo.InUpdate = false;
+                        player.RequestedLocation = null;
+                    }
+
+                    player.InUpdate = false;
                 }
                 else
                     landblockUpdate = wo.UpdateObjectPhysics();
@@ -405,24 +412,10 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Detects if player has moved through ForcedLocation or RequestedLocation
+        /// This will tick anything that can be multi-threaded safely using LandblockGroups as thread boundaries
+        /// This should be called after TickPhysics() and before Tick()
         /// </summary>
-        private static Position HandlePlayerPhysics(Player player)
-        {
-            Position newPosition = null;
-
-            if (player.ForcedLocation != null)
-                newPosition = player.ForcedLocation;
-            else if (player.RequestedLocation != null)
-                newPosition = player.RequestedLocation;
-
-            if (newPosition != null)
-                player.ClearRequestedPositions();
-
-            return newPosition;
-        }
-
-        public void Tick(double currentUnixTime)
+        public void TickMultiThreadedWork(double currentUnixTime)
         {
             if (monitorsRequireEventStart)
             {
@@ -436,15 +429,16 @@ namespace ACE.Server.Entity
             }
 
             stopwatch.Restart();
+            // This will consist of the following work:
+            // - this.CreateWorldObjects
+            // - this.SpawnDynamicShardObjects
+            // - this.SpawnEncounters
+            // - Adding items back onto the landblock from failed player movements: Player_Inventory.cs DoHandleActionPutItemInContainer()
+            // - Executing trade between two players: Player_Trade.cs FinalizeTrade()
             actionQueue.RunActions();
             ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_RunActions, stopwatch.Elapsed.TotalSeconds);
 
             ProcessPendingWorldObjectAdditionsAndRemovals();
-
-            stopwatch.Restart();
-            foreach (var player in players)
-                player.Player_Tick(currentUnixTime);
-            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_Player_Tick, stopwatch.Elapsed.TotalSeconds);
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
             if (!IsDormant)
@@ -468,6 +462,76 @@ namespace ACE.Server.Entity
                 }
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_Monster_Tick, stopwatch.Elapsed.TotalSeconds);
             }
+
+            // Heartbeat
+            stopwatch.Restart();
+            if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
+            {
+                var thisHeartBeat = DateTime.UtcNow;
+
+                ProcessPendingWorldObjectAdditionsAndRemovals();
+
+                // Decay world objects
+                if (lastHeartBeat != DateTime.MinValue)
+                {
+                    foreach (var wo in worldObjects.Values)
+                    {
+                        if (wo.IsDecayable())
+                            wo.Decay(thisHeartBeat - lastHeartBeat);
+                    }
+                }
+
+                if (!Permaload)
+                {
+                    if (lastActiveTime + dormantInterval < thisHeartBeat)
+                        IsDormant = true;
+                    if (lastActiveTime + UnloadInterval < thisHeartBeat)
+                        LandblockManager.AddToDestructionQueue(this);
+                }
+
+                //log.Info($"Landblock {Id.ToString()}.Tick({currentUnixTime}).Landblock_Tick_Heartbeat: thisHeartBeat: {thisHeartBeat.ToString()} | lastHeartBeat: {lastHeartBeat.ToString()} | worldObjects.Count: {worldObjects.Count()}");
+                lastHeartBeat = thisHeartBeat;
+            }
+            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_Heartbeat, stopwatch.Elapsed.TotalSeconds);
+
+            // Database Save
+            stopwatch.Restart();
+            if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
+            {
+                ProcessPendingWorldObjectAdditionsAndRemovals();
+
+                SaveDB();
+                lastDatabaseSave = DateTime.UtcNow;
+            }
+            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_Database_Save, stopwatch.Elapsed.TotalSeconds);
+
+            Monitor5m.Pause();
+            Monitor1h.Pause();
+        }
+
+        /// <summary>
+        /// This will tick everything that should be done single threaded on the main ACE World thread
+        /// This should be called after TickPhysics() and after Tick()
+        /// </summary>
+        public void TickSingleThreadedWork(double currentUnixTime)
+        {
+            if (monitorsRequireEventStart)
+            {
+                Monitor5m.Restart();
+                Monitor1h.Restart();
+            }
+            else
+            {
+                Monitor5m.Resume();
+                Monitor1h.Resume();
+            }
+
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            stopwatch.Restart();
+            foreach (var player in players)
+                player.Player_Tick(currentUnixTime);
+            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_Player_Tick, stopwatch.Elapsed.TotalSeconds);
 
             stopwatch.Restart();
             while (sortedWorldObjectsByNextHeartbeat.Count > 0) // Heartbeat()
@@ -528,48 +592,6 @@ namespace ACE.Server.Entity
                 }
             }
             ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_GeneratorRegeneration, stopwatch.Elapsed.TotalSeconds);
-
-            // Heartbeat
-            stopwatch.Restart();
-            if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
-            {
-                var thisHeartBeat = DateTime.UtcNow;
-
-                ProcessPendingWorldObjectAdditionsAndRemovals();
-
-                // Decay world objects
-                if (lastHeartBeat != DateTime.MinValue)
-                {
-                    foreach (var wo in worldObjects.Values)
-                    {
-                        if (wo.IsDecayable())
-                            wo.Decay(thisHeartBeat - lastHeartBeat);
-                    }
-                }
-
-                if (!Permaload)
-                {
-                    if (lastActiveTime + dormantInterval < thisHeartBeat)
-                        IsDormant = true;
-                    if (lastActiveTime + UnloadInterval < thisHeartBeat)
-                        LandblockManager.AddToDestructionQueue(this);
-                }
-
-                //log.Info($"Landblock {Id.ToString()}.Tick({currentUnixTime}).Landblock_Tick_Heartbeat: thisHeartBeat: {thisHeartBeat.ToString()} | lastHeartBeat: {lastHeartBeat.ToString()} | worldObjects.Count: {worldObjects.Count()}");
-                lastHeartBeat = thisHeartBeat;
-            }
-            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_Heartbeat, stopwatch.Elapsed.TotalSeconds);
-
-            // Database Save
-            stopwatch.Restart();
-            if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
-            {
-                ProcessPendingWorldObjectAdditionsAndRemovals();
-
-                SaveDB();
-                lastDatabaseSave = DateTime.UtcNow;
-            }
-            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_Database_Save, stopwatch.Elapsed.TotalSeconds);
 
             Monitor5m.RegisterEventEnd();
             Monitor1h.RegisterEventEnd();

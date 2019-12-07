@@ -85,6 +85,11 @@ namespace ACE.Server.Network.Structure
 
             return flags;
         }
+
+        public bool HasMovement()
+        {
+            return (ForwardCommand != MotionCommand.Invalid && ForwardCommand != MotionCommand.Ready) || TurnCommand != MotionCommand.Invalid || SidestepCommand != MotionCommand.Invalid;
+        }
     }
 
     public static class InterpretedMotionStateExtensions

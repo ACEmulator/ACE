@@ -2,6 +2,7 @@ using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -51,7 +52,7 @@ namespace ACE.Server.WorldObjects
 
         public bool IsPlussed
         {
-            get => Character.IsPlussed || (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
+            get => (Character != null && Character.IsPlussed) || (Session != null && ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
         }
 
         public string GodState
@@ -903,10 +904,7 @@ namespace ACE.Server.WorldObjects
 
             var msg = new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0);
 
-            if (broadcast)
-                EnqueueBroadcast(msg);
-            else
-                Session.Network.EnqueueSend(msg);
+            SendNetwork(msg, broadcast);
         }
 
         public void UpdateProperty(WorldObject obj, PropertyBool prop, bool? value, bool broadcast = false)
@@ -918,10 +916,7 @@ namespace ACE.Server.WorldObjects
 
             var msg = new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false);
 
-            if (broadcast)
-                EnqueueBroadcast(msg);
-            else
-                Session.Network.EnqueueSend(msg);
+            SendNetwork(msg, broadcast);
         }
 
         public void UpdateProperty(WorldObject obj, PropertyFloat prop, double? value, bool broadcast = false)
@@ -933,10 +928,7 @@ namespace ACE.Server.WorldObjects
 
             var msg = new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0);
 
-            if (broadcast)
-                EnqueueBroadcast(msg);
-            else
-                Session.Network.EnqueueSend(msg);
+            SendNetwork(msg, broadcast);
         }
 
         public void UpdateProperty(WorldObject obj, PropertyDataId prop, uint? value, bool broadcast = false)
@@ -948,10 +940,16 @@ namespace ACE.Server.WorldObjects
 
             var msg = new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0);
 
-            if (broadcast)
-                EnqueueBroadcast(msg);
-            else
-                Session.Network.EnqueueSend(msg);
+            SendNetwork(msg, broadcast);
+        }
+
+        /// <summary>
+        /// Updates a property on the server, and broadcasts to appropriate players
+        /// </summary>
+        /// <param name="broadcast">If true, also broadcasts to all players who know about this player</param>
+        public void UpdateProperty(PropertyInstanceId prop, uint? value, bool broadcast = false)
+        {
+            UpdateProperty(this, prop, value, broadcast);
         }
 
         public void UpdateProperty(WorldObject obj, PropertyInstanceId prop, uint? value, bool broadcast = false)
@@ -963,10 +961,7 @@ namespace ACE.Server.WorldObjects
 
             var msg = new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0));
 
-            if (broadcast)
-                EnqueueBroadcast(msg);
-            else
-                Session.Network.EnqueueSend(msg);
+            SendNetwork(msg, broadcast);
         }
 
         public void UpdateProperty(WorldObject obj, PropertyString prop, string value, bool broadcast = false)
@@ -980,10 +975,7 @@ namespace ACE.Server.WorldObjects
             // and the object will not update until relogging or CO
             var msg = new GameMessagePublicUpdatePropertyString(obj, prop, value);
 
-            if (broadcast)
-                EnqueueBroadcast(msg);
-            else
-                Session.Network.EnqueueSend(msg);
+            SendNetwork(msg, broadcast);
         }
 
         public void UpdateProperty(WorldObject obj, PropertyInt64 prop, long? value, bool broadcast = false)
@@ -995,6 +987,11 @@ namespace ACE.Server.WorldObjects
 
             var msg = new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0);
 
+            SendNetwork(msg, broadcast);
+        }
+
+        public void SendNetwork(GameMessage msg, bool broadcast)
+        {
             if (broadcast)
                 EnqueueBroadcast(msg);
             else

@@ -85,6 +85,20 @@ namespace ACE.Server.Physics.Common
         }
 
 
+        public PhysicsObj GetKnownObject(uint objectGuid)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                KnownObjects.TryGetValue(objectGuid, out var obj);
+                return obj;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public int GetKnownObjectsCount()
         {
             rwLock.EnterReadLock();

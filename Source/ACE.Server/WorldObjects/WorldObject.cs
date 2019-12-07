@@ -416,28 +416,6 @@ namespace ACE.Server.WorldObjects
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
@@ -445,30 +423,8 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
-
-
-        public static float MaxObjectTrackingRange { get; } = 20000f;
-
-        public Position ForcedLocation { get; private set; }
 
         public Position RequestedLocation { get; set; }
-
-        public Position PreviousLocation { get; set; }
-
-
-        /// <summary>
-        /// Time when this object will despawn, -1 is never.
-        /// </summary>
-        public double DespawnTime { get; set; } = -1;
-
-        /// <summary>
-        /// tick-stamp for the server time of the last time the player moved.
-        /// TODO: implement
-        /// </summary>
-        public double LastAnimatedTicks { get; set; }
-
-        public virtual void PlayScript(Session session) { }
-
 
         ////// Logical Game Data
         public ContainerType ContainerType
@@ -753,20 +709,22 @@ namespace ACE.Server.WorldObjects
                 LandblockManager.AddObject(this);
 
                 if (SuppressGenerateEffect != true)
-                    ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Create);
+                    ApplyVisualEffects(PlayScript.Create);
 
                 if (Generator != null)
                     OnGeneration(Generator);
             }
         }
 
-        public void AdjustDungeon(Position pos)
+        // todo: This should really be an extension method for Position, or a static method within Position or even AdjustPos
+        public static void AdjustDungeon(Position pos)
         {
             AdjustDungeonPos(pos);
             AdjustDungeonCells(pos);
         }
 
-        public bool AdjustDungeonCells(Position pos)
+        // todo: This should really be an extension method for Position, or a static method within Position or even AdjustPos
+        public static bool AdjustDungeonCells(Position pos)
         {
             if (pos == null) return false;
 
@@ -786,7 +744,8 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        public bool AdjustDungeonPos(Position pos)
+        // todo: This should really be an extension method for Position, or a static method within Position, or even AdjustPos
+        public static bool AdjustDungeonPos(Position pos)
         {
             if (pos == null) return false;
 
@@ -900,7 +859,7 @@ namespace ACE.Server.WorldObjects
 
         public void FadeOutAndDestroy(bool raiseNotifyOfDestructionEvent = true)
         {
-            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Destroy));
+            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Destroy));
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(1.0f);

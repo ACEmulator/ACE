@@ -853,18 +853,6 @@ namespace ACE.Server.WorldObjects
                 ObjectDescriptionFlags &= ~flag;
         }
 
-        public void ClearRequestedPositions()
-        {
-            ForcedLocation = null;
-            RequestedLocation = null;
-        }
-
-        public void ClearPreviousLocation()
-        {
-            PreviousLocation = null;
-        }
-
-
         public bool? IgnoreCloIcons
         {
             get => GetProperty(PropertyBool.IgnoreCloIcons);
@@ -1054,6 +1042,19 @@ namespace ACE.Server.WorldObjects
                 iterator = CurrentLandblock.GetObject(iterator.OwnerId.Value);
             }
             return iterator.CurrentLandblock == null ? null : iterator;
+        }
+
+        public float EnqueueMotionMagic(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            var motion = new Motion(MotionStance.Magic, motionCommand, speed);
+            motion.MotionState.TurnSpeed = 2.25f;  // ??
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, MotionStance.Magic, motionCommand, speed);
+
+            actionChain.AddAction(this, () => EnqueueBroadcastMotion(motion));
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
         }
 
         public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
