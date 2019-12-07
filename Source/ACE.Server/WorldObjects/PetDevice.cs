@@ -289,11 +289,11 @@ namespace ACE.Server.WorldObjects
             { 49219, new Tuple<uint, DamageType>(49163, DamageType.Acid) }, // acid skeleton samurai (200)
 
             { 48942, new Tuple<uint, DamageType>(48943, DamageType.Fire) }, // fire skeleton minion (50)
-            { 48943, new Tuple<uint, DamageType>(48950, DamageType.Fire) }, // fire skeleton minion (80)
-            { 48944, new Tuple<uint, DamageType>(48951, DamageType.Fire) }, // fire skeleton minion (100)
-            { 48945, new Tuple<uint, DamageType>(48952, DamageType.Fire) }, // fire skeleton bushi (125)
-            { 48946, new Tuple<uint, DamageType>(48953, DamageType.Fire) }, // fire skeleton bushi (150)
-            { 48947, new Tuple<uint, DamageType>(48949, DamageType.Fire) }, // fire skeleton bushi (180)
+            { 48944, new Tuple<uint, DamageType>(48950, DamageType.Fire) }, // fire skeleton minion (80)
+            { 48945, new Tuple<uint, DamageType>(48951, DamageType.Fire) }, // fire skeleton minion (100)
+            { 48946, new Tuple<uint, DamageType>(48952, DamageType.Fire) }, // fire skeleton bushi (125)
+            { 48947, new Tuple<uint, DamageType>(48953, DamageType.Fire) }, // fire skeleton bushi (150)
+            { 48948, new Tuple<uint, DamageType>(48949, DamageType.Fire) }, // fire skeleton bushi (180)
             { 48956, new Tuple<uint, DamageType>(48955, DamageType.Fire) }, // fire skeleton samurai (200)
 
             { 49227, new Tuple<uint, DamageType>(49178, DamageType.Cold) }, // frost skeleton minion (50)
