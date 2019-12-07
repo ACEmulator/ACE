@@ -822,7 +822,7 @@ namespace ACE.Server.Network
 
             packetQueue.Clear();
 
-            ConnectionData.CryptoClient.Dispose();
+            ConnectionData.CryptoClient.ReleaseResources();
         }
     }
 }
