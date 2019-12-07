@@ -1421,19 +1421,19 @@ namespace ACE.Server.WorldObjects.Managers
             result = result.Replace("%tn", targetName);
 
             var sourceLevel = source != null ? $"{source.Level ?? 0}" : "";
-            var targetLevel = source != null ? $"{target.Level ?? 0}" : "";
+            var targetLevel = target != null ? $"{target.Level ?? 0}" : "";
             result = result.Replace("%ml", sourceLevel);
             result = result.Replace("%tl", targetLevel);
 
             //var sourceTemplate = source != null ? source.GetProperty(PropertyString.Title) : "";
             //var targetTemplate = source != null ? target.GetProperty(PropertyString.Title) : "";
             var sourceTemplate = source != null ? source.GetProperty(PropertyString.Template) : "";
-            var targetTemplate = source != null ? target.GetProperty(PropertyString.Template) : "";
+            var targetTemplate = target != null ? target.GetProperty(PropertyString.Template) : "";
             result = result.Replace("%mt", sourceTemplate);
             result = result.Replace("%tt", targetTemplate);
 
             var sourceHeritage = source != null ? source.HeritageGroupName : "";
-            var targetHeritage = source != null ? target.HeritageGroupName : "";
+            var targetHeritage = target != null ? target.HeritageGroupName : "";
             result = result.Replace("%mh", sourceHeritage);
             result = result.Replace("%th", targetHeritage);
 
