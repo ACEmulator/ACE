@@ -124,10 +124,12 @@ namespace ACE.Server.WorldObjects
             if (!baseRequirements.Success)
                 return baseRequirements;
 
-            // cooldowns for gems and pet devices, anything else?
-
-            // TODO: limit non-golems to summoning mastery
-
+            // verify summoning mastery
+            if (SummoningMastery != null && player.SummoningMastery != SummoningMastery)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be a {SummoningMastery} to use the {Name}", ChatMessageType.Broadcast));
+                return new ActivationResult(false);
+            }
             return new ActivationResult(true);
         }
 
