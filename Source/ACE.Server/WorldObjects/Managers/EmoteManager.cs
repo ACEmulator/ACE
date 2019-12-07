@@ -1411,10 +1411,6 @@ namespace ACE.Server.WorldObjects.Managers
             var sourceName = source != null ? source.Name : "";
             var targetName = target != null ? target.Name : "";
 
-            // Find quest in standard or LSD custom usage for %tqt and %CDtime
-            var embeddedQuestName = result.Contains("@") ? message.Split("@")[0] : null;
-            var questName = !string.IsNullOrWhiteSpace(embeddedQuestName) ? embeddedQuestName : quest;
-
             result = result.Replace("%n", sourceName);
             result = result.Replace("%mn", sourceName);
             result = result.Replace("%s", targetName);
@@ -1444,6 +1440,10 @@ namespace ACE.Server.WorldObjects.Managers
             //result = result.Replace("%pk", $"{???}"); // pk status?
             //result = result.Replace("%a", $"{???}"); // allegiance?
             //result = result.Replace("%p", $"{???}"); // patron?
+
+            // Find quest in standard or LSD custom usage for %tqt and %CDtime
+            var embeddedQuestName = result.Contains("@") ? message.Split("@")[0] : null;
+            var questName = !string.IsNullOrWhiteSpace(embeddedQuestName) ? embeddedQuestName : quest;
 
             // LSD custom tqt usage
             result = result.Replace($"{questName}@%tqt", "You may complete this quest again in %tqt.", StringComparison.OrdinalIgnoreCase);
