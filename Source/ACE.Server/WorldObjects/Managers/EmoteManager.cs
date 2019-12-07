@@ -1420,17 +1420,22 @@ namespace ACE.Server.WorldObjects.Managers
             result = result.Replace("%s", targetName);
             result = result.Replace("%tn", targetName);
 
-            result = result.Replace("%ml", $"{source.Level ?? 0}");
-            result = result.Replace("%tl", $"{target.Level ?? 0}");
+            var sourceLevel = source != null ? $"{source.Level ?? 0}" : "";
+            var targetLevel = source != null ? $"{target.Level ?? 0}" : "";
+            result = result.Replace("%ml", sourceLevel);
+            result = result.Replace("%tl", targetLevel);
 
-            //result = result.Replace("%mt", $"{source.GetProperty(PropertyString.Title)}");
-            //result = result.Replace("%tt", $"{target.GetProperty(PropertyString.Title)}");
+            //var sourceTemplate = source != null ? source.GetProperty(PropertyString.Title) : "";
+            //var targetTemplate = source != null ? target.GetProperty(PropertyString.Title) : "";
+            var sourceTemplate = source != null ? source.GetProperty(PropertyString.Template) : "";
+            var targetTemplate = source != null ? target.GetProperty(PropertyString.Template) : "";
+            result = result.Replace("%mt", sourceTemplate);
+            result = result.Replace("%tt", targetTemplate);
 
-            result = result.Replace("%mt", $"{source.GetProperty(PropertyString.Template)}");
-            result = result.Replace("%tt", $"{target.GetProperty(PropertyString.Template)}");
-
-            result = result.Replace("%mh", $"{source.HeritageGroupName}");
-            result = result.Replace("%th", $"{target.HeritageGroupName}");
+            var sourceHeritage = source != null ? source.HeritageGroupName : "";
+            var targetHeritage = source != null ? target.HeritageGroupName : "";
+            result = result.Replace("%mh", sourceHeritage);
+            result = result.Replace("%th", targetHeritage);
 
             //result = result.Replace("%mf", $"{source.GetProperty(PropertyString.Fellowship)}");
             //result = result.Replace("%tf", $"{target.GetProperty(PropertyString.Fellowship)}");
