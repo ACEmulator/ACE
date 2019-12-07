@@ -93,11 +93,11 @@ namespace ACE.Server.WorldObjects
 
             if (!(this is Player))
             {
+                GenerateWieldList();
+
                 if (!(this is CombatPet)) //combat pets normally wouldn't have these items, but due to subbing in code currently, sometimes they do. this skips them for now.
                 {
-                    GenerateWieldList();
                     GenerateWieldedTreasure();
-
 
                     EquipInventoryItems();
                 }

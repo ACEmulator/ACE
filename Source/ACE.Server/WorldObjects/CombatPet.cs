@@ -46,7 +46,7 @@ namespace ACE.Server.WorldObjects
             if (!PropertyManager.GetBool("advanced_combat_pets").Item)
                 Biota.BiotaPropertiesSpellBook.Clear();
 
-            Biota.BiotaPropertiesCreateList.Clear();
+            //Biota.BiotaPropertiesCreateList.Clear();
             Biota.BiotaPropertiesEmote.Clear();
             GeneratorProfiles.Clear();            
 
