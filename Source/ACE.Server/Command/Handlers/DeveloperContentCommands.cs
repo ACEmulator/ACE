@@ -48,8 +48,14 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
+            var converter = new WeenieSQLWriter();
+            converter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+            converter.SpellNames = DatabaseManager.World.GetAllSpellNames();
+            converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
+            converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
+
             foreach (var file in files)
-                HandleImportJson(session, json_folder, file.Name);
+                HandleImportJson(session, json_folder, file.Name, converter);
         }
 
         [CommandHandler("import-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports SQL weenie from the Content folder", "<wcid>")]
@@ -111,7 +117,7 @@ namespace ACE.Server.Command.Handlers.Processors
         /// <summary>
         /// Converts JSON to SQL, imports to database, and clears the weenie cache
         /// </summary>
-        private static void HandleImportJson(Session session, string json_folder, string json_file)
+        private static void HandleImportJson(Session session, string json_folder, string json_file, WeenieSQLWriter converter)
         {
             if (!uint.TryParse(Regex.Match(json_file, @"\d+").Value, out var wcid))
             {
@@ -120,7 +126,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             // convert json -> sql
-            var sqlFile = json2sql(session, json_folder, json_file);
+            var sqlFile = json2sql(session, json_folder, json_file, converter);
             if (sqlFile == null) return;
 
             // import sql to db
@@ -135,7 +141,7 @@ namespace ACE.Server.Command.Handlers.Processors
         /// <summary>
         /// Converts a json file to sql file
         /// </summary>
-        public static string json2sql(Session session, string folder, string json_filename)
+        public static string json2sql(Session session, string folder, string json_filename, WeenieSQLWriter converter)
         {
             var json_file = folder + json_filename;
 
@@ -167,18 +173,15 @@ namespace ACE.Server.Command.Handlers.Processors
 
             try
             {
-                var converter = new WeenieSQLWriter();
-                converter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
-                converter.SpellNames = DatabaseManager.World.GetAllSpellNames();
-                converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
-                converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
                 if (output.LastModified == DateTime.MinValue)
                     output.LastModified = DateTime.UtcNow;
+
                 sqlFilename = converter.GetDefaultFileName(output);
                 var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
 
                 converter.CreateSQLDELETEStatement(output, sqlFile);
                 sqlFile.WriteLine();
+
                 converter.CreateSQLINSERTStatement(output, sqlFile);
                 sqlFile.Close();
             }

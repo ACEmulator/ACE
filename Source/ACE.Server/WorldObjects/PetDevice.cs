@@ -501,9 +501,17 @@ namespace ACE.Server.WorldObjects
         {
             // TODO: this should be moved to recipe system
             if (!IsEncapsulatedSpirit(spirit))
+            {
+                player.SendUseDoneEvent();
                 return;
+            }
 
-            if (player.IsBusy) return;
+            if (player.IsBusy)
+            {
+                player.SendUseDoneEvent(WeenieError.YoureTooBusy);
+                return;
+            }
+
             player.IsBusy = true;
 
             var actionChain = new ActionChain();
@@ -530,6 +538,7 @@ namespace ACE.Server.WorldObjects
 
                 player.IsBusy = false;
             });
+
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();

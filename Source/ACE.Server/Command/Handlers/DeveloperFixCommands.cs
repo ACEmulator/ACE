@@ -228,7 +228,24 @@ namespace ACE.Server.Command.Handlers
 
                     var sac = (SkillAdvancementClass)skill.SAC;
                     if (sac < SkillAdvancementClass.Trained)
+                    {
+                        if (skill.PP > 0 || skill.LevelFromPP > 0)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {(Skill)skill.Type} with {skill.PP:N0} xp (rank {skill.LevelFromPP})");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                // i have found no instances of this situation being run into,
+                                // but if it does happen, verify-xp will refund the player xp properly
+                                skill.PP = 0;
+                                skill.LevelFromPP = 0;
+
+                                updated = true;
+                            }
+                        }
                         continue;
+                    }
 
                     // verify skill rank
                     var correctRank = Player.CalcSkillRank(sac, skill.PP);
