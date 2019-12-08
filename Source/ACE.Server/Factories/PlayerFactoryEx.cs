@@ -144,9 +144,9 @@ namespace ACE.Server.Factories
             uint barNumber = 0;
             uint indexInBar = 0;
             player.Character.AddSpellToBar(barNumber, indexInBar++, 2645, player.CharacterDatabaseLock); // Portal Recall
-            player.Character.AddSpellToBar(barNumber, indexInBar++, 48, player.CharacterDatabaseLock); // Primary Portal Recall
-            player.Character.AddSpellToBar(barNumber, indexInBar++, 157, player.CharacterDatabaseLock); // Summon Primary Portal I
-            player.Character.AddSpellToBar(barNumber, indexInBar++, 47, player.CharacterDatabaseLock); // Primary Portal Tie
+            player.Character.AddSpellToBar(barNumber, indexInBar++,   48, player.CharacterDatabaseLock); // Primary Portal Recall
+            player.Character.AddSpellToBar(barNumber, indexInBar++,  157, player.CharacterDatabaseLock); // Summon Primary Portal I
+            player.Character.AddSpellToBar(barNumber, indexInBar++,   47, player.CharacterDatabaseLock); // Primary Portal Tie
             player.Character.AddSpellToBar(barNumber, indexInBar++, 2647, player.CharacterDatabaseLock); // Secondary Portal Recall
             player.Character.AddSpellToBar(barNumber, indexInBar++, 2648, player.CharacterDatabaseLock); // Summon Secondary Portal I
             player.Character.AddSpellToBar(barNumber, indexInBar++, 2646, player.CharacterDatabaseLock); // Secondary Portal Tie
@@ -182,7 +182,7 @@ namespace ACE.Server.Factories
             // Buffs - Self
             barNumber++;
             indexInBar = 0;
-            player.Character.AddSpellToBar(barNumber, indexInBar++, 562, player.CharacterDatabaseLock); // "Creature Enchantment Mastery Self VI","Increases the caster's Creature Enchantment skill by 35 points."
+            player.Character.AddSpellToBar(barNumber, indexInBar++,  562, player.CharacterDatabaseLock); // "Creature Enchantment Mastery Self VI","Increases the caster's Creature Enchantment skill by 35 points."
             player.Character.AddSpellToBar(barNumber, indexInBar++, 1426, player.CharacterDatabaseLock); // "Focus Self VI","Increases the caster's Focus by 35 points."
             player.Character.AddSpellToBar(barNumber, indexInBar++, 1450, player.CharacterDatabaseLock); // "Willpower Self VI","Increases the caster's Self by 35 points."
 
