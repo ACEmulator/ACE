@@ -721,7 +721,7 @@ namespace ACE.Server.Factories
             }
 
             // To add a little bit of randomness to Max weapon damage
-            int maxDamageVariance = ThreadSafeRandom.Next(-4, 2);
+            int maxDamageVariance = ThreadSafeRandom.Next(-4, 0);
 
             return damageTable + maxDamageVariance;
         }
