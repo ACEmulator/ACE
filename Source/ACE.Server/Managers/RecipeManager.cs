@@ -95,6 +95,13 @@ namespace ACE.Server.Managers
 
             craftChain.AddAction(player, () =>
             {
+                // re-verify
+                if (!VerifyRequirements(recipe, player, source, target))
+                {
+                    player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    return;
+                }
+
                 if (recipe.Skill > 0 && recipe.Difficulty > 0)
                 {
                     // there's a skill associated with this
@@ -672,6 +679,14 @@ namespace ACE.Server.Managers
 
         public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject source, WorldObject target)
         {
+            // re-verify
+            if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
+                return false;
+
+            // almost always MyInventory, but sometimes can be applied to equipped
+            if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems) == null)
+                return false;
+
             if (!VerifyRequirements(recipe, player, target, RequirementType.Target)) return false;
 
             if (!VerifyRequirements(recipe, player, source, RequirementType.Source)) return false;
