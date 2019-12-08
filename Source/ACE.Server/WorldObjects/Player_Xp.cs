@@ -356,7 +356,10 @@ namespace ACE.Server.WorldObjects
             SpendAllAvailableVitalXp(Mana, sendNetworkUpdate);
 
             foreach (var skill in Skills)
-                SpendAllAvailableSkillXp(skill.Value, sendNetworkUpdate);
+            {
+                if (skill.Value.AdvancementClass >= SkillAdvancementClass.Trained)
+                    SpendAllAvailableSkillXp(skill.Value, sendNetworkUpdate);
+            }
         }
 
         /// <summary>
