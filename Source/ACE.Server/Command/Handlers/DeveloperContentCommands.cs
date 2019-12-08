@@ -404,7 +404,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var timestamp = DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss");
 
-            var sql = $"INSERT INTO encounter set landblock=0x{pos.Landblock:X4}, weenie_Class_Id={weenie.ClassId}, cell_X={cellX}, cell_Y={cellY}, last_Modified='{timestamp}';";
+            var sql = $"INSERT INTO encounter set landblock=0x{pos.Landblock:X4}, weenie_Class_Id={weenie.ClassId} /* {wo.Name} */, cell_X={cellX}, cell_Y={cellY}, last_Modified='{timestamp}';";
 
             Console.WriteLine(sql);
 
@@ -467,7 +467,7 @@ namespace ACE.Server.Command.Handlers.Processors
                     profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
             }
 
-            session.Player.CurrentLandblock.AddWorldObject(wo);
+            wo.EnterWorld();
 
             return wo;
         }
