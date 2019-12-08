@@ -472,7 +472,6 @@ namespace ACE.Server.Command.Handlers.Processors
             return wo;
         }
 
-
         [CommandHandler("export-json", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Exports a weenie from database to JSON file", "<wcid>")]
         public static void HandleExportJson(Session session, params string[] parameters)
         {
