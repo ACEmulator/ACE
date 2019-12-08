@@ -307,7 +307,8 @@ namespace ACE.Server.Command.Handlers.Processors
             wo.Ethereal = true;
             wo.Location = new Position(loc);
 
-            // not sure why this happens, but even in flat ground, objects can still sometimes fail to spawn
+            // even on flat ground, objects can sometimes fail to spawn at the player's current Z
+            // Position.Z has some weird thresholds when moving around, but i guess the same logic doesn't apply when trying to spawn in...
             wo.Location.PositionZ += 0.05f;
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new landblock instance @ {loc.ToLOCString()}\n{wo.WeenieClassId} - {wo.Name} ({nextStaticGuid:X8})", ChatMessageType.Broadcast));
