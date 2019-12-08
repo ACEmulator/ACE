@@ -307,6 +307,9 @@ namespace ACE.Server.Command.Handlers.Processors
             wo.Ethereal = true;
             wo.Location = new Position(loc);
 
+            // not sure why this happens, but even in flat ground, objects can still sometimes fail to spawn
+            wo.Location.PositionZ += 0.05f;
+
             session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new landblock instance @ {loc.ToLOCString()}\n{wo.WeenieClassId} - {wo.Name} ({nextStaticGuid:X8})", ChatMessageType.Broadcast));
 
             wo.EnterWorld();
