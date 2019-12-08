@@ -14,6 +14,7 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -89,12 +90,113 @@ namespace ACE.Server.WorldObjects
 
             Console.WriteLine("\nInventory check passed!");
 
-            // TODO: consume items for house purchase
+            // Take all coins and additionally, only notes needed, leave the rest of monetary items in player inventory
+            item_ids = RemoveExtraNotes(item_ids, slumlord, TransactionType.Buy, out List<WorldObject> ephemerals).ToList();
+
             ConsumeItemsForPurchase(item_ids);
 
             SetHouseOwner(slumlord);
 
             GiveDeed(slumlord);
+        }
+
+        public enum TransactionType
+        {
+            Buy,
+            Maintain
+        }
+
+        /// <summary>
+        /// Remove the extra trade notes from the list of items to be taken for the buy or maintain house transaction.  No coin change is given.  Largest notes favored over smallest.  Splits note stacks when needed.
+        /// </summary>
+        /// <param name="item_ids">the items the player has thrown into the transaction register</param>
+        /// <param name="pyrealCost">the cost of the transaction in total pyreals</param>
+        /// <param name="txnTyp">the type of transaction</param>
+        /// <param name="ephemeralObjects">objects that aren't part of any inventory, created upon item split, the consumed portion, applicable for TransactionType.Maintain</param>
+        /// <returns></returns>
+        private IEnumerable<uint> RemoveExtraNotes(List<uint> item_ids, SlumLord slumlord, TransactionType txnTyp, out List<WorldObject> ephemeralObjects)
+        {
+            ephemeralObjects = new List<WorldObject>();
+            uint leftToCollect = 0;
+            if (txnTyp == TransactionType.Buy)
+            {
+                leftToCollect = GetPyrealCost(slumlord.GetBuyItems());
+            }
+            else if (txnTyp == TransactionType.Maintain)
+            {
+                uint due = GetPyrealCost(slumlord.GetRentItems());
+                HouseProfile houseProfile = new HouseProfile();
+                houseProfile.SetRentItems(slumlord.GetRentItems());
+                houseProfile.SetPaidItems(slumlord);
+                long paid = houseProfile.Rent.Where(k => k.WeenieID == 273 && k.Paid > 0).Sum(k => k.Paid);
+                leftToCollect = due - (uint)paid;
+            }
+
+            IEnumerable<WorldObject> thrown = item_ids.Select(k => FindObject(k, SearchLocations.MyInventory)).Where(k => k != null).DefaultIfEmpty();
+            IOrderedEnumerable<WorldObject> noteStacks = thrown.Where(i => i.ItemType == ItemType.PromissoryNote).OrderByDescending(k => k.Value);
+            IEnumerable<WorldObject> coinStacks = thrown.Where(i => i.WeenieClassId == 273);
+            List<WorldObject> eatItems = thrown.Except(noteStacks).Except(coinStacks).ToList();
+
+            uint coinTotal = 0;
+            foreach (WorldObject coinStack in coinStacks)
+            {
+                coinTotal += (uint)(coinStack.Value ?? 0);
+            }
+
+            if (coinTotal > leftToCollect)
+            {
+                eatItems.AddRange(coinStacks);
+                return eatItems.Select(k => k.Guid.Full);
+            }
+            eatItems.AddRange(coinStacks);
+            leftToCollect -= coinTotal;
+
+            List<WorldObject> currencyStacksCollected = new List<WorldObject>();
+
+            foreach (WorldObject stack in noteStacks)
+            {
+                uint wholeStackVal = (uint)stack.StackSize * (uint)stack.StackUnitValue.Value;
+                uint amountToRemove = 0;
+                if (wholeStackVal == leftToCollect)
+                {
+                    currencyStacksCollected.Add(stack);
+                    amountToRemove = wholeStackVal;
+                }
+                else if (wholeStackVal < leftToCollect)
+                {
+                    currencyStacksCollected.Add(stack);
+                    amountToRemove = wholeStackVal;
+                }
+                else
+                {
+                    int stacksToConsume = (int)Math.Ceiling(leftToCollect / (decimal)stack.StackUnitValue.Value);
+                    stacksToConsume = Math.Min(stacksToConsume, stack.StackUnitValue.Value);
+                    amountToRemove = Math.Min(leftToCollect, (uint)stacksToConsume * (uint)stack.StackUnitValue.Value);
+                    int remainingStacks = (int)stack.StackSize - stacksToConsume;
+                    WorldObject newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+                    newStack.SetStackSize(stacksToConsume);
+                    currencyStacksCollected.Add(newStack);
+                    ephemeralObjects.Add(newStack);
+                    WorldObject stackToAdjust = FindObject(stack.Guid, SearchLocations.MyInventory, out Container foundInContainer, out Container rootContainer, out _);
+                    if (stackToAdjust != null)
+                    {
+                        AdjustStack(stackToAdjust, -stacksToConsume, foundInContainer, rootContainer);
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(stackToAdjust));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                    }
+                }
+                if (amountToRemove < 1)
+                {
+                    break;//should never happen, validation is done much earlier
+                }
+                leftToCollect -= amountToRemove;
+                if (leftToCollect <= 0)
+                {
+                    break;
+                }
+            }
+            eatItems.AddRange(currencyStacksCollected);
+            return eatItems.Select(k => k.Guid.Full);
         }
 
         public void GiveDeed(SlumLord slumLord)
@@ -166,17 +268,31 @@ namespace ACE.Server.WorldObjects
             else
                 log.Error($"{Name}.HandleActionRentHouse({slumlord_id:X8}): couldn't find house owner {slumlord.HouseOwner}");
 
+            // Take all coins and additionally, only notes needed, leave the rest of monetary items in player inventory
+            item_ids = RemoveExtraNotes(item_ids, slumlord, TransactionType.Maintain, out List<WorldObject> ephemerals).ToList();
 
             // move items from player inventory to slumlord 'inventory'
             foreach (var item_id in item_ids)
             {
                 var item = FindObject(item_id, SearchLocations.MyInventory);
+                WorldObject ephItem = null;
                 if (item == null)
                 {
-                    Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))}): couldn't find {item_id:X8}");
-                    continue;
+                    ephItem = ephemerals.FirstOrDefault(k => k.Guid.Full == item_id);
+                    if (ephItem == null)
+                    {
+                        Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))}): couldn't find {item_id:X8}");
+                        continue;
+                    }
                 }
-                DoHandleActionPutItemInContainer(item, this, false, slumlord, slumlord, 0);
+                if (item == null && ephItem != null)
+                {
+                    DoHandleActionPutItemInContainer(ephItem, this, false, slumlord, slumlord, 0);
+                }
+                else if (item != null)
+                {
+                    DoHandleActionPutItemInContainer(item, this, false, slumlord, slumlord, 0);
+                }
             }
 
             slumlord.MergeAllStackables();
@@ -331,7 +447,7 @@ namespace ACE.Server.WorldObjects
             house.HouseOwner = Guid.Full;
             house.HouseOwnerName = Name;
             house.SaveBiotaToDatabase();
-            
+
             // relink
             house.UpdateLinks();
 
@@ -352,7 +468,7 @@ namespace ACE.Server.WorldObjects
             slumlord.SetAndBroadcastName(Name);
 
             slumlord.SaveBiotaToDatabase();
-            
+
             SaveBiotaToDatabase();
 
             // set house data
@@ -429,6 +545,26 @@ namespace ACE.Server.WorldObjects
             // compare list of input items
             // to required items for purchase
             return HasItems(sentItems, buyItems);
+        }
+
+        /// <summary>
+        /// Get the total pyreals needed for transaction.
+        /// </summary>
+        /// <param name="buyItems">The items required for house transaction.</param>
+        public uint GetPyrealCost(List<WorldObject> buyItems)
+        {
+            uint totalPyrealCost = 0;
+            // requires: no duplicate individual items in list,
+            // ie. items have already been stacked
+            foreach (var buyItem in buyItems)
+            {
+                // special handling for currency
+                if (buyItem.Name.Equals("Pyreal"))
+                {
+                    totalPyrealCost += (uint)(buyItem.StackSize ?? 1);
+                }
+            }
+            return totalPyrealCost;
         }
 
         /// <summary>
