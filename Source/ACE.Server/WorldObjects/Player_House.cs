@@ -90,8 +90,8 @@ namespace ACE.Server.WorldObjects
 
             Console.WriteLine("\nInventory check passed!");
 
-            // Take all coins and additionally, only notes needed, leave the rest of monetary items in player inventory
-            item_ids = RemoveExtraNotes(item_ids, slumlord, TransactionType.Buy, out List<WorldObject> ephemerals).ToList();
+            // remove extra stackables splitting stacks if needed
+            item_ids = SplitRemoveExtraStackables(item_ids, slumlord, SlumLordTransactionType.Buy, out List<WorldObject> ephemerals).ToList();
 
             ConsumeItemsForPurchase(item_ids);
 
@@ -100,42 +100,101 @@ namespace ACE.Server.WorldObjects
             GiveDeed(slumlord);
         }
 
-        public enum TransactionType
+        public enum SlumLordTransactionType
         {
             Buy,
             Maintain
         }
 
         /// <summary>
-        /// Remove the extra trade notes from the list of items to be taken for the buy or maintain house transaction.  No coin change is given.  Largest notes favored over smallest.  Splits note stacks when needed.
+        /// Remove the extra stackables from the list of items to be taken for the buy or maintain house transaction.  No coin change is given.  smallest notes favored over largest.  Splits note stacks when needed.
         /// </summary>
         /// <param name="item_ids">the items the player has thrown into the transaction register</param>
         /// <param name="pyrealCost">the cost of the transaction in total pyreals</param>
         /// <param name="txnTyp">the type of transaction</param>
         /// <param name="ephemeralObjects">objects that aren't part of any inventory, created upon item split, the consumed portion, applicable for TransactionType.Maintain</param>
         /// <returns></returns>
-        private IEnumerable<uint> RemoveExtraNotes(List<uint> item_ids, SlumLord slumlord, TransactionType txnTyp, out List<WorldObject> ephemeralObjects)
+        private IEnumerable<uint> SplitRemoveExtraStackables(List<uint> item_ids, SlumLord slumlord, SlumLordTransactionType txnTyp, out List<WorldObject> ephemeralObjects)
         {
             ephemeralObjects = new List<WorldObject>();
             uint leftToCollect = 0;
-            if (txnTyp == TransactionType.Buy)
+            List<WorldObject> buyItems = null;
+            List<WorldObject> rentItems = null;
+            List<HousePayment> rentItemsPaid = null;
+            if (txnTyp == SlumLordTransactionType.Buy)
             {
-                leftToCollect = GetPyrealCost(slumlord.GetBuyItems());
+                buyItems = slumlord.GetBuyItems();
+                leftToCollect = GetPyrealCost(buyItems);
             }
-            else if (txnTyp == TransactionType.Maintain)
+            else if (txnTyp == SlumLordTransactionType.Maintain)
             {
-                uint due = GetPyrealCost(slumlord.GetRentItems());
+                rentItems = slumlord.GetRentItems();
+                uint due = GetPyrealCost(rentItems);
                 HouseProfile houseProfile = new HouseProfile();
-                houseProfile.SetRentItems(slumlord.GetRentItems());
+                houseProfile.SetRentItems(rentItems);
                 houseProfile.SetPaidItems(slumlord);
-                long paid = houseProfile.Rent.Where(k => k.WeenieID == 273 && k.Paid > 0).Sum(k => k.Paid);
+                rentItemsPaid = houseProfile.Rent;
+                long paid = rentItemsPaid.Where(k => k.WeenieID == 273 && k.Paid > 0).Sum(k => k.Paid);
                 leftToCollect = due - (uint)paid;
             }
 
-            IEnumerable<WorldObject> thrown = item_ids.Select(k => FindObject(k, SearchLocations.MyInventory)).Where(k => k != null).DefaultIfEmpty();
-            IOrderedEnumerable<WorldObject> noteStacks = thrown.Where(i => i.ItemType == ItemType.PromissoryNote).OrderByDescending(k => k.Value);
+            IEnumerable<WorldObject> thrown = item_ids.Select(k => FindObject(k, SearchLocations.MyInventory)).Where(k => k != null);
+            IOrderedEnumerable<WorldObject> noteStacks = thrown.Where(i => i.ItemType == ItemType.PromissoryNote).OrderBy(k => k.Value);
             IEnumerable<WorldObject> coinStacks = thrown.Where(i => i.WeenieClassId == 273);
             List<WorldObject> eatItems = thrown.Except(noteStacks).Except(coinStacks).ToList();
+            List<WorldObject> otherStackables = eatItems.Where(k => k.MaxStackSize.HasValue && k.MaxStackSize.Value > 1 && k.StackSize.HasValue && k.StackSize.Value > 0).ToList();
+            eatItems = eatItems.Except(otherStackables).ToList();
+
+            foreach (uint stackableWCID in otherStackables.Select(k => k.WeenieClassId).Distinct())
+            {
+                int payment = otherStackables
+                    .Where(k => k.WeenieClassId == stackableWCID)
+                    .Sum(k => k.StackSize.Value);
+                List<WorldObject> costAmount = (buyItems != null) ?
+                    buyItems.Where(k => k.WeenieClassId == stackableWCID).ToList() :
+                    rentItems.Where(k => k.WeenieClassId == stackableWCID).ToList();
+                int cost = costAmount.Sum(k => k.StackSize.Value);
+                int due = cost - (int)((rentItemsPaid != null) ? rentItemsPaid.Where(k => k.WeenieID == stackableWCID).Sum(k => k.Num) : 0);
+
+                if (payment <= due)
+                {
+                    eatItems.AddRange(otherStackables.Where(k => k.WeenieClassId == stackableWCID));
+                }
+                else
+                {
+                    int paid = 0;
+                    foreach (WorldObject stackable in otherStackables.Where(k => k.WeenieClassId == stackableWCID))
+                    {
+                        paid += stackable.StackSize.Value;
+                        if (paid == due)
+                        {
+                            eatItems.Add(stackable);
+                            break;
+                        }
+                        else if (paid < due)
+                        {
+                            eatItems.Add(stackable);
+                        }
+                        else if (paid > due)
+                        {
+                            int overage = paid - due;
+                            int take = stackable.StackSize.Value - overage;
+                            WorldObject newStack = WorldObjectFactory.CreateNewWorldObject(stackable.WeenieClassId);
+                            newStack.SetStackSize(take);
+                            eatItems.Add(newStack);
+                            ephemeralObjects.Add(newStack);
+                            WorldObject stackToAdjust = FindObject(stackable.Guid, SearchLocations.MyInventory, out Container foundInContainer, out Container rootContainer, out _);
+                            if (stackToAdjust != null)
+                            {
+                                AdjustStack(stackToAdjust, -take, foundInContainer, rootContainer);
+                                Session.Network.EnqueueSend(new GameMessageSetStackSize(stackToAdjust));
+                                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
 
             uint coinTotal = 0;
             foreach (WorldObject coinStack in coinStacks)
@@ -268,8 +327,8 @@ namespace ACE.Server.WorldObjects
             else
                 log.Error($"{Name}.HandleActionRentHouse({slumlord_id:X8}): couldn't find house owner {slumlord.HouseOwner}");
 
-            // Take all coins and additionally, only notes needed, leave the rest of monetary items in player inventory
-            item_ids = RemoveExtraNotes(item_ids, slumlord, TransactionType.Maintain, out List<WorldObject> ephemerals).ToList();
+            // remove extra stackables splitting stacks if needed
+            item_ids = SplitRemoveExtraStackables(item_ids, slumlord, SlumLordTransactionType.Maintain, out List<WorldObject> ephemerals).ToList();
 
             // move items from player inventory to slumlord 'inventory'
             foreach (var item_id in item_ids)
