@@ -326,7 +326,7 @@ namespace ACE.Server.Command.Handlers.Processors
             var origin = pos.Frame.Origin;
             var rotation = pos.Frame.Orientation;
 
-            var timestamp = DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss");
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             var insert = $"INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)\n" +
                 $"VALUES(0x{wo.Guid.Full:X8}, {wo.WeenieClassId}, 0x{wo.PhysicsObj.Position.ObjCellID:X8}, {origin.X}, {origin.Y}, {origin.Z}, {rotation.W}, {rotation.X}, {rotation.Y}, {rotation.Z}, False, '{timestamp}'); /* {wo.Name} */\n" +
@@ -402,7 +402,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new encounter @ landblock {pos.Landblock:X4}, cellX={cellX}, cellY={cellY}\n{wo.WeenieClassId} - {wo.Name}", ChatMessageType.Broadcast));
 
-            var timestamp = DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss");
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             var sql = $"INSERT INTO encounter set landblock=0x{pos.Landblock:X4}, weenie_Class_Id={weenie.ClassId} /* {wo.Name} */, cell_X={cellX}, cell_Y={cellY}, last_Modified='{timestamp}';";
 
