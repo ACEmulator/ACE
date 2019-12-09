@@ -207,7 +207,7 @@ namespace ACE.Server.Network
 
             Network.EnqueueSend(new GameMessageCharacterList(Characters, this));
 
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetAllOnline().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetOnlineCount(), (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
             Network.EnqueueSend(serverNameMessage);
 
             State = SessionState.AuthConnected;
