@@ -182,7 +182,8 @@ namespace ACE.Server.WorldObjects
         {
             var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
 
-            SetAndBroadcastMotion(off);
+            if (CurrentLandblock != null)
+                SetAndBroadcastMotion(off);
         }
 
         private void SetAndBroadcastMotion(Motion motion)
@@ -205,7 +206,8 @@ namespace ACE.Server.WorldObjects
             else
                 Name = $"{houseOwnerName}'s {Name}";
 
-            EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(this, PropertyString.Name, Name));
+            if (CurrentLandblock != null)
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(this, PropertyString.Name, Name));
         }
 
         /// <summary>

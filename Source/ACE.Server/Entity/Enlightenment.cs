@@ -196,8 +196,10 @@ namespace ACE.Server.Entity
             // todo: attribute reset certificate
 
             // +2 vitality
-            var vitality = player.LumAugVitality + 2;
-            player.UpdateProperty(player, PropertyInt.LumAugVitality, vitality);
+            // handled automatically via PropertyInt.Enlightenment * 2
+
+            /*var vitality = player.LumAugVitality + 2;
+            player.UpdateProperty(player, PropertyInt.LumAugVitality, vitality);*/
         }
     }
 }

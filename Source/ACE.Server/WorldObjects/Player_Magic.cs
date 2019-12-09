@@ -1099,8 +1099,10 @@ namespace ACE.Server.WorldObjects
             if (burned.Count == 0) return;
 
             // decrement components
-            foreach (var component in burned)
+            for (var i = burned.Count - 1; i >= 0; i--)
             {
+                var component = burned[i];
+
                 if (!SpellFormula.SpellComponentsTable.SpellComponents.TryGetValue(component, out var spellComponent))
                 {
                     log.Error($"{Name}.TryBurnComponents(): Couldn't find SpellComponent {component}");
@@ -1113,12 +1115,18 @@ namespace ACE.Server.WorldObjects
                 var item = GetInventoryItemsOfWCID(wcid).FirstOrDefault();
                 if (item == null)
                 {
-                    log.Warn($"{Name}.TryBurnComponents({spellComponent.Name}): not found in inventory");
+                    if (SpellComponentsRequired)
+                        log.Warn($"{Name}.TryBurnComponents({spellComponent.Name}): not found in inventory");
+                    else
+                        burned.RemoveAt(i);
+
                     continue;
                 }
-
                 TryConsumeFromInventoryWithNetworking(item, 1);
             }
+
+            if (burned.Count == 0)
+                return;
 
             // send message to player
             var msg = Spell.GetConsumeString(burned);

@@ -97,6 +97,13 @@ namespace ACE.Server.WorldObjects
             // possible bug: while teleporting, client can still send AutoPos packets from old landblock
             if (Teleporting && !forceUpdate) return false;
 
+            // pre-validate movement
+            if (!ValidateMovement(newPosition))
+            {
+                log.Error($"{Name}.UpdatePlayerPhysics() - movement pre-validation failed from {Location} to {newPosition}");
+                return false;
+            }
+
             try
             {
                 if (!forceUpdate) // This is needed beacuse this function might be called recursively
@@ -156,6 +163,26 @@ namespace ACE.Server.WorldObjects
                         log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
                 }
             }
+        }
+
+        public bool ValidateMovement(ACE.Entity.Position newPosition)
+        {
+            if (CurrentLandblock == null)
+                return false;
+
+            if (!Teleporting && Location.Landblock != newPosition.Cell >> 16)
+            {
+                if ((Location.Cell & 0xFFFF) >= 0x100 && (newPosition.Cell & 0xFFFF) >= 0x100)
+                    return false;
+
+                if (CurrentLandblock.IsDungeon)
+                {
+                    var destBlock = LScape.get_landblock(newPosition.Cell);
+                    if (destBlock != null && destBlock.IsDungeon)
+                        return false;
+                }
+            }
+            return true;
         }
 
         private bool gagNoticeSent = false;
