@@ -133,16 +133,21 @@ namespace ACE.Server.WorldObjects.Entity
 
                 var fTotal = total * multiplier;
 
+                var additives = 0.0f;
+
                 if (creature is Player player)
                 {
                     var vitae = player.Vitae;
 
                     if (vitae != 1.0f)
                         fTotal *= vitae;
+
+                    // everything beyond this point does not get scaled by vitae
+                    if (Vital == PropertyAttribute2nd.MaxHealth)
+                        additives += player.Enlightenment * 2;
                 }
 
-                // then additives
-                var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
+                additives += creature.EnchantmentManager.GetVitalMod_Additives(this);
 
                 total = (uint)(fTotal + additives).Round();
 
