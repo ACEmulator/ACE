@@ -187,10 +187,19 @@ namespace ACE.Server.WorldObjects
             var houseProfile = slumlord.GetHouseProfile();
             var consumeItems = GetConsumeItems(houseProfile.Rent, items);
 
+            if (consumeItems.Count == 0)
+                return;
+
             foreach (var consumeItem in consumeItems)
                 TryConsumeItemForRent(slumlord, consumeItem);
 
             slumlord.MergeAllStackables();
+
+            // force save to database
+            slumlord.SaveBiotaToDatabase();
+
+            foreach (var item in slumlord.Inventory.Values)
+                item.SaveBiotaToDatabase();
 
             slumlord.ActOnUse(this);
 
@@ -235,7 +244,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Moves the items from the player's inventory to the slumlord's inventory
+        /// Moves or splits an item from player inventory => slumlord inventory
         /// </summary>
         public bool TryConsumeItemForRent(SlumLord slumlord, WorldObjectInfo<int> itemInfo)
         {
@@ -255,46 +264,96 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
+            var success = false;
+
             if (amount == stackSize)
-            {
-                // move the item to the slumlord inventory
-                DoHandleActionPutItemInContainer(item, this, false, slumlord, slumlord, 0);
-            }
+                success = TryMoveItemForRent(slumlord, item);
             else
+                success = TrySplitItemForRent(slumlord, item, amount);
+
+            return success;
+        }
+
+        /// <summary>
+        /// Moves an item from player inventory => slumlord inventory
+        /// </summary>
+        public bool TryMoveItemForRent(SlumLord slumlord, WorldObject item)
+        {
+            // verify slumlord can add item to inventory
+            if (!slumlord.CanAddToInventory(item))
             {
-                var stackToAdjust = FindObject(item.Guid, SearchLocations.MyInventory, out Container container, out Container rootOwner, out _);
-
-                if (stackToAdjust == null)
-                {
-                    log.Error($"{Name}.TryConsumeItemForRent({item.Name} ({item.Guid}) - failed to find object in player's inventory!");
-                    return false;
-                }
-
-                // subtract amount from player's item stacksize
-                if (!AdjustStack(item, -amount, container, rootOwner))
-                {
-                    log.Error($"{Name}.TryConsumeItemForRent({item.Name} ({item.Guid}) - failed to adjust stack");
-                    return false;
-                }
-
-                // create a new item w/ stackSize = amount in the slumlord's inventory
-                var newItem = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
-                newItem.SetStackSize(amount);
-
-                DoHandleActionPutItemInContainer(newItem, null, false, slumlord, slumlord, 0);
-
-                // send network messages
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
+                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - CanAddToInventory failed!");
+                return false;
             }
 
+            // remove entire item from player's inventory
+            if (!TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SpendItem))
+            {
+                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryRemoveFromInventoryWithNetworking failed!");
+                return false;
+            }
+
+            // add to slumlord inventory
+            if (!slumlord.TryAddToInventory(item))
+            {
+                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryAddToInventory failed!");
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Splits an item from player inventory => slumlord inventory
+        /// </summary>
+        public bool TrySplitItemForRent(SlumLord slumlord, WorldObject item, int amount)
+        {
+            // create a new item w/ stacksize = amount for the slumlord's inventory
+            var newItem = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+            newItem.SetStackSize(amount);
+
+            // verify it can be added to slumlord's inventory
+            if (!slumlord.CanAddToInventory(newItem))
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - CanAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                return false;
+            }
+
+            // fetch container for AdjustStack
+            if (GetInventoryItem(item.Guid, out var container) == null)
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - GetInventoryItem failed!");
+                return false;
+            }
+
+            // subtract amount from player's item stacksize
+            if (!AdjustStack(item, -amount, container, this))
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - failed to adjust stack!");
+                return false;
+            }
+
+            // force save of new player stack
+            item.SaveBiotaToDatabase();
+
+            // send network updates
+            Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
             if (item.WeenieType == WeenieType.Coin)
                 UpdateCoinValue();
 
+            if (!slumlord.TryAddToInventory(newItem))
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - TryAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                return false;
+            }
+
+            // force save of new slumlord stack
+            newItem.SaveBiotaToDatabase();
+
             return true;
         }
-
+        
         public void HandleActionAbandonHouse()
         {
             Console.WriteLine($"\n{Name}.HandleActionAbandonHouse()");
@@ -512,6 +571,9 @@ namespace ACE.Server.WorldObjects
                     log.Error($"{Name}.ConsumeItemsForHousePurchase(): TryConsumeFromInventoryWithNetworking({item.Name} ({item.Guid}), {amount}) failed!");
                     return false;
                 }
+
+                // force save partial stack reductions
+                item.SaveBiotaToDatabase();
             }
             return true;
         }
