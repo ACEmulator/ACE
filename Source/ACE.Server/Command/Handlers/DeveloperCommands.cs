@@ -1766,24 +1766,6 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
-        /// Enables / disables spell component burning
-        /// </summary>
-        [CommandHandler("safecomps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables / disables spell component burning", "/safecomps <on/off>")]
-        public static void HandleSafeComps(Session session, params string[] parameters)
-        {
-            var safeComps = true;
-            if (parameters.Length > 0 && parameters[0].ToLower().Equals("off"))
-                safeComps = false;
-
-            session.Player.SafeSpellComponents = safeComps;
-
-            if (safeComps)
-                session.Network.EnqueueSend(new GameMessageSystemChat("Your spell components are now safe, and will not be consumed when casting spells.", ChatMessageType.Broadcast));
-            else
-                session.Network.EnqueueSend(new GameMessageSystemChat("Your spell components will now be consumed when casting spells.", ChatMessageType.Broadcast));
-        }
-
-        /// <summary>
         /// Shows the current player location, from the server perspective
         /// </summary>
         [CommandHandler("myloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the current player location, from the server perspective", "/myloc")]
@@ -2420,7 +2402,25 @@ namespace ACE.Server.Command.Handlers
                     break;
             }
         }
-        
+
+        /// <summary>
+        /// Enables / disables spell component burning
+        /// </summary>
+        [CommandHandler("safecomps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables / disables spell component burning", "/safecomps <on/off>")]
+        public static void HandleSafeComps(Session session, params string[] parameters)
+        {
+            var safeComps = true;
+            if (parameters.Length > 0 && parameters[0].ToLower().Equals("off"))
+                safeComps = false;
+
+            session.Player.SafeSpellComponents = safeComps;
+
+            if (safeComps)
+                session.Network.EnqueueSend(new GameMessageSystemChat("Your spell components are now safe, and will not be consumed when casting spells.", ChatMessageType.Broadcast));
+            else
+                session.Network.EnqueueSend(new GameMessageSystemChat("Your spell components will now be consumed when casting spells.", ChatMessageType.Broadcast));
+        }
+
         /// <summary>
         /// This is to add spells to items (whether loot or quest generated).  For making weapons to check damage from pcaps or other sources
         /// </summary>
@@ -2694,6 +2694,38 @@ namespace ACE.Server.Command.Handlers
             // insta-death, without the confirmation dialog from /die
             // useful during developer testing
             session.Player.TakeDamage(session.Player, DamageType.Bludgeon, session.Player.Health.Current);
+        }
+
+        public static List<PropertyFloat> ResistProperties = new List<PropertyFloat>()
+        {
+            PropertyFloat.ResistSlash,
+            PropertyFloat.ResistPierce,
+            PropertyFloat.ResistBludgeon,
+            PropertyFloat.ResistFire,
+            PropertyFloat.ResistCold,
+            PropertyFloat.ResistAcid,
+            PropertyFloat.ResistElectric,
+            PropertyFloat.ResistNether
+        };
+
+        [CommandHandler("resist-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the resistance info for the last appraised creature.")]
+        public static void HandleResistInfo(Session session, params string[] parameters)
+        {
+            var creature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+            if (creature == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You must appraise a creature to use this command.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} ({creature.Guid}):", ChatMessageType.Broadcast));
+
+            var resistInfo = new Dictionary<PropertyFloat, double?>();
+            foreach (var prop in ResistProperties)
+                resistInfo.Add(prop, creature.GetProperty(prop));
+
+            foreach (var kvp in resistInfo.OrderByDescending(i => i.Value))
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{kvp.Key} - {kvp.Value}", ChatMessageType.Broadcast));
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 namespace ACE.Common
 {
@@ -6,8 +7,7 @@ namespace ACE.Common
     // todo: implement exactly the way AC handles it.. which we'll never know unless we get original source code
     public static class ThreadSafeRandom
     {
-        private static readonly object randomMutex = new object();
-        private static readonly Random random = new Random();
+        static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
 
         /// <summary>
         /// Returns a random floating-point number between min and max, inclusive
@@ -16,8 +16,7 @@ namespace ACE.Common
         /// <param name="max">The maximum possible value to return</param>
         public static float Next(float min, float max)
         {
-            lock (randomMutex)
-                return (float)(random.NextDouble() * (max - min) + min);
+            return (float)(random.Value.NextDouble() * (max - min) + min);
         }
 
         /// <summary>
@@ -27,8 +26,7 @@ namespace ACE.Common
         /// <param name="max">The maximum possible value to return</param>
         public static int Next(int min, int max)
         {
-            lock (randomMutex)
-                return random.Next(min, max + 1);
+            return random.Value.Next(min, max + 1);
         }
     }
 }
