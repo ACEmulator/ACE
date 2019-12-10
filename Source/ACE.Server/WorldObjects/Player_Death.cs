@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
                 Fellowship.OnDeath(this);
 
             // if the player's lifestone is in a different landblock, also broadcast their demise to that landblock
-            if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
+            if (PropertyManager.GetBool("lifestone_broadcast_death").Item && Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
             {
                 // ActionBroadcastKill might not work if other players around lifestone aren't aware of this player yet...
                 // this existing broadcast method is also based on the current visible objects to the player,
@@ -87,7 +87,7 @@ namespace ACE.Server.WorldObjects
                 // instead, we get all of the players in the lifestone landblock + adjacent landblocks,
                 // and possibly limit that to some radius around the landblock?
                 var lifestoneBlock = LandblockManager.GetLandblock(new LandblockId(Sanctuary.Landblock << 16 | 0xFFFF), true);
-                lifestoneBlock.EnqueueBroadcast(excludePlayers, true, broadcastMsg);
+                lifestoneBlock.EnqueueBroadcast(excludePlayers, true, Sanctuary, LocalBroadcastRangeSq, broadcastMsg);
             }
 
             return deathMessage;
