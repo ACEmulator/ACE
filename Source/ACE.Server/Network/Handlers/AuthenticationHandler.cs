@@ -224,7 +224,7 @@ namespace ACE.Server.Network.Handlers
             session.UpdateCharacters(characters);
 
             GameMessageCharacterList characterListMessage = new GameMessageCharacterList(session.Characters, session);
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetAllOnline().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetOnlineCount(), (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
             GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
             session.Network.EnqueueSend(characterListMessage, serverNameMessage);
