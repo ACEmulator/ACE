@@ -974,5 +974,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
+
+        public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
     }
 }
