@@ -1349,6 +1349,8 @@ namespace ACE.Server.Physics
                 PartArray.SetScaleInternal(new Vector3(scale, scale, scale));
         }
 
+        public static float ScatterThreshold_Z = 10.0f;
+
         public SetPositionError SetScatterPositionInternal(SetPosition setPos, Transition transition)
         {
             var result = SetPositionError.GeneralFailure;
@@ -1390,7 +1392,13 @@ namespace ACE.Server.Physics
                     {
                         // set to ground pos
                         var landblock = LScape.get_landblock(newPos.ObjCellID);
-                        newPos.Frame.Origin.Z = landblock.GetZ(newPos.Frame.Origin) + 0.05f;
+                        var groundZ = landblock.GetZ(newPos.Frame.Origin) + 0.05f;
+
+                        if (Math.Abs(newPos.Frame.Origin.Z - groundZ) > ScatterThreshold_Z)
+                            log.Debug($"{Name} ({ID:X8}).SetScatterPositionInternal() - tried to spawn outdoor object @ {newPos} ground Z {groundZ}, investigate ScatterThreshold_Z");
+                        else
+                            newPos.Frame.Origin.Z = groundZ;
+
                     }
                     //else
                         //indoors = true;
