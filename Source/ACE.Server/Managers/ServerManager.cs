@@ -118,7 +118,7 @@ namespace ACE.Server.Managers
             log.Info("Waiting for all players to log off...");
 
             // wait 10 seconds for log-off
-            while (PlayerManager.GetAllOnline().Count > 0)
+            while (PlayerManager.GetOnlineCount() > 0)
                 Thread.Sleep(10);
 
             log.Debug("Adding all landblocks to destruction queue...");
