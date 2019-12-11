@@ -415,6 +415,7 @@ namespace ACE.Server.WorldObjects
         [Flags]
         public enum SearchLocations
         {
+            None                = 0x00,
             MyInventory         = 0x01,
             MyEquippedItems     = 0x02,
             Landblock           = 0x04,
