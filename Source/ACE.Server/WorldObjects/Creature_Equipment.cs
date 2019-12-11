@@ -278,7 +278,7 @@ namespace ACE.Server.WorldObjects
         /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
         /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
-        private bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation)
+        public bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation)
         {
             if (!EquippedObjects.Remove(objectGuid, out worldObject))
             {

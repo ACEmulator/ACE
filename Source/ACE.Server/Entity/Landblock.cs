@@ -1050,7 +1050,7 @@ namespace ACE.Server.Entity
         /// This is a rarely used method to broadcast network messages to all of the players within a landblock,
         /// and possibly the adjacent landblocks.
         /// </summary>
-        public void EnqueueBroadcast(ICollection<Player> excludeList, bool adjacents, params GameMessage[] msgs)
+        public void EnqueueBroadcast(ICollection<Player> excludeList, bool adjacents, Position pos = null, float? maxRangeSq = null, params GameMessage[] msgs)
         {
             var players = worldObjects.Values.OfType<Player>();
 
@@ -1061,13 +1061,21 @@ namespace ACE.Server.Entity
 
             // broadcast messages to player in this landblock
             foreach (var player in players)
+            {
+                if (pos != null && maxRangeSq != null)
+                {
+                    var distSq = player.Location.SquaredDistanceTo(pos);
+                    if (distSq > maxRangeSq)
+                        continue;
+                }
                 player.Session.Network.EnqueueSend(msgs);
+            }
 
             // if applicable, iterate into adjacent landblocks
             if (adjacents)
             {
                 foreach (var adjacent in this.Adjacents.Where(adj => adj != null))
-                    adjacent.EnqueueBroadcast(excludeList, false, msgs);
+                    adjacent.EnqueueBroadcast(excludeList, false, pos, maxRangeSq, msgs);
             }
         }
 
