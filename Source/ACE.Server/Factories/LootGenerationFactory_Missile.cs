@@ -8,14 +8,14 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateMissileWeapon(int tier, bool isMagical)
+        public static WorldObject CreateMissileWeapon(int tier, bool isMagical)
         {
             int weaponWeenie;
             int elemenatalBonus = 0;
 
             int wieldDifficulty = GetWield(tier, 1);
 
-           // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
+            // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
             if (wieldDifficulty < 315)
                 weaponWeenie = GetNonElementalMissileWeapon();
             else
@@ -40,7 +40,7 @@ namespace ACE.Server.Factories
 
             double meleeDMod = GetWieldReqMeleeDMod(wieldDifficulty);
             // double meleeDMod = GetMeleeDMod(tier);
-            if (meleeDMod > 0.0f) 
+            if (meleeDMod > 0.0f)
                 wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
 
             double missileDMod = GetMissileDMod(tier);
