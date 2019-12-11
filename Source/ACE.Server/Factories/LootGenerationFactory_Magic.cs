@@ -106,16 +106,17 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Creates Caster (Wand, Staff, Orb)
         /// </summary>
-        private static WorldObject CreateCaster(int tier, bool isMagical)
+        public static WorldObject CreateCaster(int tier, bool isMagical, int wield = -1, bool forceWar = false)
         {
             // Refactored 11/20/19  - HarliQ
 
-            int casterWeenie = 0; 
+            int casterWeenie = 0;
             double elementalDamageMod = 0;
             Skill wieldSkillType = Skill.None;
             WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int subType = 0;
-            int wield = GetWield(tier, 2);
+            if (wield == -1)
+                wield = GetWield(tier, 2);
 
             // Getting the caster Weenie needed.
             if (wield == 0)
@@ -149,7 +150,7 @@ namespace ACE.Server.Factories
                 int casterType = ThreadSafeRandom.Next(1, 3);
 
                 // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
-                int element = ThreadSafeRandom.Next(0, 7);
+                int element = forceWar ? ThreadSafeRandom.Next(0, 6) : ThreadSafeRandom.Next(0, 7);
                 casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
 
                 // If element is Nether, Void Magic is required, else War Magic is required for all other elements
@@ -217,7 +218,7 @@ namespace ACE.Server.Factories
                 wo.WieldSkillType = null;
                 wo.WieldDifficulty = null;
             }
-           
+
             // Adjusting Properties if weapon has magic (spells)
             double manaConMod = GetManaCMod(tier);
             if (manaConMod > 0.0f)
@@ -232,7 +233,7 @@ namespace ACE.Server.Factories
                 wo.ItemCurMana = null;
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
-            }          
+            }
 
             wo = RandomizeColor(wo);
 
