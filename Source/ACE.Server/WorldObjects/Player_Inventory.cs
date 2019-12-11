@@ -978,7 +978,7 @@ namespace ACE.Server.WorldObjects
             }
             else // Movement is within the same pack or between packs in a container on the landblock
             {
-                if (!itemRootOwner.TryRemoveFromInventory(item.Guid))
+                if (itemRootOwner != null && !itemRootOwner.TryRemoveFromInventory(item.Guid))
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
