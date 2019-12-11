@@ -30,22 +30,34 @@ namespace ACE.Server.Factories
             // add rng ratings to pet device
             // linear or biased?
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearDamage = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearDamage = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearDamageResist = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearDamageResist = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCritDamage = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCritDamage = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCritDamageResist = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCritDamageResist = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCrit = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCrit = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCritResist = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCritResist = GeneratePetDeviceRating(tier);
 
             var workmanship = GetWorkmanship(tier);
             petDevice.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             return petDevice;
+        }
+
+        public static int GeneratePetDeviceRating(int tier)
+        {
+            // thanks for morosity for this formula!
+            var baseRating = ThreadSafeRandom.Next(1, 10);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            var tierMod = 0.4f + tier * 0.02f;
+            if (rng > tierMod)
+                baseRating += ThreadSafeRandom.Next(1, 10);
+
+            return baseRating;
         }
 
         private static WorldObject CreateRandomScroll(int tier)
