@@ -87,6 +87,7 @@ namespace ACE.Server.WorldObjects
             // Good PCAP example of using a PetDevice to summon a pet:
             // Asherons-Call-packets-includes-3-towers\pkt_2017-1-30_1485823896_log.pcap lines 27837 - 27843
 
+            // swap this over to PetClass once all the servers have updated
             if (!PetDeviceToPetMapping.TryGetValue(WeenieClassId, out var petData))
             {
                 Console.WriteLine($"PetDevice.UseItem(): couldn't find a matching pet for essence wcid {WeenieClassId}");
