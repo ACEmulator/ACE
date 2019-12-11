@@ -62,23 +62,36 @@ namespace ACE.Server.WorldObjects
             if (player == null) return;
 
             // sent house profile
-            var houseProfile = new HouseProfile();
-            houseProfile.DwellingID = HouseId.Value;
-            houseProfile.Type = House.HouseType;
+            var houseProfile = GetHouseProfile();
 
-            if (House.HouseStatus == HouseStatus.Disabled)
-                houseProfile.Bitmask &= ~HouseBitfield.Active;
+            player.Session.Network.EnqueueSend(new GameEventHouseProfile(player.Session, Guid, houseProfile));
+        }
+
+        public HouseProfile GetHouseProfile()
+        {
+            var houseProfile = new HouseProfile();
+
+            houseProfile.DwellingID = HouseId.Value;
+
+            if (House != null)
+            {
+                houseProfile.Type = House.HouseType;
+
+                if (House.HouseStatus == HouseStatus.Disabled)
+                    houseProfile.Bitmask &= ~HouseBitfield.Active;
+
+                if (House.HouseStatus == HouseStatus.InActive)
+                    houseProfile.MaintenanceFree = true;
+            }
 
             if (HouseRequiresMonarch)
                 houseProfile.Bitmask |= HouseBitfield.RequiresMonarch;
 
             if (MinLevel != null)
                 houseProfile.MinLevel = MinLevel.Value;
+
             if (AllegianceMinLevel != null)
                 houseProfile.MinAllegRank = AllegianceMinLevel.Value;
-
-            if (House.HouseStatus == HouseStatus.InActive)
-                houseProfile.MaintenanceFree = true;
 
             if (HouseOwner != null)
             {
@@ -88,11 +101,12 @@ namespace ACE.Server.WorldObjects
                 houseProfile.OwnerID = new ObjectGuid(ownerId);
                 houseProfile.OwnerName = owner?.Name;
             }
+
             houseProfile.SetBuyItems(GetBuyItems());
             houseProfile.SetRentItems(GetRentItems());
             houseProfile.SetPaidItems(this);
 
-            player.Session.Network.EnqueueSend(new GameEventHouseProfile(player.Session, Guid, houseProfile));
+            return houseProfile;
         }
 
         /// <summary>
@@ -119,9 +133,7 @@ namespace ACE.Server.WorldObjects
             if (House != null && House.HouseStatus == HouseStatus.InActive)
                 return true;
 
-            var houseProfile = new HouseProfile();
-            houseProfile.SetRentItems(GetRentItems());
-            houseProfile.SetPaidItems(this);
+            var houseProfile = GetHouseProfile();
 
             foreach (var rentItem in houseProfile.Rent)
             {
@@ -182,7 +194,8 @@ namespace ACE.Server.WorldObjects
         {
             var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
 
-            SetAndBroadcastMotion(off);
+            if (CurrentLandblock != null)
+                SetAndBroadcastMotion(off);
         }
 
         private void SetAndBroadcastMotion(Motion motion)
@@ -205,7 +218,8 @@ namespace ACE.Server.WorldObjects
             else
                 Name = $"{houseOwnerName}'s {Name}";
 
-            EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(this, PropertyString.Name, Name));
+            if (CurrentLandblock != null)
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(this, PropertyString.Name, Name));
         }
 
         /// <summary>

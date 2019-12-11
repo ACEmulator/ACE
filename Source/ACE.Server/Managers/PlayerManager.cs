@@ -167,6 +167,19 @@ namespace ACE.Server.Managers
             return allPlayers;
         }
 
+        public static int GetOfflineCount()
+        {
+            playersLock.EnterReadLock();
+            try
+            {
+                return offlinePlayers.Count;
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
+        }
+
         public static List<OfflinePlayer> GetAllOffline()
         {
             var results = new List<OfflinePlayer>();
@@ -183,6 +196,19 @@ namespace ACE.Server.Managers
             }
 
             return results;
+        }
+
+        public static int GetOnlineCount()
+        {
+            playersLock.EnterReadLock();
+            try
+            {
+                return onlinePlayers.Count;
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
         }
 
         /// <summary>
