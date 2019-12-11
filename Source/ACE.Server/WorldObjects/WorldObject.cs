@@ -945,6 +945,7 @@ namespace ACE.Server.WorldObjects
         public bool IsLinkSpot => WeenieType == WeenieType.Generic && WeenieClassName.Equals("portaldestination");
 
         public static readonly float LocalBroadcastRange = 96.0f;
+        public static readonly float LocalBroadcastRangeSq = LocalBroadcastRange * LocalBroadcastRange;
 
         public SetPosition ScatterPos { get; set; }
 
