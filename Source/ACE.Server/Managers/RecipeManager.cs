@@ -679,7 +679,7 @@ namespace ACE.Server.Managers
 
         public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject source, WorldObject target)
         {
-            if (VerifyUse(player, source, target))
+            if (!VerifyUse(player, source, target))
                 return false;
 
             if (!VerifyRequirements(recipe, player, target, RequirementType.Target)) return false;
