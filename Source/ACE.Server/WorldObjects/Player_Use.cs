@@ -79,6 +79,15 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // re-verify client checks
+            if (((sourceItem.TargetType ?? ItemType.None) & target.ItemType) == ItemType.None)
+            {
+                // ItemHolder::TargetCompatibleWithObject
+                SendTransientError($"Cannot use the {sourceItem.Name} with the {target.Name}");
+                SendUseDoneEvent();
+                return;
+            }
+
             sourceItem.HandleActionUseOnTarget(this, target);
         }
 
