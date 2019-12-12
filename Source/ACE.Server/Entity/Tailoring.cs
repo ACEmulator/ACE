@@ -475,7 +475,7 @@ namespace ACE.Server.Entity
         public static void UpdateCommonProps(Player player, WorldObject source, WorldObject target)
         {
             player.UpdateProperty(target, PropertyInt.PaletteTemplate, source.PaletteTemplate);
-            player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
+            //player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
             player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
 
             player.UpdateProperty(target, PropertyFloat.Shade, source.Shade);
