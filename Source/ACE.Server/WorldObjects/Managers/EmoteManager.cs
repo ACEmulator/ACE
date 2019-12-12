@@ -116,24 +116,16 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.AwardLevelProportionalSkillXP:
 
-                    var max = (ulong)emote.Max64;
-                    if (max == 0)
-                        max = ulong.MaxValue;   // 0 == no max
-
                     if (player != null)
-                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, max);
+                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, emote.Max64 ?? 0);
                     break;
 
                 case EmoteType.AwardLevelProportionalXP:
 
                     bool shareXP = emote.Display ?? false;
 
-                    max = (ulong)emote.Max64;
-                    if (max == 0)
-                        max = ulong.MaxValue;   // 0 == no max
-
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, max, shareXP);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, emote.Max64 ?? 0, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:
