@@ -4,6 +4,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
@@ -191,7 +192,8 @@ namespace ACE.Server.Entity
             // here a lot is done directly in code..
 
             target.PaletteTemplate = source.PaletteTemplate;
-            target.UiEffects = source.UiEffects;
+            if (PropertyManager.GetBool("tailoring_intermediate_uieffects").Item)
+                target.UiEffects = source.UiEffects;
             target.MaterialType = source.MaterialType;
 
             target.Shade = source.Shade;
@@ -481,7 +483,7 @@ namespace ACE.Server.Entity
         public static void UpdateCommonProps(Player player, WorldObject source, WorldObject target)
         {
             player.UpdateProperty(target, PropertyInt.PaletteTemplate, source.PaletteTemplate);
-            player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
+            //player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
             player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
 
             player.UpdateProperty(target, PropertyFloat.Shade, source.Shade);
