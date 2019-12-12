@@ -418,7 +418,8 @@ namespace ACE.Server.WorldObjects
         public void GrantLevelProportionalXp(double percent, ulong max, bool shareable = false)
         {
             var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
-            var scaledXP = (long)Math.Min(nextLevelXP * percent, max);
+
+            var scaledXP = (long)Math.Min(Math.Round(nextLevelXP * percent), max);
 
             var shareType = shareable ? ShareType.All : ShareType.None;
 
