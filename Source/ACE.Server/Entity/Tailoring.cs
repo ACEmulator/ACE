@@ -193,7 +193,6 @@ namespace ACE.Server.Entity
             target.PaletteTemplate = source.PaletteTemplate;
             target.UiEffects = source.UiEffects;
             target.MaterialType = source.MaterialType;
-            target.TargetType = source.ItemType;
 
             target.Shade = source.Shade;
 
@@ -217,6 +216,11 @@ namespace ACE.Server.Entity
         {
             SetCommonProperties(source, target);
 
+            // ensure armor/clothing that covers head/hands/feet are cross-compatible
+            // for something like shirt/breastplate, this will still be be prevented with ClothingPriority / CoverageMask check
+            // (Outerwear vs. Underwear)
+            target.TargetType = ItemType.Armor | ItemType.Clothing;
+
             target.ClothingPriority = source.ClothingPriority;
             target.Dyable = source.Dyable;
 
@@ -234,6 +238,8 @@ namespace ACE.Server.Entity
         public static void SetWeaponProperties(WorldObject source, WorldObject target)
         {
             SetCommonProperties(source, target);
+
+            target.TargetType = source.ItemType;
 
             target.ObjScale = source.ObjScale;
 
