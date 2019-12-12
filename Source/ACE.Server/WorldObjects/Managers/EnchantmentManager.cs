@@ -126,8 +126,7 @@ namespace ACE.Server.WorldObjects.Managers
             return results.ToList();
         }
 
-        // this fixes a bug where level 8 item self spells
-        // should always take precedence over level 8 item other spells
+        // this ensures level 8 item self spells always take precedence over level 8 item other spells
 
         public static HashSet<int> Level8AuraSelfSpells = new HashSet<int>()
         {
