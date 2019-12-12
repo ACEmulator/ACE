@@ -351,7 +351,7 @@ namespace ACE.Server.WorldObjects
 
             var amount = (uint)Math.Round(nextLevelXP.Value * percent);
 
-            if (max > 0 && max < uint.MaxValue)
+            if (max > 0 && max <= uint.MaxValue)
                 amount = Math.Min(amount, (uint)max);
 
             amount = Math.Min(amount, creatureSkill.ExperienceLeft);
