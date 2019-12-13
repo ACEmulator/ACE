@@ -1,9 +1,10 @@
-using System;
 using System.Collections.Generic;
 
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Server.Network.Enum;
+
+using log4net;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -16,9 +17,17 @@ namespace ACE.Server.Network.GameAction.Actions
 
     public static class GameActionSetCharacterOptions
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         [GameAction(GameActionType.SetCharacterOptions)]
         public static void Handle(ClientMessage message, Session session)
         {
+            if (!session.Player.FirstEnterWorldDone)
+            {
+                log.Warn($"{session.Player.Name} sent GameAction 0x1A1 - SetCharacterOptions before FirstEnterWorldDone, ignoring...");
+                return;
+            }
+
             int characterOptions1Flag;
             int characterOptions2Flag = 0;
             uint spellbookFilters = 0;
