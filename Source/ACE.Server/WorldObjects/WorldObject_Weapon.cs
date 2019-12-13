@@ -758,6 +758,7 @@ namespace ACE.Server.WorldObjects
 
                 case Skill.WarMagic:
                 case Skill.VoidMagic:
+                case Skill.LifeMagic:   // Martyr's Hecatomb
 
                     return ImbuedSkillType.Magic;
 
