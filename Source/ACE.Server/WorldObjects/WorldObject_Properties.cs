@@ -2460,7 +2460,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// <para>Used to mark when EnterWorld has completed for first time for this objects instance.</para>
+        /// <para>Used to mark when EnterWorld has completed for first time for this object's instance.</para>
         /// Currently used by Generators and Players
         /// </summary>
         public bool FirstEnterWorldDone
