@@ -739,6 +739,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TradeItemBeingTraded));
+                return;
+            }
+
             if (containerRootOwner != this) // Is our target on the landscape?
             {
                 if (itemRootOwner == this && (item.Attuned ?? 0) >= 1)
