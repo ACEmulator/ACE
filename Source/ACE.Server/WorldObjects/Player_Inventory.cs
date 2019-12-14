@@ -739,6 +739,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TradeItemBeingTraded));
+                return;
+            }
+
             if (containerRootOwner != this) // Is our target on the landscape?
             {
                 if (itemRootOwner == this && (item.Attuned ?? 0) >= 1)
@@ -1060,6 +1066,12 @@ namespace ACE.Server.WorldObjects
             if (item.IsAttunedOrContainsAttuned)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.AttunedItem));
+                return;
+            }
+
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
             }
 
@@ -1661,6 +1673,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading && ItemsInTradeWindow.Contains(stack.Guid))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.TradeItemBeingTraded));
+                return;
+            }
+
             if ((stackRootOwner == this && containerRootOwner != this)  || (stackRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
                 if (stackRootOwner is Vendor)
@@ -1830,6 +1848,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading && ItemsInTradeWindow.Contains(stack.Guid))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.TradeItemBeingTraded));
+                return;
+            }
+
             var actionChain = StartPickupChain();
 
             actionChain.AddAction(this, () =>
@@ -1995,6 +2019,20 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
                 return;
+            }
+
+            if (IsTrading)
+            {
+                if (ItemsInTradeWindow.Contains(sourceStack.Guid))
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid, WeenieError.TradeItemBeingTraded));
+                    return;
+                }
+                if (ItemsInTradeWindow.Contains(targetStack.Guid))
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeToGuid, WeenieError.TradeItemBeingTraded));
+                    return;
+                }
             }
 
             //if (!targetStackFoundInContainer.CanAddToContainer(sourceStack, false))
@@ -2238,6 +2276,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
+                return;
+            }
+
             CreateMoveToChain(target, (success) =>
             {
                 if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
@@ -2265,6 +2309,12 @@ namespace ACE.Server.WorldObjects
             if ((item.Attuned ?? 0) >= 1)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
+                return;
+            }
+
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
             }
 
@@ -2370,6 +2420,12 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
+                return;
+            }
+
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
             }
 

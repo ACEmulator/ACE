@@ -121,10 +121,22 @@ namespace ACE.Server.WorldObjects.Managers
                 group e by e.SpellCategory
                 into categories
                 //select categories.OrderByDescending(c => c.LayerId).First();
-                select categories.OrderByDescending(c => c.PowerLevel).First();
+                select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
 
             return results.ToList();
         }
+
+        // this ensures level 8 item self spells always take precedence over level 8 item other spells
+
+        public static HashSet<int> Level8AuraSelfSpells = new HashSet<int>()
+        {
+            (int)SpellId.BloodDrinkerSelf8,
+            (int)SpellId.DefenderSelf8,
+            (int)SpellId.HeartSeekerSelf8,
+            (int)SpellId.SpiritDrinkerSelf8,
+            (int)SpellId.SwiftKillerSelf8,
+            (int)SpellId.HermeticLinkSelf8,
+        };
 
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type

@@ -195,6 +195,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading)
+            {
+                SendUseDoneEvent(WeenieError.CantDoThatTradeInProgress);
+                return;
+            }
+
             var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
 
             if (vendor != null)
@@ -376,6 +382,14 @@ namespace ACE.Server.WorldObjects
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} has no value and cannot be sold.")); // retail message did not include item name, leaving in that for now.
+
+                    continue;
+                }
+
+                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                {
+                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot sell that! The {itemName} is currently being traded.")); // custom message?
 
                     continue;
                 }
