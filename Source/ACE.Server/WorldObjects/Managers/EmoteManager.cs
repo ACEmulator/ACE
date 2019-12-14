@@ -225,7 +225,15 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         // todo: make use of emote.TreasureClass and emote.TreasureType fields.
                         // this emote is primarily seen on fishing holes so defaulting with jewelery as the only pcap showed 2:1 amulet to crown pull (not much to go on) for now
-                        var treasure = LootGenerationFactory.CreateRandomLootObjects(emote.WealthRating ?? 1, false, LootGenerationFactory.LootBias.Jewelry /* probably treasure type here */);
+
+                        // Create a fake treasure profile for passing tier value
+                        TreasureDeath profile = new TreasureDeath
+                        {
+                            Tier = emote.WealthRating ?? 1,
+                            LootQualityMod = 0
+                        };
+
+                        var treasure = LootGenerationFactory.CreateRandomLootObjects(profile, false, LootGenerationFactory.LootBias.Jewelry /* probably treasure type here */);
                         if (treasure != null)
                         {
                             player.TryCreateInInventoryWithNetworking(treasure);

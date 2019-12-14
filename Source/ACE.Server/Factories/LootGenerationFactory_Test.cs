@@ -51,11 +51,18 @@ namespace ACE.Server.Factories
             string missileWeapons = $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\n";
             string casterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value \t MaxMana\n";
 
+            // Create a fake treasure profile for passing tier value
+            TreasureDeath profile = new TreasureDeath
+            {
+                Tier = tier,
+                LootQualityMod = 0
+            };
+
             // Loop depending on how many items you are creating
             // string fileName = null;
             for (int i = 0; i < numItems; i++)
             {
-                var testItem = LootGenerationFactory.CreateRandomLootObjects(tier, true);              
+                var testItem = LootGenerationFactory.CreateRandomLootObjects(profile, true);              
                 if (testItem is null)
                 {
                     nullCount++;

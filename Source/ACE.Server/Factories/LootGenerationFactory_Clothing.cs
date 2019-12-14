@@ -1,5 +1,5 @@
-
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
@@ -8,12 +8,12 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateArmor(int tier, bool isMagical, bool isArmor, LootBias lootBias = LootBias.UnBiased)
+        private static WorldObject CreateArmor(TreasureDeath profile, bool isMagical, bool isArmor, LootBias lootBias = LootBias.UnBiased)
         {
             var minType = LootTables.ArmorType.Helms;
             var maxType = new LootTables.ArmorType();
 
-            switch (tier)
+            switch (profile.Tier)
             {
                 case 1:
                 default:
@@ -63,7 +63,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.AppraisalItemSkill, 7);
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
 
-            int materialType = GetMaterialType(wo, tier);
+            int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
@@ -72,21 +72,21 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
 
-            int workmanship = GetWorkmanship(tier);
+            int workmanship = GetWorkmanship(profile.Tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
             wo.Value = value;
 
             int wield;
-            if (tier > 6 && armorType != LootTables.ArmorType.CovenantArmor)
+            if (profile.Tier > 6 && armorType != LootTables.ArmorType.CovenantArmor)
             {
                 wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
                 wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
 
-                switch (tier)
+                switch (profile.Tier)
                 {
                     case 7:
                         wield = 150; // In this instance, used for indicating player level, rather than skill level
@@ -117,7 +117,7 @@ namespace ACE.Server.Factories
                         break;
                 }
 
-                wield = GetCovenantWieldReq(tier, wieldSkill);
+                wield = GetCovenantWieldReq(profile.Tier, wieldSkill);
 
                 wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
                 wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkill);
@@ -129,14 +129,14 @@ namespace ACE.Server.Factories
             double shade = .1 * ThreadSafeRandom.Next(0, 9);
             wo.SetProperty(PropertyFloat.Shade, shade);
 
-            wo = AssignArmorLevel(wo, tier, armorType);
+            wo = AssignArmorLevel(wo, profile.Tier, armorType);
 
-            wo = AssignEquipmentSetId(wo, tier);
+            wo = AssignEquipmentSetId(wo, profile.Tier);
 
             if (isMagical)
             {
                 bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
-                wo = AssignMagic(wo, tier, covenantArmor);
+                wo = AssignMagic(wo, profile, covenantArmor);
             }
             else
             {

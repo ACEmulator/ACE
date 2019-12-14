@@ -1,5 +1,5 @@
-
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
@@ -8,12 +8,12 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        public static WorldObject CreateMissileWeapon(int tier, bool isMagical)
+        public static WorldObject CreateMissileWeapon(TreasureDeath profile, bool isMagical)
         {
             int weaponWeenie;
             int elemenatalBonus = 0;
 
-            int wieldDifficulty = GetWield(tier, 1);
+            int wieldDifficulty = GetWield(profile.Tier, 1);
 
             // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
             if (wieldDifficulty < 315)
@@ -29,9 +29,9 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-            int workmanship = GetWorkmanship(tier);
+            int workmanship = GetWorkmanship(profile.Tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            int materialType = GetMaterialType(wo, tier);
+            int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
             wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
@@ -43,7 +43,7 @@ namespace ACE.Server.Factories
             if (meleeDMod > 0.0f)
                 wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
 
-            double missileDMod = GetMissileDMod(tier);
+            double missileDMod = GetMissileDMod(profile.Tier);
             if (missileDMod > 0.0f)
                 wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDMod);
 
@@ -68,7 +68,7 @@ namespace ACE.Server.Factories
             }
 
             if (isMagical)
-                wo = AssignMagic(wo, tier);
+                wo = AssignMagic(wo, profile);
             else
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -81,7 +81,7 @@ namespace ACE.Server.Factories
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
             wo.Value = value;
 
             wo = RandomizeColor(wo);

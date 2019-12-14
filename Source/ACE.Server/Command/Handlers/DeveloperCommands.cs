@@ -2294,9 +2294,16 @@ namespace ACE.Server.Command.Handlers
             if (parameters.Length > 1)
                 int.TryParse(parameters[1], out numItems);
 
+            // Create a fake treasure profile for passing tier value
+            TreasureDeath profile = new TreasureDeath
+            {
+                Tier = tier,
+                LootQualityMod = 0
+            };
+
             for (var i = 0; i < numItems; i++)
             {
-                var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
+                var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
                 if (wo != null)
                     session.Player.TryCreateInInventoryWithNetworking(wo);
                 else

@@ -1,5 +1,6 @@
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
@@ -106,7 +107,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Creates Caster (Wand, Staff, Orb)
         /// </summary>
-        public static WorldObject CreateCaster(int tier, bool isMagical, int wield = -1, bool forceWar = false)
+        public static WorldObject CreateCaster(TreasureDeath profile, bool isMagical, int wield = -1, bool forceWar = false)
         {
             // Refactored 11/20/19  - HarliQ
 
@@ -116,7 +117,7 @@ namespace ACE.Server.Factories
             WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int subType = 0;
             if (wield == -1)
-                wield = GetWield(tier, 2);
+                wield = GetWield(profile.Tier, 2);
 
             // Getting the caster Weenie needed.
             if (wield == 0)
@@ -125,12 +126,12 @@ namespace ACE.Server.Factories
                 subType = ThreadSafeRandom.Next(0, 3);
                 casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
 
-                if (tier > 6)
+                if (profile.Tier > 6)
                 {
                     wieldRequirement = WieldRequirement.Level;
                     wieldSkillType = Skill.Axe;  // Set by examples from PCAP data
 
-                    switch (tier)
+                    switch (profile.Tier)
                     {
                         case 7:
                             wield = 150; // In this instance, used for indicating player level, rather than skill level
@@ -173,14 +174,14 @@ namespace ACE.Server.Factories
             wo.ItemSkillLevelLimit = null;
 
             // Setting general traits of weapon
-            wo.ItemWorkmanship = GetWorkmanship(tier);
+            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
-            int materialType = GetMaterialType(wo, tier);
+            int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
             wo.GemCount = ThreadSafeRandom.Next(1, 5);
             wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
-            wo.Value = GetValue(tier, wo.ItemWorkmanship.Value, LootTables.getMaterialValueModifier(wo), LootTables.getGemMaterialValueModifier(wo));
+            wo.Value = GetValue(profile.Tier, wo.ItemWorkmanship.Value, LootTables.getMaterialValueModifier(wo), LootTables.getGemMaterialValueModifier(wo));
             // Is this right??
             wo.LongDesc = wo.Name;
 
@@ -220,12 +221,12 @@ namespace ACE.Server.Factories
             }
 
             // Adjusting Properties if weapon has magic (spells)
-            double manaConMod = GetManaCMod(tier);
+            double manaConMod = GetManaCMod(profile.Tier);
             if (manaConMod > 0.0f)
                 wo.ManaConversionMod = manaConMod;
 
             if (isMagical)
-                wo = AssignMagic(wo, tier);
+                wo = AssignMagic(wo, profile);
             else
             {
                 wo.ItemManaCost = null;
