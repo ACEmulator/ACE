@@ -2518,7 +2518,13 @@ namespace ACE.Server.Command.Handlers
                     msg += $"Generator Status: {(wo.GeneratorDisabled ? "Disabled" : "Enabled")}\n";
                     msg += $"GeneratorType: {wo.GeneratorType.ToString()}\n";
                     msg += $"GeneratorTimeType: {wo.GeneratorTimeType.ToString()}\n";
-                    msg += $"GeneratorEvent: {(!string.IsNullOrWhiteSpace(wo.GeneratorEvent) ? wo.GeneratorEvent : "Undef")}\n";
+                    if (wo.GeneratorTimeType == GeneratorTimeType.Event)
+                        msg += $"GeneratorEvent: {(!string.IsNullOrWhiteSpace(wo.GeneratorEvent) ? wo.GeneratorEvent : "Undef")}\n";
+                    if (wo.GeneratorTimeType == GeneratorTimeType.RealTime)
+                    {
+                        msg += $"GeneratorStartTime: {wo.GeneratorStartTime} ({Time.GetDateTimeFromTimestamp(wo.GeneratorStartTime).ToLocalTime()})\n";
+                        msg += $"GeneratorEndTime: {wo.GeneratorEndTime} ({Time.GetDateTimeFromTimestamp(wo.GeneratorEndTime).ToLocalTime()})\n";
+                    }
                     msg += $"GeneratorEndDestructionType: {wo.GeneratorEndDestructionType.ToString()}\n";
                     msg += $"GeneratorDestructionType: {wo.GeneratorDestructionType.ToString()}\n";
                     msg += $"GeneratorRadius: {wo.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f}\n";
@@ -2554,6 +2560,20 @@ namespace ACE.Server.Command.Handlers
                             foreach (var spawn in profile.Spawned.Values)
                             {
                                 msg += $"0x{spawn.Guid}: {spawn.Name} - {spawn.WeenieClassId} - {spawn.WeenieType}\n";
+                                var spawnWO = spawn.TryGetWorldObject();
+                                if (spawnWO != null)
+                                {
+                                    if (spawnWO.Location != null)
+                                        msg += $" LOC: {spawnWO.Location.ToLOCString()}\n";
+                                    else if (spawnWO.ContainerId == wo.Guid.Full)
+                                        msg += $" Contained by Generator\n";
+                                    else if (spawnWO.WielderId == wo.Guid.Full)
+                                        msg += $" Wielded by Generator\n";
+                                    else
+                                        msg += $" Location Unknown\n";
+                                }
+                                else
+                                    msg += $" LOC: Unknown, WorldObject could not be found\n";
                             }
                             msg += $"--====--\n";
                         }
