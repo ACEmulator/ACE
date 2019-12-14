@@ -147,8 +147,6 @@ namespace ACE.Server.WorldObjects
 
         public Position StartJump;
 
-        public bool InitMoveListener;
-
         public override void MoveTo(WorldObject target, float runRate = 0.0f)
         {
             if (runRate == 0.0f)
@@ -171,12 +169,6 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.MoveToObject(target.PhysicsObj, mvp);
 
             IsMoving = true;
-
-            if (!InitMoveListener)
-            {
-                PhysicsObj.add_moveto_listener(OnMoveComplete);
-                InitMoveListener = true;
-            }
 
             MoveTo_Tick();
         }
@@ -203,8 +195,14 @@ namespace ACE.Server.WorldObjects
 
         public override void OnMoveComplete(WeenieError status)
         {
-            //Console.WriteLine($"{Name}.OnMoveComplete()");
+            //Console.WriteLine($"{Name}.OnMoveComplete({status})");
             IsMoving = false;
+
+            if (IsPlayerMovingTo)
+            {
+                //OnMoveComplete_MoveTo(status);
+                return;
+            }
 
             switch (status)
             {
@@ -236,7 +234,7 @@ namespace ACE.Server.WorldObjects
         {
             // starting with phat logic
             var jumpVelocity = 0.0f;
-            PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, ref jumpVelocity);
+            PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, out jumpVelocity);
 
             var cachedVelocity = PhysicsObj.CachedVelocity;
 

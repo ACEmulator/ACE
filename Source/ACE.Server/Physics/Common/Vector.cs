@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+using System;
+using System.Numerics;
 
 namespace ACE.Server.Physics.Common
 {
@@ -12,6 +13,13 @@ namespace ACE.Server.Physics.Common
 
             v *= 1.0f / dist;
             return false;
+        }
+
+        public static bool IsZero(Vector3 v)
+        {
+            return Math.Abs(v.X) < PhysicsGlobals.EPSILON &&
+                   Math.Abs(v.Y) < PhysicsGlobals.EPSILON &&
+                   Math.Abs(v.Z) < PhysicsGlobals.EPSILON;
         }
     }
 }

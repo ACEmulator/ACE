@@ -395,12 +395,18 @@ namespace ACE.Server.WorldObjects
             writer.Align();
         }
 
+        public DateTime LastUpdatePosition;
+
         /// <summary>
         /// Broadcast position updates to players within range
         /// </summary>
-        protected void SendUpdatePosition()
+        public void SendUpdatePosition()
         {
+            //Console.WriteLine($"{Name}.SendUpdatePosition({Location.ToLOCString()})");
+
             EnqueueBroadcast(new GameMessageUpdatePosition(this));
+
+            LastUpdatePosition = DateTime.UtcNow;
         }
 
         public virtual void SendPartialUpdates(Session targetSession, List<GenericPropertyId> properties)

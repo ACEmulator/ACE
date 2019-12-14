@@ -13,7 +13,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.AutonomousPosition)]
         public static void Handle(ClientMessage message, Session session)
         {
-            //Console.WriteLine("AutonomousPosition");
+            //Console.WriteLine($"{session.Player.Name}.AutoPos");
 
             var position = new Position(message.Payload);
 
