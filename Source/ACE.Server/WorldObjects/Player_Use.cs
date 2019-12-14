@@ -83,14 +83,14 @@ namespace ACE.Server.WorldObjects
             {
                 if (ItemsInTradeWindow.Contains(sourceItem.Guid))
                 {
-                    //SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
-                    SendWeenieError(WeenieError.TradeItemBeingTraded);
+                    SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                    //SendWeenieError(WeenieError.TradeItemBeingTraded);
                     return;
                 }
                 if (ItemsInTradeWindow.Contains(target.Guid))
                 {
-                    //SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
-                    SendWeenieError(WeenieError.TradeItemBeingTraded);
+                    SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                    //SendWeenieError(WeenieError.TradeItemBeingTraded);
                     return;
                 }
             }
@@ -125,8 +125,8 @@ namespace ACE.Server.WorldObjects
 
             if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
             {
-                //SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
-                SendWeenieError(WeenieError.TradeItemBeingTraded);
+                SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                //SendWeenieError(WeenieError.TradeItemBeingTraded);
                 return;
             }
 
