@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardLevelProportionalSkillXP:
 
                     if (player != null)
-                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, (ulong)emote.Max64);
+                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, emote.Max64 ?? 0);
                     break;
 
                 case EmoteType.AwardLevelProportionalXP:
@@ -125,7 +125,7 @@ namespace ACE.Server.WorldObjects.Managers
                     bool shareXP = emote.Display ?? false;
 
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64, shareXP);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, emote.Max64 ?? 0, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:

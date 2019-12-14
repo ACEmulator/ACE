@@ -109,6 +109,8 @@ namespace ACE.Database.SQLFormatters
             switch (property)
             {
                 case PropertyInt.ActivationCreateClass:
+                case PropertyInt.AttackersClass:
+                case PropertyInt.PetClass:
                     if (WeenieNames != null)
                     {
                         WeenieNames.TryGetValue((uint) value, out var propertyValueDescription);

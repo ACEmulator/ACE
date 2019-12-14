@@ -108,6 +108,8 @@ namespace ACE.Server.WorldObjects
             // This should be handled automatically...
             //PositionFlags |= PositionFlags.OrientationHasNoX | PositionFlags.OrientationHasNoY | PositionFlags.IsGrounded | PositionFlags.HasPlacementID;
 
+            FirstEnterWorldDone = false;
+
             SetStance(MotionStance.NonCombat, false);
 
             // radius for object updates

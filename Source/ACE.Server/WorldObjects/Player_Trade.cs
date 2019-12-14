@@ -16,11 +16,11 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public List<ObjectGuid> ItemsInTradeWindow = new List<ObjectGuid>();
+        public HashSet<ObjectGuid> ItemsInTradeWindow = new HashSet<ObjectGuid>();
 
         public ObjectGuid TradePartner;
 
-        private bool IsTrading;
+        public bool IsTrading { get; private set; }
 
         private bool TradeAccepted;
 

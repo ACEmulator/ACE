@@ -142,6 +142,12 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
+                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                {
+                    SendWeenieError(WeenieError.YouCannotSalvageItemsInTrading);
+                    continue;
+                }
+
                 if (item.Workmanship == null || item.Retained) continue;
 
                 AddSalvage(salvageBags, item, salvageResults);
