@@ -197,7 +197,7 @@ namespace ACE.Server.WorldObjects
 
             if (IsTrading)
             {
-                SendUseDoneEvent(WeenieError.TradeBusy);
+                SendUseDoneEvent(WeenieError.CantDoThatTradeInProgress);
                 return;
             }
 
