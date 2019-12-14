@@ -445,7 +445,10 @@ namespace ACE.Server.WorldObjects
             // if player dies in a PKLite battle,
             // they don't drop any items, and revert back to NPK status
 
-            if (IsPKLiteDeath(corpse.KillerId))
+            // if player dies on a No Drop landblock,
+            // they don't drop any items
+
+            if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId))
                 return new List<WorldObject>();
 
             var numItemsDropped = GetNumItemsDropped(corpse);

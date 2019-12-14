@@ -679,12 +679,7 @@ namespace ACE.Server.Managers
 
         public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject source, WorldObject target)
         {
-            // re-verify
-            if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
-                return false;
-
-            // almost always MyInventory, but sometimes can be applied to equipped
-            if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems) == null)
+            if (!VerifyUse(player, source, target))
                 return false;
 
             if (!VerifyRequirements(recipe, player, target, RequirementType.Target)) return false;
@@ -694,6 +689,46 @@ namespace ACE.Server.Managers
             if (!VerifyRequirements(recipe, player, player, RequirementType.Player)) return false;
 
             return true;
+        }
+
+        public static bool VerifyUse(Player player, WorldObject source, WorldObject target)
+        {
+            var usable = source.Usable ?? Usable.Undef;
+
+            if (usable == Usable.Undef)
+            {
+                log.Warn($"{player.Name}.RecipeManager.VerifyUse({source.Name} ({source.Guid}), {target.Name} ({target.Guid})) - source not usable, falling back on defaults");
+
+                // re-verify
+                if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
+                    return false;
+
+                // almost always MyInventory, but sometimes can be applied to equipped
+                if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems) == null)
+                    return false;
+
+                return true;
+            }
+
+            var sourceUse = usable.GetSourceFlags();
+            var targetUse = usable.GetTargetFlags();
+
+            return VerifyUse(player, source, sourceUse) && VerifyUse(player, target, targetUse);
+        }
+
+        public static bool VerifyUse(Player player, WorldObject obj, Usable usable)
+        {
+            var searchLocations = Player.SearchLocations.None;
+
+            // TODO: figure out other Usable flags
+            if (usable.HasFlag(Usable.Contained))
+                searchLocations |= Player.SearchLocations.MyInventory;
+            if (usable.HasFlag(Usable.Wielded))
+                searchLocations |= Player.SearchLocations.MyEquippedItems;
+            if (usable.HasFlag(Usable.Remote))
+                searchLocations |= Player.SearchLocations.Landblock;    // TODO: moveto for this type
+
+            return player.FindObject(obj.Guid.Full, searchLocations) != null;
         }
 
         public static bool Debug = false;

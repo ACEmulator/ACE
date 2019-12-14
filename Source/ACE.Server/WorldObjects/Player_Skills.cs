@@ -339,7 +339,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Grants skill XP proportional to the player's skill level
         /// </summary>
-        public void GrantLevelProportionalSkillXP(Skill skill, double percent, ulong max)
+        public void GrantLevelProportionalSkillXP(Skill skill, double percent, long max)
         {
             var creatureSkill = GetCreatureSkill(skill, false);
             if (creatureSkill == null || creatureSkill.IsMaxRank)
@@ -349,7 +349,10 @@ namespace ACE.Server.WorldObjects
             if (nextLevelXP == null)
                 return;
 
-            var amount = (uint)Math.Min(Math.Round(nextLevelXP.Value * percent), max);
+            var amount = (uint)Math.Round(nextLevelXP.Value * percent);
+
+            if (max > 0 && max <= uint.MaxValue)
+                amount = Math.Min(amount, (uint)max);
 
             amount = Math.Min(amount, creatureSkill.ExperienceLeft);
 
