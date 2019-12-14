@@ -195,6 +195,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading)
+            {
+                SendUseDoneEvent(WeenieError.TradeBusy);
+                return;
+            }
+
             var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
 
             if (vendor != null)
