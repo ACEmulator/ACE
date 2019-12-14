@@ -2561,7 +2561,19 @@ namespace ACE.Server.Command.Handlers
                             {
                                 msg += $"0x{spawn.Guid}: {spawn.Name} - {spawn.WeenieClassId} - {spawn.WeenieType}\n";
                                 var spawnWO = spawn.TryGetWorldObject();
-                                msg += $" LOC: {(spawnWO != null ? spawnWO.Location.ToLOCString() : "Unknown")}\n";
+                                if (spawnWO != null)
+                                {
+                                    if (spawnWO.Location != null)
+                                        msg += $" LOC: {spawnWO.Location.ToLOCString()}\n";
+                                    else if (spawnWO.ContainerId == wo.Guid.Full)
+                                        msg += $" Contained by Generator\n";
+                                    else if (spawnWO.WielderId == wo.Guid.Full)
+                                        msg += $" Wielded by Generator\n";
+                                    else
+                                        msg += $" Location Unknown\n";
+                                }
+                                else
+                                    msg += $" LOC: Unknown, WorldObject could not be found\n";
                             }
                             msg += $"--====--\n";
                         }
