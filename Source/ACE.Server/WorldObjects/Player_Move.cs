@@ -216,6 +216,20 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public void OnMoveComplete_MoveTo(WeenieError status)
+        {
+            //Console.WriteLine($"{Name}.OnMoveComplete_MoveTo({status})");
+
+            /*IsPlayerMovingTo = false;
+
+            var success = status == WeenieError.None;
+
+            if (MoveToCallback != null)
+                MoveToCallback(success);
+
+            MoveToCallback = null;*/
+        }
+
         public MovementParameters GetChargeParameters()
         {
             var mvp = new MovementParameters();
