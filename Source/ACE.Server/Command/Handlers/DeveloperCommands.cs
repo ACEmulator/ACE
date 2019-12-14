@@ -2560,7 +2560,8 @@ namespace ACE.Server.Command.Handlers
                             foreach (var spawn in profile.Spawned.Values)
                             {
                                 msg += $"0x{spawn.Guid}: {spawn.Name} - {spawn.WeenieClassId} - {spawn.WeenieType}\n";
-                                msg += $" LOC: {spawn.TryGetWorldObject().Location.ToLOCString()}\n";
+                                var spawnWO = spawn.TryGetWorldObject();
+                                msg += $" LOC: {(spawnWO != null ? spawnWO.Location.ToLOCString() : "Unknown")}\n";
                             }
                             msg += $"--====--\n";
                         }
