@@ -620,7 +620,7 @@ namespace ACE.Server.WorldObjects
 
                 if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
                 {
-                    Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being trades, skipping.");
+                    Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
                     continue;
                 }
 
