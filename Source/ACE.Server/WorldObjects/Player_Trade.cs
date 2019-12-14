@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
 
         public ObjectGuid TradePartner;
 
-        private bool IsTrading;
+        public bool IsTrading { get; private set; }
 
         private bool TradeAccepted;
 
