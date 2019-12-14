@@ -24,6 +24,12 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             if (!session.Player.FirstEnterWorldDone)
             {
+                // if a player is stuck in pink bubble state during login,
+                // and they press the 'logout' button before first entering world,
+                // their client will have not registered their character options from the server yet,
+                // and their client will send the default character options upon clicking the logout button,
+                // overwriting their custom options on the server with the defaults. this code avoids that situation
+
                 log.Warn($"{session.Player.Name} sent GameAction 0x1A1 - SetCharacterOptions before FirstEnterWorldDone, ignoring...");
                 return;
             }
