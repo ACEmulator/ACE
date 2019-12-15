@@ -132,7 +132,7 @@ namespace ACE.Server.WorldObjects
 
             // also broadcast to nearby players
             player.EnqueueBroadcast(new GameMessageScript(player.Guid, AugTypeHelper.GetEffect(type)));
-            player.EnqueueBroadcast(false, new GameMessageSystemChat($"{player.Name} has acquired the {Name} augmentation!", ChatMessageType.Broadcast));
+            player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} has acquired the {Name} augmentation!", ChatMessageType.Broadcast));
 
             player.SaveBiotaToDatabase();
         }
