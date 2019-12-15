@@ -187,6 +187,15 @@ namespace ACE.Server.WorldObjects
             var houseProfile = slumlord.GetHouseProfile();
             var consumeItems = GetConsumeItems(houseProfile.Rent, items);
 
+            if (IsTrading)
+            {
+                foreach (var item in consumeItems.ToList())
+                {
+                    if (ItemsInTradeWindow.Contains(item.Guid))
+                        consumeItems.Remove(item);
+                }
+            }
+
             if (consumeItems.Count == 0)
                 return;
 
@@ -608,6 +617,13 @@ namespace ACE.Server.WorldObjects
                 }
                 var stackStr = item.StackSize != null && item.StackSize > 1 ? item.StackSize.ToString() + " " : "";
                 Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
+
+                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                {
+                    Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
+                    continue;
+                }
+
                 sentItems.Add(item);
             }
             Console.WriteLine();
