@@ -32,7 +32,6 @@ namespace ACE.Server.Physics.Animation
         public List<MovementNode> PendingActions;
         public PhysicsObj PhysicsObj;
         public WeenieObject WeenieObj;
-        public List<Action<WeenieError>> Callbacks;
 
         public MoveToManager()
         {
@@ -59,7 +58,6 @@ namespace ACE.Server.Physics.Animation
             MovementParams = new MovementParameters();
 
             PendingActions = new List<MovementNode>();
-            Callbacks = new List<Action<WeenieError>>();
         }
 
         public void InitializeLocalVars()
@@ -587,6 +585,7 @@ namespace ACE.Server.Physics.Animation
 
             var pendingAction = PendingActions[0];
             var heading = PhysicsObj.get_heading();
+
             if (heading_greater(heading, pendingAction.Heading, CurrentCommand))
             {
                 FailProgressCount = 0;
@@ -690,6 +689,8 @@ namespace ACE.Server.Physics.Animation
 
         public void CancelMoveTo(WeenieError retval)
         {
+            //Console.WriteLine($"CancelMoveTo({retval})");
+
             if (MovementType == MovementType.Invalid)
                 return;
 
@@ -723,8 +724,8 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj != null)
                 PhysicsObj.StopCompletely(false);
 
-            foreach (var callback in Callbacks.ToList())
-                callback(status);
+            // server custom
+            WeenieObj.OnMoveComplete(status);
         }
 
         public float GetCurrentDistance()
@@ -868,16 +869,6 @@ namespace ACE.Server.Physics.Animation
                 _StopMotion(AuxCommand, movementParams);
                 AuxCommand = 0;
             }
-        }
-
-        public void add_listener(Action<WeenieError> listener)
-        {
-            Callbacks.Add(listener);
-        }
-
-        public void remove_listener(Action<WeenieError> listener)
-        {
-            Callbacks.Remove(listener);
         }
     }
 }

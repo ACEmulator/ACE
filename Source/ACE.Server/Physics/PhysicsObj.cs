@@ -90,6 +90,10 @@ namespace ACE.Server.Physics
         /// </summary>
         public bool IsAnimating;
 
+        // this is used by the 1991 branch to determine when physics updates need to be run
+        public bool IsMovingOrAnimating => !PartArray.Sequence.is_first_cyclic() || CachedVelocity != Vector3.Zero || Velocity != Vector3.Zero ||
+            MovementManager.MotionInterpreter.InterpretedState.HasCommands();
+
         // server
         public Position RequestPos;
 
@@ -1557,14 +1561,11 @@ namespace ACE.Server.Physics
             MovementManager.PerformMovement(mvs);
         }
 
-        public void TurnToObject(uint objectID, MovementParameters movementParams)
+        public void TurnToObject(PhysicsObj obj, MovementParameters movementParams)
         {
-            if (ObjMaint == null) return;
-            var obj = ServerObjectManager.GetObjectA(objectID);
-            if (obj == null) return;
             var parent = obj.Parent != null ? obj.Parent : obj;
 
-            TurnToObject_Internal(objectID, parent.ID, movementParams);
+            TurnToObject_Internal(obj.ID, parent.ID, movementParams);
         }
 
         public void TurnToObject_Internal(uint objectID, uint topLevelID, MovementParameters movementParams)
@@ -1657,6 +1658,9 @@ namespace ACE.Server.Physics
                 }
                 else
                 {
+                    if (IsPlayer)
+                        log.Debug($"{Name}.UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
+
                     newPos.Frame.Origin = Position.Frame.Origin;
                     set_initial_frame(newPos.Frame);
                     CachedVelocity = Vector3.Zero;
@@ -3351,7 +3355,7 @@ namespace ACE.Server.Physics
                 if (State.HasFlag(PhysicsState.Static))
                     return false;
 
-                if (TransientState.HasFlag(TransientStateFlags.Active))
+                if (!TransientState.HasFlag(TransientStateFlags.Active))
                     UpdateTime = PhysicsTimer.CurrentTime;
 
                 TransientState |= TransientStateFlags.Active;
@@ -4175,39 +4179,6 @@ namespace ACE.Server.Physics
             }
             else
                 UpdateTime = PhysicsTimer.CurrentTime;
-        }
-
-        public void add_moveto_listener(Action<WeenieError> listener)
-        {
-            MovementManager.MoveToManager.add_listener(listener);
-        }
-
-        public void remove_moveto_listener(Action<WeenieError> listener)
-        {
-            MovementManager.MoveToManager.remove_listener(listener);
-        }
-
-        public void add_sticky_listener(Action listener)
-        {
-            MakePositionManager();
-            PositionManager.MakeStickyManager();
-
-            PositionManager.StickyManager.add_sticky_listener(listener);
-        }
-
-        public void remove_sticky_listener(Action listener)
-        {
-            PositionManager.StickyManager.remove_sticky_listener(listener);
-        }
-
-        public void add_unsticky_listener(Action listener)
-        {
-            PositionManager.StickyManager.add_unsticky_listener(listener);
-        }
-
-        public void remove_unsticky_listener(Action listener)
-        {
-            PositionManager.StickyManager.remove_unsticky_listener(listener);
         }
 
         public bool IsGrounded { get => TransientState.HasFlag(TransientStateFlags.OnWalkable) && CachedVelocity.Equals(Vector3.Zero); }
