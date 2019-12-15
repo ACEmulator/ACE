@@ -195,7 +195,7 @@ namespace ACE.Server.WorldObjects
 
         public override void OnMoveComplete(WeenieError status)
         {
-            //Console.WriteLine($"{Name}.OnMoveComplete({status}");
+            //Console.WriteLine($"{Name}.OnMoveComplete({status})");
             IsMoving = false;
 
             if (IsPlayerMovingTo)

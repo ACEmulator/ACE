@@ -21,7 +21,7 @@ namespace ACE.Server.Network.Structure
         public uint PackedFlags;
 
         public RawMotionFlags Flags;        // stored as the first 11 bits of PackedFlags
-        public ushort CommandListLength;    // starts at bit 12 of PackedFlags 
+        public ushort CommandListLength;    // starts at bit 12 of PackedFlags
 
         // choose valid sections by masking against Flags
         public HoldKey CurrentHoldKey;          // 0x1 - walk/run

@@ -238,9 +238,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnCollideEnvironment()
         {
-            var player = ProjectileSource as Player;
+            //Console.WriteLine($"{Name}.OnCollideEnvironment()");
 
-            if (Info != null && player != null && player.DebugSpell)
+            if (Info != null && ProjectileSource is Player player && player.DebugSpell)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name}.OnCollideEnvironment()", ChatMessageType.Broadcast));
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(Info.ToString(), ChatMessageType.Broadcast));
