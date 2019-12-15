@@ -701,9 +701,9 @@ namespace ACE.Server.WorldObjects
                     removeQueueTotal += generator.RemoveQueue.Count;
                 }
 
-                if (Generator.GeneratorId.HasValue && Generator.GeneratorId > 0) // Generator is controlled by another generator.
+                if (Generator.GeneratorId > 0) // Generator is controlled by another generator.
                 {
-                    if (Generator is GenericObject && Generator.Visibility && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is basic generator, not visible to players
+                    if (!(Generator is Container) && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
                         Generator.Destroy(); // Generator's complete spawn count has been wiped out
                 }
             }
