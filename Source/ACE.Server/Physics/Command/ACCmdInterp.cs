@@ -5,7 +5,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Server.Physics.Command
 {
-    public class ACCmdInterp: CommandInterpreter
+    public class ACCmdInterp : CommandInterpreter
     {
         public void CommenceJump()
         {
