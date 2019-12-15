@@ -126,9 +126,9 @@ namespace ACE.Server.WorldObjects
             // send network messages
             var updateProp = new GameMessagePrivateUpdatePropertyInt(player, augProp, newVal);
             var updateXP = new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.AvailableExperience, player.AvailableExperience ?? 0);
-            var msg = new GameMessageSystemChat($"Congratulations! You have succeeded in acquiring the {Name} augmentation.", ChatMessageType.Broadcast);
 
-            player.Session.Network.EnqueueSend(updateProp, updateXP, msg);
+            player.Session.Network.EnqueueSend(updateProp, updateXP);
+            player.SendWeenieErrorWithString(WeenieErrorWithString.YouSuccededAcquiringAugmentation, Name);
 
             // also broadcast to nearby players
             player.EnqueueBroadcast(new GameMessageScript(player.Guid, AugTypeHelper.GetEffect(type)));
