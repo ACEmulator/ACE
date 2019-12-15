@@ -96,7 +96,7 @@ namespace ACE.Server.WorldObjects
             if (EnchantmentManager.HasEnchantments)
                 EnchantmentManager.HeartBeat(CachedHeartbeatInterval);
 
-            if (Lifespan != null && IsLifespanSpent)
+            if (IsLifespanSpent)
                 DeleteObject();
 
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
