@@ -96,13 +96,8 @@ namespace ACE.Server.WorldObjects
             if (EnchantmentManager.HasEnchantments)
                 EnchantmentManager.HeartBeat(CachedHeartbeatInterval);
 
-            if (RemainingLifespan != null)
-            {
-                RemainingLifespan -= (int)CachedHeartbeatInterval;
-
-                if (RemainingLifespan <= 0)
-                    DeleteObject();
-            }
+            if (Lifespan != null && IsLifespanSpent)
+                DeleteObject();
 
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
             NextHeartbeatTime = currentUnixTime + CachedHeartbeatInterval;
@@ -206,6 +201,27 @@ namespace ACE.Server.WorldObjects
         public double LastPhysicsUpdate;
 
         public static double UpdateRate_Creature = 0.2f;
+
+        /// <summary>
+        /// Returns TRUE if Lifespan is not null and GetRemainingLifespan is less than or equal to 0
+        /// </summary>
+        public bool IsLifespanSpent => Lifespan != null && GetRemainingLifespan() <= 0 ? true : false;
+
+        /// <summary>
+        /// Returns the TotalSeconds between CreationTimestamp + Lifespan and Time.UtcNow
+        /// <para>Returns Int.MaxValue if Lifespan is null</para>
+        /// </summary>
+        public int GetRemainingLifespan()
+        {
+            if (Lifespan == null) return int.MaxValue;
+
+            var creationTimestamp = CreationTimestamp ?? 0;
+            var lifespan = Lifespan ?? 0;
+            var expirationTimestamp = Time.GetDateTimeFromTimestamp(creationTimestamp).AddSeconds(lifespan);
+            var timeToExpiration = expirationTimestamp - DateTime.UtcNow;
+
+            return (int)timeToExpiration.TotalSeconds;
+        }
 
         /// <summary>
         /// Handles calling the physics engine for non-player objects
