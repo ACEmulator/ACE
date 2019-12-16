@@ -1,5 +1,4 @@
 using ACE.Entity.Enum;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
@@ -43,7 +42,7 @@ namespace ACE.Server.Network.Handlers
                 session.Network.EnqueueSend(new GameMessageBootAccount(session, msg), dddErrorMsg);
                 session.LogOffPlayer(true);
             }
-            else // cannot cleanly boot player (client crashes) that hasn't completed first login, spam msgs until server auto boots them or they disconnect.
+            else // cannot cleanly boot player that hasn't completed first login, client crashes so msg wouldn't be seen, instead spam msgs until server auto boots them or they disconnect.
                 session.Network.EnqueueSend(popupMsg, chatMsg, transientMsg, dddErrorMsg);
 
         }
