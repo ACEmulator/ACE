@@ -131,7 +131,7 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine("OK");
         }
 
-        [CommandHandler("debugcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("debugcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows debug information about the current magic casting state")]
         public static void HandleDebugCast(Session session, params string[] parameters)
         {
             var physicsObj = session.Player.PhysicsObj;
@@ -145,7 +145,7 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"CurrAnim: {currAnim?.Value.Anim.ID:X8}", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("fixcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("fixcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Fixes magic casting if locked up for an extended time")]
         public static void HandleFixCast(Session session, params string[] parameters)
         {
             var magicState = session.Player.MagicState;
@@ -158,7 +158,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("debugspell", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("debugspell", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Toggles spell projectile debugging info")]
         public static void HandleDebugSpell(Session session, params string[] parameters)
         {
             if (parameters.Length == 0)
@@ -175,7 +175,7 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Spell projectile debugging is {(session.Player.DebugSpell ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("recordcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("recordcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Records spell casting keypresses to server for debugging")]
         public static void HandleRecordCast(Session session, params string[] parameters)
         {
             if (parameters.Length == 0)
@@ -192,7 +192,7 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"Record cast {(session.Player.RecordCast.Enabled ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("castmeter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("castmeter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows the fast casting efficiency meter")]
         public static void HandleCastMeter(Session session, params string[] parameters)
         {
             if (parameters.Length == 0)
