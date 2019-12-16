@@ -41,6 +41,13 @@ namespace ACE.Server.WorldObjects
             else
                 AllegianceRank = null;
 
+            if (!Account15Days)
+            {
+                var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
+                if (accountTimeSpan.TotalDays >= 15)
+                    Account15Days = true;
+            }
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
