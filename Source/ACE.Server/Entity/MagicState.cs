@@ -1,5 +1,6 @@
 using System;
 using ACE.Entity.Enum;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -66,6 +67,22 @@ namespace ACE.Server.Entity
         public DateTime StartTime { get; set; }
 
         /// <summary>
+        /// Tracks the cast # for /recordcast
+        /// </summary>
+        public int CastNum { get; set; }
+
+        /// <summary>
+        /// If TRUE, the casting efficiency meter has been enabled with /castmeter
+        /// This shows the player information about how quickly they interrupted the cast motion
+        /// 
+        /// - 0% would be a standard cast, with no additional buttons pressed
+        /// - 50% would mean they interrupted the cast motion 1/2 way through
+        /// - 100% could theoretically be possible, and would indicate the cast motion was completely avoided
+        /// - Negative % indicates the player pressed additional keys which actually slowed down the cast
+        /// </summary>
+        public bool CastMeter { get; set; }
+
+        /// <summary>
         /// The time when the player started performing the 'launch spell' casting gesture
         /// This is used for CastMeter measurement
         /// </summary>
@@ -92,6 +109,15 @@ namespace ACE.Server.Entity
 
             if (Player.UnderLifestoneProtection)
                 Player.LifestoneProtectionDispel();
+
+            CastNum++;
+
+            if (Player.RecordCast.Enabled)
+            {
+                Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Cast #: {CastNum}", ChatMessageType.Broadcast));
+                Player.RecordCast.Log($"MagicState.OnCastStart({CastNum})");
+                Player.RecordCast.Log($"Player Location: {Player.Location.ToLOCString()}");
+            }
         }
 
         /// <summary>
@@ -105,15 +131,28 @@ namespace ACE.Server.Entity
             TurnStarted = false;
             IsTurning = false;
 
-            CastSpellParams = null;
-
             CastGesture = MotionCommand.Invalid;
             CastGestureStartTime = DateTime.MinValue;
+
+            if (Player.RecordCast.Enabled)
+            {
+                Player.RecordCast.Log($"MagicState.OnCastDone()");
+                Player.RecordCast.Log($"Player Location: {Player.Location.ToLOCString()}");
+                if (CastSpellParams?.Target != null)
+                    Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
+                Player.RecordCast.Log("================================================================================");
+                Player.RecordCast.Flush();
+            }
+
+            CastSpellParams = null;
         }
 
         public void SetCastParams(Spell spell, bool isWeaponSpell, uint magicSkill, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
         {
             CastSpellParams = new CastSpellParams(spell, isWeaponSpell, magicSkill, manaUsed, target, status);
+
+            if (Player.RecordCast.Enabled && CastSpellParams.Target != null)
+                Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
         }
 
         public override string ToString()

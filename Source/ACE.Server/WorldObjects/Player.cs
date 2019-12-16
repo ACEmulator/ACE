@@ -46,6 +46,9 @@ namespace ACE.Server.WorldObjects
 
         public DateTime LastJumpTime;
 
+        public ACE.Entity.Position LastGroundPos;
+        public ACE.Entity.Position SnapPos;
+
         public ConfirmationManager ConfirmationManager;
 
         public SquelchManager SquelchManager;
@@ -152,6 +155,8 @@ namespace ACE.Server.WorldObjects
             SquelchManager = new SquelchManager(this);
 
             MagicState = new MagicState(this);
+
+            RecordCast = new RecordCast(this);
 
             return; // todo
 
@@ -753,6 +758,9 @@ namespace ACE.Server.WorldObjects
 
             // broadcast jump
             EnqueueBroadcast(new GameMessageVectorUpdate(this));
+
+            if (RecordCast.Enabled)
+                RecordCast.OnJump(jump);
         }
 
         /// <summary>

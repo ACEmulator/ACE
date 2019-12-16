@@ -247,8 +247,11 @@ namespace ACE.Server.WorldObjects
         public void HandleFallingDamage(EnvCollisionProfile collision)
         {
             // starting with phat logic
-            var jumpVelocity = 0.0f;
-            PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, out jumpVelocity);
+
+            // jumping skill sort of used as a damping factor here
+            //var jumpVelocity = 0.0f;
+            //PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, out jumpVelocity);
+            var jumpVelocity = 11.25434f;   // TODO: figure out how to scale this better
 
             var cachedVelocity = PhysicsObj.CachedVelocity;
 
@@ -263,7 +266,8 @@ namespace ACE.Server.WorldObjects
 
             if (ratio > 0.0f)
             {
-                var damage = ratio * 40.0f;
+                //var damage = ratio * 40.0f;
+                var damage = ratio * 87.293810f;
                 //Console.WriteLine($"Damage: {damage}");
 
                 // bludgeon damage
