@@ -16,7 +16,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public void PlayerEnterWorld()
+        public override void EnterWorld()
         {
             PlayerManager.SwitchPlayerFromOfflineToOnline(this);
             Teleporting = true;
@@ -24,7 +24,8 @@ namespace ACE.Server.WorldObjects
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
-            SetProperty(PropertyInt.LoginTimestamp, (int)lastLoginTimestamp);
+            LoginTimestamp = (int)lastLoginTimestamp;
+            LastTeleportStartTimestamp = lastLoginTimestamp;
 
             Character.LastLoginTimestamp = lastLoginTimestamp;
             Character.TotalLogins++;

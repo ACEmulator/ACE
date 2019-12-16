@@ -147,6 +147,7 @@ namespace ACE.Entity.Enum.Properties
         TradeTimestamp                 = 129,
         AiTargetedDetectionRadius      = 130,
         EmotePriority                  = 131,
+        [Ephemeral]
         LastTeleportStartTimestamp     = 132,
         EventSpamTimestamp             = 133,
         EventSpamRate                  = 134,

@@ -218,6 +218,33 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HouseRentTimestamp); else SetProperty(PropertyInt.HouseRentTimestamp, value.Value); }
         }
 
+        /// <summary>
+        /// The timestamp when the player last logged in
+        /// </summary>
+        public int? LoginTimestamp
+        {
+            get => GetProperty(PropertyInt.LoginTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LoginTimestamp); else SetProperty(PropertyInt.LoginTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the player last logged off
+        /// </summary>
+        public int? LogoffTimestamp
+        {
+            get => GetProperty(PropertyInt.LogoffTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LogoffTimestamp); else SetProperty(PropertyInt.LogoffTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the last teleport started
+        /// </summary>
+        public double? LastTeleportStartTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastTeleportStartTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastTeleportStartTimestamp); else SetProperty(PropertyFloat.LastTeleportStartTimestamp, value.Value); }
+        }
+
         public bool SpellComponentsRequired
         {
             get => GetProperty(PropertyBool.SpellComponentsRequired) ?? true;

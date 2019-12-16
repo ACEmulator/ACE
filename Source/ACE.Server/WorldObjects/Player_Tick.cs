@@ -9,6 +9,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
+using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -49,6 +50,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        private readonly TimeSpan MaximumTeleportTime = TimeSpan.FromMinutes(5);
+
         /// <summary>
         /// Called every ~5 seconds for Players
         /// </summary>
@@ -74,6 +77,14 @@ namespace ACE.Server.WorldObjects
 
             if (LastRequestedDatabaseSave.AddSeconds(PlayerSaveIntervalSecs) <= DateTime.UtcNow)
                 SavePlayerToDatabase();
+
+            if (Teleporting && DateTime.UtcNow > Time.GetDateTimeFromTimestamp(LastTeleportStartTimestamp ?? 0).Add(MaximumTeleportTime))
+            {
+                if (Session != null)
+                    Session.LogOffPlayer(true);
+                else
+                    LogOut();
+            }
 
             base.Heartbeat(currentUnixTime);
         }
