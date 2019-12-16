@@ -311,5 +311,10 @@ namespace ACE.Server.WorldObjects
                 }
             }
         }
+
+        public override void HandleMotionDone(uint motionID, bool success)
+        {
+            //Console.WriteLine($"{Name}.HandleMotionDone({(MotionCommand)motionID}, {success})");
+        }
     }
 }

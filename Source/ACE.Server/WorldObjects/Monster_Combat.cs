@@ -182,6 +182,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             PhysicsObj.update_object();
+            UpdatePosition_SyncLocation();
 
             return !PhysicsObj.IsAnimating;
         }
@@ -196,6 +197,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             PhysicsObj.update_object();
+            UpdatePosition_SyncLocation();
 
             return !PhysicsObj.IsAnimating;
         }
