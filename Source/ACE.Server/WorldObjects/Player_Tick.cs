@@ -7,6 +7,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 
@@ -78,6 +79,11 @@ namespace ACE.Server.WorldObjects
             base.Heartbeat(currentUnixTime);
         }
 
+        public void OnMoveToState(MoveToState moveToState)
+        {
+            if (RecordCast.Enabled)
+                RecordCast.OnMoveToState(moveToState);
+        }
 
         public bool InUpdate;
 
@@ -171,7 +177,11 @@ namespace ACE.Server.WorldObjects
                 if (!success) return false;
 
                 var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
+
                 Location = newPosition;
+
+                if (RecordCast.Enabled)
+                    RecordCast.Log($"CurPos: {Location.ToLOCString()}");
 
                 SendUpdatePosition();
 

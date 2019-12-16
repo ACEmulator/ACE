@@ -17,7 +17,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (!session.Player.Teleporting)
             {
-                //session.Player.OnMoveToState(moveToState);
+                session.Player.OnMoveToState(moveToState);
                 session.Player.LastMoveToState = moveToState;
 
                 // MoveToState - UpdatePosition broadcasts were capped to 1 per second in retail
