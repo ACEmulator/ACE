@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
-            LoginTimestamp = (int)lastLoginTimestamp;
+            LoginTimestamp = lastLoginTimestamp;
             LastTeleportStartTimestamp = lastLoginTimestamp;
 
             Character.LastLoginTimestamp = lastLoginTimestamp;

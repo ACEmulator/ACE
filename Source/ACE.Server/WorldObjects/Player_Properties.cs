@@ -221,19 +221,19 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The timestamp when the player last logged in
         /// </summary>
-        public int? LoginTimestamp
+        public double? LoginTimestamp
         {
-            get => GetProperty(PropertyInt.LoginTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.LoginTimestamp); else SetProperty(PropertyInt.LoginTimestamp, value.Value); }
+            get => GetProperty(PropertyFloat.LoginTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LoginTimestamp); else SetProperty(PropertyFloat.LoginTimestamp, value.Value); }
         }
 
         /// <summary>
         /// The timestamp when the player last logged off
         /// </summary>
-        public int? LogoffTimestamp
+        public double? LogoffTimestamp
         {
-            get => GetProperty(PropertyInt.LogoffTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.LogoffTimestamp); else SetProperty(PropertyInt.LogoffTimestamp, value.Value); }
+            get => GetProperty(PropertyFloat.LogoffTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LogoffTimestamp); else SetProperty(PropertyFloat.LogoffTimestamp, value.Value); }
         }
 
         /// <summary>
