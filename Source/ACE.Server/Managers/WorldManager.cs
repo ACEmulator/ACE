@@ -210,7 +210,7 @@ namespace ACE.Server.Managers
                     session.Player.Location = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f);  // ultimate fallback
             }
 
-            session.Player.EnterWorld();
+            session.Player.PlayerEnterWorld();
 
             var success = LandblockManager.AddObject(session.Player, true);
             if (!success)

@@ -16,7 +16,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public override void EnterWorld()
+        public void PlayerEnterWorld()
         {
             PlayerManager.SwitchPlayerFromOfflineToOnline(this);
             Teleporting = true;
