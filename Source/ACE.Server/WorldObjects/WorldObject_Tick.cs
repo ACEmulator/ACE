@@ -202,15 +202,8 @@ namespace ACE.Server.WorldObjects
 
         public static double UpdateRate_Creature = 0.2f;
 
-        /// <summary>
-        /// Returns TRUE if Lifespan is not null and GetRemainingLifespan is less than or equal to 0
-        /// </summary>
-        public bool IsLifespanSpent => Lifespan != null && GetRemainingLifespan() <= 0 ? true : false;
+        public bool IsLifespanSpent => Lifespan != null && GetRemainingLifespan() <= 0;
 
-        /// <summary>
-        /// Returns the TotalSeconds between CreationTimestamp + Lifespan and Time.UtcNow
-        /// <para>Returns Int.MaxValue if Lifespan is null</para>
-        /// </summary>
         public int GetRemainingLifespan()
         {
             if (Lifespan == null) return int.MaxValue;
