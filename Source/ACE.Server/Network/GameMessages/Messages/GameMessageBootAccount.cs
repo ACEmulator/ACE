@@ -5,7 +5,10 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessageBootAccount(Session session, string reason = null)
             : base(GameMessageOpcode.AccountBoot, GameMessageGroup.UIQueue)
         {
-            Writer.WriteString16L($"{(reason != null ? "\n" : "")}{reason}");
+            if (reason == null)
+                Writer.WriteString16L("");
+            else
+                Writer.WriteString16L($"\n{reason}");
         }
     }
 }
