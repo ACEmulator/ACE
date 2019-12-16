@@ -124,6 +124,7 @@ namespace ACE.Server.Physics.Animation
         public WeenieError PerformMovement(MovementStruct mvs)
         {
             PhysicsObj.set_active(true);
+
             switch (mvs.Type)
             {
                 case MovementType.RawCommand:
