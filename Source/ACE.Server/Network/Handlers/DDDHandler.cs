@@ -25,6 +25,8 @@ namespace ACE.Server.Network.Handlers
         [GameMessage(GameMessageOpcode.DDD_RequestDataMessage, SessionState.WorldConnected)]
         public static void DDD_RequestDataMessage(ClientMessage message, Session session)
         {
+            // True DAT patching would be triggered by this msg, but as we're not supporting that, respond instead with warning and push to external download
+
             var msg = "Your DAT files are incomplete.\nACEmulator does not support dynamic DAT updating at this time.\nPlease visit https://emulator.ac/how-to-play to download the complete DAT files.";
             var popupMsg = new GameEventPopupString(session, msg);
             var chatMsg = new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast);
