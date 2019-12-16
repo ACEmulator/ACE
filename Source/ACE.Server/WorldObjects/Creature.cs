@@ -242,12 +242,16 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends the network commands to move a player towards an object
         /// </summary>
-        public void MoveToObject(WorldObject target, float? useRadius)
+        public void MoveToObject(WorldObject target, float? useRadius = null)
         {
             var distanceToObject = useRadius ?? target.UseRadius ?? 0.6f;
 
             var moveToObject = new Motion(this, target, MovementType.MoveToObject);
             moveToObject.MoveToParameters.DistanceToObject = distanceToObject;
+
+            // move directly to portal origin
+            //if (target is Portal)
+                //moveToObject.MoveToParameters.MovementParameters &= ~MovementParams.UseSpheres;
 
             SetWalkRunThreshold(moveToObject, target.Location);
 

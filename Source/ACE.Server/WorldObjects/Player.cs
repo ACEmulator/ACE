@@ -44,6 +44,8 @@ namespace ACE.Server.WorldObjects
         public bool LastContact = true;
         public bool IsJumping = false;
 
+        public DateTime LastJumpTime;
+
         public ConfirmationManager ConfirmationManager;
 
         public SquelchManager SquelchManager;
@@ -700,6 +702,7 @@ namespace ACE.Server.WorldObjects
         public void HandleActionJump(JumpPack jump)
         {
             StartJump = new ACE.Entity.Position(Location);
+            //Console.WriteLine($"JumpPack: Velocity: {jump.Velocity}, Extent: {jump.Extent}");
 
             var strength = Strength.Current;
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
@@ -727,6 +730,7 @@ namespace ACE.Server.WorldObjects
             }*/
 
             IsJumping = true;
+            LastJumpTime = DateTime.UtcNow;
 
             UpdateVitalDelta(Stamina, -staminaCost);
 
