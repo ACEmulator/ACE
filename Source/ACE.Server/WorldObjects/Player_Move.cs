@@ -242,7 +242,7 @@ namespace ACE.Server.WorldObjects
             // jumping skill sort of used as a damping factor here
             var jumpVelocity = 0.0f;
             PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, out jumpVelocity);
-            jumpVelocity = 11.25434f;       // TODO: figure out how to scale this better
+            jumpVelocity = 11.25434f;   // TODO: figure out how to scale this better
 
             var overspeed = jumpVelocity + PhysicsObj.Velocity.Z + 4.5f;     // a little leeway
 
@@ -255,6 +255,7 @@ namespace ACE.Server.WorldObjects
 
             if (ratio > 0.0f)
             {
+                //var damage = ratio * 40.0f;
                 var damage = ratio * 87.293810f;
                 //Console.WriteLine($"Damage: {damage}");
 
