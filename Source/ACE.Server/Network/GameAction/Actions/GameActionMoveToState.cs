@@ -26,7 +26,7 @@ namespace ACE.Server.Network.GameAction.Actions
             }
 
             //if (!moveToState.StandingLongJump)
-            session.Player.BroadcastMovement(moveToState);
+                session.Player.BroadcastMovement(moveToState);
 
             if (session.Player.IsPlayerMovingTo)
                 session.Player.StopExistingMoveToChains();
