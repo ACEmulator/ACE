@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
             // copied from Creature.SetWalkRunTreshold
             var dist = Location.DistanceTo(target.Location);
             if (dist >= mvp.WalkRunThreshold / 2.0f)
-                mvp.CanCharge = false;
+                mvp.CanRun = false;
 
             // move directly to portal origin
             //if (target is Portal)
