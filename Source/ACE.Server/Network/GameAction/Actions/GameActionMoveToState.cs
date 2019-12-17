@@ -21,7 +21,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 session.Player.OnMoveToState(moveToState);
                 session.Player.LastMoveToState = moveToState;
 
-                // should the server broadcast position updates on MoveToState?
+                // MoveToState - UpdatePosition broadcasts were capped to 1 per second in retail
                 session.Player.SetRequestedLocation(moveToState.Position, false);
             }
 

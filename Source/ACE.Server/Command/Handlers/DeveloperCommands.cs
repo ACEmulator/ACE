@@ -2747,5 +2747,39 @@ namespace ACE.Server.Command.Handlers
             foreach (var kvp in resistInfo.OrderByDescending(i => i.Value))
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{kvp.Key} - {kvp.Value}", ChatMessageType.Broadcast));
         }
+
+        [CommandHandler("debugspell", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Toggles spell projectile debugging info")]
+        public static void HandleDebugSpell(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                session.Player.DebugSpell = !session.Player.DebugSpell;
+            }
+            else
+            {
+                if (parameters[0].Equals("on", StringComparison.OrdinalIgnoreCase))
+                    session.Player.DebugSpell = true;
+                else
+                    session.Player.DebugSpell = false;
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Spell projectile debugging is {(session.Player.DebugSpell ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("recordcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Records spell casting keypresses to server for debugging")]
+        public static void HandleRecordCast(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                session.Player.RecordCast.Enabled = !session.Player.RecordCast.Enabled;
+            }
+            else
+            {
+                if (parameters[0].Equals("on", StringComparison.OrdinalIgnoreCase))
+                    session.Player.RecordCast.Enabled = true;
+                else
+                    session.Player.RecordCast.Enabled = false;
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Record cast {(session.Player.RecordCast.Enabled ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
+        }
     }
 }

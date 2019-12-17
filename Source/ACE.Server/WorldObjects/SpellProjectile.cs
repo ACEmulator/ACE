@@ -1,8 +1,6 @@
 using System;
 using System.Numerics;
 
-using log4net;
-
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -19,8 +17,6 @@ namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         public Server.Entity.Spell Spell;
         public ProjectileSpellType SpellType { get; set; }
 

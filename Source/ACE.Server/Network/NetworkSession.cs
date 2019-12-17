@@ -263,6 +263,18 @@ namespace ACE.Server.Network
                 return;
             }
 
+            // If the client sent a NAK with a cleartext CRC then process it
+            if ((packet.Header.Flags & PacketHeaderFlags.RequestRetransmit) == PacketHeaderFlags.RequestRetransmit
+                && !((packet.Header.Flags & PacketHeaderFlags.EncryptedChecksum) == PacketHeaderFlags.EncryptedChecksum))
+            {
+                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
+                {
+                    Retransmit(sequence);
+                }
+                NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
+                return; //cleartext crc NAK is never accompanied by additional data needed by the rest of the pipeline
+            }
+
             #region order-insensitive "half-processing"
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
@@ -275,16 +287,6 @@ namespace ACE.Server.Network
             {
                 session.Terminate(SessionTerminationReason.ClientSentNetworkErrorDisconnect);
                 return;
-            }
-
-            // If the client is requesting a retransmission process it immediately
-            if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-            {
-                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
-                {
-                    Retransmit(sequence);
-                }
-                NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
             }
 
             // depending on the current session state:
