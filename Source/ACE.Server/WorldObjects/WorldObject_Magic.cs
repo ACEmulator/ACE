@@ -39,6 +39,7 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
+
             if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
                 return;
 

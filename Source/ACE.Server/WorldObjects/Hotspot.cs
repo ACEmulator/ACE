@@ -64,10 +64,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             if (Players.Contains(player.Guid))
-            {
-                Console.WriteLine($"{wo.Name} ({wo.Guid}).OnCollideObjectEnd({wo.Name})");
-                Players.Remove(player.Guid);
-            }*/
+                Players.Remove(player.Guid);*/
         }
 
         private ActionChain NextActionLoop

@@ -16,9 +16,9 @@ namespace ACE.Server.WorldObjects
         private TimeSpan defaultMoveToTimeout = TimeSpan.FromSeconds(15); // This is just a starting point number. It may be far off from retail.
 
         private int moveToChainCounter;
-        private DateTime moveToChainStartTime { get; set; }
+        private DateTime moveToChainStartTime;
 
-        private int lastCompletedMove { get; set; }
+        private int lastCompletedMove;
 
         //public bool IsPlayerMovingTo => moveToChainCounter > lastCompletedMove;
 

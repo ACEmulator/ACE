@@ -72,11 +72,6 @@ namespace ACE.Server.WorldObjects
 
             player.EnqueueBroadcast(new GameMessageSound(player.Guid, UseSound));
 
-            // if target is door, only activate if closed?
-            var target = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget));
-            if (target != null && target is Door door && door.IsOpen)
-                return;
-
             base.OnActivate(activator);
         }
     }
