@@ -179,15 +179,6 @@ namespace ACE.Server.Network
             }
             else
             {
-                if (Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-                {
-                    // discard retransmission request with cleartext CRC
-                    // client sends one encrypted version and one non encrypted version of each retransmission request
-                    // honoring these causes client to drop because it's only expecting one of the two retransmission requests to be honored
-                    // and it's more secure to only accept the trusted version
-                    return false;
-                }
-
                 if (VerifyChecksum(0))
                 {
                     packetLog.DebugFormat("{0}", this);
