@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects
         public static float MaxSpeed = 50;
         public static float MaxSpeedSq = MaxSpeed * MaxSpeed;
 
-        public bool DebugPlayerMoveToStatePhysics = false;
+        public static bool DebugPlayerMoveToStatePhysics = false;
 
         /// <summary>
         /// For advanced spellcasting / players glitching around during powersliding,
