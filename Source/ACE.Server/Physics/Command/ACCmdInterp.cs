@@ -95,7 +95,7 @@ namespace ACE.Server.Physics.Command
                     //var result = HashEmoteInputActionsToCommands.TryGetValue(evt.InputAction, out var emoteCommand);
                     var result = false;
                     //if (result)
-                    //SetMotion(emoteCommand, true);
+                        //SetMotion(emoteCommand, true);
                     return result;
             }
         }
