@@ -772,6 +772,8 @@ namespace ACE.Server.Entity
 
             if (wo.PhysicsObj == null)
                 wo.InitPhysicsObj();
+            else
+                wo.PhysicsObj.set_object_guid(wo.Guid);  // re-add to ServerObjectManager
 
             if (wo.PhysicsObj.CurCell == null)
             {
