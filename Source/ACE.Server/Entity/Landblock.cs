@@ -380,28 +380,7 @@ namespace ACE.Server.Entity
             foreach (WorldObject wo in worldObjects.Values)
             {
                 // set to TRUE if object changes landblock
-                var landblockUpdate = false;
-
-                // detect player movement
-                // TODO: handle players the same as everything else
-                if (wo is Player player)
-                {
-                    player.InUpdate = true;
-
-                    var newPosition = player.RequestedLocation;
-
-                    if (newPosition != null)
-                    {
-                        // update position through physics engine
-                        landblockUpdate = player.UpdatePlayerPhysics(newPosition);
-
-                        player.RequestedLocation = null;
-                    }
-
-                    player.InUpdate = false;
-                }
-                else
-                    landblockUpdate = wo.UpdateObjectPhysics();
+                var landblockUpdate = wo.UpdateObjectPhysics();
 
                 if (landblockUpdate)
                     movedObjects.Add(wo);

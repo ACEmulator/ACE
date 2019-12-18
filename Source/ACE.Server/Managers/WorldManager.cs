@@ -68,7 +68,7 @@ namespace ACE.Server.Managers
             if (WorldStatus == WorldStatusState.Closed)
                 log.Info($"To open world to players, use command: world open");
         }
- 
+
         internal static void Open(Player player)
         {
             WorldStatus = WorldStatusState.Open;
@@ -81,7 +81,7 @@ namespace ACE.Server.Managers
             var msg = "World is now closed";
             if (bootPlayers)
                 msg += ", and booting all online players.";
-            
+
             PlayerManager.BroadcastToAuditChannel(player, msg);
 
             if (bootPlayers)

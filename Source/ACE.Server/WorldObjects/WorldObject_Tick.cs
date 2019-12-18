@@ -210,7 +210,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles calling the physics engine for non-player objects
         /// </summary>
-        public bool UpdateObjectPhysics()
+        public virtual bool UpdateObjectPhysics()
         {
             // TODO: Almost all of the CPU time is spent between this note and the first Try block. Mag-nus 2019-10-21
             // TODO: In the future we should look at improving the way UpdateObjectPhysics() is called from Landblock
