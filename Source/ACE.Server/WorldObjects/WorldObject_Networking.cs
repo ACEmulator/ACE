@@ -1063,7 +1063,7 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
@@ -1071,10 +1071,9 @@ namespace ACE.Server.WorldObjects
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
             var animLength = 0.0f;
-            if (usePrevCommand)
+            if (prevCommand != null)
             {
-                var prevCommand = CurrentMotionState.MotionState.ForwardCommand;
-                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand.Value, motionCommand, speed);
             }
             else
                 animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
@@ -1117,6 +1116,47 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddDelaySeconds(animLength);
             return animLength;
+        }
+
+        public static bool EnqueueBroadcastMotion_Physics = true;
+
+        public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null, bool? applyPhysics = null)
+        {
+            if (applyPhysics == null)
+            {
+                if (this is Player player)
+                    applyPhysics = player.FastTick;
+                else
+                    applyPhysics = false;
+            }
+
+            var msg = new GameMessageUpdateMotion(this, motion);
+
+            if (maxRange == null)
+                EnqueueBroadcast(msg);
+            else
+                EnqueueBroadcast(msg, maxRange.Value);
+
+            if (EnqueueBroadcastMotion_Physics && applyPhysics.Value)
+                ApplyPhysicsMotion(motion);
+        }
+
+        public void ApplyPhysicsMotion(Motion motion)
+        {
+            var minterp = PhysicsObj.get_minterp();
+            var rawState = minterp.RawState;
+
+            var allowJump = minterp.motion_allows_jump(minterp.InterpretedState.ForwardCommand) == WeenieError.None;
+
+            rawState.CurrentStyle = (uint)motion.Stance;
+            rawState.ForwardCommand = (uint)motion.MotionState.ForwardCommand;
+            rawState.ForwardSpeed = motion.MotionState.ForwardSpeed;
+
+            if (!PhysicsObj.IsMovingOrAnimating)
+                //PhysicsObj.UpdateTime = Physics.Common.PhysicsTimer.CurrentTime - PhysicsGlobals.MinQuantum;
+                PhysicsObj.UpdateTime = Physics.Common.PhysicsTimer.CurrentTime;
+
+            minterp.apply_raw_movement(true, allowJump);
         }
 
 
