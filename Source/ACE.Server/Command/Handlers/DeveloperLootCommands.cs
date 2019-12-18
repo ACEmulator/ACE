@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
@@ -49,6 +48,45 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine(LootGenerationFactory_Test.TestLootGen(numberItemsGenerate, itemsTier));
 
             Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
+        }
+        [CommandHandler("testlootgenmonster", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Corpses for testing LootFactories", "<deathtreasureprofile> <number corpses>")]
+        public static void TestLootGeneratorMonster(Session session, params string[] parameters)
+        {
+            // This generates loot items and displays the drop rates of LootFactory
+
+            // Switch for different options
+            switch (parameters[0])
+            {
+                case "-info":
+                    Console.WriteLine("This is for more info on how to use this command");
+                    break;
+                default:
+                    break;
+            }
+
+            if (Int32.TryParse(parameters[0], out int monsterWeenieID))
+            {
+                Console.WriteLine("generating " + monsterWeenieID);
+            }
+            else
+            {
+                Console.WriteLine("weenieID is not an integer");
+                return;
+            }
+
+            if (Int32.TryParse(parameters[1], out int numberItemsGenerate))
+            {
+                Console.WriteLine("number of corpses generating " + numberItemsGenerate);
+            }
+            else
+            {
+                Console.WriteLine("tier is not an integer");
+                return;
+            }
+
+            Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(numberItemsGenerate, numberItemsGenerate));
+
+            Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {numberItemsGenerate} complete.");
         }
     }
 }
