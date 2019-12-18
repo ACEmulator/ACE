@@ -42,6 +42,8 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugSpell;
 
+        public RecordCast RecordCast;
+
         /// <summary>
         /// Returns the magic skill associated with the magic school
         /// for the last collided spell projectile
@@ -73,6 +75,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
         public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false)
         {
+            //Console.WriteLine($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell})");
+
             if (CombatMode != CombatMode.Magic)
                 return;
 
@@ -100,6 +104,9 @@ namespace ACE.Server.WorldObjects
                 SendUseDoneEvent(WeenieError.TargetNotAcquired);
                 return;
             }
+
+            if (RecordCast.Enabled)
+                RecordCast.OnCastTargetedSpell(new Spell(spellId), target);
 
             if (targetCategory != TargetCategory.WorldObject && targetCategory != TargetCategory.Wielded)
             {
@@ -186,7 +193,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionMagicCastUnTargetedSpell(uint spellId)
         {
-            //Console.WriteLine($"{Name}.HandleActionCastUnTargetedSpell({spellId}");
+            //Console.WriteLine($"{Name}.HandleActionCastUnTargetedSpell({spellId})");
 
             if (CombatMode != CombatMode.Magic)
                 return;
@@ -204,6 +211,9 @@ namespace ACE.Server.WorldObjects
             // or in the weapon's spellbook in the case of built-in spells
             if (!VerifySpell(spellId))
                 return;
+
+            if (RecordCast.Enabled)
+                RecordCast.OnCastUntargetedSpell(new Spell(spellId));
 
             CreatePlayerSpell(spellId);
         }
@@ -396,6 +406,15 @@ namespace ACE.Server.WorldObjects
 
             foreach (var windupGesture in spell.Formula.WindupGestures)
             {
+                if (RecordCast.Enabled)
+                {
+                    castChain.AddAction(this, () =>
+                    {
+                        var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, windupGesture, CastSpeed);
+                        RecordCast.Log($"Windup Gesture: {windupGesture}, Windup Time: {animLength}");
+                    });
+                }
+
                 // don't mess with CurrentMotionState here?
                 var windupTime = EnqueueMotionMagic(castChain, windupGesture, CastSpeed);
 
@@ -414,6 +433,15 @@ namespace ACE.Server.WorldObjects
                 var caster = GetEquippedWand();
                 if (caster.UseUserAnimation != 0)
                     MagicState.CastGesture = caster.UseUserAnimation;
+            }
+
+            if (RecordCast.Enabled)
+            {
+                castChain.AddAction(this, () =>
+                {
+                    var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MagicState.CastGesture, CastSpeed);
+                    RecordCast.Log($"Cast Gesture: {MagicState.CastGesture}, Cast Time: {animLength}");
+                });
             }
 
             castChain.AddAction(this, () => MagicState.CastGestureStartTime = DateTime.UtcNow);
@@ -522,6 +550,18 @@ namespace ACE.Server.WorldObjects
 
         public void DoCastSpell_Inner(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
         {
+            if (RecordCast.Enabled)
+                RecordCast.Log($"DoCastSpell_Inner()");
+
+            if (MagicState.CastMeter)
+            {
+                var gestureTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MagicState.CastGesture, CastSpeed);
+                var castTime = DateTime.UtcNow - MagicState.CastGestureStartTime;
+                var efficiency = 1.0f - (float)castTime.TotalSeconds / gestureTime;
+                var msg = $"Cast efficiency: {efficiency * 100}%";
+                Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            }
+
             // consume mana
             if (!isWeaponSpell)
                 UpdateVitalDelta(Mana, -(int)manaUsed);

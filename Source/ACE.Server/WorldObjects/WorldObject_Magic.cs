@@ -1468,6 +1468,9 @@ namespace ACE.Server.WorldObjects
             if (sp.ProjectileTarget == null || sp.PhysicsObj == null || sp.ProjectileTarget.PhysicsObj == null)
                 return;
 
+            //if (Location.SquaredDistanceTo(sp.ProjectileTarget.Location) < 4.0f)
+                sp.Info = new SpellProjectileInfo(sp);
+
             // Detonate point-blank projectiles immediately
             var radsum = sp.ProjectileTarget.PhysicsObj.GetRadius() + sp.PhysicsObj.GetRadius();
             if (sp.DistanceToTarget < radsum)
