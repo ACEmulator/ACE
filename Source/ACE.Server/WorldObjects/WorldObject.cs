@@ -104,10 +104,6 @@ namespace ACE.Server.WorldObjects
             InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
-
-            // TODO: fix weenie data
-            if (Lifespan != null)
-                RemainingLifespan = Lifespan;
         }
 
         /// <summary>
