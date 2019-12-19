@@ -2460,6 +2460,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// <para>Used to mark when EnterWorld has completed for first time for this object's instance.</para>
         /// Currently used by Generators and Players
         /// </summary>
         public bool FirstEnterWorldDone
@@ -2776,11 +2777,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Lifespan); else SetProperty(PropertyInt.Lifespan, value.Value); }
         }
 
-        public int? RemainingLifespan
-        {
-            get => GetProperty(PropertyInt.RemainingLifespan);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.RemainingLifespan); else SetProperty(PropertyInt.RemainingLifespan, value.Value); }
-        }
+        //public int? RemainingLifespan
+        //{
+        //    get => GetProperty(PropertyInt.RemainingLifespan);
+        //    set { if (!value.HasValue) RemoveProperty(PropertyInt.RemainingLifespan); else SetProperty(PropertyInt.RemainingLifespan, value.Value); }
+        //}
 
         public bool HearLocalSignals
         {

@@ -79,6 +79,31 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading)
+            {
+                if (ItemsInTradeWindow.Contains(sourceItem.Guid))
+                {
+                    SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                    //SendWeenieError(WeenieError.TradeItemBeingTraded);
+                    return;
+                }
+                if (ItemsInTradeWindow.Contains(target.Guid))
+                {
+                    SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                    //SendWeenieError(WeenieError.TradeItemBeingTraded);
+                    return;
+                }
+            }
+
+            // re-verify client checks
+            if (((sourceItem.TargetType ?? ItemType.None) & target.ItemType) == ItemType.None)
+            {
+                // ItemHolder::TargetCompatibleWithObject
+                SendTransientError($"Cannot use the {sourceItem.Name} with the {target.Name}");
+                SendUseDoneEvent();
+                return;
+            }
+
             sourceItem.HandleActionUseOnTarget(this, target);
         }
 
@@ -97,6 +122,13 @@ namespace ACE.Server.WorldObjects
             StopExistingMoveToChains();
 
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
+
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                //SendWeenieError(WeenieError.TradeItemBeingTraded);
+                return;
+            }
 
             if (item != null)
             {

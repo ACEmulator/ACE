@@ -183,25 +183,14 @@ namespace ACE.Server.Network
             }
             else
             {
-                if (Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
+                if (VerifyChecksum(0))
                 {
-                    // discard retransmission request with cleartext CRC
-                    // client sends one encrypted version and one non encrypted version of each retransmission request
-                    // honoring these causes client to drop because it's only expecting one of the two retransmission requests to be honored
-                    // and it's more secure to only accept the trusted version
-                    return false;
+                    packetLog.Debug($"{this}");
+                    return true;
                 }
                 else
                 {
-                    if (VerifyChecksum(0))
-                    {
-                        packetLog.Debug($"{this}");
-                        return true;
-                    }
-                    else
-                    {
-                        packetLog.Debug($"{this}, Checksum Failed");
-                    }
+                    packetLog.Debug($"{this}, Checksum Failed");
                 }
             }
             NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();

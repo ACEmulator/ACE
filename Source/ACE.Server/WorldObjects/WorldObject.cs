@@ -21,6 +21,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
@@ -103,10 +104,6 @@ namespace ACE.Server.WorldObjects
             InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
-
-            // TODO: fix weenie data
-            if (Lifespan != null)
-                RemainingLifespan = Lifespan;
         }
 
         /// <summary>
@@ -424,7 +421,16 @@ namespace ACE.Server.WorldObjects
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
 
+        public MoveToState LastMoveToState { get; set; }
+
         public Position RequestedLocation { get; set; }
+
+        /// <summary>
+        /// Flag indicates if RequestedLocation should be broadcast to other players
+        /// - For AutoPos packets, this is set to TRUE
+        /// - For MoveToState packets, this is set to FALSE
+        /// </summary>
+        public bool RequestedLocationBroadcast { get; set; }
 
         ////// Logical Game Data
         public ContainerType ContainerType
@@ -904,7 +910,7 @@ namespace ACE.Server.WorldObjects
             {
                 var motionInterp = PhysicsObj.get_minterp();
 
-                var rawState = new RawMotionState();
+                var rawState = new Physics.Animation.RawMotionState();
                 rawState.ForwardCommand = 0;    // always 0? must be this for monster sleep animations (skeletons, golems)
                                                 // else the monster will immediately wake back up..
                 rawState.CurrentHoldKey = HoldKey.Run;
@@ -941,6 +947,7 @@ namespace ACE.Server.WorldObjects
         public bool IsLinkSpot => WeenieType == WeenieType.Generic && WeenieClassName.Equals("portaldestination");
 
         public static readonly float LocalBroadcastRange = 96.0f;
+        public static readonly float LocalBroadcastRangeSq = LocalBroadcastRange * LocalBroadcastRange;
 
         public SetPosition ScatterPos { get; set; }
 
@@ -971,6 +978,26 @@ namespace ACE.Server.WorldObjects
                 if (CurrentMotionState.MotionState != null)
                     currentMotion = CurrentMotionState.MotionState.ForwardCommand;
             }
+        }
+
+        public virtual void HandleMotionDone(uint motionID, bool success)
+        {
+            // empty base
+        }
+
+        public virtual void OnMoveComplete(WeenieError status)
+        {
+            // empty base
+        }
+
+        public virtual void OnSticky()
+        {
+            // empty base
+        }
+
+        public virtual void OnUnsticky()
+        {
+            // empty base
         }
 
         public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;

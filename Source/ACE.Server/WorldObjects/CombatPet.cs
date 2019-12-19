@@ -68,8 +68,8 @@ namespace ACE.Server.WorldObjects
             Name = player.Name + "'s " + Name;
             P_PetOwner = player;
             PetOwner = player.Guid.Full;
-            SetCombatMode(CombatMode.Melee);
             EnterWorld();
+            SetCombatMode(CombatMode.Melee);
             DamageType = damageType;
             Attackable = true;
             MonsterState = State.Awake;

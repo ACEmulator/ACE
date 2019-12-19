@@ -162,15 +162,6 @@ namespace ACE.Server.WorldObjects
 
             SetWalkRunThreshold(moveToPosition, to);
 
-            if (!InitSticky)
-            {
-                PhysicsObj.add_moveto_listener(OnMoveComplete);
-
-                PhysicsObj.add_sticky_listener(OnSticky);
-                PhysicsObj.add_unsticky_listener(OnUnsticky);
-                InitSticky = true;
-            }
-
             var mvp = GetMovementParameters();
             mvp.CanWalk = true;
             mvp.StopCompletely = true;

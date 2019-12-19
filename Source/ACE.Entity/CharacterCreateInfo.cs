@@ -8,19 +8,19 @@ namespace ACE.Entity
 {
     public class CharacterCreateInfo
     {
-        public uint Heritage { get; private set; }
-        public uint Gender { get; private set; }
+        public uint Heritage { get; set; }
+        public uint Gender { get; set; }
 
         public Appearance Apperance { get; } = new Appearance();
 
         public int TemplateOption { get; private set; }
 
-        public uint StrengthAbility { get; private set; }
-        public uint EnduranceAbility { get; private set; }
-        public uint CoordinationAbility { get; private set; }
-        public uint QuicknessAbility { get; private set; }
-        public uint FocusAbility { get; private set; }
-        public uint SelfAbility { get; private set; }
+        public uint StrengthAbility { get; set; }
+        public uint EnduranceAbility { get; set; }
+        public uint CoordinationAbility { get; set; }
+        public uint QuicknessAbility { get; set; }
+        public uint FocusAbility { get; set; }
+        public uint SelfAbility { get; set; }
 
         public uint CharacterSlot { get; private set; }
         public uint ClassId { get; private set; }

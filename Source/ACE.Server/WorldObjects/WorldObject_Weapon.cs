@@ -332,7 +332,7 @@ namespace ACE.Server.WorldObjects
             if (modifier > 1.0f && wielder is Player && target is Player)
                 modifier = 1.0f + (modifier - 1.0f) * ElementalDamageBonusPvPReduction;
 
-            return (float)(elementalDamageMod + enchantments);
+            return modifier;
         }
 
         /// <summary>
@@ -758,6 +758,7 @@ namespace ACE.Server.WorldObjects
 
                 case Skill.WarMagic:
                 case Skill.VoidMagic:
+                case Skill.LifeMagic:   // Martyr's Hecatomb
 
                     return ImbuedSkillType.Magic;
 
