@@ -33,22 +33,29 @@ namespace ACE.Server.Factories
             DisplayStats(ls);
             return dataToPrint;
         }
-        public static string TestLootGenMonster(int wcid, int numberofcorpses)
+        public static string TestLootGenMonster(uint wcid, int numberofcorpses)
         {
-            string test = "";
+            string test = $"\n LootFactory Simulator\n ---------------------\n";
 
             var corpseContainer = new List<WorldObject>();
             var ls = SetLootStatsDefaults(new LootStats());
 
             Console.WriteLine($"Creating {numberofcorpses} corpses.");
-
-            var deathTreasure = DatabaseManager.World.GetCachedDeathTreasure(998);
+            
+                var deathTreasure = DatabaseManager.World.GetCachedDeathTreasure(wcid);
+            if (deathTreasure != null)
+            {
+               test += $" Loot profile {deathTreasure.Id} (a Tier {deathTreasure.Tier} profile) from DID {wcid} was used for creating {numberofcorpses} corpses. \n";
+            }
+            else
+            {
+                test += $" DID {wcid} you specified is invalid. \n";
+                return test;
+            }
             for (int i = 0; i < numberofcorpses; i++)
             {
                 if (deathTreasure != null)
                 {
-                    // TODO: get randomly generated death treasure from LootGenerationFactory
-                    // log.Debug($"{_generator.Name}.TreasureGenerator(): found death treasure {Biota.WeenieClassId}");
                     corpseContainer = LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
                     if (corpseContainer.Count < ls.MinItemsCreated)
                         ls.MinItemsCreated = corpseContainer.Count;
@@ -62,25 +69,10 @@ namespace ACE.Server.Factories
                 }
                 else
                 {
-                    //// var wieldedTreasure = DatabaseManager.World.GetCachedWieldedTreasure(Biota.WeenieClassId);
-                    //// if (wieldedTreasure != null)
-                    ////{
-                    ////    // TODO: get randomly generated wielded treasure from LootGenerationFactory
-                    ////    //log.Debug($"{_generator.Name}.TreasureGenerator(): found wielded treasure {Biota.WeenieClassId}");
-
-                    ////    // roll into the wielded treasure table
-                    ////    var table = new TreasureWieldedTable(wieldedTreasure);
-                    ////    return Generator.GenerateWieldedTreasureSets(table);
-                    ////}
-                    ////else
-                    ////{
-                    ////    log.Debug($"{Generator.Name}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {Biota.WeenieClassId}");
-                    ////    return new List<WorldObject>();
-                    ////}
                 }
             }
             DisplayStats(ls);
-
+            test += $" A total of {ls.TotalItems} unique items were generated. \n";
             return test;
         }
         public static LootStats LootStats(WorldObject wo, LootStats ls)
@@ -163,16 +155,13 @@ namespace ACE.Server.Factories
                         if (testItem.Name.Contains(spirit))
                         {
                             ls.Spirits++;
-                            ////Console.WriteLine($"ItemType.Misc Name={testItem.Name}");
                         }
                         else if (testItem.Name.Contains(pet))
                         {
-                            ////Console.WriteLine($"ItemType.Misc Name={testItem.Name}");
                             ls.Pets++;
                             int totalRatings = 0;
                             if (testItem is PetDevice petDevice)
                             {
-                                //int totalRatings = petDevice.GearCrit.Value;
                                 if (petDevice.GearDamage != null)
                                     totalRatings += petDevice.GearDamage.Value;
                                 if (petDevice.GearDamageResist != null)
@@ -186,8 +175,7 @@ namespace ACE.Server.Factories
                                 if (petDevice.GearCritResist != null)
                                     totalRatings += petDevice.GearCritResist.Value;
                             }
-
-                                ////var totalRatings = testItem.DamageRating + testItem.DamageResistRating + testItem.CritDamageRating + testItem.CritDamageResistRating + testItem.CritRating + testItem.CritResistRating;                         
+                                
                             if (totalRatings > 99)
                                 ls.PetRatingsOverHundred++;
                             else if (totalRatings > 89)
@@ -198,7 +186,6 @@ namespace ACE.Server.Factories
                                 ls.PetRatingsOverSeventy++;
                             else if (totalRatings > 59)
                                 ls.PetRatingsOverSixty++;
-
                         }
                         else if (testItem.Name.Contains(potionA) || testItem.Name.Contains(potionB) || testItem.Name.Contains(potionC) || testItem.Name.Contains(potionD))
                             ls.Poitions++;
@@ -417,6 +404,10 @@ namespace ACE.Server.Factories
         {
             string displayStats = "";
 
+            Console.WriteLine(ls.MeleeWeapons);
+            Console.WriteLine(ls.MissileWeapons);
+            Console.WriteLine(ls.CasterWeapons);
+
             ////float totalItemsGenerated = ls.ArmorCount + ls.MeleeWeaponCount + ls.CasterCount + ls.MissileWeaponCount + ls.JewelryCount + ls.GemCount + ls.ClothingCount + ls.OtherCount;
             Console.WriteLine($" \n Treasure Items \n " +
                                 $"---- \n " +
@@ -447,7 +438,7 @@ namespace ACE.Server.Factories
                                 $"TotalGenerated={ls.TotalItems}");                              
 
             Console.WriteLine();
-            Console.WriteLine($" Drop Rates \n " +
+            Console.WriteLine($" Drop Rates \n ----\n " +
                                 $"Armor= {ls.ArmorCount / ls.TotalItems * 100}% \n " +
                                 $"MeleeWeapon= {ls.MeleeWeaponCount / ls.TotalItems * 100}% \n " +
                                 $"Caster= {ls.CasterCount / ls.TotalItems * 100}% \n " +
@@ -457,18 +448,14 @@ namespace ACE.Server.Factories
                                 $"Clothing= {ls.ClothingCount / ls.TotalItems * 100}% \n " +
                                 $"Other={ls.OtherCount / ls.TotalItems * 100}% \n  ");
 
-            Console.WriteLine(ls.MeleeWeapons);
-            Console.WriteLine(ls.MissileWeapons);
-            Console.WriteLine(ls.CasterWeapons);
-
-            //Pet Summons Stats
-            Console.WriteLine($" Pets Ratings Stats \n " +
+            // Pet Summons Stats
+            Console.WriteLine($" Pets Ratings Stats \n ----\n " +
                 $"Over 100 = {ls.PetRatingsOverHundred} \n" +
                 $" Over  90 = {ls.PetRatingsOverNinety} \n" +
                 $" Over  80 = {ls.PetRatingsOverEighty} \n" +
                 $" Over  70 = {ls.PetRatingsOverSeventy} \n" +
                 $" Over  60 = {ls.PetRatingsOverSixty} \n" +
-                $" Total Pets Generated = {ls.Pets}");
+                $" Total Pets Generated = {ls.Pets} \n");
 
             if (ls.HasManaCount == 0)
             {
@@ -481,7 +468,7 @@ namespace ACE.Server.Factories
             { }
             else
             {
-                Console.WriteLine($" Min Items on a corpse = {ls.MinItemsCreated}, Max Items on coprse = {ls.MaxItemsCreated}");
+                Console.WriteLine($" Min Items on a corpse = {ls.MinItemsCreated}, Max Items on coprse = {ls.MaxItemsCreated} \n");
             }
 
             return displayStats;

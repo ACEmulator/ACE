@@ -53,6 +53,7 @@ namespace ACE.Server.Command.Handlers
         public static void TestLootGeneratorMonster(Session session, params string[] parameters)
         {
             // This generates loot items and displays the drop rates of LootFactory
+            int monsterDID = 0;
 
             // Switch for different options
             switch (parameters[0])
@@ -63,30 +64,18 @@ namespace ACE.Server.Command.Handlers
                 default:
                     break;
             }
-
-            if (Int32.TryParse(parameters[0], out int monsterWeenieID))
+            if (!int.TryParse(parameters[0], out monsterDID))
             {
-                Console.WriteLine("generating " + monsterWeenieID);
+                Console.WriteLine($" LootFactory Simulator \n ---------------------\n DID specified is not an integer \n");
+                return;
             }
-            else
+            if (!int.TryParse(parameters[1], out int numberItemsGenerate))
             {
-                Console.WriteLine("weenieID is not an integer");
+                Console.WriteLine($" LootFactory Simulator \n ---------------------\n Invalid Parameter - Must be a number \n");
                 return;
             }
 
-            if (Int32.TryParse(parameters[1], out int numberItemsGenerate))
-            {
-                Console.WriteLine("number of corpses generating " + numberItemsGenerate);
-            }
-            else
-            {
-                Console.WriteLine("tier is not an integer");
-                return;
-            }
-
-            Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(numberItemsGenerate, numberItemsGenerate));
-
-            Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {numberItemsGenerate} complete.");
+            Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(Convert.ToUInt32(monsterDID), numberItemsGenerate));
         }
     }
 }
