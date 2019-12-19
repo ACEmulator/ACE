@@ -209,7 +209,7 @@ namespace ACE.Server.WorldObjects
             return damageRating + enchantments - weaknessRating + augBonus + lumAugBonus;
         }
 
-        public int GetDamageResistRating(CombatType? combatType = null)
+        public int GetDamageResistRating(CombatType? combatType = null, bool directDamage = true)
         {
             // get from base properties (monsters)?
             var damageResistRating = DamageResistRating ?? 0;
@@ -219,7 +219,7 @@ namespace ACE.Server.WorldObjects
 
             // nether DoTs as negative DRR?
             // TODO: this should be factored in as a separate nether damage rating...
-            var netherDotDamageRating = EnchantmentManager.GetNetherDotDamageRating();
+            var netherDotDamageRating = directDamage ? EnchantmentManager.GetNetherDotDamageRating() : 0;
 
             var augBonus = 0;
             var lumAugBonus = 0;

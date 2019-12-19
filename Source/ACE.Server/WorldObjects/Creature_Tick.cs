@@ -16,7 +16,7 @@ namespace ACE.Server.WorldObjects
             var expireItems = new List<WorldObject>();
 
             // added where clause
-            foreach (var wo in EquippedObjects.Values.Where(i => i.EnchantmentManager.HasEnchantments || i.RemainingLifespan.HasValue))
+            foreach (var wo in EquippedObjects.Values.Where(i => i.EnchantmentManager.HasEnchantments || i.Lifespan.HasValue))
             {
                 // FIXME: wo.NextHeartbeatTime is double.MaxValue here
                 //if (wo.NextHeartbeatTime <= currentUnixTime)
@@ -26,13 +26,8 @@ namespace ACE.Server.WorldObjects
                 // TODO: handle players dropping / picking up items
                 wo.EnchantmentManager.HeartBeat(CachedHeartbeatInterval);
 
-                if (wo.RemainingLifespan != null)
-                {
-                    wo.RemainingLifespan -= (int)CachedHeartbeatInterval;
-
-                    if (wo.RemainingLifespan <= 0)
-                        expireItems.Add(wo);
-                }
+                if (wo.IsLifespanSpent)
+                    expireItems.Add(wo);
             }
 
             VitalHeartBeat();
