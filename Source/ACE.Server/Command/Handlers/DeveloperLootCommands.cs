@@ -49,12 +49,12 @@ namespace ACE.Server.Command.Handlers
 
             Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
         }
-        [CommandHandler("testlootgenmonster", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Corpses for testing LootFactories", "<deathtreasureprofile> <number corpses>")]
-        public static void TestLootGeneratorMonster(Session session, params string[] parameters)
+        [CommandHandler("testlootgencorpse", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Corpses for testing LootFactories", "<DID> <number corpses>")]
+        public static void TestLootGeneratorCorpse(Session session, params string[] parameters)
         {
             // This generates loot items and displays the drop rates of LootFactory
             int monsterDID = 0;
-
+            int numberItemsGenerate = 0;
             // Switch for different options
             switch (parameters[0])
             {
@@ -69,12 +69,19 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($" LootFactory Simulator \n ---------------------\n DID specified is not an integer \n");
                 return;
             }
-            if (!int.TryParse(parameters[1], out int numberItemsGenerate))
+            if (parameters.Length > 1)
             {
-                Console.WriteLine($" LootFactory Simulator \n ---------------------\n Invalid Parameter - Must be a number \n");
+                if (!int.TryParse(parameters[1], out numberItemsGenerate))
+                {
+                    Console.WriteLine($" LootFactory Simulator \n ---------------------\n Invalid Parameter - Must be a number \n");
+                    return;
+                }
+            }
+            else
+            {
+                Console.WriteLine($" LootFactory Simulator \n ---------------------\n Need to specify number of coprses\n");
                 return;
             }
-
             Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(Convert.ToUInt32(monsterDID), numberItemsGenerate));
         }
     }
