@@ -1591,12 +1591,6 @@ namespace ACE.Server.Factories
             new int[] { 2546, 2511, 4692, 6051},
             ////Armor Self
             new int[] { 2578, 2571, 4911, 6102},
-            ////Regeneration
-            new int[] { 2626, 2623, 4680, 6077},
-            ////Rejuvenation
-            new int[] { 2628, 2625, 4682, 6076},
-            ////Mana Renewal
-            new int[] { 2627, 2624, 4681, 6078 },
             ////Imp
             new int[] { 2604, 2592, 4667, 6095},
             ////Blade Bane
