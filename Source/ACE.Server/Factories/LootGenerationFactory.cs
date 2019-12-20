@@ -1373,11 +1373,13 @@ namespace ACE.Server.Factories
 
             return manaDMod;
         }
-
+        /// <summary>
+        /// Returns Values for Magic & Missile Defense Bonus. Updated HarliQ 11/17/19
+        /// </summary>
         private static double GetMagicMissileDMod(int tier)
         {
             double magicMissileDefenseMod = 0;
-
+            // For seeing if weapon even gets a chance at a modifier
             int modifierChance = ThreadSafeRandom.Next(1, 2);
             if (modifierChance > 1)
             {
@@ -2377,36 +2379,5 @@ namespace ACE.Server.Factories
             meleeMod = meleeMod + 1.0;
             return meleeMod;
         }
-        /// <summary>
-        /// Returns Values for Magic & Missile Defense Bonus. HarliQ 11/17/19
-        /// </summary>
-        private static double GetMagicMissileADefenseBonus()
-        {
-            double mBonus = 0;
-
-            int chance = ThreadSafeRandom.Next(1, 100);
-
-            if (chance > 98)
-                mBonus = 0.04;
-            else if (chance > 95)
-                mBonus = 0.035;
-            else if (chance > 90)
-                mBonus = 0.030;
-            else if (chance > 80)
-                mBonus = 0.025;
-            else if (chance > 65)
-                mBonus = 0.02;
-            else if (chance > 50)
-                mBonus = 0.015;
-            else if (chance > 25)
-                mBonus = 0.010;
-            else 
-                mBonus = 0.005;
-
-            return mBonus +1;
-
-            
-        }
-    } 
-        
+    }         
 }
