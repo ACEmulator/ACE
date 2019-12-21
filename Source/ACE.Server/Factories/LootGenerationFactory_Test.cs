@@ -147,6 +147,10 @@ namespace ACE.Server.Factories
                         string potionB = "Elixir";
                         string potionC = "Tonic";
                         string potionD = "Brew";
+                        string potionE = "Potion";
+                        string potionF = "Draught";
+                        string potionG = "Tincture";
+
                         string healingKits = "Kit";
                         string spellcompGlyph = "Glyph";
                         string spellcompInk = "Ink";
@@ -187,7 +191,7 @@ namespace ACE.Server.Factories
                             else if (totalRatings > 59)
                                 ls.PetRatingsOverSixty++;
                         }
-                        else if (testItem.Name.Contains(potionA) || testItem.Name.Contains(potionB) || testItem.Name.Contains(potionC) || testItem.Name.Contains(potionD))
+                        else if (testItem.Name.Contains(potionA) || testItem.Name.Contains(potionB) || testItem.Name.Contains(potionC) || testItem.Name.Contains(potionD) || testItem.Name.Contains(potionE) || testItem.Name.Contains(potionF) || testItem.Name.Contains(potionG))
                             ls.Poitions++;
                         else if (testItem.Name.Contains(spellcompGlyph) || testItem.Name.Contains(spellcompInk) || testItem.Name.Contains(spellcompQuill))
                             ls.LevelEightComp++;
