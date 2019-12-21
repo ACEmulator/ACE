@@ -104,10 +104,6 @@ namespace ACE.Server.WorldObjects
             InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
-
-            // TODO: fix weenie data
-            if (Lifespan != null)
-                RemainingLifespan = Lifespan;
         }
 
         /// <summary>
@@ -702,18 +698,21 @@ namespace ACE.Server.WorldObjects
             EmoteManager.OnGeneration();
         }
 
-        public virtual void EnterWorld()
+        public virtual bool EnterWorld()
         {
-            if (Location != null)
-            {
-                LandblockManager.AddObject(this);
+            if (Location == null)
+                return false;
 
-                if (SuppressGenerateEffect != true)
-                    ApplyVisualEffects(PlayScript.Create);
+            if (!LandblockManager.AddObject(this))
+                return false;
 
-                if (Generator != null)
-                    OnGeneration(Generator);
-            }
+            if (SuppressGenerateEffect != true)
+                ApplyVisualEffects(PlayScript.Create);
+
+            if (Generator != null)
+                OnGeneration(Generator);
+
+            return true;
         }
 
         // todo: This should really be an extension method for Position, or a static method within Position or even AdjustPos
