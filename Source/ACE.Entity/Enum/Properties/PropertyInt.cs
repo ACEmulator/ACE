@@ -363,6 +363,7 @@ namespace ACE.Entity.Enum.Properties
         EquipmentSetId                           = 265,
         PetClass                                 = 266,
         Lifespan                                 = 267,
+        [Ephemeral]
         RemainingLifespan                        = 268,
         UseCreateQuantity                        = 269,
         WieldRequirements2                       = 270,
