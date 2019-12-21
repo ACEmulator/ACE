@@ -186,25 +186,29 @@ namespace ACE.Server.WorldObjects
 
         public bool IsOnNoDropLandblock => Location != null ? NoDrop_Landblocks.Contains(Location.LandblockId.Landblock) : false;
 
-        public override void EnterWorld()
+        public override bool EnterWorld()
         {
             var actionChain = new ActionChain();
 
-            base.EnterWorld();
+            var success = base.EnterWorld();
+            if (!success)
+            {
+                log.Error($"{Name} ({Guid}) failed to spawn @ {Location?.ToLOCString()}");
+                return false;
+            }
 
-            actionChain.AddDelaySeconds(.5);
+            actionChain.AddDelaySeconds(0.5f);
             actionChain.AddAction(this, () =>
             {
-                if (Location != null)
+                if (Location != null && CorpseGeneratedRare)
                 {
-                    if (CorpseGeneratedRare)
-                    {
-                        EnqueueBroadcast(new GameMessageSystemChat($"{killerName} has discovered the {rareGenerated.Name}!", ChatMessageType.System));
-                        ApplySoundEffects(Sound.TriggerActivated, 10);
-                    }
+                    EnqueueBroadcast(new GameMessageSystemChat($"{killerName} has discovered the {rareGenerated.Name}!", ChatMessageType.System));
+                    ApplySoundEffects(Sound.TriggerActivated, 10);
                 }
             });
             actionChain.EnqueueChain();
+
+            return true;
         }
 
         private WorldObject rareGenerated;
