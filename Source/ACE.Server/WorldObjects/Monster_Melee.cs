@@ -215,6 +215,8 @@ namespace ACE.Server.WorldObjects
             if (ForcePos)
                 SendUpdatePosition();
 
+            //Console.WriteLine($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
+
             var animSpeed = GetAnimSpeed();
             animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, animSpeed);
 
