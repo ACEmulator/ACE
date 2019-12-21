@@ -722,7 +722,7 @@ namespace ACE.Server.Factories
             // DISPELLS //
 
             ////Dispell
-            new int[] { 1886, 1892, 1898, 1904, 1910, 1918, 3185 },
+            new int[] { 1888, 1894, 1900, 1904, 1910, 1918, 3185 },
             ////Dispell Other
             new int[] { 1885, 1891, 1897, 1903, 1909, 1915, 3184 },
 
@@ -847,7 +847,7 @@ namespace ACE.Server.Factories
             // DISPELLS //
 
             ////Dispell
-            new int[] { 1958, 1964, 1970, 1976, 1982, 1990, 3194 },
+            new int[] { 1960, 1966, 1972, 1976, 1984, 1990, 3194 },
             ////Dispell Other
             new int[] { 1957, 1963, 1969, 1975, 1981, 1987, 3193 },
 
@@ -934,7 +934,7 @@ namespace ACE.Server.Factories
             ////Weaken Lock
             new int[] { 1581, 1582, 1583, 1584, 1585, 1586, 2119 },
             ////Dispells
-            new int[] { 1919, 1925, 1931, 1937, 1943, 1951, 3190 },
+            new int[] { 1919, 1927, 1931, 1937, 1943, 1951, 3190 },
             ////Portal Spells - Dont typically find these in loot.
 
             /* WAR SPELLS */
