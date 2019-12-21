@@ -247,7 +247,7 @@ namespace ACE.Server.Physics
 
             if (transition.SpherePath.ObstructionEthereal || transition.SpherePath.InsertType == InsertType.Placement)
             {
-                if (disp.LengthSquared() <= radsum)
+                if (disp.LengthSquared() <= radsum * radsum)
                     return TransitionState.Collided;
 
                 if (transition.SpherePath.NumSphere > 1)
