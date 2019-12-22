@@ -32,19 +32,22 @@ namespace ACE.Server.Factories
         public int DinnerWare { get; set; }
         public int LevelEightComp { get; set; }
 
-        // Weapon Tables
+        // Tables
         public string MeleeWeapons { get; set; }
         public string MissileWeapons { get; set; }
         public string CasterWeapons { get; set; }
+        public string Armor { get; set; }
 
-        // Weapon Stats
+        // Item Stats
         public int ItemMaxMana { get; set; }
         public int MinMana { get; set; }
         public int MaxMana { get; set; }
         public int HasManaCount { get; set; }
         public int TotalMaxMana { get; set; }
+        public int MinAL { get; set; }
+        public int MaxAL { get; set; }
 
-        //Pet Stats
+        // Pet Stats
         public int PetsTotalRatings { get; set; }
         public int PetRatingsOverSixty { get; set; }
         public int PetRatingsOverSeventy { get; set; }

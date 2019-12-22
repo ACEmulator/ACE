@@ -106,7 +106,6 @@ namespace ACE.Server.Factories
    
                 switch (testItem.ItemType)
                 {
-                    
                     case ItemType.None:
                         break;
                     case ItemType.MeleeWeapon:
@@ -139,6 +138,13 @@ namespace ACE.Server.Factories
                         break;
                     case ItemType.Armor:
                         ls.ArmorCount++;
+                        ls.Armor += $" {testItem.ArmorLevel}\t {testItem.Value.Value} \t {testItem.Name}\n";
+
+                        if (testItem.ArmorLevel > ls.MaxAL)
+                            ls.MaxAL = testItem.ArmorLevel.Value;
+                        if (testItem.ArmorLevel < ls.MinAL)
+                            ls.MinAL = testItem.ArmorLevel.Value;
+
                         break;
                     case ItemType.Clothing:
                         ls.ClothingCount++;
@@ -425,6 +431,7 @@ namespace ACE.Server.Factories
             Console.WriteLine(ls.MeleeWeapons);
             Console.WriteLine(ls.MissileWeapons);
             Console.WriteLine(ls.CasterWeapons);
+            Console.WriteLine(ls.Armor);
 
             ////float totalItemsGenerated = ls.ArmorCount + ls.MeleeWeaponCount + ls.CasterCount + ls.MissileWeaponCount + ls.JewelryCount + ls.GemCount + ls.ClothingCount + ls.OtherCount;
             Console.WriteLine($" \n Treasure Items \n " +
@@ -466,14 +473,17 @@ namespace ACE.Server.Factories
                                 $"Clothing= {ls.ClothingCount / ls.TotalItems * 100}% \n " +
                                 $"Other={ls.OtherCount / ls.TotalItems * 100}% \n  ");
 
+            // Armor Level Stats
+            Console.WriteLine($" Armor Levels \n ----\n MinAL = {ls.MinAL}  Max = {ls.MaxAL}\n");
+
             // Pet Summons Stats
             Console.WriteLine($" Pets Ratings Stats \n ----\n " +
-                $"Over 100 = {ls.PetRatingsOverHundred} \n" +
-                $" Over  90 = {ls.PetRatingsOverNinety} \n" +
-                $" Over  80 = {ls.PetRatingsOverEighty} \n" +
-                $" Over  70 = {ls.PetRatingsOverSeventy} \n" +
-                $" Over  60 = {ls.PetRatingsOverSixty} \n" +
-                $" Total Pets Generated = {ls.Pets} \n");
+                                $"Over 100 = {ls.PetRatingsOverHundred} \n" +
+                                $" Over  90 = {ls.PetRatingsOverNinety} \n" +
+                                $" Over  80 = {ls.PetRatingsOverEighty} \n" +
+                                $" Over  70 = {ls.PetRatingsOverSeventy} \n" +
+                                $" Over  60 = {ls.PetRatingsOverSixty} \n" +
+                                $" Total Pets Generated = {ls.Pets} \n");
 
             if (ls.HasManaCount == 0)
             {
@@ -529,11 +539,14 @@ namespace ACE.Server.Factories
             ls.PetRatingsOverEighty = 0;
             ls.PetRatingsOverNinety = 0;
             ls.PetRatingsOverHundred = 0;
+            ls.MinAL = 1000;
+            ls.MaxAL = 0;
 
             // Tables
             ls.MeleeWeapons = $"-----Melee Weapons----\n Skill \t\t\t Wield \t Damage \t MStrike \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\t Type \n";
             ls.MissileWeapons = $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\n";
             ls.CasterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value \t MaxMana\n";
+            ls.Armor = $"-----Armor----\n AL \t Value \t Type\n";
 
             return ls;
         }
