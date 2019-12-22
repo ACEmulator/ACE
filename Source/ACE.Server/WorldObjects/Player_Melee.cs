@@ -299,15 +299,11 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        private static readonly float KickThreshold = 0.75f;
-
-        public AttackType AttackType { get; set; }
-
         /// <summary>
         /// Returns the melee swing animation - based on weapon,
         /// current stance, power bar, and attack height
         /// </summary>
-        public override MotionCommand GetSwingAnimation()
+        public MotionCommand GetSwingAnimation()
         {
             if (IsDualWieldAttack)
                 DualWieldAlternate = !DualWieldAlternate;

@@ -16,14 +16,16 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public CombatMode CombatMode { get; private set; }
-
         /// <summary>
         /// The list of combat maneuvers performable by this creature
         /// </summary>
         public DatLoader.FileTypes.CombatManeuverTable CombatTable { get; set; }
 
-        public DamageHistory DamageHistory;
+        public CombatMode CombatMode { get; private set; }
+
+        public AttackType AttackType { get; set; }
+
+        public DamageHistory DamageHistory { get; private set; }
 
         /// <summary>
         /// Handles queueing up multiple animation sequences between packets
@@ -995,14 +997,6 @@ namespace ACE.Server.WorldObjects
                 default:
                     return ResistanceType.Undef;
             }
-        }
-
-        /// <summary>
-        /// Returns the current attack maneuver for a non-player creature
-        /// </summary>
-        public virtual AttackType GetAttackType(WorldObject weapon, CombatManeuver combatManeuver)
-        {
-            return combatManeuver != null ? combatManeuver.AttackType : AttackType.Undef;
         }
 
         public virtual bool CanDamage(Creature target)
