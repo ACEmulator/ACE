@@ -106,10 +106,12 @@ namespace ACE.Server.Factories
    
                 switch (testItem.ItemType)
                 {
+                    
                     case ItemType.None:
                         break;
                     case ItemType.MeleeWeapon:
                         ls.MeleeWeaponCount++;
+                        string strikeType = "N";
                         if (testItem.WeaponMagicDefense != null)
                             magicDefMod = testItem.WeaponMagicDefense.Value;
                         if (testItem.Value != null)
@@ -119,9 +121,21 @@ namespace ACE.Server.Factories
                         if (testItem.WieldDifficulty != null)
                             wield = testItem.WieldDifficulty.Value;
                         if (testItem.WeaponSkill == Skill.TwoHandedCombat)
-                            ls.MeleeWeapons = ls.MeleeWeapons + $" {testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
+                            ls.MeleeWeapons = ls.MeleeWeapons + $" {testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {strikeType} \t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
                         else
-                            ls.MeleeWeapons = ls.MeleeWeapons + $" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
+                        {                         
+                            AttackType attackType = testItem.W_AttackType;
+                            string at = attackType.ToString("F");
+                            if (at.Contains("DoubleSlash") || at.Contains("DoubleThrust"))
+                            {
+                                strikeType = "2x";
+                            }
+                            else if (at.Contains("TripleSlash") || at.Contains("TripleThrust"))
+                            {
+                                strikeType = "3x";
+                            }
+                            ls.MeleeWeapons = ls.MeleeWeapons + $" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
+                        }
                         break;
                     case ItemType.Armor:
                         ls.ArmorCount++;
@@ -517,7 +531,7 @@ namespace ACE.Server.Factories
             ls.PetRatingsOverHundred = 0;
 
             // Tables
-            ls.MeleeWeapons = $"-----Melee Weapons----\n Skill \t\t\t Wield \t Damage \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\t Type \n";
+            ls.MeleeWeapons = $"-----Melee Weapons----\n Skill \t\t\t Wield \t Damage \t MStrike \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\t Type \n";
             ls.MissileWeapons = $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\n";
             ls.CasterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value \t MaxMana\n";
 
