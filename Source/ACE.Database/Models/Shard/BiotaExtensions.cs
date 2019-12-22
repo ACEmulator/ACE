@@ -1887,7 +1887,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesInt.Add(new BiotaPropertiesInt
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     Value = value.Value,

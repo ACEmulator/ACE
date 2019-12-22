@@ -987,13 +987,10 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesInt>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.Type })
+                    .HasName("PRIMARY");
+
                 entity.ToTable("biota_properties_int");
-
-                entity.HasIndex(e => new { e.ObjectId, e.Type })
-                    .HasName("wcid_int_type_uidx")
-                    .IsUnique();
-
-                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ObjectId)
                     .HasColumnName("object_Id")
