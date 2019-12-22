@@ -46,6 +46,8 @@ namespace ACE.Server.Factories
         public int TotalMaxMana { get; set; }
         public int MinAL { get; set; }
         public int MaxAL { get; set; }
+        public string MinALItem { get; set; }
+        public string MaxALItem { get; set; }
 
         // Pet Stats
         public int PetsTotalRatings { get; set; }

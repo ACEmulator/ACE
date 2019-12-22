@@ -139,12 +139,18 @@ namespace ACE.Server.Factories
                     case ItemType.Armor:
                         ls.ArmorCount++;
                         ls.Armor += $" {testItem.ArmorLevel}\t {testItem.Value.Value} \t {testItem.Name}\n";
-
+                        if (testItem.Name.Contains("Sheild"))
+                            break;
                         if (testItem.ArmorLevel > ls.MaxAL)
+                        {
                             ls.MaxAL = testItem.ArmorLevel.Value;
+                            ls.MaxALItem = testItem.Name;
+                        }
                         if (testItem.ArmorLevel < ls.MinAL)
+                        {
                             ls.MinAL = testItem.ArmorLevel.Value;
-
+                            ls.MinALItem = testItem.Name;
+                        }
                         break;
                     case ItemType.Clothing:
                         ls.ClothingCount++;
@@ -474,7 +480,7 @@ namespace ACE.Server.Factories
                                 $"Other={ls.OtherCount / ls.TotalItems * 100}% \n  ");
 
             // Armor Level Stats
-            Console.WriteLine($" Armor Levels \n ----\n MinAL = {ls.MinAL}  Max = {ls.MaxAL}\n");
+            Console.WriteLine($" Armor Levels \n ----\n MinAL = {ls.MinAL}\t {ls.MinALItem}\n MaxAL = {ls.MaxAL}\t {ls.MaxALItem}\n");
 
             // Pet Summons Stats
             Console.WriteLine($" Pets Ratings Stats \n ----\n " +
