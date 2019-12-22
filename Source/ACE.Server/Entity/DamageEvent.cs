@@ -98,7 +98,7 @@ namespace ACE.Server.Entity
         public float DamageMitigated;
 
         // creature attacker
-        public CombatManeuver CombatManeuver;
+        public MotionCommand? AttackMotion;
         public BiotaPropertiesBodyPart AttackPart;      // the body part this monster is attacking with
 
         public bool IgnoreMagicArmor  => Weapon != null ? Weapon.IgnoreMagicArmor : false;      // ignores impen / banes
@@ -129,10 +129,10 @@ namespace ACE.Server.Entity
             22545   // Obsidian Spines
         };
 
-        public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, CombatManeuver combatManeuver = null)
+        public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null)
         {
             var damageEvent = new DamageEvent();
-            damageEvent.CombatManeuver = combatManeuver;
+            damageEvent.AttackMotion = attackMotion;
             if (damageSource == null)
                 damageSource = attacker;
 
@@ -157,7 +157,7 @@ namespace ACE.Server.Entity
 
             Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedWeapon() : damageSource.ProjectileLauncher;
 
-            AttackType = attacker.GetAttackType(Weapon, CombatManeuver);
+            AttackType = attacker.AttackType;
             AttackHeight = attacker.AttackHeight ?? AttackHeight.Medium;
 
             // check lifestone protection
@@ -188,9 +188,9 @@ namespace ACE.Server.Entity
 
             // get base damage
             if (playerAttacker != null)
-                GetBaseDamage(playerAttacker, CombatManeuver);
+                GetBaseDamage(playerAttacker);
             else
-                GetBaseDamage(attacker, CombatManeuver);
+                GetBaseDamage(attacker, AttackMotion ?? MotionCommand.Invalid);
 
             if (DamageType == DamageType.Undef && !AllowDamageTypeUndef.Contains(damageSource.WeenieClassId))
             {
@@ -322,7 +322,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns the base damage for a player attacker
         /// </summary>
-        public void GetBaseDamage(Player attacker, CombatManeuver maneuver)
+        public void GetBaseDamage(Player attacker)
         {
             if (DamageSource.ItemType == ItemType.MissileWeapon)
             {
@@ -352,9 +352,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns the base damage for a non-player attacker
         /// </summary>
-        public void GetBaseDamage(Creature attacker, CombatManeuver maneuver)
+        public void GetBaseDamage(Creature attacker, MotionCommand motionCommand)
         {
-            AttackPart = attacker.GetAttackPart(maneuver);
+            AttackPart = attacker.GetAttackPart(motionCommand);
             if (AttackPart == null)
             {
                 GeneralFailure = true;
@@ -435,8 +435,8 @@ namespace ACE.Server.Entity
 
             if (!(Attacker is Player))
             {
-                if (CombatManeuver != null)
-                    info += $"CombatManeuver: {CombatManeuver.Style} - {CombatManeuver.Motion}\n";
+                if (AttackMotion != null)
+                    info += $"AttackMotion: {AttackMotion}\n";
                 if (AttackPart != null)
                     info += $"AttackPart: {(CombatBodyPart)AttackPart.Key}\n";
             }

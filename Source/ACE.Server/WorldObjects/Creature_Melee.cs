@@ -157,5 +157,7 @@ namespace ACE.Server.WorldObjects
             }
             return cleaveTargets;
         }
+
+        public static readonly float KickThreshold = 0.75f;
     }
 }
