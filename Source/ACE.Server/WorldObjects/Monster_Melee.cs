@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -248,7 +246,10 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
 
-            var animSpeed = GetAnimSpeed();
+            var baseSpeed = GetAnimSpeed();
+            var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster
+            var animSpeed = baseSpeed * animSpeedMod;
+
             animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand, animSpeed);
 
             attackFrames = MotionTable.GetAttackFrames(MotionTableId, CurrentMotionState.Stance, motionCommand);
