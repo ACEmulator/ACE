@@ -1669,7 +1669,7 @@ namespace ACE.Server.WorldObjects
             SpellProjectile centerProjectile;
             var casterLocalOrigin = RotatePosition(Location.Pos, Location.Rotation);
 
-            if (target == null && originOffset == null && velocity == null) // Blast spells
+            if (originOffset == null && velocity == null) // Blast spells
             {
                 centerProjectile = CreateSpellProjectile(spell, target);
                 var localOrigin = RotatePosition(centerProjectile.Location.Pos, Location.Rotation);
