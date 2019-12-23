@@ -574,5 +574,10 @@ namespace ACE.Server.Factories
 
             return ls;
         }
+        public static string LogStats()
+        {
+            string test = "";
+                return test;
+        }
     }
 }
