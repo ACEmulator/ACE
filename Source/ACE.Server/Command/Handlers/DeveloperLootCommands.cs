@@ -46,37 +46,41 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine("tier is not an integer");
                 return;
             }
-            if (parameters.Length > 2)
+            if (parameters.LongLength > 2)
                 displayTable = parameters?[2].ToLower();
             switch (displayTable)
             {
                 case "melee":
-                    logstats = true;
                     break;
                 case "missile":
-                    logstats = true;
                     break;
                 case "caster":
-                    logstats = true;
                     break;
                 case "armor":
-                    logstats = true;
+                    break;
+                case "pet":
                     break;
                 case "all":
-                    logstats = true;
+                    break;
+                case "":
                     break;
                 default:
-                    break;
+                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, pet, or all.");
+                    return;
             }
-            if (parameters.Length > 3)
+            if (parameters.LongLength > 3)
                 logFile = parameters?[3].ToLower();
             switch (logFile)
             {
+                case "":
+                    break;
                 case "-log":
-                    logstats = true;
+                    logstats = false;
+                    Console.WriteLine("Logging is not currently working, Displaying results to screen.");
                     break;
                 default:
-                    break;
+                    Console.WriteLine("Invalid Option.  To log a file, use option -log");
+                    return;
             }
             if (itemsTier > 0 && itemsTier < 9)
                 Console.WriteLine(LootGenerationFactory_Test.TestLootGen(numberItemsGenerate, itemsTier, logstats, displayTable));
@@ -124,37 +128,41 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($" LootFactory Simulator \n ---------------------\n Need to specify number of coprses\n");
                 return;
             }
-            if (parameters.Length > 2)
+            if (parameters.LongLength > 2)
                 displayTable = parameters?[2].ToLower();
             switch (displayTable)
             {
                 case "melee":
-                    logstats = true;
                     break;
                 case "missile":
-                    logstats = true;
                     break;
                 case "caster":
-                    logstats = true;
                     break;
                 case "armor":
-                    logstats = true;
+                    break;
+                case "pet":
                     break;
                 case "all":
-                    logstats = true;
+                    break;
+                case "":
                     break;
                 default:
-                    break;
+                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, pet, or all.");
+                    return;
             }
-            if (parameters.Length > 3)
+            if (parameters.LongLength > 3)
                 logFile = parameters?[3].ToLower();
             switch (logFile)
             {
+                case "":
+                    break;
                 case "-log":
-                    logstats = true;
+                    logstats = false;
+                    Console.WriteLine("Logging is not currently working, Displaying results to screen.");
                     break;
                 default:
-                    break;
+                    Console.WriteLine("Invalid Option.  To log a file, use option -log");
+                    return;
             }
             Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(Convert.ToUInt32(monsterDID), numberItemsGenerate, logstats, displayTable));
         }

@@ -25,7 +25,7 @@ namespace ACE.Server.Factories
         public int Misc { get; set; }
         public int TotalItems { get; set; }
         public int Scrolls { get; set; }
-        public int Pets { get; set; }
+        public int PetsCount { get; set; }
         public int Spirits { get; set; }
         public int Poitions { get; set; }
         public int HealingKit { get; set; }
@@ -37,6 +37,7 @@ namespace ACE.Server.Factories
         public string MissileWeapons { get; set; }
         public string CasterWeapons { get; set; }
         public string Armor { get; set; }
+        public string Pets { get; set; }
 
         // Item Stats
         public int ItemMaxMana { get; set; }

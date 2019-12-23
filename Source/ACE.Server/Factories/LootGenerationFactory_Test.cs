@@ -188,26 +188,49 @@ namespace ACE.Server.Factories
                         {
                             ls.Spirits++;
                         }
-                        else if (testItem.Name.Contains(pet))
+                        else if (testItem is PetDevice petDevice)
                         {
-                            ls.Pets++;
+                            ls.PetsCount++;
                             int totalRatings = 0;
-                            if (testItem is PetDevice petDevice)
+                            int damage = 0;
+                            int damageResist = 0;
+                            int crit = 0;
+                            int critDamage = 0;
+                            int critDamageResist = 0;
+                            int critResist = 0;
+
+                            if (petDevice.GearDamage != null)
                             {
-                                if (petDevice.GearDamage != null)
-                                    totalRatings += petDevice.GearDamage.Value;
-                                if (petDevice.GearDamageResist != null)
-                                    totalRatings += petDevice.GearDamageResist.Value;
-                                if (petDevice.GearCrit != null)
-                                    totalRatings += petDevice.GearCrit.Value;
-                                if (petDevice.GearCritDamage != null)
-                                    totalRatings += petDevice.GearCritDamage.Value;
-                                if (petDevice.GearCritDamageResist != null)
-                                    totalRatings += petDevice.GearCritDamageResist.Value;
-                                if (petDevice.GearCritResist != null)
-                                    totalRatings += petDevice.GearCritResist.Value;
+                                totalRatings += petDevice.GearDamage.Value;
+                                damage = petDevice.GearDamage.Value;
                             }
-                                
+                            if (petDevice.GearDamageResist != null)
+                            {
+                                totalRatings += petDevice.GearDamageResist.Value;
+                                damageResist = petDevice.GearDamageResist.Value;
+                            }
+                            if (petDevice.GearCrit != null)
+                            {
+                                totalRatings += petDevice.GearCrit.Value;
+                                crit = petDevice.GearCrit.Value;
+                            }
+                            if (petDevice.GearCritDamage != null)
+                            {
+                                totalRatings += petDevice.GearCritDamage.Value;
+                                critDamage = petDevice.GearCritDamage.Value;
+                            }
+                            if (petDevice.GearCritDamageResist != null)
+                            {
+                                totalRatings += petDevice.GearCritDamageResist.Value;
+                                critDamageResist = petDevice.GearCritDamageResist.Value;
+                            }
+                            if (petDevice.GearCritResist != null)
+                            {
+                                totalRatings += petDevice.GearCritResist.Value;
+                                critResist = petDevice.GearCritResist.Value;
+                            }
+                            ls.Pets += $" {damage}\t {damageResist}\t {crit}\t {critDamage}\t {critDamageResist}\t {critResist}\t {totalRatings}\n";
+
                             if (totalRatings > 99)
                                 ls.PetRatingsOverHundred++;
                             else if (totalRatings > 89)
@@ -228,9 +251,9 @@ namespace ACE.Server.Factories
                                 ls.PetRatingsOverTwenty++;
                             else if (totalRatings > 9)
                                 ls.PetRatingsOverTen++;
-                            else if (totalRatings > 0 && totalRatings < 2)
+                            else if (totalRatings > 0)
                                 ls.PetRatingsEqualOne++;                           
-                            else if (totalRatings <1)
+                            else if (totalRatings < 1)
                                 ls.PetRatingsEqualZero++;
                         }
                         else if (testItem.Name.Contains(potionA) || testItem.Name.Contains(potionB) || testItem.Name.Contains(potionC) || testItem.Name.Contains(potionD) || testItem.Name.Contains(potionE) || testItem.Name.Contains(potionF) || testItem.Name.Contains(potionG))
@@ -463,11 +486,15 @@ namespace ACE.Server.Factories
                 case "armor":
                     displayStats += ls.Armor + $"\n";
                     break;
+                case "pet":
+                    displayStats += ls.Pets + $"\n";
+                    break;
                 case "all":
                     displayStats += ls.MeleeWeapons + $"\n";
                     displayStats += ls.MissileWeapons + $"\n";
                     displayStats += ls.CasterWeapons + $"\n";
                     displayStats += ls.Armor + $"\n";
+                    displayStats += ls.Pets + $"\n";
                     break;
                 default:
                     displayStats += $"\n No Table(s) was selected to display, showing only general statistics";
@@ -489,7 +516,7 @@ namespace ACE.Server.Factories
                     $"SpellComps={ls.SpellComponents} \n " +
                     $"Keys={ls.Key} \n " +
                     $"ManaStones={ls.ManaStone} \n " +
-                    $"Pets={ls.Pets} \n " +
+                    $"Pets={ls.PetsCount} \n " +
                     $"EncapSpirits={ls.Spirits} \n " +
                     $"Scrolls={ls.Scrolls} \n " +
                     $"Potions={ls.Poitions} \n " +
@@ -499,7 +526,7 @@ namespace ACE.Server.Factories
                     $"Misc={ls.Misc} \n " +
                     $"Other={ls.OtherCount} \n " +
                     $"NullCount={ls.NullCount} \n " +
-                    $"Total Found={ls.ArmorCount + ls.MeleeWeaponCount + ls.CasterCount + ls.MissileWeaponCount + ls.JewelryCount + ls.GemCount + ls.ClothingCount + ls.Food + ls.SpellComponents + ls.Key + ls.ManaStone + ls.Pets + ls.Spirits + ls.Scrolls + ls.Poitions + ls.LevelEightComp + ls.HealingKit + ls.DinnerWare + ls.Misc + ls.OtherCount + ls.NullCount} \n " +
+                    $"Total Found={ls.ArmorCount + ls.MeleeWeaponCount + ls.CasterCount + ls.MissileWeaponCount + ls.JewelryCount + ls.GemCount + ls.ClothingCount + ls.Food + ls.SpellComponents + ls.Key + ls.ManaStone + ls.PetsCount + ls.Spirits + ls.Scrolls + ls.Poitions + ls.LevelEightComp + ls.HealingKit + ls.DinnerWare + ls.Misc + ls.OtherCount + ls.NullCount} \n " +
                     $"TotalGenerated={ls.TotalItems}\n");
 
             displayStats += $"\n Drop Rates \n ----\n " +
@@ -517,19 +544,19 @@ namespace ACE.Server.Factories
 
             // Pet Summons Stats
             displayStats += ($"\n Pets Ratings Stats \n ----\n " +
-                                $" 100+ = {ls.PetRatingsOverHundred} \n" +
-                                $"  90+ = {ls.PetRatingsOverNinety} \n" +
-                                $"  80+ = {ls.PetRatingsOverEighty} \n" +
-                                $"  70+ = {ls.PetRatingsOverSeventy} \n" +
-                                $"  60+ = {ls.PetRatingsOverSixty} \n" +
-                                $"  50+ = {ls.PetRatingsOverFifty} \n" +
-                                $"  40+ = {ls.PetRatingsOverForty} \n" +
-                                $"  30+ = {ls.PetRatingsOverThirty} \n" +
-                                $"  20+ = {ls.PetRatingsOverTwenty} \n" +
-                                $"  10+ = {ls.PetRatingsOverTen} \n" +
-                                $" Equal  1 = {ls.PetRatingsEqualOne} \n" +
-                                $" Equal  0 = {ls.PetRatingsEqualZero} \n" +                                
-                                $" Total Pets Generated = {ls.Pets} \n");
+                                $"  100+ = {ls.PetRatingsOverHundred} \n" +
+                                $"  90-99 = {ls.PetRatingsOverNinety} \n" +
+                                $"  80-89 = {ls.PetRatingsOverEighty} \n" +
+                                $"  70-79 = {ls.PetRatingsOverSeventy} \n" +
+                                $"  60-69 = {ls.PetRatingsOverSixty} \n" +
+                                $"  50-59 = {ls.PetRatingsOverFifty} \n" +
+                                $"  40-49 = {ls.PetRatingsOverForty} \n" +
+                                $"  30-39 = {ls.PetRatingsOverThirty} \n" +
+                                $"  20-29 = {ls.PetRatingsOverTwenty} \n" +
+                                $"  10-19 = {ls.PetRatingsOverTen} \n" +
+                                $"    1-9 = {ls.PetRatingsEqualOne} \n" +
+                                $"      0 = {ls.PetRatingsEqualZero} \n" +                                
+                                $" Total Pets Generated = {ls.PetsCount} \n");
 
             if (ls.HasManaCount == 0)
             {
@@ -572,7 +599,7 @@ namespace ACE.Server.Factories
             ls.SpellComponents = 0;
             ls.TotalItems = 0;
             ls.Scrolls = 0;
-            ls.Pets = 0;
+            ls.PetsCount = 0;
             ls.Spirits = 0;
             ls.Poitions = 0;
             ls.HealingKit = 0;
@@ -599,6 +626,7 @@ namespace ACE.Server.Factories
             ls.MissileWeapons = $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\n";
             ls.CasterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value \t MaxMana\n";
             ls.Armor = $"-----Armor----\n AL \t Value \t Type\n";
+            ls.Pets = $"-----Pet Devices----\n Dmg \t DmgR \t Crit \t CritD \t CDR \t CritR \t Total \n";
 
             return ls;
         }
