@@ -222,6 +222,16 @@ namespace ACE.Server.Factories
                                 ls.PetRatingsOverFifty++;
                             else if (totalRatings > 39)
                                 ls.PetRatingsOverForty++;
+                            else if (totalRatings > 29)
+                                ls.PetRatingsOverThirty++;
+                            else if (totalRatings > 19)
+                                ls.PetRatingsOverTwenty++;
+                            else if (totalRatings > 9)
+                                ls.PetRatingsOverTen++;
+                            else if (totalRatings > 0 && totalRatings < 2)
+                                ls.PetRatingsEqualOne++;                           
+                            else if (totalRatings <1)
+                                ls.PetRatingsEqualZero++;
                         }
                         else if (testItem.Name.Contains(potionA) || testItem.Name.Contains(potionB) || testItem.Name.Contains(potionC) || testItem.Name.Contains(potionD) || testItem.Name.Contains(potionE) || testItem.Name.Contains(potionF) || testItem.Name.Contains(potionG))
                             ls.Poitions++;
@@ -507,13 +517,18 @@ namespace ACE.Server.Factories
 
             // Pet Summons Stats
             displayStats += ($"\n Pets Ratings Stats \n ----\n " +
-                                $"Over 100 = {ls.PetRatingsOverHundred} \n" +
-                                $" Over  90 = {ls.PetRatingsOverNinety} \n" +
-                                $" Over  80 = {ls.PetRatingsOverEighty} \n" +
-                                $" Over  70 = {ls.PetRatingsOverSeventy} \n" +
-                                $" Over  60 = {ls.PetRatingsOverSixty} \n" +
-                                $" Over  50 = {ls.PetRatingsOverFifty} \n" +
-                                $" Over  40 = {ls.PetRatingsOverForty} \n" +
+                                $" 100+ = {ls.PetRatingsOverHundred} \n" +
+                                $"  90+ = {ls.PetRatingsOverNinety} \n" +
+                                $"  80+ = {ls.PetRatingsOverEighty} \n" +
+                                $"  70+ = {ls.PetRatingsOverSeventy} \n" +
+                                $"  60+ = {ls.PetRatingsOverSixty} \n" +
+                                $"  50+ = {ls.PetRatingsOverFifty} \n" +
+                                $"  40+ = {ls.PetRatingsOverForty} \n" +
+                                $"  30+ = {ls.PetRatingsOverThirty} \n" +
+                                $"  20+ = {ls.PetRatingsOverTwenty} \n" +
+                                $"  10+ = {ls.PetRatingsOverTen} \n" +
+                                $" Equal  1 = {ls.PetRatingsEqualOne} \n" +
+                                $" Equal  0 = {ls.PetRatingsEqualZero} \n" +                                
                                 $" Total Pets Generated = {ls.Pets} \n");
 
             if (ls.HasManaCount == 0)
@@ -564,6 +579,13 @@ namespace ACE.Server.Factories
             ls.DinnerWare = 0;
             ls.LevelEightComp = 0;
             ls.PetsTotalRatings = 0;
+            ls.PetRatingsEqualZero = 0;
+            ls.PetRatingsEqualOne = 0;
+            ls.PetRatingsOverTen = 0;
+            ls.PetRatingsOverTwenty = 0;
+            ls.PetRatingsOverThirty = 0;
+            ls.PetRatingsOverForty = 0;
+            ls.PetRatingsOverFifty = 0;
             ls.PetRatingsOverSixty = 0;
             ls.PetRatingsOverSeventy = 0;
             ls.PetRatingsOverEighty = 0;
