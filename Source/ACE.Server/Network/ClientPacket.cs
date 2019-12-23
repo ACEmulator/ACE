@@ -130,18 +130,20 @@ namespace ACE.Server.Network
             }
         }
 
-        private bool VerifyChecksum(uint issacXor)
+        private bool VerifyChecksum()
         {
-            return headerChecksum + (payloadChecksum ^ issacXor) == Header.Checksum;
+            return headerChecksum + payloadChecksum == Header.Checksum;
         }
 
         private bool VerifyEncryptedCRC(CryptoSystem fq, out string keyOffsetForLogging)
         {
             var verifiedKey = new Tuple<int, uint>(0, 0);
 
+            uint receivedKey = (Header.Checksum - headerChecksum) ^ payloadChecksum;
+
             Func<Tuple<int, uint>, bool> cbSearch = new Func<Tuple<int, uint>, bool>((pair) =>
             {
-                if (VerifyChecksum(pair.Item2))
+                if (receivedKey == pair.Item2)
                 {
                     verifiedKey = pair;
                     return true;
@@ -178,7 +180,7 @@ namespace ACE.Server.Network
             }
             else
             {
-                if (VerifyChecksum(0))
+                if (VerifyChecksum())
                 {
                     packetLog.DebugFormat("{0}", this);
                     return true;
