@@ -1410,7 +1410,7 @@ namespace ACE.Server.WorldObjects
             // this should only happen from EmoteType.CastSpell untargeted
             if (target == null && origin == null && velocity == null)
             {
-                targetLoc = Location.InFrontOf(1.0f);
+                targetLoc = Location.InFrontOf(4.0f);
                 targetLoc.LandblockId = new LandblockId(targetLoc.GetCell());
             }
 
@@ -1419,8 +1419,7 @@ namespace ACE.Server.WorldObjects
                 var matchIndoors = Location.Indoors == targetLoc.Indoors;
 
                 var globalDest = matchIndoors ? targetLoc.ToGlobal() : targetLoc.Pos;
-                if (target != null)
-                    globalDest.Z += target.Height / 2.0f;
+                globalDest.Z += (target?.Height ?? Height) / 2.0f;
 
                 var globalOrigin = GetSpellProjectileOrigin(this, spellProjectile, globalDest, matchIndoors);
 
@@ -1578,7 +1577,7 @@ namespace ACE.Server.WorldObjects
             foreach (var origin in projectileOrigins)
             {
                 spellProjectiles.Add(
-                    CreateSpellProjectile(spell, velocity: centerProjectile.Velocity, origin: origin)
+                    CreateSpellProjectile(spell, null, origin, centerProjectile.Velocity)
                 );
             }
 
@@ -1625,7 +1624,7 @@ namespace ACE.Server.WorldObjects
             Vector3 originOffset = GetRingOriginOffset(spell);
             Vector3 velocity = GetRingVelocity(spell);
 
-            var spellProjectiles = GetSpreadProjectiles(spell, originOffset: originOffset, velocity: velocity);
+            var spellProjectiles = GetSpreadProjectiles(spell, null, originOffset, velocity);
 
             return spellProjectiles;
         }
@@ -1670,7 +1669,7 @@ namespace ACE.Server.WorldObjects
             SpellProjectile centerProjectile;
             var casterLocalOrigin = RotatePosition(Location.Pos, Location.Rotation);
 
-            if (target != null) // Blast spells
+            if (target == null && originOffset == null && velocity == null) // Blast spells
             {
                 centerProjectile = CreateSpellProjectile(spell, target);
                 var localOrigin = RotatePosition(centerProjectile.Location.Pos, Location.Rotation);
