@@ -16,9 +16,9 @@ namespace ACE.Server.Factories
 {
       public static class LootGenerationFactory_Test
     {
-        public static string TestLootGen(int numItems, int tier)
+        public static string TestLootGen(int numItems, int tier, bool logstats, string displaytable)
         {
-            string dataToPrint = "Hits TestLootGen Class";
+            string displayHeader = $"\n LootFactory Simulator - Items\n ---------------------\n";
 
             Console.WriteLine($"Creating {numItems} items, that are in tier {tier}");
 
@@ -30,12 +30,15 @@ namespace ACE.Server.Factories
                 var testItem = LootGenerationFactory.CreateRandomLootObjects(tier, true);
                 ls = LootStats(testItem, ls);
             }
-            DisplayStats(ls);
-            return dataToPrint;
+            Console.WriteLine(displayHeader);
+            Console.WriteLine(DisplayStats(ls, displaytable));
+            displayHeader += $" A total of {ls.TotalItems} items were generated in Tier {tier}. \n";
+
+            return displayHeader;
         }
-        public static string TestLootGenMonster(uint wcid, int numberofcorpses)
+        public static string TestLootGenMonster(uint wcid, int numberofcorpses, bool logstats, string displaytable)
         {
-            string test = $"\n LootFactory Simulator\n ---------------------\n";
+            string displayHeader = $"\n LootFactory Simulator - Corpses\n ---------------------\n";
 
             var corpseContainer = new List<WorldObject>();
             var ls = SetLootStatsDefaults(new LootStats());
@@ -45,12 +48,12 @@ namespace ACE.Server.Factories
                 var deathTreasure = DatabaseManager.World.GetCachedDeathTreasure(wcid);
             if (deathTreasure != null)
             {
-               test += $" Loot profile {deathTreasure.Id} (a Tier {deathTreasure.Tier} profile) from DID {wcid} was used for creating {numberofcorpses} corpses. \n";
+               displayHeader += $" Loot profile {deathTreasure.Id} (a Tier {deathTreasure.Tier} profile) from DID {wcid} was used for creating {numberofcorpses} corpses. \n";
             }
             else
             {
-                test += $" DID {wcid} you specified is invalid. \n";
-                return test;
+                displayHeader += $" DID {wcid} you specified is invalid. \n";
+                return displayHeader;
             }
             for (int i = 0; i < numberofcorpses; i++)
             {
@@ -71,14 +74,13 @@ namespace ACE.Server.Factories
                 {
                 }
             }
-            DisplayStats(ls);
-            test += $" A total of {ls.TotalItems} unique items were generated. \n";
-            return test;
+            Console.WriteLine(displayHeader);
+            Console.WriteLine(DisplayStats(ls, displaytable));
+            displayHeader += $" A total of {ls.TotalItems} unique items were generated.";
+            return displayHeader;
         }
         public static LootStats LootStats(WorldObject wo, LootStats ls)
-        {
-            string dataToPrint = "";
-          
+        {          
             // Weapon Properties 
             double missileDefMod = 0.00f;
             double magicDefMod = 0.00f;
@@ -282,7 +284,6 @@ namespace ACE.Server.Factories
 
                         if (missileType == "Other")
                         {
-                            ////Console.WriteLine($"ItemType.Missile.Other Name={testItem.Name}");
                             ls.DinnerWare++;
                         }
                         else
@@ -430,46 +431,64 @@ namespace ACE.Server.Factories
             }
             return ls;
         }
-        private static string DisplayStats(LootStats ls)
+        private static string DisplayStats(LootStats ls, string displaytable)
         {
             string displayStats = "";
+            // Seeing if a table was specified to display
+            switch (displaytable)
+            {
+                case "melee":
+                    displayStats += ls.MeleeWeapons + $"\n";
+                    break;
+                case "missile":
+                    displayStats += ls.MissileWeapons + $"\n";
+                    break;
+                case "caster":
+                    displayStats += ls.CasterWeapons + $"\n";
+                    break;
+                case "armor":
+                    displayStats += ls.Armor + $"\n";
+                    break;
+                case "all":
+                    displayStats += ls.MeleeWeapons + $"\n";
+                    displayStats += ls.MissileWeapons + $"\n";
+                    displayStats += ls.CasterWeapons + $"\n";
+                    displayStats += ls.Armor + $"\n";
+                    break;
+                default:
+                    displayStats += $"\n No Table(s) was selected to display, showing only general statistics";
+                    break;
+            }
 
-            Console.WriteLine(ls.MeleeWeapons);
-            Console.WriteLine(ls.MissileWeapons);
-            Console.WriteLine(ls.CasterWeapons);
-            Console.WriteLine(ls.Armor);
+            displayStats += ($" \n Treasure Items \n " +
+                    $"---- \n " +
+                    $"Armor={ls.ArmorCount} \n " +
+                    $"MeleeWeapon={ls.MeleeWeaponCount} \n " +
+                    $"Caster={ls.CasterCount} \n " +
+                    $"MissileWeapon={ls.MissileWeaponCount} \n " +
+                    $"Jewelry={ls.JewelryCount} \n " +
+                    $"Gem={ls.GemCount} \n " +
+                    $"Clothing={ls.ClothingCount} \n " +
+                    $"\n Generic Items \n " +
+                    $"---- \n " +
+                    $"Food={ls.Food} \n " +
+                    $"SpellComps={ls.SpellComponents} \n " +
+                    $"Keys={ls.Key} \n " +
+                    $"ManaStones={ls.ManaStone} \n " +
+                    $"Pets={ls.Pets} \n " +
+                    $"EncapSpirits={ls.Spirits} \n " +
+                    $"Scrolls={ls.Scrolls} \n " +
+                    $"Potions={ls.Poitions} \n " +
+                    $"Healing Kits={ls.HealingKit} \n " +
+                    $"Level 8 Comps={ls.LevelEightComp} \n " +
+                    $"DinnerWare={ls.DinnerWare} \n " +
+                    $"Misc={ls.Misc} \n " +
+                    $"Other={ls.OtherCount} \n " +
+                    $"NullCount={ls.NullCount} \n " +
+                    $"Total Found={ls.ArmorCount + ls.MeleeWeaponCount + ls.CasterCount + ls.MissileWeaponCount + ls.JewelryCount + ls.GemCount + ls.ClothingCount + ls.Food + ls.SpellComponents + ls.Key + ls.ManaStone + ls.Pets + ls.Spirits + ls.Scrolls + ls.Poitions + ls.LevelEightComp + ls.HealingKit + ls.DinnerWare + ls.Misc + ls.OtherCount + ls.NullCount} \n " +
+                    $"TotalGenerated={ls.TotalItems}\n");
 
-            ////float totalItemsGenerated = ls.ArmorCount + ls.MeleeWeaponCount + ls.CasterCount + ls.MissileWeaponCount + ls.JewelryCount + ls.GemCount + ls.ClothingCount + ls.OtherCount;
-            Console.WriteLine($" \n Treasure Items \n " +
-                                $"---- \n " +
-                                $"Armor={ls.ArmorCount} \n " +
-                                $"MeleeWeapon={ls.MeleeWeaponCount} \n " +
-                                $"Caster={ls.CasterCount} \n " +
-                                $"MissileWeapon={ls.MissileWeaponCount} \n " +
-                                $"Jewelry={ls.JewelryCount} \n " +
-                                $"Gem={ls.GemCount} \n " +
-                                $"Clothing={ls.ClothingCount} \n " +
-                                $"\n Generic Items \n " +
-                                $"---- \n " +
-                                $"Food={ls.Food} \n " +
-                                $"SpellComps={ls.SpellComponents} \n " +
-                                $"Keys={ls.Key} \n " +
-                                $"ManaStones={ls.ManaStone} \n " +
-                                $"Pets={ls.Pets} \n " +
-                                $"EncapSpirits={ls.Spirits} \n " +
-                                $"Scrolls={ls.Scrolls} \n " +
-                                $"Potions={ls.Poitions} \n " +
-                                $"Healing Kits={ls.HealingKit} \n " +
-                                $"Level 8 Comps={ls.LevelEightComp} \n " +
-                                $"DinnerWare={ls.DinnerWare} \n " +
-                                $"Misc={ls.Misc} \n " +
-                                $"Other={ls.OtherCount} \n " +
-                                $"NullCount={ls.NullCount} \n " +
-                                $"Total Found={ls.ArmorCount + ls.MeleeWeaponCount+ls.CasterCount+ls.MissileWeaponCount+ls.JewelryCount+ls.GemCount+ls.ClothingCount+ls.Food+ls.SpellComponents+ls.Key+ls.ManaStone+ls.Pets+ls.Spirits+ls.Scrolls+ls.Poitions+ls.LevelEightComp+ls.HealingKit+ls.DinnerWare+ls.Misc+ls.OtherCount+ls.NullCount} \n " +
-                                $"TotalGenerated={ls.TotalItems}");                              
-
-            Console.WriteLine();
-            Console.WriteLine($" Drop Rates \n ----\n " +
+            displayStats += $"\n Drop Rates \n ----\n " +
                                 $"Armor= {ls.ArmorCount / ls.TotalItems * 100}% \n " +
                                 $"MeleeWeapon= {ls.MeleeWeaponCount / ls.TotalItems * 100}% \n " +
                                 $"Caster= {ls.CasterCount / ls.TotalItems * 100}% \n " +
@@ -477,13 +496,13 @@ namespace ACE.Server.Factories
                                 $"Jewelry= {ls.JewelryCount / ls.TotalItems * 100}% \n " +
                                 $"Gem= {ls.GemCount / ls.TotalItems * 100}% \n " +
                                 $"Clothing= {ls.ClothingCount / ls.TotalItems * 100}% \n " +
-                                $"Other={ls.OtherCount / ls.TotalItems * 100}% \n  ");
+                                $"Other={ls.OtherCount / ls.TotalItems * 100}% \n";
 
             // Armor Level Stats
-            Console.WriteLine($" Armor Levels \n ----\n MinAL = {ls.MinAL}\t {ls.MinALItem}\n MaxAL = {ls.MaxAL}\t {ls.MaxALItem}\n");
+            displayStats += $"\n Armor Levels \n ----\n MinAL = {ls.MinAL}\t {ls.MinALItem}\n MaxAL = {ls.MaxAL}\t {ls.MaxALItem}\n";
 
             // Pet Summons Stats
-            Console.WriteLine($" Pets Ratings Stats \n ----\n " +
+            displayStats += ($"\n Pets Ratings Stats \n ----\n " +
                                 $"Over 100 = {ls.PetRatingsOverHundred} \n" +
                                 $" Over  90 = {ls.PetRatingsOverNinety} \n" +
                                 $" Over  80 = {ls.PetRatingsOverEighty} \n" +
@@ -496,15 +515,14 @@ namespace ACE.Server.Factories
             }
             else
             {
-                Console.WriteLine($" Mana capacity across all items Min={ls.MinMana}  Max={ls.MaxMana} Avg Mana={ls.TotalMaxMana / ls.HasManaCount}");
+                displayStats += $"\n Mana capacity across all items Min={ls.MinMana}  Max={ls.MaxMana} Avg Mana={ls.TotalMaxMana / ls.HasManaCount}";
             }
             if (ls.MinItemsCreated == 100)
             { }
             else
             {
-                Console.WriteLine($" Min Items on a corpse = {ls.MinItemsCreated}, Max Items on coprse = {ls.MaxItemsCreated} \n");
+                displayStats += $"\n Min Items on a corpse = {ls.MinItemsCreated}, Max Items on coprse = {ls.MaxItemsCreated} \n";
             }
-
             return displayStats;
         }
         public static LootStats SetLootStatsDefaults(LootStats ls)

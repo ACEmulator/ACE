@@ -14,7 +14,9 @@ namespace ACE.Server.Command.Handlers
         public static void TestLootGenerator(Session session, params string[] parameters)
         {
             // This generates loot items and displays the drop rates of LootFactory
-
+            string logFile = "";
+            string displayTable = "";
+            bool logstats = false;
             // Switch for different options
             switch (parameters[0])
             {
@@ -27,7 +29,7 @@ namespace ACE.Server.Command.Handlers
 
             if (Int32.TryParse(parameters[0], out int numberItemsGenerate))
             {
-                Console.WriteLine("Number of items to generate " + numberItemsGenerate);
+                ////Console.WriteLine("Number of items to generate " + numberItemsGenerate);
             }
             else
             {
@@ -37,17 +39,52 @@ namespace ACE.Server.Command.Handlers
 
             if (Int32.TryParse(parameters[1], out int itemsTier))
             {
-                Console.WriteLine("tier is " + itemsTier);
+                ////Console.WriteLine("tier is " + itemsTier);
             }
             else
             {
                 Console.WriteLine("tier is not an integer");
                 return;
             }
-
-            Console.WriteLine(LootGenerationFactory_Test.TestLootGen(numberItemsGenerate, itemsTier));
-
-            Console.WriteLine($"Loot Generation of {numberItemsGenerate} items, in tier {itemsTier} complete.");
+            if (parameters.Length > 2)
+                displayTable = parameters?[2].ToLower();
+            switch (displayTable)
+            {
+                case "melee":
+                    logstats = true;
+                    break;
+                case "missile":
+                    logstats = true;
+                    break;
+                case "caster":
+                    logstats = true;
+                    break;
+                case "armor":
+                    logstats = true;
+                    break;
+                case "all":
+                    logstats = true;
+                    break;
+                default:
+                    break;
+            }
+            if (parameters.Length > 3)
+                logFile = parameters?[3].ToLower();
+            switch (logFile)
+            {
+                case "-log":
+                    logstats = true;
+                    break;
+                default:
+                    break;
+            }
+            if (itemsTier > 0 && itemsTier < 9)
+                Console.WriteLine(LootGenerationFactory_Test.TestLootGen(numberItemsGenerate, itemsTier, logstats, displayTable));
+            else
+            {
+                Console.WriteLine($"Tier must be 1-8.  You entered tier {itemsTier}, which does not exist!");
+                return;
+            }
         }
         [CommandHandler("testlootgencorpse", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Corpses for testing LootFactories", "<DID> <number corpses>")]
         public static void TestLootGeneratorCorpse(Session session, params string[] parameters)
@@ -55,6 +92,11 @@ namespace ACE.Server.Command.Handlers
             // This generates loot items and displays the drop rates of LootFactory
             int monsterDID = 0;
             int numberItemsGenerate = 0;
+            string logFile = "";
+            string displayTable = "";
+
+            bool logstats = false;
+
             // Switch for different options
             switch (parameters[0])
             {
@@ -82,7 +124,39 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($" LootFactory Simulator \n ---------------------\n Need to specify number of coprses\n");
                 return;
             }
-            Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(Convert.ToUInt32(monsterDID), numberItemsGenerate));
+            if (parameters.Length > 2)
+                displayTable = parameters?[2].ToLower();
+            switch (displayTable)
+            {
+                case "melee":
+                    logstats = true;
+                    break;
+                case "missile":
+                    logstats = true;
+                    break;
+                case "caster":
+                    logstats = true;
+                    break;
+                case "armor":
+                    logstats = true;
+                    break;
+                case "all":
+                    logstats = true;
+                    break;
+                default:
+                    break;
+            }
+            if (parameters.Length > 3)
+                logFile = parameters?[3].ToLower();
+            switch (logFile)
+            {
+                case "-log":
+                    logstats = true;
+                    break;
+                default:
+                    break;
+            }
+            Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(Convert.ToUInt32(monsterDID), numberItemsGenerate, logstats, displayTable));
         }
     }
 }
