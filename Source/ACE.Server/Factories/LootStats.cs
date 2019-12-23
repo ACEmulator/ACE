@@ -51,6 +51,8 @@ namespace ACE.Server.Factories
 
         // Pet Stats
         public int PetsTotalRatings { get; set; }
+        public int PetRatingsOverForty { get; set; }
+        public int PetRatingsOverFifty { get; set; }
         public int PetRatingsOverSixty { get; set; }
         public int PetRatingsOverSeventy { get; set; }
         public int PetRatingsOverEighty { get; set; }

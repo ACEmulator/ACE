@@ -218,6 +218,10 @@ namespace ACE.Server.Factories
                                 ls.PetRatingsOverSeventy++;
                             else if (totalRatings > 59)
                                 ls.PetRatingsOverSixty++;
+                            else if (totalRatings > 49)
+                                ls.PetRatingsOverFifty++;
+                            else if (totalRatings > 39)
+                                ls.PetRatingsOverForty++;
                         }
                         else if (testItem.Name.Contains(potionA) || testItem.Name.Contains(potionB) || testItem.Name.Contains(potionC) || testItem.Name.Contains(potionD) || testItem.Name.Contains(potionE) || testItem.Name.Contains(potionF) || testItem.Name.Contains(potionG))
                             ls.Poitions++;
@@ -508,6 +512,8 @@ namespace ACE.Server.Factories
                                 $" Over  80 = {ls.PetRatingsOverEighty} \n" +
                                 $" Over  70 = {ls.PetRatingsOverSeventy} \n" +
                                 $" Over  60 = {ls.PetRatingsOverSixty} \n" +
+                                $" Over  50 = {ls.PetRatingsOverFifty} \n" +
+                                $" Over  40 = {ls.PetRatingsOverForty} \n" +
                                 $" Total Pets Generated = {ls.Pets} \n");
 
             if (ls.HasManaCount == 0)
