@@ -200,12 +200,16 @@ namespace ACE.Server.Entity
                 {
                     var objects = Spawn();
 
-                    foreach (var obj in objects)
+                    if (objects != null)
                     {
-                        var woi = new WorldObjectInfo(obj);
+                        foreach (var obj in objects)
+                        {
+                            var woi = new WorldObjectInfo(obj);
 
-                        Spawned.Add(obj.Guid.Full, woi);
+                            Spawned.Add(obj.Guid.Full, woi);
+                        }
                     }
+
                 }
                 else
                 {
