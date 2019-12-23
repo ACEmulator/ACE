@@ -1419,7 +1419,10 @@ namespace ACE.Server.WorldObjects
                 var matchIndoors = Location.Indoors == targetLoc.Indoors;
 
                 var globalDest = matchIndoors ? targetLoc.ToGlobal() : targetLoc.Pos;
-                globalDest.Z += (target?.Height ?? Height) / 2.0f;
+                if (target != null)
+                    globalDest.Z += target.Height / 2.0f;
+                else
+                    globalDest.Z += Height * 2.0f / 3.0f;   // investigate
 
                 var globalOrigin = GetSpellProjectileOrigin(this, spellProjectile, globalDest, matchIndoors);
 
