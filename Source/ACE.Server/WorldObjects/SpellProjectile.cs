@@ -112,19 +112,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public enum ProjectileSpellType
-        {
-            Undef,
-            Bolt,
-            Blast,
-            Volley,
-            Streak,
-            Arc,
-            Ring,
-            Wall,
-            Strike
-        }
-
         public static ProjectileSpellType GetProjectileSpellType(uint spellID)
         {
             var spell = new Server.Entity.Spell(spellID);
@@ -734,6 +721,26 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
             PhysicsObj.set_active(true);
+        }
+
+        /// <summary>
+        /// Gets the speed of a projectile based on the distance to the target.
+        /// </summary>
+        public float CalculateSpeed(float distance)
+        {
+            var baseSpeed = MaximumVelocity ?? 0.0f;
+
+            // TODO:
+            // Speed seems to increase when target is moving away from the caster and decrease when
+            // the target is moving toward the caster. This still needs more research.
+
+            var speed = (float)((baseSpeed * .9998363f) - (baseSpeed * .62034f) / distance +
+                                   (baseSpeed * .44868f) / Math.Pow(distance, 2f) - (baseSpeed * .25256f)
+                                   / Math.Pow(distance, 3f));
+
+            speed = Math.Clamp(speed, 1, 50);
+
+            return speed;
         }
     }
 }

@@ -1124,12 +1124,12 @@ namespace ACE.Server.WorldObjects
         {
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
 
-            if (spellType == SpellProjectile.ProjectileSpellType.Ring)
+            if (spellType == ProjectileSpellType.Ring)
             {
                 var spellProjectiles = CreateRingProjectiles(spell);
                 LaunchSpellProjectiles(spellProjectiles);
             }
-            else if (spellType == SpellProjectile.ProjectileSpellType.Wall)
+            else if (spellType == ProjectileSpellType.Wall)
             {
                 var spellProjectiles = CreateWallProjectiles(spell);
                 LaunchSpellProjectiles(spellProjectiles);
@@ -1164,12 +1164,12 @@ namespace ACE.Server.WorldObjects
                 var sp = CreateSpellProjectile(spell, target);
                 LaunchSpellProjectile(sp);
             }
-            else if (spellType == SpellProjectile.ProjectileSpellType.Volley)
+            else if (spellType == ProjectileSpellType.Volley)
             {
                 var spellProjectiles = CreateVolleyProjectiles(target, spell);
                 LaunchSpellProjectiles(spellProjectiles);
             }
-            else if (spellType == SpellProjectile.ProjectileSpellType.Blast)
+            else if (spellType == ProjectileSpellType.Blast)
             {
                 var spellProjectiles = CreateBlastProjectiles(target, spell);
                 LaunchSpellProjectiles(spellProjectiles);
@@ -1260,22 +1260,22 @@ namespace ACE.Server.WorldObjects
                 var sp = CreateSpellProjectile(spell, target);
                 LaunchSpellProjectile(sp);
             }
-            else if (spellType == SpellProjectile.ProjectileSpellType.Volley)
+            else if (spellType == ProjectileSpellType.Volley)
             {
                 var spellProjectiles = CreateVolleyProjectiles(target, spell);
                 LaunchSpellProjectiles(spellProjectiles);
             }
-            else if (spellType == SpellProjectile.ProjectileSpellType.Blast)
+            else if (spellType == ProjectileSpellType.Blast)
             {
                 var spellProjectiles = CreateBlastProjectiles(target, spell);
                 LaunchSpellProjectiles(spellProjectiles);
             }
-            else if (spellType == SpellProjectile.ProjectileSpellType.Ring)
+            else if (spellType == ProjectileSpellType.Ring)
             {
                 var spellProjectiles = CreateRingProjectiles(spell);
                 LaunchSpellProjectiles(spellProjectiles);
             }
-            else if (spellType == SpellProjectile.ProjectileSpellType.Wall)
+            else if (spellType == ProjectileSpellType.Wall)
             {
                 var spellProjectiles = CreateWallProjectiles(spell);
                 LaunchSpellProjectiles(spellProjectiles);
@@ -1380,10 +1380,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private SpellProjectile CreateSpellProjectile(Spell spell, WorldObject target = null, uint lifeProjectileDamage = 0, Position origin = null, Vector3? velocity = null)
         {
-            SpellProjectile spellProjectile = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
+            var spellProjectile = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
             spellProjectile.Setup(spell.Id);
 
-            var useGravity = spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc;
+            var useGravity = spellProjectile.SpellType == ProjectileSpellType.Arc;
 
             if (target != null)
             {
@@ -1398,7 +1398,7 @@ namespace ACE.Server.WorldObjects
                 globalDest.Z += target.Height / 2.0f;
                 var globalOrigin = GetSpellProjectileOrigin(this, spellProjectile, globalDest, matchIndoors);
                 float dist = (globalDest - globalOrigin).Length();
-                float speed = GetSpellProjectileSpeed(spellProjectile.SpellType, dist);
+                float speed = spellProjectile.CalculateSpeed(dist);
 
                 spellProjectile.DistanceToTarget = dist;
                 Position localPos = matchIndoors ? Location.FromGlobal(globalOrigin) : new Position(Location.Cell, globalOrigin, Location.Rotation);
@@ -1494,7 +1494,7 @@ namespace ACE.Server.WorldObjects
         private Vector3 GetSpellProjectileOrigin(WorldObject caster, SpellProjectile spellProjectile, Vector3 globalDest, bool matchIndoors)
         {
             var globalOrigin = matchIndoors ? caster.Location.ToGlobal() : caster.Location.Pos;
-            if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
+            if (spellProjectile.SpellType == ProjectileSpellType.Arc)
                 globalOrigin.Z += caster.Height;
             else
                 globalOrigin.Z += caster.Height * 2.0f / 3.0f;
@@ -1507,36 +1507,7 @@ namespace ACE.Server.WorldObjects
             return globalOrigin;
         }
 
-        /// <summary>
-        /// Gets the speed of a projectile based on the distance to the target.
-        /// </summary>
-        private float GetSpellProjectileSpeed(SpellProjectile.ProjectileSpellType spellType, float distance)
-        {
-            float speed;
 
-            // TODO:
-            // Speed seems to increase when target is moving away from the caster and decrease when
-            // the target is moving toward the caster. This still needs more research.
-            switch (spellType)
-            {
-                case SpellProjectile.ProjectileSpellType.Bolt:
-                case SpellProjectile.ProjectileSpellType.Volley:
-                case SpellProjectile.ProjectileSpellType.Blast:
-                    speed = GetStationarySpeed(15f, distance);
-                    break;
-                case SpellProjectile.ProjectileSpellType.Streak:
-                    speed = GetStationarySpeed(45f, distance);
-                    break;
-                case SpellProjectile.ProjectileSpellType.Arc:
-                    speed = GetStationarySpeed(40f, distance);
-                    break;
-                default:
-                    speed = 15f;
-                    break;
-            }
-
-            return speed;
-        }
 
         /// <summary>
         /// Creates a list of volley spell projectiles ready for creation in the world.
@@ -1613,21 +1584,6 @@ namespace ACE.Server.WorldObjects
                 return new Vector3(0f, 0.82f, zOffset);
             if (spell.Id == 3818) // Curse of Raven Fury
                 return new Vector3(0f, PhysicsObj.GetRadius(), zOffset);
-
-            return Vector3.Zero;
-        }
-
-        /// <summary>
-        /// Gets the default velocity for a ring spell projectile.
-        /// </summary>
-        private Vector3 GetRingVelocity(Spell spell)
-        {
-            if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233)
-                return new Vector3(0, 2, 0);
-            if (spell.Id == 6320) // Ring of Skulls II
-                return new Vector3(0, 15, 0);
-            if (spell.Id == 3818) // Curse of Raven Fury
-                return new Vector3(0, 10, 0);
 
             return Vector3.Zero;
         }
@@ -1826,20 +1782,6 @@ namespace ACE.Server.WorldObjects
         private static Vector3 RotatePosition(Vector3 position, Quaternion rotation)
         {
             return Vector3.Transform(position, Quaternion.Inverse(rotation));
-        }
-
-        /// <summary>
-        /// Calculates the velocity of a spell projectile based on distance to the target (assuming it is stationary)
-        /// </summary>
-        private float GetStationarySpeed(float defaultSpeed, float distance)
-        {
-            var speed = (float)((defaultSpeed * .9998363f) - (defaultSpeed * .62034f) / distance +
-                                   (defaultSpeed * .44868f) / Math.Pow(distance, 2f) - (defaultSpeed * .25256f)
-                                   / Math.Pow(distance, 3f));
-
-            speed = Math.Clamp(speed, 1, 50);
-
-            return speed;
         }
 
         /// <summary>

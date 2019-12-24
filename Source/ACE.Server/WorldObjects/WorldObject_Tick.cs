@@ -322,7 +322,7 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine("Dist: " + dist);
                 //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
 
-                if (this is SpellProjectile spellProjectile && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
+                if (this is SpellProjectile spellProjectile && spellProjectile.SpellType == ProjectileSpellType.Ring)
                 {
                     var dist = spellProjectile.SpawnPos.DistanceTo(Location);
                     var maxRange = spellProjectile.Spell.BaseRangeConstant;
