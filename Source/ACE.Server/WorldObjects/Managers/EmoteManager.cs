@@ -758,8 +758,15 @@ namespace ACE.Server.WorldObjects.Managers
                     if (creature != null)
                     {
                         var newPos = new Position(creature.Home);
-                        newPos.Pos += new Vector3(emote.OriginX ?? 0, emote.OriginY ?? 0, emote.OriginZ ?? 0);      // uses relative offsets
-                        newPos.Rotation *= new Quaternion(emote.AnglesX ?? 0, emote.AnglesY ?? 0, emote.AnglesZ ?? 0, emote.AnglesW ?? 1);  // also relative?
+                        newPos.Pos += new Vector3(emote.OriginX ?? 0, emote.OriginY ?? 0, emote.OriginZ ?? 0);      // uses relative position
+
+                        // ensure valid quaternion - all 0s for example can lock up physics engine
+                        if (emote.AnglesX != null && emote.AnglesY != null && emote.AnglesZ != null && emote.AnglesW != null &&
+                           (emote.AnglesX != 0    || emote.AnglesY != 0    || emote.AnglesZ != 0    || emote.AnglesW != 0) )
+                        {
+                            // also relative, or absolute?
+                            newPos.Rotation *= new Quaternion(emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value);  
+                        }
 
                         if (Debug)
                             Console.WriteLine(newPos.ToLOCString());
