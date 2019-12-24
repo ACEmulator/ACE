@@ -1118,46 +1118,12 @@ namespace ACE.Server.WorldObjects
         }        
 
         /// <summary>
-        /// Launches a War Magic spell projectile (untargeted)
-        /// </summary>
-        public void WarMagic(Spell spell)
-        {
-            var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
-
-            if (spellType == ProjectileSpellType.Ring)
-            {
-                var spellProjectiles = CreateRingProjectiles(spell);
-                LaunchSpellProjectiles(spellProjectiles);
-            }
-            else if (spellType == ProjectileSpellType.Wall)
-            {
-                var spellProjectiles = CreateWallProjectiles(spell);
-                LaunchSpellProjectiles(spellProjectiles);
-            }
-            else
-            {
-                var player = this as Player;
-                if (player != null)
-                {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.None),
-                        new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                }
-            }
-        }
-
-        /// <summary>
         /// Launches a targeted War Magic spell projectile
         /// </summary>
         protected void WarMagic(WorldObject target, Spell spell)
         {
-            if (target == null)
-            {
-                // handle untargetted spells (Rolling Balls of Death)
-                WarMagic(spell);
-                return;
-            }
-
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
+
             // Bolt, Streak, Arc
             if (spell.NumProjectiles == 1)
             {
@@ -1172,6 +1138,16 @@ namespace ACE.Server.WorldObjects
             else if (spellType == ProjectileSpellType.Blast)
             {
                 var spellProjectiles = CreateBlastProjectiles(target, spell);
+                LaunchSpellProjectiles(spellProjectiles);
+            }
+            else if (spellType == ProjectileSpellType.Ring)
+            {
+                var spellProjectiles = CreateRingProjectiles(spell);
+                LaunchSpellProjectiles(spellProjectiles);
+            }
+            else if (spellType == ProjectileSpellType.Wall)
+            {
+                var spellProjectiles = CreateWallProjectiles(spell);
                 LaunchSpellProjectiles(spellProjectiles);
             }
             else
