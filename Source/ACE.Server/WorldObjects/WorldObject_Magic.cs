@@ -40,8 +40,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
-                return;
+            if (spell.IsSelfTargeted)
+            {
+                if (target != null && target != this)
+                    log.Warn($"{Name} ({Guid}).TryCastSpell({spell.Name}, {target?.Name} ({target?.Guid}), {caster?.Name} ({caster?.Guid}), {tryResist}, {showMsg}) - tried to cast self-targeted spell on another target, redirecting to self instead");
+
+                target = this;
+            }
+
+            //if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
+                //return;
 
             // spells only castable on creatures?
             /*var targetCreature = target as Creature;
@@ -631,14 +639,20 @@ namespace ACE.Server.WorldObjects
 
                     if (target != null)
                     {
-                        var lifeProjectile = CreateSpellProjectile(spell, target, damage);
+                        var lifeProjectile = CreateSpellProjectile(spell, target);
+                        lifeProjectile.LifeProjectileDamage = damage;
+
                         LaunchSpellProjectile(lifeProjectile);
 
                         // TODO: Implement volleys and blasts
                     }
                     else
                     {
-                        var spellProjectiles = CreateRingProjectiles(spell, damage);
+                        var spellProjectiles = CreateRingProjectiles(spell);
+
+                        foreach (var spellProjectile in spellProjectiles)
+                            spellProjectile.LifeProjectileDamage = damage;
+
                         LaunchSpellProjectiles(spellProjectiles);
                     }
 
@@ -1354,30 +1368,46 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates the Magic projectile spells for Life, War, and Void Magic
         /// </summary>
-        private SpellProjectile CreateSpellProjectile(Spell spell, WorldObject target = null, uint lifeProjectileDamage = 0, Position origin = null, Vector3? velocity = null)
+        private SpellProjectile CreateSpellProjectile(Spell spell, WorldObject target = null, Position origin = null, Vector3? velocity = null)
         {
+            if (Location == null)
+            {
+                log.Error($"{Name} ({Guid}).CreateSpellProjectile({spell.Name}, {target?.Name} ({target?.Guid}), {origin}, {velocity}) - Location is null");
+                return null;
+            }
+
             var spellProjectile = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
             spellProjectile.Setup(spell.Id);
 
             var useGravity = spellProjectile.SpellType == ProjectileSpellType.Arc;
 
-            if (target != null)
-            {
-                if (Location == null || target.Location == null)
-                {
-                    log.Error($"{Name}.CreateSpellProjectile({spell.Name}, {target.Name}): Location={Location}, target.Location={target.Location}");
-                    return null;
-                }
+            var targetLoc = target?.Location;
 
-                var matchIndoors = Location.Indoors == target.Location.Indoors;
-                var globalDest = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
-                globalDest.Z += target.Height / 2.0f;
+            // this should only happen from EmoteType.CastSpell untargeted
+            if (target == null && origin == null && velocity == null)
+            {
+                targetLoc = Location.InFrontOf(4.0f);
+                targetLoc.LandblockId = new LandblockId(targetLoc.GetCell());
+            }
+
+            if (targetLoc != null)
+            {
+                var matchIndoors = Location.Indoors == targetLoc.Indoors;
+
+                var globalDest = matchIndoors ? targetLoc.ToGlobal() : targetLoc.Pos;
+                if (target != null)
+                    globalDest.Z += target.Height / 2.0f;
+                else
+                    globalDest.Z += Height * 2.0f / 3.0f;   // investigate
+
                 var globalOrigin = GetSpellProjectileOrigin(this, spellProjectile, globalDest, matchIndoors);
-                float dist = (globalDest - globalOrigin).Length();
-                float speed = spellProjectile.CalculateSpeed(dist);
+
+                var dist = Vector3.Distance(globalOrigin, globalDest);
+                var speed = GetSpellProjectileSpeed(spell, dist);
 
                 spellProjectile.DistanceToTarget = dist;
-                Position localPos = matchIndoors ? Location.FromGlobal(globalOrigin) : new Position(Location.Cell, globalOrigin, Location.Rotation);
+
+                var localPos = matchIndoors ? Location.FromGlobal(globalOrigin) : new Position(Location.Cell, globalOrigin, Location.Rotation);
                 if (!matchIndoors)
                     localPos.LandblockId = new LandblockId(localPos.GetCell());
 
@@ -1402,7 +1432,6 @@ namespace ACE.Server.WorldObjects
                 spellProjectile.Location = origin;
             }
 
-            spellProjectile.LifeProjectileDamage = lifeProjectileDamage;
             spellProjectile.ProjectileSource = this;
             spellProjectile.ProjectileTarget = target;
             spellProjectile.SetProjectilePhysicsState(spellProjectile.ProjectileTarget, useGravity);
@@ -1483,7 +1512,57 @@ namespace ACE.Server.WorldObjects
             return globalOrigin;
         }
 
+        /// <summary>
+        /// This is a temporary structure
+        /// GetSpellProjectileSpeed() can easily be moved to SpellProjectile.CalculateSpeed()
+        /// however the current calling pattern for Rings and Walls needs some work still..
+        /// </summary>
+        private static Dictionary<uint, float> MaxVelocityCache = new Dictionary<uint, float>();
 
+        /// <summary>
+        /// Gets the speed of a projectile based on the distance to the target.
+        /// </summary>
+        private float GetSpellProjectileSpeed(Spell spell, float? distance = null)
+        {
+            var projectileWcid = spell.WeenieClassId;
+
+            if (!MaxVelocityCache.TryGetValue(projectileWcid, out var baseSpeed))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(projectileWcid);
+
+                if (weenie == null)
+                {
+                    log.Error($"{Name} ({Guid}).GetSpellProjectileSpeed({spell.Id} - {spell.Name}, {distance}): couldn't find weenie {projectileWcid}");
+                    return 0.0f;
+                }
+
+                var maxVelocity = weenie.WeeniePropertiesFloat.FirstOrDefault(i => i.Type == (ushort)PropertyFloat.MaximumVelocity);
+
+                if (maxVelocity == null)
+                {
+                    log.Error($"{Name} ({Guid}).GetSpellProjectileSpeed({spell.Id} - {spell.Name}, {distance}): couldn't find MaxVelocity for {weenie.ClassId} - {weenie.ClassName}");
+                    return 0.0f;
+                }
+
+                baseSpeed = (float)maxVelocity.Value;
+
+                MaxVelocityCache[projectileWcid] = baseSpeed;
+            }
+
+            // TODO:
+            // Speed seems to increase when target is moving away from the caster and decrease when
+            // the target is moving toward the caster. This still needs more research.
+            if (distance == null)
+                return baseSpeed;
+
+            var speed = (float)((baseSpeed * .9998363f) - (baseSpeed * .62034f) / distance +
+                                   (baseSpeed * .44868f) / Math.Pow(distance.Value, 2f) - (baseSpeed * .25256f)
+                                   / Math.Pow(distance.Value, 3f));
+
+            speed = Math.Clamp(speed, 1, 50);
+
+            return speed;
+        }
 
         /// <summary>
         /// Creates a list of volley spell projectiles ready for creation in the world.
@@ -1498,7 +1577,7 @@ namespace ACE.Server.WorldObjects
             foreach (var origin in projectileOrigins)
             {
                 spellProjectiles.Add(
-                    CreateSpellProjectile(spell, velocity: centerProjectile.Velocity, origin: origin)
+                    CreateSpellProjectile(spell, null, origin, centerProjectile.Velocity)
                 );
             }
 
@@ -1540,12 +1619,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates a list of ring spell projectiles ready for creation in the world.
         /// </summary>
-        private List<SpellProjectile> CreateRingProjectiles(Spell spell, uint lifeProjectileDamage = 0)
+        private List<SpellProjectile> CreateRingProjectiles(Spell spell)
         {
             Vector3 originOffset = GetRingOriginOffset(spell);
-            Vector3 velocity = GetRingVelocity(spell);
+            Vector3 velocity = Vector3.UnitY * GetSpellProjectileSpeed(spell);
 
-            var spellProjectiles = GetSpreadProjectiles(spell, originOffset: originOffset, velocity: velocity, lifeProjectileDamage: lifeProjectileDamage);
+            var spellProjectiles = GetSpreadProjectiles(spell, null, originOffset, velocity);
 
             return spellProjectiles;
         }
@@ -1567,7 +1646,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates a list of spell projectiles which use spread angles (Blast or Ring spells).
         /// </summary>
-        private List<SpellProjectile> GetSpreadProjectiles(Spell spell, WorldObject target = null, Vector3? originOffset = null, Vector3? velocity = null, uint lifeProjectileDamage = 0)
+        private List<SpellProjectile> GetSpreadProjectiles(Spell spell, WorldObject target = null, Vector3? originOffset = null, Vector3? velocity = null)
         {
             var spellProjectiles = new List<SpellProjectile>();
 
@@ -1575,7 +1654,7 @@ namespace ACE.Server.WorldObjects
             SpellProjectile centerProjectile;
             var casterLocalOrigin = RotatePosition(Location.Pos, Location.Rotation);
 
-            if (target != null) // Blast spells
+            if (originOffset == null && velocity == null) // Blast spells
             {
                 centerProjectile = CreateSpellProjectile(spell, target);
                 var localOrigin = RotatePosition(centerProjectile.Location.Pos, Location.Rotation);
@@ -1601,7 +1680,7 @@ namespace ACE.Server.WorldObjects
                     Location.Rotation));
                 projOrigin.LandblockId = new LandblockId(projOrigin.GetCell());
                 var globalVelocity = Vector3.Transform(velocity.Value, Location.Rotation);
-                centerProjectile = CreateSpellProjectile(spell, origin: projOrigin, velocity: globalVelocity, lifeProjectileDamage: lifeProjectileDamage);
+                centerProjectile = CreateSpellProjectile(spell, null, projOrigin, globalVelocity);
             }
 
             spellProjectiles.Add(centerProjectile);
@@ -1635,10 +1714,8 @@ namespace ACE.Server.WorldObjects
                 projOrigin.PositionZ = centerProjectile.Location.PositionZ;
                 var localProjVelocity = Vector3.Transform(velocity.Value, localProjRotation);
                 var globalProjVelocity = Vector3.Transform(localProjVelocity, this.Location.Rotation);
-                spellProjectiles.Add(
-                    CreateSpellProjectile(spell, origin: projOrigin,
-                    velocity: globalProjVelocity, lifeProjectileDamage: lifeProjectileDamage
-                ));
+                var spellProjectile = CreateSpellProjectile(spell, null, projOrigin, globalProjVelocity);
+                spellProjectiles.Add(spellProjectile);
             }
 
             return spellProjectiles;
@@ -1651,7 +1728,7 @@ namespace ACE.Server.WorldObjects
         {
             var spellProjectiles = new List<SpellProjectile>();
             var projectileOrigins = GetWallProjectileOrigins(spell);
-            var velocity = GetWallProjectileVelocity(spell);
+            var velocity = Vector3.Transform(Vector3.UnitY * GetSpellProjectileSpeed(spell), Location.Rotation);
 
             foreach (var origin in projectileOrigins)
             {
@@ -1736,22 +1813,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Get the velocity for wall spell projectiles.
-        /// </summary>
-        private Vector3 GetWallProjectileVelocity(Spell spell)
-        {
-            // The Slithering Flames spell does in fact slither slower than other wall spells
-            var velocity = (spell.Id == 1841) ? new Vector3(0, 3, 0) : new Vector3(0, 4, 0);
-
-            if (spell.Name.Equals("Rolling Death"))
-                velocity = new Vector3(0, 2, 0);
-
-            velocity = Vector3.Transform(velocity, Location.Rotation);
-
-            return velocity;
-        }
-
-        /// <summary>
         /// Rotates a position by the inverse of its rotation.
         /// Useful for getting the local space coordinates of a position.
         /// </summary>
@@ -1766,7 +1827,7 @@ namespace ACE.Server.WorldObjects
         private Vector3 GetSpellProjectileVelocity(Vector3 origin, WorldObject target, Vector3 dest, float speed, bool useGravity, out float time)
         {
             var targetVelocity = Vector3.Zero;
-            if (!useGravity)    // no target tracking for arc spells
+            if (target != null && !useGravity)    // no target tracking for arc spells
                 targetVelocity = target.PhysicsObj.CachedVelocity;      // TODO: change to instantaneous velocity?
 
             var gravity = useGravity ? PhysicsGlobals.Gravity : 0;
