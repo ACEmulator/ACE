@@ -92,8 +92,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (spellId == 3818)
                 {
-                    PhysicsObj.DefaultScript = PlayScript.Explode;
-                    PhysicsObj.DefaultScriptIntensity = 1.0f;
+                    DefaultScriptId = (uint)PlayScript.Explode;
+                    DefaultScriptIntensity = 1.0f;
                     ScriptedCollision = true;
                 }
                 else
