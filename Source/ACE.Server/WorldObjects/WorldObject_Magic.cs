@@ -1449,8 +1449,6 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
-            Console.WriteLine($"Created spell projectile @ {spellProjectile.Location.Pos} w/ velocity {spellProjectile.Velocity}");
-
             return spellProjectile;
         }
 
@@ -1474,11 +1472,8 @@ namespace ACE.Server.WorldObjects
             LandblockManager.AddObject(sp);
             sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(sp.SpellType)));
 
-            var rs = PhysicsObj.GetRadius() + sp.PhysicsObj.GetRadius() + PhysicsGlobals.EPSILON;
-            Console.WriteLine($"radsum: {rs}");
-
             //if (Location.SquaredDistanceTo(sp.ProjectileTarget.Location) < 4.0f)
-            sp.Info = new SpellProjectileInfo(sp);
+                sp.Info = new SpellProjectileInfo(sp);
 
             if (sp.ProjectileTarget == null || sp.PhysicsObj == null || sp.ProjectileTarget.PhysicsObj == null)
                 return;
@@ -1486,10 +1481,7 @@ namespace ACE.Server.WorldObjects
             // Detonate point-blank projectiles immediately
             var radsum = sp.ProjectileTarget.PhysicsObj.GetRadius() + sp.PhysicsObj.GetRadius();
             if (sp.DistanceToTarget < radsum)
-            {
-                Console.WriteLine($"Point-blank detonation");
                 sp.OnCollideObject(sp.ProjectileTarget);
-            }
         }
 
         /// <summary>
@@ -1611,9 +1603,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private List<SpellProjectile> CreateVolleyProjectiles(WorldObject target, Spell spell)
         {
-            var rad = GetProjectileRadius(spell);
-            //Console.WriteLine($"Radius: {rad}");
-
             var spellProjectiles = new List<SpellProjectile>();
             var centerProjectile = CreateSpellProjectile(spell, target);
             spellProjectiles.Add(centerProjectile);
@@ -1689,7 +1678,7 @@ namespace ACE.Server.WorldObjects
             var yOffset = PhysicsObj.GetRadius() + GetProjectileRadius(spell) + PhysicsGlobals.EPSILON;
 
             var offset = new Vector3(0, yOffset, zOffset);
-            Console.WriteLine($"Offset: {offset}");
+            //Console.WriteLine($"Offset: {offset}");
 
             return offset;
         }
@@ -1815,7 +1804,10 @@ namespace ACE.Server.WorldObjects
                         if (i >= spell.NumProjectiles)
                             break;
 
-                        // a good test case for this is 3859 - Pumpkin Wall
+                        // good test cases:
+                        // 2934 - Tusker Fists
+                        // 3859 - Pumpkin Wall
+
                         var curOffset = baseOffset;
                         if (!oddRow)
                             curOffset.X += spell.Padding.X * 0.5f + radius;
@@ -1828,7 +1820,7 @@ namespace ACE.Server.WorldObjects
                             offset.X *= -1.0f;
 
                         offsetList.Add(offset);
-                        Console.WriteLine(offset);
+                        //Console.WriteLine(offset);
                         i++;
                     }
 
