@@ -1241,9 +1241,11 @@ namespace ACE.Server.WorldObjects
                 return Vector3.Transform(Vector3.UnitY, Location.Rotation) * speed;
             }
 
-            var crossLandblock = Location.Landblock != target.Location.Landblock;
+            var strikeSpell = spellType == ProjectileSpellType.Strike;
 
-            var startPos = crossLandblock ? Location.ToGlobal(false) : Location.Pos;
+            var crossLandblock = !strikeSpell && Location.Landblock != target.Location.Landblock;
+
+            var startPos = strikeSpell ? target.Location.Pos : crossLandblock ? Location.ToGlobal(false) : Location.Pos;
             startPos += Vector3.Transform(origin, Location.Rotation);
 
             var endPos = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
@@ -1279,7 +1281,7 @@ namespace ACE.Server.WorldObjects
                 var sp = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
                 sp.Setup(spell, spellType);
 
-                sp.Location = new Position(Location);
+                sp.Location = target != null && spellType == ProjectileSpellType.Strike ? new Position(target.Location) : new Position(Location);
                 sp.Location.Pos += Vector3.Transform(origin, Location.Rotation);
 
                 sp.Velocity = velocity;
