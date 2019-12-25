@@ -1228,6 +1228,8 @@ namespace ACE.Server.WorldObjects
             return spell.SpreadAngle / (spell.NumProjectiles - 1);
         }
 
+        public static readonly Quaternion OneEighty = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.PI);
+
         /// <summary>
         /// Calculates the spell projectile velocity in global space
         /// </summary>
@@ -1246,7 +1248,7 @@ namespace ACE.Server.WorldObjects
             var crossLandblock = !strikeSpell && Location.Landblock != target.Location.Landblock;
 
             var startPos = strikeSpell ? target.Location.Pos : crossLandblock ? Location.ToGlobal(false) : Location.Pos;
-            startPos += Vector3.Transform(origin, Location.Rotation);
+            startPos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
 
             var endPos = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
             endPos.Z += target.Height * 0.5f;
@@ -1274,6 +1276,8 @@ namespace ACE.Server.WorldObjects
         {
             var useGravity = spellType == ProjectileSpellType.Arc;
 
+            var strikeSpell = target != null && spellType == ProjectileSpellType.Strike;
+
             var spellProjectiles = new List<SpellProjectile>();
 
             foreach (var origin in origins)
@@ -1281,8 +1285,8 @@ namespace ACE.Server.WorldObjects
                 var sp = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
                 sp.Setup(spell, spellType);
 
-                sp.Location = target != null && spellType == ProjectileSpellType.Strike ? new Position(target.Location) : new Position(Location);
-                sp.Location.Pos += Vector3.Transform(origin, Location.Rotation);
+                sp.Location = strikeSpell ? new Position(target.Location) : new Position(Location);
+                sp.Location.Pos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
 
                 sp.Velocity = velocity;
 
