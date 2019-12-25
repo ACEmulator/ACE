@@ -1283,6 +1283,13 @@ namespace ACE.Server.WorldObjects
             foreach (var origin in origins)
             {
                 var sp = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
+
+                if (sp == null)
+                {
+                    log.Error($"{Name} ({Guid}).LaunchSpellProjectiles({spell.Id} - {spell.Name}) - failed to create spell projectile from wcid {spell.Wcid}");
+                    break;
+                }
+
                 sp.Setup(spell, spellType);
 
                 sp.Location = strikeSpell ? new Position(target.Location) : new Position(Location);
