@@ -1543,7 +1543,7 @@ namespace ACE.Server.WorldObjects
 
             var scale = weenie.WeeniePropertiesFloat.FirstOrDefault(i => i.Type == (ushort)PropertyFloat.DefaultScale)?.Value ?? 1.0f;
 
-            return ProjectileRadiusCache[projectileWcid] = (float)(setup.Radius * scale);
+            return ProjectileRadiusCache[projectileWcid] = (float)(setup.Spheres[0].Radius * scale);
         }
 
         /// <summary>
@@ -1624,6 +1624,7 @@ namespace ACE.Server.WorldObjects
         private List<Position> GetVolleyProjectileOrigins(Spell spell, SpellProjectile centerProjectile)
         {
             var radius = GetProjectileRadius(spell);
+            //Console.WriteLine($"Radius: {radius}, Padding: {spell.Padding.X}");
 
             var origins = new List<Position>();
 
@@ -1790,6 +1791,7 @@ namespace ACE.Server.WorldObjects
 
             var baseOffset = spell.CreateOffset;
 
+            baseOffset.Y += PhysicsObj.GetRadius() * 2.0f - spell.Padding.Y * 0.1f;
             baseOffset.Z += Height * 2.0f / 3.0f;
 
             var i = 0;
@@ -1812,7 +1814,7 @@ namespace ACE.Server.WorldObjects
                         if (!oddRow)
                             curOffset.X += spell.Padding.X * 0.5f + radius;
 
-                        var xFactor = oddRow ? (float)Math.Ceiling(x / 2.0f) : x > 1 ? (float)Math.Floor(x / 2.0f) : 0;
+                        var xFactor = oddRow ? (float)Math.Ceiling(x * 0.5f) : x > 1 ? (float)Math.Floor(x * 0.5f) : 0;
 
                         var offset = curOffset + (vRadius * 2.0f + spell.Padding) * new Vector3(xFactor, y, z);
 
