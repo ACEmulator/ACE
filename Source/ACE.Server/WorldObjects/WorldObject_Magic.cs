@@ -1791,7 +1791,7 @@ namespace ACE.Server.WorldObjects
 
             var baseOffset = spell.CreateOffset;
 
-            baseOffset.Y += PhysicsObj.GetRadius() * 2.0f - spell.Padding.Y * 0.1f;
+            baseOffset.Y += PhysicsObj.GetPhysicsRadius() * 2.0f + radius * 2.0f;
             baseOffset.Z += Height * 2.0f / 3.0f;
 
             var i = 0;
