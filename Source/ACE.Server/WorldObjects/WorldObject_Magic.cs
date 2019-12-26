@@ -1144,6 +1144,8 @@ namespace ACE.Server.WorldObjects
             var origins = new List<Vector3>();
 
             var radius = GetProjectileRadius(spell);
+            //Console.WriteLine($"Radius: {radius}");
+
             var vRadius = Vector3.One * radius;
 
             var baseOffset = spell.CreateOffset;
@@ -1168,7 +1170,7 @@ namespace ACE.Server.WorldObjects
                         if (i >= spell.NumProjectiles)
                             break;
 
-                        var curOffset = baseOffset;
+                        var curOffset = baseOffset + spell.Peturbation * i;
 
                         if (!oddRow && spell.SpreadAngle == 0)
                             curOffset.X += spell.Padding.X * 0.5f + radius;
@@ -1185,8 +1187,8 @@ namespace ACE.Server.WorldObjects
                         else
                         {
                             // get the rotation matrix to apply to x
-                            var numSteps = oddRow ? (x + 1) / 2 : (x / 2) + 1;
-                            if (x % 2 == (oddRow ? 0 : 1))
+                            var numSteps = (x + 1) / 2;
+                            if (x % 2 == 0)
                                 numSteps *= -1;
 
                             //Console.WriteLine($"NumSteps: {numSteps}");
