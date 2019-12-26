@@ -5,7 +5,6 @@ namespace ACE.Database.Models.Shard
 {
     public partial class BiotaPropertiesAttribute
     {
-        public uint Id { get; set; }
         public uint ObjectId { get; set; }
         public ushort Type { get; set; }
         public uint InitLevel { get; set; }
