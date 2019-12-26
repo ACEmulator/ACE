@@ -258,7 +258,7 @@ namespace ACE.Server.Network
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
             NetworkStatistics.C2S_Packets_Aggregate_Increment();
 
-            if (!packet.VerifyCRC(ConnectionData.CryptoClient, true))
+            if (!packet.VerifyCRC(ConnectionData.CryptoClient))
             {
                 return;
             }
@@ -823,6 +823,8 @@ namespace ACE.Server.Network
             cachedPackets.Clear();
 
             packetQueue.Clear();
+
+            ConnectionData.CryptoClient.ReleaseResources();
         }
     }
 }
