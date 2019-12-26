@@ -570,5 +570,40 @@ namespace ACE.Server.Command.Handlers.Processors
 
             CommandHandlerHelper.WriteOutputInfo(session, $"Exported {sql_folder}{sql_filename}");
         }
+
+        [CommandHandler("clearcache", AccessLevel.Developer, CommandHandlerFlag.None, "Clears the various database caches. This enables live editing of the database information")]
+        public static void HandleClearCache(Session session, params string[] parameters)
+        {
+            var mode = CacheType.All;
+            if (parameters.Length > 0)
+            {
+                if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Weenie;
+                if (parameters[0].Contains("spell", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Spell;
+            }
+
+            if (mode.HasFlag(CacheType.Weenie))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
+                DatabaseManager.World.ClearWeenieCache();
+            }
+
+            if (mode.HasFlag(CacheType.Spell))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing spell cache");
+                DatabaseManager.World.ClearSpellCache();
+                WorldObject.ClearSpellCache();
+            }
+        }
+
+        [Flags]
+        public enum CacheType
+        {
+            None   = 0x0,
+            Weenie = 0x1,
+            Spell  = 0x2,
+            All    = 0xFFFF
+        };
     }
 }
