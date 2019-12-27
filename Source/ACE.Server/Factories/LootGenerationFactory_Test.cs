@@ -198,6 +198,22 @@ namespace ACE.Server.Factories
                             int critDamage = 0;
                             int critDamageResist = 0;
                             int critResist = 0;
+                            int petLevel = 0;
+
+                            if (petDevice.UseRequiresSkillLevel == 570)
+                                petLevel = 200;
+                            else if (petDevice.UseRequiresSkillLevel == 530)
+                                petLevel = 180;
+                            else if (petDevice.UseRequiresSkillLevel == 475)
+                                petLevel = 150;
+                            else if (petDevice.UseRequiresSkillLevel == 430)
+                                petLevel = 125;
+                            else if (petDevice.UseRequiresSkillLevel == 400)
+                                petLevel = 100;
+                            else if (petDevice.UseRequiresSkillLevel == 370)
+                                petLevel = 80;
+                            else if (petDevice.UseRequiresSkillLevel == 310)
+                                petLevel = 50;
 
                             if (petDevice.GearDamage != null)
                             {
@@ -229,7 +245,7 @@ namespace ACE.Server.Factories
                                 totalRatings += petDevice.GearCritResist.Value;
                                 critResist = petDevice.GearCritResist.Value;
                             }
-                            ls.Pets += $" {damage}\t {damageResist}\t {crit}\t {critDamage}\t {critDamageResist}\t {critResist}\t {totalRatings}\n";
+                            ls.Pets += $" {petLevel}\t {damage}\t {damageResist}\t {crit}\t {critDamage}\t {critDamageResist}\t {critResist}\t {totalRatings}\n";
 
                             if (totalRatings > 99)
                                 ls.PetRatingsOverHundred++;
@@ -626,7 +642,7 @@ namespace ACE.Server.Factories
             ls.MissileWeapons = $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\n";
             ls.CasterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value \t MaxMana\n";
             ls.Armor = $"-----Armor----\n AL \t Value \t Type\n";
-            ls.Pets = $"-----Pet Devices----\n Dmg \t DmgR \t Crit \t CritD \t CDR \t CritR \t Total \n";
+            ls.Pets = $"-----Pet Devices----\n Level \t Dmg \t DmgR \t Crit \t CritD \t CDR \t CritR \t Total \n";
 
             return ls;
         }
