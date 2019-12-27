@@ -52,11 +52,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Perfroms additional set up of the spell projectile based on the spell id or its derived type.
         /// </summary>
-        /// <param name="spellId"></param>
-        public void Setup(uint spellId)
+        public void Setup(Server.Entity.Spell spell, ProjectileSpellType spellType)
         {
-            Spell = new Server.Entity.Spell(spellId);
-            SpellType = GetProjectileSpellType(spellId);
+            Spell = spell;
+            SpellType = spellType;
 
             InitPhysicsObj();
 
@@ -65,9 +64,10 @@ namespace ACE.Server.WorldObjects
             Missile = true;
             AlignPath = true;
             PathClipped = true;
+            IgnoreCollisions = false;
+
             if (!Spell.Name.Equals("Rolling Death"))
                 Ethereal = false;
-            IgnoreCollisions = false;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
@@ -84,13 +84,14 @@ namespace ACE.Server.WorldObjects
             }
 
             AllowEdgeSlide = false;
+
             // No need to send an ObjScale of 1.0f over the wire since that is the default value
             if (ObjScale == 1.0f)
                 ObjScale = null;
 
             if (SpellType == ProjectileSpellType.Ring)
             {
-                if (spellId == 3818)
+                if (spell.Id == 3818)
                 {
                     DefaultScriptId = (uint)PlayScript.Explode;
                     DefaultScriptIntensity = 1.0f;
@@ -102,7 +103,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
                 
-
             // Whirling Blade spells get omega values and "align path" turned off which
             // creates the nice swirling animation
             if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
@@ -110,19 +110,6 @@ namespace ACE.Server.WorldObjects
                 AlignPath = false;
                 Omega = new Vector3(12.56637f, 0, 0);
             }
-        }
-
-        public enum ProjectileSpellType
-        {
-            Undef,
-            Bolt,
-            Blast,
-            Volley,
-            Streak,
-            Arc,
-            Ring,
-            Wall,
-            Strike
         }
 
         public static ProjectileSpellType GetProjectileSpellType(uint spellID)
