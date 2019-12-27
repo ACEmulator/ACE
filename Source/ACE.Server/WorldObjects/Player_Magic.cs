@@ -511,7 +511,7 @@ namespace ACE.Server.WorldObjects
                         angle = Math.Abs(GetAngle_Physics2(target));
                 }
 
-                if (angle > MaxAngle)
+                if (angle > PropertyManager.GetDouble("spellcast_max_angle").Item)
                 {
                     if (RecordCast.Enabled)
                         RecordCast.Log($"DoCastSpell(angle={angle})");
