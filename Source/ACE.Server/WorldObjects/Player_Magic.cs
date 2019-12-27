@@ -522,7 +522,7 @@ namespace ACE.Server.WorldObjects
             if (RecordCast.Enabled)
                 RecordCast.Log($"DoCastSpell(angle={angle})");
 
-            return angle <= MaxAngle;
+            return angle <= PropertyManager.GetDouble("spellcast_max_angle").Item;
         }
 
 
