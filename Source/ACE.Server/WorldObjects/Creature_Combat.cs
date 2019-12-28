@@ -544,35 +544,10 @@ namespace ACE.Server.WorldObjects
         {
             var quadrant = GetRelativeDir(target);
 
-            var splatterDir = quadrant.HasFlag(Quadrant.Front) ? "Front" : "Back";
-            splatterDir += quadrant.HasFlag(Quadrant.Left) ? "Left" : "Right";
+            var splatterDir = quadrant.HasFlag(Quadrant.Left) ? "Left" : "Right";
+            splatterDir += quadrant.HasFlag(Quadrant.Front) ? "Front" : "Back";
 
             return splatterDir;
-        }
-
-        /// <summary>
-        /// Returns the relative direction of this creature in relation to target
-        /// expressed as a quadrant: Front/Back, Left/Right
-        /// </summary>
-        public Quadrant GetRelativeDir(WorldObject target)
-        {
-            var sourcePos = new Vector3(Location.PositionX, Location.PositionY, 0);
-            var targetPos = new Vector3(target.Location.PositionX, target.Location.PositionY, 0);
-            var targetDir = new AFrame(target.Location.Pos, target.Location.Rotation).get_vector_heading();
-
-            targetDir.Z = 0;
-            targetDir = Vector3.Normalize(targetDir);
-
-            var sourceToTarget = Vector3.Normalize(sourcePos - targetPos);
-
-            var dir = Vector3.Dot(sourceToTarget, targetDir);
-            var angle = Vector3.Cross(sourceToTarget, targetDir);
-
-            var quadrant = dir >= 0 ? Quadrant.Front : Quadrant.Back;
-
-            quadrant |= angle.Z <= 0 ? Quadrant.Left : Quadrant.Right;
-
-            return quadrant;
         }
 
         public double GetLifeResistance(DamageType damageType)

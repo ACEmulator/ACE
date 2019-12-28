@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
+using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
@@ -355,6 +357,20 @@ namespace ACE.Server.WorldObjects
         {
             get => (CombatStyle)(GetProperty(PropertyInt.AiAllowedCombatStyle) ?? 0);
             set { if (value == 0) RemoveProperty(PropertyInt.AiAllowedCombatStyle); else SetProperty(PropertyInt.AiAllowedCombatStyle, (int)value); }
+        }
+
+        private static readonly Dictionary<uint, BodyPartTable> BPTableCache = new Dictionary<uint, BodyPartTable>();
+
+        public static BodyPartTable GetBodyParts(uint wcid)
+        {
+            if (!BPTableCache.TryGetValue(wcid, out var bpTable))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+
+                bpTable = new BodyPartTable(weenie);
+                BPTableCache[wcid] = bpTable;
+            }
+            return bpTable;
         }
     }
 }
