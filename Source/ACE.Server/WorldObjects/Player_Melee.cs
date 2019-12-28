@@ -299,6 +299,8 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
+        public MotionCommand PrevMotionCommand;
+
         /// <summary>
         /// Returns the melee swing animation - based on weapon,
         /// current stance, power bar, and attack height
@@ -321,7 +323,8 @@ namespace ACE.Server.WorldObjects
                 AttackType = PowerLevel > KickThreshold ? AttackType.Kick : AttackType.Punch;
             }
 
-            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType);
+            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType, PrevMotionCommand);
+            PrevMotionCommand = motion;
 
             //Console.WriteLine($"{motion}");
 
