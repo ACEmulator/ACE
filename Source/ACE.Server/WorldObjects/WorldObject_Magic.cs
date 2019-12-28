@@ -42,14 +42,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (spell.IsSelfTargeted)
-            {
-                if (target != null && target != this)
-                    log.Warn($"{Name} ({Guid}).TryCastSpell({spell.Name}, {target?.Name} ({target?.Guid}), {caster?.Name} ({caster?.Guid}), {tryResist}, {showMsg}) - tried to cast self-targeted spell on another target, redirecting to self instead");
-
-                target = this;
-            }
-
             //if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
                 //return;
 
