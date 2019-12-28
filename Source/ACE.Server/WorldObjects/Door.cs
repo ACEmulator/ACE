@@ -83,7 +83,7 @@ namespace ACE.Server.WorldObjects
         {
             if (activator is Player player)
             {
-                var behind = player != null && player.GetSplatterDir(this).Contains("Back");
+                var behind = player != null && player.GetRelativeDir(this).HasFlag(Quadrant.Back);
 
                 if (IsOpen && !behind) // not sure if retail made this distinction, but for the doors tested, it seemed more logical given the text shown
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
         public override void ActOnUse(WorldObject worldObject)
         {
             var player = worldObject as Player;
-            var behind = player != null && player.GetSplatterDir(this).Contains("Back");
+            var behind = player != null && player.GetRelativeDir(this).HasFlag(Quadrant.Back);
 
             if (!IsLocked || behind)
             {
