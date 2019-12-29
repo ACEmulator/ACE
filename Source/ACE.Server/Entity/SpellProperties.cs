@@ -325,7 +325,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Boost + BoostVariance = the maximum amount of vital boost from a life spell
         /// </summary>
-        public int BoostVariance { get => _spell.Boost ?? 0; }
+        public int BoostVariance { get => _spell.BoostVariance ?? 0; }
 
         public int MaxBoost { get => Boost + BoostVariance; }
 
