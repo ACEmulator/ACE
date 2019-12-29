@@ -24,6 +24,12 @@ namespace ACE.Server.WorldObjects
         public float DistanceToTarget { get; set; }
         public uint LifeProjectileDamage { get; set; }
 
+        /// <summary>
+        /// If a spell projectile has been cast from a built-in weapon spell,
+        /// this will point to the item instead of the Creature
+        /// </summary>
+        public WorldObject Caster { get; set; }
+
         public SpellProjectileInfo Info { get; set; }
 
         /// <summary>
@@ -283,7 +289,7 @@ namespace ACE.Server.WorldObjects
             var critDefended = false;
             var overpower = false;
 
-            var damage = CalculateDamage(ProjectileSource, target, ref critical, ref critDefended, ref overpower);
+            var damage = CalculateDamage(ProjectileSource, Caster, target, ref critical, ref critDefended, ref overpower);
 
             // null damage -> target resisted; damage of -1 -> target already dead
             if (damage != null && damage != -1)
@@ -324,7 +330,7 @@ namespace ACE.Server.WorldObjects
         /// Calculates the damage for a spell projectile
         /// Used by war magic, void magic, and life magic projectiles
         /// </summary>
-        public double? CalculateDamage(WorldObject source, Creature target, ref bool criticalHit, ref bool critDefended, ref bool overpower)
+        public double? CalculateDamage(WorldObject source, WorldObject caster, Creature target, ref bool criticalHit, ref bool critDefended, ref bool overpower)
         {
             var sourcePlayer = source as Player;
             var targetPlayer = target as Player;
@@ -354,7 +360,7 @@ namespace ACE.Server.WorldObjects
             if (sourceCreature?.Overpower != null)
                 overpower = Creature.GetOverpower(sourceCreature, target);
 
-            var resisted = source.ResistSpell(target, Spell);
+            var resisted = source.ResistSpell(target, Spell, caster);
             if (resisted == true && !overpower)
                 return null;
 
