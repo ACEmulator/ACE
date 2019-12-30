@@ -452,7 +452,7 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.StopCompletely(false);
             });
 
-            var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
+            var castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed, true, null, true);
 
             //Console.WriteLine($"Cast Gesture: " + MagicState.CastGesture);
             //Console.WriteLine($"Cast time: " + castTime);
@@ -552,7 +552,7 @@ namespace ACE.Server.WorldObjects
 
         public Position StartPos;
 
-        public void DoCastSpell_Inner(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
+        public void DoCastSpell_Inner(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool finishCast = true)
         {
             if (RecordCast.Enabled)
                 RecordCast.Log($"DoCastSpell_Inner()");
@@ -657,7 +657,8 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
             }
 
-            FinishCast(useDone);
+            if (finishCast)
+                FinishCast(useDone);
         }
 
         public void FinishCast(WeenieError useDone)
