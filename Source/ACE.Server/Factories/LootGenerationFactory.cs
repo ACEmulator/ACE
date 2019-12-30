@@ -1390,12 +1390,12 @@ namespace ACE.Server.Factories
                         magicMissileDefenseMod = 0;
                         break;
                     case 3:
-                        int chance = ThreadSafeRandom.Next(0, 100);
+                        int chance = ThreadSafeRandom.Next(1, 100);
                         if (chance > 95)
                             magicMissileDefenseMod = .005;
                         break;
                     case 4:
-                        chance = ThreadSafeRandom.Next(0, 100);
+                        chance = ThreadSafeRandom.Next(1, 100);
                         if (chance > 95)
                             magicMissileDefenseMod = .01;
                         else if (chance > 80)
@@ -1404,7 +1404,7 @@ namespace ACE.Server.Factories
                             magicMissileDefenseMod = 0;
                         break;
                     case 5:
-                        chance = ThreadSafeRandom.Next(0, 1000);
+                        chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance > 950)
                             magicMissileDefenseMod = .01;
                         else if (chance > 800)
@@ -1413,7 +1413,7 @@ namespace ACE.Server.Factories
                             magicMissileDefenseMod = 0;
                         break;
                     case 6:
-                        chance = ThreadSafeRandom.Next(0, 1000);
+                        chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance > 975)
                             magicMissileDefenseMod = .020;
                         else if (chance > 900)
@@ -1426,7 +1426,7 @@ namespace ACE.Server.Factories
                             magicMissileDefenseMod = 0;
                         break;
                     case 7:
-                        chance = ThreadSafeRandom.Next(0, 1000);
+                        chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance > 990)
                             magicMissileDefenseMod = .030;
                         else if (chance > 985)
@@ -1443,7 +1443,7 @@ namespace ACE.Server.Factories
                             magicMissileDefenseMod = 0;
                         break;
                     default: // tier 8
-                        chance = ThreadSafeRandom.Next(0, 1000);
+                        chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance > 998)
                             magicMissileDefenseMod = .04;
                         else if (chance > 994)
