@@ -590,7 +590,7 @@ namespace ACE.Server.WorldObjects
 
         public Position StartPos;
 
-        public void DoCastSpell_Inner(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus)
+        public void DoCastSpell_Inner(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool finishCast = true)
         {
             if (RecordCast.Enabled)
                 RecordCast.Log($"DoCastSpell_Inner()");
@@ -695,7 +695,8 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
             }
 
-            FinishCast(useDone);
+            if (finishCast)
+                FinishCast(useDone);
         }
 
         public void FinishCast(WeenieError useDone)
