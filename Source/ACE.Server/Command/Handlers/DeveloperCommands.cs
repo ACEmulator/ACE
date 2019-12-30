@@ -2675,7 +2675,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("damagehistory", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void HandleDamageHitory(Session session, params string[] parameters)
+        public static void HandleDamageHistory(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.DamageHistory.ToString(), ChatMessageType.Broadcast));
         }
