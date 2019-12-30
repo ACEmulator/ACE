@@ -1057,13 +1057,17 @@ namespace ACE.Server.WorldObjects
 
             var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, MotionStance.Magic, motionCommand, speed);
 
-            actionChain.AddAction(this, () => EnqueueBroadcastMotion(motion));
+            actionChain.AddAction(this, () =>
+            {
+                if (this is Player player && player.MagicState.IsCasting)
+                    EnqueueBroadcastMotion(motion);
+            });
             actionChain.AddDelaySeconds(animLength);
 
             return animLength;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
@@ -1080,6 +1084,9 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
+                if (castGesture && this is Player player && !player.MagicState.IsCasting)
+                    return;
+
                 CurrentMotionState = motion;
                 EnqueueBroadcastMotion(motion);
             });

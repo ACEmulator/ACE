@@ -487,7 +487,7 @@ namespace ACE.Server.WorldObjects
 
             var castTime = 0.0f;
             if (FastTick)
-                castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed);
+                castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed, true, null, true);
             else
                 castTime = EnqueueMotionMagic(castChain, MagicState.CastGesture, CastSpeed);
 
@@ -500,6 +500,9 @@ namespace ACE.Server.WorldObjects
 
         public void DoCastSpell(MagicState _state)
         {
+            if (!MagicState.IsCasting)
+                return;
+
             var state = _state?.CastSpellParams;
 
             if (state == null)
