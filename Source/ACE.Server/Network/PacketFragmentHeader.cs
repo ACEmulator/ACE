@@ -1,11 +1,9 @@
 using System.IO;
-using System.Runtime.InteropServices;
 
 using ACE.Common.Cryptography;
 
 namespace ACE.Server.Network
 {
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class PacketFragmentHeader
     {
         public static int HeaderSize { get; } = 16;
@@ -17,38 +15,32 @@ namespace ACE.Server.Network
         public ushort Index { get; set; }
         public ushort Queue { get; set; }
 
-        public PacketFragmentHeader() { }
-
-        public PacketFragmentHeader(BinaryReader payload)
+        public void Unpack(BinaryReader reader)
         {
-            Sequence = payload.ReadUInt32();
-            Id = payload.ReadUInt32();
-            Count = payload.ReadUInt16();
-            Size = payload.ReadUInt16();
-            Index = payload.ReadUInt16();
-            Queue = payload.ReadUInt16();
+            Sequence    = reader.ReadUInt32();
+            Id          = reader.ReadUInt32();
+            Count       = reader.ReadUInt16();
+            Size        = reader.ReadUInt16();
+            Index       = reader.ReadUInt16();
+            Queue       = reader.ReadUInt16();
         }
 
-        public byte[] GetRaw()
+        public void Unpack(byte[] buffer, int offset = 0)
         {
-            var headerHandle = GCHandle.Alloc(this, GCHandleType.Pinned);
-
-            try
-            {
-                byte[] bytes = new byte[Marshal.SizeOf(typeof(PacketFragmentHeader))];
-                Marshal.Copy(headerHandle.AddrOfPinnedObject(), bytes, 0, bytes.Length);
-                return bytes;
-            }
-            finally
-            {
-                headerHandle.Free();
-            }
+            Sequence    =   (uint)(buffer[offset++] | (buffer[offset++] << 8) | (buffer[offset++] << 16) | (buffer[offset++] << 24));
+            Id          =   (uint)(buffer[offset++] | (buffer[offset++] << 8) | (buffer[offset++] << 16) | (buffer[offset++] << 24));
+            Count       = (ushort)(buffer[offset++] | (buffer[offset++] << 8));
+            Size        = (ushort)(buffer[offset++] | (buffer[offset++] << 8));
+            Index       = (ushort)(buffer[offset++] | (buffer[offset++] << 8));
+            Queue       = (ushort)(buffer[offset++] | (buffer[offset++] << 8));
         }
 
-        /// <summary>
-        /// Returns the Hash32 of the payload added to buffer
-        /// </summary>
-        public uint AddPayloadToBuffer(byte[] buffer, ref int offset)
+        public void Pack(byte[] buffer, int offset = 0)
+        {
+            Pack(buffer, ref offset);
+        }
+
+        public void Pack(byte[] buffer, ref int offset)
         {
             buffer[offset++] = (byte)Sequence;
             buffer[offset++] = (byte)(Sequence >> 8);
@@ -71,6 +63,14 @@ namespace ACE.Server.Network
 
             buffer[offset++] = (byte)Queue;
             buffer[offset++] = (byte)(Queue >> 8);
+        }
+
+        /// <summary>
+        /// Returns the Hash32 of the payload added to buffer
+        /// </summary>
+        public uint PackAndReturnHash32(byte[] buffer, ref int offset)
+        {
+            Pack(buffer, ref offset);
 
             return Hash32.Calculate(buffer, offset - HeaderSize, HeaderSize);
         }

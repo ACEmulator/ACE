@@ -11,9 +11,9 @@ namespace ACE.Server.Network
         public static int MaxPacketSize { get; } = 464;
 
         /// <summary>
-        /// Make sure you call InitializeBodyWriter() before you use this
+        /// Make sure you call InitializeDataWriter() before you use this
         /// </summary>
-        public BinaryWriter BodyWriter { get; private set; }
+        public BinaryWriter DataWriter { get; private set; }
 
         private uint finalChecksum;
         private uint issacXor;
@@ -31,20 +31,15 @@ namespace ACE.Server.Network
             }
         }
 
-        public ServerPacket()
-        {
-            Header = new PacketHeader();
-        }
-
         /// <summary>
-        /// This will initailize BodyWriter for use.
+        /// This will initailize DataWriter for use.
         /// </summary>
-        public void InitializeBodyWriter(int initialCapacity = 32) // 32 is the max length I saw in AddPayloadToBuffer()
+        public void InitializeDataWriter(int initialCapacity = 32) // 32 is the max length I saw in Pack() todo: audit this again
         {
-            if (BodyWriter == null)
+            if (DataWriter == null)
             {
                 Data = new MemoryStream(initialCapacity);
-                BodyWriter = new BinaryWriter(Data);
+                DataWriter = new BinaryWriter(Data);
             }
         }
 
@@ -64,7 +59,7 @@ namespace ACE.Server.Network
             }
 
             foreach (ServerPacketFragment fragment in Fragments)
-                payloadChecksum += fragment.AddPayloadToBuffer(buffer, ref offset);
+                payloadChecksum += fragment.PackAndReturnHash32(buffer, ref offset);
 
             size = offset;
 
@@ -73,7 +68,7 @@ namespace ACE.Server.Network
             var headerChecksum = Header.CalculateHash32();
             finalChecksum = headerChecksum + payloadChecksum;
             Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
-            Header.AddPayloadToBuffer(buffer);
+            Header.Pack(buffer);
         }
 
         public override string ToString()
