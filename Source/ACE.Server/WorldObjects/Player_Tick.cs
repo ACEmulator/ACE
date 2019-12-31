@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private readonly TimeSpan MaximumTeleportTime = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan MaximumTeleportTime = TimeSpan.FromMinutes(5);
 
         /// <summary>
         /// Called every ~5 seconds for Players
