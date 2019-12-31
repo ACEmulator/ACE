@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Physics.Combat
 {
@@ -11,7 +12,7 @@ namespace ACE.Server.Physics.Combat
         public int NumObjects;
         public List<AtkObjInfo> ObjectList;
 
-        public void AddObject(uint objectID, int hitLocation)
+        public void AddObject(uint objectID, Quadrant hitLocation)
         {
 
         }

@@ -1,5 +1,5 @@
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Collision;
-using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Combat
 {

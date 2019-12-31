@@ -236,13 +236,7 @@ namespace ACE.Server.Network
             var removalList = cachedPackets.Values.Where(x => (currentTime >= x.Header.Time ? currentTime : currentTime + ushort.MaxValue) - x.Header.Time > cachedPacketRetentionTime);
 
             foreach (var packet in removalList)
-            {
-                if (cachedPackets.TryRemove(packet.Header.Sequence, out var removedPacket))
-                {
-                    if (removedPacket.Data != null)
-                        removedPacket.Data.Dispose();
-                }
-            }
+                cachedPackets.TryRemove(packet.Header.Sequence, out _);
         }
 
         // This is called from ConnectionListener.OnDataReceieve()->Session.ProcessPacket()->This
@@ -548,13 +542,7 @@ namespace ACE.Server.Network
             var removalList = cachedPackets.Keys.Where(x => x < sequence);
 
             foreach (var key in removalList)
-            {
-                if (cachedPackets.TryRemove(key, out var removedPacket))
-                {
-                    if (removedPacket.Data != null)
-                        removedPacket.Data.Dispose();
-                }
-            }
+                cachedPackets.TryRemove(key, out _);
         }
 
         private void Retransmit(uint sequence)
@@ -780,25 +768,25 @@ namespace ACE.Server.Network
             {
                 packetHeader.Flags |= PacketHeaderFlags.AckSequence;
                 packetLog.DebugFormat("[{0}] Outgoing AckSeq: {1}", session.LoggingIdentifier, lastReceivedPacketSequence);
-                packet.InitializeBodyWriter();
-                packet.BodyWriter.Write(lastReceivedPacketSequence);
+                packet.InitializeDataWriter();
+                packet.DataWriter.Write(lastReceivedPacketSequence);
             }
 
             if (bundle.TimeSync) // 0x1000000
             {
                 packetHeader.Flags |= PacketHeaderFlags.TimeSync;
                 packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, Timers.PortalYearTicks);
-                packet.InitializeBodyWriter();
-                packet.BodyWriter.Write(Timers.PortalYearTicks);
+                packet.InitializeDataWriter();
+                packet.DataWriter.Write(Timers.PortalYearTicks);
             }
 
             if (bundle.ClientTime != -1f) // 0x4000000
             {
                 packetHeader.Flags |= PacketHeaderFlags.EchoResponse;
                 packetLog.DebugFormat("[{0}] Outgoing EchoResponse: {1}", session.LoggingIdentifier, bundle.ClientTime);
-                packet.InitializeBodyWriter();
-                packet.BodyWriter.Write(bundle.ClientTime);
-                packet.BodyWriter.Write((float)Timers.PortalYearTicks - bundle.ClientTime);
+                packet.InitializeDataWriter();
+                packet.DataWriter.Write(bundle.ClientTime);
+                packet.DataWriter.Write((float)Timers.PortalYearTicks - bundle.ClientTime);
             }
         }
 

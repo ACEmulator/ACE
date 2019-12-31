@@ -5,7 +5,7 @@ namespace ACE.Server.Network
 {
     public abstract class Packet
     {
-        public PacketHeader Header { get; protected set; }
+        public PacketHeader Header { get; } = new PacketHeader();
         public MemoryStream Data { get; internal set; }
         public List<PacketFragment> Fragments { get; } = new List<PacketFragment>();
     }

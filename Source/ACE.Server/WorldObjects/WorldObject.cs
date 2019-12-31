@@ -670,16 +670,6 @@ namespace ACE.Server.WorldObjects
             proj.OnCollideEnvironment();
         }
 
-        public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null)
-        {
-            var msg = new GameMessageUpdateMotion(this, motion);
-
-            if (maxRange == null)
-                EnqueueBroadcast(msg);
-            else
-                EnqueueBroadcast(msg, maxRange.Value);
-        }
-
         public void ApplyVisualEffects(PlayScript effect, float speed = 1)
         {
             if (CurrentLandblock != null)
@@ -919,6 +909,10 @@ namespace ACE.Server.WorldObjects
                 rawState.CurrentHoldKey = HoldKey.Run;
                 rawState.CurrentStyle = (uint)motionCommand;
 
+                if (!PhysicsObj.IsMovingOrAnimating)
+                    //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - PhysicsGlobals.MinQuantum;
+                    PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
                 motionInterp.RawState = rawState;
                 motionInterp.apply_raw_movement(true, true);
             }
@@ -929,7 +923,7 @@ namespace ACE.Server.WorldObjects
 
             // broadcast to nearby players
             if (sendClient)
-                EnqueueBroadcastMotion(motion, maxRange);
+                EnqueueBroadcastMotion(motion, maxRange, false);
 
             return animLength;
         }
@@ -940,6 +934,31 @@ namespace ACE.Server.WorldObjects
 
             if (broadcast)
                 EnqueueBroadcastMotion(CurrentMotionState);
+        }
+
+        /// <summary>
+        /// Returns the relative direction of this creature in relation to target
+        /// expressed as a quadrant: Front/Back, Left/Right
+        /// </summary>
+        public Quadrant GetRelativeDir(WorldObject target)
+        {
+            var sourcePos = new Vector3(Location.PositionX, Location.PositionY, 0);
+            var targetPos = new Vector3(target.Location.PositionX, target.Location.PositionY, 0);
+            var targetDir = new AFrame(target.Location.Pos, target.Location.Rotation).get_vector_heading();
+
+            targetDir.Z = 0;
+            targetDir = Vector3.Normalize(targetDir);
+
+            var sourceToTarget = Vector3.Normalize(sourcePos - targetPos);
+
+            var dir = Vector3.Dot(sourceToTarget, targetDir);
+            var angle = Vector3.Cross(sourceToTarget, targetDir);
+
+            var quadrant = angle.Z <= 0 ? Quadrant.Left : Quadrant.Right;
+
+            quadrant |= dir >= 0 ? Quadrant.Front : Quadrant.Back;
+
+            return quadrant;
         }
 
         /// <summary>
@@ -1006,5 +1025,13 @@ namespace ACE.Server.WorldObjects
         public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
 
         public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
+
+        /// <summary>
+        /// Returns the wielder or the current object
+        /// </summary>
+        public WorldObject GetCurrentOrWielder(Landblock landblock)
+        {
+            return WielderId != null ? landblock?.GetObject(WielderId.Value) : this;
+        }
     }
 }

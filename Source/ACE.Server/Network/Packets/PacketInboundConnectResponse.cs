@@ -6,7 +6,7 @@
 
         public PacketInboundConnectResponse(ClientPacket packet)
         {
-            Check = packet.Payload.ReadUInt64();
+            Check = packet.DataReader.ReadUInt64();
         }
     }
 }

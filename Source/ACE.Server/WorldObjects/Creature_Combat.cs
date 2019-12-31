@@ -16,14 +16,16 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public CombatMode CombatMode { get; private set; }
-
         /// <summary>
         /// The list of combat maneuvers performable by this creature
         /// </summary>
         public DatLoader.FileTypes.CombatManeuverTable CombatTable { get; set; }
 
-        public DamageHistory DamageHistory;
+        public CombatMode CombatMode { get; private set; }
+
+        public AttackType AttackType { get; set; }
+
+        public DamageHistory DamageHistory { get; private set; }
 
         /// <summary>
         /// Handles queueing up multiple animation sequences between packets
@@ -540,22 +542,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public string GetSplatterDir(WorldObject target)
         {
-            var sourcePos = new Vector3(Location.PositionX, Location.PositionY, 0);
-            var targetPos = new Vector3(target.Location.PositionX, target.Location.PositionY, 0);
-            var targetDir = new AFrame(target.Location.Pos, target.Location.Rotation).get_vector_heading();
+            var quadrant = GetRelativeDir(target);
 
-            targetDir.Z = 0;
-            targetDir = Vector3.Normalize(targetDir);
+            var splatterDir = quadrant.HasFlag(Quadrant.Left) ? "Left" : "Right";
+            splatterDir += quadrant.HasFlag(Quadrant.Front) ? "Front" : "Back";
 
-            var sourceToTarget = Vector3.Normalize(sourcePos - targetPos);
-
-            var dir = Vector3.Dot(sourceToTarget, targetDir);
-            var angle = Vector3.Cross(sourceToTarget, targetDir);
-
-            var frontBack = dir >= 0 ? "Front" : "Back";
-            var leftRight = angle.Z <= 0 ? "Left" : "Right";
-
-            return leftRight + frontBack;
+            return splatterDir;
         }
 
         public double GetLifeResistance(DamageType damageType)
@@ -995,14 +987,6 @@ namespace ACE.Server.WorldObjects
                 default:
                     return ResistanceType.Undef;
             }
-        }
-
-        /// <summary>
-        /// Returns the current attack maneuver for a non-player creature
-        /// </summary>
-        public virtual AttackType GetAttackType(WorldObject weapon, CombatManeuver combatManeuver)
-        {
-            return combatManeuver != null ? combatManeuver.AttackType : AttackType.Undef;
         }
 
         public virtual bool CanDamage(Creature target)
