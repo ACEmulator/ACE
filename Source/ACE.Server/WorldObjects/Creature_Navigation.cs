@@ -336,8 +336,7 @@ namespace ACE.Server.WorldObjects
             if (setLoc)
             {
                 Location = new Position(position);
-                // FIXME however this is taking down entire servers
-                //PhysicsObj.SetPositionSimple(new Physics.Common.Position(position), true);
+                PhysicsObj.SetPositionSimple(new Physics.Common.Position(position), true);
             }
 
             EnqueueBroadcastMotion(motion);
