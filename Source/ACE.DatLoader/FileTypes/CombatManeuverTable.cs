@@ -62,7 +62,7 @@ namespace ACE.DatLoader.FileTypes
             public Dictionary<AttackType, List<MotionCommand>> Table = new Dictionary<AttackType, List<MotionCommand>>();
         }
 
-        public MotionCommand GetMotion(MotionStance stance, AttackHeight attackHeight, AttackType attackType)
+        public MotionCommand GetMotion(MotionStance stance, AttackHeight attackHeight, AttackType attackType, MotionCommand prevMotion)
         {
             if (!Stances.TryGetValue(stance, out var attackHeights))
                 return MotionCommand.Invalid;
@@ -76,12 +76,29 @@ namespace ACE.DatLoader.FileTypes
             if (maneuvers.Count == 1)
                 return maneuvers[0];
 
-            // this should always be 1 for player table
-            // if not, return random maneuver?
-            Console.WriteLine($"CombatManeuverTable({Id:X8}).GetMotion({stance}, {attackHeight}, {attackType}) - found {maneuvers.Count} maneuvers");
 
-            var rng = ThreadSafeRandom.Next(0, maneuvers.Count - 1);
-            return maneuvers[rng];
+            /*Console.WriteLine($"CombatManeuverTable({Id:X8}).GetMotion({stance}, {attackHeight}, {attackType}) - found {maneuvers.Count} maneuvers");
+            foreach (var maneuver in maneuvers)
+                Console.WriteLine(maneuver);*/
+
+            // CombatManeuverTable(30000000).GetMotion(SwordCombat, Medium, Slash) - found 2 maneuvers
+            // SlashMed
+            // BackhandMed
+
+            // rng, or alternate?
+            for (var i = 0; i < maneuvers.Count; i++)
+            {
+                var maneuver = maneuvers[i];
+
+                if (maneuver == prevMotion)
+                {
+                    if (i < maneuvers.Count - 1)
+                        return maneuvers[i + 1];
+                    else
+                        return maneuvers[0];
+                }
+            }
+            return maneuvers[0];
         }
     }
 }

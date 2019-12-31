@@ -196,11 +196,16 @@ namespace ACE.Server.WorldObjects
         public override void OnMoveComplete(WeenieError status)
         {
             //Console.WriteLine($"{Name}.OnMoveComplete({status})");
+
             IsMoving = false;
 
-            if (IsPlayerMovingTo)
+            if (IsPlayerMovingTo2)
             {
-                //OnMoveComplete_MoveTo(status);
+                OnMoveComplete_MoveTo2(status);
+
+                if (MagicState.IsCasting)
+                    OnMoveComplete_Magic(status);
+
                 return;
             }
 
@@ -214,20 +219,6 @@ namespace ACE.Server.WorldObjects
                     HandleActionCancelAttack();
                     break;
             }
-        }
-
-        public void OnMoveComplete_MoveTo(WeenieError status)
-        {
-            //Console.WriteLine($"{Name}.OnMoveComplete_MoveTo({status})");
-
-            /*IsPlayerMovingTo = false;
-
-            var success = status == WeenieError.None;
-
-            if (MoveToCallback != null)
-                MoveToCallback(success);
-
-            MoveToCallback = null;*/
         }
 
         public MovementParameters GetChargeParameters()
@@ -253,14 +244,14 @@ namespace ACE.Server.WorldObjects
             //PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, out jumpVelocity);
             var jumpVelocity = 11.25434f;   // TODO: figure out how to scale this better
 
-            var cachedVelocity = PhysicsObj.CachedVelocity;
+            var currVelocity = FastTick ? PhysicsObj.Velocity : PhysicsObj.CachedVelocity;
 
-            var overspeed = jumpVelocity + cachedVelocity.Z + 4.5f;     // a little leeway
+            var overspeed = jumpVelocity + currVelocity.Z + 4.5f;     // a little leeway
 
             var ratio = -overspeed / jumpVelocity;
 
-            /*Console.WriteLine($"Collision velocity: {cachedVelocity}");
-            Console.WriteLine($"Jump velocity: {jumpVelocity}");
+            /*Console.WriteLine($"Jump velocity: {jumpVelocity}");
+            Console.WriteLine($"Velocity: {currVelocity}");
             Console.WriteLine($"Overspeed: {overspeed}");
             Console.WriteLine($"Ratio: {ratio}");*/
 
@@ -272,7 +263,7 @@ namespace ACE.Server.WorldObjects
 
                 // bludgeon damage
                 // impact damage
-                if (damage > 0.0f && (StartJump == null || StartJump.PositionZ - PhysicsObj.Position.Frame.Origin.Z > 10.0f))
+                if (damage > 0.0f && (FastTick || StartJump == null || StartJump.PositionZ - PhysicsObj.Position.Frame.Origin.Z > 10.0f))
                     TakeDamage_Falling(damage);
             }
         }

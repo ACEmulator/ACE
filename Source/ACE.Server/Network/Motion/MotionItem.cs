@@ -26,8 +26,10 @@ namespace ACE.Server.Network.Structure
         public float Speed;                 // the speed at which to perform the animation / movement.
 
 
-        public MotionItem(MotionCommand motionCommand, float speed = 1.0f)
+        public MotionItem(WorldObject worldObject, MotionCommand motionCommand, float speed = 1.0f)
         {
+            WorldObject = worldObject;
+
             MotionCommand = motionCommand;
             Speed = speed;
         }
