@@ -112,19 +112,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public enum ProjectileSpellType
-        {
-            Undef,
-            Bolt,
-            Blast,
-            Volley,
-            Streak,
-            Arc,
-            Ring,
-            Wall,
-            Strike
-        }
-
         public static ProjectileSpellType GetProjectileSpellType(uint spellID)
         {
             var spell = new Server.Entity.Spell(spellID);
