@@ -12,7 +12,7 @@ namespace ACE.Server.Entity
 {
     public static class PositionExtensions
     {
-        public static Vector3 ToGlobal(this Position p)
+        public static Vector3 ToGlobal(this Position p, bool skipIndoors = true)
         {
             // TODO: Is this necessary? It seemed to be loading rogue physics landblocks. Commented out 2019-04 Mag-nus
             //var landblock = LScape.get_landblock(p.LandblockId.Raw);
@@ -20,7 +20,7 @@ namespace ACE.Server.Entity
             // TODO: investigate dungeons that are below actual traversable overworld terrain
             // ex., 010AFFFF
             //if (landblock.IsDungeon)
-            if (p.Indoors)
+            if (p.Indoors && skipIndoors)
                 return p.Pos;
 
             var x = p.LandblockId.LandblockX * Position.BlockLength + p.PositionX;
