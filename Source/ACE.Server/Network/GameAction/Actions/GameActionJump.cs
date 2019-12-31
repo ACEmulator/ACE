@@ -16,6 +16,9 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (session.Player.IsPlayerMovingTo)
                 session.Player.StopExistingMoveToChains();
+
+            if (session.Player.IsPlayerMovingTo2)
+                session.Player.StopExistingMoveToChains2();
         }
     }
 }

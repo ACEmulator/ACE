@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 

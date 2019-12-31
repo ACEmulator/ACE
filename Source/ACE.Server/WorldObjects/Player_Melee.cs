@@ -98,6 +98,10 @@ namespace ACE.Server.WorldObjects
             MeleeTarget = creatureTarget;
             AttackTarget = MeleeTarget;
 
+            // reset PrevMotionCommand / DualWieldAlternate each time button is clicked
+            PrevMotionCommand = MotionCommand.Invalid;
+            DualWieldAlternate = false;
+
             var attackSequence = ++AttackSequence;
 
             if (IsStickyDistance(target) && IsDirectVisible(target))
