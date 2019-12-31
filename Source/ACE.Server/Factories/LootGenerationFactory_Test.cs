@@ -170,7 +170,6 @@ namespace ACE.Server.Factories
                     case ItemType.Misc:
 
                         string spirit = "Spirit";
-                        string pet = "Essence";
                         string potionA = "Philtre";
                         string potionB = "Elixir";
                         string potionC = "Tonic";
