@@ -182,23 +182,25 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.CastSpell:
 
-                    if (WorldObject != null && targetObject != null)
+                    if (WorldObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
-                        if (!spell.NotFound)
+                        if (spell.NotFound)
                         {
-                            var preCastTime = creature.PreCastMotion(targetObject);
-                            delay = preCastTime * 2.0f;
-
-                            var castChain = new ActionChain();
-                            castChain.AddDelaySeconds(preCastTime);
-                            castChain.AddAction(creature, () =>
-                            {
-                                creature.TryCastSpell(spell, targetObject, creature);
-                                creature.PostCastMotion();
-                            });
-                            castChain.EnqueueChain();
+                            log.Error($"{WorldObject.Name} ({WorldObject.Guid}) EmoteManager.CastSpell - unknown spell {emote.SpellId}");
+                            break;
                         }
+
+                        var preCastTime = creature.PreCastMotion(targetObject);
+                        delay = preCastTime * 2.0f;
+
+                        var castChain = new ActionChain();
+                        castChain.AddDelaySeconds(preCastTime);
+                        castChain.AddAction(creature, () =>
+                        {
+                            creature.TryCastSpell(spell, targetObject, creature);
+                            creature.PostCastMotion();
+                        });
                     }
                     break;
 
