@@ -649,6 +649,14 @@ namespace ACE.Server.WorldObjects
             var missileWeapon = GetEquippedMissileWeapon();
             var caster = GetEquippedWand();
 
+            if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+            {
+                var parms = MagicState.CastSpellParams;
+                DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
+                SendUseDoneEvent(WeenieError.YourSpellFizzled);
+                MagicState.OnCastDone();
+            }
+
             switch (newCombatMode)
             {
                 case CombatMode.NonCombat:
@@ -723,15 +731,6 @@ namespace ACE.Server.WorldObjects
 
             if (RecordCast.Enabled)
                 RecordCast.OnSetCombatMode(newCombatMode);
-        }
-
-        /// <summary>
-        /// Returns the current attack maneuver for a player
-        /// </summary>
-        public override AttackType GetAttackType(WorldObject weapon, CombatManeuver combatManuever)
-        {
-            // should probably come from combat maneuvers table, even for players
-            return GetWeaponAttackType(weapon);
         }
 
         public override bool CanDamage(Creature target)

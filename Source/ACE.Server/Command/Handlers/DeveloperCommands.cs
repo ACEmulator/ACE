@@ -2666,16 +2666,44 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("targetloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the location of the last appraised object")]
         public static void HandleTargetLoc(Session session, params string[] parameters)
         {
-            var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
-            if (wo == null)
-                return;
+            WorldObject wo = null;
+            if (parameters.Length == 0)
+            {
+                wo = CommandHandlerHelper.GetLastAppraisedObject(session);
 
+                if (wo == null) return;
+            }
+            else
+            {
+                if (parameters[0].StartsWith("0x"))
+                    parameters[0] = parameters[0].Substring(2);
+
+                if (!uint.TryParse(parameters[0], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint guid))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} is not a valid guid", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                wo = session.Player.CurrentLandblock?.GetObject(guid);
+
+                if (wo == null)
+                    wo = ServerObjectManager.GetObjectA(guid)?.WeenieObj?.WorldObject;
+
+                if (wo == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CurrentLandblock: 0x{wo.CurrentLandblock?.Id.Landblock:X4}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {wo.Location?.ToLOCString()}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj?.Position}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CurCell: 0x{wo.PhysicsObj?.CurCell?.ID:X8}", ChatMessageType.Broadcast));
         }
 
         [CommandHandler("damagehistory", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void HandleDamageHitory(Session session, params string[] parameters)
+        public static void HandleDamageHistory(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.DamageHistory.ToString(), ChatMessageType.Broadcast));
         }
@@ -2780,6 +2808,20 @@ namespace ACE.Server.Command.Handlers
                     session.Player.RecordCast.Enabled = false;
             }
             session.Network.EnqueueSend(new GameMessageSystemChat($"Record cast {(session.Player.RecordCast.Enabled ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("pscript", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void HandlePScript(Session session, params string[] parameters)
+        {
+            var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (wo == null) return;
+
+            if (!Enum.TryParse(typeof(PlayScript), parameters[0], true, out var pscript))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find PlayScript.{parameters[0]}", ChatMessageType.Broadcast));
+                return;
+            }
+            wo.EnqueueBroadcast(new GameMessageScript(wo.Guid, (PlayScript)pscript));
         }
     }
 }

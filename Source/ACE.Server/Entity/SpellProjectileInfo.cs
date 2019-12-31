@@ -47,8 +47,12 @@ namespace ACE.Server.Entity
             info += $"StartPos: {SpellProjectile.SpawnPos.ToLOCString()}\n";
             info += $"ActualStartPos: {StartPos}\n";
             info += $"EndPos: {SpellProjectile.Location.ToLOCString()}\n";
-            info += $"Target: {target.WeenieClassId} - {target.Name} ({target.Guid})\n";
-            info += $"TargetPos: {TargetPos.ToLOCString()}";
+
+            if (target != null)
+            {
+                info += $"Target: {target.WeenieClassId} - {target.Name} ({target.Guid})\n";
+                info += $"TargetPos: {TargetPos.ToLOCString()}";
+            }
 
             return info;
         }

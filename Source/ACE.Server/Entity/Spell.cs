@@ -129,6 +129,8 @@ namespace ACE.Server.Entity
 
         public bool IsSelfTargeted => Flags.HasFlag(SpellFlags.SelfTargeted);
 
+        public bool IsTracking => !Flags.HasFlag(SpellFlags.NonTrackingProjectile);
+
         public List<uint> TryBurnComponents(Player player)
         {
             var consumed = new List<uint>();

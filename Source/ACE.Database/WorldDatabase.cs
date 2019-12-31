@@ -753,6 +753,11 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<uint, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
 
+        public void ClearSpellCache()
+        {
+            spellCache.Clear();
+        }
+
         /// <summary>
         /// Returns the number of Spells currently cached.
         /// </summary>

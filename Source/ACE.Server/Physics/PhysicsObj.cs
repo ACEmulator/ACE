@@ -1719,6 +1719,9 @@ namespace ACE.Server.Physics
             return Math.Max(dx, dy);
         }
 
+        /// <summary>
+        /// This is for legacy movement system
+        /// </summary>
         public bool UpdateObjectInternalServer(double quantum)
         {
             //var offsetFrame = new AFrame();
@@ -1837,11 +1840,6 @@ namespace ACE.Server.Physics
                 UpdatePhysicsInternal((float)quantum, ref newFrame);
 
             process_hooks();
-        }
-
-        public void UpdatePositionInternalServer(double quantum, ref AFrame offsetFrame)
-        {
-            UpdatePositionInternal(quantum, ref offsetFrame);
         }
 
         public void UpdateViewerDistance(float cypt, Vector3 heading)
@@ -2143,7 +2141,7 @@ namespace ACE.Server.Physics
                 enter_cell_server(newCell);
         }
 
-        public int check_attack(Position attackerPos, float attackerScale, AttackCone attackCone, float attackerAttackRadius)
+        public Quadrant check_attack(Position attackerPos, float attackerScale, AttackCone attackCone, float attackerAttackRadius)
         {
             if (Parent != null || State.HasFlag(PhysicsState.IgnoreCollisions) || State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
                 return 0;
@@ -4144,6 +4142,9 @@ namespace ACE.Server.Physics
                 Console.WriteLine($"{(MotionCommand)motion.Motion}");
         }
 
+        /// <summary>
+        /// This is for legacy movement system
+        /// </summary>
         public bool update_object_server(bool forcePos = true)
         {
             var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
@@ -4161,6 +4162,80 @@ namespace ACE.Server.Physics
                 CachedVelocity = Vector3.Zero;
 
             UpdateTime = PhysicsTimer.CurrentTime;
+
+            return success;
+        }
+
+        /// <summary>
+        /// This is for full / updated movement system
+        /// </summary>
+        public bool update_object_server_new(bool forcePos = true)
+        {
+            if (Parent != null || CurCell == null || State.HasFlag(PhysicsState.Frozen))
+            {
+                TransientState &= ~TransientStateFlags.Active;
+                return false;
+            }
+
+            PhysicsTimer_CurrentTime = UpdateTime;
+
+            var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
+
+            //Console.WriteLine($"{Name}.update_object_server({forcePos}) - deltaTime: {deltaTime}");
+
+            var isTeleport = WeenieObj.WorldObject?.Teleporting ?? false;
+
+            // commented out for debugging
+            if (deltaTime > PhysicsGlobals.HugeQuantum && !isTeleport)
+            {
+                UpdateTime = PhysicsTimer.CurrentTime;   // consume time?
+                return false;
+            }
+
+            var requestCell = RequestPos.ObjCellID;
+
+            var success = true;
+
+            if (!isTeleport)
+            {
+                if (GetBlockDist(Position, RequestPos) > 1)
+                {
+                    log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}");
+                    success = false;
+                }
+
+                while (deltaTime > PhysicsGlobals.MaxQuantum)
+                {
+                    PhysicsTimer_CurrentTime += PhysicsGlobals.MaxQuantum;
+                    UpdateObjectInternal(PhysicsGlobals.MaxQuantum);
+                    deltaTime -= PhysicsGlobals.MaxQuantum;
+                }
+
+                if (deltaTime > PhysicsGlobals.MinQuantum)
+                {
+                    PhysicsTimer_CurrentTime += deltaTime;
+                    UpdateObjectInternal(deltaTime);
+                }
+
+                success &= requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
+            }
+
+            if (forcePos && success)
+                set_current_pos(RequestPos);
+
+            // for teleport, use SetPosition?
+            if (isTeleport)
+            {
+                //Console.WriteLine($"*** SETTING TELEPORT ***");
+
+                var setPosition = new SetPosition();
+                setPosition.Pos = RequestPos;
+                setPosition.Flags = SetPositionFlags.SendPositionEvent | SetPositionFlags.Slide | SetPositionFlags.Placement | SetPositionFlags.Teleport;
+
+                SetPosition(setPosition);
+            }
+
+            UpdateTime = PhysicsTimer_CurrentTime;
 
             return success;
         }

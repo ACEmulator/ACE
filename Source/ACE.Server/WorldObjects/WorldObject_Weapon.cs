@@ -35,6 +35,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, (int)value); }
         }
 
+        public bool AutoWieldLeft
+        {
+            get => GetProperty(PropertyBool.AutowieldLeft) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AutowieldLeft); else SetProperty(PropertyBool.AutowieldLeft, value); }
+        }
+
         /// <summary>
         /// Returns TRUE if this weapon cleaves
         /// </summary>

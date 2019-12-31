@@ -2825,6 +2825,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.SummoningMastery); else SetProperty(PropertyInt.SummoningMastery, (int)value.Value); }
         }
 
+        public double? MaximumVelocity
+        {
+            get => GetProperty(PropertyFloat.MaximumVelocity);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.MaximumVelocity); else SetProperty(PropertyFloat.MaximumVelocity, value.Value); }
+        }
+
         /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.
         /// </summary>
