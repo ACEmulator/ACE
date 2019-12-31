@@ -182,23 +182,25 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.CastSpell:
 
-                    if (WorldObject != null && targetObject != null)
+                    if (WorldObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
-                        if (!spell.NotFound)
+                        if (spell.NotFound)
                         {
-                            var preCastTime = creature.PreCastMotion(targetObject);
-                            delay = preCastTime * 2.0f;
-
-                            var castChain = new ActionChain();
-                            castChain.AddDelaySeconds(preCastTime);
-                            castChain.AddAction(creature, () =>
-                            {
-                                creature.TryCastSpell(spell, targetObject, creature);
-                                creature.PostCastMotion();
-                            });
-                            castChain.EnqueueChain();
+                            log.Error($"{WorldObject.Name} ({WorldObject.Guid}) EmoteManager.CastSpell - unknown spell {emote.SpellId}");
+                            break;
                         }
+
+                        var preCastTime = creature.PreCastMotion(targetObject);
+                        delay = preCastTime * 2.0f;
+
+                        var castChain = new ActionChain();
+                        castChain.AddDelaySeconds(preCastTime);
+                        castChain.AddAction(creature, () =>
+                        {
+                            creature.TryCastSpell(spell, targetObject, creature);
+                            creature.PostCastMotion();
+                        });
                     }
                     break;
 
@@ -758,8 +760,15 @@ namespace ACE.Server.WorldObjects.Managers
                     if (creature != null)
                     {
                         var newPos = new Position(creature.Home);
-                        newPos.Pos += new Vector3(emote.OriginX ?? 0, emote.OriginY ?? 0, emote.OriginZ ?? 0);      // uses relative offsets
-                        newPos.Rotation *= new Quaternion(emote.AnglesX ?? 0, emote.AnglesY ?? 0, emote.AnglesZ ?? 0, emote.AnglesW ?? 1);  // also relative?
+                        newPos.Pos += new Vector3(emote.OriginX ?? 0, emote.OriginY ?? 0, emote.OriginZ ?? 0);      // uses relative position
+
+                        // ensure valid quaternion - all 0s for example can lock up physics engine
+                        if (emote.AnglesX != null && emote.AnglesY != null && emote.AnglesZ != null && emote.AnglesW != null &&
+                           (emote.AnglesX != 0    || emote.AnglesY != 0    || emote.AnglesZ != 0    || emote.AnglesW != 0) )
+                        {
+                            // also relative, or absolute?
+                            newPos.Rotation *= new Quaternion(emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value);  
+                        }
 
                         if (Debug)
                             Console.WriteLine(newPos.ToLOCString());

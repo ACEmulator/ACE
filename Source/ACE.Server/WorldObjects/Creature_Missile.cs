@@ -231,7 +231,7 @@ namespace ACE.Server.WorldObjects
         public float GetMaxMissileRange()
         {
             var weapon = GetEquippedWeapon();
-            var maxVelocity = weapon != null ? weapon.GetProperty(PropertyFloat.MaximumVelocity) ?? DefaultMaxVelocity : DefaultMaxVelocity;
+            var maxVelocity = weapon?.MaximumVelocity ?? DefaultMaxVelocity;
 
             //var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.1020408163265306f;
             var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.0682547266398198f;

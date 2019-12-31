@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text.RegularExpressions;
 
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 using ACE.Adapter.Lifestoned;
 using ACE.Database;
@@ -147,6 +148,7 @@ namespace ACE.Server.Command.Handlers.Processors
         {
             var json_file = folder + json_filename;
 
+            // read json into lsd weenie
             var success = LifestonedLoader.TryLoadWeenie(json_file, out var weenie);
 
             if (!success)
@@ -155,7 +157,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return null;
             }
 
-            // output to sql
+            // convert to ace weenie
             success = LifestonedConverter.TryConvert(weenie, out var output);
 
             if (!success)
@@ -164,6 +166,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return null;
             }
 
+            // output to sql
             var sqlFolder = folder.Replace("json", "sql");
 
             var di = new DirectoryInfo(sqlFolder);
@@ -185,6 +188,14 @@ namespace ACE.Server.Command.Handlers.Processors
                 sqlFile.WriteLine();
 
                 converter.CreateSQLINSERTStatement(output, sqlFile);
+
+                var metadata = new Adapter.GDLE.Models.Metadata(weenie);
+                if (metadata.HasInfo)
+                {
+                    var jsonEx = JsonConvert.SerializeObject(metadata, LifestonedConverter.SerializerSettings);
+                    sqlFile.WriteLine($"\n/* Lifestoned Changelog:\n{jsonEx}\n*/");
+                }
+
                 sqlFile.Close();
             }
             catch (Exception e)
@@ -234,7 +245,7 @@ namespace ACE.Server.Command.Handlers.Processors
         /// </summary>
         public static bool sql2json(Session session, Weenie weenie, string sql_folder, string sql_filename)
         {
-            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json))
+            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json, out var json_weenie))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {sql_filename} to json");
                 return false;
@@ -247,6 +258,11 @@ namespace ACE.Server.Command.Handlers.Processors
 
             if (!di.Exists)
                 di.Create();
+
+            if (File.Exists(json_folder + json_filename) && LifestonedLoader.AppendMetadata(json_folder + json_filename, json_weenie))
+            {
+                json = JsonConvert.SerializeObject(json_weenie, LifestonedConverter.SerializerSettings);
+            }
 
             File.WriteAllText(json_folder + json_filename, json);
 
@@ -261,6 +277,11 @@ namespace ACE.Server.Command.Handlers.Processors
         public static void ImportSQL(string sqlFile)
         {
             var sqlCommands = File.ReadAllText(sqlFile);
+
+            // not sure why ExecuteSqlCommand doesn't parse this correctly..
+            var idx = sqlCommands.IndexOf($"/* Lifestoned Changelog:");
+            if (idx != -1)
+                sqlCommands = sqlCommands.Substring(0, idx);
 
             using (var ctx = new WorldDbContext())
                 ctx.Database.ExecuteSqlCommand(sqlCommands);
@@ -496,7 +517,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json))
+            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json, out var json_weenie))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.ClassId} - {weenie.ClassName} to json");
                 return;
@@ -510,6 +531,11 @@ namespace ACE.Server.Command.Handlers.Processors
                 di.Create();
 
             var json_filename = $"{weenie.ClassId} - {weenie.WeeniePropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name)?.Value}.json";
+
+            if (File.Exists(json_folder + json_filename) && LifestonedLoader.AppendMetadata(json_folder + json_filename, json_weenie))
+            {
+                json = JsonConvert.SerializeObject(json_weenie, LifestonedConverter.SerializerSettings);
+            }
 
             File.WriteAllText(json_folder + json_filename, json);
 
@@ -570,5 +596,40 @@ namespace ACE.Server.Command.Handlers.Processors
 
             CommandHandlerHelper.WriteOutputInfo(session, $"Exported {sql_folder}{sql_filename}");
         }
+
+        [CommandHandler("clearcache", AccessLevel.Developer, CommandHandlerFlag.None, "Clears the various database caches. This enables live editing of the database information")]
+        public static void HandleClearCache(Session session, params string[] parameters)
+        {
+            var mode = CacheType.All;
+            if (parameters.Length > 0)
+            {
+                if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Weenie;
+                if (parameters[0].Contains("spell", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Spell;
+            }
+
+            if (mode.HasFlag(CacheType.Weenie))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
+                DatabaseManager.World.ClearWeenieCache();
+            }
+
+            if (mode.HasFlag(CacheType.Spell))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing spell cache");
+                DatabaseManager.World.ClearSpellCache();
+                WorldObject.ClearSpellCache();
+            }
+        }
+
+        [Flags]
+        public enum CacheType
+        {
+            None   = 0x0,
+            Weenie = 0x1,
+            Spell  = 0x2,
+            All    = 0xFFFF
+        };
     }
 }

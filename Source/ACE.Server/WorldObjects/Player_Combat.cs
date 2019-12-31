@@ -733,15 +733,6 @@ namespace ACE.Server.WorldObjects
                 RecordCast.OnSetCombatMode(newCombatMode);
         }
 
-        /// <summary>
-        /// Returns the current attack maneuver for a player
-        /// </summary>
-        public override AttackType GetAttackType(WorldObject weapon, CombatManeuver combatManuever)
-        {
-            // should probably come from combat maneuvers table, even for players
-            return GetWeaponAttackType(weapon);
-        }
-
         public override bool CanDamage(Creature target)
         {
             return true;    // handled elsewhere
