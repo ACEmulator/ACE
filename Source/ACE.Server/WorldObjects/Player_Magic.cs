@@ -118,7 +118,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                // start turn
+                // start turning
                 TurnTo_Magic(target);
             }
         }
@@ -519,10 +519,12 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"Angle: " + angle);
 
-            if (RecordCast.Enabled)
-                RecordCast.Log($"DoCastSpell(angle={angle})");
+            var maxAngle = PropertyManager.GetDouble("spellcast_max_angle").Item;
 
-            return angle <= PropertyManager.GetDouble("spellcast_max_angle").Item;
+            if (RecordCast.Enabled)
+                RecordCast.Log($"DoCastSpell(angle={angle} vs. {maxAngle})");
+
+            return angle <= maxAngle;
         }
 
 
@@ -553,9 +555,6 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
             }
-
-            //actionChain.AddAction(this, () => DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus));
-            //actionChain.EnqueueChain();
 
             if (IsDead)
             {
@@ -1263,7 +1262,7 @@ namespace ACE.Server.WorldObjects
 
         public void OnMoveComplete_Magic(WeenieError status)
         {
-            //Console.WriteLine($"OnMoveComplete_Magic({status}, {cycles})");
+            //Console.WriteLine($"OnMoveComplete_Magic({status})");
 
             if (!MagicState.IsCasting || !MagicState.TurnStarted)
                 return;

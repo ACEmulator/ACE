@@ -1137,7 +1137,6 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-
         public static bool EnqueueBroadcastMotion_Physics = true;
 
         public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null, bool applyPhysics = true)

@@ -303,89 +303,118 @@ namespace ACE.Server.WorldObjects
         /// <returns>TRUE if object moves to a different landblock</returns>
         public bool UpdatePlayerPosition(ACE.Entity.Position newPosition, bool forceUpdate = false)
         {
-            //Console.WriteLine($"UpdatePlayerPhysics: {newPosition.Cell:X8}, {newPosition.Pos}");
+            //Console.WriteLine($"{Name}.UpdatePlayerPhysics({newPosition}, {forceUpdate}, {Teleporting})");
             bool verifyContact = false;
 
             // possible bug: while teleporting, client can still send AutoPos packets from old landblock
             if (Teleporting && !forceUpdate) return false;
 
-            var success = true;
-
-            if (PhysicsObj != null)
+            // pre-validate movement
+            if (!ValidateMovement(newPosition))
             {
-                var distSq = Location.SquaredDistanceTo(newPosition);
-
-                if (distSq > PhysicsGlobals.EpsilonSq)
-                {
-                    /*var p = new Physics.Common.Position(newPosition);
-                    var dist = PhysicsObj.Position.Distance(p);
-                    Console.WriteLine($"Dist: {dist}");*/
-
-                    if (newPosition.Landblock == 0x18A && Location.Landblock != 0x18A)
-                        log.Info($"{Name} is getting swanky");
-
-                    if (!Teleporting)
-                    {
-                        var blockDist = PhysicsObj.GetBlockDist(Location.Cell, newPosition.Cell);
-
-                        // verify movement
-                        if (distSq > MaxSpeedSq && blockDist > 1)
-                        {
-                            //Session.Network.EnqueueSend(new GameMessageSystemChat("Movement error", ChatMessageType.Broadcast));
-                            log.Warn($"MOVEMENT SPEED: {Name} trying to move from {Location} to {newPosition}, speed: {Math.Sqrt(distSq)}");
-                            return false;
-                        }
-
-                        // verify z-pos
-                        if (blockDist == 0 && LastGroundPos != null && newPosition.PositionZ - LastGroundPos.PositionZ > 10 && DateTime.UtcNow - LastJumpTime > TimeSpan.FromSeconds(1))
-                            verifyContact = true;
-                    }
-
-                    var curCell = LScape.get_landcell(newPosition.Cell);
-                    if (curCell != null)
-                    {
-                        PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
-                        success = PhysicsObj.update_object_server();
-
-                        if (PhysicsObj.CurCell == null)
-                            PhysicsObj.CurCell = curCell;
-
-                        if (verifyContact && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
-                        {
-                            log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
-                            Location = new ACE.Entity.Position(LastGroundPos);
-                            Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
-                            SendUpdatePosition();
-                            return false;
-                        }
-
-                        CheckMonsters();
-                    }
-                }
+                log.Error($"{Name}.UpdatePlayerPhysics() - movement pre-validation failed from {Location} to {newPosition}");
+                return false;
             }
 
-            // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
-            if (Teleporting && !forceUpdate) return true;
+            try
+            {
+                if (!forceUpdate) // This is needed beacuse this function might be called recursively
+                    stopwatch.Restart();
 
-            if (!success) return false;
+                var success = true;
 
-            //var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
-            var landblockUpdate = CurrentLandblock != null && CurrentLandblock.Id.Landblock != newPosition.Cell >> 16;
+                if (PhysicsObj != null)
+                {
+                    var distSq = Location.SquaredDistanceTo(newPosition);
 
-            Location = newPosition;
+                    if (distSq > PhysicsGlobals.EpsilonSq)
+                    {
+                        /*var p = new Physics.Common.Position(newPosition);
+                        var dist = PhysicsObj.Position.Distance(p);
+                        Console.WriteLine($"Dist: {dist}");*/
 
-            if (RecordCast.Enabled)
-                RecordCast.Log($"CurPos: {Location.ToLOCString()}");
+                        if (newPosition.Landblock == 0x18A && Location.Landblock != 0x18A)
+                            log.Info($"{Name} is getting swanky");
 
-            if (RequestedLocationBroadcast || DateTime.UtcNow - LastUpdatePosition >= MoveToState_UpdatePosition_Threshold)
-                SendUpdatePosition();
-            else
-                Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+                        if (!Teleporting)
+                        {
+                            var blockDist = PhysicsObj.GetBlockDist(Location.Cell, newPosition.Cell);
 
-            if (!InUpdate)
-                LandblockManager.RelocateObjectForPhysics(this, true);
+                            // verify movement
+                            if (distSq > MaxSpeedSq && blockDist > 1)
+                            {
+                                //Session.Network.EnqueueSend(new GameMessageSystemChat("Movement error", ChatMessageType.Broadcast));
+                                log.Warn($"MOVEMENT SPEED: {Name} trying to move from {Location} to {newPosition}, speed: {Math.Sqrt(distSq)}");
+                                return false;
+                            }
 
-            return landblockUpdate;
+                            // verify z-pos
+                            if (blockDist == 0 && LastGroundPos != null && newPosition.PositionZ - LastGroundPos.PositionZ > 10 && DateTime.UtcNow - LastJumpTime > TimeSpan.FromSeconds(1))
+                                verifyContact = true;
+                        }
+
+                        var curCell = LScape.get_landcell(newPosition.Cell);
+                        if (curCell != null)
+                        {
+                            //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
+                                //PhysicsObj.change_cell_server(curCell);
+
+                            PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
+                                success = PhysicsObj.update_object_server();
+
+                            if (PhysicsObj.CurCell == null && curCell.ID >> 16 != 0x18A)
+                            {
+                                PhysicsObj.CurCell = curCell;
+                            }
+
+                            if (verifyContact && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                            {
+                                log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
+                                Location = new ACE.Entity.Position(LastGroundPos);
+                                Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
+                                SendUpdatePosition();
+                                return false;
+                            }
+
+                            CheckMonsters();
+                        }
+                    }
+                }
+
+                // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
+                if (Teleporting && !forceUpdate) return true;
+
+                if (!success) return false;
+
+                var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
+
+                Location = newPosition;
+
+                if (RecordCast.Enabled)
+                    RecordCast.Log($"CurPos: {Location.ToLOCString()}");
+
+                if (RequestedLocationBroadcast || DateTime.UtcNow - LastUpdatePosition >= MoveToState_UpdatePosition_Threshold)
+                    SendUpdatePosition();
+                else
+                    Session.Network.EnqueueSend(new GameMessageUpdatePosition(this));
+
+                if (!InUpdate)
+                    LandblockManager.RelocateObjectForPhysics(this, true);
+
+                return landblockUpdate;
+            }
+            finally
+            {
+                if (!forceUpdate) // This is needed beacuse this function might be called recursively
+                {
+                    var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
+                    ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsedSeconds);
+                    if (elapsedSeconds >= 1) // Yea, that ain't good....
+                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                    else if (elapsedSeconds >= 0.010)
+                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                }
+            }
         }
 
         public bool ValidateMovement(ACE.Entity.Position newPosition)
