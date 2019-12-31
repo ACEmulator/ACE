@@ -542,22 +542,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public string GetSplatterDir(WorldObject target)
         {
-            var sourcePos = new Vector3(Location.PositionX, Location.PositionY, 0);
-            var targetPos = new Vector3(target.Location.PositionX, target.Location.PositionY, 0);
-            var targetDir = new AFrame(target.Location.Pos, target.Location.Rotation).get_vector_heading();
+            var quadrant = GetRelativeDir(target);
 
-            targetDir.Z = 0;
-            targetDir = Vector3.Normalize(targetDir);
+            var splatterDir = quadrant.HasFlag(Quadrant.Left) ? "Left" : "Right";
+            splatterDir += quadrant.HasFlag(Quadrant.Front) ? "Front" : "Back";
 
-            var sourceToTarget = Vector3.Normalize(sourcePos - targetPos);
-
-            var dir = Vector3.Dot(sourceToTarget, targetDir);
-            var angle = Vector3.Cross(sourceToTarget, targetDir);
-
-            var frontBack = dir >= 0 ? "Front" : "Back";
-            var leftRight = angle.Z <= 0 ? "Left" : "Right";
-
-            return leftRight + frontBack;
+            return splatterDir;
         }
 
         public double GetLifeResistance(DamageType damageType)

@@ -6,9 +6,7 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database.Models.Shard;
-using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -100,6 +98,9 @@ namespace ACE.Server.Entity
         // creature attacker
         public MotionCommand? AttackMotion;
         public BiotaPropertiesBodyPart AttackPart;      // the body part this monster is attacking with
+
+        // creature defender
+        public Quadrant Quadrant;
 
         public bool IgnoreMagicArmor  => Weapon != null ? Weapon.IgnoreMagicArmor : false;      // ignores impen / banes
 
@@ -262,8 +263,11 @@ namespace ACE.Server.Entity
             }
             else
             {
+                // determine height quadrant
+                Quadrant = GetQuadrant(Defender, Attacker, AttackHeight, DamageSource);
+
                 // select random body part @ current attack height
-                GetBodyPart(AttackHeight, defender);
+                GetBodyPart(Defender, Quadrant);
                 if (Evaded)
                     return 0.0f;
 
@@ -300,6 +304,17 @@ namespace ACE.Server.Entity
             DamageMitigated = DamageBeforeMitigation - Damage;
 
             return Damage;
+        }
+
+        public Quadrant GetQuadrant(Creature defender, Creature attacker, AttackHeight attackHeight, WorldObject damageSource)
+        {
+            var quadrant = attackHeight.ToQuadrant();
+
+            var wo = damageSource.CurrentLandblock != null ? damageSource : attacker;
+
+            quadrant |= wo.GetRelativeDir(defender);
+
+            return quadrant;
         }
 
         /// <summary>
@@ -379,19 +394,40 @@ namespace ACE.Server.Entity
             BodyPart = BodyParts.GetBodyPart(attackHeight);
         }
 
+        public static readonly Quadrant LeftRight = Quadrant.Left | Quadrant.Right;
+        public static readonly Quadrant FrontBack = Quadrant.Front | Quadrant.Back;
+
         /// <summary>
         /// Returns a body part for a creature defender
         /// </summary>
-        public void GetBodyPart(AttackHeight attackHeight, Creature defender)
+        public void GetBodyPart(Creature defender, Quadrant quadrant)
         {
+            // get cached body parts table
+            var bodyParts = Creature.GetBodyParts(defender.WeenieClassId);
+
+            // rng roll for body part
+            var bodyPart = bodyParts.RollBodyPart(quadrant);
+
+            if (bodyPart == CombatBodyPart.Undefined)
+            {
+                log.Debug($"DamageEvent.GetBodyPart({defender?.Name} ({defender?.Guid}) ) - couldn't find body part for wcid {defender.WeenieClassId}, Quadrant {quadrant}");
+                Evaded = true;
+                return;
+            }
+
+            //Console.WriteLine($"AttackHeight: {AttackHeight}, Quadrant: {quadrant & FrontBack}{quadrant & LeftRight}, AttackPart: {bodyPart}");
+
+            BiotaPropertiesBodyPart = Defender.Biota.BiotaPropertiesBodyPart.FirstOrDefault(i => i.Key == (ushort)bodyPart);
+
             // select random body part @ current attack height
-            BiotaPropertiesBodyPart = BodyParts.GetBodyPart(defender, attackHeight);
+            /*BiotaPropertiesBodyPart = BodyParts.GetBodyPart(defender, attackHeight);
 
             if (BiotaPropertiesBodyPart == null)
             {
                 Evaded = true;
                 return;
-            }
+            }*/
+
             CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart);
         }
 

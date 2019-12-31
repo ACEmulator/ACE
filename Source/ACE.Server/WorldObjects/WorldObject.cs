@@ -937,6 +937,31 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the relative direction of this creature in relation to target
+        /// expressed as a quadrant: Front/Back, Left/Right
+        /// </summary>
+        public Quadrant GetRelativeDir(WorldObject target)
+        {
+            var sourcePos = new Vector3(Location.PositionX, Location.PositionY, 0);
+            var targetPos = new Vector3(target.Location.PositionX, target.Location.PositionY, 0);
+            var targetDir = new AFrame(target.Location.Pos, target.Location.Rotation).get_vector_heading();
+
+            targetDir.Z = 0;
+            targetDir = Vector3.Normalize(targetDir);
+
+            var sourceToTarget = Vector3.Normalize(sourcePos - targetPos);
+
+            var dir = Vector3.Dot(sourceToTarget, targetDir);
+            var angle = Vector3.Cross(sourceToTarget, targetDir);
+
+            var quadrant = angle.Z <= 0 ? Quadrant.Left : Quadrant.Right;
+
+            quadrant |= dir >= 0 ? Quadrant.Front : Quadrant.Back;
+
+            return quadrant;
+        }
+
+        /// <summary>
         /// Returns TRUE if this WorldObject is a generic linkspot
         /// Linkspots are used for things like Houses,
         /// where the portal destination should be populated at runtime.

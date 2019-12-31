@@ -2809,5 +2809,19 @@ namespace ACE.Server.Command.Handlers
             }
             session.Network.EnqueueSend(new GameMessageSystemChat($"Record cast {(session.Player.RecordCast.Enabled ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
         }
+
+        [CommandHandler("pscript", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void HandlePScript(Session session, params string[] parameters)
+        {
+            var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (wo == null) return;
+
+            if (!Enum.TryParse(typeof(PlayScript), parameters[0], true, out var pscript))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find PlayScript.{parameters[0]}", ChatMessageType.Broadcast));
+                return;
+            }
+            wo.EnqueueBroadcast(new GameMessageScript(wo.Guid, (PlayScript)pscript));
+        }
     }
 }
