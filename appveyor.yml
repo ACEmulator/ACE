@@ -1,9 +1,7 @@
 version: 0.0.{build}
 pull_requests:
   do_not_increment_build_number: true
-# The Preview image sould not be used in the future
-# It's only used now because Appveyor hasn't updated their 2019 image to one that supports .net core 3.1 yet
-image: Visual Studio 2019 Preview
+image: Visual Studio 2019
 platform: x64
 services: mysql
 before_build:
