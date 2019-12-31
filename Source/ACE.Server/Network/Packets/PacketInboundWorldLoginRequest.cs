@@ -6,7 +6,7 @@
 
         public PacketInboundWorldLoginRequest(ClientPacket packet)
         {
-            ConnectionKey = packet.Payload.ReadUInt64();
+            ConnectionKey = packet.DataReader.ReadUInt64();
         }
     }
 }

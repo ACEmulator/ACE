@@ -98,6 +98,10 @@ namespace ACE.Server.WorldObjects
             MeleeTarget = creatureTarget;
             AttackTarget = MeleeTarget;
 
+            // reset PrevMotionCommand / DualWieldAlternate each time button is clicked
+            PrevMotionCommand = MotionCommand.Invalid;
+            DualWieldAlternate = false;
+
             var attackSequence = ++AttackSequence;
 
             if (IsStickyDistance(target) && IsDirectVisible(target))
@@ -299,15 +303,13 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        private static readonly float KickThreshold = 0.75f;
-
-        public AttackType AttackType { get; set; }
+        public MotionCommand PrevMotionCommand;
 
         /// <summary>
         /// Returns the melee swing animation - based on weapon,
         /// current stance, power bar, and attack height
         /// </summary>
-        public override MotionCommand GetSwingAnimation()
+        public MotionCommand GetSwingAnimation()
         {
             if (IsDualWieldAttack)
                 DualWieldAlternate = !DualWieldAlternate;
@@ -325,7 +327,8 @@ namespace ACE.Server.WorldObjects
                 AttackType = PowerLevel > KickThreshold ? AttackType.Kick : AttackType.Punch;
             }
 
-            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType);
+            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType, PrevMotionCommand);
+            PrevMotionCommand = motion;
 
             //Console.WriteLine($"{motion}");
 

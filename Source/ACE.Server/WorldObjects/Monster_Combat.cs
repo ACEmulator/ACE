@@ -350,5 +350,11 @@ namespace ACE.Server.WorldObjects
             var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, splatter));
         }
+
+        public CombatStyle AiAllowedCombatStyle
+        {
+            get => (CombatStyle)(GetProperty(PropertyInt.AiAllowedCombatStyle) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.AiAllowedCombatStyle); else SetProperty(PropertyInt.AiAllowedCombatStyle, (int)value); }
+        }
     }
 }

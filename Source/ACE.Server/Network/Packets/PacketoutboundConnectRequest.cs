@@ -6,14 +6,14 @@ namespace ACE.Server.Network.Packets
         {
             Header.Flags = PacketHeaderFlags.ConnectRequest;
 
-            InitializeBodyWriter();
+            InitializeDataWriter();
 
-            BodyWriter.Write(serverTime); // CConnectHeader.ServerTime
-            BodyWriter.Write(cookie); // CConnectHeader.Cookie
-            BodyWriter.Write(clientId); // CConnectHeader.NetID
-            BodyWriter.Write(isaacServerSeed); // CConnectHeader.OutgoingSeed
-            BodyWriter.Write(isaacClientSeed); // CConnectHeader.IncomingSeed
-            BodyWriter.Write(0u); // Padding for alignment?
+            DataWriter.Write(serverTime); // CConnectHeader.ServerTime
+            DataWriter.Write(cookie); // CConnectHeader.Cookie
+            DataWriter.Write(clientId); // CConnectHeader.NetID
+            DataWriter.Write(isaacServerSeed); // CConnectHeader.OutgoingSeed
+            DataWriter.Write(isaacClientSeed); // CConnectHeader.IncomingSeed
+            DataWriter.Write(0u); // Padding for alignment?
         }
     }
 }
