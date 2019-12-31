@@ -198,7 +198,7 @@ namespace ACE.Server.WorldObjects
             {
                 case MagicSchool.WarMagic:
 
-                    WarMagic(target, spell);
+                    WarMagic(target, spell, this);
                     break;
 
                 case MagicSchool.LifeMagic:
@@ -252,7 +252,7 @@ namespace ACE.Server.WorldObjects
                         if (resisted ?? true)
                             break;
                     }
-                    VoidMagic(target, spell);
+                    VoidMagic(target, spell, this);
                     if (spell.NumProjectiles == 0 && target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;

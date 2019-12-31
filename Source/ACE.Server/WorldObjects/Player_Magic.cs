@@ -640,11 +640,12 @@ namespace ACE.Server.WorldObjects
             }
 
             // consume mana
+            WorldObject caster = this;
             if (!isWeaponSpell)
                 UpdateVitalDelta(Mana, -(int)manaUsed);
             else
             {
-                var caster = GetEquippedWand();     // TODO: persist this from the beginning, since this is done with delay
+                caster = GetEquippedWand();     // TODO: persist this from the beginning, since this is done with delay
                 caster.ItemCurMana -= (int)manaUsed;
             }
 
@@ -676,12 +677,12 @@ namespace ACE.Server.WorldObjects
                 case CastingPreCheckStatus.Success:
 
                     if ((spell.Flags & SpellFlags.FellowshipSpell) == 0)
-                        CreatePlayerSpell(target, spell);
+                        CreatePlayerSpell(target, spell, isWeaponSpell);
                     else
                     {
                         var fellows = GetFellowshipTargets();
                         foreach (var fellow in fellows)
-                            CreatePlayerSpell(fellow, spell);
+                            CreatePlayerSpell(fellow, spell, isWeaponSpell);
                     }
 
                     // handle self procs
@@ -697,13 +698,13 @@ namespace ACE.Server.WorldObjects
                         switch (spell.School)
                         {
                             case MagicSchool.WarMagic:
-                                WarMagic(target, spell);
+                                WarMagic(target, spell, caster);
                                 break;
                             case MagicSchool.VoidMagic:
-                                VoidMagic(target, spell);
+                                VoidMagic(target, spell, caster);
                                 break;
                             case MagicSchool.LifeMagic:
-                                LifeMagic(spell, out uint damage, out bool critical, out var enchantmentStatus, target);
+                                LifeMagic(spell, out uint damage, out bool critical, out var enchantmentStatus, target, caster);
                                 break;
                         }
                     }
@@ -849,7 +850,7 @@ namespace ACE.Server.WorldObjects
                 return new List<Player>() { this };
         }
 
-        private void CreatePlayerSpell(WorldObject target, Spell spell)
+        private void CreatePlayerSpell(WorldObject target, Spell spell, bool isWeaponSpell)
         {
             var targetCreature = target as Creature;
             var targetPlayer = target as Player;
@@ -860,13 +861,17 @@ namespace ACE.Server.WorldObjects
             LastSuccessCast_School = spell.School;
             LastSuccessCast_Time = Time.GetUnixTime();
 
+            WorldObject caster = this;
+            if (isWeaponSpell)
+                caster = GetEquippedWand();
+
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
-                    WarMagic(target, spell);
+                    WarMagic(target, spell, caster);
                     break;
                 case MagicSchool.VoidMagic:
-                    VoidMagic(target, spell);
+                    VoidMagic(target, spell, caster);
                     break;
 
                 case MagicSchool.CreatureEnchantment:
@@ -876,7 +881,7 @@ namespace ACE.Server.WorldObjects
 
                     if (spell.IsHarmful)
                     {
-                        var resisted = ResistSpell(target, spell);
+                        var resisted = ResistSpell(target, spell, caster);
                         if (resisted == true)
                             break;
                         if (resisted == null)
@@ -923,7 +928,7 @@ namespace ACE.Server.WorldObjects
                     {
                         if (spell.IsHarmful)
                         {
-                            var resisted = ResistSpell(target, spell);
+                            var resisted = ResistSpell(target, spell, caster);
                             if (resisted == true)
                                 break;
                             if (resisted == null)
@@ -943,7 +948,7 @@ namespace ACE.Server.WorldObjects
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-                    targetDeath = LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target);
+                    targetDeath = LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target, caster);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
@@ -987,7 +992,7 @@ namespace ACE.Server.WorldObjects
 
                         if (targetResist != null)
                         {
-                            var resisted = ResistSpell(targetResist, spell);
+                            var resisted = ResistSpell(targetResist, spell, caster);
                             if (resisted == true)
                                 break;
                             if (resisted == null)
