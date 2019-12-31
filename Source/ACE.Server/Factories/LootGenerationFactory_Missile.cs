@@ -1,4 +1,3 @@
-
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -43,11 +42,9 @@ namespace ACE.Server.Factories
             if (meleeDMod > 0.0f)
                 wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
 
-            double missileDMod = GetMissileDMod(tier);
-            if (missileDMod > 0.0f)
-                wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDMod);
-
-            // wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicDefense);
+            // MagicD/Missile Bonus
+            wo.WeaponMagicDefense = GetMagicMissileDMod(tier); 
+            wo.WeaponMissileDefense = GetMagicMissileDMod(tier);
 
             wo.SetProperty(PropertyFloat.DamageMod, GetMissileDamageMod(wieldDifficulty, wo.GetProperty(PropertyInt.WeaponType)));
 

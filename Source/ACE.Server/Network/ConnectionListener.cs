@@ -27,6 +27,7 @@ namespace ACE.Server.Network
         public ConnectionListener(IPAddress host, uint port)
         {
             log.DebugFormat("ConnectionListener ctor, host {0} port {1}", host, port);
+
             listeningHost = host;
             listeningPort = port;
         }
@@ -34,6 +35,7 @@ namespace ACE.Server.Network
         public void Start()
         {
             log.DebugFormat("Starting ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
+
             try
             {
                 ListenerEndpoint = new IPEndPoint(listeningHost, (int)listeningPort);
@@ -51,6 +53,7 @@ namespace ACE.Server.Network
         public void Shutdown()
         {
             log.DebugFormat("Shutting down ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
+
             if (Socket != null && Socket.IsBound)
                 Socket.Close();
         }
@@ -76,6 +79,7 @@ namespace ACE.Server.Network
         private void OnDataReceieve(IAsyncResult result)
         {
             EndPoint clientEndPoint = null;
+
             try
             {
                 clientEndPoint = new IPEndPoint(listeningHost, 0);
@@ -96,8 +100,9 @@ namespace ACE.Server.Network
                     packetLog.Debug(sb.ToString());
                 }
 
-                var packet = new ClientPacket(data);
-                if (packet.IsValid)
+                var packet = new ClientPacket();
+
+                if (packet.Unpack(data))
                     NetworkManager.ProcessPacket(this, packet, ipEndpoint);
             }
             catch (SocketException socketException)
@@ -117,6 +122,7 @@ namespace ACE.Server.Network
                     return;
                 }
             }
+
             Listen();
         }
     }
