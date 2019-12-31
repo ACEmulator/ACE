@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -52,17 +50,12 @@ namespace ACE.Server.WorldObjects
             if (CurrentMotionState.Stance == MotionStance.NonCombat)
                 DoAttackStance();
 
-            // choose a random combat maneuver
-            var maneuver = GetCombatManeuver();
-            if (maneuver == null)
-            {
-                Console.WriteLine($"Combat maneuver null! Stance {CurrentMotionState.Stance}, MotionTable {MotionTableId:X8}");
+            // select combat maneuver
+            var motionCommand = GetCombatManeuver();
+            if (motionCommand == null)
                 return 0.0f;
-            }
 
-            AttackHeight = maneuver.AttackHeight;
-
-            DoSwingMotion(AttackTarget, maneuver, out float animLength, out var attackFrames);
+            DoSwingMotion(AttackTarget, motionCommand.Value, out float animLength, out var attackFrames);
             PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
             var numStrikes = attackFrames.Count;
@@ -87,7 +80,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     var weapon = GetEquippedWeapon();
-                    var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, maneuver);
+                    var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, motionCommand);
 
                     //var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
 
@@ -130,68 +123,104 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Selects a random combat maneuver for a monster's next attack
         /// </summary>
-        public CombatManeuver GetCombatManeuver()
+        public MotionCommand? GetCombatManeuver()
         {
-            if (CombatTable == null) return null;
+            // similar to Player.GetSwingAnimation(), more logging
+
+            if (CombatTable == null)
+            {
+                log.Error($"{Name} ({Guid}).GetCombatManeuver() - CombatTable is null");
+                return null;
+            }
 
             //ShowCombatTable();
 
-            // for some reason, the combat maneuvers table can return stance motions that don't exist in the motion table
-            // ie. skeletons (combat maneuvers table 0x30000000, motion table 0x09000025)
-            // for sword combat, they have double and triple strikes (dagger / two-handed only?)
-            var weapon = GetEquippedMeleeWeapon();
-
-            var stanceManeuvers = CombatTable.CMT.Where(m => m.Style == CurrentMotionState.Stance).ToList();
-
-            if (stanceManeuvers.Count == 0)
-                return null;
-
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(MotionTableId);
             if (motionTable == null)
+            {
+                log.Error($"{Name} ({Guid}).GetCombatManeuver() - motionTable is null");
                 return null;
+            }
+
+            if (!CombatTable.Stances.TryGetValue(CurrentMotionState.Stance, out var stanceManeuvers))
+            {
+                log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find stance {CurrentMotionState.Stance} in CMT {CombatTableDID:X8}");
+                return null;
+            }
 
             var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFF);
             motionTable.Links.TryGetValue(stanceKey, out var motions);
             if (motions == null)
-                return null;
-
-            var shuffledStanceManeuvers = new List<CombatManeuver>(stanceManeuvers);
-            shuffledStanceManeuvers.Shuffle();
-
-            for (int i = 0; i < shuffledStanceManeuvers.Count; i++)
             {
-                var combatManeuver = shuffledStanceManeuvers[i];
-
-                var motion = combatManeuver.Motion.ToString();
-
-                // todo: use motion mapping, avoid string search
-
-                if (motion.Contains("Slash") && (weapon == null || (weapon.W_AttackType & (AttackType.Slash | AttackType.DoubleSlash | AttackType.TripleSlash)) == 0))
-                    continue;
-                if (motion.Contains("Thrust") && (weapon == null || (weapon.W_AttackType & (AttackType.Thrust | AttackType.DoubleThrust | AttackType.TripleThrust)) == 0))
-                    continue;
-
-                if (motion.StartsWith("Double") && (weapon == null || (weapon.W_AttackType & AttackType.DoubleStrike) == 0))
-                    continue;
-                if (motion.StartsWith("Triple") && (weapon == null || (weapon.W_AttackType & AttackType.TripleStrike) == 0))
-                    continue;
-
-                // ensure combat maneuver exists for this monster's motion table
-                if (motions.TryGetValue((uint)combatManeuver.Motion, out var motionData) && motionData != null)
-                {
-                    /*Console.WriteLine($"{Name} selected CombatManeuver:");
-                    Console.WriteLine($"Style: {combatManeuver.Style}");
-                    Console.WriteLine($"MotionCommand: {combatManeuver.Motion}");
-                    Console.WriteLine($"AttackHeight: {combatManeuver.AttackHeight}");
-                    Console.WriteLine($"AttackType: {combatManeuver.AttackType}");*/
-
-                    return combatManeuver;
-                }
+                log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find stance {CurrentMotionState.Stance} in MotionTable {MotionTableId:X8}");
+                return null;
             }
 
-            // No match was found
-            log.WarnFormat("No valid combat maneuver found for {0} using weapon {1}. CurrentMotionState.Stance: {2}", Name, (weapon != null ? weapon.Name : "null"), CurrentMotionState.Stance);
-            return null;
+            // choose a random attack height?
+            // apparently this might have been based on monster Z vs. player Z?
+            AttackHeight = (AttackHeight)ThreadSafeRandom.Next(1, 3);
+
+            if (!stanceManeuvers.Table.TryGetValue(AttackHeight.Value, out var attackTypes))
+            {
+                log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find attack height {AttackHeight} for stance {CurrentMotionState.Stance} in CMT {CombatTableDID:X8}");
+                return null;
+            }
+
+            if (IsDualWieldAttack)
+                DualWieldAlternate = !DualWieldAlternate;
+
+            var offhand = IsDualWieldAttack && !DualWieldAlternate;
+
+            var weapon = GetEquippedMeleeWeapon();
+
+            // monsters supposedly always used 0.5 PowerLevel according to anon docs,
+            // which translates into a 1.0 PowerMod
+
+            AttackType = weapon != null ? weapon.GetAttackType(CurrentMotionState.Stance, 0.5f, offhand) : AttackType.Punch;
+
+            if (!attackTypes.Table.TryGetValue(AttackType, out var maneuvers) || maneuvers.Count == 0)
+            {
+                log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find attack type {AttackType} for attack height {AttackHeight} and stance {CurrentMotionState.Stance} in CMT {CombatTableDID:X8}");
+                return null;
+            }
+
+            var motionCommand = maneuvers[0];
+
+            if (maneuvers.Count > 1)
+            {
+                // only used for special attacks?
+
+                // note that with rolling for AttackHeight first,
+                // for a CMT with high, med, med-special, and low
+                // the chance of rolling the special attack is reduced from 1/4 to 1/6 -- investigate
+
+                var rng = ThreadSafeRandom.Next(0, maneuvers.Count - 1);
+                motionCommand = maneuvers[rng];
+            }
+
+            // ensure this motionCommand exists in monster's motion table
+            if (!motions.ContainsKey((uint)motionCommand))
+            {
+                // for some reason, the combat maneuvers table can return stance motions that don't exist in the motion table
+                // ie. skeletons (combat maneuvers table 0x30000000, motion table 0x09000025)
+                // for sword combat, they have double and triple strikes (dagger / two-handed only?)
+                if (motionCommand.IsMultiStrike())
+                {
+                    var singleStrike = motionCommand.ReduceMultiStrike();
+
+                    if (motions.ContainsKey((uint)singleStrike))
+                    {
+                        //log.Info($"{Name} ({Guid}).GetCombatManeuver() - successfully reduced {motionCommand} to {singleStrike}");
+                        return singleStrike;
+                    }
+                }
+                log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find {motionCommand} in MotionTable {MotionTableId:X8}");
+                return null;
+            }
+
+            //Console.WriteLine(motionCommand);
+
+            return motionCommand;
         }
 
         /// <summary>
@@ -210,17 +239,22 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
-        public void DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength, out List<float> attackFrames)
+        public void DoSwingMotion(WorldObject target, MotionCommand motionCommand, out float animLength, out List<float> attackFrames)
         {
             if (ForcePos)
                 SendUpdatePosition();
 
-            var animSpeed = GetAnimSpeed();
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, animSpeed);
+            //Console.WriteLine($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
 
-            attackFrames = MotionTable.GetAttackFrames(MotionTableId, CurrentMotionState.Stance, maneuver.Motion);
+            var baseSpeed = GetAnimSpeed();
+            var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster
+            var animSpeed = baseSpeed * animSpeedMod;
 
-            var motion = new Motion(this, maneuver.Motion, animSpeed);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand, animSpeed);
+
+            attackFrames = MotionTable.GetAttackFrames(MotionTableId, CurrentMotionState.Stance, motionCommand);
+
+            var motion = new Motion(this, motionCommand, animSpeed);
             motion.MotionState.TurnSpeed = 2.25f;
             if (!AiImmobile)
                 motion.MotionFlags |= MotionFlags.StickToObject;
@@ -229,38 +263,6 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motion;
 
             EnqueueBroadcastMotion(motion);
-        }
-
-        /// <summary>
-        /// Returns the current melee swing motion for the monster
-        /// </summary>
-        public virtual MotionCommand GetSwingAnimation()
-        {
-            MotionCommand motion = new MotionCommand();
-
-            //Console.WriteLine("MotionStance: " + CurrentMotionState.Stance);
-
-            switch (CurrentMotionState.Stance)
-            {
-                case MotionStance.DualWieldCombat:
-                case MotionStance.SwordCombat:
-                case MotionStance.SwordShieldCombat:
-                case MotionStance.ThrownShieldCombat:
-                case MotionStance.ThrownWeaponCombat:
-                case MotionStance.TwoHandedStaffCombat:
-                case MotionStance.TwoHandedSwordCombat:
-                    {
-                        Enum.TryParse("Slash" + GetAttackHeight(), out motion);
-                        return motion;
-                    }
-
-                case MotionStance.HandCombat:
-                default:
-                    {
-                        Enum.TryParse("Attack" + GetAttackHeight() + (int)GetPowerRange(), out motion);
-                        return motion;
-                    }
-            }
         }
 
         /// <summary>
@@ -436,26 +438,23 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the monster body part performing the next attack
         /// </summary>
-        public BiotaPropertiesBodyPart GetAttackPart(CombatManeuver maneuver)
+        public BiotaPropertiesBodyPart GetAttackPart(MotionCommand motionCommand)
         {
             List<BiotaPropertiesBodyPart> parts = null;
             var attackHeight = (uint)AttackHeight;
-            if (maneuver != null)
-            {
-                var motionName = ((MotionCommand)maneuver.Motion).ToString();
-                if (motionName.Contains("Special"))
-                    //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
-                    parts = Biota.BiotaPropertiesBodyPart.Where(b => b.Key == (int)CombatBodyPart.Breath).ToList();  // always use Breath?
-            }
+
+            if (motionCommand >= MotionCommand.SpecialAttack1 && motionCommand <= MotionCommand.SpecialAttack3)
+                //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
+                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.Key == (int)CombatBodyPart.Breath).ToList();  // always use Breath?
+
             if (parts == null)
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
                 parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.Key != (int)CombatBodyPart.Breath).ToList();
 
             if (parts.Count == 0)
             {
-                log.Warn($"{Name}.GetAttackPart() failed");
-                log.Warn($"Combat table ID: {CombatTable.Id:X8}");
-                log.Warn($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
+                log.Warn($"{Name} ({Guid}.GetAttackPart({motionCommand}) failed");
+                log.Warn($"CombatTable: {CombatTableDID:X8}, MotionTable: {MotionTableId:X8}, CurrentStance: {CurrentMotionState.Stance}, AttackHeight: {AttackHeight}, AttackType: {AttackType}");
                 return null;
             }
 
