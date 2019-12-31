@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
 {
@@ -84,6 +85,14 @@ namespace ACE.Server.Network.Structure
                 flags |= MovementStateFlag.TurnSpeed;
 
             return flags;
+        }
+
+        public void AddCommand(WorldObject worldObject, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            if (Commands == null)
+                Commands = new List<MotionItem>();
+
+            Commands.Add(new MotionItem(worldObject, motionCommand, speed));
         }
 
         public bool HasMovement()

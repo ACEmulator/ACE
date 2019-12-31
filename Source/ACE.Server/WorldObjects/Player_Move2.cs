@@ -50,6 +50,7 @@ namespace ACE.Server.WorldObjects
             MoveToCallback = callback;
 
             PhysicsObj.MoveToObject(target.PhysicsObj, mvp);
+            //PhysicsObj.LastMoveWasAutonomous = false;
 
             PhysicsObj.update_object();
         }
@@ -59,7 +60,9 @@ namespace ACE.Server.WorldObjects
             if (IsPlayerMovingTo2)
                 StopExistingMoveToChains2();
 
-            if (target.Location == null)
+            var rotateTarget = target.GetCurrentOrWielder(CurrentLandblock);
+
+            if (rotateTarget.Location == null)
             {
                 log.Error($"{Name}.TurnTo({target.Name}): target.Location is null");
                 callback(false);
@@ -70,11 +73,11 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine("*** CreateTurnToChain ***");
 
             // send command to client
-            TurnToObject(target, stopCompletely);
+            TurnToObject(rotateTarget, stopCompletely);
 
             // start on server
             // forward this to PhysicsObj.MoveManager.MoveToManager
-            var mvp = GetTurnToParams();
+            var mvp = GetTurnToParams(stopCompletely);
 
             if (!PhysicsObj.IsMovingOrAnimating)
                 //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - PhysicsGlobals.MinQuantum;
@@ -83,13 +86,15 @@ namespace ACE.Server.WorldObjects
             IsPlayerMovingTo2 = true;
             MoveToCallback = callback;
 
-            PhysicsObj.TurnToObject(target.PhysicsObj, mvp);
+            PhysicsObj.TurnToObject(rotateTarget.PhysicsObj, mvp);
+            //PhysicsObj.LastMoveWasAutonomous = false;
 
             PhysicsObj.update_object();
         }
 
         public void StopExistingMoveToChains2()
         {
+            //Console.WriteLine($"CancelMoveTo");
             PhysicsObj.cancel_moveto();
         }
 
@@ -110,12 +115,12 @@ namespace ACE.Server.WorldObjects
             return mvp;
         }
 
-        public MovementParameters GetTurnToParams()
+        public MovementParameters GetTurnToParams(bool stopCompletely = false)
         {
             var mvp = new MovementParameters();
 
             //mvp.HoldKeyToApply = HoldKey.Run;
-            //mvp.StopCompletely = false;
+            mvp.StopCompletely = stopCompletely;
             //mvp.ModifyInterpretedState = false;
 
             return mvp;

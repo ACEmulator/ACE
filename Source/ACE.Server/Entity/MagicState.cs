@@ -53,6 +53,11 @@ namespace ACE.Server.Entity
         public bool IsTurning { get; set; }
 
         /// <summary>
+        /// Information required for performing the windup
+        /// </summary>
+        public WindupParams WindupParams { get; set; }
+
+        /// <summary>
         /// Information required for launching the spell
         /// </summary>
         public CastSpellParams CastSpellParams { get; set; }
@@ -146,6 +151,7 @@ namespace ACE.Server.Entity
             }
 
             CastSpellParams = null;
+            WindupParams = null;
         }
 
         public void SetCastParams(Spell spell, bool isWeaponSpell, uint magicSkill, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
@@ -156,16 +162,23 @@ namespace ACE.Server.Entity
                 Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
         }
 
+        public void SetWindupParams(uint targetGuid, uint spellId, bool builtInSpell)
+        {
+            WindupParams = new WindupParams(targetGuid, spellId, builtInSpell);
+        }
+
         public override string ToString()
         {
             var str = $"Player: {Player.Name} ({Player.Guid})\n";
             str += $"IsCasting: {IsCasting}\n";
+            str += $"CastMotionStarted: {CastMotionDone}\n";
             str += $"CastMotionDone: {CastMotionDone}\n";
             str += $"TurnStarted: {TurnStarted}\n";
             str += $"IsTurning: {IsTurning}\n";
+            str += $"WindupParams: {WindupParams}\n";
             str += $"CastSpellParams: {CastSpellParams}\n";
             str += $"CastGesture: {CastGesture}\n";
-            str += $"StartTime: {StartTime}\n";
+            str += $"StartTime: {StartTime}";
             return str;
         }
     }

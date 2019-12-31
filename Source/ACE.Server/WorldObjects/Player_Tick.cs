@@ -265,6 +265,7 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"{Name}.UpdatePlayerPhysics({PhysicsObj.PartArray.Sequence.CurrAnim.Value.Anim.ID:X8})");
 
             //Console.WriteLine($"{PhysicsObj.Position.Frame.Origin}");
+            //Console.WriteLine($"{PhysicsObj.Position.Frame.get_heading()}");
 
             PhysicsObj.update_object();
 

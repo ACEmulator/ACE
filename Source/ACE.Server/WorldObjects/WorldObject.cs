@@ -1000,5 +1000,13 @@ namespace ACE.Server.WorldObjects
         public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
 
         public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
+
+        /// <summary>
+        /// Returns the wielder or the current object
+        /// </summary>
+        public WorldObject GetCurrentOrWielder(Landblock landblock)
+        {
+            return WielderId != null ? landblock?.GetObject(WielderId.Value) : this;
+        }
     }
 }
