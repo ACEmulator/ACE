@@ -152,7 +152,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoWindup(WindupParams windupParams)
         {
-            Console.WriteLine($"{Name}.DoWindup()");
+            //Console.WriteLine($"{Name}.DoWindup()");
 
             // ensure target still exists
             var targetCategory = GetTargetCategory(windupParams.TargetGuid, windupParams.SpellId, out var target);
@@ -561,7 +561,7 @@ namespace ACE.Server.WorldObjects
                     angle = Math.Abs(GetAngle_Physics2(target));
             }
 
-            Console.WriteLine($"Angle: " + angle);
+            //Console.WriteLine($"Angle: " + angle);
             var maxAngle = PropertyManager.GetDouble("spellcast_max_angle").Item;
 
             if (RecordCast.Enabled)
@@ -610,7 +610,7 @@ namespace ACE.Server.WorldObjects
 
         public void TurnTo_Magic(WorldObject target)
         {
-            Console.WriteLine($"{Name}.TurnTo_Magic()");
+            //Console.WriteLine($"{Name}.TurnTo_Magic()");
 
             MagicState.TurnStarted = true;
             MagicState.IsTurning = true;
@@ -1318,7 +1318,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleMotionDone_Magic(uint motionID, bool success)
         {
-            Console.WriteLine($"HandleMotionDone_Magic({(MotionCommand)motionID}, {success})");
+            //Console.WriteLine($"HandleMotionDone_Magic({(MotionCommand)motionID}, {success})");
 
             if (!FastTick || !MagicState.IsCasting) return;
 
@@ -1334,7 +1334,7 @@ namespace ACE.Server.WorldObjects
 
         public void OnMoveComplete_Magic(WeenieError status)
         {
-            Console.WriteLine($"OnMoveComplete_Magic({status})");
+            //Console.WriteLine($"OnMoveComplete_Magic({status})");
 
             if (!FastTick || !MagicState.IsCasting || !MagicState.TurnStarted)
                 return;
