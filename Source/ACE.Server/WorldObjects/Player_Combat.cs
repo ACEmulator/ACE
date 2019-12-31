@@ -649,6 +649,14 @@ namespace ACE.Server.WorldObjects
             var missileWeapon = GetEquippedMissileWeapon();
             var caster = GetEquippedWand();
 
+            if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+            {
+                var parms = MagicState.CastSpellParams;
+                DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
+                SendUseDoneEvent(WeenieError.YourSpellFizzled);
+                MagicState.OnCastDone();
+            }
+
             switch (newCombatMode)
             {
                 case CombatMode.NonCombat:
@@ -720,6 +728,9 @@ namespace ACE.Server.WorldObjects
 
             }
             SetCombatMode(newCombatMode);
+
+            if (RecordCast.Enabled)
+                RecordCast.OnSetCombatMode(newCombatMode);
         }
 
         /// <summary>

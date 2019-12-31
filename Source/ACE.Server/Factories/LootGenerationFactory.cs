@@ -1373,96 +1373,101 @@ namespace ACE.Server.Factories
 
             return manaDMod;
         }
-
-        private static double GetMissileDMod(int tier)
+        /// <summary>
+        /// Returns Values for Magic & Missile Defense Bonus. Updated HarliQ 11/17/19
+        /// </summary>
+        private static double GetMagicMissileDMod(int tier)
         {
-            double missileMod = 0;
-
-            switch (tier)
+            double magicMissileDefenseMod = 0;
+            // For seeing if weapon even gets a chance at a modifier
+            int modifierChance = ThreadSafeRandom.Next(1, 2);
+            if (modifierChance > 1)
             {
-                case 1:
-                case 2:
-                    missileMod = 0;
-                    break;
-                case 3:
-                    int chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance > 95)
-                        missileMod = .005;
-                    break;
-                case 4:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance > 95)
-                        missileMod = .01;
-                    else if (chance > 80)
-                        missileMod = .005;
-                    else
-                        missileMod = 0;
-                    break;
-                case 5:
-                    chance = ThreadSafeRandom.Next(0, 1000);
-                    if (chance > 950)
-                        missileMod = .01;
-                    else if (chance > 800)
-                        missileMod = .005;
-                    else
-                        missileMod = 0;
-                    break;
-                case 6:
-                    chance = ThreadSafeRandom.Next(0, 1000);
-                    if (chance > 975)
-                        missileMod = .020;
-                    else if (chance > 900)
-                        missileMod = .015;
-                    else if (chance > 800)
-                        missileMod = .010;
-                    else if (chance > 700)
-                        missileMod = .005;
-                    else
-                        missileMod = 0;
-                    break;
-                case 7:
-                    chance = ThreadSafeRandom.Next(0, 1000);
-                    if (chance > 990)
-                        missileMod = .030;
-                    else if (chance > 985)
-                        missileMod = .025;
-                    else if (chance > 950)
-                        missileMod = .020;
-                    else if (chance > 900)
-                        missileMod = .015;
-                    else if (chance > 850)
-                        missileMod = .01;
-                    else if (chance > 800)
-                        missileMod = .005;
-                    else
-                        missileMod = 0;
-                    break;
-                default: // tier 8
-                    chance = ThreadSafeRandom.Next(0, 1000);
-                    if (chance > 998)
-                        missileMod = .04;
-                    else if (chance > 994)
-                        missileMod = .035;
-                    else if (chance > 990)
-                        missileMod = .03;
-                    else if (chance > 985)
-                        missileMod = .025;
-                    else if (chance > 950)
-                        missileMod = .02;
-                    else if (chance > 900)
-                        missileMod = .015;
-                    else if (chance > 850)
-                        missileMod = .01;
-                    else if (chance > 800)
-                        missileMod = .005;
-                    else
-                        missileMod = 0;
-                    break;
+                switch (tier)
+                {
+                    case 1:
+                    case 2:
+                        magicMissileDefenseMod = 0;
+                        break;
+                    case 3:
+                        int chance = ThreadSafeRandom.Next(1, 100);
+                        if (chance > 95)
+                            magicMissileDefenseMod = .005;
+                        break;
+                    case 4:
+                        chance = ThreadSafeRandom.Next(1, 100);
+                        if (chance > 95)
+                            magicMissileDefenseMod = .01;
+                        else if (chance > 80)
+                            magicMissileDefenseMod = .005;
+                        else
+                            magicMissileDefenseMod = 0;
+                        break;
+                    case 5:
+                        chance = ThreadSafeRandom.Next(1, 1000);
+                        if (chance > 950)
+                            magicMissileDefenseMod = .01;
+                        else if (chance > 800)
+                            magicMissileDefenseMod = .005;
+                        else
+                            magicMissileDefenseMod = 0;
+                        break;
+                    case 6:
+                        chance = ThreadSafeRandom.Next(1, 1000);
+                        if (chance > 975)
+                            magicMissileDefenseMod = .020;
+                        else if (chance > 900)
+                            magicMissileDefenseMod = .015;
+                        else if (chance > 800)
+                            magicMissileDefenseMod = .010;
+                        else if (chance > 700)
+                            magicMissileDefenseMod = .005;
+                        else
+                            magicMissileDefenseMod = 0;
+                        break;
+                    case 7:
+                        chance = ThreadSafeRandom.Next(1, 1000);
+                        if (chance > 990)
+                            magicMissileDefenseMod = .030;
+                        else if (chance > 985)
+                            magicMissileDefenseMod = .025;
+                        else if (chance > 950)
+                            magicMissileDefenseMod = .020;
+                        else if (chance > 900)
+                            magicMissileDefenseMod = .015;
+                        else if (chance > 850)
+                            magicMissileDefenseMod = .01;
+                        else if (chance > 800)
+                            magicMissileDefenseMod = .005;
+                        else
+                            magicMissileDefenseMod = 0;
+                        break;
+                    default: // tier 8
+                        chance = ThreadSafeRandom.Next(1, 1000);
+                        if (chance > 998)
+                            magicMissileDefenseMod = .04;
+                        else if (chance > 994)
+                            magicMissileDefenseMod = .035;
+                        else if (chance > 990)
+                            magicMissileDefenseMod = .03;
+                        else if (chance > 985)
+                            magicMissileDefenseMod = .025;
+                        else if (chance > 950)
+                            magicMissileDefenseMod = .02;
+                        else if (chance > 900)
+                            magicMissileDefenseMod = .015;
+                        else if (chance > 850)
+                            magicMissileDefenseMod = .01;
+                        else if (chance > 800)
+                            magicMissileDefenseMod = .005;
+                        else
+                            magicMissileDefenseMod = 0;
+                        break;
+                }
             }
+            double modifier = 1.0 + magicMissileDefenseMod;
 
-            double m2 = 1.0 + missileMod;
-
-            return m2;
+            return modifier;
         }
 
         private static int GetValue(int tier, int work, double gemMod, double matMod)
@@ -2374,36 +2379,5 @@ namespace ACE.Server.Factories
             meleeMod = meleeMod + 1.0;
             return meleeMod;
         }
-        /// <summary>
-        /// Returns Values for Magic & Missile Defense Bonus. HarliQ 11/17/19
-        /// </summary>
-        private static double GetMagicMissileDefenseBonus()
-        {
-            double mBonus = 0;
-
-            int chance = ThreadSafeRandom.Next(1, 100);
-
-            if (chance > 98)
-                mBonus = 0.04;
-            else if (chance > 95)
-                mBonus = 0.035;
-            else if (chance > 90)
-                mBonus = 0.030;
-            else if (chance > 80)
-                mBonus = 0.025;
-            else if (chance > 65)
-                mBonus = 0.02;
-            else if (chance > 50)
-                mBonus = 0.015;
-            else if (chance > 25)
-                mBonus = 0.010;
-            else 
-                mBonus = 0.005;
-
-            return mBonus +1;
-
-            
-        }
-    } 
-        
+    }         
 }

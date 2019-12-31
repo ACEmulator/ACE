@@ -236,13 +236,7 @@ namespace ACE.Server.Network
             var removalList = cachedPackets.Values.Where(x => (currentTime >= x.Header.Time ? currentTime : currentTime + ushort.MaxValue) - x.Header.Time > cachedPacketRetentionTime);
 
             foreach (var packet in removalList)
-            {
-                if (cachedPackets.TryRemove(packet.Header.Sequence, out var removedPacket))
-                {
-                    if (removedPacket.Data != null)
-                        removedPacket.Data.Dispose();
-                }
-            }
+                cachedPackets.TryRemove(packet.Header.Sequence, out _);
         }
 
         // This is called from ConnectionListener.OnDataReceieve()->Session.ProcessPacket()->This
@@ -258,9 +252,21 @@ namespace ACE.Server.Network
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
             NetworkStatistics.C2S_Packets_Aggregate_Increment();
 
-            if (!packet.VerifyCRC(ConnectionData.CryptoClient, true))
+            if (!packet.VerifyCRC(ConnectionData.CryptoClient))
             {
                 return;
+            }
+
+            // If the client sent a NAK with a cleartext CRC then process it
+            if ((packet.Header.Flags & PacketHeaderFlags.RequestRetransmit) == PacketHeaderFlags.RequestRetransmit
+                && !((packet.Header.Flags & PacketHeaderFlags.EncryptedChecksum) == PacketHeaderFlags.EncryptedChecksum))
+            {
+                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
+                {
+                    Retransmit(sequence);
+                }
+                NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
+                return; //cleartext crc NAK is never accompanied by additional data needed by the rest of the pipeline
             }
 
             #region order-insensitive "half-processing"
@@ -275,16 +281,6 @@ namespace ACE.Server.Network
             {
                 session.Terminate(SessionTerminationReason.ClientSentNetworkErrorDisconnect);
                 return;
-            }
-
-            // If the client is requesting a retransmission process it immediately
-            if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-            {
-                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
-                {
-                    Retransmit(sequence);
-                }
-                NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
             }
 
             // depending on the current session state:
@@ -546,13 +542,7 @@ namespace ACE.Server.Network
             var removalList = cachedPackets.Keys.Where(x => x < sequence);
 
             foreach (var key in removalList)
-            {
-                if (cachedPackets.TryRemove(key, out var removedPacket))
-                {
-                    if (removedPacket.Data != null)
-                        removedPacket.Data.Dispose();
-                }
-            }
+                cachedPackets.TryRemove(key, out _);
         }
 
         private void Retransmit(uint sequence)
@@ -778,25 +768,25 @@ namespace ACE.Server.Network
             {
                 packetHeader.Flags |= PacketHeaderFlags.AckSequence;
                 packetLog.DebugFormat("[{0}] Outgoing AckSeq: {1}", session.LoggingIdentifier, lastReceivedPacketSequence);
-                packet.InitializeBodyWriter();
-                packet.BodyWriter.Write(lastReceivedPacketSequence);
+                packet.InitializeDataWriter();
+                packet.DataWriter.Write(lastReceivedPacketSequence);
             }
 
             if (bundle.TimeSync) // 0x1000000
             {
                 packetHeader.Flags |= PacketHeaderFlags.TimeSync;
                 packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, Timers.PortalYearTicks);
-                packet.InitializeBodyWriter();
-                packet.BodyWriter.Write(Timers.PortalYearTicks);
+                packet.InitializeDataWriter();
+                packet.DataWriter.Write(Timers.PortalYearTicks);
             }
 
             if (bundle.ClientTime != -1f) // 0x4000000
             {
                 packetHeader.Flags |= PacketHeaderFlags.EchoResponse;
                 packetLog.DebugFormat("[{0}] Outgoing EchoResponse: {1}", session.LoggingIdentifier, bundle.ClientTime);
-                packet.InitializeBodyWriter();
-                packet.BodyWriter.Write(bundle.ClientTime);
-                packet.BodyWriter.Write((float)Timers.PortalYearTicks - bundle.ClientTime);
+                packet.InitializeDataWriter();
+                packet.DataWriter.Write(bundle.ClientTime);
+                packet.DataWriter.Write((float)Timers.PortalYearTicks - bundle.ClientTime);
             }
         }
 
@@ -821,6 +811,8 @@ namespace ACE.Server.Network
             cachedPackets.Clear();
 
             packetQueue.Clear();
+
+            ConnectionData.CryptoClient.ReleaseResources();
         }
     }
 }

@@ -46,6 +46,9 @@ namespace ACE.Server.WorldObjects
 
         public DateTime LastJumpTime;
 
+        public ACE.Entity.Position LastGroundPos;
+        public ACE.Entity.Position SnapPos;
+
         public ConfirmationManager ConfirmationManager;
 
         public SquelchManager SquelchManager;
@@ -152,6 +155,8 @@ namespace ACE.Server.WorldObjects
             SquelchManager = new SquelchManager(this);
 
             MagicState = new MagicState(this);
+
+            RecordCast = new RecordCast(this);
 
             return; // todo
 
@@ -738,9 +743,24 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"Jump velocity: {jump.Velocity}");
 
-            // set jump velocity
             // TODO: have server verify / scale magnitude
-            PhysicsObj.set_velocity(jump.Velocity, true);
+            if (FastTick)
+            {
+                if (!PhysicsObj.IsMovingOrAnimating)
+                    //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - Physics.PhysicsGlobals.MinQuantum;
+                    PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
+                // perform jump in physics engine
+                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.calc_acceleration();
+                PhysicsObj.set_on_walkable(false);
+                PhysicsObj.set_local_velocity(jump.Velocity, false);
+            }
+            else
+            {
+                // set jump velocity
+                PhysicsObj.set_velocity(jump.Velocity, true);
+            }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
             // running forward and then performing a charged jump does an uncharged shallow arc jump instead
@@ -753,6 +773,9 @@ namespace ACE.Server.WorldObjects
 
             // broadcast jump
             EnqueueBroadcast(new GameMessageVectorUpdate(this));
+
+            if (RecordCast.Enabled)
+                RecordCast.OnJump(jump);
         }
 
         /// <summary>

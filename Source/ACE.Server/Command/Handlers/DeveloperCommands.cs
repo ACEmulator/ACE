@@ -2666,16 +2666,44 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("targetloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the location of the last appraised object")]
         public static void HandleTargetLoc(Session session, params string[] parameters)
         {
-            var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
-            if (wo == null)
-                return;
+            WorldObject wo = null;
+            if (parameters.Length == 0)
+            {
+                wo = CommandHandlerHelper.GetLastAppraisedObject(session);
 
+                if (wo == null) return;
+            }
+            else
+            {
+                if (parameters[0].StartsWith("0x"))
+                    parameters[0] = parameters[0].Substring(2);
+
+                if (!uint.TryParse(parameters[0], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint guid))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} is not a valid guid", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                wo = session.Player.CurrentLandblock?.GetObject(guid);
+
+                if (wo == null)
+                    wo = ServerObjectManager.GetObjectA(guid)?.WeenieObj?.WorldObject;
+
+                if (wo == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CurrentLandblock: 0x{wo.CurrentLandblock?.Id.Landblock:X4}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {wo.Location?.ToLOCString()}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"Physics : {wo.PhysicsObj?.Position}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CurCell: 0x{wo.PhysicsObj?.CurCell?.ID:X8}", ChatMessageType.Broadcast));
         }
 
         [CommandHandler("damagehistory", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
-        public static void HandleDamageHitory(Session session, params string[] parameters)
+        public static void HandleDamageHistory(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.DamageHistory.ToString(), ChatMessageType.Broadcast));
         }
@@ -2746,6 +2774,40 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var kvp in resistInfo.OrderByDescending(i => i.Value))
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{kvp.Key} - {kvp.Value}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("debugspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Toggles spell projectile debugging info")]
+        public static void HandleDebugSpell(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                session.Player.DebugSpell = !session.Player.DebugSpell;
+            }
+            else
+            {
+                if (parameters[0].Equals("on", StringComparison.OrdinalIgnoreCase))
+                    session.Player.DebugSpell = true;
+                else
+                    session.Player.DebugSpell = false;
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Spell projectile debugging is {(session.Player.DebugSpell ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("recordcast", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Records spell casting keypresses to server for debugging")]
+        public static void HandleRecordCast(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                session.Player.RecordCast.Enabled = !session.Player.RecordCast.Enabled;
+            }
+            else
+            {
+                if (parameters[0].Equals("on", StringComparison.OrdinalIgnoreCase))
+                    session.Player.RecordCast.Enabled = true;
+                else
+                    session.Player.RecordCast.Enabled = false;
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Record cast {(session.Player.RecordCast.Enabled ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
         }
     }
 }

@@ -1332,7 +1332,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                 var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));
 
-                var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating(CombatType.Magic));    // df?
+                var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating(CombatType.Magic, false));    // df?
                 var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());
 
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));

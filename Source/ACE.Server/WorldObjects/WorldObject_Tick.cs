@@ -96,13 +96,8 @@ namespace ACE.Server.WorldObjects
             if (EnchantmentManager.HasEnchantments)
                 EnchantmentManager.HeartBeat(CachedHeartbeatInterval);
 
-            if (RemainingLifespan != null)
-            {
-                RemainingLifespan -= (int)CachedHeartbeatInterval;
-
-                if (RemainingLifespan <= 0)
-                    DeleteObject();
-            }
+            if (IsLifespanSpent)
+                DeleteObject();
 
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
             NextHeartbeatTime = currentUnixTime + CachedHeartbeatInterval;
@@ -207,10 +202,24 @@ namespace ACE.Server.WorldObjects
 
         public static double UpdateRate_Creature = 0.2f;
 
+        public bool IsLifespanSpent => Lifespan != null && GetRemainingLifespan() <= 0;
+
+        public int GetRemainingLifespan()
+        {
+            if (Lifespan == null) return int.MaxValue;
+
+            var creationTimestamp = CreationTimestamp ?? 0;
+            var lifespan = Lifespan ?? 0;
+            var expirationTimestamp = Time.GetDateTimeFromTimestamp(creationTimestamp).AddSeconds(lifespan);
+            var timeToExpiration = expirationTimestamp - DateTime.UtcNow;
+
+            return (int)timeToExpiration.TotalSeconds;
+        }
+
         /// <summary>
         /// Handles calling the physics engine for non-player objects
         /// </summary>
-        public bool UpdateObjectPhysics()
+        public virtual bool UpdateObjectPhysics()
         {
             // TODO: Almost all of the CPU time is spent between this note and the first Try block. Mag-nus 2019-10-21
             // TODO: In the future we should look at improving the way UpdateObjectPhysics() is called from Landblock

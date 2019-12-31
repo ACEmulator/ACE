@@ -104,10 +104,6 @@ namespace ACE.Server.WorldObjects
             InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
-
-            // TODO: fix weenie data
-            if (Lifespan != null)
-                RemainingLifespan = Lifespan;
         }
 
         /// <summary>
@@ -674,16 +670,6 @@ namespace ACE.Server.WorldObjects
             proj.OnCollideEnvironment();
         }
 
-        public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null)
-        {
-            var msg = new GameMessageUpdateMotion(this, motion);
-
-            if (maxRange == null)
-                EnqueueBroadcast(msg);
-            else
-                EnqueueBroadcast(msg, maxRange.Value);
-        }
-
         public void ApplyVisualEffects(PlayScript effect, float speed = 1)
         {
             if (CurrentLandblock != null)
@@ -712,18 +698,21 @@ namespace ACE.Server.WorldObjects
             EmoteManager.OnGeneration();
         }
 
-        public virtual void EnterWorld()
+        public virtual bool EnterWorld()
         {
-            if (Location != null)
-            {
-                LandblockManager.AddObject(this);
+            if (Location == null)
+                return false;
 
-                if (SuppressGenerateEffect != true)
-                    ApplyVisualEffects(PlayScript.Create);
+            if (!LandblockManager.AddObject(this))
+                return false;
 
-                if (Generator != null)
-                    OnGeneration(Generator);
-            }
+            if (SuppressGenerateEffect != true)
+                ApplyVisualEffects(PlayScript.Create);
+
+            if (Generator != null)
+                OnGeneration(Generator);
+
+            return true;
         }
 
         // todo: This should really be an extension method for Position, or a static method within Position or even AdjustPos
@@ -920,6 +909,10 @@ namespace ACE.Server.WorldObjects
                 rawState.CurrentHoldKey = HoldKey.Run;
                 rawState.CurrentStyle = (uint)motionCommand;
 
+                if (!PhysicsObj.IsMovingOrAnimating)
+                    //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - PhysicsGlobals.MinQuantum;
+                    PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
                 motionInterp.RawState = rawState;
                 motionInterp.apply_raw_movement(true, true);
             }
@@ -930,7 +923,7 @@ namespace ACE.Server.WorldObjects
 
             // broadcast to nearby players
             if (sendClient)
-                EnqueueBroadcastMotion(motion, maxRange);
+                EnqueueBroadcastMotion(motion, maxRange, false);
 
             return animLength;
         }
@@ -1007,5 +1000,13 @@ namespace ACE.Server.WorldObjects
         public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
 
         public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
+
+        /// <summary>
+        /// Returns the wielder or the current object
+        /// </summary>
+        public WorldObject GetCurrentOrWielder(Landblock landblock)
+        {
+            return WielderId != null ? landblock?.GetObject(WielderId.Value) : this;
+        }
     }
 }

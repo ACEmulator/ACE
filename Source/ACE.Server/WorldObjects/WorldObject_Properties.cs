@@ -2777,11 +2777,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Lifespan); else SetProperty(PropertyInt.Lifespan, value.Value); }
         }
 
-        public int? RemainingLifespan
-        {
-            get => GetProperty(PropertyInt.RemainingLifespan);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.RemainingLifespan); else SetProperty(PropertyInt.RemainingLifespan, value.Value); }
-        }
+        //public int? RemainingLifespan
+        //{
+        //    get => GetProperty(PropertyInt.RemainingLifespan);
+        //    set { if (!value.HasValue) RemoveProperty(PropertyInt.RemainingLifespan); else SetProperty(PropertyInt.RemainingLifespan, value.Value); }
+        //}
 
         public bool HearLocalSignals
         {
@@ -2817,6 +2817,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.PlayerKillsPkl);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.PlayerKillsPkl); else SetProperty(PropertyInt.PlayerKillsPkl, value.Value); }
+        }
+
+        public SummoningMastery? SummoningMastery
+        {
+            get => (SummoningMastery?)GetProperty(PropertyInt.SummoningMastery);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.SummoningMastery); else SetProperty(PropertyInt.SummoningMastery, (int)value.Value); }
         }
 
         /// <summary>

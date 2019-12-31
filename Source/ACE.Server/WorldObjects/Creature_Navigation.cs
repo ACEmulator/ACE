@@ -331,10 +331,14 @@ namespace ACE.Server.WorldObjects
             else
                 motion.MoveToParameters.MovementParameters &= ~MovementParams.CanRun;
 
-            // todo: use better movement system
-            // todo: set physics position
+            // todo: use physics MoveToManager
+            // todo: handle landblock updates
             if (setLoc)
+            {
                 Location = new Position(position);
+                // FIXME however this is taking down entire servers
+                //PhysicsObj.SetPositionSimple(new Physics.Common.Position(position), true);
+            }
 
             EnqueueBroadcastMotion(motion);
         }

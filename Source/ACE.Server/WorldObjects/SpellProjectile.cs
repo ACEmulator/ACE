@@ -1,8 +1,6 @@
 using System;
 using System.Numerics;
 
-using log4net;
-
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -94,8 +92,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (spellId == 3818)
                 {
-                    PhysicsObj.DefaultScript = PlayScript.Explode;
-                    PhysicsObj.DefaultScriptIntensity = 1.0f;
+                    DefaultScriptId = (uint)PlayScript.Explode;
+                    DefaultScriptIntensity = 1.0f;
                     ScriptedCollision = true;
                 }
                 else
@@ -237,6 +235,7 @@ namespace ACE.Server.WorldObjects
         public override void OnCollideEnvironment()
         {
             //Console.WriteLine($"{Name}.OnCollideEnvironment()");
+
             if (Info != null && ProjectileSource is Player player && player.DebugSpell)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name}.OnCollideEnvironment()", ChatMessageType.Broadcast));
