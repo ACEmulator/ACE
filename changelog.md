@@ -195,7 +195,7 @@
 
 ### 2019-12-01
 [gmriggs]
-* Fixed a possible system-dependent state crash in EnvCell consructor
+* Fixed a possible system-dependent state crash in EnvCell constructor
 
 [Harli Quin]
 * Updated loot generator for missile and casting weapons to better match retail
