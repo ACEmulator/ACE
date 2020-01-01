@@ -649,7 +649,7 @@ namespace ACE.Server.WorldObjects
             var missileWeapon = GetEquippedMissileWeapon();
             var caster = GetEquippedWand();
 
-            if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+            if (CombatMode == CombatMode.Magic && MagicState.IsCasting && MagicState.CastSpellParams != null)
             {
                 var parms = MagicState.CastSpellParams;
                 DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
