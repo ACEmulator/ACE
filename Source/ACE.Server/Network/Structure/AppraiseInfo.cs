@@ -105,6 +105,9 @@ namespace ACE.Server.Network.Structure
             if (PropertiesString.ContainsKey(PropertyString.HouseOwnerAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsArch && !examiner.IsPsr)
                 PropertiesString.Remove(PropertyString.HouseOwnerAccount);
 
+            if (PropertiesInt.ContainsKey(PropertyInt.Lifespan))
+                PropertiesInt[PropertyInt.RemainingLifespan] = wo.GetRemainingLifespan();
+
             // armor / clothing / shield
             if (wo is Clothing || wo.IsShield)
                 BuildArmor(wo);

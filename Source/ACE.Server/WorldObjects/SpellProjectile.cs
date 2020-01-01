@@ -24,6 +24,12 @@ namespace ACE.Server.WorldObjects
         public float DistanceToTarget { get; set; }
         public uint LifeProjectileDamage { get; set; }
 
+        /// <summary>
+        /// If a spell projectile has been cast from a built-in weapon spell,
+        /// this will point to the item instead of the Creature
+        /// </summary>
+        public WorldObject Caster { get; set; }
+
         public SpellProjectileInfo Info { get; set; }
 
         /// <summary>
@@ -52,11 +58,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Perfroms additional set up of the spell projectile based on the spell id or its derived type.
         /// </summary>
-        /// <param name="spellId"></param>
-        public void Setup(uint spellId)
+        public void Setup(Server.Entity.Spell spell, ProjectileSpellType spellType)
         {
-            Spell = new Server.Entity.Spell(spellId);
-            SpellType = GetProjectileSpellType(spellId);
+            Spell = spell;
+            SpellType = spellType;
 
             InitPhysicsObj();
 
@@ -65,9 +70,10 @@ namespace ACE.Server.WorldObjects
             Missile = true;
             AlignPath = true;
             PathClipped = true;
+            IgnoreCollisions = false;
+
             if (!Spell.Name.Equals("Rolling Death"))
                 Ethereal = false;
-            IgnoreCollisions = false;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
@@ -84,16 +90,17 @@ namespace ACE.Server.WorldObjects
             }
 
             AllowEdgeSlide = false;
+
             // No need to send an ObjScale of 1.0f over the wire since that is the default value
             if (ObjScale == 1.0f)
                 ObjScale = null;
 
             if (SpellType == ProjectileSpellType.Ring)
             {
-                if (spellId == 3818)
+                if (spell.Id == 3818)
                 {
-                    PhysicsObj.DefaultScript = PlayScript.Explode;
-                    PhysicsObj.DefaultScriptIntensity = 1.0f;
+                    DefaultScriptId = (uint)PlayScript.Explode;
+                    DefaultScriptIntensity = 1.0f;
                     ScriptedCollision = true;
                 }
                 else
@@ -102,7 +109,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
                 
-
             // Whirling Blade spells get omega values and "align path" turned off which
             // creates the nice swirling animation
             if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
@@ -110,19 +116,6 @@ namespace ACE.Server.WorldObjects
                 AlignPath = false;
                 Omega = new Vector3(12.56637f, 0, 0);
             }
-        }
-
-        public enum ProjectileSpellType
-        {
-            Undef,
-            Bolt,
-            Blast,
-            Volley,
-            Streak,
-            Arc,
-            Ring,
-            Wall,
-            Strike
         }
 
         public static ProjectileSpellType GetProjectileSpellType(uint spellID)
@@ -296,7 +289,7 @@ namespace ACE.Server.WorldObjects
             var critDefended = false;
             var overpower = false;
 
-            var damage = CalculateDamage(ProjectileSource, target, ref critical, ref critDefended, ref overpower);
+            var damage = CalculateDamage(ProjectileSource, Caster, target, ref critical, ref critDefended, ref overpower);
 
             // null damage -> target resisted; damage of -1 -> target already dead
             if (damage != null && damage != -1)
@@ -337,7 +330,7 @@ namespace ACE.Server.WorldObjects
         /// Calculates the damage for a spell projectile
         /// Used by war magic, void magic, and life magic projectiles
         /// </summary>
-        public double? CalculateDamage(WorldObject source, Creature target, ref bool criticalHit, ref bool critDefended, ref bool overpower)
+        public double? CalculateDamage(WorldObject source, WorldObject caster, Creature target, ref bool criticalHit, ref bool critDefended, ref bool overpower)
         {
             var sourcePlayer = source as Player;
             var targetPlayer = target as Player;
@@ -367,7 +360,7 @@ namespace ACE.Server.WorldObjects
             if (sourceCreature?.Overpower != null)
                 overpower = Creature.GetOverpower(sourceCreature, target);
 
-            var resisted = source.ResistSpell(target, Spell);
+            var resisted = source.ResistSpell(target, Spell, caster);
             if (resisted == true && !overpower)
                 return null;
 

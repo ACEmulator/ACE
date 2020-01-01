@@ -113,7 +113,7 @@ namespace ACE.Entity.Enum
         AttackLow3                            = 0x1000006a,
         HeadThrow                             = 0x1000006b,
         FistSlam                              = 0x1000006c,
-        BreatheFlame                         = 0x1000006d,
+        BreatheFlame                          = 0x1000006d,
         SpinAttack                            = 0x1000006e,
         MagicPowerUp01                        = 0x1000006f,
         MagicPowerUp02                        = 0x10000070,
@@ -427,6 +427,72 @@ namespace ACE.Entity.Enum
                 return MotionCommand.Fishing;
 
             return (MotionCommand)motionCommand;
+        }
+
+        public static bool IsMultiStrike(this MotionCommand motionCommand)
+        {
+            return motionCommand >= MotionCommand.DoubleSlashLow && motionCommand <= MotionCommand.TripleThrustHigh ||
+                   motionCommand >= MotionCommand.OffhandDoubleSlashLow && motionCommand <= MotionCommand.OffhandTripleThrustHigh;
+        }
+
+        public static MotionCommand ReduceMultiStrike(this MotionCommand motionCommand)
+        {
+            if (!motionCommand.IsMultiStrike())
+                return MotionCommand.Invalid;
+
+            switch (motionCommand)
+            {
+                case MotionCommand.DoubleSlashLow:
+                case MotionCommand.TripleSlashLow:
+                    return MotionCommand.SlashLow;
+
+                case MotionCommand.DoubleSlashMed:
+                case MotionCommand.TripleSlashMed:
+                    return MotionCommand.SlashMed;
+
+                case MotionCommand.DoubleSlashHigh:
+                case MotionCommand.TripleSlashHigh:
+                    return MotionCommand.SlashHigh;
+
+                case MotionCommand.DoubleThrustLow:
+                case MotionCommand.TripleThrustLow:
+                    return MotionCommand.ThrustLow;
+
+                case MotionCommand.DoubleThrustMed:
+                case MotionCommand.TripleThrustMed:
+                    return MotionCommand.ThrustMed;
+
+                case MotionCommand.DoubleThrustHigh:
+                case MotionCommand.TripleThrustHigh:
+                    return MotionCommand.ThrustHigh;
+
+                case MotionCommand.OffhandDoubleSlashLow:
+                case MotionCommand.OffhandTripleSlashLow:
+                    return MotionCommand.SlashLow;
+
+                case MotionCommand.OffhandDoubleSlashMed:
+                case MotionCommand.OffhandTripleSlashMed:
+                    return MotionCommand.SlashMed;
+
+                case MotionCommand.OffhandDoubleSlashHigh:
+                case MotionCommand.OffhandTripleSlashHigh:
+                    return MotionCommand.SlashHigh;
+
+                case MotionCommand.OffhandDoubleThrustLow:
+                case MotionCommand.OffhandTripleThrustLow:
+                    return MotionCommand.ThrustLow;
+
+                case MotionCommand.OffhandDoubleThrustMed:
+                case MotionCommand.OffhandTripleThrustMed:
+                    return MotionCommand.ThrustMed;
+
+                case MotionCommand.OffhandDoubleThrustHigh:
+                case MotionCommand.OffhandTripleThrustHigh:
+                    return MotionCommand.ThrustHigh;
+
+                default:
+                    return MotionCommand.Invalid;
+            }
         }
     }
 }

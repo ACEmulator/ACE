@@ -35,6 +35,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, (int)value); }
         }
 
+        public bool AutoWieldLeft
+        {
+            get => GetProperty(PropertyBool.AutowieldLeft) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AutowieldLeft); else SetProperty(PropertyBool.AutowieldLeft, value); }
+        }
+
         /// <summary>
         /// Returns TRUE if this weapon cleaves
         /// </summary>
@@ -332,7 +338,7 @@ namespace ACE.Server.WorldObjects
             if (modifier > 1.0f && wielder is Player && target is Player)
                 modifier = 1.0f + (modifier - 1.0f) * ElementalDamageBonusPvPReduction;
 
-            return (float)(elementalDamageMod + enchantments);
+            return modifier;
         }
 
         /// <summary>
@@ -961,7 +967,8 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.Thrust;
                 }
-                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash))
+                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash) ||
+                    attackType.HasFlag(AttackType.Thrust | AttackType.DoubleSlash))     // FIXME data
                 {
                     if (powerLevel >= ThrustThreshold)
                         attackType = AttackType.DoubleSlash;

@@ -202,6 +202,7 @@ namespace ACE.Server.WorldObjects
         public void ExamineObject(uint objectGuid)
         {
             // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
+            //Console.WriteLine($"{Name}.ExamineObject({objectGuid:X8})");
 
             if (objectGuid == 0)
             {
@@ -220,14 +221,36 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var currentTime = Time.GetUnixTime();
+
+            // compare with previously requested appraisal target
+            if (objectGuid == RequestedAppraisalTarget)
+            {
+                if (objectGuid == CurrentAppraisalTarget)
+                {
+                    // continued success, rng roll no longer needed
+                    Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, wo, true));
+                    return;
+                }
+
+                if (currentTime < AppraisalRequestedTimestamp + 5.0f)
+                {
+                    // rate limit for unsuccessful appraisal spam
+                    Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, wo, false));
+                    return;
+                }
+            }
+
             RequestedAppraisalTarget = objectGuid;
-            CurrentAppraisalTarget = objectGuid;
+            AppraisalRequestedTimestamp = currentTime;
 
             Examine(wo);
         }
 
         public void Examine(WorldObject obj)
         {
+            //Console.WriteLine($"{Name}.Examine({obj.Name})");
+
             var success = true;
             var creature = obj as Creature;
             Player player = null;
@@ -257,6 +280,9 @@ namespace ACE.Server.WorldObjects
 
             if (creature is Pet || creature is CombatPet)
                 success = true;
+
+            if (success)
+                CurrentAppraisalTarget = obj.Guid.Full;
 
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
@@ -743,9 +769,24 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"Jump velocity: {jump.Velocity}");
 
-            // set jump velocity
             // TODO: have server verify / scale magnitude
-            PhysicsObj.set_velocity(jump.Velocity, true);
+            if (FastTick)
+            {
+                if (!PhysicsObj.IsMovingOrAnimating)
+                    //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - Physics.PhysicsGlobals.MinQuantum;
+                    PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
+                // perform jump in physics engine
+                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.calc_acceleration();
+                PhysicsObj.set_on_walkable(false);
+                PhysicsObj.set_local_velocity(jump.Velocity, false);
+            }
+            else
+            {
+                // set jump velocity
+                PhysicsObj.set_velocity(jump.Velocity, true);
+            }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
             // running forward and then performing a charged jump does an uncharged shallow arc jump instead

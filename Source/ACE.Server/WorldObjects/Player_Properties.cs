@@ -856,12 +856,6 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.RangedMastery); else SetProperty(PropertyInt.RangedMastery, value); }
         }
 
-        public int SummoningMastery
-        {
-            get => GetProperty(PropertyInt.SummoningMastery) ?? 0;
-            set { if (value == 0) RemoveProperty(PropertyInt.SummoningMastery); else SetProperty(PropertyInt.SummoningMastery, value); }
-        }
-
         // ============ Enlightenment =============
 
         public int Enlightenment
@@ -1054,5 +1048,27 @@ namespace ACE.Server.WorldObjects
             get => (SquelchMask)(GetProperty(PropertyInt.SquelchGlobal) ?? 0);
             set { if (value == 0) RemoveProperty(PropertyInt.SquelchGlobal); else SetProperty(PropertyInt.SquelchGlobal, (int)value); }
         }
+
+        public uint? RequestedAppraisalTarget
+        {
+            get => GetProperty(PropertyInstanceId.RequestedAppraisalTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.RequestedAppraisalTarget); else SetProperty(PropertyInstanceId.RequestedAppraisalTarget, value.Value); }
+        }
+
+        public double? AppraisalRequestedTimestamp
+        {
+            get => GetProperty(PropertyFloat.AppraisalRequestedTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AppraisalRequestedTimestamp); else SetProperty(PropertyFloat.AppraisalRequestedTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// ACE is currently using this for the last successful appraised object guid
+        /// </summary>
+        public uint? CurrentAppraisalTarget
+        {
+            get => GetProperty(PropertyInstanceId.CurrentAppraisalTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentAppraisalTarget, value.Value); }
+        }
+
     }
 }
