@@ -303,6 +303,8 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
+        public static readonly float KickThreshold = 0.75f;
+
         public MotionCommand PrevMotionCommand;
 
         /// <summary>

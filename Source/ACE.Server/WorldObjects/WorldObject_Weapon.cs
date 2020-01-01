@@ -967,7 +967,8 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.Thrust;
                 }
-                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash))
+                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash) ||
+                    attackType.HasFlag(AttackType.Thrust | AttackType.DoubleSlash))     // FIXME data
                 {
                     if (powerLevel >= ThrustThreshold)
                         attackType = AttackType.DoubleSlash;

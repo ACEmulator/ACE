@@ -163,7 +163,7 @@ namespace ACE.Database
             BiotaPropertiesAllegiance           = 0x1000000,
         }
 
-        private static void SetBiotaPopulatedCollections(Biota biota)
+        protected static void SetBiotaPopulatedCollections(Biota biota)
         {
             PopulatedCollectionFlags populatedCollectionFlags = 0;
 
@@ -196,7 +196,7 @@ namespace ACE.Database
             biota.PopulatedCollectionFlags = (uint)populatedCollectionFlags;
         }
 
-        private static readonly ConditionalWeakTable<Biota, ShardDbContext> BiotaContexts = new ConditionalWeakTable<Biota, ShardDbContext>();
+        protected static readonly ConditionalWeakTable<Biota, ShardDbContext> BiotaContexts = new ConditionalWeakTable<Biota, ShardDbContext>();
 
         public static Biota GetBiota(ShardDbContext context, uint id)
         {
@@ -239,7 +239,7 @@ namespace ACE.Database
             return biota;
         }
 
-        public Biota GetBiota(uint id)
+        public virtual Biota GetBiota(uint id)
         {
             var context = new ShardDbContext();
 
@@ -282,7 +282,7 @@ namespace ACE.Database
             }
         }
 
-        public bool SaveBiota(Biota biota, ReaderWriterLockSlim rwLock)
+        public virtual bool SaveBiota(Biota biota, ReaderWriterLockSlim rwLock)
         {
             if (BiotaContexts.TryGetValue(biota, out var cachedContext))
             {
@@ -379,7 +379,7 @@ namespace ACE.Database
             return result;
         }
 
-        public bool RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock)
+        public virtual bool RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock)
         {
             if (BiotaContexts.TryGetValue(biota, out var cachedContext))
             {
