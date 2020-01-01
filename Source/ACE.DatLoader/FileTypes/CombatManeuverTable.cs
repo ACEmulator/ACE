@@ -99,5 +99,26 @@ namespace ACE.DatLoader.FileTypes
             }
             return maneuvers[0];
         }
+
+        public void ShowCombatTable()
+        {
+            foreach (var stance in Stances)
+            {
+                Console.WriteLine($"- {stance.Key}");
+
+                foreach (var attackHeight in stance.Value.Table)
+                {
+                    Console.WriteLine($"  - {attackHeight.Key}");
+
+                    foreach (var attackType in attackHeight.Value.Table)
+                    {
+                        Console.WriteLine($"    - {attackType.Key}");
+
+                        foreach (var motion in attackType.Value)
+                            Console.WriteLine($"      - {motion}");
+                    }
+                }
+            }
+        }
     }
 }

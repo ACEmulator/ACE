@@ -494,6 +494,5 @@ namespace ACE.Entity.Enum
                     return MotionCommand.Invalid;
             }
         }
-
     }
 }
