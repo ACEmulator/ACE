@@ -728,7 +728,7 @@ namespace ACE.Server.WorldObjects
             if (pos == null) return false;
 
             var landblock = LScape.get_landblock(pos.Cell);
-            if (landblock == null || !landblock.IsDungeon) return false;
+            if (landblock == null || !landblock.HasDungeon) return false;
 
             var dungeonID = pos.Cell >> 16;
 
@@ -749,7 +749,7 @@ namespace ACE.Server.WorldObjects
             if (pos == null) return false;
 
             var landblock = LScape.get_landblock(pos.Cell);
-            if (landblock == null || !landblock.IsDungeon) return false;
+            if (landblock == null || !landblock.HasDungeon) return false;
 
             var dungeonID = pos.Cell >> 16;
 
