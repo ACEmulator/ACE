@@ -1276,8 +1276,6 @@ namespace ACE.Server.WorldObjects
                 if (!rootHouse.OnProperty(this))
                     continue;
 
-                if (!Location.Indoors) continue;
-
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
                     if (!rootHouse.IsOpen || (rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.HasDungeon))
