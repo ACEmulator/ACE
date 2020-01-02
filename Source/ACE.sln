@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Server", "ACE.Server\ACE.Server.csproj", "{943276B8-1DCC-48C6-A98D-692D60F53E43}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root items", "root items", "{1BA67CED-4F8D-433A-90E1-9871DD6A31EF}"
 	ProjectSection(SolutionItems) = preProject
 		..\appveyor.yml = ..\appveyor.yml
@@ -38,8 +40,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Database.Tests", "ACE.Database.Tests\ACE.Database.Tests.csproj", "{95628269-1C41-45D5-A6F5-018A1E49C501}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Database", "ACE.Database\ACE.Database.csproj", "{CD2B6DEE-6809-458A-B45A-E0B0BD1308FE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Server", "ACE.Server\ACE.Server.csproj", "{943276B8-1DCC-48C6-A98D-692D60F53E43}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Adapter", "ACE.Adapter\ACE.Adapter.csproj", "{3C925D75-B149-4898-8806-054D3E63A4BE}"
 EndProject
