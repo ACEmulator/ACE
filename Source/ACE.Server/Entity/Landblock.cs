@@ -1128,11 +1128,11 @@ namespace ACE.Server.Entity
             get
             {
                 // return cached value
-                if (isDungeon != null)
-                    return isDungeon.Value;
+                if (hasDungeon != null)
+                    return hasDungeon.Value;
 
-                isDungeon = LandblockInfo != null && LandblockInfo.NumCells > 0 && LandblockInfo.Buildings != null && LandblockInfo.Buildings.Count == 0;
-                return isDungeon.Value;
+                hasDungeon = LandblockInfo != null && LandblockInfo.NumCells > 0 && LandblockInfo.Buildings != null && LandblockInfo.Buildings.Count == 0;
+                return hasDungeon.Value;
             }
         }
 
