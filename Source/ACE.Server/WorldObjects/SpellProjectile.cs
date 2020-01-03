@@ -71,7 +71,10 @@ namespace ACE.Server.WorldObjects
             AlignPath = true;
             PathClipped = true;
             IgnoreCollisions = false;
-            Ethereal = false;
+
+            // FIXME: use data here
+            if (!Spell.Name.Equals("Rolling Death"))
+                Ethereal = false;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
