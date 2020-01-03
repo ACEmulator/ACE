@@ -71,9 +71,7 @@ namespace ACE.Server.WorldObjects
             AlignPath = true;
             PathClipped = true;
             IgnoreCollisions = false;
-
-            if (!Spell.Name.Equals("Rolling Death"))
-                Ethereal = false;
+            Ethereal = false;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
@@ -133,9 +131,6 @@ namespace ACE.Server.WorldObjects
 
                 else if (spell.NonTracking)
                     return ProjectileSpellType.Arc;
-
-                else if (spell.Name.Contains("Rolling Death"))
-                    return ProjectileSpellType.Wall;
 
                 else
                     return ProjectileSpellType.Bolt;
