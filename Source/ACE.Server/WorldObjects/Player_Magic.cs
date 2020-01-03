@@ -589,7 +589,7 @@ namespace ACE.Server.WorldObjects
                 // TODO: investigate this more, difference for GetAngle() between ACE and ac physics engine
                 if (FastTick && checkAngle && !IsWithinAngle(target))
                 {
-                    TurnTo_Magic(target, true);
+                    TurnTo_Magic(target);
                     return;
                 }
 
