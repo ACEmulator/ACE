@@ -345,7 +345,7 @@ namespace ACE.Server.WorldObjects
 
         public bool VerifySpellRange(WorldObject target, TargetCategory targetCategory, Spell spell, uint magicSkill)
         {
-            if (targetCategory != TargetCategory.WorldObject || target.Guid == Guid)
+            if (targetCategory != TargetCategory.WorldObject && targetCategory != TargetCategory.Wielded || target.Guid == Guid)
                 return true;
 
             var targetLoc = target;
