@@ -72,6 +72,7 @@ namespace ACE.Server.WorldObjects
             PathClipped = true;
             IgnoreCollisions = false;
 
+            // FIXME: use data here
             if (!Spell.Name.Equals("Rolling Death"))
                 Ethereal = false;
 
@@ -133,9 +134,6 @@ namespace ACE.Server.WorldObjects
 
                 else if (spell.NonTracking)
                     return ProjectileSpellType.Arc;
-
-                else if (spell.Name.Contains("Rolling Death"))
-                    return ProjectileSpellType.Wall;
 
                 else
                     return ProjectileSpellType.Bolt;
