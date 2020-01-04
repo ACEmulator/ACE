@@ -254,6 +254,16 @@ namespace ACE.Server.WorldObjects
                         return singleStrike;
                     }
                 }
+                else if (motionCommand.IsSubsequent())
+                {
+                    var firstCommand = motionCommand.ReduceSubsequent();
+
+                    if (motions.ContainsKey((uint)firstCommand))
+                    {
+                        //log.Info($"{Name} ({Guid}).GetCombatManeuver() - successfully reduced {motionCommand} to {firstCommand}");
+                        return firstCommand;
+                    }
+                }
                 log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find {motionCommand} in MotionTable {MotionTableId:X8}");
                 return null;
             }
