@@ -500,8 +500,8 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesEventFilter)
             {
-                if (!biota.BiotaPropertiesEventFilter.Any(p => p.ObjectId == value.ObjectId && p.Event == value.Event));
-                context.BiotaPropertiesEventFilter.Remove(value);
+                if (!biota.BiotaPropertiesEventFilter.Any(p => p.ObjectId == value.ObjectId && p.Event == value.Event))
+                    context.BiotaPropertiesEventFilter.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesFloat)
