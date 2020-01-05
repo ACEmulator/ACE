@@ -1102,8 +1102,8 @@ namespace ACE.Database
         public Dictionary<uint, string> GetAllWeenieNames(WorldDbContext context)
         {
             return context.Weenie
-                .AsNoTracking()
                 .Include(r => r.WeeniePropertiesString)
+                .AsNoTracking()
                 .ToDictionary(r => r.ClassId, r => r.WeeniePropertiesString.Where(p => p.Type == (int)PropertyString.Name).FirstOrDefault()?.Value ?? "");
         }
 

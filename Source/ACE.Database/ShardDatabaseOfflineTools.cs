@@ -65,8 +65,8 @@ namespace ACE.Database
         private static List<uint> GetWieldedGuids(ShardDbContext context, uint parentId)
         {
             return context.BiotaPropertiesIID
-                .Where(r => r.Type == (ushort)PropertyInstanceId.Wielder && r.Value == parentId)
                 .AsNoTracking()
+                .Where(r => r.Type == (ushort)PropertyInstanceId.Wielder && r.Value == parentId)
                 .Select(r => r.ObjectId)
                 .ToList();
         }
@@ -149,8 +149,8 @@ namespace ACE.Database
             var deleteLimit = Common.Time.GetUnixTime(DateTime.UtcNow.AddDays(-daysLimiter));
 
             var results = context.Character
-                .Where(r => (r.DeleteTime > 0 && r.DeleteTime < deleteLimit) || (r.IsDeleted && r.DeleteTime == 0))
                 .AsNoTracking()
+                .Where(r => (r.DeleteTime > 0 && r.DeleteTime < deleteLimit) || (r.IsDeleted && r.DeleteTime == 0))
                 .ToList();
 
             int charactersPurgedTotal = 0;
@@ -455,9 +455,9 @@ namespace ACE.Database
                 var results = context.Biota
                     .Include(r => r.BiotaPropertiesIID)
                     .Include(r => r.BiotaPropertiesPosition)
+                    .AsNoTracking()
                     .Where(r => r.BiotaPropertiesIID.All(y => y.Type != (ushort)PropertyInstanceId.Container && y.Type != (ushort)PropertyInstanceId.Wielder))
                     .Where(r => r.BiotaPropertiesPosition.All(y => y.PositionType != (ushort)PositionType.Location))
-                    .AsNoTracking()
                     .ToList();
 
                 // This is very time consuming
