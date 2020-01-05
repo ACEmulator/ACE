@@ -473,9 +473,8 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
                 var results = context.BiotaPropertiesIID
+                    .AsNoTracking()
                     .Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == parentId)
                     .ToList();
 
@@ -507,9 +506,8 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
                 var results = context.BiotaPropertiesIID
+                    .AsNoTracking()
                     .Where(r => r.Type == (ushort)PropertyInstanceId.Wielder && r.Value == parentId)
                     .ToList();
 
@@ -536,9 +534,10 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var results = context.Biota.Where(b => b.Id >= min && b.Id <= max).ToList();
+                var results = context.Biota
+                    .AsNoTracking()
+                    .Where(b => b.Id >= min && b.Id <= max)
+                    .ToList();
 
                 foreach (var result in results)
                 {
@@ -561,9 +560,10 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var results = context.Biota.Where(b => b.Id >= min && b.Id <= max).ToList();
+                var results = context.Biota
+                    .AsNoTracking()
+                    .Where(b => b.Id >= min && b.Id <= max)
+                    .ToList();
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
@@ -584,9 +584,8 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
                 var results = context.BiotaPropertiesPosition
+                    .AsNoTracking()
                     .Where(p => p.PositionType == 1 && p.ObjCellId >= min && p.ObjCellId <= max && p.ObjectId >= 0x80000000)
                     .ToList();
 
@@ -618,9 +617,8 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
                 var results = context.BiotaPropertiesPosition
+                    .AsNoTracking()
                     .Where(p => p.PositionType == 1 && p.ObjCellId >= min && p.ObjCellId <= max && p.ObjectId >= 0x80000000)
                     .ToList();
 
@@ -647,9 +645,10 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var results = context.Biota.Where(i => i.WeenieType == (int)WeenieType.SlumLord).ToList();
+                var results = context.Biota
+                    .AsNoTracking()
+                    .Where(i => i.WeenieType == (int)WeenieType.SlumLord)
+                    .ToList();
 
                 return results;
             }
@@ -676,16 +675,21 @@ namespace ACE.Database
         {
             var context = new ShardDbContext();
 
-            var result = context.Character
-                .Include(r => r.CharacterPropertiesContractRegistry)
-                .Include(r => r.CharacterPropertiesFillCompBook)
-                .Include(r => r.CharacterPropertiesFriendList)
-                .Include(r => r.CharacterPropertiesQuestRegistry)
-                .Include(r => r.CharacterPropertiesShortcutBar)
-                .Include(r => r.CharacterPropertiesSpellBar)
-                .Include(r => r.CharacterPropertiesSquelch)
-                .Include(r => r.CharacterPropertiesTitleBook)
-                .FirstOrDefault(r => r.Name == name && !r.IsDeleted);
+            var query = context.Character.Where(r => r.Name == name && !r.IsDeleted);
+
+            var result = query.FirstOrDefault();
+
+            if (result != null)
+            {
+                query.SelectMany(r => r.CharacterPropertiesContractRegistry).Load();
+                query.SelectMany(r => r.CharacterPropertiesFillCompBook).Load();
+                query.SelectMany(r => r.CharacterPropertiesFriendList).Load();
+                query.SelectMany(r => r.CharacterPropertiesQuestRegistry).Load();
+                query.SelectMany(r => r.CharacterPropertiesShortcutBar).Load();
+                query.SelectMany(r => r.CharacterPropertiesSpellBar).Load();
+                query.SelectMany(r => r.CharacterPropertiesSquelch).Load();
+                query.SelectMany(r => r.CharacterPropertiesTitleBook).Load();
+            }
 
             if (result == null)
                 Console.WriteLine($"ShardDatabase.GetFullCharacter({name}): couldn't find character");
@@ -699,17 +703,18 @@ namespace ACE.Database
         {
             var context = new ShardDbContext();
 
-            var results = context.Character
-                .Include(r => r.CharacterPropertiesContractRegistry)
-                .Include(r => r.CharacterPropertiesFillCompBook)
-                .Include(r => r.CharacterPropertiesFriendList)
-                .Include(r => r.CharacterPropertiesQuestRegistry)
-                .Include(r => r.CharacterPropertiesShortcutBar)
-                .Include(r => r.CharacterPropertiesSpellBar)
-                .Include(r => r.CharacterPropertiesSquelch)
-                .Include(r => r.CharacterPropertiesTitleBook)
-                .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
-                .ToList();
+            var query = context.Character.Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted));
+
+            var results = query.ToList();
+
+            query.SelectMany(r => r.CharacterPropertiesContractRegistry).Load();
+            query.SelectMany(r => r.CharacterPropertiesFillCompBook).Load();
+            query.SelectMany(r => r.CharacterPropertiesFriendList).Load();
+            query.SelectMany(r => r.CharacterPropertiesQuestRegistry).Load();
+            query.SelectMany(r => r.CharacterPropertiesShortcutBar).Load();
+            query.SelectMany(r => r.CharacterPropertiesSpellBar).Load();
+            query.SelectMany(r => r.CharacterPropertiesSquelch).Load();
+            query.SelectMany(r => r.CharacterPropertiesTitleBook).Load();
 
             foreach (var result in results)
                 CharacterContexts.Add(result, context);
