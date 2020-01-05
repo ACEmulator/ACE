@@ -60,7 +60,7 @@ namespace ACE.Server.Command.Handlers
             using (var ctx = new ShardDbContext())
             {
                 var results = ctx.CharacterPropertiesShortcutBar
-                    .FromSql("SELECT * FROM character_properties_shortcut_bar ORDER BY character_Id, shortcut_Bar_Index, id")
+                    .FromSqlRaw("SELECT * FROM character_properties_shortcut_bar ORDER BY character_Id, shortcut_Bar_Index, id")
                     .ToList();
 
                 var sqlCommands = new List<string>();
