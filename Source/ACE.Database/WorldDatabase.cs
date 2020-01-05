@@ -54,27 +54,30 @@ namespace ACE.Database
 
         /// <summary>
         /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
-        /// This will also update the weenie cache.
+        /// This will also update the weenie cache.<para />
+        /// EF DbContext tracking must be enabled. Without it, your results collections will be empty.
         /// </summary>
         public Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
         {
             // Base properties for every weenie (ACBaseQualities)
-            var weenie = context.Weenie
-                .Include(r => r.WeeniePropertiesBool)
-                .Include(r => r.WeeniePropertiesDID)
-                .Include(r => r.WeeniePropertiesFloat)
-                .Include(r => r.WeeniePropertiesIID)
-                .Include(r => r.WeeniePropertiesInt)
-                .Include(r => r.WeeniePropertiesInt64)
-                .Include(r => r.WeeniePropertiesPosition)
-                .Include(r => r.WeeniePropertiesString)
-                .FirstOrDefault(r => r.ClassId == weenieClassId);
+            var query = context.Weenie.Where(r => r.ClassId == weenieClassId);
+
+            var weenie = query.FirstOrDefault();
 
             if (weenie == null)
             {
                 weenieCache[weenieClassId] = null;
                 return null;
             }
+
+            query.SelectMany(r => r.WeeniePropertiesBool).Load();
+            query.SelectMany(r => r.WeeniePropertiesDID).Load();
+            query.SelectMany(r => r.WeeniePropertiesFloat).Load();
+            query.SelectMany(r => r.WeeniePropertiesIID).Load();
+            query.SelectMany(r => r.WeeniePropertiesInt).Load();
+            query.SelectMany(r => r.WeeniePropertiesInt64).Load();
+            query.SelectMany(r => r.WeeniePropertiesPosition).Load();
+            query.SelectMany(r => r.WeeniePropertiesString).Load();
 
             var weenieType = (WeenieType)weenie.Type;
 
@@ -83,40 +86,38 @@ namespace ACE.Database
                               weenieType == WeenieType.Vendor ||
                               weenieType == WeenieType.CombatPet || weenieType == WeenieType.Pet;
 
-            //.Include(r => r.LandblockInstances)   // When we grab a weenie, we don't need to also know everywhere it exists in the world
-            //.Include(r => r.PointsOfInterest)     // I think these are just foreign keys for the POI table
-
-            weenie.WeeniePropertiesAnimPart = context.WeeniePropertiesAnimPart.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            query.SelectMany(r => r.WeeniePropertiesAnimPart).Load();
 
             if (isCreature)
             {
-                weenie.WeeniePropertiesAttribute = context.WeeniePropertiesAttribute.Where(r => r.ObjectId == weenie.ClassId).ToList();
-                weenie.WeeniePropertiesAttribute2nd = context.WeeniePropertiesAttribute2nd.Where(r => r.ObjectId == weenie.ClassId).ToList();
+                query.SelectMany(r => r.WeeniePropertiesAttribute).Load();
+                query.SelectMany(r => r.WeeniePropertiesAttribute2nd).Load();
 
-                weenie.WeeniePropertiesBodyPart = context.WeeniePropertiesBodyPart.Where(r => r.ObjectId == weenie.ClassId).ToList();
+                query.SelectMany(r => r.WeeniePropertiesBodyPart).Load();
             }
 
             if (weenieType == WeenieType.Book)
             {
-                weenie.WeeniePropertiesBook = context.WeeniePropertiesBook.FirstOrDefault(r => r.ObjectId == weenie.ClassId);
-                weenie.WeeniePropertiesBookPageData = context.WeeniePropertiesBookPageData.Where(r => r.ObjectId == weenie.ClassId).ToList();
+                query.Select(r => r.WeeniePropertiesBook).Load();
+                query.SelectMany(r => r.WeeniePropertiesBookPageData).Load();
             }
 
-            weenie.WeeniePropertiesCreateList = context.WeeniePropertiesCreateList.Where(r => r.ObjectId == weenie.ClassId).ToList();
-            weenie.WeeniePropertiesEmote = context.WeeniePropertiesEmote.Include(r => r.WeeniePropertiesEmoteAction).Where(r => r.ObjectId == weenie.ClassId).ToList();
-            weenie.WeeniePropertiesEventFilter = context.WeeniePropertiesEventFilter.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            query.SelectMany(r => r.WeeniePropertiesCreateList).Load();
+            query.SelectMany(r => r.WeeniePropertiesEmote).Load();
+            query.SelectMany(r => r.WeeniePropertiesEmote).SelectMany(r => r.WeeniePropertiesEmoteAction).Load();
+            query.SelectMany(r => r.WeeniePropertiesEventFilter).Load();
 
-            weenie.WeeniePropertiesGenerator = context.WeeniePropertiesGenerator.Where(r => r.ObjectId == weenie.ClassId).ToList();
-            weenie.WeeniePropertiesPalette = context.WeeniePropertiesPalette.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            query.SelectMany(r => r.WeeniePropertiesGenerator).Load();
+            query.SelectMany(r => r.WeeniePropertiesPalette).Load();
 
             if (isCreature)
             {
-                weenie.WeeniePropertiesSkill = context.WeeniePropertiesSkill.Where(r => r.ObjectId == weenie.ClassId).ToList();
+                query.SelectMany(r => r.WeeniePropertiesSkill).Load();
             }
 
-            weenie.WeeniePropertiesSpellBook = context.WeeniePropertiesSpellBook.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            query.SelectMany(r => r.WeeniePropertiesSpellBook).Load();
 
-            weenie.WeeniePropertiesTextureMap = context.WeeniePropertiesTextureMap.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            query.SelectMany(r => r.WeeniePropertiesTextureMap).Load();
 
             // If the weenie doesn't exist in the cache, we'll add it.
             weenieCache[weenieClassId] = weenie;
@@ -132,8 +133,6 @@ namespace ACE.Database
         {
             using (var context = new WorldDbContext())
             {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
                 return GetWeenie(context, weenieClassId);
             }
         }
@@ -651,37 +650,38 @@ namespace ACE.Database
 
             using (var context = new WorldDbContext())
             {
-                var result = context.CookBook
-                    .AsNoTracking()
-                    .Include(r => r.Recipe)
-                    .Include(r => r.Recipe.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsBool)
-                    .Include(r => r.Recipe.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsDID)
-                    .Include(r => r.Recipe.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsFloat)
-                    .Include(r => r.Recipe.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsIID)
-                    .Include(r => r.Recipe.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsInt)
-                    .Include(r => r.Recipe.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsString)
-                    .Include(r => r.Recipe.RecipeRequirementsBool)
-                    .Include(r => r.Recipe.RecipeRequirementsDID)
-                    .Include(r => r.Recipe.RecipeRequirementsFloat)
-                    .Include(r => r.Recipe.RecipeRequirementsIID)
-                    .Include(r => r.Recipe.RecipeRequirementsInt)
-                    .Include(r => r.Recipe.RecipeRequirementsString)
-                    .FirstOrDefault(r => r.SourceWCID == sourceWeenieClassid && r.TargetWCID == targetWeenieClassId);
+                var query = context.CookBook.Where(r => r.SourceWCID == sourceWeenieClassid && r.TargetWCID == targetWeenieClassId);
+
+                var result = query.FirstOrDefault();
+
+                if (result != null)
+                {
+                    query.Select(r => r.Recipe).Load();
+
+                    query.SelectMany(r => r.Recipe.RecipeMod).Load();
+                    query.SelectMany(r => r.Recipe.RecipeMod).SelectMany(r => r.RecipeModsBool).Load();
+                    query.SelectMany(r => r.Recipe.RecipeMod).SelectMany(r => r.RecipeModsDID).Load();
+                    query.SelectMany(r => r.Recipe.RecipeMod).SelectMany(r => r.RecipeModsFloat).Load();
+                    query.SelectMany(r => r.Recipe.RecipeMod).SelectMany(r => r.RecipeModsIID).Load();
+                    query.SelectMany(r => r.Recipe.RecipeMod).SelectMany(r => r.RecipeModsInt).Load();
+                    query.SelectMany(r => r.Recipe.RecipeMod).SelectMany(r => r.RecipeModsString).Load();
+
+                    query.SelectMany(r => r.Recipe.RecipeRequirementsBool).Load();
+                    query.SelectMany(r => r.Recipe.RecipeRequirementsDID).Load();
+                    query.SelectMany(r => r.Recipe.RecipeRequirementsFloat).Load();
+                    query.SelectMany(r => r.Recipe.RecipeRequirementsIID).Load();
+                    query.SelectMany(r => r.Recipe.RecipeRequirementsInt).Load();
+                    query.SelectMany(r => r.Recipe.RecipeRequirementsString).Load();
+                }
 
                 lock (cookbookCache)
                 {
                     // We double check before commiting the recipe.
                     // We could be in this lock, and queued up behind us is an attempt to add a result for the same source:target pair.
-                    if (cookbookCache.TryGetValue(sourceWeenieClassid, out var sourceRecipies))
+                    if (cookbookCache.TryGetValue(sourceWeenieClassid, out var sourceRecipes))
                     {
-                        if (!sourceRecipies.ContainsKey(targetWeenieClassId))
-                            sourceRecipies.Add(targetWeenieClassId, result);
+                        if (!sourceRecipes.ContainsKey(targetWeenieClassId))
+                            sourceRecipes.Add(targetWeenieClassId, result);
                     }
                     else
                         cookbookCache.Add(sourceWeenieClassid, new Dictionary<uint, CookBook>() { { targetWeenieClassId, result } });
@@ -698,27 +698,27 @@ namespace ACE.Database
         {
             using (var context = new WorldDbContext())
             {
-                var result = context.Recipe
-                    .AsNoTracking()
-                    .Include(r => r.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsBool)
-                    .Include(r => r.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsDID)
-                    .Include(r => r.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsFloat)
-                    .Include(r => r.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsIID)
-                    .Include(r => r.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsInt)
-                    .Include(r => r.RecipeMod)
-                        .ThenInclude(r => r.RecipeModsString)
-                    .Include(r => r.RecipeRequirementsBool)
-                    .Include(r => r.RecipeRequirementsDID)
-                    .Include(r => r.RecipeRequirementsFloat)
-                    .Include(r => r.RecipeRequirementsIID)
-                    .Include(r => r.RecipeRequirementsInt)
-                    .Include(r => r.RecipeRequirementsString)
-                    .FirstOrDefault(r => r.Id == recipeId);
+                var query = context.Recipe.Where(r => r.Id == recipeId);
+
+                var result = query.FirstOrDefault();
+
+                if (result != null)
+                {
+                    query.SelectMany(r => r.RecipeMod).Load();
+                    query.SelectMany(r => r.RecipeMod).SelectMany(r => r.RecipeModsBool).Load();
+                    query.SelectMany(r => r.RecipeMod).SelectMany(r => r.RecipeModsDID).Load();
+                    query.SelectMany(r => r.RecipeMod).SelectMany(r => r.RecipeModsFloat).Load();
+                    query.SelectMany(r => r.RecipeMod).SelectMany(r => r.RecipeModsIID).Load();
+                    query.SelectMany(r => r.RecipeMod).SelectMany(r => r.RecipeModsInt).Load();
+                    query.SelectMany(r => r.RecipeMod).SelectMany(r => r.RecipeModsString).Load();
+
+                    query.SelectMany(r => r.RecipeRequirementsBool).Load();
+                    query.SelectMany(r => r.RecipeRequirementsDID).Load();
+                    query.SelectMany(r => r.RecipeRequirementsFloat).Load();
+                    query.SelectMany(r => r.RecipeRequirementsIID).Load();
+                    query.SelectMany(r => r.RecipeRequirementsInt).Load();
+                    query.SelectMany(r => r.RecipeRequirementsString).Load();
+                }
 
                 return result;
             }
