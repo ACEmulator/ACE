@@ -21,21 +21,21 @@ namespace ACE.Common
         /// <summary>
         /// initializes from a Config.js file specified by the path
         /// </summary>
-        public static void Initialize(string filename = @"Config.js")
+        public static void Initialize(string path = @"Config.js")
         {
-            var directoryName = Path.GetDirectoryName(filename);
-            var fileName = Path.GetFileName(filename) ?? "Config.js";
+            var directoryName = Path.GetDirectoryName(path);
+            var fileName = Path.GetFileName(path) ?? "Config.js";
 
-            string fullPath = null;
+            string pathToUse;
 
             // If no directory was specified, try both the current directory and the startup directory
             if (string.IsNullOrWhiteSpace(directoryName))
             {
                 directoryName = Environment.CurrentDirectory;
 
-                fullPath = Path.Combine(directoryName, fileName);
+                pathToUse = Path.Combine(directoryName, fileName);
 
-                if (!File.Exists(fullPath))
+                if (!File.Exists(pathToUse))
                 {
                     // File not found in Environment.CurrentDirectory
                     // Lets try the ExecutingAssembly Location
@@ -44,19 +44,23 @@ namespace ACE.Common
                     directoryName = Path.GetDirectoryName(executingAssemblyLocation);
 
                     if (directoryName != null)
-                        fullPath = Path.Combine(directoryName, fileName);
+                        pathToUse = Path.Combine(directoryName, fileName);
                 }
+            }
+            else
+            {
+                pathToUse = path;
             }
 
             try
             {
-                if (fullPath == null || !File.Exists(fullPath))
+                if (!File.Exists(pathToUse))
                 {
                     Console.WriteLine("Configuration file is missing.  Please copy the file Config.js.example to Config.js and edit it to match your needs before running ACE.");
                     throw new Exception("missing configuration file");
                 }
 
-                var fileText = File.ReadAllText(fullPath);
+                var fileText = File.ReadAllText(pathToUse);
 
                 Config = JsonConvert.DeserializeObject<MasterConfiguration>(new JsMinifier().Minify(fileText));
             }
