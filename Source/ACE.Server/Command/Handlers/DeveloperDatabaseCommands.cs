@@ -121,7 +121,7 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine("Executing changes...");
 
                     foreach (var cmd in sqlCommands)
-                        ctx.Database.ExecuteSqlCommand(cmd);
+                        ctx.Database.ExecuteSqlRaw(cmd);
                 }
                 else
                     Console.WriteLine("dry run completed. Use fix-shortcut-bars execute to actually run command");
