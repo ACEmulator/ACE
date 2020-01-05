@@ -419,7 +419,6 @@ namespace ACE.Server.Managers
                 Console.WriteLine("Quest Name: " + quest.QuestName);
                 Console.WriteLine("Times Completed: " + quest.NumTimesCompleted);
                 Console.WriteLine("Last Time Completed: " + quest.LastTimeCompleted);
-                Console.WriteLine("Quest ID: " + quest.Id.ToString("X8"));
                 Console.WriteLine("Player ID: " + quest.CharacterId.ToString("X8"));
                 Console.WriteLine("----");
             }
