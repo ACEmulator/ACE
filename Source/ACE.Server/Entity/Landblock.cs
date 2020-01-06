@@ -1084,7 +1084,8 @@ namespace ACE.Server.Entity
         private bool? isDungeon;
 
         /// <summary>
-        /// Returns TRUE if this landblock is a dungeon
+        /// Returns TRUE if this landblock is a dungeon,
+        /// with no traversable overworld
         /// </summary>
         public bool IsDungeon
         {
@@ -1111,21 +1112,30 @@ namespace ACE.Server.Entity
             }
         }
 
-        private bool? isHouseDungeon;
+        private bool? hasDungeon;
 
-        public bool IsHouseDungeon
+        /// <summary>
+        /// Returns TRUE if this landblock contains a dungeon
+        //
+        /// If a landblock contains both a dungeon + traversable overworld,
+        /// this field will return TRUE, whereas IsDungeon will return FALSE
+        /// 
+        /// This property should only be used in very specific scenarios,
+        /// such as determining if a landblock contains a mansion basement
+        /// </summary>
+        public bool HasDungeon
         {
             get
             {
                 // return cached value
-                if (isHouseDungeon != null)
-                    return isHouseDungeon.Value;
+                if (hasDungeon != null)
+                    return hasDungeon.Value;
 
-                isHouseDungeon = IsDungeon ? DatabaseManager.World.GetCachedHousePortalsByLandblock(Id.Landblock).Count > 0 : false;
-
-                return isHouseDungeon.Value;
+                hasDungeon = LandblockInfo != null && LandblockInfo.NumCells > 0 && LandblockInfo.Buildings != null && LandblockInfo.Buildings.Count == 0;
+                return hasDungeon.Value;
             }
         }
+
 
         public List<House> Houses = new List<House>();
 

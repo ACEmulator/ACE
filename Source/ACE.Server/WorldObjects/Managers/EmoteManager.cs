@@ -201,6 +201,7 @@ namespace ACE.Server.WorldObjects.Managers
                             creature.TryCastSpell(spell, targetObject, creature);
                             creature.PostCastMotion();
                         });
+                        castChain.EnqueueChain();
                     }
                     break;
 

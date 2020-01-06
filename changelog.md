@@ -1,5 +1,367 @@
 # ACEmulator Change Log
 
+### 2019-12-31
+[Mag-nus]
+* Added ShardDatabaseWithoutCaching
+
+[gmriggs]
+* Improved monster combat maneuvers table
+* Added support for dual-wielding mobs
+* Added support for EmoteManager.CastSpell untargeted spell projectiles
+* Additional rotation checks for EmoteType.Move*
+* Updated spell projectiles to use more spell / weenie data
+* Refactored spell projectiles
+* Improved usage of body part quadrants for physical attacks
+* Use ItemSpellCraft for target resistance check when casting spells built into wands
+* Improved handling of json weenie metadata
+
+### 2019-12-30
+[gmriggs]
+* Merged fastcast branch into master
+  * Advanced player movement and spellcasting techniques are now available for PK/PKLite players
+
+* Improved /targetloc
+
+[Mag-nus]
+* Network improvements
+
+[Harli Quin]
+* Refactored magic defense and missile defense bonuses in loot generator
+* Removed non-retail vital regen cantrips
+* Added LootFactory simulator
+
+### 2019-12-28
+[gmriggs]
+* Fixed boost variance for life transfer spells
+
+### 2019-12-26
+[gmriggs]
+* Fixed mobs casting flame wave
+
+### 2019-12-22
+[gmriggs]
+* Fixed monster special attack fx
+
+[Yonneh]
+* Minor math optimization for CRC verification
+
+[Harli Quin]
+* Fixed spell IDs for CreateRandomScroll
+
+### 2019-12-21
+[Morosity]
+* Updated Pets and PetDevices for Summoning
+
+[fartwhif]
+* Removing unused pattern from CryptoSystem for slightly better performance
+
+[gmriggs]
+* Fixed an issue with Sphere.FindPlacementPos
+* Fixed generator respawn retries
+* Slightly improved corpse positioning for creeping mobs
+
+### 2019-12-19
+[gmriggs]
+* Only apply NetherDotDamageRating to direct damage
+
+[Ripley]
+* Switched Lifespan to use RealTime instead of GameTime
+
+### 2019-12-18
+[gmriggs]
+* Do not add cross-landblock references for calc_cross_cells_static
+
+[dgarson]
+* Fixed caster damage modifier to use appropriate PvP modifier
+
+### 2019-12-17
+[gmriggs]
+* Continued porting of advanced player movement / fastcast to master branch
+
+### 2019-12-16
+[fartwhif]
+* Fixed a bug that occurs when client sends only a cleartext CRC NAK
+
+[Ripley]
+* Updated AugmentationDevice to use WeenieErrorWithString
+
+### 2019-12-15
+[gmriggs]
+* Backporting support functions from fastcast branch
+
+[Ripley]
+* Clutch of the Miser augmentation does not affect items for PK / PKLite deaths
+
+### 2019-12-14
+[Ripley]
+* Added support for 'no drop on death' landblocks
+* Expand scope for generator wipe conditions
+* Additional verifications for 'item in trade window'
+* Added support for 'FirstEnterWorldDone' on players
+* Updated House.OnProperty() HasDungeon boot condition
+* Updated /generatordump information
+
+[Yonneh]
+* Fixed CharacterOption enum to match PlayerOption ordering in acclient
+
+[gmriggs]
+* Fixed a bug where Critical Strike bonus wasn't applying to life projectiles
+* Fixed EmoteType.AwardLevelProportionalXP when Max64==0
+* Ensure level 8 item self spells take precedence over level 8 item other spells
+
+### 2019-12-12
+[gmriggs]
+* Re-verify client checks for GameAction 0x35 - UseWithTarget
+* Fixed armor tailoring intermediate kit TargetType
+* Tailoring - do not copy UIEffects to destination item
+
+### 2019-12-11
+[gmriggs]
+* Added RecipeManager verifications for source and target usability flags
+* Added lifestone_broadcast_death server option, clamping to local broadcast range
+* Fixed scatter generators for Neftet plateaus
+
+[Ripley]
+* Added PetClass commenting to SQLWriter
+
+[Mag-nus]
+* PlayerFactory improvements
+
+### 2019-12-10
+[gmriggs]
+* Added missing function for physics @ plateau
+
+[gmriggs + fartwhif]
+* Improved handling for overages for house payments
+
+[Ripley]
+* Additional pcap properties
+
+### 2019-12-09
+[Mag-nus]
+* PlayerManager GetOnlineCount() and GetOfflineCount()
+
+[gmriggs]
+* Updated Enlightenment vitality formula for max health
+* Removed some incorrect log / chat messages for SpellComponentsRequired
+* /addenc command for content creators to add encounters
+* Matching DoT ticks up with retail heartbeats
+
+### 2019-12-08
+[gmriggs]
+* Additional verifications for RecipeManager
+
+[Mag-nus]
+* Switch ThreadSafeRandom from lock to ThreadLocal<Random>
+
+[Harli Quin]
+* Fixed an issue with loot generator creating melee weapons with overcapped damage
+
+### 2019-12-07
+[gmriggs]
+* Fixed client hourglass for applying encapsulated essence while in busy state
+* Improved speed for /import-json all content dev command
+* Additional CurrentLandblock checks to Slumlord
+* Pre-validating EnvCell transitions
+
+### 2019-12-06
+[Ripley]
+* Fixing issues with nulls in EmoteManager.Replace
+
+### 2019-12-05
+
+[gmriggs]
+* Setting default CultureInfo to en_US
+* Fixing shield tailoring
+* Move* emotes use default WalkRunThreshold
+* Added support for creeping mobs
+* Refactored raise attribute/vita/skill
+* Added verify* console commands for admins
+* ManaConversionMod tweaks
+* Fixed some minor issues with AwardSkillXP emotes
+* Added /resist-info developer command
+* Additional checks for /verify-skill
+
+[Ripley]
+* Removed some dungeons from AdjustPos that have been fixed in database
+* Added support for RelativeDestination on portals
+* Added support for emote branching with events
+
+[Ripley, Ziang, gmriggs]
+* Added support for Creature.QuestManager
+
+### 2019-12-03
+* Moved UpdatePlayerPhysics to Player_Tick.cs
+
+### 2019-12-01
+[gmriggs]
+* Fixed a possible system-dependent state crash in EnvCell constructor
+
+[Harli Quin]
+* Updated loot generator for missile and casting weapons to better match retail
+* Improved test loot generator commands
+
+[Mag-nus]
+* Added server option for adjusting quest timers
+
+### 2019-11-28
+[Harli Quin]
+* Removed a bugged rare crystal
+
+[gmriggs]
+* Added support for 'confirm use of rare gems' player option
+* PlayScript cleanup
+
+### 2019-11-27
+[Mag-nus]
+* CharacterExporter fixes
+* Added more EoR spells to Player_AllowedSpellIDs
+
+### 2019-11-26
+[gmriggs]
+* Fixed ThreadSafeTeleportOnDeath -> SetLifestoneProtection
+* Additional IsDead checks for magic casting
+* Additional verifications for DamageHistory.CheckInternal()
+* Added fix-biota-emote-delay server console command
+
+[Mag-nus]
+* Set all shard non-zero defaults to zero
+
+### 2019-11-25
+[gmriggs]
+* Additional checks for IsDead
+* Ensuring HealingOverTime does not tick up health for dead creatures
+* Fixed stance swap state thrashing
+* Adding server option to include viewer name in 'container already opened' message
+* Enabling retail behavior for trade bots
+* Refactoring house permissions
+
+### 2019-11-24
+[Mag-nus]
+* Added PurgeOrphanedBiotas
+* Moved ThreadSafeTeleport to WorldManager
+* Execute no-delay emotes immediately
+
+### 2019-11-22
+[Harli Quin]
+* Updated test loot generator
+
+[gmriggs]
+* Added post-windup range check to spellcasting
+* Improved accuracy for XP divvy
+* Fixed 2 tailoring bugs
+* Handle special case for PKType deaths + Enduring Enchantment + DoTs
+* Fixed death items for players < level 35
+* Allowing Obsidian Chittick spines to do DamageType.Undef as per PY16 data
+
+[Ripley]
+* Update setups for creature dressup
+
+### 2019-11-21
+[Ripley]
+* Updated ACE.Adapter to support spawn maps
+
+[Mag-nus]
+* ThreadSafeRandom cleanup
+
+[gmriggs]
+* Fixed monster resleep -> wakeup cycle for combat mode
+
+### 2019-11-20
+[gmriggs]
+* Added support for WeaponMissileDefense and WeaponMagicDefense
+* WorldObject_Weapon / imbue refactoring
+* Fixing /buff &lt;target&gt; for life spells
+* Fixed a double message bug for archers
+* Reversed exemption checks, added missing WeenieObject.Is&lt;Type&gt; methods
+* Added debug logging for failed player transitions
+* Removed PKTimer for Bael'Zharon battles
+* Removed Player.Rotate during looting that wasn't in retail
+
+[Harli Quin]
+* Added 7 missing rare wcids, removed 5 bugged ones
+
+### 2019-11-18
+[gmriggs]
+* Fixed a DamageHistory static bug
+* Minimized DamageHistory.WeakReferences
+* Send updates to Monarch ID over network
+* Added some missing calls to allegiance house boot
+
+### 2019-11-17
+[Mag-nus]
+* Improved multithreaded landblock group ticking (non-physics)
+* Fixed a NullReferenceException with CurrentMovementData.Invalid
+* Fixed a NullReferenceException in EnchantmentManagerWithCaching
+
+### 2019-11-15
+[gmriggs]
+* Added preliminary version of pickup busy state handling
+* Improved RunRate handling for players
+* Broadcast correct RunRate for overburdened players
+* Improved AI for missile combat mobs
+* Fixed a possible lockup in physical combat when repeat attacks is disabled
+* Backported Player_Magic refactoring from fastcasting branch
+* Updated house storage chests to remain open while being viewed (no auto-close timer)
+* Improved NaN handling for projectiles
+
+[Harli Quin]
+* Adjusted drop rates in loot generator for better alignment to retail
+* Added developer commands to test the loot generator
+
+### 2019-11-14
+[Ripley]
+* Support standard and non-standard usage of %tqt and custom %CDtime
+
+### 2019-11-11
+[gmriggs]
+* Added /damagehistory developer command
+* Ensuring ResistanceMod never goes below 0
+
+[gmriggs + Yeonan]
+* Applying transferCap to both srcVital and destVital for life transfer spells
+
+[Ripley]
+* Added protection and logging for house basements w/ missing location data
+
+### 2019-11-10
+[gmriggs]
+* Improved PK/PKLite top damager detection
+
+[Ripley]
+* Added server option for create_list DestinationType.Wield items dropping to corpse
+* Updated EmoteType.DeleteSelf
+
+### 2019-11-09
+[gmriggs]
+* Added T6 rares for two-handed weapons
+* Added defense imbues to effective defense calculations
+
+[Ripley]
+* Updated GameEventInscriptionResponse
+
+[dirtyelf]
+* Added valid skills hashset, check valid skills upon entering god mode
+
+### 2019-11-08
+[gmriggs]
+* Updated DamageMod enchantments from multiplicative to additive (ie., Eye of the Hunter)
+
+[Mag-nus]
+* EmoteManager AddDelaySeconds() only when > 0
+
+### 2019-11-07
+[gmriggs]
+* Added luminance award message for quest turn-ins
+
+### 2019-11-06
+[Ripley]
+* Added DestinationType.Wield to corpse object selection
+
+### 2019-11-03
+[Ripley]
+* Added different pickup animations based on source/target height
+
 ### 2019-11-02
 [gmriggs]
 * Added some missing shield cantrips

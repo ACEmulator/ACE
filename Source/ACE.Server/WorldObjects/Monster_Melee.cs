@@ -158,7 +158,12 @@ namespace ACE.Server.WorldObjects
 
             // choose a random attack height?
             // apparently this might have been based on monster Z vs. player Z?
-            AttackHeight = (AttackHeight)ThreadSafeRandom.Next(1, 3);
+
+            // 28659 - Uber Penguin (CMT 30000040) doesn't have High attack height
+            // do a more thorough investigation for this...
+            var startHeight = stanceManeuvers.Table.Count == 3 ? 1 : 2;
+
+            AttackHeight = (AttackHeight)ThreadSafeRandom.Next(startHeight, 3);
 
             if (!stanceManeuvers.Table.TryGetValue(AttackHeight.Value, out var attackTypes))
             {
@@ -176,12 +181,47 @@ namespace ACE.Server.WorldObjects
             // monsters supposedly always used 0.5 PowerLevel according to anon docs,
             // which translates into a 1.0 PowerMod
 
-            AttackType = weapon != null ? weapon.GetAttackType(CurrentMotionState.Stance, 0.5f, offhand) : AttackType.Punch;
+            if (weapon != null)
+            {
+                AttackType = weapon.GetAttackType(CurrentMotionState.Stance, 0.5f, offhand);
+            }
+            else
+            {
+                if (AttackHeight != ACE.Entity.Enum.AttackHeight.Low)
+                    AttackType = AttackType.Punch;
+                else
+                    AttackType = AttackType.Kick;
+            }
 
             if (!attackTypes.Table.TryGetValue(AttackType, out var maneuvers) || maneuvers.Count == 0)
             {
-                log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find attack type {AttackType} for attack height {AttackHeight} and stance {CurrentMotionState.Stance} in CMT {CombatTableDID:X8}");
-                return null;
+                if (AttackType == AttackType.Kick)
+                {
+                    AttackType = AttackType.Punch;
+
+                    if (!attackTypes.Table.TryGetValue(AttackType, out maneuvers) || maneuvers.Count == 0)
+                    {
+                        log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find attack type Kick or Punch for attack height {AttackHeight} and stance {CurrentMotionState.Stance} in CMT {CombatTableDID:X8}");
+                        return null;
+                    }
+                }
+                else if (AttackType.IsMultiStrike())
+                {
+                    var reduced = AttackType.ReduceMultiStrike();
+
+                    if (!attackTypes.Table.TryGetValue(reduced, out maneuvers) || maneuvers.Count == 0)
+                    {
+                        log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find attack type {reduced} for attack height {AttackHeight} and stance {CurrentMotionState.Stance} in CMT {CombatTableDID:X8}");
+                        return null;
+                    }
+                    //else
+                        //log.Info($"{Name} ({Guid}).GetCombatManeuver() - successfully reduced attack type {AttackType} to {reduced} for attack height {AttackHeight} and stance {CurrentMotionState.Stance} in CMT {CombatTableDID:X8}");
+                }
+                else
+                {
+                    log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find attack type {AttackType} for attack height {AttackHeight} and stance {CurrentMotionState.Stance} in CMT {CombatTableDID:X8}");
+                    return null;
+                }
             }
 
             var motionCommand = maneuvers[0];
@@ -214,6 +254,16 @@ namespace ACE.Server.WorldObjects
                         return singleStrike;
                     }
                 }
+                else if (motionCommand.IsSubsequent())
+                {
+                    var firstCommand = motionCommand.ReduceSubsequent();
+
+                    if (motions.ContainsKey((uint)firstCommand))
+                    {
+                        //log.Info($"{Name} ({Guid}).GetCombatManeuver() - successfully reduced {motionCommand} to {firstCommand}");
+                        return firstCommand;
+                    }
+                }
                 log.Error($"{Name} ({Guid}).GetCombatManeuver() - couldn't find {motionCommand} in MotionTable {MotionTableId:X8}");
                 return null;
             }
@@ -229,11 +279,13 @@ namespace ACE.Server.WorldObjects
         public void ShowCombatTable()
         {
             Console.WriteLine($"CombatManeuverTable ID: {CombatTable.Id:X8}");
-            for (var i = 0; i < CombatTable.CMT.Count; i++)
+            CombatTable.ShowCombatTable();
+
+            /*for (var i = 0; i < CombatTable.CMT.Count; i++)
             {
                 var maneuver = CombatTable.CMT[i];
                 Console.WriteLine($"{i} - {maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
-            }
+            }*/
         }
 
         /// <summary>
