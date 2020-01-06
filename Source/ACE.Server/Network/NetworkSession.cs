@@ -339,6 +339,7 @@ namespace ACE.Server.Network
 
             #endregion
         }
+
         /// <summary>
         /// request retransmission of lost sequences
         /// </summary>
@@ -372,6 +373,7 @@ namespace ACE.Server.Network
             packetLog.DebugFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
             NetworkStatistics.S2C_RequestsForRetransmit_Aggregate_Increment();
         }
+
         private DateTime LastRequestForRetransmitTime = DateTime.MinValue;
 
         /// <summary>
@@ -558,7 +560,7 @@ namespace ACE.Server.Network
             }
             else
             {
-                log.Error($"retransmit requested packet {sequence} not in cache.");
+                log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache range {cachedPackets.Keys.Min()} - {cachedPackets.Keys.Max()}.");
             }
         }
 
