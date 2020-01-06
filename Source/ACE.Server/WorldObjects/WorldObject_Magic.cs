@@ -1144,7 +1144,13 @@ namespace ACE.Server.WorldObjects
 
             var baseOffset = spell.CreateOffset;
 
-            baseOffset.Y += PhysicsObj.GetPhysicsRadius() * 2.0f + radius * 2.0f;
+            var radsum = PhysicsObj.GetPhysicsRadius() * 2.0f + radius * 2.0f;
+
+            if (spell.SpreadAngle == 360)
+                radsum *= 0.6f;
+
+            baseOffset.Y += radsum;
+
             baseOffset.Z += Height * ProjHeight;
 
             var anglePerStep = GetSpreadAnglePerStep(spell);

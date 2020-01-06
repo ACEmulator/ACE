@@ -1278,14 +1278,14 @@ namespace ACE.Server.WorldObjects
 
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
-                    if (!rootHouse.IsOpen || (rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.IsDungeon))
+                    if (!rootHouse.IsOpen || (rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.HasDungeon))
                     {
                         Teleport(rootHouse.BootSpot.Location);
                         return true;
                     }
                 }
 
-                if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.IsDungeon)
+                if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.HasDungeon)
                 {
                     Teleport(rootHouse.BootSpot.Location);
                     return true;

@@ -513,7 +513,10 @@ namespace ACE.Server.WorldObjects
                 result = CurrentLandblock?.GetWieldedObject(objectGuid);
 
                 if (result != null)
+                {
+                    rootOwner = result.Wielder as Container;
                     return result;
+                }
             }
 
             if (searchLocations.HasFlag(SearchLocations.TradedByOther))

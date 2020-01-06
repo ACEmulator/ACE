@@ -178,6 +178,9 @@ namespace ACE.Server.WorldObjects
 
         public void SwitchToMeleeAttack()
         {
+            // 24139 - Invisible Assailant never switches to melee?
+            if (Visibility) return;
+
             //Console.WriteLine($"{Name}.SwitchToMeleeAttack()");
 
             var weapon = GetEquippedMissileWeapon();

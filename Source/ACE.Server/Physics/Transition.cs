@@ -841,7 +841,7 @@ namespace ACE.Server.Physics.Animation
                         else
                         {
                             if (CollisionInfo.ContactPlaneValid || (ObjectInfo.State & ObjectInfoState.Contact) == 0 ||
-                                SpherePath.StepDown || SpherePath.CheckCell == null || ObjectInfo.StepDown)
+                                SpherePath.StepDown || SpherePath.CheckCell == null || !ObjectInfo.StepDown)
                             {
                                 return TransitionState.OK;
                             }
