@@ -1118,6 +1118,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject caster)
         {
+            if (spell.NumProjectiles == 0)
+            {
+                log.Error($"{Name} ({Guid}).CreateSpellProjectiles({spell.Id} - {spell.Name}) - spell.NumProjectiles == 0");
+                return new List<SpellProjectile>();
+            }
+
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
 
             var origins = CalculateProjectileOrigins(spell);
