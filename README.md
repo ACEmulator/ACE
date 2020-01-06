@@ -45,17 +45,16 @@ The following three sections (Database, Code, and Starting the Server) contain a
 
 
 ### Code 
-1. Install Visual Studio 2017
-   * [Visual Studio minimum required version - VS Community 2017 15.7.0](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15)
-   * [.NET Core 2.2 x64 SDK (Visual Studio 2017) Required](https://www.microsoft.com/net/download/visual-studio-sdks)
+1. Install Visual Studio 2019
+   * [Visual Studio Community 2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&rel=16)
    * If using Visual Studio Community Edition, make sure the following two workloads are installed: .NET Core cross-platform development and .NET Desktop Development
 2. Copy `ACE.Server\Config.js.example` to `ACE.Server\Config.js` and modify settings, such as passwords, database connections, file paths, and other server settings.
 3. Open ACE.sln with Visual Studio and build the solution. Your modified `Config.js` file will be copied to the output folder during the build process.
-4. Download and install [Microsoft .NET Core Runtime - 2.2](https://www.microsoft.com/net/download) if you don't already have it.
+4. Download and install [.NET Core Runtime 3.1.0, Windows x64](https://dotnet.microsoft.com/download/dotnet-core/3.1) if you don't already have it.
 
 ### Starting the Server
-1. Start the server by running the batch file located in the netcoreapp2.2 output directory: `start_server.bat`
-   * ex. ACE\Source\ACE.Server\bin\x64\Debug\netcoreapp2.2\start_server.bat
+1. Start the server by running the batch file located in the netcoreapp3.1 output directory: `start_server.bat`
+   * ex. ACE\Source\ACE.Server\bin\x64\Debug\netcoreapp3.1\start_server.bat
 2. Create your first account as an admin at the ACE prompt - `accountcreate testaccount testpassword 5`
 3. Launch ACClient directly with this command: `acclient.exe -a testaccount -v testpassword -h 127.0.0.1:9000`
 

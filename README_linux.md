@@ -29,9 +29,9 @@ The following three sections (Database, Code, and Starting the Server) contain a
 2. Create three databases named `ace_auth`, `ace_shard`, and `ace_world`
 3. Load AuthenticationBase.sql and ShardBase.sql for their respective databases. These can be found in the Database\Base directory.
 4. Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
-5. Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory. 
+5. Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
 6. Download from [ACE-World-16PY-Patches](https://github.com/ACEmulator/ACE-World-16PY-Patches) the [latest release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest) of world data, extract and load into your ace_world database.
-   * [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.98+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
+   * [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.150+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
 7. SKIP THIS STEP IF USING DOWNLOADED WORLD DATA FROM PREVIOUS STEP.
    * If using a custom database, you may need to update the schema for the emulator to operate correctly. If you're using the official release data, this step is not recommended.
    * Load WorldBase.sql from Database\Base into your `ace_world` database
@@ -39,7 +39,7 @@ The following three sections (Database, Code, and Starting the Server) contain a
 
 ### Code
 1. Install .NET Core SDK
-   * https://dotnet.microsoft.com/download/linux-package-manager/ubuntu18-04/sdk-2.2.104
+   * https://dotnet.microsoft.com/download/linux-package-manager/rhel/sdk-current
 2. Clone the project with git:
    * git clone https://github.com/ACEmulator/ACE.git
 3. Copy `ACE.Server\Config.js.example` to `ACE.Server\Config.js` and modify settings, such as DAT folder, passwords and other server settings.
@@ -47,7 +47,7 @@ The following three sections (Database, Code, and Starting the Server) contain a
 
 
 ### Starting the Server
-1. In ACE/Source/ACE.Server/bin/x64/Debug/netcoreapp2.1, run the server with `dotnet ACE.Server.dll`
+1. In ACE/Source/ACE.Server/bin/x64/Debug/netcoreapp3.1, run the server with `dotnet ACE.Server.dll`
 2. Create your first account as an admin at the ACE prompt: `accountcreate testaccount testpassword 5`
 3. Launch acclient directly with this command: `acclient.exe -a testaccount -v testpassword -h your-server-address:9000`
 
