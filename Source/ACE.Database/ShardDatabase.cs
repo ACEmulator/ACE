@@ -255,9 +255,13 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                var results = context.Biota.Where(r => r.WeenieClassId == wcid);
+                var results = context.Biota
+                    .AsNoTracking()
+                    .Where(r => r.WeenieClassId == wcid)
+                    .ToList();
 
                 var biotas = new List<Biota>();
+
                 foreach (var result in results)
                     biotas.Add(GetBiota(context, result.Id));
 
@@ -272,9 +276,13 @@ namespace ACE.Database
             {
                 var iType = (int)type;
 
-                var results = context.Biota.Where(r => r.WeenieType == iType);
+                var results = context.Biota
+                    .AsNoTracking()
+                    .Where(r => r.WeenieType == iType)
+                    .ToList();
 
                 var biotas = new List<Biota>();
+
                 foreach (var result in results)
                     biotas.Add(GetBiota(context, result.Id));
 
