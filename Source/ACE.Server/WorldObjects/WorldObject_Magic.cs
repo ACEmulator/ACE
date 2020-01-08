@@ -1266,6 +1266,9 @@ namespace ACE.Server.WorldObjects
             // TODO: change to instantaneous velocity
             var targetVelocity = target.PhysicsObj.CachedVelocity;
 
+            if (target is Player targetPlayer && targetPlayer.IsPKType && PropertyManager.GetBool("spellcast_accuracy").Item)
+                targetVelocity = targetPlayer.PhysicsObj.Velocity;
+
             var useGravity = spellType == ProjectileSpellType.Arc;
 
             if (useGravity || target != null && targetVelocity != Vector3.Zero && spell.IsTracking)

@@ -152,7 +152,7 @@ namespace ACE.Server.WorldObjects
                 TurnTo_Magic(target);
         }
 
-        public void DoWindup(WindupParams windupParams)
+        public void DoWindup(WindupParams windupParams, bool checkAngle = true)
         {
             //Console.WriteLine($"{Name}.DoWindup()");
 
@@ -165,7 +165,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsWithinAngle(target))
+            if (!checkAngle || IsWithinAngle(target))
             {
                 if (!CreatePlayerSpell(target, targetCategory, windupParams.SpellId, windupParams.BuiltInSpell))
                     MagicState.OnCastDone();
@@ -1355,10 +1355,12 @@ namespace ACE.Server.WorldObjects
 
             MagicState.IsTurning = false;
 
+            var checkAngle = status != WeenieError.None;
+
             if (!MagicState.CastMotionDone)
-                DoWindup(MagicState.WindupParams);
+                DoWindup(MagicState.WindupParams, checkAngle);
             else
-                DoCastSpell(MagicState, status != WeenieError.None);
+                DoCastSpell(MagicState, checkAngle);
         }
     }
 }
