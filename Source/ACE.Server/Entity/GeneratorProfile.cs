@@ -458,14 +458,19 @@ namespace ACE.Server.Entity
         {
             //log.Debug($"{_generator.Name}.NotifyGenerator({target:X8}, {eventType})");
 
+            var adjEventType = eventType; // some generators use pickup when they mean to use destruction, some use destruction when they mean to use pickup. this data comes from 16py mostly and these issues are corrected below.
+
             if (eventType == RegenerationType.PickUp && (RegenerationType)Biota.WhenCreate == RegenerationType.Destruction)
-                eventType = RegenerationType.Destruction;
+                adjEventType = RegenerationType.Destruction;
+
+            if (eventType == RegenerationType.Destruction && (RegenerationType)Biota.WhenCreate == RegenerationType.PickUp)
+                adjEventType = RegenerationType.PickUp;
 
             // If WhenCreate is Undef, assume it means Destruction (bad data)
             if (eventType == RegenerationType.Destruction && (RegenerationType)Biota.WhenCreate == RegenerationType.Undef)
                 Biota.WhenCreate = (uint)RegenerationType.Destruction;
 
-            if (Biota.WhenCreate != (uint)eventType)
+            if (Biota.WhenCreate != (uint)adjEventType)
                 return;
 
             Spawned.TryGetValue(target.Full, out var woi);
