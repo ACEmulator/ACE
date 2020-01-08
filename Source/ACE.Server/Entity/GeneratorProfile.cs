@@ -470,6 +470,9 @@ namespace ACE.Server.Entity
             if (eventType == RegenerationType.Destruction && (RegenerationType)Biota.WhenCreate == RegenerationType.Undef)
                 Biota.WhenCreate = (uint)RegenerationType.Destruction;
 
+            if (eventType == RegenerationType.PickUp && (RegenerationType)Biota.WhenCreate == RegenerationType.Undef)
+                Biota.WhenCreate = (uint)RegenerationType.PickUp;
+
             if (Biota.WhenCreate != (uint)adjEventType)
                 return;
 
