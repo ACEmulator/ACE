@@ -2823,5 +2823,14 @@ namespace ACE.Server.Command.Handlers
             }
             wo.EnqueueBroadcast(new GameMessageScript(wo.Guid, (PlayScript)pscript));
         }
+
+        [CommandHandler("getinfo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows basic info for the last appraised object.")]
+        public static void HandleGetInfo(Session session, params string[] parameters)
+        {
+            var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (wo != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"WeenieClassId: {wo.WeenieClassId}\nWeenieClassName: {wo.WeenieClassName}", ChatMessageType.Broadcast));
+        }
     }
 }
