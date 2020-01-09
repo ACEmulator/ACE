@@ -459,21 +459,30 @@ namespace ACE.Server.Entity
             //log.Debug($"{_generator.Name}.NotifyGenerator({target:X8}, {eventType})");
 
             var adjEventType = eventType; // some generators use pickup when they mean to use destruction, some use destruction when they mean to use pickup. this data comes from 16py mostly and these issues are corrected below.
+            var whenCreate = (RegenerationType)Biota.WhenCreate;
+            var adjWhenCreate = (RegenerationType)Biota.WhenCreate;
 
-            if (eventType == RegenerationType.PickUp && (RegenerationType)Biota.WhenCreate == RegenerationType.Destruction)
+            if (eventType == RegenerationType.PickUp && whenCreate == RegenerationType.Destruction)
                 adjEventType = RegenerationType.Destruction;
 
-            if (eventType == RegenerationType.Destruction && (RegenerationType)Biota.WhenCreate == RegenerationType.PickUp)
+            if (eventType == RegenerationType.Destruction && whenCreate == RegenerationType.PickUp)
                 adjEventType = RegenerationType.PickUp;
 
             // If WhenCreate is Undef, assume it means Destruction (bad data)
-            if (eventType == RegenerationType.Destruction && (RegenerationType)Biota.WhenCreate == RegenerationType.Undef)
-                Biota.WhenCreate = (uint)RegenerationType.Destruction;
+            if (eventType == RegenerationType.Destruction && whenCreate == RegenerationType.Undef)
+                adjWhenCreate = RegenerationType.Destruction;
 
-            if (eventType == RegenerationType.PickUp && (RegenerationType)Biota.WhenCreate == RegenerationType.Undef)
-                Biota.WhenCreate = (uint)RegenerationType.PickUp;
+            // If WhenCreate is Undef, assume it means Pickup (bad data)
+            if (eventType == RegenerationType.PickUp && whenCreate == RegenerationType.Undef)
+                adjWhenCreate = RegenerationType.PickUp;
 
-            if (Biota.WhenCreate != (uint)adjEventType)
+            if (eventType != adjEventType)
+                log.Warn($"GeneratorProfile.NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjEventType.ToString()} as RegenerationType instead");
+
+            if (whenCreate != adjWhenCreate)
+                log.Warn($"GeneratorProfile.NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjWhenCreate.ToString()} as WhenCreate instead");
+
+            if (adjWhenCreate != adjEventType)
                 return;
 
             Spawned.TryGetValue(target.Full, out var woi);
