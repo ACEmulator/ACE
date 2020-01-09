@@ -22,6 +22,13 @@ namespace ACE.Server.Entity
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
+        /// The id for the profile. This id will be either a GUID from Landblock_Instances or an incremental id based on profile order from biota entry. 
+        /// </summary>
+        public uint Id;
+
+        public string LinkId => Id > 0x70000000 ? $"0x{Id:X8}" : $"{Id}";
+
+        /// <summary>
         /// The biota with all the generator profile info
         /// </summary>
         public BiotaPropertiesGenerator Biota;
@@ -120,10 +127,11 @@ namespace ACE.Server.Entity
         /// Constructs a new active generator profile
         /// from a biota generator
         /// </summary>
-        public GeneratorProfile(WorldObject generator, BiotaPropertiesGenerator biota)
+        public GeneratorProfile(WorldObject generator, BiotaPropertiesGenerator biota, uint profileId)
         {
             Generator = generator;
             Biota = biota;
+            Id = profileId;
         }
 
         /// <summary>
@@ -481,10 +489,10 @@ namespace ACE.Server.Entity
                 adjWhenCreate = RegenerationType.PickUp;
 
             if (eventType != adjEventType)
-                log.Warn($"{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile.NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjEventType.ToString()} as RegenerationType instead");
+                log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjEventType.ToString()} as RegenerationType instead");
 
             if (whenCreate != adjWhenCreate)
-                log.Warn($"{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile.NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjWhenCreate.ToString()} as WhenCreate instead");
+                log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjWhenCreate.ToString()} as WhenCreate instead");
 
             if (adjWhenCreate != adjEventType)
                 return;            
