@@ -603,7 +603,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             if (child == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child instance 0x{link.ChildGuid}", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child instance 0x{link.ChildGuid:X8}", ChatMessageType.Broadcast));
                 return 0;
             }
 
@@ -621,7 +621,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             if (child == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child instance 0x{link.ChildGuid}", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child instance 0x{link.ChildGuid:X8}", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -636,7 +636,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Removed child {wo.WeenieClassId} - {wo.Name} (0x{wo.Guid}) from landblock instances", ChatMessageType.Broadcast));
             }
             else
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child object for 0x{link.ChildGuid}", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child object for 0x{link.ChildGuid:X8}", ChatMessageType.Broadcast));
 
             foreach (var subLink in child.LandblockInstanceLink)
                 RemoveChild(session, subLink, instances);
