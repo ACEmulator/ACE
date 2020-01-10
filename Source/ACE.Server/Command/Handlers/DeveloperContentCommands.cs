@@ -556,7 +556,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 // get total numChilds iteratively
                 numChilds = 0;
                 foreach (var link in instance.LandblockInstanceLink)
-                    numChilds = GetNumChilds(session, link, instances);
+                    numChilds += GetNumChilds(session, link, instances);
 
                 // require confirmation for parent objects
                 var msg = $"Are you sure you want to delete this parent object, and {numChilds} child object{(numChilds != 1 ? "s" : "")}?";
