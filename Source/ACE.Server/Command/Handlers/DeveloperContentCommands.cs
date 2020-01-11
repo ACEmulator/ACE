@@ -307,6 +307,10 @@ namespace ACE.Server.Command.Handlers.Processors
 
             uint? parentGuid = null;
 
+            var landblock = session.Player.CurrentLandblock.Id.Landblock;
+
+            var firstStaticGuid = 0x70000000 | (uint)landblock << 12;
+
             if (parameters.Length > 1)
             {
                 var allParams = string.Join(" ", parameters);
@@ -328,6 +332,9 @@ namespace ACE.Server.Command.Handlers.Processors
                     }
 
                     parentGuid = _parentGuid;
+
+                    if (parentGuid <= 0xFFF)
+                        parentGuid = firstStaticGuid | parentGuid;
                 }
 
                 else if (parameters[1].StartsWith("-c", StringComparison.OrdinalIgnoreCase))
@@ -355,8 +362,6 @@ namespace ACE.Server.Command.Handlers.Processors
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find weenie {param}", ChatMessageType.Broadcast));
                 return;
             }
-
-            var landblock = session.Player.CurrentLandblock.Id.Landblock;
 
             // clear any cached instances for this landblock
             DatabaseManager.World.ClearCachedInstancesByLandblock(landblock);
@@ -393,6 +398,9 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 if (uint.TryParse(parameters[1].Replace("0x", ""), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var startGuid))
                 {
+                    if (startGuid <= 0xFFF)
+                        startGuid = firstStaticGuid | startGuid;
+
                     var existing = instances.FirstOrDefault(i => i.Guid == startGuid);
 
                     if (existing != null)
@@ -402,6 +410,14 @@ namespace ACE.Server.Command.Handlers.Processors
                     }
                     nextStaticGuid = startGuid;
                 }
+            }
+
+            var maxStaticGuid = firstStaticGuid | 0xFFF;
+
+            if (nextStaticGuid >= maxStaticGuid)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Landblock {landblock:X4} has reached the maximum # of static guids", ChatMessageType.Broadcast));
+                return;
             }
 
             // create and spawn object
