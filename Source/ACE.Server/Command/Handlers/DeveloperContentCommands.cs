@@ -393,6 +393,8 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var nextStaticGuid = GetNextStaticGuid(landblock, instances);
 
+            var maxStaticGuid = firstStaticGuid | 0xFFF;
+
             // manually specify a start guid?
             if (parameters.Length == 2)
             {
@@ -400,6 +402,12 @@ namespace ACE.Server.Command.Handlers.Processors
                 {
                     if (startGuid <= 0xFFF)
                         startGuid = firstStaticGuid | startGuid;
+
+                    if (startGuid < firstStaticGuid || startGuid > maxStaticGuid)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Landblock instance guid {startGuid:X8} must be between {firstStaticGuid:X8} and {maxStaticGuid:X8}", ChatMessageType.Broadcast));
+                        return;
+                    }
 
                     var existing = instances.FirstOrDefault(i => i.Guid == startGuid);
 
@@ -412,7 +420,6 @@ namespace ACE.Server.Command.Handlers.Processors
                 }
             }
 
-            var maxStaticGuid = firstStaticGuid | 0xFFF;
 
             if (nextStaticGuid >= maxStaticGuid)
             {
