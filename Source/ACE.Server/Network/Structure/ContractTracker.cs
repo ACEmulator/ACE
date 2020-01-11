@@ -70,10 +70,7 @@ namespace ACE.Server.Network.Structure
                 {
                     TimeWhenDone = player.QuestManager.GetNextSolveTime(Contract.QuestflagTimer).TotalSeconds;
 
-                    if (TimeWhenDone > 0)
-                        Stage = ContractStage.InProgress;
-                    //else
-                    //    Stage = ContractStage.DoneOrPendingRepeat;
+                    Stage = ContractStage.InProgress;
                 }
             }
 
