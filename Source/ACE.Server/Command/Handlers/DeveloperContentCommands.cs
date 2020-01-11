@@ -388,6 +388,22 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var nextStaticGuid = GetNextStaticGuid(landblock, instances);
 
+            // manually specify a start guid?
+            if (parameters.Length == 2)
+            {
+                if (uint.TryParse(parameters[1].Replace("0x", ""), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var startGuid))
+                {
+                    var existing = instances.FirstOrDefault(i => i.Guid == startGuid);
+
+                    if (existing != null)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Landblock instance guid {startGuid:X8} already exists", ChatMessageType.Broadcast));
+                        return;
+                    }
+                    nextStaticGuid = startGuid;
+                }
+            }
+
             // create and spawn object
             var wo = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(nextStaticGuid));
 
