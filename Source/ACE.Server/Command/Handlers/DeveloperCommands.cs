@@ -183,44 +183,6 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, NetworkStatistics.Summary(), ChatMessageType.Broadcast);
         }
 
-        [CommandHandler("trash_c2s", AccessLevel.Developer, CommandHandlerFlag.None, "Trash (corrupt) the next C2S packet that arrives.")]
-        public static void HandleTrashNextPacketC2S(Session session, params string[] parameters)
-        {
-            CommandHandlerHelper.WriteOutputInfo(session, "The next C2S packet will be synthetically corrupted.", ChatMessageType.Broadcast);
-            NetworkSyntheticTesting.TrashNextPacketC2S = true;
-        }
-
-        [CommandHandler("junk_c2s", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky C2S connection of a 10% payload corruption rate.")]
-        public static void HandleJunkC2S(Session session, params string[] parameters)
-        {
-            NetworkSyntheticTesting.JunkyConnectionC2S = !NetworkSyntheticTesting.JunkyConnectionC2S;
-            var endis = (NetworkSyntheticTesting.JunkyConnectionC2S) ? "enabled" : "disabled";
-            CommandHandlerHelper.WriteOutputInfo(session, $"Junky C2S connection {endis}.", ChatMessageType.Broadcast);
-        }
-
-        [CommandHandler("trash_s2c", AccessLevel.Developer, CommandHandlerFlag.None, "Trash (corrupt) the next S2C packet that is sent.")]
-        public static void HandleTrashNextPacketS2C(Session session, params string[] parameters)
-        {
-            CommandHandlerHelper.WriteOutputInfo(session, "The next S2C packet will be synthetically corrupted.", ChatMessageType.Broadcast);
-            NetworkSyntheticTesting.TrashNextPacketS2C = true;
-        }
-
-        [CommandHandler("junk_s2c", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky S2C connection of a 10% payload corruption rate.")]
-        public static void HandleJunkS2C(Session session, params string[] parameters)
-        {
-            NetworkSyntheticTesting.JunkyConnectionS2C = !NetworkSyntheticTesting.JunkyConnectionS2C;
-            var endis = (NetworkSyntheticTesting.JunkyConnectionS2C) ? "enabled" : "disabled";
-            CommandHandlerHelper.WriteOutputInfo(session, $"Junky S2C connection {endis}.", ChatMessageType.Broadcast);
-        }
-
-
-        [CommandHandler("junk", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky S2C and C2S connections of a 10% payload corruption rate.")]
-        public static void HandleJunk(Session session, params string[] parameters)
-        {
-            HandleJunkC2S(session, parameters);
-            HandleJunkS2C(session, parameters);
-        }
-
         /// <summary>
         /// List all clothing bases which are compatible with setup
         /// </summary>
