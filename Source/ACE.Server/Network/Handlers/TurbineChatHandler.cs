@@ -16,7 +16,7 @@ namespace ACE.Server.Network.Handlers
         public static void TurbineChatReceived(ClientMessage clientMessage, Session session)
         {
             clientMessage.Payload.ReadUInt32(); // Bytes to follow
-            var turbineChatType = (TurbineChatType)clientMessage.Payload.ReadUInt32();
+            var chatBlobType = (ChatNetworkBlobType)clientMessage.Payload.ReadUInt32();
             clientMessage.Payload.ReadUInt32(); // Always 2
             clientMessage.Payload.ReadUInt32(); // Always 1
             clientMessage.Payload.ReadUInt32(); // Always 0
@@ -25,21 +25,32 @@ namespace ACE.Server.Network.Handlers
             clientMessage.Payload.ReadUInt32(); // Always 0
             clientMessage.Payload.ReadUInt32(); // Bytes to follow
 
-            if (turbineChatType == TurbineChatType.OutboundMessage)
+            if (session.Player.IsGagged)
+            {
+                session.Player.SendGagError();
+                return;
+            }
+
+            if (chatBlobType == ChatNetworkBlobType.NETBLOB_REQUEST_BINARY)
             {
                 clientMessage.Payload.ReadUInt32(); // 0x01 - 0x71 (maybe higher), typically though 0x01 - 0x0F
                 clientMessage.Payload.ReadUInt32(); // Always 2
                 clientMessage.Payload.ReadUInt32(); // Always 2
                 var channelID = clientMessage.Payload.ReadUInt32();
 
-                var messageLen = clientMessage.Payload.ReadByte();
+                int messageLen = clientMessage.Payload.ReadByte();
+                if ((messageLen & 0x80) > 0) // PackedByte
+                {
+                    byte lowbyte = clientMessage.Payload.ReadByte();
+                    messageLen = ((messageLen & 0x7F) << 8) | lowbyte;
+                }
                 var messageBytes = clientMessage.Payload.ReadBytes(messageLen * 2);
                 var message = Encoding.Unicode.GetString(messageBytes);
 
                 clientMessage.Payload.ReadUInt32(); // Always 0x0C
                 var senderID = clientMessage.Payload.ReadUInt32();
                 clientMessage.Payload.ReadUInt32(); // Always 0
-                clientMessage.Payload.ReadUInt32(); // Always 1 or 2
+                var chatType = (ChatType)clientMessage.Payload.ReadUInt32();
 
                 if (channelID == TurbineChatChannel.Society)
                 {
@@ -47,7 +58,7 @@ namespace ACE.Server.Network.Handlers
                     return;
                 }
 
-                var gameMessageTurbineChat = new GameMessageTurbineChat(TurbineChatType.InboundMessage, channelID, session.Player.Name, message, senderID);
+                var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, channelID, session.Player.Name, message, senderID, chatType);
 
                 var allegiance = AllegianceManager.FindAllegiance(channelID);
                 if (allegiance != null)
@@ -64,7 +75,7 @@ namespace ACE.Server.Network.Handlers
                             continue;
 
                         // is this member booted / gagged?
-                        if (allegiance.IsFiltered(member) || online.Squelches.Contains(session.Player)) continue;
+                        if (allegiance.IsFiltered(member) || online.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance)) continue;
 
                         // does this player have allegiance chat filtered?
                         if (!online.GetCharacterOption(CharacterOption.ListenToAllegianceChat)) continue;
@@ -84,7 +95,7 @@ namespace ACE.Server.Network.Handlers
                             channelID == TurbineChatChannel.Society && !recipient.GetCharacterOption(CharacterOption.ListenToSocietyChat))
                             continue;
 
-                        if (recipient.Squelches.Contains(session.Player))
+                        if (recipient.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.AllChannels))
                             continue;
 
                         recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
@@ -92,7 +103,7 @@ namespace ACE.Server.Network.Handlers
                 }
             }
             else
-                Console.WriteLine($"Unhandled TurbineChatHandler TurbineChatType: 0x{(uint)turbineChatType:X4}");
+                Console.WriteLine($"Unhandled TurbineChatHandler ChatNetworkBlobType: 0x{(uint)chatBlobType:X4}");
         }
     }
 }

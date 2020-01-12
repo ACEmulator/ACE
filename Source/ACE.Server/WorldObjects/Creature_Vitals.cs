@@ -18,21 +18,28 @@ namespace ACE.Server.WorldObjects
 
         public virtual void SetMaxVitals()
         {
+            var missingHealth = Health.Missing;
+
             Health.Current = Health.MaxValue;
             Stamina.Current = Stamina.MaxValue;
             Mana.Current = Mana.MaxValue;
+
+            DamageHistory.OnHeal(missingHealth);
         }
 
-        public uint GetCurrentCreatureVital(PropertyAttribute2nd vital)
+        public CreatureVital GetCreatureVital(PropertyAttribute2nd vital)
         {
             switch (vital)
             {
-                case PropertyAttribute2nd.Mana:
-                    return Mana.Current;
+                case PropertyAttribute2nd.Health:
+                    return Health;
                 case PropertyAttribute2nd.Stamina:
-                    return Stamina.Current;
+                    return Stamina;
+                case PropertyAttribute2nd.Mana:
+                    return Mana;
                 default:
-                    return Health.Current;
+                    log.Error($"{Name}.GetCreatureVital({vital}): unexpected vital");
+                    return null;
             }
         }
 
@@ -71,38 +78,43 @@ namespace ACE.Server.WorldObjects
         /// Called every ~5 secs to regenerate vitals
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void VitalHeartBeat()
+        public virtual bool VitalHeartBeat()
         {
             if (IsDead)
-                return;
+                return false;
 
-            VitalHeartBeat(Health);
+            var vitalUpdate = false;
 
-            VitalHeartBeat(Stamina);
+            vitalUpdate |= VitalHeartBeat(Health);
 
-            VitalHeartBeat(Mana);
+            vitalUpdate |= VitalHeartBeat(Stamina);
+
+            vitalUpdate |= VitalHeartBeat(Mana);
+
+            return vitalUpdate;
         }
 
         /// <summary>
         /// Updates a particular vital according to regeneration rate
         /// </summary>
         /// <param name="vital">The vital stat to update (health/stamina/mana)</param>
-        public void VitalHeartBeat(CreatureVital vital)
+        /// <returns>TRUE if vital has changed</returns>
+        public bool VitalHeartBeat(CreatureVital vital)
         {
             // Current and MaxValue are properties and include overhead in getting their values. We cache them so we only hit the overhead once.
             var vitalCurrent = vital.Current;
             var vitalMax = vital.MaxValue;
 
             if (vitalCurrent == vitalMax)
-                return;
+                return false;
 
             if (vitalCurrent > vitalMax)
             {
                 UpdateVital(vital, vitalMax);
-                return;
+                return true;
             }
 
-            if (vital.RegenRate == 0.0) return;
+            if (vital.RegenRate == 0.0) return false;
 
             // take attributes into consideration (strength, endurance)
             var attributeMod = GetAttributeMod(vital);
@@ -133,8 +145,11 @@ namespace ACE.Server.WorldObjects
                 UpdateVitalDelta(vital, intTick);
                 if (vital.Vital == PropertyAttribute2nd.MaxHealth)
                     DamageHistory.OnHeal((uint)intTick);
+
+                return true;
             }
             //Console.WriteLine($"VitalTick({vital.Vital.ToSentence()}): attributeMod={attributeMod}, stanceMod={stanceMod}, enchantmentMod={enchantmentMod}, regenRate={vital.RegenRate}, currentTick={currentTick}, totalTick={totalTick}, accumulated={vital.PartialRegen}");
+            return false;
         }
 
         /// <summary>
@@ -182,11 +197,13 @@ namespace ACE.Server.WorldObjects
             // does not apply for mana?
             if (vital.Vital == PropertyAttribute2nd.MaxMana) return 1.0f;
 
+            var forwardCommand = CurrentMovementData.MovementType == MovementType.Invalid && CurrentMovementData.Invalid != null ? CurrentMovementData.Invalid.State.ForwardCommand : MotionCommand.Invalid;
+
             // combat mode / running
-            if (CombatMode != CombatMode.NonCombat || CurrentMotionCommand == MotionCommand.RunForward)
+            if (CombatMode != CombatMode.NonCombat || forwardCommand == MotionCommand.RunForward)
                 return 0.5f;
 
-            switch (CurrentMotionCommand)
+            switch (forwardCommand)
             {
                 // TODO: verify multipliers
                 default:

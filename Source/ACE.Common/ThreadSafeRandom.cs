@@ -1,23 +1,23 @@
+using System;
 using System.Text;
+using System.Threading;
 
-namespace ACE
+namespace ACE.Common
 {
     // important class, ensure unit tests pass for this
+    // todo: implement exactly the way AC handles it.. which we'll never know unless we get original source code
     public static class ThreadSafeRandom
     {
-        private static readonly object randomMutex = new object();
-        private static readonly System.Random random = new System.Random();
+        static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
+
         /// <summary>
-        /// Returns a random number between min and max
+        /// Returns a random floating-point number between min and max, inclusive
         /// </summary>
+        /// <param name="min">The minimum possible value to return</param>
+        /// <param name="max">The maximum possible value to return</param>
         public static float Next(float min, float max)
         {
-            // todo: implement exactly the way AC handles it
-            // inclusive/exclusive?
-            lock (randomMutex)
-            {
-                return (float)(random.NextDouble() * (max - min) + min);
-            }
+            return (float)(random.Value.NextDouble() * (max - min) + min);
         }
 
         /// <summary>
@@ -27,29 +27,15 @@ namespace ACE
         /// <param name="max">The maximum possible value to return</param>
         public static int Next(int min, int max)
         {
-            lock (randomMutex)
-            {
-                return random.Next(min, max + 1);
-            }
-        }
-
-        public static uint Next(uint min, uint max)
-        {
-            lock (randomMutex)
-            {
-                return (uint)random.Next((int)min, (int)(max + 1));
-            }
+            return random.Value.Next(min, max + 1);
         }
 
         public static string NextString(string charSelection, int stringLength)
         {
             StringBuilder product = new StringBuilder();
-            lock (randomMutex)
+            for (int i = 0; i < stringLength; i++)
             {
-                for (int i = 0; i < stringLength; i++)
-                {
-                    product.Append(charSelection[random.Next(0, charSelection.Length)]);
-                }
+                product.Append(charSelection[random.Value.Next(0, charSelection.Length)]);
             }
             return product.ToString();
         }

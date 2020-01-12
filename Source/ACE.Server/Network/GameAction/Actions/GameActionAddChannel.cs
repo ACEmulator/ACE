@@ -9,11 +9,19 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var chatChannelID = (Channel)message.Payload.ReadUInt32();
 
-            // Probably need some IsAdvocate and IsSentinel type thing going on here as well. leaving for now
-            if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
+            if (session.AccessLevel == AccessLevel.Player && !session.Player.IsAdvocate)
                 return;
 
-            // TODO: Subscribe to channel (chatChannelID) and save to db. Channel subscriptions are meant to persist between sessions.
+            if (session.Player.ChannelsAllowed.HasValue && session.Player.ChannelsAllowed.Value.HasFlag(chatChannelID))
+            {
+                if (session.Player.ChannelsActive.HasValue)
+                    session.Player.ChannelsActive |= chatChannelID;
+                else
+                    session.Player.ChannelsActive = chatChannelID;
+                session.Network.EnqueueSend(new GameEvent.Events.GameEventWeenieErrorWithString(session, WeenieErrorWithString.YouHaveEnteredThe_Channel, chatChannelID.ToString()));
+            }
+            else
+                return;
         }
     }
 }

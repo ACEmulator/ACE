@@ -17,9 +17,10 @@ namespace ACE.Server.Physics.Animation
         public Dictionary<uint, Dictionary<uint, MotionData>> Links;
         public uint DefaultStyle;
 
-        public static Dictionary<uint, float> WalkSpeed;
-        public static Dictionary<uint, float> RunSpeed;
-        public static Dictionary<uint, float> TurnSpeed;
+        // TODO: use proper ConcurrentDictionary
+        public static Dictionary<uint, float> WalkSpeed { get; set; }
+        public static Dictionary<uint, float> RunSpeed { get; set; }
+        public static Dictionary<uint, float> TurnSpeed { get; set; }
 
         static MotionTable()
         {
@@ -499,7 +500,7 @@ namespace ACE.Server.Physics.Animation
                 return 0.0f;
 
             var speed = GetAnimDist(motionData);
-            RunSpeed.Add(motionTableID, speed);
+            RunSpeed[motionTableID] = speed;
             return speed;
         }
 
@@ -517,7 +518,7 @@ namespace ACE.Server.Physics.Animation
                 return 0.0f;
 
             var speed = Math.Abs(motionData.Omega.Z);
-            TurnSpeed.Add(motionTableID, speed);
+            TurnSpeed[motionTableID] = speed;
             return speed;
         }
 

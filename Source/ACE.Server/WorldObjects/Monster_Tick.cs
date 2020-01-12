@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using ACE.Entity.Enum;
 
@@ -15,19 +16,28 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
-        public virtual void Monster_Tick(double currentUnixTime)
+        public void Monster_Tick(double currentUnixTime)
         {
+            if (IsChessPiece && this is GamePiece gamePiece)
+            {
+                // faster than vtable?
+                gamePiece.Tick(currentUnixTime);
+                return;
+            }
+
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
-            if (!IsAwake || IsDead) return;
+            if (!IsAwake && MonsterState == State.Return)
+                MonsterState = State.Idle;
 
-            IsMonster = true;
+            if (!IsAwake || IsDead) return;
 
             HandleFindTarget();
 
             CheckMissHome();    // tickrate?
 
             var pet = this as CombatPet;
+
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
             {
                 Destroy();
@@ -47,9 +57,9 @@ namespace ACE.Server.WorldObjects
             }
 
             var creatureTarget = AttackTarget as Creature;
-            if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !creatureTarget.IsVisible(this))))
+            if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !IsVisibleTarget(creatureTarget))))
             {
-                Sleep();
+                FindNextTarget();
                 return;
             }
 
@@ -70,17 +80,13 @@ namespace ACE.Server.WorldObjects
 
             // select a new weapon if missile launcher is out of ammo
             var weapon = GetEquippedWeapon();
-            if (weapon != null && weapon.IsAmmoLauncher)
+            /*if (weapon != null && weapon.IsAmmoLauncher)
             {
                 var ammo = GetEquippedAmmo();
                 if (ammo == null)
-                {
-                    TryUnwieldObjectWithBroadcasting(weapon.Guid, out _, out _);
-                    EquipInventoryItems(true);
-                    DoAttackStance();
-                    CurrentAttack = null;
-                }
-            }
+                    SwitchToMeleeAttack();
+            }*/
+
             if (weapon == null && CurrentAttack != null && CurrentAttack == CombatType.Missile)
             {
                 EquipInventoryItems(true);
@@ -139,6 +145,15 @@ namespace ACE.Server.WorldObjects
                     // perform attack
                     if (AttackReady())
                         Attack();
+                }
+                else
+                {
+                    // monster switches to melee combat immediately,
+                    // if target is beyond max range?
+
+                    // should ranged mobs only get CurrentTargets within MaxRange?
+                    //Console.WriteLine($"{Name}.MissileAttack({AttackTarget.Name}): targetDist={targetDist}, MaxRange={MaxRange}, switching to melee");
+                    SwitchToMeleeAttack();
                 }
             }
 

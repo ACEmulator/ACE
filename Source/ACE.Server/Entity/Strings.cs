@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
@@ -511,6 +514,13 @@ namespace ACE.Server.Entity
             {
                 //var damageType = killer.GetDamageType();
                 DeathMessages.TryGetValue(damageType, out var messages);
+
+                if (messages == null)
+                {
+                    Console.WriteLine($"GetDeathMessage({damageType}, {criticalHit}) - unknown damage type");
+                    return General[1];
+                }
+
                 var idx = ThreadSafeRandom.Next(0, messages.Count - 1);
                 return messages[idx];
             }

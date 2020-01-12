@@ -52,6 +52,10 @@ namespace ACE.Server.Entity
         int? Gender { get; }
 
 
+        bool IsDeleted { get; }
+        bool IsPendingDeletion { get; }
+
+
         uint? MonarchId { get; set; }
 
         uint? PatronId { get; set; }
@@ -63,6 +67,8 @@ namespace ACE.Server.Entity
         int? AllegianceRank { get; set; }
 
         int? AllegianceOfficerRank { get; set; }
+
+        bool ExistedBeforeAllegianceXpChanges { get; set; }
 
         uint? HouseId { get; set; }
 
@@ -88,5 +94,7 @@ namespace ACE.Server.Entity
         /// lock-step with other players
         /// </summary>
         void SaveBiotaToDatabase(bool enqueueSave = true);
+
+        void UpdateProperty(PropertyInstanceId prop, uint? value, bool broadcast = false);
     }
 }

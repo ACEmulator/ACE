@@ -59,11 +59,11 @@ namespace ACE.Server.Network.Structure
             foreach (var item in slumlord.Inventory.Values)
             {
                 var wcid = item.WeenieClassId;
-                var value = (uint)(item.StackSize ?? 1);
+                var value = item.StackSize ?? 1;
                 if (item.WeenieClassName.StartsWith("tradenote"))
                 {
                     wcid = 273;
-                    value = (uint)item.Value;
+                    value = item.Value.Value;
                 }
                 var rentItem = Rent.FirstOrDefault(i => i.WeenieID == wcid);
                 if (rentItem == null)

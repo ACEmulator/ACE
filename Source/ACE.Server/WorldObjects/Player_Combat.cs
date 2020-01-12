@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+
+using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -36,6 +39,25 @@ namespace ACE.Server.WorldObjects
 
         public DebugDamageType DebugDamage;
 
+        public ObjectGuid DebugDamageTarget;
+
+        public int AttackSequence;
+        public bool Attacking;
+
+        public DateTime NextRefillTime;
+
+        public double LastPkAttackTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastPkAttackTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.LastPkAttackTimestamp); else SetProperty(PropertyFloat.LastPkAttackTimestamp, value); }
+        }
+
+        public double PkTimestamp
+        {
+            get => GetProperty(PropertyFloat.PkTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.PkTimestamp); else SetProperty(PropertyFloat.PkTimestamp, value); }
+        }
+
         /// <summary>
         /// Returns the current attack skill for the player
         /// </summary>
@@ -57,6 +79,9 @@ namespace ACE.Server.WorldObjects
             // missile weapon
             if (weapon != null && weapon.CurrentWieldedLocation == EquipMask.MissileWeapon)
                 return GetCreatureSkill(Skill.MissileWeapons).Skill;
+
+            if (weapon != null && weapon.WeaponSkill == Skill.TwoHandedCombat)
+                return Skill.TwoHandedCombat;
 
             // hack for converting pre-MoA skills
             var maxMelee = GetCreatureSkill(GetHighestMeleeSkill());
@@ -128,30 +153,29 @@ namespace ACE.Server.WorldObjects
                 OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
 
                 if (targetPlayer != null)
-                    targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical);
+                    targetPlayer.TakeDamage(this, damageEvent);
                 else
                     target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);
             }
             else
             {
-                if (targetPlayer != null && targetPlayer.UnderLifestoneProtection)
+                if (damageEvent.LifestoneProtection)
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"The Lifestone's magic protects {target.Name} from the attack!", ChatMessageType.Magic));
-                else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
+
+                else if (!SquelchManager.Squelches.Contains(target, ChatMessageType.CombatSelf))
+                    Session.Network.EnqueueSend(new GameEventEvasionAttackerNotification(Session, target.Name));
+
+                if (targetPlayer != null)
+                    targetPlayer.OnEvade(this, damageEvent.CombatType);
             }
 
             if (damageEvent.HasDamage && target.IsAlive)
             {
-                var attackConditions = new AttackConditions();
-                if (damageEvent.RecklessnessMod > 1.0f)
-                    attackConditions |= AttackConditions.Recklessness;
-                if (damageEvent.SneakAttackMod > 1.0f)
-                    attackConditions |= AttackConditions.SneakAttack;
-
                 // notify attacker
                 var intDamage = (uint)Math.Round(damageEvent.Damage);
 
-                Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, attackConditions));
+                if (!SquelchManager.Squelches.Contains(this, ChatMessageType.CombatSelf))
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, damageEvent.AttackConditions));
 
                 // splatter effects
                 if (targetPlayer == null)
@@ -230,18 +254,6 @@ namespace ACE.Server.WorldObjects
             return effectiveDefense;
         }
 
-        public float GetEvadeChance(WorldObject target)
-        {
-            // get player attack skill
-            var attackSkill = GetEffectiveAttackSkill();
-
-            // get target defense skill
-            var difficulty = GetTargetEffectiveDefenseSkill(target);
-
-            var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
-            return (float)evadeChance;
-        }
-
         /// <summary>
         /// Called when player successfully avoids an attack
         /// </summary>
@@ -278,7 +290,8 @@ namespace ACE.Server.WorldObjects
             else
                 UpdateVitalDelta(Stamina, -1);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {attacker.Name}!", ChatMessageType.CombatEnemy));
+            if (!SquelchManager.Squelches.Contains(attacker, ChatMessageType.CombatEnemy))
+                Session.Network.EnqueueSend(new GameEventEvasionDefenderNotification(Session, attacker.Name));
 
             var creature = attacker as Creature;
             if (creature == null) return;
@@ -288,191 +301,30 @@ namespace ACE.Server.WorldObjects
             Proficiency.OnSuccessUse(this, defenseSkill, difficulty);
         }
 
-        public override Range GetBaseDamage()
+        public BaseDamageMod GetBaseDamageMod(WorldObject damageSource)
         {
-            var attackType = GetCombatType();
-            var damageSource = attackType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
-
-            return damageSource != null ? damageSource.GetDamageMod(this) : new Range(1, 5);
-        }
-
-        /// <summary>
-        /// Calculates the creature damage for a physical monster attack
-        /// </summary>
-        public float? CalculateDamagePVP(WorldObject target, WorldObject damageSource, DamageType damageType, ref bool criticalHit, ref bool sneakAttack, ref BodyPart bodyPart)
-        {
-            // verify target player killer
-            var targetCreature = target as Creature;
-            var targetPlayer = target as Player;
-            if (targetPlayer == null)
-                return null;
-
-            // check lifestone protection
-            if (targetPlayer.UnderLifestoneProtection)
+            if (damageSource == this)
             {
-                targetPlayer.HandleLifestoneProtection();
-                return null;
-            }
+                if (AttackType == AttackType.Punch)
+                    damageSource = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    damageSource = FootArmor;
 
-            // evasion chance
-            var evadeChance = GetEvadeChance(target);
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < evadeChance)
-                return null;
-
-            // get base damage
-            var weapon = GetEquippedWeapon();
-            var baseDamageRange = GetBaseDamage();
-            var baseDamage = ThreadSafeRandom.Next(baseDamageRange.Min, baseDamageRange.Max);
-
-            // get damage mods
-            var attackType = GetCombatType();
-            var attributeMod = GetAttributeMod(weapon);
-            var powerMod = GetPowerMod(weapon);
-            var recklessnessMod = GetRecklessnessMod(this, targetPlayer);
-            var sneakAttackMod = GetSneakAttackMod(target);
-            sneakAttack = sneakAttackMod > 1.0f;
-
-            // heritage damge mod
-            var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
-
-            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
-            //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
-
-            var damage = baseDamage * attributeMod * powerMod * damageRatingMod;
-
-            // critical hit
-            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
-            var critical = GetWeaponCritChanceModifier(this, attackSkill, targetCreature);
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
-            {
-                if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
+                // no weapon, no hand or foot armor
+                if (damageSource == null)
                 {
-                    var protChance = targetPlayer.AugmentationCriticalDefense * 0.05f;
-                    if (ThreadSafeRandom.Next(0.0f, 1.0f) > protChance)
-                        criticalHit = true;
+                    var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
+                    return new BaseDamageMod(baseDamage);
                 }
                 else
-                    criticalHit = true; 
+                    return damageSource.GetDamageMod(this, damageSource);
             }
-
-            if (criticalHit)
-            {
-                // not effective for criticals: recklessness
-                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
-                damage = baseDamageRange.Max * attributeMod * powerMod * damageRatingMod * (1.0f + GetWeaponCritDamageMod(this, attackSkill, targetCreature));
-            }
-
-            // get armor rending mod here?
-            var armorRendingMod = 1.0f;
-            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
-                armorRendingMod = GetArmorRendingMod(attackSkill);
-
-            // select random body part @ current attack height
-            bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
-
-            // get armor piece
-            var armor = GetArmorLayers(bodyPart);
-
-            // get armor modifiers
-            var armorMod = GetArmorMod(damageType, armor, damageSource, armorRendingMod);
-
-            // get resistance modifiers (protect/vuln)
-            var resistanceMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
-
-            // weapon resistance mod?
-            var attackTarget = AttackTarget as Creature;
-            var damageResistRatingMod = GetNegativeRatingMod(attackTarget.GetDamageResistRating());
-
-            // get shield modifier
-            var shieldMod = attackTarget.GetShieldMod(this, damageType);
-
-            var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
-            var elementalDamageMod = GetMissileElementalDamageModifier(this, target as Creature, damageType);
-
-            // scale damage by modifiers
-            var outDamage = (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod * resistanceMod * damageResistRatingMod;
-
-            return outDamage;
-        }
-
-        public float? CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit, ref bool sneakAttack)
-        {
-            var creature = target as Creature;
-
-            // evasion chance
-            var evadeChance = GetEvadeChance(target);
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < evadeChance)
-                return null;
-
-            // get weapon base damage
-            var weapon = GetEquippedWeapon();
-            var baseDamageRange = GetBaseDamage();
-            var baseDamage = ThreadSafeRandom.Next(baseDamageRange.Min, baseDamageRange.Max);
-
-            // get damage mods
-            var attackType = GetCombatType();
-            var attributeMod = GetAttributeMod(weapon);
-            var powerAccuracyMod = GetPowerMod(weapon);
-            var recklessnessMod = GetRecklessnessMod(this, creature);
-            var sneakAttackMod = GetSneakAttackMod(target);
-            sneakAttack = sneakAttackMod > 1.0f;
-
-            // heritage damge mod
-            var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
-
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetPositiveRatingMod(GetDamageRating()));
-            //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
-
-            var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
-
-            // critical hit
-            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
-            var critical = GetWeaponCritChanceModifier(this, attackSkill, creature);
-            if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
-            {
-                var criticalDamageMod = 1.0f + GetWeaponCritDamageMod(this, attackSkill, creature);
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * criticalDamageMod;
-                criticalHit = true;
-            }
-
-            // get random body part @ attack height
-            var bodyPart = BodyParts.GetBodyPart(target, AttackHeight.Value);
-            if (bodyPart == null) return null;
-
-            var creaturePart = new Creature_BodyPart(creature, bodyPart, damageSource != null ? damageSource.IgnoreMagicArmor : false, damageSource != null ? damageSource.IgnoreMagicResist : false);
-
-            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
-                creaturePart.WeaponArmorMod = GetArmorRendingMod(attackSkill);
-
-            // get target armor
-            var armor = creaturePart.BaseArmorMod;
-
-            // get target resistance
-            DamageType damageType;
-            if (damageSource?.ItemType == ItemType.MissileWeapon)
-                damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
-            else
-                damageType = GetDamageType();
-
-            creaturePart.WeaponResistanceMod = GetWeaponResistanceModifier(this, attackSkill, damageType);
-            var resistance = GetResistance(creaturePart, damageType);
-
-            // ratings
-            var damageResistRatingMod = GetNegativeRatingMod(creature.GetDamageResistRating());
-            //Console.WriteLine("Damage resistance rating: " + NegativeModToRating(damageResistRatingMod));
-
-            // scale damage for armor and shield
-            var armorMod = SkillFormula.CalcArmorMod(resistance);
-            var shieldMod = creature.GetShieldMod(this, damageType);
-
-            var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
-            var elementalDamageMod = GetMissileElementalDamageModifier(this, target as Creature, damageType);
-            return (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod * damageResistRatingMod;
+            return damageSource.GetDamageMod(this);
         }
 
         public override float GetPowerMod(WorldObject weapon)
         {
-            if (weapon == null || !weapon.IsBow)
+            if (weapon == null || !weapon.IsRanged)
                 return PowerLevel + 0.5f;
             else
                 return 1.0f;
@@ -480,7 +332,7 @@ namespace ACE.Server.WorldObjects
 
         public override float GetAccuracyMod(WorldObject weapon)
         {
-            if (weapon != null && weapon.IsBow)
+            if (weapon != null && weapon.IsRanged)
                 return AccuracyLevel + 0.6f;
             else
                 return 1.0f;
@@ -489,90 +341,6 @@ namespace ACE.Server.WorldObjects
         public float GetPowerAccuracyBar()
         {
             return GetCombatType() == CombatType.Missile ? AccuracyLevel : PowerLevel;
-        }
-
-        public double GetLifeResistance(DamageType damageType)
-        {
-            double resistance = 1.0;
-
-            switch (damageType)
-            {
-                case DamageType.Slash:
-                    resistance = ResistSlashMod;
-                    break;
-
-                case DamageType.Pierce:
-                    resistance = ResistPierceMod;
-                    break;
-
-                case DamageType.Bludgeon:
-                    resistance = ResistBludgeonMod;
-                    break;
-
-                case DamageType.Fire:
-                    resistance = ResistFireMod;
-                    break;
-
-                case DamageType.Cold:
-                    resistance = ResistColdMod;
-                    break;
-
-                case DamageType.Acid:
-                    resistance = ResistAcidMod;
-                    break;
-
-                case DamageType.Electric:
-                    resistance = ResistElectricMod;
-                    break;
-
-                case DamageType.Nether:
-                    resistance = ResistNetherMod;
-                    break;
-            }
-
-            return resistance;
-        }
-
-        public float GetResistance(Creature_BodyPart part, DamageType damageType)
-        {
-            var resistance = 1.0f;
-
-            switch (damageType)
-            {
-                case DamageType.Slash:
-                    resistance = part.ArmorVsSlash;
-                    break;
-
-                case DamageType.Pierce:
-                    resistance = part.ArmorVsPierce;
-                    break;
-
-                case DamageType.Bludgeon:
-                    resistance = part.ArmorVsBludgeon;
-                    break;
-
-                case DamageType.Fire:
-                    resistance = part.ArmorVsFire;
-                    break;
-
-                case DamageType.Cold:
-                    resistance = part.ArmorVsCold;
-                    break;
-
-                case DamageType.Acid:
-                    resistance = part.ArmorVsAcid;
-                    break;
-
-                case DamageType.Electric:
-                    resistance = part.ArmorVsElectric;
-                    break;
-
-                case DamageType.Nether:
-                    resistance = part.ArmorVsNether;
-                    break;
-            }
-
-            return resistance;
         }
 
         public Sound GetHitSound(WorldObject source, BodyPart bodyPart)
@@ -593,7 +361,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void TakeDamageOverTime(float _amount, DamageType damageType)
         {
-            if (Invincible ?? false || IsDead) return;
+            if (Invincible || IsDead) return;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
@@ -611,27 +379,30 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
-            if (Fellowship != null)
-                Fellowship.OnVitalUpdate(this);
+            //if (Fellowship != null)
+                //Fellowship.OnVitalUpdate(this);
 
             // send damage text message
-            if (PropertyManager.GetBool("show_dot_messages").Item)
-            {
+            //if (PropertyManager.GetBool("show_dot_messages").Item)
+            //{
                 var nether = damageType == DamageType.Nether ? "nether " : "";
-                var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
-                Session.Network.EnqueueSend(text);
-            }
+                var chatMessageType = damageType == DamageType.Nether ? ChatMessageType.Magic : ChatMessageType.Combat;
+                var text = $"You receive {amount} points of periodic {nether}damage.";
+                SendMessage(text, chatMessageType);
+            //}
 
             // splatter effects
             //var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
-            var splatter = new GameMessageScript(Guid, damageType == DamageType.Nether ? ACE.Entity.Enum.PlayScript.HealthDownVoid : ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime);
+            var splatter = new GameMessageScript(Guid, damageType == DamageType.Nether ? PlayScript.HealthDownVoid : PlayScript.DirtyFightingDamageOverTime);
             EnqueueBroadcast(splatter);
 
             if (Health.Current <= 0)
             {
                 // since damage over time is possibly combined from multiple sources,
                 // sending a message to the last damager here could be tricky..
-                OnDeath(null, damageType, false);
+
+                // TODO: get last damager from dot stack instead? 
+                OnDeath(DamageHistory.LastDamager, damageType, false);
                 Die();
 
                 return;
@@ -641,18 +412,23 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
         }
 
+        public int TakeDamage(WorldObject source, DamageEvent damageEvent)
+        {
+            return TakeDamage(source, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical, damageEvent.AttackConditions);
+        }
+
         /// <summary>
         /// Applies damages to a player from a physical damage source
         /// </summary>
-        public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
+        public int TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false, AttackConditions attackConditions = AttackConditions.None)
         {
-            if (Invincible ?? false || IsDead) return;
+            if (Invincible || IsDead) return 0;
 
             // check lifestone protection
             if (UnderLifestoneProtection)
             {
                 HandleLifestoneProtection();
-                return;
+                return 0;
             }
 
             var amount = (uint)Math.Round(_amount);
@@ -665,25 +441,28 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
-            if (Fellowship != null)
-                Fellowship.OnVitalUpdate(this);
+            //if (Fellowship != null)
+                //Fellowship.OnVitalUpdate(this);
 
-            if (Health.Current == 0)
+            if (Health.Current <= 0)
             {
-                OnDeath(source, damageType, crit);
+                OnDeath(new DamageHistoryInfo(source), damageType, crit);
                 Die();
-                return;
+                return (int)damageTaken;
             }
 
-            var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
+            if (!BodyParts.Indices.TryGetValue(bodyPart, out var iDamageLocation))
+            {
+                log.Error($"{Name}.TakeDamage({source.Name}, {damageType}, {amount}, {bodyPart}, {crit}): avoided crash for bad damage location");
+                return 0;
+            }
+            var damageLocation = (DamageLocation)iDamageLocation;
 
             // send network messages
-            var creature = source as Creature;
-            var hotspot = source as Hotspot;
-            if (creature != null)
+            if (source is Creature creature)
             {
-                var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
-                Session.Network.EnqueueSend(text);
+                if (!SquelchManager.Squelches.Contains(source, ChatMessageType.CombatEnemy))
+                    Session.Network.EnqueueSend(new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, attackConditions));
 
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
@@ -692,6 +471,12 @@ namespace ACE.Server.WorldObjects
 
             if (percent >= 0.1f)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
+
+            // if player attacker, update PK timer
+            if (source is Player attacker)
+                UpdatePKTimers(attacker, this);
+
+            return (int)damageTaken;
         }
 
         public string GetArmorType(BodyPart bodyPart)
@@ -705,7 +490,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the total burden of items held in both hands
         /// (main hand and offhand)
         /// </summary>
-        public int GetHandItemBurden()
+        public int GetHeldItemBurden()
         {
             // get main hand item
             var weapon = GetEquippedWeapon();
@@ -753,7 +538,7 @@ namespace ACE.Server.WorldObjects
             // When stamina drops to 0, your melee and missile defenses also drop to 0 and you will be incapable of attacking.
             // In addition, you will suffer a 50% penalty to your weapon skill. This applies to players and creatures.
 
-            var burden = GetHandItemBurden();
+            var burden = GetHeldItemBurden();
 
             var baseCost = StaminaTable.GetStaminaCost(powerAccuracy, burden);
 
@@ -815,91 +600,137 @@ namespace ACE.Server.WorldObjects
             return recklessnessMod;
         }
 
-        public Player GetKiller_PKLite()
+        /// <summary>
+        /// Returns TRUE if this player is PK and died to another player
+        /// </summary>
+        public bool IsPKDeath(DamageHistoryInfo topDamager)
         {
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-                return CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0)) as Player;
-            else
-                return null;
+            return IsPKDeath(topDamager?.Guid.Full);
+        }
+
+        public bool IsPKDeath(uint? killerGuid)
+        {
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PK) && new ObjectGuid(killerGuid ?? 0).IsPlayer() && killerGuid != Guid.Full;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this player is PKLite and died to another player
+        /// </summary>
+        public bool IsPKLiteDeath(DamageHistoryInfo topDamager)
+        {
+            return IsPKLiteDeath(topDamager?.Guid.Full);
+        }
+
+        public bool IsPKLiteDeath(uint? killerGuid)
+        {
+            return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PKLite) && new ObjectGuid(killerGuid ?? 0).IsPlayer() && killerGuid != Guid.Full;
         }
 
         /// <summary>
         /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)
         /// </summary>
-        public void HandleGameActionChangeCombatMode(CombatMode newCombatMode)
+        public void HandleActionChangeCombatMode(CombatMode newCombatMode)
+        {
+            if (DateTime.UtcNow >= NextUseTime)
+                HandleActionChangeCombatMode_Inner(newCombatMode);
+            else
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds((NextUseTime - DateTime.UtcNow).TotalSeconds);
+                actionChain.AddAction(this, () => HandleActionChangeCombatMode_Inner(newCombatMode));
+                actionChain.EnqueueChain();
+            }
+        }
+
+        public void HandleActionChangeCombatMode_Inner(CombatMode newCombatMode)
         {
             var currentCombatStance = GetCombatStance();
+
+            var missileWeapon = GetEquippedMissileWeapon();
+            var caster = GetEquippedWand();
+
+            if (CombatMode == CombatMode.Magic && MagicState.IsCasting && MagicState.CastSpellParams != null)
+            {
+                var parms = MagicState.CastSpellParams;
+                DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
+                SendUseDoneEvent(WeenieError.YourSpellFizzled);
+                MagicState.OnCastDone();
+            }
 
             switch (newCombatMode)
             {
                 case CombatMode.NonCombat:
-                {
-                    switch (currentCombatStance)
                     {
-                        case MotionStance.BowCombat:
-                        case MotionStance.CrossbowCombat:
-                        case MotionStance.AtlatlCombat:
+                        switch (currentCombatStance)
                         {
-                            var equippedAmmo = GetEquippedAmmo();
-                            if (equippedAmmo != null)
-                                ClearChild(equippedAmmo); // We must clear the placement/parent when going back to peace
-                            break;
+                            case MotionStance.BowCombat:
+                            case MotionStance.CrossbowCombat:
+                            case MotionStance.AtlatlCombat:
+                                {
+                                    var equippedAmmo = GetEquippedAmmo();
+                                    if (equippedAmmo != null)
+                                        ClearChild(equippedAmmo); // We must clear the placement/parent when going back to peace
+                                    break;
+                                }
                         }
+                        break;
                     }
-                    break;
-                }
                 case CombatMode.Melee:
+
                     // todo expand checks
+                    if (missileWeapon != null || caster != null)
+                        return;
+
                     break;
 
                 case CombatMode.Missile:
-                {
-                    switch (currentCombatStance)
                     {
-                        case MotionStance.BowCombat:
-                        case MotionStance.CrossbowCombat:
-                        case MotionStance.AtlatlCombat:
-                        {
-                            var equippedAmmo = GetEquippedAmmo();
-                            if (equippedAmmo == null)
-                            {
-                                var animTime = SetCombatMode(newCombatMode);
-                                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+                        if (missileWeapon == null)
+                            return;
 
-                                var actionChain = new ActionChain();
-                                actionChain.AddDelaySeconds(animTime);
-                                actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
-                                actionChain.EnqueueChain();
-                                return;
-                            }
-                            else
-                            {
-                                // We must set the placement/parent when going into combat
-                                equippedAmmo.Placement = ACE.Entity.Enum.Placement.RightHandCombat;
-                                equippedAmmo.ParentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
-                            }
-                            break;
+                        switch (currentCombatStance)
+                        {
+                            case MotionStance.BowCombat:
+                            case MotionStance.CrossbowCombat:
+                            case MotionStance.AtlatlCombat:
+                                {
+                                    var equippedAmmo = GetEquippedAmmo();
+                                    if (equippedAmmo == null)
+                                    {
+                                        var animTime = SetCombatMode(newCombatMode);
+                                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+
+                                        var actionChain = new ActionChain();
+                                        actionChain.AddDelaySeconds(animTime);
+                                        actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
+                                        actionChain.EnqueueChain();
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        // We must set the placement/parent when going into combat
+                                        equippedAmmo.Placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                                        equippedAmmo.ParentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
+                                    }
+                                    break;
+                                }
                         }
+                        break;
                     }
-                    break;
-                }
 
                 case CombatMode.Magic:
+
                     // todo expand checks
+                    if (caster == null)
+                        return;
+
                     break;
 
             }
-
             SetCombatMode(newCombatMode);
-        }
 
-        /// <summary>
-        /// Returns the current attack maneuver for a player
-        /// </summary>
-        public override AttackType GetAttackType(WorldObject weapon, CombatManeuver combatManuever)
-        {
-            // should probably come from combat maneuvers table, even for players
-            return GetWeaponAttackType(weapon);
+            if (RecordCast.Enabled)
+                RecordCast.OnSetCombatMode(newCombatMode);
         }
 
         public override bool CanDamage(Creature target)
@@ -933,7 +764,7 @@ namespace ACE.Server.WorldObjects
         // - These abilities are player-only, creatures with high endurance will not benefit from any of these changes.
         // - Come May, you can type @help endurance for a summary of the April changes to Endurance.
 
-        public override float GetNaturalResistance(DamageType damageType)
+        public override float GetNaturalResistance()
         {
             // base strength and endurance give the player a natural resistance to damage,
             // which caps at 50% (equivalent to level 5 life prots)
@@ -977,5 +808,170 @@ namespace ACE.Server.WorldObjects
             else
                 return "None";
         }
+
+        /// <summary>
+        /// If a player has been involved in a PK battle this recently,
+        /// logging off leaves their character in a frozen state for 20 seconds
+        /// </summary>
+        public static TimeSpan PKLogoffTimer = TimeSpan.FromMinutes(2);
+
+        public void UpdatePKTimer()
+        {
+            //log.Info($"Updating PK timer for {Name}");
+
+            LastPkAttackTimestamp = Time.GetUnixTime();
+        }
+
+        /// <summary>
+        /// Called when a successful attack is landed in PVP
+        /// The timestamp for both PKs are updated
+        /// 
+        /// If a physical attack is evaded, or a magic spell is resisted,
+        /// this function should NOT be called.
+        /// </summary>
+        public static void UpdatePKTimers(Player attacker, Player defender)
+        {
+            if (attacker == defender) return;
+
+            if (attacker.PlayerKillerStatus == PlayerKillerStatus.Free || defender.PlayerKillerStatus == PlayerKillerStatus.Free)
+                return;
+
+            attacker.UpdatePKTimer();
+            defender.UpdatePKTimer();
+        }
+
+        public bool PKTimerActive => IsPKType && Time.GetUnixTime() - LastPkAttackTimestamp < PropertyManager.GetLong("pk_timer").Item;
+
+        public bool PKLogoutActive => IsPKType && Time.GetUnixTime() - LastPkAttackTimestamp < PKLogoffTimer.TotalSeconds;
+
+        public bool IsPKType => PlayerKillerStatus == PlayerKillerStatus.PK || PlayerKillerStatus == PlayerKillerStatus.PKLite;
+
+        public bool IsPK => PlayerKillerStatus == PlayerKillerStatus.PK;
+
+        public bool IsPKL => PlayerKillerStatus == PlayerKillerStatus.PKLite;
+
+        public bool IsNPK => PlayerKillerStatus == PlayerKillerStatus.NPK;
+
+        public bool CheckHouseRestrictions(Player player)
+        {
+            if (Location.Cell == player.Location.Cell)
+                return true;
+
+            // dealing with outdoor cell equivalents at this point, if applicable
+            var cell = (CurrentLandblock?.IsDungeon ?? false) ? Location.Cell : Location.GetOutdoorCell();
+            var playerCell = (player.CurrentLandblock?.IsDungeon ?? false) ? player.Location.Cell : player.Location.GetOutdoorCell();
+
+            if (cell == playerCell)
+                return true;
+
+            HouseCell.HouseCells.TryGetValue(cell, out var houseGuid);
+            HouseCell.HouseCells.TryGetValue(playerCell, out var playerHouseGuid);
+
+            // pass if both of these players aren't in a house cell
+            if (houseGuid == 0 && playerHouseGuid == 0)
+                return true;
+
+            var houses = new HashSet<House>();
+            CheckHouseRestrictions_GetHouse(houseGuid, houses);
+            player.CheckHouseRestrictions_GetHouse(playerHouseGuid, houses);
+
+            foreach (var house in houses)
+            {
+                if (!house.HasPermission(this) || !house.HasPermission(player))
+                    return false;
+            }
+            return true;
+        }
+
+        public void CheckHouseRestrictions_GetHouse(uint houseGuid, HashSet<House> houses)
+        {
+            if (houseGuid == 0)
+                return;
+
+            var house = CurrentLandblock.GetObject(houseGuid) as House;
+            if (house != null)
+            {
+                var rootHouse = house.LinkedHouses.Count > 0 ? house.LinkedHouses[0] : house;
+
+                if (rootHouse.HouseOwner == null || rootHouse.OpenStatus || houses.Contains(rootHouse))
+                    return;
+
+                //Console.WriteLine($"{Name}.CheckHouseRestrictions_GetHouse({houseGuid:X8}): found root house {house.Name} ({house.HouseId})");
+                houses.Add(rootHouse);
+            }
+            else
+                log.Error($"{Name}.CheckHouseRestrictions_GetHouse({houseGuid:X8}): couldn't find house from {CurrentLandblock.Id.Raw:X8}");
+        }
+
+        /// <summary>
+        /// Returns the damage type for the currently equipped weapon / ammo
+        /// </summary>
+        /// <param name="multiple">If true, returns all of the damage types for the weapon</param>
+        public override DamageType GetDamageType(bool multiple = false, CombatType? combatType = null)
+        {
+            // player override
+            if (combatType == null)
+                combatType = GetCombatType();
+
+            var weapon = GetEquippedWeapon();
+            var ammo = GetEquippedAmmo();
+
+            if (weapon == null && combatType == CombatType.Melee)
+            {
+                // handle gauntlets/ boots
+                if (AttackType == AttackType.Punch)
+                    weapon = HandArmor;
+                else if (AttackType == AttackType.Kick)
+                    weapon = FootArmor;
+                else
+                {
+                    log.Warn($"{Name}.GetDamageType(): no weapon, AttackType={AttackType}");
+                    return DamageType.Undef;
+                }
+
+                if (weapon != null && weapon.W_DamageType == DamageType.Undef)
+                    return DamageType.Bludgeon;
+            }
+
+            if (weapon == null)
+                return DamageType.Bludgeon;
+
+            var damageSource = combatType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher ? weapon : ammo;
+
+            var damageType = damageSource.W_DamageType;
+
+            if (damageType == DamageType.Undef)
+            {
+                log.Warn($"{Name}.GetDamageType(): {damageSource} ({damageSource.Guid}, {damageSource.WeenieClassId}): no DamageType");
+                return DamageType.Bludgeon;
+            }
+
+            // return multiple damage types
+            if (multiple || !damageType.IsMultiDamage())
+                return damageType;
+
+            // get single damage type
+            if (damageType == (DamageType.Pierce | DamageType.Slash))
+            {
+                if ((AttackType & AttackType.Punches) != 0)
+                {
+                    if (PowerLevel < ThrustThreshold)
+                        return DamageType.Pierce;
+                    else
+                        return DamageType.Slash;
+                }
+
+                if ((AttackType & AttackType.Thrusts) != 0)
+                    return DamageType.Pierce;
+                else
+                    return DamageType.Slash;
+            }
+
+            return damageType.SelectDamageType();
+        }
+
+        public WorldObject HandArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Hands) > 0);
+
+        public WorldObject FootArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Feet) > 0);
     }
 }

@@ -20,8 +20,8 @@ namespace ACE.DatLoader.Entity
         /// </summary>
         public virtual void Unpack(BinaryReader reader)
         {
-            HookType    = (AnimationHookType)reader.ReadUInt32();
-            Direction   = (AnimationHookDir) reader.ReadInt32();
+            HookType = (AnimationHookType)reader.ReadUInt32();
+            Direction = (AnimationHookDir)reader.ReadInt32();
         }
 
         public static AnimationHook ReadHook(BinaryReader reader)

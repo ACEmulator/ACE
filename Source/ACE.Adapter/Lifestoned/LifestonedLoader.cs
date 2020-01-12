@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Newtonsoft.Json;
 
+using ACE.Adapter.GDLE.Models;
 using ACE.Database.Models.World;
 
 namespace ACE.Adapter.Lifestoned
@@ -79,7 +79,7 @@ namespace ACE.Adapter.Lifestoned
         }
 
 
-        public static bool TryLoadWeenieConverted(string file, out Weenie result)
+        public static bool TryLoadWeenieConverted(string file, out Weenie result, bool correctForEnumShift = false)
         {
             try
             {
@@ -87,7 +87,7 @@ namespace ACE.Adapter.Lifestoned
 
                 var lifestonedModel = JsonConvert.DeserializeObject<global::Lifestoned.DataModel.Gdle.Weenie>(fileText);
 
-                return LifestonedConverter.TryConvert(lifestonedModel, out result);
+                return LifestonedConverter.TryConvert(lifestonedModel, out result, correctForEnumShift);
             }
             catch
             {
@@ -96,7 +96,7 @@ namespace ACE.Adapter.Lifestoned
             }
         }
 
-        public static bool TryLoadWeeniesConverted(string folder, out List<Weenie> results)
+        public static bool TryLoadWeeniesConverted(string folder, out List<Weenie> results, bool correctForEnumShift = false)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace ACE.Adapter.Lifestoned
 
                 foreach (var file in files)
                 {
-                    if (TryLoadWeenieConverted(file, out var result))
+                    if (TryLoadWeenieConverted(file, out var result, correctForEnumShift))
                         results.Add(result);
                 }
 
@@ -119,7 +119,7 @@ namespace ACE.Adapter.Lifestoned
             }
         }
 
-        public static bool TryLoadWeeniesConvertedInParallel(string folder, out List<Weenie> results)
+        public static bool TryLoadWeeniesConvertedInParallel(string folder, out List<Weenie> results, bool correctForEnumShift = false)
         {
             try
             {
@@ -129,7 +129,7 @@ namespace ACE.Adapter.Lifestoned
 
                 Parallel.ForEach(files, file =>
                 {
-                    if (TryLoadWeenieConverted(file, out var result))
+                    if (TryLoadWeenieConverted(file, out var result, correctForEnumShift))
                         weenies.Add(result);
                 });
 
@@ -142,6 +142,32 @@ namespace ACE.Adapter.Lifestoned
                 results = null;
                 return false;
             }
+        }
+
+        public static bool AppendMetadata(string json_filename, global::Lifestoned.DataModel.Gdle.Weenie weenie)
+        {
+            // read existing json weenie
+            var success = TryLoadWeenie(json_filename, out var json_weenie);
+
+            if (!success) return false;
+
+            var metadata = new Metadata(json_weenie);
+
+            if (!metadata.HasInfo) return false;
+
+            weenie.LastModified = DateTime.UtcNow;
+            weenie.ModifiedBy = "ACE.Adapter";
+
+            if (metadata.Changelog != null && metadata.Changelog.Count > 0)
+            {
+                metadata.Changelog.AddRange(weenie.Changelog);
+                weenie.Changelog = metadata.Changelog;
+            }
+
+            weenie.UserChangeSummary = "Weenie exported from ACEmulator world database using ACE.Adapter";
+            weenie.IsDone = metadata.IsDone;
+
+            return true;
         }
     }
 }

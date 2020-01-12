@@ -19,5 +19,17 @@ namespace ACE.Entity.Enum
             }
             return null;
         }
+
+        public static Quadrant ToQuadrant(this AttackHeight attackHeight)
+        {
+            switch (attackHeight)
+            {
+                case AttackHeight.High:   return Quadrant.High;
+                case AttackHeight.Medium: return Quadrant.Medium;
+                case AttackHeight.Low:    return Quadrant.Low;
+                default:
+                    return Quadrant.None;
+            }
+        }
     }
 }

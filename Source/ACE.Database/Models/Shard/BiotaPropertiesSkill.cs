@@ -15,6 +15,6 @@ namespace ACE.Database.Models.Shard
         public uint ResistanceAtLastCheck { get; set; }
         public double LastUsedTime { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

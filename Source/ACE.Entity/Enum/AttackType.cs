@@ -27,6 +27,47 @@ namespace ACE.Entity.Enum
         DoubleStrike        = DoubleSlash | DoubleThrust | OffhandDoubleSlash | OffhandDoubleThrust,
         TripleStrike        = TripleSlash | TripleThrust | OffhandTripleSlash | OffhandTripleThrust,
 
+        Offhand             = OffhandThrust | OffhandSlash | OffhandDoubleSlash | OffhandTripleSlash | OffhandDoubleThrust | OffhandTripleThrust,
+        Thrusts             = Thrust | DoubleThrust | TripleThrust | OffhandThrust | OffhandDoubleThrust | OffhandTripleThrust,
+        Slashes             = Slash | DoubleSlash | TripleSlash | OffhandSlash | OffhandDoubleSlash | OffhandTripleSlash,
+        Punches             = Punch | OffhandPunch,
+
         MultiStrike         = DoubleStrike | TripleStrike
+    }
+
+    public static class AttackTypeExtensions
+    {
+        public static bool IsMultiStrike(this AttackType attackType)
+        {
+            return (attackType & AttackType.MultiStrike) != 0;
+        }
+
+        public static AttackType ReduceMultiStrike(this AttackType attackType)
+        {
+            if (!attackType.IsMultiStrike())
+                return AttackType.Undef;
+
+            switch (attackType)
+            {
+                case AttackType.DoubleThrust:
+                case AttackType.TripleThrust:
+                    return AttackType.Thrust;
+
+                case AttackType.DoubleSlash:
+                case AttackType.TripleSlash:
+                    return AttackType.Slash;
+
+                case AttackType.OffhandDoubleThrust:
+                case AttackType.OffhandTripleThrust:
+                    return AttackType.OffhandThrust;
+
+                case AttackType.OffhandDoubleSlash:
+                case AttackType.OffhandTripleSlash:
+                    return AttackType.OffhandSlash;
+
+                default:
+                    return AttackType.Undef;
+            }
+        }
     }
 }

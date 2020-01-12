@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using ACE.Entity;
+using ACE.Server.Network.Enum;
 
 namespace ACE.Server.Network
 {
@@ -78,8 +79,11 @@ namespace ACE.Server.Network
             tw.Write("   0  ");
 
             string asciiLine = "";
-            for (int i = 0; i < buffer.Length; i++)
+            for (int i = startPosition; i < startPosition+bytesToOutput; i++)
             {
+                if (i >= buffer.Length) {
+                    break;
+                }
                 if (column >= columns)
                 {
                     row++;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -81,6 +81,41 @@ namespace ACE.Database.Models.Auth
                     .HasColumnName("accountName")
                     .HasColumnType("varchar(50)");
 
+                entity.Property(e => e.BanExpireTime)
+                    .HasColumnName("ban_Expire_Time")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.BanReason)
+                    .HasColumnName("ban_Reason")
+                    .HasColumnType("varchar(1000)");
+
+                entity.Property(e => e.BannedByAccountId).HasColumnName("banned_By_Account_Id");
+
+                entity.Property(e => e.BannedTime)
+                    .HasColumnName("banned_Time")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.CreateIP)
+                    .HasColumnName("create_I_P")
+                    .HasMaxLength(16);
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnName("create_Time")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
+
+                entity.Property(e => e.EmailAddress)
+                    .HasColumnName("email_Address")
+                    .HasColumnType("varchar(320)");
+
+                entity.Property(e => e.LastLoginIP)
+                    .HasColumnName("last_Login_I_P")
+                    .HasMaxLength(16);
+
+                entity.Property(e => e.LastLoginTime)
+                    .HasColumnName("last_Login_Time")
+                    .HasColumnType("datetime");
+
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
                     .HasColumnName("passwordHash")
@@ -91,6 +126,10 @@ namespace ACE.Database.Models.Auth
                     .HasColumnName("passwordSalt")
                     .HasColumnType("varchar(88)")
                     .HasDefaultValueSql("'use bcrypt'");
+
+                entity.Property(e => e.TotalTimesLoggedIn)
+                    .HasColumnName("total_Times_Logged_In")
+                    .HasDefaultValueSql("'0'");
 
                 entity.HasOne(d => d.AccessLevelNavigation)
                     .WithMany(p => p.Account)

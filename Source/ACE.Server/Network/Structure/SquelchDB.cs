@@ -1,23 +1,38 @@
 using System.Collections.Generic;
 using System.IO;
-using ACE.Entity;
+
+using log4net;
+
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.Network.Structure
 {
     public class SquelchDB
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Account squelches
+        /// 
+        /// This is defined by the network protocol, but appears to have always been empty in retail pcaps (possibly for security reasons?)
+        /// 
+        /// When sending the SquelchDB to the player, the account squelches were sent in the Characters table below as SequelchInfo.Account=true
+        ///
+        /// Key: not sure if this was account name, or character name
+        /// Index: not sure if this was account id, or character id
         /// </summary>
         public Dictionary<string, uint> Accounts;
 
         /// <summary>
         /// Character squelches
+        ///
+        /// Even though this is called Characters, it contains both the Character and Account squelches (denoted by SquelchInfo.Account)
         /// </summary>
-        public Dictionary<ObjectGuid, SquelchInfo> Characters;
+        public Dictionary<uint, SquelchInfo> Characters;
 
         /// <summary>
         /// Global squelches
@@ -25,36 +40,60 @@ namespace ACE.Server.Network.Structure
         public SquelchInfo Globals;
 
         /// <summary>
-        /// Constructs a new empty Squelch database
+        /// Constructs a new SquelchDB for network sending
         /// </summary>
-        public SquelchDB()
+        public SquelchDB(List<CharacterPropertiesSquelch> squelches, SquelchMask globals)
         {
             Accounts = new Dictionary<string, uint>();
-            Characters = new Dictionary<ObjectGuid, SquelchInfo>();
+            Characters = new Dictionary<uint, SquelchInfo>();
             Globals = new SquelchInfo();
+
+            foreach (var squelch in squelches)
+            {
+                var squelchPlayer = PlayerManager.FindByGuid(squelch.SquelchCharacterId);
+                if (squelchPlayer == null)
+                {
+                    log.Warn($"BuildSquelchDB(): couldn't find character {squelch.SquelchCharacterId:X8}");
+                    continue;
+                }
+
+                if (squelch.SquelchAccountId == 0)
+                {
+                    // chracter squelch
+                    var squelchInfo = new SquelchInfo((SquelchMask)squelch.Type, squelchPlayer.Name, false);
+
+                    Characters.Add(squelch.SquelchCharacterId, squelchInfo);
+                }
+                else
+                {
+                    // account squelch
+                    Accounts.Add(squelchPlayer.Account.AccountName, squelchPlayer.Guid.Full);
+                }
+            }
+
+            // global squelch
+            if (globals != SquelchMask.None)
+                Globals.Filters.Add(globals);
         }
 
         /// <summary>
         /// Merges accounts + character for sending to clients
         /// </summary>
-        public Dictionary<ObjectGuid, SquelchInfo> CharactersPlus
+        public Dictionary<uint, SquelchInfo> CharactersPlus
         {
             get
             {
-                var charactersPlus = new Dictionary<ObjectGuid, SquelchInfo>();
-
-                foreach (var character in Characters)
-                    charactersPlus.Add(character.Key, new SquelchInfo(character.Value));
+                var charactersPlus = new Dictionary<uint, SquelchInfo>(Characters);
 
                 foreach (var account in Accounts)
                 {
-                    var guid = new ObjectGuid(account.Value);
+                    var guid = account.Value;
                     var accountPlayer = PlayerManager.FindByGuid(guid);
                     if (accountPlayer == null)
                         continue;
 
                     if (!charactersPlus.TryGetValue(guid, out var existing))
-                        charactersPlus.Add(guid, new SquelchInfo(ChatMessageType.AllChannels, accountPlayer.Name, true));
+                        charactersPlus.Add(guid, new SquelchInfo(SquelchMask.AllChannels, accountPlayer.Name, true));
                     else
                         existing.Account = true;
                 }
@@ -65,12 +104,33 @@ namespace ACE.Server.Network.Structure
         /// <summary>
         /// Returns TRUE if the input player is filtered by this player
         /// </summary>
-        public bool Contains(Player player, ChatMessageType messageType = ChatMessageType.AllChannels)
+        public bool Contains(WorldObject source, ChatMessageType messageType = ChatMessageType.AllChannels)
         {
-            if (Accounts.ContainsKey(player.Session.Account))
-                return true;
+            // ensure this channel can be squelched
+            if (messageType != ChatMessageType.AllChannels && !SquelchManager.IsLegalChannel(messageType))
+                return false;
 
-            if (Characters.TryGetValue(player.Guid, out var squelchInfo))
+            var squelchMask = messageType.ToMask();
+
+            if (source is Player player)
+            {
+                // check account squelches
+
+                // the client forces account squelches to be AllMessages,
+                // so for these, channel mask is not required
+
+                if (Accounts.ContainsKey(player.Session.Account))
+                    return true;
+
+                // check character squelches
+                Characters.TryGetValue(player.Guid.Full, out var squelchInfo);
+
+                if (squelchInfo != null && squelchInfo.Filters[0].HasFlag(squelchMask))
+                    return true;
+            }
+
+            // check global squelches
+            if (Globals.Filters.Count > 0 && Globals.Filters[0].HasFlag(squelchMask))
                 return true;
 
             return false;
@@ -98,12 +158,21 @@ namespace ACE.Server.Network.Structure
             }
         }
 
-        public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, SquelchInfo> characterHash)
+        public static ushort NumBuckets = 32;  // retail used either 32 or 128 here, but i could find no fully consistent pattern to discern them
+
+        public static HashComparer HashComparer = new HashComparer(NumBuckets);
+
+        public static void Write(this BinaryWriter writer, Dictionary<uint, SquelchInfo> characterHash)
         {
-            PackableHashTable.WriteHeader(writer, characterHash.Count);
-            foreach (var kvp in characterHash)
+            //PackableHashTable.WriteHeader(writer, characterHash.Count);
+            writer.Write((ushort)characterHash.Count);
+            writer.Write(NumBuckets);
+
+            var sorted = new SortedDictionary<uint, SquelchInfo>(characterHash, HashComparer);
+
+            foreach (var kvp in sorted)
             {
-                writer.Write(kvp.Key.Full);
+                writer.Write(kvp.Key);
                 writer.Write(kvp.Value);
             }
         }

@@ -22,7 +22,7 @@ namespace ACE.Server.Network.Structure
 
         public Shortcut(CharacterPropertiesShortcutBar shortcut)
         {
-            Index = shortcut.ShortcutBarIndex;
+            Index = shortcut.ShortcutBarIndex - 1;
             ObjectId = shortcut.ShortcutObjectId;
             Spell = new LayeredSpell();
         }

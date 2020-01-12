@@ -15,6 +15,7 @@ using ACE.Database.Entity;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using Version = ACE.Database.Models.World.Version;
 
 namespace ACE.Database
 {
@@ -32,12 +33,12 @@ namespace ACE.Database
                 {
                     if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
                     {
-                        log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
+                        log.Debug($"[DATABASE] Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
                         return true;
                     }
                 }
 
-                log.Error($"Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
+                log.Error($"[DATABASE] Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
 
                 if (retryUntilFound)
                     Thread.Sleep(5000);
@@ -48,6 +49,8 @@ namespace ACE.Database
 
 
         private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
+
+        private readonly ConcurrentDictionary<string, uint> weenieClassNameToClassIdCache = new ConcurrentDictionary<string, uint>();
 
         /// <summary>
         /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
@@ -77,7 +80,8 @@ namespace ACE.Database
 
             bool isCreature = weenieType == WeenieType.Creature || weenieType == WeenieType.Cow ||
                               weenieType == WeenieType.Sentinel || weenieType == WeenieType.Admin ||
-                              weenieType == WeenieType.Vendor;
+                              weenieType == WeenieType.Vendor ||
+                              weenieType == WeenieType.CombatPet || weenieType == WeenieType.Pet;
 
             //.Include(r => r.LandblockInstances)   // When we grab a weenie, we don't need to also know everywhere it exists in the world
             //.Include(r => r.PointsOfInterest)     // I think these are just foreign keys for the POI table
@@ -127,9 +131,16 @@ namespace ACE.Database
         public Weenie GetWeenie(uint weenieClassId)
         {
             using (var context = new WorldDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 return GetWeenie(context, weenieClassId);
+            }
         }
 
+        /// <summary>
+        /// This will also update the weenie ClassName to ClassId cache cache.
+        /// </summary>
         public uint GetWeenieClassId(string weenieClassName)
         {
             using (var context = new WorldDbContext())
@@ -139,7 +150,11 @@ namespace ACE.Database
                     .FirstOrDefault(r => r.ClassName == weenieClassName);
 
                 if (result != null)
+                {
+                    weenieClassNameToClassIdCache[weenieClassName] = result.ClassId;
+
                     return result.ClassId;
+                }
 
                 return 0;
             }
@@ -167,6 +182,7 @@ namespace ACE.Database
         public void ClearWeenieCache()
         {
             weenieCache.Clear();
+            weenieClassNameToClassIdCache.Clear();
         }
 
         /// <summary>
@@ -180,20 +196,22 @@ namespace ACE.Database
             return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
+        public bool ClearCachedWeenie(uint weenieClassId)
+        {
+            return weenieCache.TryRemove(weenieClassId, out _);
+        }
+
         /// <summary>
         /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
         public Weenie GetCachedWeenie(string weenieClassName)
         {
-            foreach (var weenie in weenieCache.Values)
-            {
-                if (weenie != null && weenie.ClassName == weenieClassName)
-                    return weenie;
-            }
+            if (weenieClassNameToClassIdCache.TryGetValue(weenieClassName, out var value))
+                return GetCachedWeenie(value); // This will add the result into the weenieCache
 
             var weenieClassId = GetWeenieClassId(weenieClassName);
 
-            return GetWeenie(weenieClassId); // This will add the result into the weenieCache
+            return GetCachedWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
         private readonly ConcurrentDictionary<int, List<Weenie>> weenieCacheByType = new ConcurrentDictionary<int, List<Weenie>>();
@@ -410,23 +428,26 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
+        /// Returns statics spawn map and their links for the landblock
         /// </summary>
         public List<LandblockInstance> GetCachedInstancesByLandblock(ushort landblock)
+        {
+            using (var context = new WorldDbContext())
+                return GetCachedInstancesByLandblock(context, landblock);
+        }
+
+        public List<LandblockInstance> GetCachedInstancesByLandblock(WorldDbContext context, ushort landblock)
         {
             if (cachedLandblockInstances.TryGetValue(landblock, out var value))
                 return value;
 
-            using (var context = new WorldDbContext())
-            {
-                var results = context.LandblockInstance
-                    .Include(r => r.LandblockInstanceLink)
-                    .AsNoTracking()
-                    .Where(r => r.Landblock == landblock)
-                    .ToList();
+            var results = context.LandblockInstance
+                .Include(r => r.LandblockInstanceLink)
+                .AsNoTracking()
+                .Where(r => r.Landblock == landblock)
+                .ToList();
 
-                cachedLandblockInstances.TryAdd(landblock, results.ToList());
-            }
+            cachedLandblockInstances.TryAdd(landblock, results.ToList());
 
             return cachedLandblockInstances[landblock];
         }
@@ -468,6 +489,33 @@ namespace ACE.Database
             }
         }
 
+        private readonly ConcurrentDictionary<ushort, uint> cachedBasementHouseGuids = new ConcurrentDictionary<ushort, uint>();
+
+        public uint GetCachedBasementHouseGuid(ushort landblock)
+        {
+            if (cachedBasementHouseGuids.TryGetValue(landblock, out var value))
+                return value;
+
+            using (var context = new WorldDbContext())
+            {
+                var result = context.LandblockInstance
+                    .AsNoTracking()
+                    .Where(r => r.Landblock == landblock
+                            && r.WeenieClassId != 11730 /* Exclude House Portal */
+                            && r.WeenieClassId != 278   /* Exclude Door */
+                            && r.WeenieClassId != 568   /* Exclude Door (entry) */
+                            && !r.IsLinkChild)
+                    .FirstOrDefault();
+
+                if (result == null)
+                    return 0;
+
+                cachedBasementHouseGuids[landblock] = result.Guid;
+
+                return result.Guid;
+            }
+        }
+
         private readonly ConcurrentDictionary<uint, List<HousePortal>> cachedHousePortals = new ConcurrentDictionary<uint, List<HousePortal>>();
 
         public List<HousePortal> GetCachedHousePortals(uint houseId)
@@ -497,8 +545,8 @@ namespace ACE.Database
             {
                 var results = context.HousePortal
                     .AsNoTracking()
-                    .GroupBy(r => r.HouseId)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.HouseId);
 
                 foreach (var result in results)
                     cachedHousePortals[result.Key] = result.ToList();
@@ -644,6 +692,39 @@ namespace ACE.Database
         }
 
         /// <summary>
+        /// Returns a cloned recipe for further modification
+        /// </summary>
+        public Recipe GetRecipe(uint recipeId)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var result = context.Recipe
+                    .AsNoTracking()
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsBool)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsDID)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsFloat)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsIID)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsInt)
+                    .Include(r => r.RecipeMod)
+                        .ThenInclude(r => r.RecipeModsString)
+                    .Include(r => r.RecipeRequirementsBool)
+                    .Include(r => r.RecipeRequirementsDID)
+                    .Include(r => r.RecipeRequirementsFloat)
+                    .Include(r => r.RecipeRequirementsIID)
+                    .Include(r => r.RecipeRequirementsInt)
+                    .Include(r => r.RecipeRequirementsString)
+                    .FirstOrDefault(r => r.Id == recipeId);
+
+                return result;
+            }
+        }
+
+        /// <summary>
         /// This can take 1-2 minutes to complete.
         /// </summary>
         public void CacheAllCookbooksInParallel()
@@ -675,6 +756,11 @@ namespace ACE.Database
         }
 
         private readonly ConcurrentDictionary<uint, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
+
+        public void ClearSpellCache()
+        {
+            spellCache.Clear();
+        }
 
         /// <summary>
         /// Returns the number of Spells currently cached.
@@ -868,13 +954,134 @@ namespace ACE.Database
             {
                 var results = context.TreasureWielded
                     .AsNoTracking()
-                    .GroupBy(r => r.TreasureType)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.TreasureType);
 
                 foreach (var result in results)
                     cachedWieldedTreasure[result.Key] = result.ToList();
             }
         }
+
+        private readonly ConcurrentDictionary<int, List<TreasureMaterialColor>> cachedTreasureMaterialColor = new ConcurrentDictionary<int, List<TreasureMaterialColor>>();
+
+        /// <summary>
+        /// Returns the number of TreasureMaterialColor currently cached.
+        /// </summary>
+        public int GetTreasureMaterialColorCacheCount()
+        {
+            return cachedTreasureMaterialColor.Count(r => r.Value != null);
+        }
+
+        public List<TreasureMaterialColor> GetCachedTreasureMaterialColors(int materialId, int tsysColorCode)
+        {
+
+            if (cachedTreasureMaterialColor.Count == 0)
+                CacheAllTreasuresMaterialColorInParallel();
+
+            if (cachedTreasureMaterialColor.TryGetValue(materialId, out var value))
+            {
+                var results = value.Where(r => r.ColorCode == tsysColorCode).ToList();
+                return results;
+            }
+
+            return new List<TreasureMaterialColor>();
+        }
+
+        public void CacheAllTreasuresMaterialColorInParallel()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.TreasureMaterialColor
+                    .AsNoTracking()
+                    .AsEnumerable()
+                    .GroupBy(r => r.MaterialId);
+
+                foreach (var result in results)
+                    cachedTreasureMaterialColor[(int)result.Key] = result.ToList();
+            }
+        }
+
+        #region TreasureMaterialBase
+
+        // The Key is the Material Code (derived from PropertyInt.TsysMaterialData)
+        // The Value is a list of all 
+        private readonly ConcurrentDictionary<int, List<TreasureMaterialBase>> cachedTreasureMaterialBase = new ConcurrentDictionary<int, List<TreasureMaterialBase>>();
+
+        public List<TreasureMaterialBase> GetCachedTreasureMaterialBase(int materialCode, int tier)
+        {
+            if (cachedTreasureMaterialBase.Count == 0)
+                CacheAllTreasuresMaterialBaseInParallel();
+
+            if (cachedTreasureMaterialBase.TryGetValue(materialCode, out var value))
+            {
+                var results = value.Where(r => r.Tier == tier).Where(r => r.Probability > 0).ToList();
+                return results;
+            }
+
+            return new List<TreasureMaterialBase>();
+        }
+
+        public void CacheAllTreasuresMaterialBaseInParallel()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.TreasureMaterialBase
+                    .AsNoTracking()
+                    .AsEnumerable()
+                    .GroupBy(r => r.MaterialCode);
+
+                foreach (var result in results)
+                    cachedTreasureMaterialBase[(int)result.Key] = result.ToList();
+            }
+        }
+
+        #endregion
+
+        #region TreasureMaterialGroups
+
+        // The Key is the Material Group (technically a MaterialId, but more generic...e.g. "Material.Metal", "Material.Cloth", etc.)
+        // The Value is a list of all 
+        private readonly ConcurrentDictionary<int, List<TreasureMaterialGroups>> cachedTreasureMaterialGroups = new ConcurrentDictionary<int, List<TreasureMaterialGroups>>();
+
+        /// <summary>
+        /// Returns the number of TreasureMaterialBase currently cached.
+        /// </summary>
+        public int GetTreasureMaterialGroupCacheCount()
+        {
+            return cachedTreasureMaterialGroups.Count(r => r.Value != null);
+        }
+
+        public List<TreasureMaterialGroups> GetCachedTreasureMaterialGroup(int materialGroup, int tier)
+        {
+            if (cachedTreasureMaterialGroups.Count == 0)
+                CacheAllTreasuresMaterialGroupsInParallel();
+
+            if (cachedTreasureMaterialGroups.TryGetValue(materialGroup, out var value))
+            {
+                var results = value.Where(r => r.Tier == tier).ToList();
+                return results;
+            }
+
+            // Something unexpected happened here. Return an empty list!
+            return new List<TreasureMaterialGroups>();
+        }
+   
+
+        public void CacheAllTreasuresMaterialGroupsInParallel()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.TreasureMaterialGroups
+                    .AsNoTracking()
+                    .AsEnumerable()
+                    .GroupBy(r => r.MaterialGroup);
+
+                foreach (var result in results)
+                cachedTreasureMaterialGroups[(int)result.Key] = result.ToList();
+            }
+        }
+
+        #endregion
 
         private readonly ConcurrentDictionary<string, Quest> cachedQuest = new ConcurrentDictionary<string, Quest>();
 
@@ -890,6 +1097,94 @@ namespace ACE.Database
 
                 return quest;
             }
+        }
+
+        public Dictionary<uint, string> GetAllWeenieNames(WorldDbContext context)
+        {
+            return context.Weenie
+                .AsNoTracking()
+                .Include(r => r.WeeniePropertiesString)
+                .ToDictionary(r => r.ClassId, r => r.WeeniePropertiesString.Where(p => p.Type == (int)PropertyString.Name).FirstOrDefault()?.Value ?? "");
+        }
+
+        public Dictionary<uint, string> GetAllWeenieNames()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllWeenieNames(context);
+        }
+
+        public Dictionary<uint, string> GetAllSpellNames(WorldDbContext context)
+        {
+            return context.Spell
+                .AsNoTracking()
+                .ToDictionary(r => r.Id, r => r.Name);
+        }
+
+        public Dictionary<uint, string> GetAllSpellNames()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllSpellNames(context);
+        }
+
+        public Dictionary<uint, TreasureDeath> GetAllTreasureDeath(WorldDbContext context)
+        {
+            return context.TreasureDeath
+                .AsNoTracking()
+                .ToDictionary(r => r.TreasureType, r => r);
+        }
+
+        public Dictionary<uint, TreasureDeath> GetAllTreasureDeath()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllTreasureDeath(context);
+        }
+
+        public Dictionary<uint, List<TreasureWielded>> GetAllTreasureWielded(WorldDbContext context)
+        {
+            var results = context.TreasureWielded
+                .AsNoTracking();
+
+            var treasure = new Dictionary<uint, List<TreasureWielded>>();
+
+            foreach (var record in results)
+            {
+                if (!treasure.ContainsKey(record.TreasureType))
+                    treasure.Add(record.TreasureType, new List<TreasureWielded>());
+
+                treasure[record.TreasureType].Add(record);
+            }
+
+            return treasure;
+
+        }
+
+        public Dictionary<uint, List<TreasureWielded>> GetAllTreasureWielded()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllTreasureWielded(context);
+        }
+
+        /// <summary>
+        /// Get the version information stored in database
+        /// </summary>
+        public Version GetVersion(WorldDbContext context)
+        {
+            var version = context.Version
+                .FirstOrDefault(r => r.Id == 1);
+
+            if (version == null)
+                return null;
+
+            return version;
+        }
+
+        /// <summary>
+        /// Get the version information stored in database
+        /// </summary>
+        public Version GetVersion()
+        {
+            using (var context = new WorldDbContext())
+                return GetVersion(context);
         }
     }
 }

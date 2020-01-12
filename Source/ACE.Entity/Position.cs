@@ -60,7 +60,7 @@ namespace ACE.Entity
 
         public void Rotate(Vector3 dir)
         {
-            Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.Atan2(dir.Y, dir.X)) * Quaternion.CreateFromYawPitchRoll(0, 0, -(float)Math.PI / 2.0f);
+            Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.Atan2(-dir.X, dir.Y));
         }
 
         // TODO: delete this, use proper Vector3 and Quaternion
@@ -72,30 +72,7 @@ namespace ACE.Entity
         public float RotationY { get; set; }
         public float RotationZ { get; set; }
 
-        private const float xyMidPoint = 96f;
-
         public bool Indoors => landblockId.MapScope != MapScope.Outdoors;
-
-        public bool IsInQuadrant(Quadrant q)
-        {
-            // check for easy short circuit
-            if (q == Quadrant.All)
-                return true;
-
-            if ((q & Quadrant.NorthEast) > 0 && PositionX > xyMidPoint && PositionY > xyMidPoint)
-                return true;
-
-            if ((q & Quadrant.NorthWest) > 0 && PositionX <= xyMidPoint && PositionY > xyMidPoint)
-                return true;
-
-            if ((q & Quadrant.SouthEast) > 0 && PositionX <= xyMidPoint && PositionY <= xyMidPoint)
-                return true;
-
-            if ((q & Quadrant.SouthWest) > 0 && PositionX <= xyMidPoint && PositionY <= xyMidPoint)
-                return true;
-
-            return false;
-        }
 
         /// <summary>
         /// Returns the normalized 2D heading direction
@@ -229,7 +206,7 @@ namespace ACE.Entity
 
         public Position()
         {
-            Pos = Vector3.Zero;
+            //Pos = Vector3.Zero;
             Rotation = Quaternion.Identity;
         }
 
@@ -473,12 +450,12 @@ namespace ACE.Entity
 
         public override string ToString()
         {
-            return $"{LandblockId.Landblock:X}: {PositionX} {PositionY} {PositionZ}";
+            return $"{LandblockId.Raw:X8} [{PositionX} {PositionY} {PositionZ}]";
         }
 
         public string ToLOCString()
         {
-            return $"0x{LandblockId.Raw:X} [{PositionX} {PositionY} {PositionZ}] {RotationW} {RotationX} {RotationY} {RotationZ}";
+            return $"0x{LandblockId.Raw:X8} [{PositionX} {PositionY} {PositionZ}] {RotationW} {RotationX} {RotationY} {RotationZ}";
         }
 
         public static readonly int BlockLength = 192;

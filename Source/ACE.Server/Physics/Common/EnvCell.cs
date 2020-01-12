@@ -62,10 +62,14 @@ namespace ACE.Server.Physics.Common
             SeenOutside = envCell.SeenOutside;
 
             EnvironmentID = envCell.EnvironmentId;
-            Environment = DBObj.GetEnvironment(EnvironmentID);
+
+            if (EnvironmentID != 0)
+                Environment = DBObj.GetEnvironment(EnvironmentID);
+
             CellStructureID = envCell.CellStructure;    // environment can contain multiple?
-            if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
-                CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
+
+            if (Environment?.Cells != null && Environment.Cells.TryGetValue(CellStructureID, out var cellStruct))
+                CellStructure = new CellStruct(cellStruct);
 
             NumSurfaces = envCell.Surfaces.Count;
         }
@@ -301,7 +305,7 @@ namespace ACE.Server.Physics.Common
                 }
             }
             if (checkOutside)
-                LandCell.add_all_outside_cells(numParts, parts, cellArray);
+                LandCell.add_all_outside_cells(numParts, parts, cellArray, ID);
         }
 
         public override void find_transit_cells(Position position, int numSphere, List<Sphere> spheres, CellArray cellArray, SpherePath path)
@@ -385,6 +389,12 @@ namespace ACE.Server.Physics.Common
                     var staticObj = PhysicsObj.makeObject(StaticObjectIDs[i], 0, false);
                     staticObj.DatObject = true;
                     staticObj.add_obj_to_cell(this, StaticObjectFrames[i]);
+                    if (staticObj.CurCell == null)
+                    {
+                        //Console.WriteLine($"EnvCell {ID:X8}: failed to add {staticObj.ID:X8}");
+                        staticObj.DestroyObject();
+                        continue;
+                    }
 
                     StaticObjects.Add(staticObj);
                 }
@@ -428,6 +438,21 @@ namespace ACE.Server.Physics.Common
         public override int GetHashCode()
         {
             return ID.GetHashCode();
+        }
+
+        public bool IsVisibleIndoors(ObjCell cell)
+        {
+            var blockDist = PhysicsObj.GetBlockDist(ID, cell.ID);
+
+            // if landblocks equal
+            if (blockDist == 0)
+            {
+                // check env VisibleCells
+                var cellID = cell.ID & 0xFFFF;
+                if (VisibleCells.ContainsKey(cellID))
+                    return true;
+            }
+            return SeenOutside && blockDist <= 1;
         }
     }
 }

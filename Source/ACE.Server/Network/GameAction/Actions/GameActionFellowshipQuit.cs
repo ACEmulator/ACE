@@ -9,7 +9,6 @@ namespace ACE.Server.Network.GameAction.Actions
             bool disbandFellowship = message.Payload.ReadUInt32() > 0;
 
             session.Player.FellowshipQuit(disbandFellowship);
-            session.Player.Fellowship = null;
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -10,11 +11,14 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Animation;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
     public class Healer : WorldObject
     {
+        // TODO: change structure / maxstructure to int,
+        // cast to ushort at network level
         public ushort? UsesLeft
         {
             get => Structure;
@@ -39,25 +43,40 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Healer;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Healer;
         }
+
         public override void HandleActionUseOnTarget(Player healer, WorldObject target)
         {
-            if (healer.IsBusy)
+            if (healer.IsBusy || healer.Teleporting)
             {
                 healer.SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return;
             }
 
-            if (!(target is Player targetPlayer))
+            if (!(target is Player targetPlayer) || targetPlayer.Teleporting)
             {
                 healer.SendUseDoneEvent(WeenieError.YouCantHealThat);
                 return;
             }
 
-            if (targetPlayer.Health.Current == targetPlayer.Health.MaxValue)
+            // ensure target player vital < MaxValue
+            var vital = targetPlayer.GetCreatureVital(BoosterEnum);
+
+            if (vital.Current == vital.MaxValue)
             {
-                healer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(healer.Session, WeenieErrorWithString._IsAtFullHealth, target.Name));
+                switch (vital.Vital)
+                {
+                    case PropertyAttribute2nd.MaxHealth:
+                        healer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(healer.Session, WeenieErrorWithString._IsAtFullHealth, target.Name));
+                        break;
+                    case PropertyAttribute2nd.MaxStamina:
+                        healer.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(healer.Session, $"{target.Name} is already at full stamina!"));
+                        break;
+                    case PropertyAttribute2nd.MaxMana:
+                        healer.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(healer.Session, $"{target.Name} is already at full mana!"));
+                        break;
+                }
                 healer.SendUseDoneEvent();
                 return;
             }
@@ -73,7 +92,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoHealMotion(Player healer, Player target, bool success)
         {
-            if (!success)
+            if (!success || target.IsDead || target.Teleporting)
             {
                 healer.SendUseDoneEvent();
                 return;
@@ -93,7 +112,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {
-                // check windup move distance cap
+                // check healing move distance cap
                 var endPos = new Position(healer.Location);
                 var dist = startPos.DistanceTo(endPos);
 
@@ -107,65 +126,74 @@ namespace ACE.Server.WorldObjects
 
                 healer.SendUseDoneEvent();
             });
+
+            healer.EnqueueMotion(actionChain, MotionCommand.Ready);
+
             actionChain.EnqueueChain();
         }
 
         public void DoHealing(Player healer, Player target)
         {
-            var remainingMsg = $"Your {Name} has {--UsesLeft} uses left.";
+            if (target.IsDead || target.Teleporting) return;
+
+            var remainingMsg = "";
+
+            if (!UnlimitedUse)
+            {
+                UsesLeft--;
+                var s = UsesLeft == 1 ? "" : "s";
+                remainingMsg = UsesLeft > 0 ? $" Your {Name} has {UsesLeft} use{s} left." : $" Your {Name} is used up.";
+            }
+
             var stackSize = new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, UsesLeft.Value);
             var targetName = healer == target ? "yourself" : target.Name;
 
+            var vital = target.GetCreatureVital(BoosterEnum);
+
             // skill check
             var difficulty = 0;
-            var skillCheck = DoSkillCheck(healer, target, ref difficulty);
+            var skillCheck = DoSkillCheck(healer, target, vital, ref difficulty);
             if (!skillCheck)
             {
-                var failMsg = new GameMessageSystemChat($"You fail to heal {targetName}. {remainingMsg}", ChatMessageType.Broadcast);
+                var failMsg = new GameMessageSystemChat($"You fail to heal {targetName}.{remainingMsg}", ChatMessageType.Broadcast);
                 healer.Session.Network.EnqueueSend(failMsg, stackSize);
                 if (healer != target)
                     target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} fails to heal you.", ChatMessageType.Broadcast));
-                if (UsesLeft <= 0)
+                if (UsesLeft <= 0 && !UnlimitedUse)
                     healer.TryConsumeFromInventoryWithNetworking(this, 1);
                 return;
             }
 
             // heal up
-            var healAmount = GetHealAmount(healer, target, out var critical, out var staminaCost);
+            var healAmount = GetHealAmount(healer, target, vital, out var critical, out var staminaCost);
 
-            healer.UpdateVitalDelta(healer.Stamina, (int)(-staminaCost));
-            target.UpdateVitalDelta(target.Health, healAmount);
-            target.DamageHistory.OnHeal(healAmount);
+            healer.UpdateVitalDelta(healer.Stamina, (int)-staminaCost);
+            target.UpdateVitalDelta(vital, healAmount);
+            if (vital.Vital == PropertyAttribute2nd.MaxHealth)
+                target.DamageHistory.OnHeal(healAmount);
 
-            if (target.Fellowship != null)
-                target.Fellowship.OnVitalUpdate(target);
+            //if (target.Fellowship != null)
+            //target.Fellowship.OnVitalUpdate(target);
 
             var healingSkill = healer.GetCreatureSkill(Skill.Healing);
-            Proficiency.OnSuccessUse(healer, healingSkill, (uint)difficulty);
+            Proficiency.OnSuccessUse(healer, healingSkill, difficulty);
 
-            var updateHealth = new GameMessagePrivateUpdateAttribute2ndLevel(target, Vital.Health, target.Health.Current);
             var crit = critical ? "expertly " : "";
-            GameMessageSystemChat message = null;
-
-            if (UsesLeft <= 0)
-                message = new GameMessageSystemChat($"You {crit}heal {targetName} for {healAmount} points with {Name}.", ChatMessageType.Broadcast);
-            else
-                message = new GameMessageSystemChat($"You {crit}heal {targetName} for {healAmount} points. {remainingMsg}", ChatMessageType.Broadcast);
+            var message = new GameMessageSystemChat($"You {crit}heal {targetName} for {healAmount} {BoosterEnum.ToString()} points.{remainingMsg}", ChatMessageType.Broadcast);
 
             healer.Session.Network.EnqueueSend(message, stackSize);
-            target.Session.Network.EnqueueSend(updateHealth);
 
             if (healer != target)
-                target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} heals you for {healAmount} points.", ChatMessageType.Broadcast));
+                target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} heals you for {healAmount} {BoosterEnum.ToString()} points.", ChatMessageType.Broadcast));
 
-            if (UsesLeft <= 0)
+            if (UsesLeft <= 0 && !UnlimitedUse)
                 healer.TryConsumeFromInventoryWithNetworking(this, 1);
         }
 
         /// <summary>
         /// Determines if healer successfully heals target for attempt
         /// </summary>
-        public bool DoSkillCheck(Player healer, Player target, ref int difficulty)
+        public bool DoSkillCheck(Player healer, Player target, CreatureVital vital, ref int difficulty)
         {
             // skill check:
             // (healing skill + healing kit boost) * trainedMod
@@ -175,8 +203,8 @@ namespace ACE.Server.WorldObjects
 
             var combatMod = healer.CombatMode == CombatMode.NonCombat ? 1.0f : 1.1f;
 
-            var effectiveSkill = (int)Math.Round(healingSkill.Current + (Boost ?? 0) * trainedMod);
-            difficulty = (int)Math.Round((target.Health.MaxValue - target.Health.Current) * 2 * combatMod);
+            var effectiveSkill = (int)Math.Round((healingSkill.Current + BoostValue) * trainedMod);
+            difficulty = (int)Math.Round((vital.MaxValue - vital.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
             return skillCheck >= ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -185,7 +213,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the healing amount for this attempt
         /// </summary>
-        public uint GetHealAmount(Player healer, Player target, out bool criticalHeal, out uint staminaCost)
+        public uint GetHealAmount(Player healer, Player target, CreatureVital vital, out bool criticalHeal, out uint staminaCost)
         {
             // factors: healing skill, healing kit bonus, stamina, critical chance
             var healingSkill = healer.GetCreatureSkill(Skill.Healing).Current;
@@ -198,24 +226,23 @@ namespace ACE.Server.WorldObjects
 
             // verify healing boost comes from target instead of healer?
             // sounds like target in LumAugHealingRating...
-            var healRatingMod = Creature.GetPositiveRatingMod(target.GetHealingBoostRating());
-            var healResistRatingMod = Creature.GetNegativeRatingMod(target.GetHealingResistRating());
+            var ratingMod = target.GetHealingRatingMod();
 
-            healAmount *= healRatingMod * healResistRatingMod;
+            healAmount *= ratingMod;
 
             // chance for critical healing
             criticalHeal = ThreadSafeRandom.Next(0.0f, 1.0f) < 0.1f;
             if (criticalHeal) healAmount *= 2;
 
-            // cap to missing health
-            var missingHealth = target.Health.MaxValue - target.Health.Current;
-            if (healAmount > missingHealth)
-                healAmount = missingHealth;
+            // cap to missing vital
+            var missingVital = vital.MaxValue - vital.Current;
+            if (healAmount > missingVital)
+                healAmount = missingVital;
 
             // stamina check? On the Q&A board a dev posted that stamina directly effects the amount of damage you can heal
-            // low stam = less health healed. I don't have exact numbers for it. Working through forum archive.
+            // low stam = less vital healed. I don't have exact numbers for it. Working through forum archive.
 
-            // stamina cost: 1 stamina per 5 health
+            // stamina cost: 1 stamina per 5 vital healed 
             staminaCost = (uint)Math.Round(healAmount / 5.0f);
             if (staminaCost > healer.Stamina.Current)
             {

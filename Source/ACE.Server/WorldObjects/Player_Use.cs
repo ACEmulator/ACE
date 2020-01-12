@@ -1,4 +1,5 @@
 using System;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
@@ -14,12 +15,23 @@ namespace ACE.Server.WorldObjects
         public ObjectGuid LastOpenedContainerId { get; set; }
 
         /// <summary>
+        /// This is set by Hook.ActOnUse
+        /// </summary>
+        public ObjectGuid LasUsedHookId { get; set; }
+
+        /// <summary>
         /// Handles the 'GameAction 0x35 - UseWithTarget' network message
         /// when player double clicks an inventory item resulting in a target indicator
         /// and then clicks another item
         /// </summary>
         public void HandleActionUseWithTarget(uint sourceObjectGuid, uint targetObjectGuid)
         {
+            if (PKLogout)
+            {
+                SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                return;
+            }
+
             StopExistingMoveToChains();
 
             // source item is always in our possession
@@ -67,6 +79,31 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading)
+            {
+                if (ItemsInTradeWindow.Contains(sourceItem.Guid))
+                {
+                    SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                    //SendWeenieError(WeenieError.TradeItemBeingTraded);
+                    return;
+                }
+                if (ItemsInTradeWindow.Contains(target.Guid))
+                {
+                    SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                    //SendWeenieError(WeenieError.TradeItemBeingTraded);
+                    return;
+                }
+            }
+
+            // re-verify client checks
+            if (((sourceItem.TargetType ?? ItemType.None) & target.ItemType) == ItemType.None)
+            {
+                // ItemHolder::TargetCompatibleWithObject
+                SendTransientError($"Cannot use the {sourceItem.Name} with the {target.Name}");
+                SendUseDoneEvent();
+                return;
+            }
+
             sourceItem.HandleActionUseOnTarget(this, target);
         }
 
@@ -76,25 +113,47 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionUseItem(uint itemGuid)
         {
+            if (PKLogout)
+            {
+                SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                return;
+            }
+
             StopExistingMoveToChains();
 
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                //SendWeenieError(WeenieError.TradeItemBeingTraded);
+                return;
+            }
+
             if (item != null)
             {
                 if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastOpenedContainerId)
+                {
+                    if (IsBusy)
+                    {
+                        SendUseDoneEvent(WeenieError.YoureTooBusy);
+                        return;
+                    }
+
                     CreateMoveToChain(item, (success) => TryUseItem(item, success));
+                }
                 else
                     TryUseItem(item);
             }
             else
             {
-                log.Warn($"{Name}.HandleActionUseItem({itemGuid:X8}): couldn't find object");
+                log.Debug($"{Name}.HandleActionUseItem({itemGuid:X8}): couldn't find object");
                 SendUseDoneEvent();
             }
         }
 
-        public float LastUseTime;
+        public DateTime NextUseTime { get; set; }
+        public float LastUseTime { get; set; }
 
         /// <summary>
         /// Attempts to use an item - checks activation requirements
@@ -111,6 +170,8 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(LastUseTime);
             actionChain.AddAction(this, () => SendUseDoneEvent());
             actionChain.EnqueueChain();
+
+            NextUseTime = DateTime.UtcNow + TimeSpan.FromSeconds(LastUseTime);
         }
 
         /// <summary>
@@ -137,5 +198,11 @@ namespace ACE.Server.WorldObjects
         }
 
         public CombatPet CurrentActiveCombatPet { get; set; }
+
+        public void StartBarber()
+        {
+            BarberActive = true;
+            Session.Network.EnqueueSend(new GameEventStartBarber(Session));
+        }
     }
 }

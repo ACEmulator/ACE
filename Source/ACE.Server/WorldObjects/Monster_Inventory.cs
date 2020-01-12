@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
@@ -63,15 +64,17 @@ namespace ACE.Server.WorldObjects
             if (pants.Count > 0)
             {
                 var item = pants[0];
-                TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0);
-                equipped.Add(item);
+                TryRemoveFromInventory(item.Guid);
+                if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0))
+                    equipped.Add(item);
             }
 
             if (shirts.Count > 0)
             {
                 var item = shirts[0];
-                TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0);
-                equipped.Add(item);
+                TryRemoveFromInventory(item.Guid);
+                if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0))
+                    equipped.Add(item);
             }
             return equipped;
         }
@@ -117,8 +120,11 @@ namespace ACE.Server.WorldObjects
             var sorted = head.Concat(chest).Concat(upperArms).Concat(lowerArms).Concat(hands).Concat(upperLegs).Concat(lowerLegs).Concat(feet).ToList();
 
             foreach (var item in sorted)
+            {
+                TryRemoveFromInventory(item.Guid);
                 if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0))
                     equipped.Add(item);
+            }
 
             return equipped;
         }
@@ -175,30 +181,43 @@ namespace ACE.Server.WorldObjects
             // select the best weapon available
             while (true)
             {
-                var weapon = FindBestWeapon(allWeapons);
+                var weapon = FindInventoryWeapon(allWeapons);
                 if (weapon == null) return new List<WorldObject>();
 
                 // does this weapon require ammo?
-                if (!weapon.IsAmmoLauncher)
-                    return new List<WorldObject>() { weapon };
-
-                // find the best ammo for this weapon
-                var ammoType = ammo.Where(a => (a.AmmoType ?? 0) == (weapon.AmmoType ?? 0)).ToList();
-                var curAmmo = FindBestWeapon(ammoType);
-
-                if (curAmmo == null)
+                if (weapon.IsAmmoLauncher)
                 {
-                    allWeapons.Remove(weapon);  // remove from possible selections
-                    continue;   // find next best weapon
+                    // find the best ammo for this weapon
+                    var ammoType = ammo.Where(i => i.AmmoType == weapon.AmmoType).ToList();
+                    var curAmmo = FindInventoryWeapon(ammoType);
+
+                    if (curAmmo == null)
+                    {
+                        allWeapons.Remove(weapon);  // remove from possible selections
+                        continue;   // find next best weapon
+                    }
+
+                    //Console.WriteLine("Ammo type: " + (AmmoType)(weapon.AmmoType ?? 0));
+
+                    return new List<WorldObject>() { weapon, curAmmo };
                 }
 
-                //Console.WriteLine("Ammo type: " + (AmmoType)(weapon.AmmoType ?? 0));
+                // CombatUse / DefaultCombatStyle / ValidLocations?
+                if (AiAllowedCombatStyle.HasFlag(CombatStyle.DualWield))
+                {
+                    if (weapon.WeenieType == WeenieType.MeleeWeapon && !weapon.IsTwoHanded)
+                    {
+                        var dualWield = meleeWeapons.FirstOrDefault(i => i.AutoWieldLeft);
+                        if (dualWield != null)
+                            return new List<WorldObject> { weapon, dualWield };
+                    }
+                }
 
-                return new List<WorldObject>() { weapon, curAmmo };
+                return new List<WorldObject>() { weapon };
             }
         }
 
-        public WorldObject FindBestWeapon(List<WorldObject> weapons)
+        public WorldObject FindInventoryWeapon(List<WorldObject> weapons)
         {
             if (weapons == null) return null;
 
@@ -210,7 +229,7 @@ namespace ACE.Server.WorldObjects
             // did monsters select best weapons, or just a random weapon?
             // see: lugians (wielded treasure table 439), 100% spawn with rocks if most damage potential selected
             weapons.Shuffle();
-            return weapons.FirstOrDefault();
+            return weapons.FirstOrDefault(i => !i.AutoWieldLeft);
 
             /*var rng = ThreadSafeRandom.Next(0, weapons.Count);
             if (rng == weapons.Count)

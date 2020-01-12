@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-using ACE.Server.Managers;
-
 using log4net;
+
+using ACE.Server.Network.Managers;
 
 namespace ACE.Server.Network
 {
@@ -16,7 +16,7 @@ namespace ACE.Server.Network
 
         public Socket Socket { get; private set; }
 
-        private IPEndPoint listenerEndpoint;
+        public IPEndPoint ListenerEndpoint { get; private set; }
 
         private readonly uint listeningPort;
 
@@ -27,6 +27,7 @@ namespace ACE.Server.Network
         public ConnectionListener(IPAddress host, uint port)
         {
             log.DebugFormat("ConnectionListener ctor, host {0} port {1}", host, port);
+
             listeningHost = host;
             listeningPort = port;
         }
@@ -34,12 +35,13 @@ namespace ACE.Server.Network
         public void Start()
         {
             log.DebugFormat("Starting ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
+
             try
             {
-                listenerEndpoint = new IPEndPoint(listeningHost, (int)listeningPort);
+                ListenerEndpoint = new IPEndPoint(listeningHost, (int)listeningPort);
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                Socket.Bind(listenerEndpoint);
+                Socket.Bind(ListenerEndpoint);
                 Listen();
             }
             catch (Exception exception)
@@ -51,6 +53,7 @@ namespace ACE.Server.Network
         public void Shutdown()
         {
             log.DebugFormat("Shutting down ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
+
             if (Socket != null && Socket.IsBound)
                 Socket.Close();
         }
@@ -64,18 +67,19 @@ namespace ACE.Server.Network
             }
             catch (SocketException socketException)
             {
-                log.DebugFormat("Network Socket has thrown: {0} {1}", socketException.ErrorCode, socketException.Message);
+                log.DebugFormat("ConnectionListener.Listen() has thrown {0}: {1}", socketException.SocketErrorCode, socketException.Message);
                 Listen();
             }
             catch (Exception exception)
             {
-                log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
+                log.FatalFormat("ConnectionListener.Listen() has thrown: {0}", exception.Message);
             }
         }
 
         private void OnDataReceieve(IAsyncResult result)
         {
             EndPoint clientEndPoint = null;
+
             try
             {
                 clientEndPoint = new IPEndPoint(listeningHost, 0);
@@ -91,30 +95,34 @@ namespace ACE.Server.Network
                 if (packetLog.IsDebugEnabled)
                 {
                     StringBuilder sb = new StringBuilder();
-                    sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{listenerEndpoint.Address}:{listenerEndpoint.Port}]");
+                    sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{ListenerEndpoint.Address}:{ListenerEndpoint.Port}]");
                     sb.AppendLine(data.BuildPacketString());
                     packetLog.Debug(sb.ToString());
                 }
 
-                var packet = new ClientPacket(data);
-                if (packet.IsValid)
-                    WorldManager.ProcessPacket(packet, ipEndpoint, listenerEndpoint);
+                var packet = new ClientPacket();
+
+                if (packet.Unpack(data))
+                    NetworkManager.ProcessPacket(this, packet, ipEndpoint);
             }
             catch (SocketException socketException)
             {
                 // If we get "Connection has been forcibly closed..." error, just eat the exception and continue on
                 // This gets sent when the remote host terminates the connection (on UDP? interesting...)
                 // TODO: There might be more, should keep an eye out. Logged message will help here.
-                if (socketException.ErrorCode == 0x2746)
+                if (socketException.SocketErrorCode == SocketError.MessageSize ||
+                    socketException.SocketErrorCode == SocketError.NetworkReset ||
+                    socketException.SocketErrorCode == SocketError.ConnectionReset)
                 {
-                    log.DebugFormat("Network Socket on IP {2} has thrown {0}: {1}", socketException.ErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown");
+                    log.DebugFormat("ConnectionListener.OnDataReceieve() has thrown {0}: {1} from client {2}", socketException.SocketErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown");
                 }
                 else
                 {
-                    log.FatalFormat("Network Socket on IP {2} has thrown {0}: {1}", socketException.ErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown");
+                    log.FatalFormat("ConnectionListener.OnDataReceieve() has thrown {0}: {1} from client {2}", socketException.SocketErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown");
                     return;
                 }
             }
+
             Listen();
         }
     }

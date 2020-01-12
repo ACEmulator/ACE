@@ -123,6 +123,11 @@ namespace ACE.Database
             return _wrappedDatabase.GetBiotasByWcid(id);
         }
 
+        public List<Biota> GetBiotasByType(WeenieType type)
+        {
+            return _wrappedDatabase.GetBiotasByType(type);
+        }
+
         public void GetBiota(uint id, Action<Biota> callback)
         {
             _queue.Add(new Task(() =>
@@ -309,6 +314,11 @@ namespace ACE.Database
             }));
         }
 
+        public Character GetFullCharacter(string name)
+        {
+            return _wrappedDatabase.GetFullCharacter(name);
+        }
+
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
             return _wrappedDatabase.GetCharacters(accountId, includeDeleted);
@@ -317,6 +327,11 @@ namespace ACE.Database
         public Character GetCharacterByName(string name)
         {
             return _wrappedDatabase.GetCharacterByName(name);
+        }
+
+        public Character GetCharacterByGuid(uint guid)
+        {
+            return _wrappedDatabase.GetCharacterByGuid(guid);
         }
 
         public void SaveCharacter(Character character, ReaderWriterLockSlim rwLock, Action<bool> callback)

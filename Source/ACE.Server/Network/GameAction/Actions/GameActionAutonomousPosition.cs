@@ -13,7 +13,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.AutonomousPosition)]
         public static void Handle(ClientMessage message, Session session)
         {
-            //Console.WriteLine("AutonomousPosition");
+            //Console.WriteLine($"{session.Player.Name}.AutoPos");
 
             var position = new Position(message.Payload);
 
@@ -24,7 +24,11 @@ namespace ACE.Server.Network.GameAction.Actions
 
             session.Player.LastContact = message.Payload.ReadByte() != 0;   // TRUE if player is currently on ground
 
-            session.Player.SetRequestedLocation(position);
+            if (session.Player.LastContact)
+                session.Player.LastGroundPos = position;
+
+            if (!session.Player.Teleporting)
+                session.Player.SetRequestedLocation(position);
 
             message.Payload.Align();
         }

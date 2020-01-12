@@ -571,7 +571,7 @@ namespace ACE.Server.Entity.Chess
             var frame = new AFrame(ChessBoard.PhysicsObj.Position.Frame);
             CalculateWeeniePosition(piece.Coord, piece.Color, frame);
 
-            var monster = piece.Color == ChessColor.Black ? "drudge" : "mosswart";
+            var monster = piece.Color == ChessColor.White ? "drudge" : "mosswart";
             var weeniename = "";
             switch (piece.Type)
             {
@@ -614,7 +614,7 @@ namespace ACE.Server.Entity.Chess
             var gamePiece = ChessBoard.CurrentLandblock.GetObject(piece.Guid) as GamePiece;
             if (gamePiece == null)
             {
-                Console.WriteLine($"ChessMatch.MoveWeeniePiece({piece.Guid:X8}): couldn't find game piece");
+                Console.WriteLine($"ChessMatch.MoveWeeniePiece({piece.Guid}): couldn't find game piece");
                 DebugMove();
                 Logic.DebugBoard();
                 return;

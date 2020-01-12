@@ -49,6 +49,10 @@ namespace ACE.Server.Network.GameAction.Actions
                 {
                     try
                     {
+                        if (commandHandler.Attribute.IncludeRaw)
+                        {
+                            parameters = CommandManager.StuffRawIntoParameters(message.Remove(0, 1), command, parameters);
+                        }
                         ((CommandHandler)commandHandler.Handler).Invoke(session, parameters);
                     }
                     catch (Exception ex)
@@ -63,6 +67,10 @@ namespace ACE.Server.Network.GameAction.Actions
                         sudoParameters[i - 1] = parameters[i];
                     try
                     {
+                        if (commandHandler.Attribute.IncludeRaw)
+                        {
+                            parameters = CommandManager.StuffRawIntoParameters(message.Remove(0, 1), command, parameters);
+                        }
                         ((CommandHandler)commandHandler.Handler).Invoke(session, sudoParameters);
                     }
                     catch (Exception ex)

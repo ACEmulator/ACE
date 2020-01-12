@@ -10,6 +10,6 @@ namespace ACE.Database.Models.Shard
         public uint PlayerGuid { get; set; }
         public bool Storage { get; set; }
 
-        public Biota House { get; set; }
+        public virtual Biota House { get; set; }
     }
 }

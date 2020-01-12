@@ -240,6 +240,9 @@ namespace ACE.Server.Managers
             var vassal = vassalNode.Player;
             var patron = patronNode.Player;
 
+            if (!vassal.ExistedBeforeAllegianceXpChanges)
+                return;
+
             var loyalty = Math.Min(vassal.GetCurrentLoyalty(), SkillCap);
             var leadership = Math.Min(patron.GetCurrentLeadership(), SkillCap);
 
@@ -297,6 +300,8 @@ namespace ACE.Server.Managers
         /// <param name="vassal">The vassal swearing into the Allegiance</param>
         public static void OnSwearAllegiance(Player vassal)
         {
+            if (vassal == null) return;
+
             // was this vassal previously a Monarch?
             if (vassal.Allegiance != null)
                 RemoveCache(vassal.Allegiance);
@@ -308,8 +313,8 @@ namespace ACE.Server.Managers
             LoadPlayer(vassal);
 
             // maintain approved vassals list
-            if (allegiance.ApprovedVassals.Contains(vassal.Guid))
-                allegiance.ApprovedVassals.Remove(vassal.Guid);
+            if (allegiance != null && allegiance.HasApprovedVassal(vassal.Guid.Full))
+                allegiance.RemoveApprovedVassal(vassal.Guid.Full);
         }
 
         /// <summary>
@@ -324,8 +329,11 @@ namespace ACE.Server.Managers
                 RemoveCache(self.Allegiance);
 
             // rebuild for self and target
-            Rebuild(GetAllegiance(self));
-            Rebuild(GetAllegiance(target));
+            var selfAllegiance = GetAllegiance(self);
+            var targetAllegiance = GetAllegiance(target);
+
+            Rebuild(selfAllegiance);
+            Rebuild(targetAllegiance);
 
             LoadPlayer(self);
             LoadPlayer(target);
@@ -345,10 +353,7 @@ namespace ACE.Server.Managers
 
             if (player.MonarchId != null)
             {
-                player.MonarchId = null;
-
-                if (onlinePlayer != null)
-                    onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, 0));
+                player.UpdateProperty(PropertyInstanceId.Monarch, null, true);
 
                 updated = true;
             }
@@ -401,19 +406,28 @@ namespace ACE.Server.Managers
             }
 
             player.PatronId = null;
-            player.MonarchId = null;
+            player.UpdateProperty(PropertyInstanceId.Monarch, null, true);
 
             // vassals now become monarchs...
-            foreach (var vassal in allegianceNode.Vassals.Values)
+            foreach (var vassalNode in allegianceNode.Vassals.Values)
             {
-                var vassalPlayer = PlayerManager.FindByGuid(vassal.PlayerGuid, out bool isOnline);
+                var vassal = PlayerManager.FindByGuid(vassalNode.PlayerGuid);
 
-                if (vassalPlayer == null) continue;
+                if (vassal == null) continue;
 
-                vassalPlayer.PatronId = null;
-                vassalPlayer.MonarchId = null;
+                vassal.PatronId = null;
+                vassal.UpdateProperty(PropertyInstanceId.Monarch, null, true);
 
-                players.Add(vassal.Player);
+                // walk the allegiance tree from this node, update monarch ids
+                vassalNode.Walk((node) =>
+                {
+                    node.Player.UpdateProperty(PropertyInstanceId.Monarch, vassalNode.PlayerGuid.Full, true);
+
+                    node.Player.SaveBiotaToDatabase();
+
+                }, false);
+
+                players.Add(vassal);
             }
 
             RemoveCache(allegiance);
@@ -430,16 +444,15 @@ namespace ACE.Server.Managers
 
             // save immediately?
             foreach (var p in players)
+                p.SaveBiotaToDatabase();
+
+            foreach (var p in players)
             {
-                var offline = PlayerManager.GetOfflinePlayer(p.Guid);
-                if (offline != null)
-                    offline.SaveBiotaToDatabase();
-                else
-                {
-                    var online = PlayerManager.GetOnlinePlayer(p.Guid);
-                    if (online != null)
-                        online.SaveBiotaToDatabase();
-                }
+                Player.CheckAllegianceHouse(p.Guid);
+
+                var newAllegiance = GetAllegiance(p);
+                if (newAllegiance != null)
+                    newAllegiance.Monarch.Walk((node) => Player.CheckAllegianceHouse(node.PlayerGuid), false);
             }
         }
     }

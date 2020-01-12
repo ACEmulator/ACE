@@ -1,8 +1,10 @@
+using System.Collections.Generic;
+
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using System.Collections.Generic;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -32,66 +34,35 @@ namespace ACE.Server.Command.Handlers
             switch (parameters?[0].ToLower())
             {
                 case "off":
-                    session.Player.Cloaked = false;
-                    session.Player.Ethereal = false;
-                    // session.Player.IgnoreCollisions = false;
-                    session.Player.NoDraw = false;
-                    // session.Player.ReportCollisions = true;
-                    session.Player.EnqueueBroadcastPhysicsState();
-                    session.Player.Translucency = null;
-                    session.Player.Visibility = false;
+                    if (session.Player.CloakStatus == CloakStatus.Off)
+                        return;
 
-                    if (session.Player.CloakStatus > CloakStatus.On)
-                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as an admin. You must relog for this to take effect", ChatMessageType.Broadcast);
+                    session.Player.DeCloak();
 
-                    session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Off);
+                    session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.Off);
 
-                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                    //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
-                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
-                    //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"You are no longer cloaked, can no longer pass through doors and will appear as an admin.", ChatMessageType.Broadcast);
                     break;
-                case "on":                    
-                    session.Player.Cloaked = true;
-                    session.Player.Ethereal = true;
-                    // session.Player.IgnoreCollisions = true;
-                    session.Player.NoDraw = true;
-                    // session.Player.ReportCollisions = false;
-                    session.Player.EnqueueBroadcastPhysicsState();
-                    session.Player.Visibility = true;
-                    session.Player.Translucency = 0.5f;
+                case "on":
+                    if (session.Player.CloakStatus == CloakStatus.On)
+                        return;
 
-                    if (session.Player.CloakStatus > CloakStatus.On)
-                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as an admin. You must relog for this to take effect", ChatMessageType.Broadcast);
+                    session.Player.Cloak();
 
-                    session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.On);
+                    session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.On);
 
-                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                    //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
-                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
-                    //session.Network.EnqueueSend(new GameMessageCreateObject(session.Player));
-                    //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
-
+                    CommandHandlerHelper.WriteOutputInfo(session, $"You are now cloaked.\nYou are now ethereal and can pass through doors.", ChatMessageType.Broadcast);
                     break;
                 case "player":
                     if (session.AccessLevel > AccessLevel.Envoy)
                     {
-                        session.Player.Cloaked = false;
-                        session.Player.Ethereal = false;
-                        // session.Player.IgnoreCollisions = false;
-                        session.Player.NoDraw = false;
-                        // session.Player.ReportCollisions = true;
-                        session.Player.EnqueueBroadcastPhysicsState();
-                        session.Player.Translucency = null;
-                        session.Player.Visibility = false;
-                        session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Player);
+                        if (session.Player.CloakStatus == CloakStatus.Player)
+                            return;
 
-                        //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                        //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
-                        //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
-                        //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
+                        session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.Player);
 
-                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as a player. You must relog for this to take effect", ChatMessageType.Broadcast);
+                        session.Player.DeCloak();
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as a player.", ChatMessageType.Broadcast);
                     }
                     else
                         CommandHandlerHelper.WriteOutputInfo(session, $"You do not have permission to do that state", ChatMessageType.Broadcast);
@@ -99,22 +70,14 @@ namespace ACE.Server.Command.Handlers
                 case "creature":
                     if (session.AccessLevel > AccessLevel.Envoy)
                     {
-                        session.Player.Cloaked = false;
-                        session.Player.Ethereal = false;
-                        // session.Player.IgnoreCollisions = false;
-                        session.Player.NoDraw = false;
-                        // session.Player.ReportCollisions = true;
-                        session.Player.EnqueueBroadcastPhysicsState();
-                        session.Player.Translucency = null;
-                        session.Player.Visibility = false;
-                        session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Creature);
+                        if (session.Player.CloakStatus == CloakStatus.Creature)
+                            return;
 
-                        //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                        //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
-                        //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
-                        //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
+                        session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.Creature);
+                        session.Player.Attackable = true;
 
-                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as a creature. You must relog for this to take effect\nIn order to appear correctly, you must also set '@attackable on'\nUse @pk free to be allowed to attack all living things.", ChatMessageType.Broadcast);
+                        session.Player.DeCloak();
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as a creature.\nUse @pk free to be allowed to attack all living things.", ChatMessageType.Broadcast);
                     }
                     else
                         CommandHandlerHelper.WriteOutputInfo(session, $"You do not have permission to do that state", ChatMessageType.Broadcast);
@@ -187,7 +150,7 @@ namespace ACE.Server.Command.Handlers
             List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
             {
                 new CommandParameterHelpers.ACECommandParameter() {
-                    Type = CommandParameterHelpers.ACECommandParameterType.Player,
+                    Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerNameOrIid,
                     Required = false,
                     DefaultValue = session.Player
                 }
@@ -198,8 +161,11 @@ namespace ACE.Server.Command.Handlers
                 session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
                 return;
             }
-            session.Player.CreateSentinelBuffPlayers(aceParams[0].AsPlayer.Fellowship.FellowshipMembers,
-                aceParams[0].AsPlayer.Fellowship.FellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipMembers[0] == session.Player);
+
+            var fellowshipMembers = aceParams[0].AsPlayer.Fellowship.GetFellowshipMembers();
+
+            session.Player.CreateSentinelBuffPlayers(fellowshipMembers.Values,
+                fellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipLeaderGuid == session.Player.Guid.Full);
         }
 
         // buff [name]
@@ -212,7 +178,7 @@ namespace ACE.Server.Command.Handlers
             List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
             {
                 new CommandParameterHelpers.ACECommandParameter() {
-                    Type = CommandParameterHelpers.ACECommandParameterType.Player,
+                    Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerNameOrIid,
                     Required = false,
                     DefaultValue = session.Player
                 },

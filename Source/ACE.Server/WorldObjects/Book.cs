@@ -28,10 +28,12 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Book;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Book;
 
             SetProperty(PropertyInt.AppraisalPages, Biota.BiotaPropertiesBookPageData.Count);
-            SetProperty(PropertyInt.AppraisalMaxPages, Biota.BiotaPropertiesBook.MaxNumPages);
+
+            if (Biota.BiotaPropertiesBook != null)
+                SetProperty(PropertyInt.AppraisalMaxPages, Biota.BiotaPropertiesBook.MaxNumPages);
         }
 
         public void SetProperties(string name, string shortDesc, string inscription, string scribeName, string scribeAccount)
@@ -119,25 +121,40 @@ namespace ACE.Server.WorldObjects
             if (alreadyExists) return null;
 
             SetProperty(PropertyInt.AppraisalPages, pages.Count + 1);
+            ChangesDetected = true;
+
             return page;
         }
 
-        public bool ModifyPage(uint pageId, string pageText)
+        public bool ModifyPage(uint pageId, string pageText, Player player)
         {
             var page = Biota.GetBookPageData(Guid.Full, pageId, BiotaDatabaseLock);
 
             if (page == null || page.PageText.Equals(pageText))
                 return false;
 
-            page.PageText = pageText;
-            ChangesDetected = true;
+            if (page.IgnoreAuthor || (player.Guid.Full == page.AuthorId && player.Name == page.AuthorName && player.Account.AccountName == page.AuthorAccount) || player is Sentinel || player is Admin)
+            {
+                page.AuthorAccount = player.Account.AccountName;
+                page.AuthorId = player.Guid.Full;
+                page.AuthorName = player.Name;
+                page.PageText = pageText;
+                ChangesDetected = true;
+            }
+            else
+                return false;
 
             return true;
         }
 
-        public bool DeletePage(uint pageId)
+        public bool DeletePage(uint pageId, Player player)
         {
             var pages = Biota.GetBookAllPages(Guid.Full, BiotaDatabaseLock);
+
+            var page = Biota.GetBookPageData(Guid.Full, pageId, BiotaDatabaseLock);
+
+            if (page == null || (!page.IgnoreAuthor && player.Guid.Full != page.AuthorId && !(player is Sentinel) && !(player is Admin)))
+                return false;
 
             var success = Biota.DeleteBookPage(pageId, out var entity, BiotaDatabaseLock);
 
@@ -149,14 +166,21 @@ namespace ACE.Server.WorldObjects
                 // handle deleting page from middle of book
                 for (var i = pageId + 1; i < pages.Count; i++)
                 {
-                    var page = Biota.GetBookPageData(Guid.Full, i, BiotaDatabaseLock);
-                    page.PageId--;
+                    var page2 = Biota.GetBookPageData(Guid.Full, i, BiotaDatabaseLock);
+                    page2.PageId--;
                 }
             }
             SetProperty(PropertyInt.AppraisalPages, pages.Count - 1);
             ChangesDetected = true;
 
             return true;
+        }
+
+        public BiotaPropertiesBookPageData GetPage(uint pageId)
+        {
+            var page = Biota.GetBookPageData(Guid.Full, pageId, BiotaDatabaseLock);
+
+            return page;
         }
     }
 }

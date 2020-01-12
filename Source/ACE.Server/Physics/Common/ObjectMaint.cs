@@ -1,8 +1,10 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+using System.Threading;
+
+using ACE.Server.Physics.Managers;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Physics.Common
 {
@@ -13,30 +15,20 @@ namespace ACE.Server.Physics.Common
     public class ObjectMaint
     {
         /// <summary>
-        /// Objects are removed from the client after this amount of time
+        /// The client automatically removes known objects if they remain outside visibility for this amount of time
         /// </summary>
         public static readonly float DestructionTime = 25.0f;
 
-        /// <summary>
-        /// The distance the server sends objects to players
-        /// for non-dungeon landblocks
-        /// </summary>
-        public static readonly float RadiusOutside = 192.0f;
-
-        /// <summary>
-        /// The cell radius to send objects to players
-        /// for non-dungeon landblocks (8 cell radius by default)
-        /// </summary>
-        public static readonly float CellRadiusOutside = RadiusOutside / LandDefs.CellLength;
+        private static readonly ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
         /// <summary>
         /// The owner of this ObjectMaint instance
         /// This is who we are tracking object visibility for, ie. a Player
         /// </summary>
-        public PhysicsObj PhysicsObj;
+        public PhysicsObj PhysicsObj { get; }
 
         /// <summary>
-        /// This list of objects that are known to the client
+        /// This list of objects that are known to a player
         /// </summary>
         /// <remarks>
         /// 
@@ -47,30 +39,36 @@ namespace ACE.Server.Physics.Common
         /// it is removed from the VisibleObject list, and added to the destruction queue.
         /// if it remains outside PVS for DestructionTime, the client automatically culls the object,
         /// and it is removed from this list of known objects.
-        /// 
+        ///
+        /// - This is only maintained for players.
         /// </remarks>
-        public Dictionary<uint, PhysicsObj> ObjectTable;
+        private Dictionary<uint, PhysicsObj> KnownObjects { get; } = new Dictionary<uint, PhysicsObj>();
 
         /// <summary>
         /// This list of objects that are currently within PVS / VisibleCell range
+        /// only maintained for players
         /// </summary>
-        public Dictionary<uint, PhysicsObj> VisibleObjectTable;
-
-        /// <summary>
-        /// A list of objects that currently know about this object
-        /// </summary>
-        public Dictionary<uint, PhysicsObj> VoyeurTable;
+        private Dictionary<uint, PhysicsObj> VisibleObjects { get; } = new Dictionary<uint, PhysicsObj>();
 
         /// <summary>
         /// Objects that were previously visible to the client,
         /// but have been outside the PVS for less than 25 seconds
+        /// only maintained for players
         /// </summary>
-        public Dictionary<PhysicsObj, double> DestructionQueue;
+        private Dictionary<PhysicsObj, double> DestructionQueue { get; } = new Dictionary<PhysicsObj, double>();
 
         /// <summary>
-        /// Custom lookup table of PhysicsObjs for the server
+        /// A list of players that currently know about this object
+        /// This is maintained for all server-spawned WorldObjects, and is used for broadcasting
         /// </summary>
-        public static ConcurrentDictionary<uint, PhysicsObj> ServerObjects = new ConcurrentDictionary<uint, PhysicsObj>();
+        private Dictionary<uint, PhysicsObj> KnownPlayers { get; } = new Dictionary<uint, PhysicsObj>();
+
+        /// <summary>
+        /// For monster and CombatPet FindNextTarget
+        /// - for monsters, contains players and combat pets
+        /// - for combat pets, contains monsters
+        /// </summary>
+        private Dictionary<uint, PhysicsObj> VisibleTargets { get; } = new Dictionary<uint, PhysicsObj>();
 
         // Client structures -
         // When client unloads a cell/landblock, but still knows about objects in those cells?
@@ -84,43 +82,305 @@ namespace ACE.Server.Physics.Common
         public ObjectMaint(PhysicsObj obj)
         {
             PhysicsObj = obj;
-            ObjectTable = new Dictionary<uint, PhysicsObj>();
-            VisibleObjectTable = new Dictionary<uint, PhysicsObj>();
-            VoyeurTable = new Dictionary<uint, PhysicsObj>();
-            DestructionQueue = new Dictionary<PhysicsObj, double>();
+        }
+
+
+        public PhysicsObj GetKnownObject(uint objectGuid)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                KnownObjects.TryGetValue(objectGuid, out var obj);
+                return obj;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public int GetKnownObjectsCount()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public bool KnownObjectsContainsValue(PhysicsObj value)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.Values.Contains(value);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<KeyValuePair<uint, PhysicsObj>> GetKnownObjectsWhere(Func<KeyValuePair<uint, PhysicsObj>, bool> predicate)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<PhysicsObj> GetKnownObjectsValues()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.Values.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<PhysicsObj> GetKnownObjectsValuesWhere(Func<PhysicsObj, bool> predicate)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.Values.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         /// <summary>
         /// Adds an object to the list of known objects
+        /// only maintained for players
         /// </summary>
         /// <returns>true if previously an unknown object</returns>
-        public bool AddObject(PhysicsObj obj)
+        public bool AddKnownObject(PhysicsObj obj)
         {
-            if (!ObjectTable.ContainsKey(obj.ID))
+            rwLock.EnterWriteLock();
+            try
             {
-                ObjectTable.Add(obj.ID, obj);
+                if (KnownObjects.ContainsKey(obj.ID))
+                    return false;
 
-                // add to target object's voyeurs
-                obj.ObjMaint.AddVoyeur(PhysicsObj);
+                KnownObjects.TryAdd(obj.ID, obj);
+
+                // maintain KnownPlayers for both parties
+                if (obj.IsPlayer)
+                    AddKnownPlayer(obj);
+
+                obj.ObjMaint.AddKnownPlayer(PhysicsObj);
 
                 return true;
             }
-            return false;
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
         /// Adds a list of objects to the known objects list
+        /// only maintained for players
         /// </summary>
-        /// <param name="objs">A list of newly visible objects</param>
+        /// <param name="objs">A list of currently visible objects</param>
         /// <returns>The list of visible objects that were previously unknown</returns>
-        public List<PhysicsObj> AddObjects(List<PhysicsObj> objs)
+        private List<PhysicsObj> AddKnownObjects(IEnumerable<PhysicsObj> objs)
         {
             var newObjs = new List<PhysicsObj>();
 
             foreach (var obj in objs)
-                if (AddObject(obj)) newObjs.Add(obj);
+            {
+                if (AddKnownObject(obj))
+                    newObjs.Add(obj);
+            }
 
             return newObjs;
+        }
+
+        public bool RemoveKnownObject(PhysicsObj obj, bool inversePlayer = true)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var result = KnownObjects.Remove(obj.ID, out _);
+
+                if (inversePlayer && PhysicsObj.IsPlayer)
+                    obj.ObjMaint.RemoveKnownPlayer(PhysicsObj);
+
+                return result;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+
+        public int GetVisibleObjectsCount()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleObjects.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public bool VisibleObjectsContainsKey(uint key)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleObjects.ContainsKey(key);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<KeyValuePair<uint, PhysicsObj>> GetVisibleObjectsWhere(Func<KeyValuePair<uint, PhysicsObj>, bool> predicate)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleObjects.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<PhysicsObj> GetVisibleObjectsValues()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleObjects.Values.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<PhysicsObj> GetVisibleObjectsValuesWhere(Func<PhysicsObj, bool> predicate)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleObjects.Values.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<Creature> GetVisibleObjectsValuesOfTypeCreature()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleObjects.Values.Select(v => v.WeenieObj.WorldObject).OfType<Creature>().ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of objects that are currently visible from a cell
+        /// </summary>
+        public List<PhysicsObj> GetVisibleObjects(ObjCell cell, VisibleObjectType type = VisibleObjectType.All)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                if (PhysicsObj.CurLandblock == null || cell == null)
+                    return new List<PhysicsObj>();
+
+                // use PVS / VisibleCells for EnvCells not seen outside
+                // (mostly dungeons, also some large indoor areas ie. caves)
+                if (cell is EnvCell envCell && !envCell.SeenOutside)
+                    return GetVisibleObjects(envCell, type);
+
+                // use current landblock + adjacents for outdoors,
+                // and envcells seen from outside (all buildings)
+                var visibleObjs = PhysicsObj.CurLandblock.GetServerObjects(true);
+
+                return ApplyFilter(visibleObjs, type).Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of objects that are currently visible from a dungeon cell
+        /// </summary>
+        private List<PhysicsObj> GetVisibleObjects(EnvCell cell, VisibleObjectType type)
+        {
+            var visibleObjs = new List<PhysicsObj>();
+
+            // add objects from current cell
+            cell.AddObjectListTo(visibleObjs);
+
+            // add objects from visible cells
+            foreach (var envCell in cell.VisibleCells.Values)
+            {
+                if (envCell != null)
+                    envCell.AddObjectListTo(visibleObjs);
+            }
+
+            return ApplyFilter(visibleObjs, type).Where(i => !i.DatObject && i.ID != PhysicsObj.ID).Distinct().ToList();
+        }
+
+        public enum VisibleObjectType
+        {
+            All,
+            Players,
+            AttackTargets
+        };
+
+        private IEnumerable<PhysicsObj> ApplyFilter(List<PhysicsObj> objs, VisibleObjectType type)
+        {
+            IEnumerable<PhysicsObj> results = objs;
+
+            if (type == VisibleObjectType.Players)
+            {
+                results = objs.Where(i => i.IsPlayer);
+            }
+            else if (type == VisibleObjectType.AttackTargets)
+            {
+                if (PhysicsObj.WeenieObj.IsCombatPet)
+                    results = objs.Where(i => i.WeenieObj.IsMonster);
+                else
+                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet);
+            }
+
+            return results;
         }
 
         public static bool InitialClamp = true;
@@ -130,354 +390,554 @@ namespace ACE.Server.Physics.Common
 
         /// <summary>
         /// Adds an object to the list of visible objects
+        /// only maintained for players
         /// </summary>
+        /// <returns>TRUE if object was previously not visible, and added to the visible list</returns>
         public bool AddVisibleObject(PhysicsObj obj)
         {
-            if (!VisibleObjectTable.ContainsKey(obj.ID))
+            rwLock.EnterWriteLock();
+            try
             {
-                if (InitialClamp && !ObjectTable.ContainsKey(obj.ID))
+                if (VisibleObjects.ContainsKey(obj.ID))
+                    return false;
+
+                if (InitialClamp && !KnownObjects.ContainsKey(obj.ID))
                 {
-                    var distSq = PhysicsObj.WeenieObj.WorldObject.Location.Distance2DSquared(obj.WeenieObj.WorldObject.Location);
+                    var distSq = PhysicsObj.Position.Distance2DSquared(obj.Position);
+
                     if (distSq > InitialClamp_DistSq)
                         return false;
                 }
 
-                VisibleObjectTable.Add(obj.ID, obj);
+                //Console.WriteLine($"{PhysicsObj.Name}.AddVisibleObject({obj.Name})");
+                VisibleObjects.TryAdd(obj.ID, obj);
+
+                if (obj.WeenieObj.IsMonster)
+                    obj.ObjMaint.AddVisibleTarget(PhysicsObj, false);
+
                 return true;
             }
-            return false;
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
         /// Add a list of visible objects - maintains both known and visible objects
+        /// only maintained for players
         /// </summary>
-        public List<PhysicsObj> AddVisibleObjects(List<PhysicsObj> objs)
+        public List<PhysicsObj> AddVisibleObjects(ICollection<PhysicsObj> objs)
         {
-            var visibleAdded = new List<PhysicsObj>();
-
-            foreach (var obj in objs)
+            rwLock.EnterWriteLock();
+            try
             {
-                if (AddVisibleObject(obj))
-                    visibleAdded.Add(obj);
-            }
-            RemoveObjectsToBeDestroyed(objs);
+                var visibleAdded = new List<PhysicsObj>();
 
-            return AddObjects(visibleAdded);
+                foreach (var obj in objs)
+                {
+                    if (AddVisibleObject(obj))
+                        visibleAdded.Add(obj);
+                }
+
+                RemoveObjectsToBeDestroyed(objs);
+
+                return AddKnownObjects(visibleAdded);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        /// <summary>
+        /// Removes an object from the visible objects list
+        /// only run for players
+        /// and also removes the player from the object's visible targets list
+        /// </summary>
+        public bool RemoveVisibleObject(PhysicsObj obj, bool inverseTarget = true)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var removed = VisibleObjects.Remove(obj.ID, out _);
+
+                if (inverseTarget)
+                    obj.ObjMaint.RemoveVisibleTarget(PhysicsObj);
+
+                return removed;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+
+        public int GetDestructionQueueCount()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return DestructionQueue.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public Dictionary<PhysicsObj, double> GetDestructionQueueCopy()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                var result = new Dictionary<PhysicsObj, double>();
+
+                foreach (var kvp in DestructionQueue)
+                    result[kvp.Key] = kvp.Value;
+
+                return result;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
         }
 
         /// <summary>
         /// Adds an object to the destruction queue
         /// Called when an object exits the PVS range
+        /// only maintained for players
         /// </summary>
         public bool AddObjectToBeDestroyed(PhysicsObj obj)
         {
-            var time = PhysicsTimer.CurrentTime + DestructionTime;
-            if (!DestructionQueue.ContainsKey(obj))
+            rwLock.EnterWriteLock();
+            try
             {
-                DestructionQueue.Add(obj, time);
+                RemoveVisibleObject(obj);
+
+                if (DestructionQueue.ContainsKey(obj))
+                    return false;
+
+                DestructionQueue.TryAdd(obj, PhysicsTimer.CurrentTime + DestructionTime);
+
                 return true;
             }
-            return false;
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
         /// Adds a list of objects to the destruction queue
+        /// only maintained for players
         /// </summary>
         public List<PhysicsObj> AddObjectsToBeDestroyed(List<PhysicsObj> objs)
         {
-            var queued = new List<PhysicsObj>();
-            foreach (var obj in objs)
+            rwLock.EnterWriteLock();
+            try
             {
-                if (AddObjectToBeDestroyed(obj))
-                    queued.Add(obj);
-
-                VisibleObjectTable.Remove(obj.ID);
-            }
-            return queued;
-        }
-
-        /// <summary>
-        /// Returns a list of objects that have been in the destruction queue
-        /// for less than 25 seconds
-        /// </summary>
-        public List<PhysicsObj> GetCulledObjects(List<PhysicsObj> visibleObjects)
-        {
-            var culledObjects = DestructionQueue.Where(kvp => kvp.Value > PhysicsTimer.CurrentTime).ToDictionary(kvp => kvp.Key, kvp => kvp.Value).Keys.ToList();
-            return culledObjects;
-        }
-
-        /// <summary>
-        /// Returns a list of objects that have been in the destruction queue
-        /// for more than 25 seconds
-        /// </summary>
-        public List<PhysicsObj> GetDestroyedObjects()
-        {
-            var destroyedObjects = DestructionQueue.Where(kvp => kvp.Value <= PhysicsTimer.CurrentTime).ToDictionary(kvp => kvp.Key, kvp => kvp.Value).Keys.ToList();
-            return destroyedObjects;
-        }
-
-        /// <summary>
-        /// Returns a PhysicsObj for an object ID
-        /// </summary>
-        public static PhysicsObj GetObjectA(uint objectID)
-        {
-            ServerObjects.TryGetValue(objectID, out var obj);
-            return obj;
-        }
-
-        /// <summary>
-        /// Returns a list of outdoor cells within visible range of player
-        /// </summary>
-        public List<ObjCell> GetOutdoorCells(ObjCell cell)
-        {
-            // get cell x/y global offset
-            var lcoord = LandDefs.get_outside_lcoord(cell.ID, PhysicsObj.Position.Frame.Origin.X, PhysicsObj.Position.Frame.Origin.Y).Value;
-
-            // includes the origin cell
-            var blockLength = (int)CellRadiusOutside * 2 + 1;
-            var cells = new List<ObjCell>(/*blockLength * blockLength*/);
-
-            var start = new Vector2(lcoord.X - CellRadiusOutside, lcoord.Y - CellRadiusOutside);
-            var end = new Vector2(lcoord.X + CellRadiusOutside, lcoord.Y + CellRadiusOutside);
-
-            for (var cellX = start.X; cellX <= end.X; cellX++)
-            {
-                for (var cellY = start.Y; cellY <= end.Y; cellY++)
+                var queued = new List<PhysicsObj>();
+                foreach (var obj in objs)
                 {
-                    var blockCellID = LandDefs.lcoord_to_gid(cellX, cellY);
-                    var _cell = LScape.get_landcell((uint)blockCellID);
-                    if (_cell == null)
-                        continue;
-                    cells.Add(_cell);
-
-                    // does this outdoor cell contain a building?
-                    // if so, add all of its cells
-                    var landCell = _cell as LandCell;
-                    if (landCell.has_building())
-                    {
-                        //Console.WriteLine($"Found building in cell {landCell.ID:X8}");
-                        var buildingCells = landCell.Building.get_building_cells();
-                        //Console.WriteLine("# cells: " + buildingCells.Count);
-                        cells.AddRange(buildingCells);
-                    }
+                    if (AddObjectToBeDestroyed(obj))
+                        queued.Add(obj);
                 }
+
+                return queued;
             }
-            return cells;
-        }
-
-        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell)
-        {
-            var visibleObjs = GetVisibleObjects(cell);
-
-            var dist = new List<PhysicsObj>();
-            foreach (var obj in visibleObjs)
+            finally
             {
-                var distSq = PhysicsObj.WeenieObj.WorldObject.Location.Distance2DSquared(obj.WeenieObj.WorldObject.Location);
-                if (distSq <= InitialClamp_DistSq)
-                    dist.Add(obj);
+                rwLock.ExitWriteLock();
             }
-            return dist;
         }
 
         /// <summary>
-        /// Returns a list of objects that are currently visible from a cell
-        /// in an outdoor landblock
-        /// </summary>
-        public List<PhysicsObj> GetVisibleObjects(ObjCell cell)
-        {
-            if (PhysicsObj.CurLandblock == null || cell == null) return new List<PhysicsObj>();
-
-            // use PVS / VisibleCells for EnvCells not seen outside
-            // (mostly dungeons, also some large indoor areas ie. caves)
-            if (cell is EnvCell envCell && !envCell.SeenOutside)
-                return GetVisibleObjects(envCell);
-
-            // use current landblock + adjacents for outdoors,
-            // and envcells seen from outside (all buildings)
-            var visibleObjs = new List<PhysicsObj>(PhysicsObj.CurLandblock.ServerObjects);
-
-            var adjacents = PhysicsObj.CurLandblock.get_adjacents();
-            if (adjacents != null)
-            {
-                foreach (var adjacent in adjacents)
-                    visibleObjs.AddRange(adjacent.ServerObjects);
-            }
-
-            return visibleObjs.Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
-
-            /*var cells = GetOutdoorCells(cell);
-
-            var visibleObjs = new List<PhysicsObj>();
-
-            foreach (var _cell in cells)
-                visibleObjs.AddRange(_cell.ObjectList);
-
-            return visibleObjs.Where(obj => !obj.DatObject).Distinct().ToList();*/
-
-        }
-
-        /// <summary>
-        /// Returns a list of objects that are currently visible from a dungeon cell
-        /// </summary>
-        public List<PhysicsObj> GetVisibleObjects(EnvCell cell)
-        {
-            var visibleObjs = new List<PhysicsObj>();
-
-            // add objects from current cell
-            visibleObjs.AddRange(cell.ObjectList);
-
-            // add objects from visible cells
-            foreach (var envCell in cell.VisibleCells.Values)
-            {
-                if (envCell == null) continue;
-
-                visibleObjs.AddRange(envCell.ObjectList);
-            }
-
-            return visibleObjs.Where(i => !i.DatObject && i.ID != PhysicsObj.ID).Distinct().ToList();
-        }
-
-        /// <summary>
-        /// Removes an object from the destruction queue
-        /// if it has been invisible for less than 25s
+        /// Removes an object from the destruction queue if it has been invisible for less than 25s
+        /// this is only used for players
         /// </summary>
         public bool RemoveObjectToBeDestroyed(PhysicsObj obj)
         {
-            double time = -1;
-            DestructionQueue.TryGetValue(obj, out time);
-            if (time != -1 && time > PhysicsTimer.CurrentTime)
+            rwLock.EnterWriteLock();
+            try
             {
-                DestructionQueue.Remove(obj);
-                return true;
+                double time = -1;
+                DestructionQueue.TryGetValue(obj, out time);
+                if (time != -1 && time > PhysicsTimer.CurrentTime)
+                {
+                    DestructionQueue.Remove(obj, out _);
+                    return true;
+                }
+
+                return false;
             }
-            return false;
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
-        /// Removes objects from the destruction queue
-        /// when they re-enter visibility within 25s
+        /// Removes objects from the destruction queue when they re-enter visibility within 25s
+        /// this is only used for players
         /// </summary>
-        public void RemoveObjectsToBeDestroyed(List<PhysicsObj> objs)
+        private void RemoveObjectsToBeDestroyed(IEnumerable<PhysicsObj> objs)
         {
             foreach (var obj in objs)
                 RemoveObjectToBeDestroyed(obj);
         }
 
         /// <summary>
-        /// Removes any objects that have been in the destruction queue
-        /// for more than 25s
+        /// Removes any objects that have been in the destruction queue for more than 25s
+        /// this is only used for players
         /// </summary>
-        /// <returns></returns>
         public List<PhysicsObj> DestroyObjects()
         {
-            // find the list of objects that have been in the destruction queue > 25s
-            var expiredObjs = DestructionQueue.Where(kvp => kvp.Value <= PhysicsTimer.CurrentTime).ToDictionary(kvp => kvp.Key, kvp => kvp.Value).Keys.ToList();
+            rwLock.EnterWriteLock();
+            try
+            {
+                // find the list of objects that have been in the destruction queue > 25s
+                var expiredObjs = DestructionQueue.Where(kvp => kvp.Value <= PhysicsTimer.CurrentTime)
+                    .Select(kvp => kvp.Key).ToList();
 
-            // remove expired objects from all lists
-            foreach (var expiredObj in expiredObjs)
-                RemoveObject(expiredObj);
+                // remove expired objects from all lists
+                foreach (var expiredObj in expiredObjs)
+                    RemoveObject(expiredObj);
 
-            return expiredObjs;
+                return expiredObjs;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
-        /// Removes an object from all of the tables
+        /// Removes an object after it has expired from the destruction queue, or it has been destroyed
         /// </summary>
-        public void RemoveObject(PhysicsObj obj)
+        public void RemoveObject(PhysicsObj obj, bool inverse = true)
         {
-            if (obj == null) return;
+            rwLock.EnterWriteLock();
+            try
+            {
+                if (obj == null) return;
 
-            ObjectTable.Remove(obj.ID);
-            VisibleObjectTable.Remove(obj.ID);
-            DestructionQueue.Remove(obj);
-            VoyeurTable.Remove(obj.ID);
+                RemoveKnownObject(obj, inverse);
+                RemoveVisibleObject(obj, inverse);
+                DestructionQueue.Remove(obj, out _);
 
-            obj.ObjMaint.RemoveVoyeur(PhysicsObj);
+                RemoveKnownPlayer(obj);
+                RemoveVisibleTarget(obj);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
+
+
+        public int GetKnownPlayersCount()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownPlayers.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<KeyValuePair<uint, PhysicsObj>> GetKnownPlayersWhere(Func<KeyValuePair<uint, PhysicsObj>, bool> predicate)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownPlayers.Where(predicate).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<PhysicsObj> GetKnownPlayersValues()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownPlayers.Values.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<Player> GetKnownPlayersValuesAsPlayer()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Adds a player who currently knows about this object
+        /// - this is maintained for all server-spawned objects
+        /// 
+        /// when an object broadcasts, it sends network messages
+        /// to all players who currently know about this object
+        /// </summary>
+        /// <returns>true if previously an unknown object</returns>
+        private bool AddKnownPlayer(PhysicsObj obj)
+        {
+            // only tracking players who know about this object
+            if (!obj.IsPlayer)
+            {
+                Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddKnownPlayer({obj.Name}): tried to add a non-player");
+                return false;
+            }
+            if (PhysicsObj.DatObject)
+            {
+                Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddKnownPlayer({obj.Name}): tried to add player for dat object");
+                return false;
+            }
+
+            //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddKnownPlayer({obj.Name})");
+
+            // TryAdd for existing keys still modifies collection?
+            if (KnownPlayers.ContainsKey(obj.ID))
+                return false;
+
+            KnownPlayers.TryAdd(obj.ID, obj);
+            return true;
+        }
+
+        /// <summary>
+        /// Adds a list of players known to this object
+        /// </summary>
+        public List<PhysicsObj> AddKnownPlayers(IEnumerable<PhysicsObj> objs)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var newObjs = new List<PhysicsObj>();
+
+                foreach (var obj in objs)
+                {
+                    if (AddKnownPlayer(obj))
+                        newObjs.Add(obj);
+                }
+
+                return newObjs;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        /// <summary>
+        /// Removes a known player for this object
+        /// </summary>
+        public bool RemoveKnownPlayer(PhysicsObj obj)
+        {
+            //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveKnownPlayer({obj.Name})");
+
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownPlayers.Remove(obj.ID, out _);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+
+        public int GetVisibleTargetsCount()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleTargets.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public bool VisibleTargetsContainsKey(uint key)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleTargets.ContainsKey(key);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<PhysicsObj> GetVisibleTargetsValues()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleTargets.Values.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<Creature> GetVisibleTargetsValuesOfTypeCreature()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return VisibleTargets.Values.Select(v => v.WeenieObj.WorldObject).OfType<Creature>().ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// For monster and CombatPet FindNextTarget
+        /// - for monsters, contains players and combat pets
+        /// - for combat pets, contains monsters
+        /// </summary>
+        private bool AddVisibleTarget(PhysicsObj obj, bool clamp = true)
+        {
+            if (PhysicsObj.WeenieObj.IsCombatPet)
+            {
+                // only tracking monsters
+                if (!obj.WeenieObj.IsMonster)
+                {
+                    Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-monster");
+                    return false;
+                }
+            }
+            else
+            {
+                // only tracking players and combat pets
+                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet)
+                {
+                    Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player / non-combat pet");
+                    return false;
+                }
+            }
+            if (PhysicsObj.DatObject)
+            {
+                Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add player for dat object");
+                return false;
+            }
+
+            if (clamp && InitialClamp && obj.IsPlayer && !obj.ObjMaint.KnownObjects.ContainsKey(obj.ID))
+            {
+                var distSq = PhysicsObj.Position.Distance2DSquared(obj.Position);
+
+                if (distSq > InitialClamp_DistSq)
+                    return false;
+            }
+
+            // TryAdd for existing keys still modifies collection?
+            if (VisibleTargets.ContainsKey(obj.ID))
+                return false;
+
+            //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddVisibleTarget({obj.Name})");
+
+            VisibleTargets.Add(obj.ID, obj);
+
+            // maintain inverse for monsters / combat pets
+            if (!obj.IsPlayer)
+                obj.ObjMaint.AddVisibleTarget(PhysicsObj);
+
+            return true;
+        }
+
+        /// <summary>
+        /// For monster and CombatPet FindNextTarget
+        /// - for monsters, contains players and combat pets
+        /// - for combat pets, contains monsters
+        /// </summary>
+        public List<PhysicsObj> AddVisibleTargets(IEnumerable<PhysicsObj> objs)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var visibleAdded = new List<PhysicsObj>();
+
+                foreach (var obj in objs)
+                {
+                    if (AddVisibleTarget(obj))
+                        visibleAdded.Add(obj);
+                }
+
+                return AddKnownPlayers(visibleAdded.Where(o => o.IsPlayer));
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        private bool RemoveVisibleTarget(PhysicsObj obj)
+        {
+            //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.RemoveVisibleTarget({obj.Name})");
+            return VisibleTargets.Remove(obj.ID);
+        }
+
+        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell, VisibleObjectType type)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                var visibleObjs = GetVisibleObjects(cell, type);
+
+                var dist = new List<PhysicsObj>();
+                foreach (var obj in visibleObjs)
+                {
+                    var distSq = PhysicsObj.Position.Distance2DSquared(obj.Position);
+
+                    if (distSq <= InitialClamp_DistSq)
+                        dist.Add(obj);
+                }
+
+                return dist;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
 
         /// <summary>
         /// Clears all of the ObjMaint tables for an object
         /// </summary>
-        public void RemoveAllObjects()
+        private void RemoveAllObjects()
         {
-            foreach (var obj in ObjectTable.Values)
-                obj.ObjMaint.RemoveVoyeur(PhysicsObj);
-
-            ObjectTable.Clear();
-            VisibleObjectTable.Clear();
+            KnownObjects.Clear();
+            VisibleObjects.Clear();
             DestructionQueue.Clear();
-        }
-
-        /// <summary>
-        /// Adds a PhysicsObj to the static list of server-wide objects
-        /// </summary>
-        public static void AddServerObject(PhysicsObj obj)
-        {
-            if (obj == null) return;
-
-            ServerObjects[obj.ID] = obj;
-        }
-
-        /// <summary>
-        /// Removes a PhysicsObj from the static list of server-wide objects
-        /// </summary>
-        public static void RemoveServerObject(PhysicsObj obj)
-        {
-            if (obj == null) return;
-
-            ServerObjects.TryRemove(obj.ID, out _);
-        }
-
-        /// <summary>
-        /// Adds an object to the list of voyeurs
-        /// </summary>
-        /// <returns>true if previously an unknown object</returns>
-        public bool AddVoyeur(PhysicsObj obj)
-        {
-            // only tracking players who know about each object
-            if (!obj.IsPlayer)
-                return false;
-
-            if (!VoyeurTable.ContainsKey(obj.ID))
-            {
-                VoyeurTable.Add(obj.ID, obj);
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Adds a list of objects watching this object
-        /// </summary>
-        public List<PhysicsObj> AddVoyeurs(List<PhysicsObj> objs)
-        {
-            var newVoyeurs = new List<PhysicsObj>();
-
-            foreach (var obj in objs)
-                if (AddVoyeur(obj)) newVoyeurs.Add(obj);
-
-            return newVoyeurs;
-        }
-
-        /// <summary>
-        /// Removes an object from the voyeurs table
-        /// </summary>
-        public bool RemoveVoyeur(PhysicsObj obj)
-        {
-            return VoyeurTable.Remove(obj.ID);
-        }
-
-        /// <summary>
-        /// Called when a new PhysicsObj is first instantiated
-        /// Gets the list of visible players to this PhysicsObj,
-        /// and adds them to the voyeurs list
-        /// </summary>
-        public void get_voyeurs()
-        {
-            if (PhysicsObj.DatObject) return;
-
-            var visiblePlayers = GetVisibleObjectsDist(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList();
-            AddVoyeurs(visiblePlayers);
+            KnownPlayers.Clear();
+            VisibleTargets.Clear();
         }
 
         /// <summary>
@@ -486,10 +946,28 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public void DestroyObject()
         {
-            foreach (var obj in ObjectTable.Values)
-                obj.ObjMaint.RemoveObject(PhysicsObj);
+            rwLock.EnterWriteLock();
+            try
+            {
+                foreach (var obj in KnownObjects.Values)
+                    obj.ObjMaint.RemoveObject(PhysicsObj);
 
-            RemoveServerObject(PhysicsObj);
+                // we are maintaining the inverses here,
+                // so passing false to iterate with modifying these collections
+                foreach (var obj in KnownPlayers.Values)
+                    obj.ObjMaint.RemoveObject(PhysicsObj, false);
+
+                foreach (var obj in VisibleTargets.Values)
+                    obj.ObjMaint.RemoveObject(PhysicsObj, false);
+
+                RemoveAllObjects();
+
+                ServerObjectManager.RemoveServerObject(PhysicsObj);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
         }
     }
 }

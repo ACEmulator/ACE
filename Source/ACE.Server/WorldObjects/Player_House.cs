@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using ACE.Common;
-using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -13,6 +14,7 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -30,6 +32,16 @@ namespace ACE.Server.WorldObjects
         {
             Console.WriteLine($"\n{Name}.HandleActionBuyHouse()");
 
+            // verify player doesn't already own a house
+            var houseInstance = GetHouseInstance();
+
+            if (houseInstance != null)
+            {
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseAlreadyOwned));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("You already own a house!", ChatMessageType.Broadcast));
+                return;
+            }
+
             var slumlord = (SlumLord)CurrentLandblock.GetObject(slumlord_id);
             if (slumlord == null)
             {
@@ -37,24 +49,69 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (slumlord.MinLevel != null)
+            {
+                var playerLevel = Level ?? 1;
+                if (playerLevel < slumlord.MinLevel)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBeAboveLevel_ToBuyHouse, slumlord.MinLevel.ToString()));
+                    return;
+                }
+            }
+
+            if (slumlord.HouseRequiresMonarch)
+            {
+                if (Allegiance == null || Allegiance.MonarchId != Guid.Full)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeMonarchToPurchaseDwelling));
+                    return;
+                }
+            }
+
+            if (slumlord.AllegianceMinLevel != null)
+            {
+                var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+                if (allegianceMinLevel == -1)
+                    allegianceMinLevel = slumlord.AllegianceMinLevel.Value;
+
+                if (Allegiance == null || AllegianceNode.Rank < allegianceMinLevel)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
+                    return;
+                }
+            }
+
             var verified = VerifyPurchase(slumlord, item_ids);
             if (!verified)
             {
-                Console.WriteLine($"{Name} tried to purchase house {slumlord.Guid} without the required items!");
+                log.Error($"{Name} tried to purchase house {slumlord.Guid} without the required items!");
                 return;
             }
 
             Console.WriteLine("\nInventory check passed!");
 
-            // TODO: consume items for house purchase
-            ConsumeItemsForPurchase(item_ids);
+            // get the list of items / amounts to consume for purchase
+            var houseProfile = slumlord.GetHouseProfile();
+            var items = GetInventoryItems(item_ids);
+
+            var consumeItems = GetConsumeItems(houseProfile.Buy, items);
+
+            if (!TryConsumePurchaseItems(consumeItems))
+            {
+                var item_id_list = string.Join(", ", item_ids.Select(i => i.ToString("X8")));
+                var consumeItemsList = string.Join(", ", consumeItems.Select(i => $"{i.Name} ({i.Guid}) x{i.Value}"));
+
+                log.Error($"{Name}.HandleActionBuyHouse({slumlord_id:X8}, {item_id_list}) - TryConsumePurchaseItems failed with {consumeItemsList}");
+
+                return;
+            }
 
             SetHouseOwner(slumlord);
 
-            GiveDeed();
+            GiveDeed(slumlord);
         }
 
-        public void GiveDeed()
+        public void GiveDeed(SlumLord slumLord)
         {
             var deed = WorldObjectFactory.CreateNewWorldObject("deed");
 
@@ -64,7 +121,12 @@ namespace ACE.Server.WorldObjects
             var derethDateTime = DerethDateTime.UtcNowToLoreTime;
             var date = derethDateTime.DateToString();
             var time = derethDateTime.TimeToString();
-            var location = Location.GetMapCoordStr();
+            var location = slumLord.Location.GetMapCoordStr();
+            if (location == null)
+            {
+                if (!HouseManager.ApartmentBlocks.TryGetValue(slumLord.Location.Landblock, out location))
+                    log.Error($"{Name}.GiveDeed() - couldn't find location {slumLord.Location.ToLOCString()}");
+            }
 
             deed.LongDesc = $"Bought by {Name}{titleStr} on {date} at {time}\n\nPurchased at {location}";
 
@@ -90,41 +152,233 @@ namespace ACE.Server.WorldObjects
         {
             Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))})");
 
-            var house = GetHouse();
+            var slumlord = FindObject(slumlord_id, SearchLocations.Landblock) as SlumLord;
+            if (slumlord == null)
+                return;
 
-            if (house.SlumLord.IsRentPaid())
+            if (slumlord.IsRentPaid())
             {
-                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseRentFailed));  // WeenieError.HouseRentFailed = blank message
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseRentFailed));  // WeenieError.HouseRentFailed == blank message
                 Session.Network.EnqueueSend(new GameMessageSystemChat("The maintenance has already been paid for this period.\nYou may not prepay next period's maintenance.", ChatMessageType.Broadcast));
                 return;
             }
 
-            // move items from player inventory to slumlord 'inventory'
+            var owner = PlayerManager.FindByGuid(slumlord.HouseOwner ?? 0);
+            if (owner != null)
+            {
+                var characterHouses = HouseManager.GetCharacterHouses(owner.Guid.Full);
+                var accountHouses = HouseManager.GetAccountHouses(owner.Account.AccountId);
+
+                var ownerHouses = PropertyManager.GetBool("house_per_char").Item ? characterHouses : accountHouses;
+
+                if (ownerHouses.Count() > 1)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("The owner of this house currently owns multiple houses. Maintenance cannot be paid until they only own 1 house.", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            else
+                log.Error($"{Name}.HandleActionRentHouse({slumlord_id:X8}): couldn't find house owner {slumlord.HouseOwner}");
+
+            // filter to items found in player's inventory
+            var items = GetInventoryItems(item_ids);
+
+            // get the list of items / amounts to consume for rent remaining
+            var houseProfile = slumlord.GetHouseProfile();
+            var consumeItems = GetConsumeItems(houseProfile.Rent, items);
+
+            if (IsTrading)
+            {
+                foreach (var item in consumeItems.ToList())
+                {
+                    if (ItemsInTradeWindow.Contains(item.Guid))
+                        consumeItems.Remove(item);
+                }
+            }
+
+            if (consumeItems.Count == 0)
+                return;
+
+            foreach (var consumeItem in consumeItems)
+                TryConsumeItemForRent(slumlord, consumeItem);
+
+            slumlord.MergeAllStackables();
+
+            // force save to database
+            slumlord.SaveBiotaToDatabase();
+
+            foreach (var item in slumlord.Inventory.Values)
+                item.SaveBiotaToDatabase();
+
+            slumlord.ActOnUse(this);
+
+            HandleActionQueryHouse();
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Maintenance {(slumlord.IsRentPaid() ? "" : "partially ")}paid.", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Returns the WorldObjects for item_ids that are in the player's inventory
+        /// </summary>
+        public List<WorldObject> GetInventoryItems(List<uint> item_ids)
+        {
+            var inventoryItems = new List<WorldObject>();
+
             foreach (var item_id in item_ids)
             {
                 var item = FindObject(item_id, SearchLocations.MyInventory);
-                if (item == null)
-                {
-                    Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))}): couldn't find {item_id:X8}");
-                    continue;
-                }
-                DoHandleActionPutItemInContainer(item, this, false, house.SlumLord, house.SlumLord, 0);
+
+                if (item != null)
+                    inventoryItems.Add(item);
+                else
+                    log.Error($"{Name}.GetInventoryItems() - couldn't find {item_id:X8}");
             }
 
-            house.SlumLord.MergeAllStackables();
-
-            house.SlumLord.ActOnUse(this);
-
-            HandleActionQueryHouse();
+            return inventoryItems;
         }
 
+        /// <summary>
+        /// Returns the amount of items to consume for a house purchase / maintenance payment
+        /// </summary>
+        public List<WorldObjectInfo<int>> GetConsumeItems(List<HousePayment> houseItems, List<WorldObject> playerItems)
+        {
+            var consumeItems = new List<WorldObjectInfo<int>>();
+
+            foreach (var houseItem in houseItems)
+            {
+                consumeItems.AddRange(houseItem.GetConsumeItems(playerItems));
+            }
+
+            return consumeItems;
+        }
+
+        /// <summary>
+        /// Moves or splits an item from player inventory => slumlord inventory
+        /// </summary>
+        public bool TryConsumeItemForRent(SlumLord slumlord, WorldObjectInfo<int> itemInfo)
+        {
+            var item = itemInfo.TryGetWorldObject();
+            if (item == null)
+            {
+                log.Error($"{Name}.TryConsumeItemForRent({itemInfo.Guid:X8}) - couldn't get item");
+                return false;
+            }
+
+            var amount = itemInfo.Value;
+            var stackSize = item.StackSize ?? 1;
+
+            if (amount > stackSize)
+            {
+                log.Error($"{Name}.TryConsumeItemForRent({item.Name} ({item.Guid}) - amount {amount} > stacksize {stackSize}");
+                return false;
+            }
+
+            var success = false;
+
+            if (amount == stackSize)
+                success = TryMoveItemForRent(slumlord, item);
+            else
+                success = TrySplitItemForRent(slumlord, item, amount);
+
+            return success;
+        }
+
+        /// <summary>
+        /// Moves an item from player inventory => slumlord inventory
+        /// </summary>
+        public bool TryMoveItemForRent(SlumLord slumlord, WorldObject item)
+        {
+            // verify slumlord can add item to inventory
+            if (!slumlord.CanAddToInventory(item))
+            {
+                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - CanAddToInventory failed!");
+                return false;
+            }
+
+            // remove entire item from player's inventory
+            if (!TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SpendItem))
+            {
+                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryRemoveFromInventoryWithNetworking failed!");
+                return false;
+            }
+
+            // add to slumlord inventory
+            if (!slumlord.TryAddToInventory(item))
+            {
+                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryAddToInventory failed!");
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Splits an item from player inventory => slumlord inventory
+        /// </summary>
+        public bool TrySplitItemForRent(SlumLord slumlord, WorldObject item, int amount)
+        {
+            // create a new item w/ stacksize = amount for the slumlord's inventory
+            var newItem = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+            newItem.SetStackSize(amount);
+
+            // verify it can be added to slumlord's inventory
+            if (!slumlord.CanAddToInventory(newItem))
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - CanAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                return false;
+            }
+
+            // fetch container for AdjustStack
+            if (GetInventoryItem(item.Guid, out var container) == null)
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - GetInventoryItem failed!");
+                return false;
+            }
+
+            // subtract amount from player's item stacksize
+            if (!AdjustStack(item, -amount, container, this))
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - failed to adjust stack!");
+                return false;
+            }
+
+            // force save of new player stack
+            item.SaveBiotaToDatabase();
+
+            // send network updates
+            Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+            if (item.WeenieType == WeenieType.Coin)
+                UpdateCoinValue();
+
+            if (!slumlord.TryAddToInventory(newItem))
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - TryAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                return false;
+            }
+
+            // force save of new slumlord stack
+            newItem.SaveBiotaToDatabase();
+
+            return true;
+        }
+        
         public void HandleActionAbandonHouse()
         {
             Console.WriteLine($"\n{Name}.HandleActionAbandonHouse()");
 
-            if (House == null)
+            var houseInstance = GetHouseInstance();
+
+            if (houseInstance == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
+            // only the character who directly owns the house can use /house abandon
+            if (HouseInstance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyHouseOwnerCanUseCommand));
                 return;
             }
 
@@ -141,19 +395,22 @@ namespace ACE.Server.WorldObjects
                 // relink
                 house.UpdateLinks();
 
+                if (house.HasDungeon)
+                {
+                    var dungeonHouse = house.GetDungeonHouse();
+                    if (dungeonHouse != null)
+                        dungeonHouse.UpdateLinks();
+                }
+
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
-                var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
-
-                slumlord.CurrentMotionState = off;
-                slumlord.EnqueueBroadcastMotion(off);
+                slumlord.ClearInventory(true);
+                slumlord.Off();
 
                 // reset slumlord name
-                var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
-                var wo = WorldObjectFactory.CreateWorldObject(weenie, ObjectGuid.Invalid);
-                slumlord.Name = wo.Name;
+                slumlord.SetAndBroadcastName();
 
-                slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
+                slumlord.SaveBiotaToDatabase();
             }
 
             HouseId = null;
@@ -163,8 +420,12 @@ namespace ACE.Server.WorldObjects
 
             House = null;
 
+            SaveBiotaToDatabase();
+
             // send text message
             Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
+
+            HouseManager.RemoveRentQueue(house.Guid.Full);
 
             house.ClearRestrictions();
 
@@ -185,8 +446,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (House == null) LoadHouse();
-            if (House == null) return;
+            var houseInstance = GetHouseInstance();
+
+            if (House == null) LoadHouse(houseInstance);
+            if (House == null || House.SlumLord == null) return;
 
             var purchaseTime = (uint)(HousePurchaseTimestamp ?? 0);
 
@@ -197,16 +460,21 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(5.0f);
             actionChain.AddAction(this, () =>
             {
-                if (!House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
+                if (House == null || House.SlumLord == null) return;
+
+                if (House.HouseStatus == HouseStatus.Active && !House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.System));
                 }
 
-                if (!House.SlumLord.HasRequirements(this) && PropertyManager.GetBool("house_purchase_requirements").Item)
+                if (House.HouseOwner == Guid.Full && !House.SlumLord.HasRequirements(this) && PropertyManager.GetBool("house_purchase_requirements").Item)
                 {
                     var rankStr = AllegianceNode != null ? $"{AllegianceNode.Rank}" : "";
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  Your allegiance rank {rankStr} is now below the requirements for owning a mansion.  Please raise your allegiance rank to {House.SlumLord.GetAllegianceMinLevel()} before the end of the maintenance period or you will lose your mansion, and all your items within it.", ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  Your allegiance rank {rankStr} is now below the requirements for owning a mansion.  Please raise your allegiance rank to {House.SlumLord.GetAllegianceMinLevel()} before the end of the maintenance period or you will lose your mansion, and all your items within it.", ChatMessageType.System));
                 }
+
+                // TODO: for account houses, run this even if char doesn't own house
+                IsMultiHouseOwner();
             });
             actionChain.EnqueueChain();
         }
@@ -238,19 +506,29 @@ namespace ACE.Server.WorldObjects
             house.HouseOwner = Guid.Full;
             house.HouseOwnerName = Name;
             house.SaveBiotaToDatabase();
-
+            
             // relink
             house.UpdateLinks();
+
+            if (house.HasDungeon)
+            {
+                var dungeonHouse = house.GetDungeonHouse();
+                if (dungeonHouse != null)
+                    dungeonHouse.UpdateLinks();
+            }
 
             // notify client w/ HouseID
             Session.Network.EnqueueSend(new GameMessageSystemChat("Congratulations!  You now own this dwelling.", ChatMessageType.Broadcast));
 
             // player slumlord 'on' animation
-            slumlord.EnqueueBroadcastMotion(new Motion(MotionStance.Invalid, MotionCommand.On));
+            slumlord.On();
 
             // set house name
-            slumlord.Name = $"{Name}'s {slumlord.Name}";
-            slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, slumlord.Name));
+            slumlord.SetAndBroadcastName(Name);
+
+            slumlord.SaveBiotaToDatabase();
+            
+            SaveBiotaToDatabase();
 
             // set house data
             // why has this changed? use callback?
@@ -259,11 +537,12 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 HandleActionQueryHouse();
+                house.UpdateRestrictionDB();
 
                 // boot anyone who may have been wandering around inside...
                 HandleActionBootAll(false);
 
-                HouseManager.AddRentQueue(this);
+                HouseManager.AddRentQueue(this, house.Guid.Full);
 
             });
             actionChain.EnqueueChain();
@@ -272,20 +551,40 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Removes verified items from inventory for house purchase
         /// </summary>
-        public void ConsumeItemsForPurchase(List<uint> item_ids)
+        public bool TryConsumePurchaseItems(List<WorldObjectInfo<int>> purchaseItems)
         {
-            // TODO: return change?
-            // TODO: it would probably be better to consume items from inventory here...
-            foreach (var item_id in item_ids)
+            foreach (var purchaseItem in purchaseItems)
             {
-                var item = FindObject(item_id, SearchLocations.MyInventory);
+                var item = FindObject(purchaseItem.Guid.Full, SearchLocations.MyInventory);
+
                 if (item == null)
                 {
-                    Console.WriteLine($"{Name}.ConsumeItemsForHousePurchase(): couldn't find {item_id:X8}");
-                    continue;
+                    // this should never happen, due to previous verifications
+                    log.Error($"{Name}.ConsumeItemsForHousePurchase(): couldn't find {purchaseItem.Guid}!");
+                    return false;
                 }
-                TryConsumeFromInventoryWithNetworking(item);
+
+                var amount = purchaseItem.Value;
+                var stackSize = item.StackSize ?? 1;
+
+                if (amount > stackSize)
+                {
+                    // this should also never happen, due to previous checks
+                    log.Error($"{Name}.ConsumeItemsForHousePurchase(): {item.Name} ({item.Guid}) amount({amount}) > stackSize({stackSize})!");
+                    return false;
+                }
+
+                if (!TryConsumeFromInventoryWithNetworking(item, amount))
+                {
+                    // all of these things should never happen, just being absolutely certain...
+                    log.Error($"{Name}.ConsumeItemsForHousePurchase(): TryConsumeFromInventoryWithNetworking({item.Name} ({item.Guid}), {amount}) failed!");
+                    return false;
+                }
+
+                // force save partial stack reductions
+                item.SaveBiotaToDatabase();
             }
+            return true;
         }
 
         /// <summary>
@@ -293,6 +592,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool VerifyPurchase(SlumLord slumlord, List<uint> item_ids)
         {
+            // verify house is not already owned
+            if (slumlord.HouseOwner != null)
+                return false;
+
             Console.WriteLine($"{slumlord.Name} ({slumlord.Guid})");
             var buyItems = slumlord.GetBuyItems();
             Console.WriteLine("Required items:");
@@ -314,6 +617,13 @@ namespace ACE.Server.WorldObjects
                 }
                 var stackStr = item.StackSize != null && item.StackSize > 1 ? item.StackSize.ToString() + " " : "";
                 Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
+
+                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                {
+                    Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
+                    continue;
+                }
+
                 sentItems.Add(item);
             }
             Console.WriteLine();
@@ -423,10 +733,29 @@ namespace ACE.Server.WorldObjects
             return totalValue;
         }
 
+        public uint? GetHouseInstance()
+        {
+            // if this character owns a house, always use that
+            if (HouseInstance != null)
+                return HouseInstance;
+
+            // if server is running house_per_char mode (non-default),
+            // only use the HouseInstance for the current character
+            if (PropertyManager.GetBool("house_per_char").Item)
+                return HouseInstance;
+
+            // else return the HouseInstance for the account
+            var accountHouseOwner = GetAccountHouseOwner();
+
+            return accountHouseOwner?.HouseInstance;
+        }
+
         public void HandleActionQueryHouse()
         {
+            var houseInstance = GetHouseInstance();
+
             // no house owned - send 0x226 HouseStatus?
-            if (HouseInstance == null)
+            if (houseInstance == null)
             {
                 Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
                 return;
@@ -434,9 +763,9 @@ namespace ACE.Server.WorldObjects
 
             // house owned - send 0x225 HouseData?
             if (House == null)
-                LoadHouse();
+                LoadHouse(houseInstance);
 
-            var house = GetHouse();
+            var house = GetHouse(houseInstance);
             if (house == null)
             {
                 Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
@@ -455,26 +784,32 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        public House LoadHouse(bool forceLoad = false)
+        public House LoadHouse(uint? houseInstance, bool forceLoad = false)
         {
             if (House != null && !forceLoad)
                 return House;
 
-            if (HouseInstance == null)
+            if (houseInstance == null)
                 return House;
 
-            var houseGuid = HouseInstance.Value;
-            House = House.Load(houseGuid);
+            House = House.Load(houseInstance.Value);
 
             return House;
         }
 
         public House GetHouse()
         {
-            if (HouseInstance == null)
+            var houseInstance = GetHouseInstance();
+
+            return GetHouse(houseInstance);
+        }
+
+        public House GetHouse(uint? houseInstance)
+        {
+            if (houseInstance == null)
                 return null;
 
-            var houseGuid = HouseInstance.Value;
+            var houseGuid = houseInstance.Value;
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
 
             var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
@@ -661,6 +996,8 @@ namespace ACE.Server.WorldObjects
             }
 
             house.OpenStatus = openStatus;
+            house.Biota.SetProperty(PropertyBool.Open, house.OpenStatus, house.BiotaDatabaseLock, out _);
+            house.ChangesDetected = true;
             house.UpdateRestrictionDB();
 
             if (openStatus)
@@ -696,15 +1033,9 @@ namespace ACE.Server.WorldObjects
 
             house.HouseHooksVisible = visible;
 
-            var state = PhysicsState.Ethereal | PhysicsState.IgnoreCollisions;
-            if (!visible) state |= PhysicsState.NoDraw;
-
             foreach (var hook in house.Hooks.Where(i => i.Inventory.Count == 0))
             {
-                var setState = new GameMessageSetState(hook, state);
-                var update = new GameMessagePublicUpdatePropertyBool(hook, PropertyBool.UiHidden, !visible);
-
-                house.EnqueueBroadcast(setState, update);
+                hook.UpdateHookVisibility();
             }
 
             // if house has dungeon, repeat this process
@@ -713,13 +1044,15 @@ namespace ACE.Server.WorldObjects
                 var dungeonHouse = house.GetDungeonHouse();
                 if (dungeonHouse == null) return;
 
+                dungeonHouse.HouseHooksVisible = visible;
+
                 foreach (var hook in dungeonHouse.Hooks.Where(i => i.Inventory.Count == 0))
                 {
-                    var setState = new GameMessageSetState(hook, state);
-                    var update = new GameMessagePublicUpdatePropertyBool(hook, PropertyBool.UiHidden, !visible);
-
-                    dungeonHouse.EnqueueBroadcast(setState, update);
+                    hook.UpdateHookVisibility();
                 }
+
+                if (dungeonHouse.CurrentLandblock == null)
+                    dungeonHouse.SaveBiotaToDatabase();
             }
 
             if (house.CurrentLandblock == null)
@@ -930,10 +1263,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when player is exiting portal space
         /// </summary>
-        public void CheckHouse()
+        /// <returns>TRUE if player was booted from house property they don't have access to, upon exiting portal space</returns>
+        public bool CheckHouse()
         {
-            if (CurrentLandblock == null)
-                return;
+            if (CurrentLandblock == null || IgnoreHouseBarriers)
+                return false;
 
             foreach (var house in CurrentLandblock.Houses)
             {
@@ -944,15 +1278,20 @@ namespace ACE.Server.WorldObjects
 
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
-                    Teleport(rootHouse.BootSpot.Location);
-                    break;
+                    if (!rootHouse.IsOpen || (rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.HasDungeon))
+                    {
+                        Teleport(rootHouse.BootSpot.Location);
+                        return true;
+                    }
                 }
-                if (rootHouse.HouseOwner == null && CurrentLandblock.IsDungeon)
+
+                if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.HasDungeon)
                 {
                     Teleport(rootHouse.BootSpot.Location);
-                    break;
+                    return true;
                 }
             }
+            return false;
         }
 
         /// <summary>
@@ -976,9 +1315,18 @@ namespace ACE.Server.WorldObjects
         public void HandleActionModifyAllegianceGuestPermission(bool add)
         {
             //Console.WriteLine($"{Name}.HandleActionModifyAllegianceGuestPermission({add})");
-            if (House == null)
+            var houseInstance = GetHouseInstance();
+
+            if (houseInstance == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
+            // only the character who directly owns the house can use /house guest add_allegiance / remove_allegiance
+            if (HouseInstance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyHouseOwnerCanUseCommand));
                 return;
             }
 
@@ -1035,9 +1383,18 @@ namespace ACE.Server.WorldObjects
         public void HandleActionModifyAllegianceStoragePermission(bool add)
         {
             //Console.WriteLine($"{Name}.HandleActionModifyAllegianceStoragePermission({add})");
-            if (House == null)
+            var houseInstance = GetHouseInstance();
+
+            if (houseInstance == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
+            // only the character who directly owns the house can use /house storage add_allegiance / remove_allegiance
+            if (HouseInstance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyHouseOwnerCanUseCommand));
                 return;
             }
 
@@ -1116,7 +1473,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (allegianceHouse.HouseType < ACE.Entity.Enum.HouseType.Villa)
+            if (allegianceHouse.HouseType < HouseType.Villa)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchsHouseIsNotAMansionOrVilla));
                 return;
@@ -1251,6 +1608,113 @@ namespace ACE.Server.WorldObjects
             allegianceHouse.ModifyGuest(Allegiance.Monarch.Player, false);
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked your monarchy's access to the allegiance housing storage.", ChatMessageType.Broadcast));
+        }
+
+        public static List<IPlayer> GetAccountPlayers(uint accountID)
+        {
+            return PlayerManager.GetAllPlayers().Where(i => i.Account != null && i.Account.AccountId == accountID).ToList();
+        }
+
+        public IPlayer GetAccountHouseOwner()
+        {
+            var accountPlayers = GetAccountPlayers(Account.AccountId);
+
+            var accountHouseOwners = accountPlayers.Where(i => i.HouseInstance != null);
+
+            return accountHouseOwners.OrderBy(i => i.HousePurchaseTimestamp).FirstOrDefault();
+        }
+
+        public House GetAccountHouse()
+        {
+            if (HouseInstance != null)
+                return GetHouse(HouseInstance);
+
+            var accountHouseOwner = GetAccountHouseOwner();
+
+            if (accountHouseOwner != null)
+                return null;
+
+            //Console.WriteLine($"Account House Owner: {accountHouseOwner.Name}");
+
+            return GetHouse(accountHouseOwner);
+        }
+
+        public House GetHouse(IPlayer player)
+        {
+            if (player.HouseInstance == null)
+                return null;
+
+            // is landblock loaded?
+            var houseGuid = player.HouseInstance.Value;
+            var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
+
+            var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
+            var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+            if (isLoaded)
+            {
+                var loaded = LandblockManager.GetLandblock(landblockId, false);
+                return loaded.GetObject(new ObjectGuid(houseGuid)) as House;
+            }
+
+            // load an offline copy
+            return House.Load(houseGuid);
+        }
+
+        public bool IsMultiHouseOwner(bool showMsg = true)
+        {
+            var characterHouses = HouseManager.GetCharacterHouses(Guid.Full);
+            var accountHouses = HouseManager.GetAccountHouses(Account.AccountId);
+
+            //if (showMsg)
+                //Session.Network.EnqueueSend(new GameMessageSystemChat($"AccountHouses: {accountHouses.Count}, CharacterHouses: {characterHouses.Count}", ChatMessageType.Broadcast));
+
+            if (PropertyManager.GetBool("house_per_char").Item)
+            {
+                // 1 house per character
+                if (characterHouses.Count > 1 && showMsg)
+                    ShowMultiHouseWarning(characterHouses, "character");
+
+                return characterHouses.Count > 1;
+            }
+            else
+            {
+                // 1 house per account (retail default)
+                if (accountHouses.Count > 1 && showMsg)
+                    ShowMultiHouseWarning(accountHouses, "account");
+
+                return accountHouses.Count > 1;
+            }
+        }
+
+        public List<House> GetMultiHouses()
+        {
+            if (PropertyManager.GetBool("house_per_char").Item)
+                return HouseManager.GetCharacterHouses(Guid.Full);
+            else
+                return HouseManager.GetAccountHouses(Account.AccountId);
+        }
+
+        public void ShowMultiHouseWarning(List<House> houses, string type)
+        {
+            // this is a dangerous situation, and we want to clean it up asap
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning! You currently own {houses.Count} different houses on this {type}.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Each {type} is only allowed to own 1 house, so you will have to choose which house you want to keep.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You currently own houses at:", ChatMessageType.Broadcast));
+
+            for (var i = 0; i < houses.Count; i++)
+            {
+                var house = houses[i];
+                var slumlord = house.SlumLord;
+                if (slumlord == null)
+                {
+                    log.Error($"{Name}.IsMultiHouseOwner(): {house.Guid} slumlord is null!");
+                    continue;
+                }
+                var coords = HouseManager.GetCoords(slumlord.Location);
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{i + 1}. {coords}", ChatMessageType.Broadcast));
+            }
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Please choose the house you want to keep with /house-select # , where # is 1-{houses.Count}", ChatMessageType.Broadcast));
         }
     }
 }

@@ -45,7 +45,7 @@ namespace ACE.Database.SQLFormatters.World
                 $"{input.MundaneItemMinAmount}, " +
                 $"{input.MundaneItemMaxAmount}, " +
                 $"{input.MundaneItemTypeSelectionChances}, " +
-                $"'{input.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'" +
+                $"'{input.LastModified:yyyy-MM-dd HH:mm:ss}'" +
                 ");";
 
             output = FixNullFields(output);

@@ -1,9 +1,6 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using System.IO;
 
 namespace ACE.Server.WorldObjects
 {
@@ -27,19 +24,22 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            //StackSize = null;
+            //StackUnitEncumbrance = null;
+            //StackUnitValue = null;
+            //MaxStackSize = null;
+
+            // Linkable Item Generator (linkitemgen2minutes) fix
+            if (WeenieClassId == 4142)
+            {
+                MaxGeneratedObjects = 0;
+                InitGeneratedObjects = 0;
+            }
         }
 
-        public override void HandleActionUseOnTarget(Player player, WorldObject target)
+        public override void ActOnUse(WorldObject wo)
         {
-            // TODO: does this have to be generic object?
-            if (PetDevice.IsEncapsulatedSpirit(this) && target is PetDevice petDevice)
-            {
-                petDevice.Refill(player, this);
-                return;
-            }
-
-            // fallback on recipe manager?
-            base.HandleActionUseOnTarget(player, target);
+            // Do nothing
         }
     }
 }

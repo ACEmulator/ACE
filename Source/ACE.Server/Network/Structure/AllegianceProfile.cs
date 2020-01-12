@@ -22,7 +22,7 @@ namespace ACE.Server.Network.Structure
         {
             // uint - totalMembers - The number of allegiance members.
             // uint - totalVassals - Your personal number of followers.
-            // AllegianceHeirarchy - allegianceHeirarchy
+            // AllegianceHierarchy - allegianceHierarchy
 
             uint totalMembers = 0; 
             uint totalVassals = 0;
@@ -36,8 +36,8 @@ namespace ACE.Server.Network.Structure
             writer.Write(totalMembers);
             writer.Write(totalVassals);
 
-            var allegianceHeirarchy = new AllegianceHeirarchy(profile);
-            writer.Write(allegianceHeirarchy);
+            var allegianceHierarchy = new AllegianceHierarchy(profile);
+            writer.Write(allegianceHierarchy);
         }
     }
 }

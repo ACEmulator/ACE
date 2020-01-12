@@ -43,7 +43,10 @@ namespace ACE.Server.Network.GameEvent.Events
                 else
                 {
                     Writer.Write(0); // Text Included
-                    Writer.Write(0); // Ignore Author
+                    if (ignoreAuthor)
+                        Writer.Write(1); // Ignore Author
+                    else
+                        Writer.Write(0); // Ignore Author
                 }
             }
 

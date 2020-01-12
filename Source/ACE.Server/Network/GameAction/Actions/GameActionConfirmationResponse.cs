@@ -1,4 +1,5 @@
-using ACE.Server.Managers;
+using System;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,11 +8,11 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.ConfirmationResponse)]
         public static void Handle(ClientMessage message, Session session)
         {
-            int confirmType = message.Payload.ReadInt32();
-            uint context = message.Payload.ReadUInt32();
-            bool response = message.Payload.ReadInt32() > 0;
+            var confirmType = (ConfirmationType)message.Payload.ReadInt32();
+            var context = message.Payload.ReadUInt32();
+            var response = Convert.ToBoolean(message.Payload.ReadInt32());
 
-            ConfirmationManager.ProcessConfirmation(context, response);
+            session.Player.ConfirmationManager.HandleResponse(confirmType, context, response);
         }
     }
 }

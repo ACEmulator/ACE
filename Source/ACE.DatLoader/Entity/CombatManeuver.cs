@@ -5,7 +5,7 @@ namespace ACE.DatLoader.Entity
 {
     public class CombatManeuver : IUnpackable
     {
-        public MotionCommand Style { get; private set; }
+        public MotionStance Style { get; private set; }
         public AttackHeight AttackHeight { get; private set; }
         public AttackType AttackType { get; private set; }
         public uint MinSkillLevel { get; private set; }
@@ -13,7 +13,7 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader)
         {
-            Style           = (MotionCommand)reader.ReadUInt32();
+            Style           = (MotionStance)reader.ReadUInt32();
             AttackHeight    = (AttackHeight)reader.ReadUInt32();
             AttackType      = (AttackType)reader.ReadUInt32();
             MinSkillLevel   = reader.ReadUInt32();

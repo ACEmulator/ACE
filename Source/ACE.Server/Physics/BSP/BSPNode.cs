@@ -57,7 +57,7 @@ namespace ACE.Server.Physics.BSP
             {
                 NumPolys = node.InPolys.Count;
                 PolyIDs = node.InPolys;
-                Polygons = new List<Polygon>();
+                Polygons = new List<Polygon>(node.InPolys.Count);
                 foreach (var poly in node.InPolys)
                     Polygons.Add(PolygonCache.Get(polys[poly], vertexArray));
             }

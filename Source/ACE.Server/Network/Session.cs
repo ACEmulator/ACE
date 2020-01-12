@@ -9,11 +9,13 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.Managers;
+
 
 namespace ACE.Server.Network
 {
@@ -43,20 +45,18 @@ namespace ACE.Server.Network
 
         public Player Player { get; private set; }
 
-        public readonly ActionQueue InboundGameActionQueue = new ActionQueue();
 
+        public DateTime logOffRequestTime;
 
-        private DateTime logOffRequestTime;
-
-        private bool bootSession;
+        public SessionTerminationDetails PendingTermination { get; set; } = null;
 
         public string BootSessionReason { get; private set; }
 
 
-        public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
+        public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
-            Network = new NetworkSession(this, clientId, serverId);
+            Network = new NetworkSession(this, connectionListener, clientId, serverId);
         }
 
 
@@ -80,34 +80,35 @@ namespace ACE.Server.Network
                 return;
 
             Network.ProcessPacket(packet);
-
-            if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                DropSession("PacketHeader Disconnect");
         }
 
-
-        /// <summary>
-        /// This will process all inbound GameActions.
-        /// </summary>
-        public void TickInbound()
-        {
-            if (Player != null)
-                InboundGameActionQueue.RunActions();
-        }
 
         /// <summary>
         /// This will send outgoing packets as well as the final logoff message.
         /// </summary>
         public void TickOutbound()
         {
-            if (State == SessionState.NetworkTimeout)
+            // Check if the player has been booted
+            if (PendingTermination != null)
+            {
+                if (PendingTermination.TerminationStatus == SessionTerminationPhase.Initialized)
+                {
+                    State = SessionState.TerminationStarted;
+                    Network.Update(); // boot messages may need sending
+                    if (DateTime.UtcNow.Ticks > PendingTermination.TerminationEndTicks)
+                        PendingTermination.TerminationStatus = SessionTerminationPhase.SessionWorkCompleted;
+                }
+                return;
+            }
+
+            if (State == SessionState.TerminationStarted)
                 return;
 
             // Checks if the session has stopped responding.
             if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)
             {
-                // Change the state to show that the Session has reached a timeout.
-                State = SessionState.NetworkTimeout;
+                // The Session has reached a timeout.  Send the client the error disconnect signal, and then drop the session
+                Terminate(SessionTerminationReason.NetworkTimeout);
                 return;
             }
 
@@ -117,10 +118,6 @@ namespace ACE.Server.Network
             // This could be made 0 for instant logoffs.
             if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
                 SendFinalLogOffMessages();
-
-            // Check if the player has been booted
-            if (bootSession)
-                State = SessionState.NetworkTimeout;
         }
 
 
@@ -176,13 +173,14 @@ namespace ACE.Server.Network
         /// <summary>
         /// Log off the player normally
         /// </summary>
-        public void LogOffPlayer()
+        public void LogOffPlayer(bool forceImmediate = false)
         {
             if (logOffRequestTime == DateTime.MinValue)
             {
-                Player.LogOut();
+                var result = Player.LogOut(false, forceImmediate);
 
-                logOffRequestTime = DateTime.UtcNow;
+                if (result)
+                    logOffRequestTime = DateTime.UtcNow;
             }
         }
 
@@ -209,26 +207,48 @@ namespace ACE.Server.Network
 
             Network.EnqueueSend(new GameMessageCharacterList(Characters, this));
 
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetAllOnline().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetOnlineCount(), (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
             Network.EnqueueSend(serverNameMessage);
 
             State = SessionState.AuthConnected;
         }
 
-        public void BootSession(string reason = "", params GameMessages.GameMessage[] messages)
+        public void Terminate(SessionTerminationReason reason, GameMessage message = null, ServerPacket packet = null, string extraReason = "")
         {
-            Network.EnqueueSend(messages);
+            // TODO: graceful SessionTerminationReason.AccountBooted handling
 
-            if (!string.IsNullOrEmpty(reason))
-                BootSessionReason = reason;
-
-            bootSession = true;
+            if (packet != null)
+            {
+                Network.EnqueueSend(packet);
+            }
+            if (message != null)
+            {
+                Network.EnqueueSend(message);
+            }
+            PendingTermination = new SessionTerminationDetails()
+            {
+                ExtraReason = extraReason,
+                Reason = reason
+            };
         }
 
-        public void DropSession(string reason)
+        public void DropSession()
         {
-            if (reason != "Pong sent, closing connection.")
-                log.Info($"Session dropped. Account: {Account}, Player: {Player?.Name}, Reason: {reason}");
+            if (PendingTermination == null || PendingTermination.TerminationStatus != SessionTerminationPhase.SessionWorkCompleted) return;
+
+            if (PendingTermination.Reason != SessionTerminationReason.PongSentClosingConnection)
+            {
+                var reason = PendingTermination.Reason;
+                string reas = (reason != SessionTerminationReason.None) ? $", Reason: {reason.GetDescription()}" : "";
+                if (!string.IsNullOrWhiteSpace(PendingTermination.ExtraReason))
+                {
+                    reas = reas + ", " + PendingTermination.ExtraReason;
+                }
+                if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
+                    log.Info($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+                else
+                    log.Debug($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+            }
 
             if (Player != null)
             {
@@ -240,7 +260,12 @@ namespace ACE.Server.Network
                 // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
             }
 
-            WorldManager.RemoveSession(this);
+            NetworkManager.RemoveSession(this);
+
+            // This is a temp fix to mark the Session.Network portion of the Session as released
+            // What this means is that we will release any network related resources, as well as avoid taking on additional resources
+            // In the future, we should set Network to null and funnel Network communication through Session, instead of accessing Session.Network directly.
+            Network.ReleaseResources();
         }
 
 
@@ -254,7 +279,7 @@ namespace ACE.Server.Network
         /// </summary>
         public void WorldBroadcast(string broadcastMessage)
         {
-            var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.Broadcast);
+            var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.WorldBroadcast);
             Network.EnqueueSend(worldBroadcastMessage);
         }
     }

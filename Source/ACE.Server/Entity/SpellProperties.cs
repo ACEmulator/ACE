@@ -100,7 +100,7 @@ namespace ACE.Server.Entity
         /// The amount of time the spell lasts
         /// usually for EnchantmentSpell / FellowshipEnchantmentSpells
         /// </summary>
-        public double Duration { get => _spell != null && _spell.DotDuration.HasValue ? _spell.DotDuration.Value : _spellBase.Duration; }
+        public double Duration { get => _spell != null && _spell.DotDuration.HasValue ? _spell.DotDuration.Value + 5.0f : _spellBase.Duration; }
 
         /// <summary>
         /// The DoT (damage over time) duration for the spell
@@ -160,9 +160,9 @@ namespace ACE.Server.Entity
         public uint DisplayOrder { get => _spellBase.DisplayOrder; }
 
         /// <summary>
-        /// Unknown what this does?
+        /// The allowed target types for this spell
         /// </summary>
-        public uint NonComponentTargetType { get => _spellBase.NonComponentTargetType; }
+        public ItemType NonComponentTargetType { get => (ItemType)_spellBase.NonComponentTargetType; }
 
         /// <summary>
         /// Additional mana cost per target (e.g. "Incantation of Acid Bane" Mana Cost = 80 + 14 per target)
@@ -242,24 +242,30 @@ namespace ACE.Server.Entity
         public float DefaultLaunchAngle { get => _spell.DefaultLaunchAngle ?? 0; }
 
         /// <summary>
+        /// If this is on then projectile spells won't lead a target.
+        /// Arc spells have this set to true.
+        /// </summary>
+        public bool NonTracking { get => _spell.NonTracking ?? false; }
+
+        /// <summary>
         /// The offset to apply to the spawn position
         /// </summary>
-        public Vector3 CreateOffsetOrigin { get => new Vector3(_spell.CreateOffsetOriginX ?? 0.0f, _spell.CreateOffsetOriginY ?? 0.0f, _spell.CreateOffsetOriginZ ?? 0.0f); }
+        public Vector3 CreateOffset { get => new Vector3(_spell.CreateOffsetOriginX ?? 0.0f, _spell.CreateOffsetOriginY ?? 0.0f, _spell.CreateOffsetOriginZ ?? 0.0f); }
 
         /// <summary>
         /// The minimum amount of padding to ensure for the spell to spawn
         /// </summary>
-        public Vector3 PaddingOrigin { get => new Vector3(_spell.PaddingOriginX ?? 0.0f, _spell.PaddingOriginY ?? 0.0f, _spell.PaddingOriginZ ?? 0.0f); }
+        public Vector3 Padding { get => new Vector3(_spell.PaddingOriginX ?? 0.0f, _spell.PaddingOriginY ?? 0.0f, _spell.PaddingOriginZ ?? 0.0f); }
 
         /// <summary>
         /// The dimensions of the origin, used for Volley spells?
         /// </summary>
-        public Vector3 DimsOrigin { get => new Vector3(_spell.DimsOriginX ?? 0.0f, _spell.DimsOriginY ?? 0.0f, _spell.DimsOriginZ ?? 0.0f); }
+        public Vector3 Dims { get => new Vector3(_spell.DimsOriginX ?? 0.0f, _spell.DimsOriginY ?? 0.0f, _spell.DimsOriginZ ?? 0.0f); }
 
         /// <summary>
         /// The maximum variation for spawn position
         /// </summary>
-        public Vector3 PeturbationOrigin { get => new Vector3(_spell.PeturbationOriginX ?? 0.0f, _spell.PeturbationOriginY ?? 0.0f, _spell.PeturbationOriginZ ?? 0.0f); }
+        public Vector3 Peturbation { get => new Vector3(_spell.PeturbationOriginX ?? 0.0f, _spell.PeturbationOriginY ?? 0.0f, _spell.PeturbationOriginZ ?? 0.0f); }
 
         /// <summary>
         /// The imbued effect for this spell
@@ -319,7 +325,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Boost + BoostVariance = the maximum amount of vital boost from a life spell
         /// </summary>
-        public int BoostVariance { get => _spell.Boost ?? 0; }
+        public int BoostVariance { get => _spell.BoostVariance ?? 0; }
 
         public int MaxBoost { get => Boost + BoostVariance; }
 
@@ -371,7 +377,7 @@ namespace ACE.Server.Entity
         public int Index { get => _spell.Index ?? 0; }
 
         /// <summary>
-        /// Unknown link field?
+        /// For SpellType.PortalSummon spells, Link is set to either 1 for LinkedPortalOneDID or 2 for LinkedPortalTwoDID
         /// </summary>
         public int Link { get => _spell.Link ?? 0; }
 

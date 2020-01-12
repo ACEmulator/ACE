@@ -22,7 +22,7 @@ namespace ACE.Database.Models.Shard
         public float? MinHealth { get; set; }
         public float? MaxHealth { get; set; }
 
-        public Biota Object { get; set; }
-        public ICollection<BiotaPropertiesEmoteAction> BiotaPropertiesEmoteAction { get; set; }
+        public virtual Biota Object { get; set; }
+        public virtual ICollection<BiotaPropertiesEmoteAction> BiotaPropertiesEmoteAction { get; set; }
     }
 }

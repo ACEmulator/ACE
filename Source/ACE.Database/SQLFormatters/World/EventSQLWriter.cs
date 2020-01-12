@@ -34,7 +34,7 @@ namespace ACE.Database.SQLFormatters.World
                              $"{(input.StartTime == -1 ? $"{input.StartTime}" : $"{input.StartTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.StartTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
                              $"{(input.EndTime == -1 ? $"{input.EndTime}" : $"{input.EndTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.EndTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
                              $"{input.State}, " +
-                             $"'{input.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'" +
+                             $"'{input.LastModified:yyyy-MM-dd HH:mm:ss}'" +
                              ");";
 
             output = FixNullFields(output);

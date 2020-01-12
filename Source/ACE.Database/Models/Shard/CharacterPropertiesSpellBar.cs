@@ -11,6 +11,6 @@ namespace ACE.Database.Models.Shard
         public uint SpellBarIndex { get; set; }
         public uint SpellId { get; set; }
 
-        public Character Character { get; set; }
+        public virtual Character Character { get; set; }
     }
 }

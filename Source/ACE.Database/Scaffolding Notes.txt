@@ -17,6 +17,14 @@ Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;dat
 Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;database=ace_shard" -Project ACE.Database -OutputDir ".\Models\Shard" -Context "ShardDbContext" -f Pomelo.EntityFrameworkCore.MySql
 Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;database=ace_world" -Project ACE.Database -OutputDir ".\Models\World" -Context "WorldDbContext" -f Pomelo.EntityFrameworkCore.MySql
 
+If you get this error:
+
+Your startup project 'ACE.Server' doesn't reference Microsoft.EntityFrameworkCore.Design. This package is required for the Entity Framework Core Tools to work. Ensure your startup project is correct, install the package, and try again.
+
+Run this command from Package Manager Console on ACE.Server project:
+
+Install-Package Microsoft.EntityFrameworkCore.Tools -Version 2.2.6
+
 If any changes were detected, C# classes will have been added or modified. Leave the auto generated classes alone. Do not try to optimize them, or clean them up cosmetically.
 They are partial classes, so you can create a partial class if you want to add methods, or, you can create extension methods as well in a separate file.
 

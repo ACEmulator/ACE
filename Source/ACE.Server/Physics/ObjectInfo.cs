@@ -46,11 +46,11 @@ namespace ACE.Server.Physics.Animation
             StepUpHeight = Object.GetStepUpHeight();
             StepDownHeight = Object.GetStepDownHeight();
             Ethereal = Object.State.HasFlag(PhysicsState.Ethereal);
-            StepDown = Object.State.HasFlag(PhysicsState.Missile);
+            StepDown = !Object.State.HasFlag(PhysicsState.Missile);
             var wobj = Object.WeenieObj;
             if (wobj != null)
             {
-                if (wobj.IsImpenetable())
+                if (wobj.IsImpenetrable())
                     State |= ObjectInfoState.IsImpenetrable;
                 if (wobj.IsPlayer())
                     State |= ObjectInfoState.IsPlayer;

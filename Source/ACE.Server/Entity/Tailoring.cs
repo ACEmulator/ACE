@@ -1,14 +1,18 @@
 using System;
+using System.Collections.Generic;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
     public class Tailoring
     {
+        // http://acpedia.org/wiki/Tailoring
         // https://asheron.fandom.com/wiki/Tailoring
 
         // tailoring kits
@@ -21,6 +25,37 @@ namespace ACE.Server.Entity
 
         public const uint ArmorLayeringToolTop = 42724;
         public const uint ArmorLayeringToolBottom = 42726;
+
+        // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets or Boots)
+        // There are other examples not here, like some stamped shields that might need to be added, as well.
+        private static Dictionary<uint, int> ArmorOverlayIcons = new Dictionary<uint, int>{
+            // These are from cache.bin 
+            {22551, 100673784}, // Atlatl Tattoo
+            {22552, 100673758}, // Axe Tattoo
+            {22553, 100673759}, // Bow Tattoo
+            {22554, 100673762}, // Crossbow Tattoo
+            {22555, 100673763}, // Dagger Tattoo
+            {22556, 100673774}, // Mace Tattoo
+            {22557, 100673775}, // Magic Defense Tattoo
+            {22558, 100673777}, // Mana Conversion Tattoo
+            {22559, 100673778}, // Melee Defense Tattoo
+            {22560, 100673779}, // Missile Defense Tattoo
+            {22561, 100673781}, // Spear Tattoo
+            {22562, 100673782}, // Staff Tattoo
+            {22563, 100673783}, // Sword Tattoo
+            {22564, 100673785}, // Unarmed Tattoo
+            {31394, 100691319}, // Circle of Raven Might
+
+            // These items were stampable and could have had a number of different icons
+            {25811, 0}, // Shield of Power
+            {25843, 0}, // Nefane Shield
+
+            // From pcaps
+            {37187, 100690144}, // Olthoi Alduressa Gauntlets
+            {37207, 100690146}, // Olthoi Alduressa Boots
+            {41198, 100690144}, // Gauntlets of Darkness
+            {41201, 100690146}, // Sollerets of Darkness
+        };
 
         // thanks for phenyl naphthylamine for a lot the initial work here!
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
@@ -64,11 +99,12 @@ namespace ACE.Server.Entity
             if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory) == null)
                 return WeenieError.YouDoNotPassCraftingRequirements;
 
-            // TODO: more descriptive error messages?
-
             // verify not retained item
-            if (target.Retained ?? false)
+            if (target.Retained)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You must use Sandstone Salvage to remove the retained property before tailoring.", ChatMessageType.Craft));
                 return WeenieError.YouDoNotPassCraftingRequirements;
+            }
 
             return WeenieError.None;
         }
@@ -143,9 +179,9 @@ namespace ACE.Server.Entity
 
             var wo = WorldObjectFactory.CreateNewWorldObject(wcid.Value);
 
-            SetCommonProperties(target, wo);
+            SetArmorProperties(target, wo);
 
-            wo.ClothingPriority = target.ClothingPriority;
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You tailor the appearance off an existing piece of armor.", ChatMessageType.Broadcast));
 
             Finalize(player, source, target, wo);
         }
@@ -155,15 +191,14 @@ namespace ACE.Server.Entity
             // a lot of this was probably done with recipes and mutations in the original
             // here a lot is done directly in code..
 
-            target.Name = source.Name;
-
             target.PaletteTemplate = source.PaletteTemplate;
-            target.EncumbranceVal = source.EncumbranceVal;
-            target.UiEffects = source.UiEffects;
-            target.Value = source.Value;
+            if (PropertyManager.GetBool("tailoring_intermediate_uieffects").Item)
+                target.UiEffects = source.UiEffects;
             target.MaterialType = source.MaterialType;
 
             target.Shade = source.Shade;
+
+            // This might not even be needed, but we'll do it anyways
             target.Shade2 = source.Shade2;
             target.Shade3 = source.Shade3;
             target.Shade4 = source.Shade4;
@@ -171,9 +206,61 @@ namespace ACE.Server.Entity
             target.SetupTableId = source.SetupTableId;
             target.PaletteBaseId = source.PaletteBaseId;
             target.ClothingBase = source.ClothingBase;
-            target.IconId = source.IconId;
 
-            // probably missing some fields...
+            target.Name = source.Name;
+            target.LongDesc = source.LongDesc;
+
+            target.IgnoreCloIcons = source.IgnoreCloIcons;
+            target.IconId = source.IconId;
+        }
+
+        public static void SetArmorProperties(WorldObject source, WorldObject target)
+        {
+            SetCommonProperties(source, target);
+
+            // ensure armor/clothing that covers head/hands/feet are cross-compatible
+            // for something like shirt/breastplate, this will still be be prevented with ClothingPriority / CoverageMask check
+            // (Outerwear vs. Underwear)
+            target.TargetType = ItemType.Armor | ItemType.Clothing;
+
+            target.ClothingPriority = source.ClothingPriority;
+            target.Dyable = source.Dyable;
+
+            // If this source item is one of the icons that contains an icon overlay as part of it, we will stash that icon in the
+            // IconOverlaySecondary slot (it is unused) to be applied on the next step.
+            if (ArmorOverlayIcons.ContainsKey(source.WeenieClassId) && source.IconOverlayId.HasValue)
+                target.SetProperty(PropertyDataId.IconOverlaySecondary, (uint)source.IconOverlayId);
+
+            // ObjDescOverride.Clear()
+        }
+
+        /// <summary>
+        /// Applies the weapon properties to an in-between tailoring item, ready to be applied to a new weapon.
+        /// </summary>
+        public static void SetWeaponProperties(WorldObject source, WorldObject target)
+        {
+            SetCommonProperties(source, target);
+
+            target.TargetType = source.ItemType;
+
+            target.ObjScale = source.ObjScale;
+
+            target.HookType = source.HookType;
+            target.HookPlacement = source.HookPlacement;
+            target.LightsStatus = source.LightsStatus;
+            target.Translucency = source.Translucency;
+
+            // These values are all set just for verification purposes. Likely originally handled by unique WCID and recipe system.
+            if (source is MeleeWeapon)
+            {
+                target.DefaultCombatStyle = source.DefaultCombatStyle;
+                target.W_AttackType = source.W_AttackType;
+                target.W_WeaponType = source.W_WeaponType;      // unused currently, keeping this around in case its needed..
+            }
+            else if (source is MissileLauncher)
+                target.DefaultCombatStyle = source.DefaultCombatStyle;
+
+            target.W_DamageType = source.W_DamageType;
         }
 
         public static void Finalize(Player player, WorldObject source, WorldObject target, WorldObject result)
@@ -203,20 +290,9 @@ namespace ACE.Server.Entity
 
             // create intermediate weapon tailoring kit
             var wo = WorldObjectFactory.CreateNewWorldObject(51451);
-            SetCommonProperties(target, wo);
+            SetWeaponProperties(target, wo);
 
-            wo.TargetType = (int)target.ItemType;
-
-            if (target is MeleeWeapon)
-            {
-                wo.W_WeaponType = target.W_WeaponType;
-            }
-            else if (target is MissileLauncher)
-            {
-                wo.DefaultCombatStyle = target.DefaultCombatStyle;
-            }
-
-            wo.W_DamageType = target.W_DamageType;
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You tailor the appearance off the weapon.", ChatMessageType.Broadcast));
 
             Finalize(player, source, target, wo);
         }
@@ -228,7 +304,7 @@ namespace ACE.Server.Entity
         {
             //Console.WriteLine($"TailorReduceArmor({player.Name}, {source.Name}, {target.Name})");
 
-            // verify requirements
+            // Verify requirements - Can only reduce LootGen Armor
             if (target.ItemWorkmanship == null)
             {
                 player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
@@ -260,16 +336,28 @@ namespace ACE.Server.Entity
                     break;
 
                 case ArmorLowerReductionTool:
+                    // Can't reduce Chest Armor to anything but chest!
+                    if (validLocations.HasFlag(EquipMask.ChestArmor))
+                        break;
 
                     if (validLocations.HasFlag(EquipMask.UpperArmArmor))
                     {
                         player.UpdateProperty(target, PropertyInt.ValidLocations, (int)EquipMask.LowerArmArmor);
                         clothingPriority = CoverageMask.OuterwearLowerArms;
                     }
+                    else if (validLocations.HasFlag(EquipMask.UpperLegArmor))
+                    {
+                        player.UpdateProperty(target, PropertyInt.ValidLocations, (int)EquipMask.LowerLegArmor);
+                        clothingPriority = CoverageMask.OuterwearLowerLegs;
+                    }
+                    else if (validLocations.HasFlag(EquipMask.LowerLegArmor | EquipMask.FootWear))
+                    {
+                        player.UpdateProperty(target, PropertyInt.ValidLocations, (int)EquipMask.FootWear);
+                        clothingPriority = CoverageMask.Feet;
+                    }
                     break;
 
                 case ArmorMiddleReductionTool:
-
                     if (validLocations.HasFlag(EquipMask.UpperLegArmor))
                     {
                         player.UpdateProperty(target, PropertyInt.ValidLocations, (int)EquipMask.UpperLegArmor);
@@ -284,6 +372,8 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You modify your armor.", ChatMessageType.Broadcast));
+            
             player.UpdateProperty(target, PropertyInt.ClothingPriority, (int)clothingPriority);
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
@@ -319,10 +409,13 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You tailor the appearance onto a different piece of armor.", ChatMessageType.Broadcast));
+
             // update properties
-            // creating a brand new item might be reasonable here,
-            // but we have to make sure the list of properties here is completed
-            UpdateCommonProps(player, source, target);
+            UpdateArmorProps(player, source, target);
+
+            // Send UpdateObject, mostly for the client to register the new name.
+            player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
@@ -337,11 +430,13 @@ namespace ACE.Server.Entity
             //Console.WriteLine($"WeaponApply({player.Name}, {source.Name}, {target.Name})");
 
             // verify weapon type
-            switch (target.ItemType)
+            switch (source.TargetType)
             {
                 case ItemType.MeleeWeapon:
 
-                    if (source.W_WeaponType != target.W_WeaponType || source.W_DamageType != target.W_DamageType)
+                    if (source.DefaultCombatStyle != target.DefaultCombatStyle ||
+                        source.W_AttackType != target.W_AttackType ||
+                        source.W_DamageType != target.W_DamageType)
                     {
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
@@ -350,7 +445,8 @@ namespace ACE.Server.Entity
 
                 case ItemType.MissileWeapon:
 
-                    if (source.DefaultCombatStyle != target.DefaultCombatStyle || source.W_DamageType != 0 && source.W_DamageType != target.W_DamageType)
+                    if (source.DefaultCombatStyle != target.DefaultCombatStyle ||
+                        source.W_DamageType != DamageType.Undef && source.W_DamageType != target.W_DamageType)
                     {
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
@@ -359,7 +455,7 @@ namespace ACE.Server.Entity
 
                 case ItemType.Caster:
 
-                    if (source.W_DamageType != 0 && source.W_DamageType != target.W_DamageType)
+                    if (source.W_DamageType != DamageType.Undef && source.W_DamageType != target.W_DamageType)
                     {
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
@@ -371,10 +467,13 @@ namespace ACE.Server.Entity
                     return;
             }
 
-            // update properties
-            // creating a brand new item might be reasonable here,
-            // but we have to make sure the list of properties here is completed
-            UpdateCommonProps(player, source, target);
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You tailor the appearance onto a different weapon.", ChatMessageType.Broadcast));
+
+            // Update all of the relevant properties
+            UpdateWeaponProps(player, source, target);
+
+            // Send UpdateObject, mostly for the client to register the new name.
+            player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
@@ -383,10 +482,8 @@ namespace ACE.Server.Entity
 
         public static void UpdateCommonProps(Player player, WorldObject source, WorldObject target)
         {
-            player.UpdateProperty(target, PropertyString.Name, source.Name);
-
             player.UpdateProperty(target, PropertyInt.PaletteTemplate, source.PaletteTemplate);
-            player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
+            //player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
             player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
 
             player.UpdateProperty(target, PropertyFloat.Shade, source.Shade);
@@ -395,9 +492,44 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyFloat.Shade4, source.Shade4);
 
             player.UpdateProperty(target, PropertyDataId.Setup, source.SetupTableId);
-            player.UpdateProperty(target, PropertyDataId.PaletteBase, source.PaletteBaseId);
             player.UpdateProperty(target, PropertyDataId.ClothingBase, source.ClothingBase);
+            player.UpdateProperty(target, PropertyDataId.PaletteBase, source.PaletteBaseId);
+
+            player.UpdateProperty(target, PropertyString.Name, source.Name);
+            player.UpdateProperty(target, PropertyString.LongDesc, source.LongDesc);
+
+            player.UpdateProperty(target, PropertyBool.IgnoreCloIcons, source.IgnoreCloIcons);
             player.UpdateProperty(target, PropertyDataId.Icon, source.IconId);
+        }
+
+        public static void UpdateArmorProps(Player player, WorldObject source, WorldObject target)
+        {
+            UpdateCommonProps(player, source, target);
+
+            player.UpdateProperty(target, PropertyBool.Dyable, source.Dyable);
+
+            // If the item we are replacing is one of our preset icons with an overlay, we need to remove it.
+            if (ArmorOverlayIcons.ContainsKey(target.WeenieClassId))
+                player.UpdateProperty(target, PropertyDataId.IconOverlay, null);
+
+            // If the source item has an icon stashed in the Secondary Overlay, it's because we put it there!
+            // Apply this overlay if the target does not already have one.
+            if (source.GetProperty(PropertyDataId.IconOverlaySecondary).HasValue && !target.IconOverlayId.HasValue)
+                player.UpdateProperty(target, PropertyDataId.IconOverlay, source.GetProperty(PropertyDataId.IconOverlaySecondary));
+
+            // ObjDescOverride.Clear()
+        }
+
+        public static void UpdateWeaponProps(Player player, WorldObject source, WorldObject target)
+        {
+            UpdateCommonProps(player, source, target);
+
+            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
+
+            player.UpdateProperty(target, PropertyInt.HookType, source.HookType);
+            player.UpdateProperty(target, PropertyInt.HookPlacement, source.HookPlacement);
+            player.UpdateProperty(target, PropertyBool.LightsStatus, source.LightsStatus);
+            player.UpdateProperty(target, PropertyFloat.Translucency, source.Translucency);
         }
 
         public static uint? GetArmorWCID(EquipMask validLocations)
@@ -409,6 +541,7 @@ namespace ACE.Server.Entity
                 case EquipMask.HandWear:
                     return PlatemailGauntlets;
                 case EquipMask.FootWear:
+                case EquipMask.FootWear | EquipMask.LowerLegWear:
                     return LeatherBoots;
                 case EquipMask.ChestArmor:
                     return LeatherVest;
@@ -445,7 +578,7 @@ namespace ACE.Server.Entity
         public const uint Heaume = 42414;
         public const uint YoroiLeggings = 42416;
         public const uint AmuliLeggings = 42417;
-        public const uint YoroiPauldrons = 42148;
+        public const uint YoroiPauldrons = 42418;
         public const uint CeldonSleeves = 42421;
         public const uint LeatherBoots = 42422;
         public const uint Tentacles = 44863;
@@ -478,6 +611,7 @@ namespace ACE.Server.Entity
                 case AmuliLeggings:
                 case WingedCoat:
                 case Tentacles:
+                case DarkHeart:
 
                     return true;
 
