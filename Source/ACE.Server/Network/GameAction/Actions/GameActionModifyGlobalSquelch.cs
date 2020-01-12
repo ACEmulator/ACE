@@ -14,7 +14,7 @@ namespace ACE.Server.Network.GameAction.Actions
             var squelch = Convert.ToBoolean(message.Payload.ReadUInt32());
             var messageType = (ChatMessageType)message.Payload.ReadUInt32();
 
-            session.Player.HandleActionModifyGlobalSquelch(squelch, messageType);
+            session.Player.SquelchManager.HandleActionModifyGlobalSquelch(squelch, messageType);
         }
     }
 }

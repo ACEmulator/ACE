@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+
 using ACE.Entity.Enum;
 using ACE.Server.Network.Sequence;
 using ACE.Server.WorldObjects;
@@ -24,8 +26,10 @@ namespace ACE.Server.Network.Structure
         public float Speed;                 // the speed at which to perform the animation / movement.
 
 
-        public MotionItem(MotionCommand motionCommand, float speed = 1.0f)
+        public MotionItem(WorldObject worldObject, MotionCommand motionCommand, float speed = 1.0f)
         {
+            WorldObject = worldObject;
+
             MotionCommand = motionCommand;
             Speed = speed;
         }
@@ -44,6 +48,17 @@ namespace ACE.Server.Network.Structure
             ServerActionSequence = (ushort)(PackedSequence & 0x7FFF);
             IsAutonomous = (PackedSequence >> 15) == 1;
             Speed = reader.ReadSingle();
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine($"MotionCommand: {MotionCommand}");
+            sb.AppendLine($"IsAutonomous: {IsAutonomous}");
+            sb.AppendLine($"Speed: {Speed}");
+
+            return sb.ToString();
         }
     }
 

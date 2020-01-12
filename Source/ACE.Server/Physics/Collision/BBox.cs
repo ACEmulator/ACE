@@ -67,7 +67,7 @@ namespace ACE.Server.Physics.Collision
 
         public void ConvertToGlobal(Position pos)
         {
-            var transform = Matrix4x4.CreateFromQuaternion(pos.Frame.Orientation) * Matrix4x4.CreateTranslation(pos.Frame.Origin); ;
+            var transform = Matrix4x4.CreateFromQuaternion(pos.Frame.Orientation) * Matrix4x4.CreateTranslation(pos.Frame.Origin);
             Min = Vector3.Transform(Min, transform);
             Max = Vector3.Transform(Max, transform);
             // adjust?

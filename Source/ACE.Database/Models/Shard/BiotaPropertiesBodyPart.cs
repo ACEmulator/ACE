@@ -34,6 +34,6 @@ namespace ACE.Database.Models.Shard
         public float MRB { get; set; }
         public float LRB { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

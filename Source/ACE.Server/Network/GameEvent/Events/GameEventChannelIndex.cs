@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameEvent.Events
+namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventChannelIndex : GameEventMessage
     {
@@ -35,7 +35,7 @@
                 Writer.WriteString16L("Help");
             }
 
-            if (Session.Player.IsArch || Session.Player.IsEnvoy || Session.Player.IsPsr)
+            if (Session.Player.IsArch || Session.Player.IsSentinel)
             {
                 Writer.Write(7u);
                 Writer.WriteString16L("Abuse");
@@ -47,16 +47,15 @@
                 Writer.WriteString16L("Help");
             }
 
-            // TODO: Needs an IsAdvocate thing to work like it should
-            // if (Session.Player.IsAdvocate)
-            // {
-            //    Writer.Write(5u);
-            //    Writer.WriteString16L("Abuse");
-            //    Writer.WriteString16L("Av1");
-            //    Writer.WriteString16L("Av2");
-            //    Writer.WriteString16L("Av3");
-            //    Writer.WriteString16L("Help");
-            // }
+            if (Session.Player.IsAdvocate)
+            {
+                Writer.Write(5u);
+                Writer.WriteString16L("Abuse");
+                Writer.WriteString16L("Av1");
+                Writer.WriteString16L("Av2");
+                Writer.WriteString16L("Av3");
+                Writer.WriteString16L("Help");
+            }
         }
     }
 }

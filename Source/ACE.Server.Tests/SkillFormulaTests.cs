@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using ACE.Server.WorldObjects.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Tests
 {
@@ -10,7 +10,7 @@ namespace ACE.Server.Tests
         [TestMethod]
         public void FiftyFiftyIsAccurate()
         {
-            var result = CreatureSkill.GetPercentSuccess(100, 100);
+            var result = SkillCheck.GetSkillChance(100, 100);
             Assert.AreEqual(0.5d, result);
         }
     }

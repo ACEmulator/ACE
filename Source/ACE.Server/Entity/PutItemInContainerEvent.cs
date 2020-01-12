@@ -26,7 +26,8 @@ namespace ACE.Server.Entity
 
         public bool IsDoubleSend(PutItemInContainerEvent data)
         {
-            return ItemGuid == data.ItemGuid && ContainerGuid == data.ContainerGuid && Placement == data.Placement && Timestamp - data.Timestamp <= Threshold;
+            return ItemGuid == data.ItemGuid && ContainerGuid == data.ContainerGuid && Placement == data.Placement &&
+                DateTime.UtcNow - Timestamp < Threshold && Timestamp - data.Timestamp < Threshold;
         }
     }
 }

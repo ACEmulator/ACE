@@ -11,24 +11,6 @@ namespace ACE.Server.Network.GameAction.Actions
             var vital = (PropertyAttribute2nd)message.Payload.ReadUInt32();
             var xpSpent = message.Payload.ReadUInt32();
 
-            //Ability ability;
-
-            //switch (vital)
-            //{
-            //    case Vital.MaxHealth:
-            //        ability = Ability.Health;
-            //        break;
-            //    case Vital.MaxStamina:
-            //        ability = Ability.Stamina;
-            //        break;
-            //    case Vital.MaxMana:
-            //        ability = Ability.Mana;
-            //        break;
-            //    default:
-            //        ChatPacket.SendServerMessage(session, $"Unable to Handle GameActionRaiseVital for vital {vital}", ChatMessageType.Broadcast);
-            //        return;
-            //}
-
             session.Player.HandleActionRaiseVital(vital, xpSpent);
         }
     }

@@ -54,11 +54,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public AttackType GetWeaponAttackType(WorldObject weapon)
         {
-            var attackType = AttackType.Undef;     // unarmed?
-            if (weapon != null)
-                attackType = (AttackType)(weapon.GetProperty(PropertyInt.AttackType) ?? 0);
+            if (weapon == null)
+                return AttackType.Undef;
 
-            return attackType;
+            return weapon.W_AttackType;
         }
 
         /// <summary>
@@ -116,7 +115,7 @@ namespace ACE.Server.WorldObjects
             if (!weapon.IsCleaving) return null;
 
             // sort visible objects by ascending distance
-            var visible = PhysicsObj.ObjMaint.VisibleObjectTable.Values.ToList();
+            var visible = PhysicsObj.ObjMaint.GetVisibleObjectsValuesWhere(o => o.WeenieObj.WorldObject != null);
             visible.Sort(DistanceComparator);
 
             var cleaveTargets = new List<Creature>();
@@ -130,12 +129,15 @@ namespace ACE.Server.WorldObjects
 
                 // only cleave creatures
                 var creature = obj.WeenieObj.WorldObject as Creature;
-                if (creature == null) continue;
+                if (creature == null || creature.Teleporting || creature.IsDead) continue;
 
                 if (player != null && creature is Player && player.CheckPKStatusVsTarget(player, creature, null) != null)
                     continue;
 
-                if (!(creature.GetProperty(PropertyBool.Attackable) ?? false))
+                if (!creature.Attackable || creature.Teleporting)
+                    continue;
+
+                if (creature is CombatPet && (player != null || this is CombatPet))
                     continue;
 
                 // no objects in cleave range

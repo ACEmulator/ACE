@@ -11,6 +11,7 @@ using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System;
+using System.Net;
 
 namespace ACE.Database
 {
@@ -50,7 +51,7 @@ namespace ACE.Database
         }
 
         /// <exception cref="MySqlException">Account with name already exists.</exception>
-        public Account CreateAccount(string name, string password, AccessLevel accessLevel)
+        public Account CreateAccount(string name, string password, AccessLevel accessLevel, IPAddress address)
         {
             var account = new Account();
 
@@ -58,6 +59,9 @@ namespace ACE.Database
             account.SetPassword(password);
             account.SetSaltForBCrypt();
             account.AccessLevel = (uint)accessLevel;
+
+            account.CreateTime = DateTime.UtcNow;
+            account.CreateIP = address.GetAddressBytes();
 
             using (var context = new AuthDbContext())
             {

@@ -1,5 +1,7 @@
 using System;
 using System.Numerics;
+
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
@@ -64,8 +66,8 @@ namespace ACE.Server.Physics
                     A = a;
                     B = b;
 
-                    var ra = ACE.ThreadSafeRandom.Next(-(float)Math.PI, (float)Math.PI);
-                    var po = ACE.ThreadSafeRandom.Next(-(float)Math.PI, (float)Math.PI);
+                    var ra = ThreadSafeRandom.Next(-(float)Math.PI, (float)Math.PI);
+                    var po = ThreadSafeRandom.Next(-(float)Math.PI, (float)Math.PI);
                     var rb = Math.Cos(po);
 
                     C.X = (float)(Math.Cos(ra) * c.X * rb);

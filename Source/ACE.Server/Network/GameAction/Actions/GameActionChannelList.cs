@@ -10,11 +10,11 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var chatChannelID = (Channel)message.Payload.ReadUInt32();
 
-            // Probably need some IsAdvocate and IsSentinel type thing going on here as well. leaving for now
-            if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
+            if (session.AccessLevel == AccessLevel.Player && !session.Player.IsAdvocate)
                 return;
 
-            session.Network.EnqueueSend(new GameEventChannelList(session, chatChannelID));
+            if (session.Player.ChannelsAllowed.HasValue && session.Player.ChannelsAllowed.Value.HasFlag(chatChannelID))
+                session.Network.EnqueueSend(new GameEventChannelList(session, chatChannelID));
         }
     }
 }

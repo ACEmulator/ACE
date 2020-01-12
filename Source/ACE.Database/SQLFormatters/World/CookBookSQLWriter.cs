@@ -22,8 +22,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<CookBook> input, StreamWriter writer)
         {
-            foreach (var value in input)
-                writer.WriteLine($"DELETE FROM `cook_book` WHERE `recipe_Id` = {value.RecipeId};");
+            writer.WriteLine($"DELETE FROM `cook_book` WHERE `recipe_Id` = {input[0].RecipeId};");
         }
 
         public void CreateSQLINSERTStatement(IList<CookBook> input, StreamWriter writer)
@@ -40,7 +39,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (WeenieNames != null)
                     WeenieNames.TryGetValue(input[i].TargetWCID, out targetLabel);
 
-                return $"{input[i].RecipeId}, {input[i].SourceWCID} /* {sourceLabel} */, {input[i].TargetWCID.ToString().PadLeft(5)} /* {targetLabel} */, '{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}')";
+                return $"{input[i].RecipeId}, {input[i].SourceWCID} /* {sourceLabel} */, {input[i].TargetWCID.ToString().PadLeft(5)} /* {targetLabel} */, '{input[i].LastModified:yyyy-MM-dd HH:mm:ss}')";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);

@@ -1,0 +1,100 @@
+<!-- This config file shows you how to separate your log data into more organized files.
+     You might want to do this to make browsing files easier.
+
+     In this example, the following files are created:
+       ACE_Log.txt        - Contains all log messages
+       ACE_Log-INFO.txt   - Contains Info, Warn & Error log messages
+       ACE_Log-WARN.txt   - Contains Warn & Error log messages
+       ACE_Log-CORPSE.txt - Contains all log messages that match case-insensitive "corpse"
+
+     Note: stringToMatch is case sensitive! You can also use regexToMatch
+--> 
+
+<log4net>
+
+  <appender name="RollingFileAppender" type="log4net.Appender.RollingFileAppender">
+    <file value="ACE_Log.txt" />
+    <appendToFile value="true" />
+    <rollingStyle value="Size" />
+    <maxSizeRollBackups value="10" />
+    <maximumFileSize value="20480KB" />
+    <staticLogFileName value="true" />
+    <layout type="log4net.Layout.PatternLayout">
+      <conversionPattern value="%date [%thread] %-5level (%logger) %message%newline" />
+    </layout>
+  </appender>
+
+  <appender name="RollingFileAppender-INFO" type="log4net.Appender.RollingFileAppender">
+    <file value="ACE_Log-INFO.txt" />
+    <appendToFile value="true" />
+    <rollingStyle value="Size" />
+    <maxSizeRollBackups value="10" />
+    <maximumFileSize value="20480KB" />
+    <staticLogFileName value="true" />
+    <layout type="log4net.Layout.PatternLayout">
+      <conversionPattern value="%date [%thread] %-5level (%logger) %message%newline" />
+    </layout>
+    <threshold value="INFO" />
+  </appender>
+
+  <appender name="RollingFileAppender-WARN" type="log4net.Appender.RollingFileAppender">
+    <file value="ACE_Log-WARN.txt" />
+    <appendToFile value="true" />
+    <rollingStyle value="Size" />
+    <maxSizeRollBackups value="10" />
+    <maximumFileSize value="20480KB" />
+    <staticLogFileName value="true" />
+    <layout type="log4net.Layout.PatternLayout">
+      <conversionPattern value="%date [%thread] %-5level (%logger) %message%newline" />
+    </layout>
+    <threshold value="WARN" />
+  </appender>
+
+  <appender name="RollingFileAppender-CORPSE" type="log4net.Appender.RollingFileAppender">
+    <file value="ACE_Log-CORPSE.txt" />
+    <appendToFile value="true" />
+    <rollingStyle value="Size" />
+    <maxSizeRollBackups value="10" />
+    <maximumFileSize value="20480KB" />
+    <staticLogFileName value="true" />
+    <layout type="log4net.Layout.PatternLayout">
+      <conversionPattern value="%date [%thread] %-5level (%logger) %message%newline" />
+    </layout>
+    <filter type="log4net.Filter.StringMatchFilter">
+        <!-- Case insensitive regex filter: -->
+        <!-- <regexToMatch value="^.*(?i)corpse.*$" /> -->
+        <regexToMatch value="^.*\[CORPSE\].*$" />
+    </filter>
+    <filter type="log4net.Filter.DenyAllFilter" />
+  </appender>
+
+  <appender name="RollingFileAppender-DATABASE" type="log4net.Appender.RollingFileAppender">
+    <file value="ACE_Log-DATABASE.txt" />
+    <appendToFile value="true" />
+    <rollingStyle value="Size" />
+    <maxSizeRollBackups value="10" />
+    <maximumFileSize value="20480KB" />
+    <staticLogFileName value="true" />
+    <layout type="log4net.Layout.PatternLayout">
+      <conversionPattern value="%date [%thread] %-5level (%logger) %message%newline" />
+    </layout>
+    <filter type="log4net.Filter.StringMatchFilter">
+        <!-- Case insensitive regex filter: -->
+        <!-- <regexToMatch value="^.*(?i)database.*$" /> -->
+        <regexToMatch value="^.*\[DATABASE\].*$" />
+    </filter>
+    <filter type="log4net.Filter.DenyAllFilter" />
+  </appender>
+
+  <root>
+    <level value="ALL" />
+    <!-- For any appender you define above, you must add it here for it to work --> 
+    <!-- If you want to disable any specific log, you can comment them out here --> 
+    <appender-ref ref="RollingFileAppender" />
+    <appender-ref ref="RollingFileAppender-INFO" />
+    <appender-ref ref="RollingFileAppender-WARN" />
+    <appender-ref ref="RollingFileAppender-CORPSE" />
+    <appender-ref ref="RollingFileAppender-DATABASE" />
+  </root>
+
+</log4net>

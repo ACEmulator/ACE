@@ -1,6 +1,4 @@
-using System;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
 {
@@ -9,7 +7,9 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Creature
     {
-        public bool IsMonster;
+        public bool IsMonster { get; set; }
+
+        public bool IsChessPiece { get; set; }
 
         /// <summary>
         /// The exclusive state of the monster
@@ -27,14 +27,17 @@ namespace ACE.Server.WorldObjects
         };
 
         /// <summary>
-        /// Returns TRUE if this is an attackable monster
+        /// Determines if this creature runs combat ai,
+        /// and caches into IsMonster
         /// </summary>
-        public bool IsAttackable()
+        public void SetMonsterState()
         {
-            var attackable = GetProperty(PropertyBool.Attackable) ?? false;
-            var tolerance = (Tolerance)(GetProperty(PropertyInt.Tolerance) ?? 0);
+            if (this is Player) return;
 
-            return attackable && !tolerance.HasFlag(Tolerance.NoAttack);
+            IsChessPiece = this is GamePiece;
+
+            // includes CombatPets
+            IsMonster = Attackable || TargetingTactic != TargetingTactic.None;
         }
     }
 }

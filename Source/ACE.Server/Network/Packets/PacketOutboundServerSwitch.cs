@@ -6,10 +6,10 @@ namespace ACE.Server.Network.Packets
         {
             Header.Flags = PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.ServerSwitch;
 
-            InitializeBodyWriter();
+            InitializeDataWriter();
 
-            BodyWriter.Write((uint)0x18); // This value is currently the hard coded Server ID. It can be something different...
-            BodyWriter.Write((uint)0x00);
+            DataWriter.Write((uint)0x18); // This value is currently the hard coded Server ID. It can be something different...
+            DataWriter.Write((uint)0x00);
         }
     }
 }

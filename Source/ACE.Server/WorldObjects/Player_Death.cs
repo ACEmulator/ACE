@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using ACE.Common;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -29,12 +31,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="lastDamager">The last damager that landed the death blow</param>
         /// <param name="damageType">The damage type for the death message</param>
-        public override DeathMessage OnDeath(WorldObject lastDamager, DamageType damageType, bool criticalHit = false)
+        public override DeathMessage OnDeath(DamageHistoryInfo lastDamager, DamageType damageType, bool criticalHit = false)
         {
+            var topDamager = DamageHistory.GetTopDamager(false);
+
+            HandlePKDeathBroadcast(lastDamager, topDamager);
+
             var deathMessage = base.OnDeath(lastDamager, damageType, criticalHit);
 
-            if (lastDamager != null)
-                lastDamager.EmoteManager.OnKill(this);
+            var lastDamagerObj = lastDamager?.TryGetAttacker();
+
+            if (lastDamagerObj != null)
+                lastDamagerObj.EmoteManager.OnKill(this);
 
             var playerMsg = "";
             if (lastDamager != null)
@@ -54,20 +62,22 @@ namespace ACE.Server.WorldObjects
 
             var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
 
+            log.Debug("[CORPSE] " + nearbyMsg);
+
             var excludePlayers = new List<Player>();
-            if (lastDamager is Player lastDamagerPlayer)
+            if (lastDamagerObj is Player lastDamagerPlayer)
                 excludePlayers.Add(lastDamagerPlayer);
 
             var nearbyPlayers = EnqueueBroadcast(excludePlayers, false, broadcastMsg);
 
             excludePlayers.AddRange(nearbyPlayers);
-            excludePlayers.Add(this);   // exclude self
+            excludePlayers.Add(this); // exclude self
 
             if (Fellowship != null)
                 Fellowship.OnDeath(this);
 
             // if the player's lifestone is in a different landblock, also broadcast their demise to that landblock
-            if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
+            if (PropertyManager.GetBool("lifestone_broadcast_death").Item && Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
             {
                 // ActionBroadcastKill might not work if other players around lifestone aren't aware of this player yet...
                 // this existing broadcast method is also based on the current visible objects to the player,
@@ -77,10 +87,37 @@ namespace ACE.Server.WorldObjects
                 // instead, we get all of the players in the lifestone landblock + adjacent landblocks,
                 // and possibly limit that to some radius around the landblock?
                 var lifestoneBlock = LandblockManager.GetLandblock(new LandblockId(Sanctuary.Landblock << 16 | 0xFFFF), true);
-                lifestoneBlock.EnqueueBroadcast(excludePlayers, true, broadcastMsg);
+                lifestoneBlock.EnqueueBroadcast(excludePlayers, true, Sanctuary, LocalBroadcastRangeSq, broadcastMsg);
             }
 
             return deathMessage;
+        }
+
+        public void HandlePKDeathBroadcast(DamageHistoryInfo lastDamager, DamageHistoryInfo topDamager)
+        {
+            if (topDamager == null || !topDamager.IsPlayer)
+                return;
+
+            var pkPlayer = topDamager.TryGetAttacker() as Player;
+            if (pkPlayer == null)
+                return;
+
+            if (IsPKDeath(topDamager))
+            {
+                pkPlayer.PkTimestamp = Time.GetUnixTime();
+                pkPlayer.PlayerKillsPk++;
+
+                var globalPKDe = $"{lastDamager.Name} has defeated {Name}!";
+
+                if ((Location.Cell & 0xFFFF) < 0x100)
+                    globalPKDe += $" The kill occured at {Location.GetMapCoordStr()}";
+
+                globalPKDe += "\n[PKDe]";
+
+                PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalPKDe, ChatMessageType.Broadcast));
+            }
+            else if (IsPKLiteDeath(topDamager))
+                pkPlayer.PlayerKillsPkl++;
         }
 
         /// <summary>
@@ -109,10 +146,24 @@ namespace ACE.Server.WorldObjects
         /// Broadcasts the player death animation, updates vitae, and sends network messages for player death
         /// Queues the action to call TeleportOnDeath and enter portal space soon
         /// </summary>
-        protected override void Die(WorldObject lastDamager, WorldObject topDamager)
+        protected override void Die(DamageHistoryInfo lastDamager, DamageHistoryInfo topDamager)
         {
+            if (topDamager?.Guid == Guid && IsPKType)
+            {
+                var topDamagerOther = DamageHistory.GetTopDamager(false);
+
+                if (topDamagerOther != null && topDamagerOther.IsPlayer)
+                    topDamager = topDamagerOther;
+            }
+
             UpdateVital(Health, 0);
             NumDeaths++;
+            suicideInProgress = false;
+
+            // TODO: instead of setting IsBusy here,
+            // eventually all of the places that check for states such as IsBusy || Teleporting
+            // might want to use a common function, and IsDead should return a separate error
+            IsBusy = true;
 
             // killer = top damager for looting rights
             if (topDamager != null)
@@ -121,10 +172,6 @@ namespace ACE.Server.WorldObjects
             // broadcast death animation
             var deathAnim = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
             EnqueueBroadcastMotion(deathAnim);
-
-            // killer death message = last damager
-            var killerMsg = lastDamager != null ? " to " + lastDamager.Name : "";
-            var currentDeathMessage = $"died{killerMsg}.";
 
             // create network messages for player death
             var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, 0);
@@ -136,15 +183,18 @@ namespace ACE.Server.WorldObjects
             // send network messages for player death
             Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths);
 
-            // update vitae
-            // players who died in a PKLite fight do not accrue vitae
-            var pkLiteKiller = GetKiller_PKLite();
-            if (pkLiteKiller == null)
+            if (lastDamager?.Guid == Guid) // suicide
             {
-                InflictVitaePenalty();
+                var msgSelfInflictedDeath = new GameEventWeenieError(Session, WeenieError.YouKilledYourself);
+                Session.Network.EnqueueSend(msgSelfInflictedDeath);
             }
 
-            if (AugmentationSpellsRemainPastDeath == 0 || topDamager is Player && topDamager.PlayerKillerStatus == PlayerKillerStatus.PK)
+            // update vitae
+            // players who died in a PKLite fight do not accrue vitae
+            if (!IsPKLiteDeath(topDamager))
+                InflictVitaePenalty();
+
+            if (IsPKDeath(topDamager) || AugmentationSpellsRemainPastDeath == 0)
             {
                 var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
                 EnchantmentManager.RemoveAllEnchantments();
@@ -159,9 +209,13 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, () =>
             {
                 CreateCorpse(topDamager);
-                TeleportOnDeath();      // enter portal space
-                SetLifestoneProtection();
-                SetMinimumTimeSincePK();
+
+                ThreadSafeTeleportOnDeath(); // enter portal space
+
+                if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
+                    SetMinimumTimeSincePK();
+
+                IsBusy = false;
             });
 
             dieChain.EnqueueChain();
@@ -170,48 +224,94 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when the player enters portal space after dying
         /// </summary>
-        public void TeleportOnDeath()
+        public void ThreadSafeTeleportOnDeath()
         {
             // teleport to sanctuary or best location
-            var newPosition = Sanctuary ?? LastPortal ?? Location;
+            var newPosition = Sanctuary ?? Instantiation ?? Location;
 
-            Teleport(newPosition);
-
-            // Stand back up
-            SetCombatMode(CombatMode.NonCombat);
-
-            var teleportChain = new ActionChain();
-            teleportChain.AddDelaySeconds(3.0f);
-            teleportChain.AddAction(this, () =>
+            WorldManager.ThreadSafeTeleport(this, newPosition, new ActionEventDelegate(() =>
             {
-                // currently happens while in portal space
-                var newHealth = (uint)Math.Round(Health.MaxValue * 0.75f);
-                var newStamina = (uint)Math.Round(Stamina.MaxValue * 0.75f);
-                var newMana = (uint)Math.Round(Mana.MaxValue * 0.75f);
+                // Stand back up
+                SetCombatMode(CombatMode.NonCombat);
 
-                var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, newHealth);
-                var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, newStamina);
-                var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, newMana);
+                SetLifestoneProtection();
 
-                UpdateVital(Health, newHealth);
-                UpdateVital(Stamina, newStamina);
-                UpdateVital(Mana, newMana);
+                var teleportChain = new ActionChain();
+                teleportChain.AddDelaySeconds(3.0f);
+                teleportChain.AddAction(this, () =>
+                {
+                    // currently happens while in portal space
+                    var newHealth = (uint)Math.Round(Health.MaxValue * 0.75f);
+                    var newStamina = (uint)Math.Round(Stamina.MaxValue * 0.75f);
+                    var newMana = (uint)Math.Round(Mana.MaxValue * 0.75f);
 
-                Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
+                    var msgHealthUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, newHealth);
+                    var msgStaminaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, newStamina);
+                    var msgManaUpdate = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, newMana);
 
-                // reset damage history for this player
-                DamageHistory.Reset();
-            });
+                    UpdateVital(Health, newHealth);
+                    UpdateVital(Stamina, newStamina);
+                    UpdateVital(Mana, newMana);
 
-            teleportChain.EnqueueChain();
+                    Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
+
+                    // reset damage history for this player
+                    DamageHistory.Reset();
+                });
+
+                teleportChain.EnqueueChain();
+            }));
         }
+
+        private bool suicideInProgress;
 
         /// <summary>
         /// Called when player uses the /die command
         /// </summary>
         public void HandleActionDie()
         {
-            Die(this, DamageHistory.TopDamager);
+            if (IsDead || Teleporting)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
+            if (suicideInProgress)
+                return;
+
+            suicideInProgress = true;
+
+            if (PropertyManager.GetBool("suicide_instant_death").Item)
+                Die(new DamageHistoryInfo(this), DamageHistory.TopDamager);
+            else
+                HandleSuicide(NumDeaths);
+        }
+
+        private static List<string> SuicideMessages = new List<string>()
+        {
+            "I feel faint...",
+            "My sight is growing dim...",
+            "My life is flashing before my eyes...",
+            "I see a light...",
+            "Oh cruel, cruel world!"
+        };
+
+        private void HandleSuicide(int numDeaths, int step = 0)
+        {
+            if (!suicideInProgress || numDeaths != NumDeaths)
+                return;
+
+            if (step < SuicideMessages.Count)
+            {
+                EnqueueBroadcast(new GameMessageCreatureMessage(SuicideMessages[step], Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+
+                var suicideChain = new ActionChain();
+                suicideChain.AddDelaySeconds(3.0f);
+                suicideChain.AddAction(this, () => HandleSuicide(numDeaths, step + 1));
+                suicideChain.EnqueueChain();
+            }
+            else
+                Die(new DamageHistoryInfo(this), DamageHistory.TopDamager);
         }
 
         public List<WorldObject> CalculateDeathItems(Corpse corpse)
@@ -345,19 +445,13 @@ namespace ACE.Server.WorldObjects
             // if player dies in a PKLite battle,
             // they don't drop any items, and revert back to NPK status
 
-            var killer = CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0));
+            // if player dies on a No Drop landblock,
+            // they don't drop any items
 
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-            {
-                if (killer is Player)
-                {
-                    PlayerKillerStatus = PlayerKillerStatus.NPK;
-                    EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
-                    return new List<WorldObject>();
-                }
-            }
+            if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId))
+                return new List<WorldObject>();
 
-            var numItemsDropped = GetNumItemsDropped(killer);
+            var numItemsDropped = GetNumItemsDropped(corpse);
 
             var numCoinsDropped = GetNumCoinsDropped();
 
@@ -372,7 +466,7 @@ namespace ACE.Server.WorldObjects
 
             // exclude wielded items if < level 35
             if (!canDropWielded)
-                inventory = inventory.Where(i => i.CurrentWieldedLocation != null).ToList();
+                inventory = inventory.Where(i => i.CurrentWieldedLocation == null).ToList();
 
             // exclude bonded items
             inventory = inventory.Where(i => (i.GetProperty(PropertyInt.Bonded) ?? 0) == 0).ToList();
@@ -388,7 +482,7 @@ namespace ACE.Server.WorldObjects
             if (numCoinsDropped > 0)
             {
                 // add pyreals to dropped items
-                var pyreals = SpendCurrency((uint)numCoinsDropped, WeenieType.Coin);
+                var pyreals = SpendCurrency(Vendor.CoinStackWCID, (uint)numCoinsDropped);
                 dropItems.AddRange(pyreals);
                 //Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
             }
@@ -434,7 +528,12 @@ namespace ACE.Server.WorldObjects
 
             // handle items with BondedStatus.Slippery: always drop on death
             var slipperyItems = GetSlipperyItems();
-            dropItems.AddRange(slipperyItems);
+
+            foreach (var item in slipperyItems)
+            {
+                if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.ToCorpseOnDeath) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.ToCorpseOnDeath))
+                    dropItems.Add(item);
+            }
 
             var destroyCoins = PropertyManager.GetBool("corpse_destroy_pyreals").Item;
 
@@ -443,7 +542,10 @@ namespace ACE.Server.WorldObjects
             {
                 // coins already removed from SpendCurrency
                 if (destroyCoins && dropItem.WeenieType == WeenieType.Coin)
+                {
+                    dropItem.Destroy();
                     continue;
+                }
 
                 if (!corpse.TryAddToInventory(dropItem))
                 {
@@ -459,9 +561,29 @@ namespace ACE.Server.WorldObjects
 
             // send network messages
             var dropList = DropMessage(dropItems, numCoinsDropped);
-            Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
+            if (!string.IsNullOrWhiteSpace(dropList))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.Broadcast));
+
+                DeathItemLog(dropItems, corpse);
+            }
 
             return dropItems;
+        }
+
+        public void DeathItemLog(List<WorldObject> dropItems, Corpse corpse)
+        {
+            if (dropItems.Count == 0)
+                return;
+
+            var msg = $"[CORPSE] {Name} dropped items on corpse (0x{corpse.Guid}): ";
+
+            foreach (var dropItem in dropItems)
+                msg += $"{(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? dropItem.StackSize.Value.ToString("N0") + " " + dropItem.GetPluralName() : dropItem.Name)} (0x{dropItem.Guid}){(dropItem.WeenieClassId == 273 && PropertyManager.GetBool("corpse_destroy_pyreals").Item ? $" which {(dropItem.StackSize.HasValue && dropItem.StackSize > 1 ? "were" : "was")} destroyed" : "")}, ";
+
+            msg = msg.Substring(0, msg.Length - 2);
+
+            log.Debug(msg);
         }
 
         /// <summary>
@@ -473,7 +595,7 @@ namespace ACE.Server.WorldObjects
         /// Rolls for the # of items to drop for a player death
         /// </summary>
         /// <returns></returns>
-        public int GetNumItemsDropped(WorldObject killer)
+        public int GetNumItemsDropped(Corpse corpse)
         {
             // Original formula:
 
@@ -507,12 +629,11 @@ namespace ACE.Server.WorldObjects
 
             numItemsDropped = Math.Min(numItemsDropped, MaxItemsDropped);   // is this really a max cap?
 
-            // TODO: PK deaths
-
             // The number of items you drop can be reduced with the Clutch of the Miser augmentation. If you get the
             // augmentation three times you will no longer drop any items (except half of your Pyreals and all Rares except if you're a PK).
             // If you drop no items, you will not leave a corpse.
-            if (!(killer is Player) && AugmentationLessDeathItemLoss > 0)
+
+            if (!IsPKDeath(corpse.KillerId) && AugmentationLessDeathItemLoss > 0)
             {
                 numItemsDropped = Math.Max(0, numItemsDropped - AugmentationLessDeathItemLoss * 5);
             }
@@ -761,7 +882,7 @@ namespace ACE.Server.WorldObjects
         public void HandleLifestoneProtection()
         {
             Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.LifestoneMagicProtectsYou));
-            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.ShieldUpBlue));
+            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.ShieldUpBlue));
         }
 
         public static TimeSpan LifestoneProtectionTime = TimeSpan.FromMinutes(1);
@@ -798,40 +919,70 @@ namespace ACE.Server.WorldObjects
 
         public void SetMinimumTimeSincePK()
         {
-            if ((PlayerKillerStatus & PlayerKillerStatus.PK) == 0 && MinimumTimeSincePk == null)
+            if (PlayerKillerStatus == PlayerKillerStatus.NPK && MinimumTimeSincePk == null)
                 return;
 
             var prevStatus = PlayerKillerStatus;
 
-            PlayerKillerStatus &= ~PlayerKillerStatus.PK;
-            PlayerKillerStatus |= PlayerKillerStatus.NPK;
             MinimumTimeSincePk = 0;
+            PlayerKillerStatus = PlayerKillerStatus.NPK;
 
-            if ((prevStatus & PlayerKillerStatus.PK) != 0)
+            if (prevStatus == PlayerKillerStatus.PK)
             {
                 EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreTemporarilyNoLongerPK));
             }
+            else if (prevStatus == PlayerKillerStatus.PKLite)
+            {
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
+            }
         }
-
-        public static TimeSpan TemporaryNPKTime = TimeSpan.FromMinutes(5);
 
         public void PK_DeathTick()
         {
-            if (MinimumTimeSincePk == null)
+            if (MinimumTimeSincePk == null || (PropertyManager.GetBool("pk_server_safe_training_academy").Item && RecallsDisabled))
                 return;
+
+            if (PkLevel == PKLevel.NPK && !PropertyManager.GetBool("pk_server").Item && !PropertyManager.GetBool("pkl_server").Item)
+            {
+                MinimumTimeSincePk = null;
+                return;
+            }
 
             MinimumTimeSincePk += CachedHeartbeatInterval;
 
-            if (MinimumTimeSincePk < TemporaryNPKTime.TotalSeconds)
+            if (MinimumTimeSincePk < PropertyManager.GetDouble("pk_respite_timer").Item)
                 return;
 
-            PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
-            PlayerKillerStatus |= PlayerKillerStatus.PK;
             MinimumTimeSincePk = null;
 
+            var werror = WeenieError.None;
+            var pkLevel = PkLevel;
+
+            if (PropertyManager.GetBool("pk_server").Item)
+                pkLevel = PKLevel.PK;
+            else if (PropertyManager.GetBool("pkl_server").Item)
+                pkLevel = PKLevel.PKLite;
+
+            switch (pkLevel)
+            {
+                case PKLevel.NPK:
+                    return;
+
+                case PKLevel.PK:
+                    PlayerKillerStatus = PlayerKillerStatus.PK;
+                    werror = WeenieError.YouArePKAgain;
+                    break;
+
+                case PKLevel.PKLite:
+                    PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                    werror = WeenieError.YouAreNowPKLite;
+                    break;
+            }
+
             EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
-            Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouArePKAgain));
+            Session.Network.EnqueueSend(new GameEventWeenieError(Session, werror));
         }
 
         public List<WorldObject> GetSlipperyItems()

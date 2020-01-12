@@ -128,6 +128,12 @@ namespace ACE.Server.Factories
                     return new Allegiance(weenie, guid);
                 case WeenieType.AugmentationDevice:
                     return new AugmentationDevice(weenie, guid);
+                case WeenieType.AttributeTransferDevice:
+                    return new AttributeTransferDevice(weenie, guid);
+                case WeenieType.CraftTool:
+                    return new CraftTool(weenie, guid);
+                case WeenieType.LightSource:
+                    return new LightSource(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -239,6 +245,12 @@ namespace ACE.Server.Factories
                     return new Allegiance(biota);
                 case WeenieType.AugmentationDevice:
                     return new AugmentationDevice(biota);
+                case WeenieType.AttributeTransferDevice:
+                    return new AttributeTransferDevice(biota);
+                case WeenieType.CraftTool:
+                    return new CraftTool(biota);
+                case WeenieType.LightSource:
+                    return new LightSource(biota);
                 default:
                     return new GenericObject(biota);
             }
@@ -276,6 +288,12 @@ namespace ACE.Server.Factories
                 else
                 {
                     worldObject = CreateWorldObject(biota);
+
+                    if (worldObject.Location == null)
+                    {
+                        log.Warn($"CreateNewWorldObjects: {worldObject.Name} (0x{worldObject.Guid}) Location was null. CreationTimestamp = {worldObject.CreationTimestamp} ({Common.Time.GetDateTimeFromTimestamp(worldObject.CreationTimestamp ?? 0).ToLocalTime()}) | Location restored from world db instance.");
+                        worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
+                    }
                 }
 
                 if (worldObject != null)

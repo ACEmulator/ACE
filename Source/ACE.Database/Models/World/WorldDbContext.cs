@@ -39,7 +39,11 @@ namespace ACE.Database.Models.World
         public virtual DbSet<RecipeRequirementsString> RecipeRequirementsString { get; set; }
         public virtual DbSet<Spell> Spell { get; set; }
         public virtual DbSet<TreasureDeath> TreasureDeath { get; set; }
+        public virtual DbSet<TreasureMaterialBase> TreasureMaterialBase { get; set; }
+        public virtual DbSet<TreasureMaterialColor> TreasureMaterialColor { get; set; }
+        public virtual DbSet<TreasureMaterialGroups> TreasureMaterialGroups { get; set; }
         public virtual DbSet<TreasureWielded> TreasureWielded { get; set; }
+        public virtual DbSet<Version> Version { get; set; }
         public virtual DbSet<Weenie> Weenie { get; set; }
         public virtual DbSet<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
         public virtual DbSet<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
@@ -482,6 +486,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Source)
@@ -515,6 +523,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Source)
@@ -545,6 +557,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
@@ -577,6 +593,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Source)
@@ -607,6 +627,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
@@ -641,6 +665,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
                 entity.Property(e => e.Source)
@@ -673,6 +701,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
@@ -707,6 +739,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
@@ -737,6 +773,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
@@ -769,6 +809,10 @@ namespace ACE.Database.Models.World
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
+
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
                     .HasColumnType("text");
@@ -799,6 +843,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
@@ -832,6 +880,10 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Enum)
                     .HasColumnName("enum")
                     .HasColumnType("int(10)");
+
+                entity.Property(e => e.Index)
+                    .HasColumnName("index")
+                    .HasColumnType("tinyint(5)");
 
                 entity.Property(e => e.Message)
                     .HasColumnName("message")
@@ -1117,6 +1169,63 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)");
             });
 
+            modelBuilder.Entity<TreasureMaterialBase>(entity =>
+            {
+                entity.ToTable("treasure_material_base");
+
+                entity.HasIndex(e => e.Tier)
+                    .HasName("tier");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.MaterialCode).HasColumnName("material_Code");
+
+                entity.Property(e => e.MaterialId).HasColumnName("material_Id");
+
+                entity.Property(e => e.Probability).HasColumnName("probability");
+
+                entity.Property(e => e.Tier).HasColumnName("tier");
+            });
+
+            modelBuilder.Entity<TreasureMaterialColor>(entity =>
+            {
+                entity.ToTable("treasure_material_color");
+
+                entity.HasIndex(e => e.ColorCode)
+                    .HasName("tsys_Mutation_Color");
+
+                entity.HasIndex(e => e.MaterialId)
+                    .HasName("material_Id");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.ColorCode).HasColumnName("color_Code");
+
+                entity.Property(e => e.MaterialId).HasColumnName("material_Id");
+
+                entity.Property(e => e.PaletteTemplate).HasColumnName("palette_Template");
+
+                entity.Property(e => e.Probability).HasColumnName("probability");
+            });
+
+            modelBuilder.Entity<TreasureMaterialGroups>(entity =>
+            {
+                entity.ToTable("treasure_material_groups");
+
+                entity.HasIndex(e => e.Tier)
+                    .HasName("tier");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.MaterialGroup).HasColumnName("material_Group");
+
+                entity.Property(e => e.MaterialId).HasColumnName("material_Id");
+
+                entity.Property(e => e.Probability).HasColumnName("probability");
+
+                entity.Property(e => e.Tier).HasColumnName("tier");
+            });
+
             modelBuilder.Entity<TreasureWielded>(entity =>
             {
                 entity.ToTable("treasure_wielded");
@@ -1176,6 +1285,27 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.Unknown9).HasColumnName("unknown_9");
 
                 entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
+            });
+
+            modelBuilder.Entity<Version>(entity =>
+            {
+                entity.ToTable("version");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.BaseVersion)
+                    .HasColumnName("base_Version")
+                    .HasColumnType("varchar(45)");
+
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
+                entity.Property(e => e.PatchVersion)
+                    .HasColumnName("patch_Version")
+                    .HasColumnType("varchar(45)");
             });
 
             modelBuilder.Entity<Weenie>(entity =>

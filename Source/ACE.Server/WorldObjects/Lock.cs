@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 
+using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -21,18 +23,21 @@ namespace ACE.Server.WorldObjects
     }
     public interface Lock
     {
-        UnlockResults Unlock(uint unlockerGuid, string keyCode);
+        UnlockResults Unlock(uint unlockerGuid, Key key, string keyCode = null);
         UnlockResults Unlock(uint unlockerGuid, uint playerLockpickSkillLvl, ref int difficulty);
     }
     public class UnlockerHelper
     {
         public static void ConsumeUnlocker(Player player, WorldObject unlocker)
         {
-            if ((unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false))
+            // is Sonic Screwdriver supposed to be consumed on use?
+            // it doesn't have a Structure, and it doesn't have PropertyBool.UnlimitedUse
+            if (unlocker.Structure == null || (unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false))
             {
                 player.SendUseDoneEvent();
                 return;
             }
+
             unlocker.Structure--;
             if (unlocker.Structure < 1)
                 player.TryConsumeFromInventoryWithNetworking(unlocker, 1);
@@ -80,7 +85,7 @@ namespace ACE.Server.WorldObjects
                                 return;
                             }
                         }
-                        result = @lock.Unlock(player.Guid.Full, woKey.KeyCode);
+                        result = @lock.Unlock(player.Guid.Full, woKey);
                     }
 
                     switch (result)
@@ -94,7 +99,7 @@ namespace ACE.Server.WorldObjects
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Broadcast));
 
                                 var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick);
-                                Proficiency.OnSuccessUse(player, lockpickSkill, (uint)difficulty);
+                                Proficiency.OnSuccessUse(player, lockpickSkill, difficulty);
                             }
                             else
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} has been unlocked.", ChatMessageType.Broadcast));
@@ -131,14 +136,44 @@ namespace ACE.Server.WorldObjects
     }
     public class LockHelper
     {
-        public static int? GetResistLockpick(WorldObject me)
+        /// <summary>
+        /// Returns TRUE if wo is a lockable item that can be picked
+        /// </summary>
+        public static bool IsPickable(WorldObject wo)
         {
-            int? myResistLockpick = null;
-            if (me is Door woDoor)
-                myResistLockpick = woDoor.ResistLockpick;
-            else if (me is Chest woChest)
-                myResistLockpick = woChest.ResistLockpick;
-            return myResistLockpick;
+            if (!(wo is Lock)) return false;
+
+            var resistLockpick = wo.ResistLockpick;
+
+            // TODO: find out if ResistLockpick >= 9999 is a special 'unpickable' value in acclient,
+            // similar to ResistMagic >= 9999 being equivalent to Unenchantable?
+
+            if (resistLockpick == null || resistLockpick >= 9999 )
+                return false;
+
+            return true;
+        }
+
+        public static int? GetResistLockpick(WorldObject wo)
+        {
+            if (!(wo is Lock)) return null;
+
+            // if base ResistLockpick without enchantments is unpickable,
+            // do not apply enchantments
+            var isPickable = IsPickable(wo);
+
+            if (!isPickable)
+                return wo.ResistLockpick;
+
+            var resistLockpick = wo.ResistLockpick.Value;
+            var enchantmentMod = wo.EnchantmentManager.GetResistLockpick();
+
+            var difficulty = resistLockpick + enchantmentMod;
+
+            // minimum 0 difficulty
+            difficulty = Math.Max(0, difficulty);
+
+            return difficulty;
         }
         public static string GetLockCode(WorldObject me)
         {
@@ -149,15 +184,28 @@ namespace ACE.Server.WorldObjects
                 myLockCode = woChest.LockCode;
             return myLockCode;
         }
-        public static UnlockResults Unlock(WorldObject target, string keyCode)
+        public static UnlockResults Unlock(WorldObject target, Key key, string keyCode = null)
         {
+            if (keyCode == null)
+                keyCode = key?.KeyCode;
+
             string myLockCode = GetLockCode(target);
             if (myLockCode == null) return UnlockResults.IncorrectKey;
 
             if (target.IsOpen)
                 return UnlockResults.Open;
 
-            if (keyCode.Equals(myLockCode, StringComparison.OrdinalIgnoreCase))
+            // there is only 1 instance of an 'opens all' key in PY16 data, 'keysonicscrewdriver'
+            // which uses keyCode '_bohemund's_magic_key_'
+
+            // when LSD added the rare skeleton key (keyrarevolatileuniversal),
+            // they used PropertyBool.OpensAnyLock, which appears to have been used for something else in retail on Writables:
+
+            // https://github.com/ACEmulator/ACE-World-16PY/blob/master/Database/3-Core/9%20WeenieDefaults/SQL/Key/Key/09181%20Sonic%20Screwdriver.sql
+            // https://github.com/ACEmulator/ACE-World-16PY/search?q=OpensAnyLock
+
+            if (keyCode != null && (keyCode.Equals(myLockCode, StringComparison.OrdinalIgnoreCase) || keyCode.Equals("_bohemund's_magic_key_")) ||
+                    key != null && key.OpensAnyLock)
             {
                 if (!target.IsLocked)
                     return UnlockResults.AlreadyUnlocked;
@@ -172,10 +220,12 @@ namespace ACE.Server.WorldObjects
         }
         public static UnlockResults Unlock(WorldObject target, uint playerLockpickSkillLvl, ref int difficulty)
         {
-            int? myResistLockpick = GetResistLockpick(target);
+            var isPickable = IsPickable(target);
 
-            if (!myResistLockpick.HasValue || myResistLockpick < 1)
+            if (!isPickable)
                 return UnlockResults.CannotBePicked;
+
+            int? myResistLockpick = GetResistLockpick(target);
 
             difficulty = myResistLockpick.Value;
 
@@ -185,7 +235,7 @@ namespace ACE.Server.WorldObjects
             if (!target.IsLocked)
                 return UnlockResults.AlreadyUnlocked;
 
-            var pickChance = SkillCheck.GetSkillChance((int)playerLockpickSkillLvl, (int)myResistLockpick);
+            var pickChance = SkillCheck.GetSkillChance((int)playerLockpickSkillLvl, difficulty);
 
 #if DEBUG
             Debug.WriteLine($"{pickChance.FormatChance()} chance of UnlockSuccess");
@@ -201,5 +251,4 @@ namespace ACE.Server.WorldObjects
             return UnlockResults.UnlockSuccess;
         }
     }
-
 }

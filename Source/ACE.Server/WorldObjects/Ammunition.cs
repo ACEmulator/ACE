@@ -41,5 +41,10 @@ namespace ACE.Server.WorldObjects
             var proj = new Projectile(this);
             proj.OnCollideEnvironment();
         }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            // Do nothing
+        }
     }
 }

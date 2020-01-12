@@ -11,10 +11,10 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (target != null)
             {
-                session.Player.HandleActionCloseTradeNegotiations(session);
+                session.Player.HandleActionCloseTradeNegotiations();
 
                 //Close the trade window for the trade partner
-                target.HandleActionCloseTradeNegotiations(target.Session);
+                target.HandleActionCloseTradeNegotiations();
             }
         }
     }

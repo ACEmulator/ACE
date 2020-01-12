@@ -7,25 +7,19 @@ namespace ACE.Server.WorldObjects
 {
     public class SkillFormula
     {
-        public static readonly float StrengthMod = 0.011f;
-        public static readonly float CoordinationMod = 0.008f;
+        // everything else: melee weapons (including finesse), thrown weapons, atlatls
+        public static readonly float DefaultMod = 0.011f;
+
+        // bows and crossbows
+        public static readonly float BowMod = 0.008f;
 
         public static readonly float ArmorMod = 200.0f / 3.0f;
 
-        public static float GetAttributeMod(PropertyAttribute attribute, int current)
+        public static float GetAttributeMod(int currentSkill, bool isBow = false)
         {
-            var attributeMod = 0.0f;
-            switch (attribute)
-            {
-                case PropertyAttribute.Strength:
-                    attributeMod = StrengthMod;
-                    break;
-                case PropertyAttribute.Coordination:
-                    attributeMod = CoordinationMod;
-                    break;
-            }
-            var attributeBonus = Math.Max(1.0f + (current - 55) * attributeMod, 1.0f);
-            return attributeBonus;
+            var factor = isBow ? BowMod : DefaultMod;
+
+            return Math.Max(1.0f + (currentSkill - 55) * factor, 1.0f);
         }
 
         /// <summary>
@@ -35,7 +29,6 @@ namespace ACE.Server.WorldObjects
         public static float CalcArmorMod(float armorLevel)
         {
             if (armorLevel > 0)
-                //return armorLevel / (armorLevel + ArmorMod);
                 return ArmorMod / (armorLevel + ArmorMod);
             else if (armorLevel < 0)
                 return 1.0f - armorLevel / ArmorMod;

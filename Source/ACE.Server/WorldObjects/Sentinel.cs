@@ -40,22 +40,33 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Admin;
+
+            if (!ChannelsAllowed.HasValue)
+                ChannelsAllowed = Channel.Audit | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.Sentinel | Channel.AllBroadcast;
+            else
+                ChannelsAllowed |= Channel.Audit | Channel.Advocate1 | Channel.Advocate2 | Channel.Advocate3 | Channel.Sentinel | Channel.AllBroadcast;
+        }
+
+        public override void InitPhysicsObj()
+        {
+            base.InitPhysicsObj();
 
             switch (CloakStatus)
             {
-                case ACE.Entity.Enum.CloakStatus.Off:
+                case CloakStatus.Off:
                     goto default;
-                case ACE.Entity.Enum.CloakStatus.On:
-                    Translucency = 0.5f;
+                case CloakStatus.On:
+                    //Translucency = 0.5f;
                     Cloaked = true;
                     Ethereal = true;
                     NoDraw = true;
                     Visibility = true;
                     break;
-                case ACE.Entity.Enum.CloakStatus.Player:
+                case CloakStatus.Player:
                     goto default;
-                case ACE.Entity.Enum.CloakStatus.Creature:
+                case CloakStatus.Creature:
+                    Attackable = true;
                     goto default;
                 default:
                     Translucency = null;

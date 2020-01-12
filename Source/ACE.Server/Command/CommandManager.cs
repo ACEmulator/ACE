@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using ACE.Entity.Enum;
@@ -136,6 +137,17 @@ namespace ACE.Server.Command
             }
         }
 
+        public static string[] StuffRawIntoParameters(string raw, string command, string[] parameters)
+        {
+            List<string> parametersRehash = new List<string>();
+            var regex = new Regex(Regex.Escape(command));
+            var newCmdLine = regex.Replace(raw, "", 1).TrimStart();
+            parametersRehash.Add(newCmdLine);
+            parametersRehash.AddRange(parameters);
+            parameters = parametersRehash.ToArray();
+            return parameters;
+        }
+
         public static void ParseCommand(string commandLine, out string command, out string[] parameters)
         {
             if (commandLine == "/" || commandLine == "")
@@ -155,23 +167,25 @@ namespace ACE.Server.Command
                 var listParameters = new List<string>();
 
                 for (int start = 0; start < parameters.Length; start++)
-                    if (!parameters[start].StartsWith("\""))
-                        listParameters.Add(parameters[start]);
+                {
+                    if (!parameters[start].StartsWith("\"") || parameters[start].EndsWith("\"")) // Make sure we catch parameters like: "someParam"
+                        listParameters.Add(parameters[start].Replace("\"", ""));
                     else
                     {
                         listParameters.Add(parameters[start].Replace("\"", ""));
                         for (int end = start + 1; end < parameters.Length; end++)
                         {
                             if (!parameters[end].EndsWith("\""))
-                                listParameters[start] = listParameters[start] + " " + parameters[end];
+                                listParameters[listParameters.Count - 1] += " " + parameters[end];
                             else
                             {
-                                listParameters[start] = listParameters[start] + " " + parameters[end].Replace("\"", "");
+                                listParameters[listParameters.Count - 1] += " " + parameters[end].Replace("\"", "");
                                 start = end;
                                 break;
                             }
                         }
                     }
+                }
                 Array.Resize(ref parameters, listParameters.Count);
                 parameters = listParameters.ToArray();
             }
@@ -229,8 +243,8 @@ namespace ACE.Server.Command
             if (session != null)
             {
                 bool isAdvocate = session.Player.IsAdvocate;
-                bool isSentinel = session.Player.IsEnvoy; // we map this to envoy
-                bool isEnvoy = isSentinel;
+                bool isSentinel = session.Player.IsSentinel;
+                bool isEnvoy = isSentinel; // TODO: Add more resolution to player levels so we can separate IsEnvoy from IsSentinel
                 bool isArch = session.Player.IsArch;
                 bool isAdmin = session.Player.IsAdmin;
 

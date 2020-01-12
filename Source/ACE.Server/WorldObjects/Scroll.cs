@@ -33,6 +33,10 @@ namespace ACE.Server.WorldObjects
         {
             if (SpellDID != null)
                 Spell = new Server.Entity.Spell(SpellDID.Value, false);
+
+            if (Spell != null)
+                LongDesc = $"Inscribed spell: {Spell.Name}\n{Spell.Description}";
+            Use = "Use this item to attempt to learn its spell.";
         }
 
         /// <summary>
@@ -52,9 +56,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsBusy) return;
+            if (player.IsBusy)
+            {
+                player.SendWeenieError(WeenieError.YoureTooBusy);
+                return;
+            }
 
-            IsBusy = true;
+            player.IsBusy = true;
 
             var actionChain = new ActionChain();
 
@@ -67,9 +75,12 @@ namespace ACE.Server.WorldObjects
             }
 
             var animTime = player.EnqueueMotion(actionChain, MotionCommand.Reading);
+            player.LastUseTime += animTime;
 
-            actionChain.AddDelaySeconds(2.0f);
-            player.LastUseTime += 2.0f;
+            var readTime = 1.0f;
+
+            actionChain.AddDelaySeconds(readTime);
+            player.LastUseTime += readTime;
 
             actionChain.AddAction(player, () =>
             {
@@ -102,11 +113,15 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Broadcast));
             });
 
-            player.LastUseTime += animTime;     // return stance
 
+            // FIXME: return stance time
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
-            actionChain.AddAction(this, () => IsBusy = false);
+            player.LastUseTime += animTime;     // return stance
+
+            actionChain.AddDelaySeconds(animTime);
+
+            actionChain.AddAction(player, () => player.IsBusy = false);
 
             actionChain.EnqueueChain();
         }

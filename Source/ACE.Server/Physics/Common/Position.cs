@@ -1,5 +1,8 @@
 using System;
 using System.Numerics;
+
+using ACE.Entity.Enum;
+
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Util;
@@ -10,6 +13,12 @@ namespace ACE.Server.Physics.Common
     {
         public uint ObjCellID;
         public AFrame Frame;
+
+        public uint Landblock => ObjCellID >> 16;
+
+        public uint LandblockX => ObjCellID >> 24;
+
+        public uint LandblockY => (ObjCellID >> 16) & 0xFF;
 
         public Position()
         {
@@ -110,19 +119,23 @@ namespace ACE.Server.Physics.Common
             return offset.Length() - (radius + otherRadius);
         }
 
-        public int DetermineQuadrant(float height, Position position)
+        public static readonly float ThresholdMed = 1.0f / 3.0f;
+        public static readonly float ThresholdHigh = 2.0f / 3.0f;
+
+        public Quadrant DetermineQuadrant(float height, Position position)
         {
-            var hitLocation = LocalToLocal(position, Vector3.Zero);
+            var hitpoint = LocalToLocal(position, Vector3.Zero);
 
-            var quadrant = hitLocation.X < 0.0f ? 0x8 : 0x10;
-            quadrant |= hitLocation.Y >= 0.0f ? 0x20 : 0x40;
+            var quadrant = hitpoint.X < 0.0f ? Quadrant.Left : Quadrant.Right;
 
-            if (height * 0.333333333f > hitLocation.Z)
-                quadrant |= 4;  // low
-            else if (height * 0.66666667f > hitLocation.Z)
-                quadrant |= 2;  // medium
+            quadrant |= hitpoint.Y >= 0.0f ? Quadrant.Front : Quadrant.Back;
+
+            if (hitpoint.Z < height * ThresholdMed)
+                quadrant |= Quadrant.Low;
+            else if (hitpoint.Z < height * ThresholdHigh)
+                quadrant |= Quadrant.Medium;
             else
-                quadrant |= 1;  // high
+                quadrant |= Quadrant.High;
 
             return quadrant;
         }
@@ -226,6 +239,25 @@ namespace ACE.Server.Physics.Common
             }
             //return LScape.get_landcell(newCell.Value);
             return newCell.Value;
+        }
+
+        /// <summary>
+        /// Returns the squared 2D distance between 2 positions
+        /// </summary>
+        public float Distance2DSquared(Position p)
+        {
+            if (Landblock == p.Landblock)
+            {
+                var dx = Frame.Origin.X - p.Frame.Origin.X;
+                var dy = Frame.Origin.Y - p.Frame.Origin.Y;
+                return dx * dx + dy * dy;
+            }
+            else
+            {
+                var dx = ((int)LandblockX - p.LandblockX) * 192 + Frame.Origin.X - p.Frame.Origin.X;
+                var dy = ((int)LandblockY - p.LandblockY) * 192 + Frame.Origin.Y - p.Frame.Origin.Y;
+                return dx * dx + dy * dy;
+            }
         }
 
         public bool Equals(Position pos)

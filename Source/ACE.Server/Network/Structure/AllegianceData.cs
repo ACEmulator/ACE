@@ -36,18 +36,19 @@ namespace ACE.Server.Network.Structure
             // ushort - loyalty - Character loyalty
             // ushort - leadership - Character leadership
 
-            // Choose based on testing bitfield == 0x4
+            // Choose based on testing bitfield == 0x4 (HasAllegianceAge)
             // True:
-            // ulong - timeOnline
-            // False:
             // uint - timeOnline
             // uint - allegianceAge
+            // False: (Not found in later retail pcaps. Probably deprecated.)
+            // ulong - uTimeOnline
 
             // string - name
+
             uint characterID = 0;
             uint cpCached = 0;
             uint cpTithed = 0;
-            var bitfield = AllegianceIndex.HasAllegianceAge | AllegianceIndex.HasPackedLevel | AllegianceIndex.LoggedIn;
+            var bitfield = AllegianceIndex.HasAllegianceAge | AllegianceIndex.HasPackedLevel;
             var gender = Gender.Female;
             var hg = HeritageGroup.Aluvian;
             ushort rank = 0;
@@ -63,18 +64,32 @@ namespace ACE.Server.Network.Structure
             {
                 var node = data.Node;
                 var playerGuid = node.PlayerGuid;
-                var player = PlayerManager.FindByGuid(playerGuid);
-
+                var player = PlayerManager.FindByGuid(playerGuid, out var playerIsOnline);
+                
                 characterID = player.Guid.Full;
+                cpCached = (uint)Math.Min(player.AllegianceXPCached, uint.MaxValue);
+                cpTithed = (uint)Math.Min(player.AllegianceXPGenerated, uint.MaxValue);
+
+                if (playerIsOnline)
+                    bitfield |= AllegianceIndex.LoggedIn;
+
+                if (!node.IsMonarch && node.Player.ExistedBeforeAllegianceXpChanges)
+                    bitfield |= AllegianceIndex.MayPassupExperience;
+
                 gender = (Gender)player.Gender;
                 hg = (HeritageGroup)player.Heritage;
                 rank = (ushort)node.Rank;
                 level = (uint)player.Level;
                 loyalty = (ushort)player.GetCurrentLoyalty();
                 leadership = (ushort)player.GetCurrentLeadership();
-                name = player.Name;
+                
+                //if (!node.IsMonarch)
+                //{
+                // TODO: Get/set total time sworn to patron (allegianceAge) and total in-game time since swearing to patron (timeOnline)
+                //}
 
-                cpTithed = (uint)player.AllegianceXPGenerated;
+                name = player.Name;
+                
             }
 
             writer.Write(characterID);
@@ -91,13 +106,14 @@ namespace ACE.Server.Network.Structure
             writer.Write(loyalty);
             writer.Write(leadership);
 
-            if (!bitfield.HasFlag(AllegianceIndex.HasAllegianceAge))  // verify: reversed in aclogview?
-                writer.Write(uTimeOnline);
-            else
+            if (bitfield.HasFlag(AllegianceIndex.HasAllegianceAge))
             {
                 writer.Write(timeOnline);
                 writer.Write(allegianceAge);
             }
+            else
+                writer.Write(uTimeOnline);
+
             writer.WriteString16L(name);
         }
     }

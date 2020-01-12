@@ -119,6 +119,9 @@ namespace ACE.Server.Entity.Actions
             return this;
         }
 
+        /// <summary>
+        /// If timeInSeconds &lt;= 0, no action will be added. If you must wait for one tick, use AddDelayForOneTick() 
+        /// </summary>
         public ActionChain AddDelaySeconds(double timeInSeconds)
         {
             if (Double.IsNaN(timeInSeconds))
@@ -127,7 +130,19 @@ namespace ACE.Server.Entity.Actions
                 return this;
             }
 
+            if (timeInSeconds <= 0)
+                return this;
+
             AddAction(WorldManager.DelayManager, new DelayAction(timeInSeconds));
+
+            return this;
+        }
+
+        public ActionChain AddDelayForOneTick()
+        {
+            // TODO: This should be expanded to gaurantee that a full world tick actually completes
+            // TODO: If this gets called before the WorldObject.Tick->RunActions(), then it can end up executing on the same tick.
+            AddAction(WorldManager.DelayManager, new DelayAction(0.001f));
 
             return this;
         }

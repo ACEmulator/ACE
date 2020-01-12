@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -83,25 +84,17 @@ namespace ACE.Server.WorldObjects
 
             if (item.StackSize > 0)
             {
-                // fix lugians only having 1 rock?
-                if (wo.Name.Equals("Rock") && item.StackSize == 1 && item.StackSizeVariance == 0)
-                {
-                    item.StackSize = 10;
-                    item.StackSizeVariance = 0.1f;
-                }
-
                 var stackSize = item.StackSize;
 
                 var hasVariance = item.StackSizeVariance > 0;
                 if (hasVariance)
                 {
-                    var minStack = (int)Math.Round(item.StackSize * item.StackSizeVariance);
+                    var minStack = (int)Math.Max(Math.Round(item.StackSize * item.StackSizeVariance), 1);
                     var maxStack = item.StackSize;
                     stackSize = ThreadSafeRandom.Next(minStack, maxStack);
                 }
                 wo.SetStackSize(stackSize);
             }
-
             return wo;
         }
 

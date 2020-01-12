@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
 {
@@ -26,7 +27,10 @@ namespace ACE.Server.Network.Structure
         // commands: list of length commandListLength
         public List<MotionItem> Commands;
 
-        public InterpretedMotionState() { }
+        public InterpretedMotionState()
+        {
+            ForwardCommand = MotionCommand.Ready;
+        }
 
         public InterpretedMotionState(MovementData data)
         {
@@ -81,6 +85,19 @@ namespace ACE.Server.Network.Structure
                 flags |= MovementStateFlag.TurnSpeed;
 
             return flags;
+        }
+
+        public void AddCommand(WorldObject worldObject, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            if (Commands == null)
+                Commands = new List<MotionItem>();
+
+            Commands.Add(new MotionItem(worldObject, motionCommand, speed));
+        }
+
+        public bool HasMovement()
+        {
+            return (ForwardCommand != MotionCommand.Invalid && ForwardCommand != MotionCommand.Ready) || TurnCommand != MotionCommand.Invalid || SidestepCommand != MotionCommand.Invalid;
         }
     }
 

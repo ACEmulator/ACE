@@ -9,11 +9,14 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
+using log4net;
 
 namespace ACE.Server.WorldObjects
 {
     public sealed class HousePortal : Portal
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public House House => ParentLink as House;
 
         /// <summary>
@@ -48,6 +51,10 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
                 var i = housePortals[0];
+
+                if (i.ObjCellId == Location.Cell && housePortals.Count > 1)
+                    i = housePortals[1];
+
                 var destination = new Position(i.ObjCellId, new Vector3(i.OriginX, i.OriginY, i.OriginZ), new Quaternion(i.AnglesX, i.AnglesY, i.AnglesZ, i.AnglesW));
 
                 wo.SetPosition(PositionType.Destination, destination);
@@ -59,10 +66,33 @@ namespace ACE.Server.WorldObjects
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
+            var rootHouse = House?.RootHouse;
+
+            if (activator == null || rootHouse == null)
+            {
+                log.Warn($"HousePortal.CheckUseRequirements: 0x{Guid} - {Location.ToLOCString()}");
+                log.Warn($"HousePortal.CheckUseRequirements: activator is null - {activator == null} | House is null - {House == null} | RootHouse is null - {rootHouse == null}");
+                return new ActivationResult(false);
+            }
+
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (!House.RootHouse.HasPermission(player))
+            if (player.CurrentLandblock.IsDungeon && Destination.LandblockId != player.CurrentLandblock.Id)
+                return new ActivationResult(true);   // allow escape to overworld always
+
+            if (player.IgnorePortalRestrictions)
+                return new ActivationResult(true);
+
+            var houseOwner = rootHouse.HouseOwner;
+
+            if (houseOwner == null)
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
+
+            if (rootHouse.IsOpen)
+                return new ActivationResult(true);
+
+            if (!rootHouse.HasPermission(player))
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
 
             return new ActivationResult(true);
@@ -77,7 +107,7 @@ namespace ACE.Server.WorldObjects
         {
             // if house portal in dungeon,
             // set destination to outdoor house slumlord
-            if (CurrentLandblock != null && CurrentLandblock.IsDungeon)
+            if (CurrentLandblock != null && CurrentLandblock.IsDungeon && Destination.LandblockId == CurrentLandblock.Id)
                 SetPosition(PositionType.Destination, new Position(House.RootHouse.SlumLord.Location));
 
             base.ActOnUse(worldObject);
