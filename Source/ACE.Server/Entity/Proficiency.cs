@@ -1,4 +1,5 @@
 using System;
+using log4net;
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
@@ -8,6 +9,8 @@ namespace ACE.Server.Entity
 {
     public class Proficiency
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static TimeSpan FullTime = TimeSpan.FromMinutes(15);
 
         public static void OnSuccessUse(Player player, CreatureSkill skill, uint difficulty)
@@ -53,17 +56,57 @@ namespace ACE.Server.Entity
 
                 player.ChangesDetected = true;
 
+                if (player.IsMaxLevel) return;
+
                 var pp = (uint)Math.Round(difficulty * timeScale);
-                var cp = (uint)Math.Round(pp * 0.1f);   // cp = 10% PP
+                var totalXPGranted = (long)Math.Round(pp * 1.1f);   // give additional 10% of proficiency XP to unassigned XP
+
+                if (totalXPGranted > 10000)
+                {
+                    log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty})");
+                }
+
+                var maxLevel = Player.GetMaxLevel();
+                var remainingXP = player.GetRemainingXP(maxLevel).Value;
+
+                if (totalXPGranted > remainingXP)
+                {
+                    // checks and balances:
+                    // total xp = pp * 1.1
+                    // pp = total xp / 1.1
+
+                    totalXPGranted = remainingXP;
+                    pp = (uint)Math.Round(totalXPGranted / 1.1f);
+                }
+
+                // if skill is maxed out, but player is below MaxLevel,
+                // not sure if retail granted 0%, 10%, or 110% of the pp to TotalExperience here
+                // since pp is such a miniscule system at the higher levels,
+                // going to just naturally add it to TotalXP for now..
+
+                pp = Math.Min(pp, skill.ExperienceLeft);
 
                 //Console.WriteLine($"Earned {pp} PP ({skill.Skill})");
 
-                // send PP to player as skill XP
-                player.RaiseSkillGameAction(skill.Skill, pp, true);
-
                 // send CP to player as unassigned XP
-                player.GrantXP(cp, XpType.Proficiency, false);
+                player.GrantXP(totalXPGranted, XpType.Proficiency, ShareType.None);
+
+                // send PP to player as skill XP, which gets spent from the CP sent
+                if (pp > 0)
+                {
+                    player.HandleActionRaiseSkill(skill.Skill, pp);
+                }
             }
+        }
+
+        public static void OnSuccessUse(Player player, CreatureSkill skill, int difficulty)
+        {
+            if (difficulty < 0)
+            {
+                log.Error($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - difficulty cannot be negative");
+                return;
+            }
+            OnSuccessUse(player, skill, (uint)difficulty);
         }
     }
 }

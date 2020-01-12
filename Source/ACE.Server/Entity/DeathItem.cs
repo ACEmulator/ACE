@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
@@ -65,6 +67,8 @@ namespace ACE.Server.Entity
             Inventory = Inventory.Where(i => i.Category != DeathItemCategory.None).ToList();
 
             // sort by original value and category
+            // todo: Switch this to use ThenBy to avoid having to iterate over the list twice. If we use ThenBy, the left/right sides probably need to be swapped.
+            // todo: If you do switch this, it needs to be tested thoroughly.
             Inventory = Inventory.OrderByDescending(i => i.AdjustedValue).OrderBy(i => i.Category).ToList();
 
             // halve the values of every item, except the most valued item in each category
@@ -153,6 +157,8 @@ namespace ACE.Server.Entity
                 Name = wo.Name;
                 Category = GetCategory(wo);
                 AdjustedValue = wo.Value ?? 0;  // stack size?
+                if ((wo.StackSize ?? 1) > 1)
+                    AdjustedValue /= wo.StackSize.Value;
             }
 
             public static DeathItemCategory GetCategory(WorldObject wo)
@@ -197,7 +203,7 @@ namespace ACE.Server.Entity
                     case ItemType.Container:
                         return DeathItemCategory.None;  // containers don't drop?
                     default:
-                        Console.WriteLine("Unknown death item type: " + wo.ItemType);
+                        //Console.WriteLine("Unknown death item type: " + wo.ItemType);
                         return DeathItemCategory.None;
                 }
             }

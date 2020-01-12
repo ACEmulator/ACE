@@ -2,6 +2,7 @@ using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -10,17 +11,9 @@ namespace ACE.Server.WorldObjects
     {
         public override string Name
         {
-            get => IsPlussed ? (((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Off) < ACE.Entity.Enum.CloakStatus.Player) ? "+" + base.Name : base.Name) : base.Name;
+            get => IsPlussed && CloakStatus < CloakStatus.Player ? "+" + base.Name : base.Name;
 
-            set
-            {
-                var name = value;
-
-                if (name.StartsWith("+"))
-                    name = name.Substring(1);
-
-                base.Name = name;
-            }
+            set => base.Name = value.TrimStart('+');
         }
 
         // ========================================
@@ -34,12 +27,6 @@ namespace ACE.Server.WorldObjects
         }
 
         public bool IsSentinel
-        {
-            get => GetProperty(PropertyBool.IsSentinel) ?? false;
-            set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
-        }
-
-        public bool IsEnvoy
         {
             get => GetProperty(PropertyBool.IsSentinel) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
@@ -65,9 +52,14 @@ namespace ACE.Server.WorldObjects
 
         public bool IsPlussed
         {
-            get => Character.IsPlussed || (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
+            get => (Character != null && Character.IsPlussed) || (Session != null && ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
         }
 
+        public string GodState
+        {
+            get => GetProperty(PropertyString.GodState);
+            set { if (value == null) RemoveProperty(PropertyString.GodState); else SetProperty(PropertyString.GodState, value); }
+        }
 
         // ========================================
         // ========== Account Properties ==========
@@ -224,6 +216,18 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.HouseRentTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HouseRentTimestamp); else SetProperty(PropertyInt.HouseRentTimestamp, value.Value); }
+        }
+
+        public bool SpellComponentsRequired
+        {
+            get => GetProperty(PropertyBool.SpellComponentsRequired) ?? true;
+            set { if (value) RemoveProperty(PropertyBool.SpellComponentsRequired); else SetProperty(PropertyBool.SpellComponentsRequired, value); }
+        }
+
+        public bool SafeSpellComponents
+        {
+            get => GetProperty(PropertyBool.SafeSpellComponents) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.SafeSpellComponents); else SetProperty(PropertyBool.SafeSpellComponents, value); }
         }
 
 
@@ -838,6 +842,20 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.LumAugSkilledSpec); else SetProperty(PropertyInt.LumAugSkilledSpec, value); }
         }
 
+        // ============== Masteries ===============
+
+        public int MeleeMastery
+        {
+            get => GetProperty(PropertyInt.MeleeMastery) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.MeleeMastery); else SetProperty(PropertyInt.MeleeMastery, value); }
+        }
+
+        public int RangedMastery
+        {
+            get => GetProperty(PropertyInt.RangedMastery) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.RangedMastery); else SetProperty(PropertyInt.RangedMastery, value); }
+        }
+
         // ============ Enlightenment =============
 
         public int Enlightenment
@@ -855,64 +873,92 @@ namespace ACE.Server.WorldObjects
         // ========================================
         // =============== Rares ==================
         // ========================================
-        public double? LastRareUsedTimestamp
+        public double LastRareUsedTimestamp
         {
-            get => GetProperty(PropertyFloat.LastRareUsedTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value.Value); }
+            get => GetProperty(PropertyFloat.LastRareUsedTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value); }
+        }
+
+        // ========================================
+        // =============== Barber =================
+        // ========================================
+        public bool BarberActive
+        {
+            get => GetProperty(PropertyBool.BarberActive) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.BarberActive); else SetProperty(PropertyBool.BarberActive, value); }
         }
 
 
-        public void UpdateProperty(WorldObject obj, PropertyInt prop, int? value)
-        {
-            if (value != null)
-                obj.SetProperty(prop, value.Value);
-            else
-                obj.RemoveProperty(prop);
-
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0));
-        }
-
-        public void UpdateProperty(WorldObject obj, PropertyBool prop, bool? value)
-        {
-            if (value != null)
-                obj.SetProperty(prop, value.Value);
-            else
-                obj.RemoveProperty(prop);
-
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false));
-        }
-
-        public void UpdateProperty(WorldObject obj, PropertyFloat prop, double? value)
+        public void UpdateProperty(WorldObject obj, PropertyInt prop, int? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0));
+            var msg = new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0);
+
+            SendNetwork(msg, broadcast);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyDataId prop, uint? value)
+        public void UpdateProperty(WorldObject obj, PropertyBool prop, bool? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0));
+            var msg = new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false);
+
+            SendNetwork(msg, broadcast);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyInstanceId prop, uint? value)
+        public void UpdateProperty(WorldObject obj, PropertyFloat prop, double? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0)));
+            var msg = new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0);
+
+            SendNetwork(msg, broadcast);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyString prop, string value)
+        public void UpdateProperty(WorldObject obj, PropertyDataId prop, uint? value, bool broadcast = false)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            var msg = new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0);
+
+            SendNetwork(msg, broadcast);
+        }
+
+        /// <summary>
+        /// Updates a property on the server, and broadcasts to appropriate players
+        /// </summary>
+        /// <param name="broadcast">If true, also broadcasts to all players who know about this player</param>
+        public void UpdateProperty(PropertyInstanceId prop, uint? value, bool broadcast = false)
+        {
+            UpdateProperty(this, prop, value, broadcast);
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyInstanceId prop, uint? value, bool broadcast = false)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            var msg = new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0));
+
+            SendNetwork(msg, broadcast);
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyString prop, string value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value);
@@ -921,17 +967,108 @@ namespace ACE.Server.WorldObjects
 
             // the client seems to cache these values somewhere,
             // and the object will not update until relogging or CO
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyString(obj, prop, value));
+            var msg = new GameMessagePublicUpdatePropertyString(obj, prop, value);
+
+            SendNetwork(msg, broadcast);
         }
 
-        public void UpdateProperty(WorldObject obj, PropertyInt64 prop, long? value)
+        public void UpdateProperty(WorldObject obj, PropertyInt64 prop, long? value, bool broadcast = false)
         {
             if (value != null)
                 obj.SetProperty(prop, value.Value);
             else
                 obj.RemoveProperty(prop);
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0));
+            var msg = new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0);
+
+            SendNetwork(msg, broadcast);
         }
+
+        public void SendNetwork(GameMessage msg, bool broadcast)
+        {
+            if (broadcast)
+                EnqueueBroadcast(msg);
+            else
+                Session.Network.EnqueueSend(msg);
+        }
+
+        // ========================================
+        // =============== Gags ===================
+        // ========================================
+        public double AllegianceGagDuration
+        {
+            get => GetProperty(PropertyFloat.AllegianceGagDuration) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.AllegianceGagDuration); else SetProperty(PropertyFloat.AllegianceGagDuration, value); }
+        }
+
+        public double AllegianceGagTimestamp
+        {
+            get => GetProperty(PropertyFloat.AllegianceGagTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.AllegianceGagTimestamp); else SetProperty(PropertyFloat.AllegianceGagTimestamp, value); }
+        }
+
+        public double GagDuration
+        {
+            get => GetProperty(PropertyFloat.GagDuration) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.GagDuration); else SetProperty(PropertyFloat.GagDuration, value); }
+        }
+
+        public double GagTimestamp
+        {
+            get => GetProperty(PropertyFloat.GagTimestamp) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.GagTimestamp); else SetProperty(PropertyFloat.GagTimestamp, value); }
+        }
+
+        public bool IsAllegianceGagged
+        {
+            get => GetProperty(PropertyBool.IsAllegianceGagged) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsAllegianceGagged); else SetProperty(PropertyBool.IsAllegianceGagged, value); }
+        }
+
+        public bool IsGagged
+        {
+            get => GetProperty(PropertyBool.IsGagged) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsGagged); else SetProperty(PropertyBool.IsGagged, value); }
+        }
+
+        public bool RecallsDisabled
+        {
+            get => GetProperty(PropertyBool.RecallsDisabled) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.RecallsDisabled); else SetProperty(PropertyBool.RecallsDisabled, value); }
+        }
+
+        public AetheriaBitfield AetheriaFlags
+        {
+            get => (AetheriaBitfield)(GetProperty(PropertyInt.AetheriaBitfield) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.AetheriaBitfield); else SetProperty(PropertyInt.AetheriaBitfield, (int)value); }
+        }
+
+        public SquelchMask SquelchGlobal
+        {
+            get => (SquelchMask)(GetProperty(PropertyInt.SquelchGlobal) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.SquelchGlobal); else SetProperty(PropertyInt.SquelchGlobal, (int)value); }
+        }
+
+        public uint? RequestedAppraisalTarget
+        {
+            get => GetProperty(PropertyInstanceId.RequestedAppraisalTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.RequestedAppraisalTarget); else SetProperty(PropertyInstanceId.RequestedAppraisalTarget, value.Value); }
+        }
+
+        public double? AppraisalRequestedTimestamp
+        {
+            get => GetProperty(PropertyFloat.AppraisalRequestedTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AppraisalRequestedTimestamp); else SetProperty(PropertyFloat.AppraisalRequestedTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// ACE is currently using this for the last successful appraised object guid
+        /// </summary>
+        public uint? CurrentAppraisalTarget
+        {
+            get => GetProperty(PropertyInstanceId.CurrentAppraisalTarget);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentAppraisalTarget, value.Value); }
+        }
+
     }
 }

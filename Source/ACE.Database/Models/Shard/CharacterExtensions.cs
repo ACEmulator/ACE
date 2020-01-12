@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -188,7 +189,6 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesQuestRegistry
         // =====================================
 
-
         // =====================================
         // CharacterPropertiesShortcutBar
         // =====================================
@@ -206,18 +206,31 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static CharacterPropertiesShortcutBar AddShortcut(this Character character, uint index, uint objectId, ReaderWriterLockSlim rwLock)
+        public static void AddOrUpdateShortcut(this Character character, uint index, uint objectId, ReaderWriterLockSlim rwLock)
         {
-            rwLock.EnterWriteLock();
+            rwLock.EnterUpgradeableReadLock();
             try
             {
-                var entity = new CharacterPropertiesShortcutBar { CharacterId = character.Id, ShortcutBarIndex = index, ShortcutObjectId = objectId, Character = character };
-                character.CharacterPropertiesShortcutBar.Add(entity);
-                return entity;
+                var entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index + 1);
+                rwLock.EnterWriteLock();
+                try
+                {
+                    if (entity == null)
+                    {
+                        entity = new CharacterPropertiesShortcutBar { CharacterId = character.Id, ShortcutObjectId = objectId, ShortcutBarIndex = index + 1, Character = character };
+                        character.CharacterPropertiesShortcutBar.Add(entity);
+                    }
+                    else
+                        entity.ShortcutObjectId = objectId;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
             }
             finally
             {
-                rwLock.ExitWriteLock();
+                rwLock.ExitUpgradeableReadLock();
             }
         }
 
@@ -226,7 +239,8 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index);
+                entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index + 1);
+
                 if (entity != null)
                 {
                     rwLock.EnterWriteLock();
@@ -336,7 +350,83 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        // =====================================
+        // CharacterPropertiesSquelch
+        // =====================================
 
+        public static List<CharacterPropertiesSquelch> GetSquelches(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesSquelch.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static void AddOrUpdateSquelch(this Character character, uint squelchCharacterId, uint squelchAccountId, uint type, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var entity = character.CharacterPropertiesSquelch.FirstOrDefault(x => x.SquelchCharacterId == squelchCharacterId);
+                rwLock.EnterWriteLock();
+                try
+                {
+                    if (entity == null)
+                    {
+                        entity = new CharacterPropertiesSquelch { CharacterId = character.Id, SquelchCharacterId = squelchCharacterId, SquelchAccountId = squelchAccountId, Type = type, Character = character };
+                        character.CharacterPropertiesSquelch.Add(entity);
+                    }
+                    else
+                    {
+                        entity.SquelchAccountId = squelchAccountId;
+                        entity.Type = type;
+                    }
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static bool TryRemoveSquelch(this Character character, uint squelchCharacterId, uint squelchAccountId, out CharacterPropertiesSquelch entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = character.CharacterPropertiesSquelch.FirstOrDefault(x => x.SquelchCharacterId == squelchCharacterId && x.SquelchAccountId == squelchAccountId);
+
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        character.CharacterPropertiesSquelch.Remove(entity);
+                        entity.Character = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+        
         // =====================================
         // CharacterPropertiesTitleBook
         // =====================================

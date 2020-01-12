@@ -10,6 +10,6 @@ namespace ACE.Database.Models.Shard
         public int MaxNumPages { get; set; }
         public int MaxNumCharsPerPage { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

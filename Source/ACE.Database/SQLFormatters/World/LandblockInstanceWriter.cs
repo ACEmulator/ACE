@@ -61,9 +61,9 @@ namespace ACE.Database.SQLFormatters.World
                              $"{value.AnglesY}, " +
                              $"{value.AnglesZ}, " +
                              $"{value.IsLinkChild.ToString().PadLeft(5)}, " +
-                             $"'{value.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'" +
+                             $"'{value.LastModified:yyyy-MM-dd HH:mm:ss}'" +
                              $"); /* {label} */" +
-                             Environment.NewLine + $"/* @teleloc 0x{value.ObjCellId.ToString("X8")} [{value.OriginX.ToString("F6")} {value.OriginY.ToString("F6")} {value.OriginZ.ToString("F6")}] {value.AnglesW.ToString("F6")} {value.AnglesX.ToString("F6")} {value.AnglesY.ToString("F6")} {value.AnglesZ.ToString("F6")} */";
+                             Environment.NewLine + $"/* @teleloc 0x{value.ObjCellId:X8} [{value.OriginX:F6} {value.OriginY:F6} {value.OriginZ:F6}] {value.AnglesW:F6} {value.AnglesX:F6} {value.AnglesY:F6} {value.AnglesZ:F6} */";
 
                 output = FixNullFields(output);
 

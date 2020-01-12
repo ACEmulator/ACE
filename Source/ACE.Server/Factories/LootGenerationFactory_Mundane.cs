@@ -1,4 +1,7 @@
-using ACE.Factories;
+
+using ACE.Common;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -41,6 +44,29 @@ namespace ACE.Server.Factories
                 return null;
 
             wo = WorldObjectFactory.CreateNewWorldObject(id);
+
+            // Dinnerware has all these options (plates, tankards, etc)
+            // This is just a short-term fix until Loot is overhauled
+            // TODO - Doesn't handle damage/speed/etc that the mutate engine should for these types of items.
+            if (wo.TsysMutationData != null)
+            {
+                
+                wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
+                wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
+
+                wo.LongDesc = wo.Name;
+
+                int materialType = GetMaterialType(wo, tier);
+                wo.MaterialType = (MaterialType)materialType;
+                int workmanship = GetWorkmanship(tier);
+                wo.ItemWorkmanship = workmanship;
+
+                wo = SetAppraisalLongDescDecoration(wo);
+
+                wo = AssignValue(wo);
+            }
+
+            wo = RandomizeColor(wo);
             return wo;
         }
     }

@@ -1,6 +1,8 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using log4net;
 using log4net.Config;
@@ -39,11 +41,22 @@ namespace ACE.Server
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
+            // Typically, you wouldn't force the current culture on an entire application unless you know sure your application is used in a specific region (which ACE is not)
+            // We do this because almost all of the client/user input/output code does not take culture into account, and assumes en-US formatting.
+            // Without this, many commands that require special characters like , and . will break
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
+            // Look for the log4net.config first in the current environment directory, then in the ExecutingAssembly location
+            var log4netFileInfo = new FileInfo("log4net.config");
+            if (!log4netFileInfo.Exists)
+                log4netFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config"));
             var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
-            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+            XmlConfigurator.Configure(logRepository, log4netFileInfo);
+
+            if (Environment.ProcessorCount < 2)
+                log.Warn("Only one vCPU was detected. ACE may run with limited performance. You should increase your vCPU count for anything more than a single player server.");
 
             // Do system specific initializations here
             try
@@ -65,6 +78,20 @@ namespace ACE.Server
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
 
+            if (ConfigManager.Config.Offline.PurgeDeletedCharacters)
+            {
+                log.Info($"Purging deleted characters, and their possessions, older than {ConfigManager.Config.Offline.PurgeDeletedCharactersDays} days ({DateTime.Now.AddDays(-ConfigManager.Config.Offline.PurgeDeletedCharactersDays)})...");
+                ShardDatabaseOfflineTools.PurgeCharactersInParallel(ConfigManager.Config.Offline.PurgeDeletedCharactersDays, out var charactersPurged, out var playerBiotasPurged, out var possessionsPurged);
+                log.Info($"Purged {charactersPurged:N0} characters, {playerBiotasPurged:N0} player biotas and {possessionsPurged:N0} possessions.");
+            }
+
+            if (ConfigManager.Config.Offline.PurgeOrphanedBiotas)
+            {
+                log.Info($"Purging orphaned biotas...");
+                ShardDatabaseOfflineTools.PurgeOrphanedBiotasInParallel(out var numberOfBiotasPurged);
+                log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
+            }
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
@@ -83,6 +110,12 @@ namespace ACE.Server
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
+            if (ConfigManager.Config.Server.ServerPerformanceMonitorAutoStart)
+            {
+                log.Info("Server Performance Monitor auto starting...");
+                ServerPerformanceMonitor.Start();
+            }
+
             if (ConfigManager.Config.Server.WorldDatabasePrecaching)
             {
                 log.Info("Precaching Weenies...");
@@ -91,8 +124,6 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllHousePortals();
                 log.Info("Precaching Points Of Interest...");
                 DatabaseManager.World.CacheAllPointsOfInterest();
-                log.Info("Precaching Cookbooks...");
-                DatabaseManager.World.CacheAllCookbooksInParallel();
                 log.Info("Precaching Spells...");
                 DatabaseManager.World.CacheAllSpells();
                 log.Info("Precaching Events...");
@@ -101,6 +132,13 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllDeathTreasures();
                 log.Info("Precaching Wielded Treasures...");
                 DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
+                log.Info("Precaching Treasure Materials...");
+                DatabaseManager.World.CacheAllTreasuresMaterialBaseInParallel();
+                DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
+                log.Info("Precaching Treasure Colors...");
+                DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
+                log.Info("Precaching Cookbooks...");
+                DatabaseManager.World.CacheAllCookbooksInParallel();
             }
             else
                 log.Info("Precaching World Database Disabled...");
@@ -132,6 +170,11 @@ namespace ACE.Server
             // This should be last
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
+
+            if (!PropertyManager.GetBool("world_closed", false).Item)
+            {
+                WorldManager.Open(null);
+            }
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

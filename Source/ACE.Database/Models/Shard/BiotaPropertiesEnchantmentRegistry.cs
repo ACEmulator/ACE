@@ -23,6 +23,6 @@ namespace ACE.Database.Models.Shard
         public float StatModValue { get; set; }
         public uint SpellSetId { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

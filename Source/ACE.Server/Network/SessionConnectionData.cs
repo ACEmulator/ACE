@@ -1,7 +1,6 @@
 using System;
 
 using ACE.Common.Cryptography;
-using ACE.Server.Entity;
 using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.Network
@@ -55,12 +54,6 @@ namespace ACE.Server.Network
         /// Server->Client stream cipher
         /// </summary>
         public ISAAC IssacServer = null;
-
-        /// <summary>
-        /// This is just a wrapper around Timers.PortalYearTicks.<para />
-        /// In the future, we may want to consider removing this and referencing Timers.PortalYearTicks directly.
-        /// </summary>
-        public double ServerTime => Timers.PortalYearTicks;
 
         public SessionConnectionData()
         {

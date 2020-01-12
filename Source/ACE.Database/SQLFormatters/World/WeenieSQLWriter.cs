@@ -90,7 +90,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)");
 
-            var output = $"VALUES ({input.ClassId}, '{input.ClassName}', {input.Type}, '{input.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}') /* {Enum.GetName(typeof(WeenieType), input.Type)} */;";
+            var output = $"VALUES ({input.ClassId}, '{input.ClassName}', {input.Type}, '{input.LastModified:yyyy-MM-dd HH:mm:ss}') /* {Enum.GetName(typeof(WeenieType), input.Type)} */;";
 
             output = FixNullFields(output);
 
@@ -183,7 +183,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.WeeniePropertiesCreateList != null && input.WeeniePropertiesCreateList.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesCreateList.OrderBy(r => r.DestinationType).ThenBy(r => r.WeenieClassId).ToList(), writer);
+                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesCreateList.OrderBy(r => r.DestinationType).ToList(), writer);
             }
 
             if (input.WeeniePropertiesBook != null)
@@ -200,7 +200,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.WeeniePropertiesGenerator != null && input.WeeniePropertiesGenerator.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesGenerator.OrderBy(r => r.WhereCreate).ThenBy(r => r.WhenCreate).ThenBy(r => r.Probability).ThenBy(r => r.WeenieClassId).ToList(), writer);
+                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesGenerator.ToList(), writer);
             }
 
             if (input.WeeniePropertiesPalette != null && input.WeeniePropertiesPalette.Count > 0)
@@ -296,7 +296,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_position` (`object_Id`, `position_Type`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {(uint)input[i].PositionType}, {input[i].ObjCellId}, {input[i].OriginX}, {input[i].OriginY}, {input[i].OriginZ}, {input[i].AnglesW}, {input[i].AnglesX}, {input[i].AnglesY}, {input[i].AnglesZ}) /* {Enum.GetName(typeof(PositionType), input[i].PositionType)} */" + Environment.NewLine + $"/* @teleloc 0x{input[i].ObjCellId.ToString("X8")} [{input[i].OriginX.ToString("F6")} {input[i].OriginY.ToString("F6")} {input[i].OriginZ.ToString("F6")}] {input[i].AnglesW.ToString("F6")} {input[i].AnglesX.ToString("F6")} {input[i].AnglesY.ToString("F6")} {input[i].AnglesZ.ToString("F6")} */");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {(uint)input[i].PositionType}, {input[i].ObjCellId}, {input[i].OriginX}, {input[i].OriginY}, {input[i].OriginZ}, {input[i].AnglesW}, {input[i].AnglesX}, {input[i].AnglesY}, {input[i].AnglesZ}) /* {Enum.GetName(typeof(PositionType), input[i].PositionType)} */" + Environment.NewLine + $"/* @teleloc 0x{input[i].ObjCellId:X8} [{input[i].OriginX:F6} {input[i].OriginY:F6} {input[i].OriginZ:F6}] {input[i].AnglesW:F6} {input[i].AnglesX:F6} {input[i].AnglesY:F6} {input[i].AnglesZ:F6} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -537,7 +537,7 @@ namespace ACE.Database.SQLFormatters.World
                 }
 
                 string weenieClassIdLabel = null;
-                if (input[i].WeenieClassId.HasValue)
+                if (input[i].WeenieClassId.HasValue && WeenieNames != null)
                 {
                     WeenieNames.TryGetValue(input[i].WeenieClassId.Value, out weenieClassIdLabel);
                     if (weenieClassIdLabel != null)
@@ -555,7 +555,7 @@ namespace ACE.Database.SQLFormatters.World
                 string telelocLabel = null;
                 if (input[i].ObjCellId.HasValue && input[i].ObjCellId.Value > 0)
                 {
-                    telelocLabel = $" /* @teleloc 0x{input[i].ObjCellId.Value.ToString("X8")} [{input[i].OriginX.Value.ToString("F6")} {input[i].OriginY.Value.ToString("F6")} {input[i].OriginZ.Value.ToString("F6")}] {input[i].AnglesW.Value.ToString("F6")} {input[i].AnglesX.Value.ToString("F6")} {input[i].AnglesY.Value.ToString("F6")} {input[i].AnglesZ.Value.ToString("F6")} */";
+                    telelocLabel = $" /* @teleloc 0x{input[i].ObjCellId.Value:X8} [{input[i].OriginX.Value:F6} {input[i].OriginY.Value:F6} {input[i].OriginZ.Value:F6}] {input[i].AnglesW.Value:F6} {input[i].AnglesX.Value:F6} {input[i].AnglesY.Value:F6} {input[i].AnglesZ.Value:F6} */";
                 }
 
                 return
@@ -684,7 +684,7 @@ namespace ACE.Database.SQLFormatters.World
                         $"{input[i].AnglesX}, " +
                         $"{input[i].AnglesY}, " +
                         $"{input[i].AnglesZ})" +
-                        $" /* Generate {label} (x{input[i].InitCreate.ToString("N0")} up to max of {input[i].MaxCreate.ToString("N0")}) - Regenerate upon {Enum.GetName(typeof(RegenerationType), input[i].WhenCreate)} - Location to (re)Generate: {Enum.GetName(typeof(RegenLocationType), input[i].WhereCreate)} */";
+                        $" /* Generate {label} (x{input[i].InitCreate:N0} up to max of {input[i].MaxCreate:N0}) - Regenerate upon {Enum.GetName(typeof(RegenerationType), input[i].WhenCreate)} - Location to (re)Generate: {Enum.GetName(typeof(RegenLocationType), input[i].WhereCreate)} */";
             });
             ValuesWriter(input.Count, lineGenerator, writer);
         }

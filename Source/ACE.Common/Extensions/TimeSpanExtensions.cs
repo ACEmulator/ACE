@@ -32,6 +32,23 @@ namespace ACE.Common.Extensions
             return sb.ToString().Trim();
         }
 
+        public static string GetFriendlyLongString(this TimeSpan timeSpan)
+        {
+            var numDays = timeSpan.ToString("%d");
+            var numHours = timeSpan.ToString("%h");
+            var numMinutes = timeSpan.ToString("%m");
+            var numSeconds = timeSpan.ToString("%s");
+
+            var sb = new StringBuilder();
+
+            if (numDays != "0") sb.Append(numDays + $" day{((timeSpan.Days > 1) ? "s" : "")} ");
+            if (numHours != "0") sb.Append($"{((numDays != "0") ? ", " : "")}" + numHours + $" hour{((timeSpan.Hours > 1) ? "s" : "")} ");
+            if (numMinutes != "0") sb.Append($"{((numDays != "0" || numHours != "0") ? ", " : "")}" + numMinutes + $" minute{((timeSpan.Minutes > 1) ? "s" : "")} ");
+            if (numSeconds != "0") sb.Append($"{((numDays != "0" || numHours != "0" || numMinutes != "0") ? "and " : "")}" + numSeconds + $" second{((timeSpan.Seconds > 1) ? "s" : "")} ");
+
+            return sb.ToString().Trim();
+        }
+
         public static uint SecondsPerMonth = 60 * 60 * 24 * 30;      // 30-day estimate
         public static uint SecondsPerYear = 60 * 60 * 24 * 365;      // non-leap year
 

@@ -1,16 +1,20 @@
+using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
+using log4net;
 
 namespace ACE.Server.WorldObjects
 {
     public class Food : Stackable
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -29,13 +33,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            // TODO we shouldn't be auto setting properties that come from our weenie by default
-
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Food;
-
-            StackSize = StackSize ?? 1;
-            Boost = Boost ?? 0;
-            BoostEnum = BoostEnum ?? 0;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Food;
         }
 
         /// <summary>
@@ -44,52 +42,126 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject activator)
         {
-            var player = activator as Player;
-            if (player == null) return;
+            if (!(activator is Player player))
+                return;
 
-            var buffType = Player.ConsumableBuffType.Stamina;
-
-            if (BoostEnum != null)
+            if (player.IsBusy || player.Teleporting)
             {
-                switch (BoostEnum)
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
+            player.IsBusy = true;
+
+            var actionChain = new ActionChain();
+
+            // if something other that NonCombat.Ready,
+            // manually send this swap
+            var prevStance = player.CurrentMotionState.Stance;
+
+            if (prevStance != MotionStance.NonCombat)
+                player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
+
+            // start the eat/drink motion
+            var motionCommand = GetUseSound() == Sound.Eat1 ? MotionCommand.Eat : MotionCommand.Drink;
+
+            player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, motionCommand);
+
+            // apply consumable
+            actionChain.AddAction(player, () => ApplyConsumable(player));
+
+            // return to ready stance
+            player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, motionCommand);
+
+            if (prevStance != MotionStance.NonCombat)
+                player.EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
+
+            actionChain.AddAction(player, () => { player.IsBusy = false; });
+
+            actionChain.EnqueueChain();
+        }
+
+        public enum ConsumableBuffType
+        {
+            Spell   = 0,
+            Health  = 2,
+            Stamina = 4,
+            Mana    = 6
+        }
+
+        /// <summary>
+        /// Applies the boost from the consumable, broadcasts the sound,
+        /// sends message to player, and consumes from inventory
+        /// </summary>
+        public void ApplyConsumable(Player player)
+        {
+            if (player.IsDead) return;
+
+            var buffType = (ConsumableBuffType)BoosterEnum;
+            GameMessageSystemChat buffMessage = null;
+
+            // spells
+            if (buffType == ConsumableBuffType.Spell)
+            {
+                var spellID = SpellDID ?? 0;
+
+                var result = player.CreateSingleSpell(spellID);
+
+                if (result)
                 {
-                    case (int)Player.ConsumableBuffType.Health:
-                        buffType = Player.ConsumableBuffType.Health;
-                        break;
-                    case (int)Player.ConsumableBuffType.Mana:
-                        buffType = Player.ConsumableBuffType.Mana;
-                        break;
-                    case (int)Player.ConsumableBuffType.Spell:
-                        buffType = Player.ConsumableBuffType.Spell;
-                        break;
+                    var spell = new Server.Entity.Spell(spellID);
+                    buffMessage = new GameMessageSystemChat($"{Name} casts {spell.Name} on you.", ChatMessageType.Magic);
+                }
+                else
+                    buffMessage = new GameMessageSystemChat($"{Name} has invalid spell id {spellID}", ChatMessageType.Broadcast);
+            }
+            // vitals
+            else
+            {
+                var vital = player.GetCreatureVital(BoosterEnum);
+
+                if (vital != null)
+                {
+                    // only apply to restoration food?
+                    var ratingMod = BoostValue > 0 ? player.GetHealingRatingMod() : 1.0f;
+
+                    var boostValue = (int)Math.Round(BoostValue * ratingMod);
+
+                    var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, boostValue));
+
+                    if (BoosterEnum == PropertyAttribute2nd.Health)
+                    {
+                        if (BoostValue >= 0)
+                            player.DamageHistory.OnHeal(vitalChange);
+                        else
+                            player.DamageHistory.Add(this, DamageType.Health, vitalChange);
+                    }
+
+                    var verb = BoostValue >= 0 ? "restores" : "takes";
+                    buffMessage = new GameMessageSystemChat($"The {Name} {verb} {vitalChange} points of your {BoosterEnum}.", ChatMessageType.Broadcast);
+                }
+                else
+                {
+                    buffMessage = new GameMessageSystemChat($"{Name} ({Guid}) contains invalid vital {BoosterEnum}", ChatMessageType.Broadcast);
                 }
             }
-            player.ApplyConsumable(Name, GetSoundDid(), buffType, (uint)Boost, SpellDID);
+
+            var soundEvent = new GameMessageSound(player.Guid, GetUseSound(), 1.0f);
+            player.EnqueueBroadcast(soundEvent);
+
+            player.Session.Network.EnqueueSend(buffMessage);
 
             player.TryConsumeFromInventoryWithNetworking(this, 1);
         }
 
-        private Sound GetSoundDid()
+        public Sound GetUseSound()
         {
-            if (GetProperty(PropertyDataId.UseSound).HasValue)
-                return (Sound)GetProperty(PropertyDataId.UseSound);
+            var useSound = UseSound;
 
-            return Sound.Eat1;
+            if (useSound == Sound.Invalid)
+                useSound = Sound.Eat1;
+
+            return useSound;
         }
-
-        //private Sound SolidOrLiquid()
-        //{
-        //    if ((Name.ToLower().Contains("ale")) || (Name.ToLower().Contains("lager"))
-        //        || (Name.ToLower().Contains("water")) || (Name.ToLower().Contains("milk"))
-        //        || (Name.ToLower().Contains("potion")) || (Name.ToLower().Contains("elixir"))
-        //        || (Name.ToLower().Contains("mead")) || (Name.ToLower().Contains("draught"))
-        //        || (Name.ToLower().Contains("infusion")) || (Name.ToLower().Contains("tonic"))
-        //        || (Name.ToLower().Contains("tincture")) || (Name.ToLower().Contains("philtre"))
-        //        || (Name.ToLower().Contains("tincture")) || (Name.ToLower().Contains("philtre"))
-        //        || (Name.ToLower().Contains("acidic rejuvenation")) || (Name.ToLower().Contains("tea"))
-        //        || (Name.ToLower().Contains("saliva invigorator")))
-        //        return Sound.Drink1;
-        //    return Sound.Eat1;
-        //}
     }
 }

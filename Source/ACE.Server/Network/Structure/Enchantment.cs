@@ -6,8 +6,8 @@ using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
-using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.Network.Structure
 {
@@ -114,21 +114,24 @@ namespace ACE.Server.Network.Structure
             StatModValue = entry.StatModValue;
         }
 
-        public void ShowInfo()
+        public string GetInfo()
         {
             var spell = new Spell(SpellID);
-            Console.WriteLine($"Spell: {spell.Name} ({SpellID})");
-            Console.WriteLine($"Target: {Target.Name}");
-            Console.WriteLine($"Layer: {Layer}");
-            Console.WriteLine($"SpellCategory: {(SpellCategory)SpellCategory}");
-            Console.WriteLine($"Power: {PowerLevel}");
-            Console.WriteLine($"StartTime: {StartTime}");
-            Console.WriteLine($"Duration: {Duration}");
-            Console.WriteLine($"CasterGuid: {CasterGuid}");
-            Console.WriteLine($"StatModType: {StatModType}");
-            Console.WriteLine($"StatModKey: {StatModKey}");
-            Console.WriteLine($"StatModValue: {StatModValue}");
-            Console.WriteLine("---------");
+
+            var info = $"Spell: {spell.Name} ({SpellID})\n";
+            info += $"Target: {Target.Name}\n";
+            info += $"Layer: {Layer}\n";
+            info += $"SpellCategory: {(SpellCategory)SpellCategory}\n";
+            info += $"Power: {PowerLevel}\n";
+            info += $"StartTime: {StartTime}\n";
+            info += $"Duration: {Duration}\n";
+            info += $"CasterGuid: {CasterGuid:X8}\n";
+            info += $"StatModType: {StatModType}\n";
+            info += $"StatModKey: {StatModKey}\n";
+            info += $"StatModValue: {StatModValue}\n";
+            info += "---------";
+
+            return info;
         }
     }
 

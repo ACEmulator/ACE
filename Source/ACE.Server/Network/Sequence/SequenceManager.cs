@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -152,43 +153,46 @@ namespace ACE.Server.Network.Sequence
         {
             var key = (uint)type << 16 | property;
 
-            if (!sequenceList.TryGetValue(key, out var sequence))
+            lock (sequenceList)
             {
-                switch (type)
+                if (!sequenceList.TryGetValue(key, out var sequence))
                 {
-                    case SequenceType.ObjectPosition:
-                    case SequenceType.ObjectMovement:
-                    case SequenceType.ObjectState:
-                    case SequenceType.ObjectVector:
-                    case SequenceType.ObjectTeleport:
-                    case SequenceType.ObjectServerControl:
-                    case SequenceType.ObjectForcePosition:
-                    case SequenceType.ObjectVisualDesc:
-                    case SequenceType.ObjectInstance:
-                        sequence = new UShortSequence();
-                        break;
+                    switch (type)
+                    {
+                        case SequenceType.ObjectPosition:
+                        case SequenceType.ObjectMovement:
+                        case SequenceType.ObjectState:
+                        case SequenceType.ObjectVector:
+                        case SequenceType.ObjectTeleport:
+                        case SequenceType.ObjectServerControl:
+                        case SequenceType.ObjectForcePosition:
+                        case SequenceType.ObjectVisualDesc:
+                        case SequenceType.ObjectInstance:
+                            sequence = new UShortSequence();
+                            break;
 
-                    case SequenceType.Motion:
-                        sequence = new UShortSequence(1, 0x7FFF);   // MSB is reserved, so set max value to exclude it.
-                        break;
+                        case SequenceType.Motion:
+                            sequence = new UShortSequence(1, 0x7FFF); // MSB is reserved, so set max value to exclude it.
+                            break;
 
-                    default:
-                        sequence = new ByteSequence(false);
-                        break;
+                        default:
+                            sequence = new ByteSequence(false);
+                            break;
+                    }
+
+                    sequenceList.Add(key, sequence);
                 }
-                sequenceList.Add(key, sequence);
+
+                return sequence;
             }
-            return sequence;
         }
 
         public void SetSequence(SequenceType type, ISequence sequence)
         {
             var key = (uint)type << 16;
 
-            if (sequenceList.ContainsKey(key))
+            lock (sequenceList)
                 sequenceList[key] = sequence;
-            else
-                sequenceList.Add(key, sequence);
         }
     }
 }

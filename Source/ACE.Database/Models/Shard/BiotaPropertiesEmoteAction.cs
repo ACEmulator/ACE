@@ -47,6 +47,6 @@ namespace ACE.Database.Models.Shard
         public float? AnglesY { get; set; }
         public float? AnglesZ { get; set; }
 
-        public BiotaPropertiesEmote Emote { get; set; }
+        public virtual BiotaPropertiesEmote Emote { get; set; }
     }
 }

@@ -5,9 +5,9 @@ namespace ACE.DatLoader.Entity
     // TODO: refactor to merge with existing TextureMapOverride object
     public class TextureMapChange : IUnpackable
     {
-        public byte PartIndex { get; private set; }
-        public uint OldTexture { get; private set; }
-        public uint NewTexture { get; private set; }
+        public byte PartIndex { get; set; }
+        public uint OldTexture { get; set; }
+        public uint NewTexture { get; set; }
 
         public void Unpack(BinaryReader reader)
         {

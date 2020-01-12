@@ -21,8 +21,21 @@ namespace ACE.Common.Cryptography
             Initialize(seed);
         }
 
+        private bool isReleased;
+
+        public void ReleaseResources()
+        {
+            isReleased = true;
+            mm = null;
+            randRsl = null;
+        }
+
         public uint GetOffset()
         {
+            if (isReleased)
+            {
+                return 0;
+            }
             OverallOffset++;
 
             var issacValue = randRsl[offset];

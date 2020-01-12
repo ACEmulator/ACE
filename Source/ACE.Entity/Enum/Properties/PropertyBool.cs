@@ -12,6 +12,7 @@ namespace ACE.Entity.Enum.Properties
         Undef                            = 0,
         [Ephemeral][ServerOnly]
         Stuck                            = 1,
+        [Ephemeral]
         Open                             = 2,
         Locked                           = 3,
         RotProof                         = 4,
@@ -95,6 +96,7 @@ namespace ACE.Entity.Enum.Properties
         IgnoreMagicResist                = 65,
         IgnoreMagicArmor                 = 66,
         AiAllowTrade                     = 67,
+        [SendOnLogin]
         SpellComponentsRequired          = 68,
         IsSellable                       = 69,
         IgnoreShieldsBySkill             = 70,
@@ -137,6 +139,7 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         ActdReceivedItems                = 104,
         Unknown105                       = 105,
+        [Ephemeral]
         FirstEnterWorldDone              = 106,
         RecallsDisabled                  = 107,
         RareUsesTimer                    = 108,
@@ -171,6 +174,8 @@ namespace ACE.Entity.Enum.Properties
         LinkedPortalTwoSummon            = 9002,
         [ServerOnly]
         HouseEvicted                     = 9003,
+        [ServerOnly]
+        UntrainedSkills                  = 9004,
     }
 
     public static class PropertyBoolExtensions

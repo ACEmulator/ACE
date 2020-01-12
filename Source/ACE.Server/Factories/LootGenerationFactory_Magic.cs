@@ -1,14 +1,7 @@
-using System.Collections.Generic;
-using System;
-
-using log4net;
-
+using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Factories;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -20,7 +13,7 @@ namespace ACE.Server.Factories
             uint id = 0;
 
             if (tier < 1) tier = 1;
-            if (tier > 8) tier = 8;
+            if (tier > 7) tier = 7;
 
             int summoningEssenceIndex = ThreadSafeRandom.Next(0, LootTables.SummoningEssencesMatrix.Length - 1);
 
@@ -37,22 +30,34 @@ namespace ACE.Server.Factories
             // add rng ratings to pet device
             // linear or biased?
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearDamage = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearDamage = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearDamageResist = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearDamageResist = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCritDamage = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCritDamage = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCritDamageResist = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCritDamageResist = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCrit = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCrit = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCritResist = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCritResist = GeneratePetDeviceRating(tier);
 
             var workmanship = GetWorkmanship(tier);
             petDevice.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             return petDevice;
+        }
+
+        public static int GeneratePetDeviceRating(int tier)
+        {
+            // thanks for morosity for this formula!
+            var baseRating = ThreadSafeRandom.Next(1, 10);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            var tierMod = 0.4f + tier * 0.02f;
+            if (rng > tierMod)
+                baseRating += ThreadSafeRandom.Next(1, 10);
+
+            return baseRating;
         }
 
         private static WorldObject CreateRandomScroll(int tier)
@@ -64,6 +69,19 @@ namespace ACE.Server.Factories
                 int id = CreateLevel8SpellComp();
                 wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                 return wo;
+            }
+
+            if (tier == 7)
+            {
+                // According to wiki, Tier 7 has a chance for level 8 spell components or level 7 spell scrolls
+                // No indication of weighting in either direction, so assuming a 50/50 split
+                int chance = ThreadSafeRandom.Next(1, 100);
+                if (chance > 50)
+                {
+                    int id = CreateLevel8SpellComp();
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
+                }
             }
 
             if (tier < 1) tier = 1;
@@ -81,7 +99,7 @@ namespace ACE.Server.Factories
             var weenie = DatabaseManager.World.GetScrollWeenie(spellID);
             if (weenie == null)
             {
-                log.WarnFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);
+                log.DebugFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);
                 return null;
             }
 
@@ -97,283 +115,205 @@ namespace ACE.Server.Factories
             return LootTables.Level8SpellComps[chance];
         }
 
-        private static WorldObject CreateCaster(int tier, bool isMagical)
+        /// <summary>
+        /// Creates Caster (Wand, Staff, Orb)
+        /// </summary>
+        public static WorldObject CreateCaster(int tier, bool isMagical, int wield = -1, bool forceWar = false)
         {
-            int casterWeenie = 0; //done
+            // Refactored 11/20/19  - HarliQ
+
+            int casterWeenie = 0;
             double elementalDamageMod = 0;
-            int wield = 0; //done
             Skill wieldSkillType = Skill.None;
-            int chance = 0;
+            WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int subType = 0;
+            if (wield == -1)
+                wield = GetWield(tier, 2);
 
-            switch (tier)
-            {
-                case 1:
-                case 2:
-                    wield = 0;
-                    break;
-                case 3:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 80)
-                        wield = 0;
-                    else
-                        wield = 290;
-                    break;
-                case 4:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 60)
-                        wield = 0;
-                    else if (chance < 95)
-                        wield = 290;
-                    else
-                        wield = 310;
-                    break;
-                case 5:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 50)
-                        wield = 0;
-                    else if (chance < 70)
-                        wield = 290;
-                    else if (chance < 90)
-                        wield = 310;
-                    else
-                        wield = 330;
-                    break;
-                case 6:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 40)
-                        wield = 0;
-                    else if (chance < 60)
-                        wield = 290;
-                    else if (chance < 80)
-                        wield = 310;
-                    else if (chance < 90)
-                        wield = 330;
-                    else
-                        wield = 355;
-                    break;
-                case 7:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 30)
-                        wield = 0;
-                    else if (chance < 50)
-                        wield = 290;
-                    else if (chance < 60)
-                        wield = 310;
-                    else if (chance < 70)
-                        wield = 330;
-                    else if (chance < 90)
-                        wield = 355;
-                    else
-                        wield = 375;
-                    break;
-                default:
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 25)
-                        wield = 0;
-                    else if (chance < 50)
-                        wield = 290;
-                    else if (chance < 60)
-                        wield = 310;
-                    else if (chance < 70)
-                        wield = 330;
-                    else if (chance < 80)
-                        wield = 355;
-                    else if (chance < 90)
-                        wield = 375;
-                    else
-                        wield = 385;
-                    break;
-            }
-
-            ////Getting the caster Weenie needed.
+            // Getting the caster Weenie needed.
             if (wield == 0)
             {
                 // Determine plain caster type: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
                 subType = ThreadSafeRandom.Next(0, 3);
                 casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
+
+                if (tier > 6)
+                {
+                    wieldRequirement = WieldRequirement.Level;
+                    wieldSkillType = Skill.Axe;  // Set by examples from PCAP data
+
+                    switch (tier)
+                    {
+                        case 7:
+                            wield = 150; // In this instance, used for indicating player level, rather than skill level
+                            break;
+                        default:
+                            wield = 180; // In this instance, used for indicating player level, rather than skill level
+                            break;
+                    }
+                }
             }
             else
             {
                 // Determine the Elemental Damage Mod amount
-                elementalDamageMod = GetMaxDamageMod(tier, 18);
+                elementalDamageMod = DetermineElementMod(wield);
 
                 // Determine caster type: 1 - Sceptre, 2 - Baton, 3 - Staff
                 int casterType = ThreadSafeRandom.Next(1, 3);
 
                 // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
-                int element = ThreadSafeRandom.Next(0, 7);
+                int element = forceWar ? ThreadSafeRandom.Next(0, 6) : ThreadSafeRandom.Next(0, 7);
                 casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
 
+                // If element is Nether, Void Magic is required, else War Magic is required for all other elements
                 if (element == 7)
-                {
                     wieldSkillType = Skill.VoidMagic;
-                }
                 else
-                {
-                    // Determine skill of wield requirement
-                    chance = ThreadSafeRandom.Next(0, 3);
-                    switch (chance)
-                    {
-                        case 0:
-                            wieldSkillType = Skill.WarMagic;
-                            break;
-                        case 2:
-                            wieldSkillType = Skill.CreatureEnchantment;
-                            break;
-                        case 3:
-                            wieldSkillType = Skill.ItemEnchantment;
-                            break;
-                        default:
-                            wieldSkillType = Skill.LifeMagic;
-                            break;
-                    }
-                }
+                    wieldSkillType = Skill.WarMagic;
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
 
+            // Why is this here?  Should not get a null object
             if (wo == null)
                 return null;
 
-            int workmanship = GetWorkmanship(tier);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            // Setting MagicD and MissileD Bonuses to null (some weenies have a value)
+            wo.WeaponMagicDefense = null;
+            wo.WeaponMissileDefense = null;
+            // Not sure why this is here, guessing some wienies have it by default
+            wo.ItemSkillLevelLimit = null;
 
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(3, tier));
-            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
-            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+            // Setting general traits of weapon
+            wo.ItemWorkmanship = GetWorkmanship(tier);
 
-            if (ThreadSafeRandom.Next(0, 100) > 95)
+            int materialType = GetMaterialType(wo, tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
+            wo.GemCount = ThreadSafeRandom.Next(1, 5);
+            wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
+            wo.Value = GetValue(tier, wo.ItemWorkmanship.Value, LootTables.getMaterialValueModifier(wo), LootTables.getGemMaterialValueModifier(wo));
+            // Is this right??
+            wo.LongDesc = wo.Name;
+
+            // Setting Weapon defensive mods 
+            wo.WeaponDefense = GetWieldReqMeleeDMod(wield);
+            wo.WeaponMagicDefense = GetMagicMissileDMod(tier);
+            wo.WeaponMissileDefense = GetMagicMissileDMod(tier);
+
+            // Setting weapon Offensive Mods
+            if (elementalDamageMod > 1.0f)
+                wo.ElementalDamageMod = elementalDamageMod;
+
+            // Setting Wield Reqs for weapon
+            if (wield > 0 || wieldRequirement == WieldRequirement.Level)
             {
-                double missileDMod = GetMissileDMod(tier);
-                if (missileDMod > 0.0f)
-                    wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDMod);
+                wo.WieldRequirements = wieldRequirement;
+                wo.WieldSkillType = (int)wieldSkillType;
+                wo.WieldDifficulty = wield;
             }
             else
             {
-                double meleeDMod = GetMeleeDMod(tier);
-                if (meleeDMod > 0.0f)
-                    wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
+                wo.WieldRequirements = WieldRequirement.Invalid;
+                wo.WieldSkillType = null;
+                wo.WieldDifficulty = null;
             }
 
+            // Adjusting Properties if weapon has magic (spells)
             double manaConMod = GetManaCMod(tier);
             if (manaConMod > 0.0f)
-                wo.SetProperty(PropertyFloat.ManaConversionMod, manaConMod);
-
-            if (elementalDamageMod > 1.0f)
-                wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
-
-            if (wield > 0)
-            {
-                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
-                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
-                wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
-            }
-
-            wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+                wo.ManaConversionMod = manaConMod;
 
             if (isMagical)
-            {
-                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
-
-                int lowSpellTier = GetLowSpellTier(tier);
-                int highSpellTier = GetHighSpellTier(tier);
-                int numSpells = GetNumSpells(tier);
-                int spellcraft = GetSpellcraft(numSpells, tier);
-                int itemMaxMana = GetMaxMana(numSpells, tier);
-
-                wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellcraft));
-                wo.SetProperty(PropertyFloat.ManaRate, GetManaRate());
-
-                wo.SetProperty(PropertyInt.ItemMaxMana, itemMaxMana);
-                wo.SetProperty(PropertyInt.ItemCurMana, itemMaxMana);
-                wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 7);
-                wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-
-                int minorCantrips = GetNumMinorCantrips(tier);
-                int majorCantrips = GetNumMajorCantrips(tier);
-                int epicCantrips = GetNumEpicCantrips(tier);
-                int legendaryCantrips = GetNumLegendaryCantrips(tier);
-                int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-
-                int[][] spells = LootTables.WandSpells;
-                int[][] cantrips = LootTables.WandCantrips;
-                int[] shuffledValues = new int[spells.Length];
-
-                for (int i = 0; i < spells.Length; i++)
-                {
-                    shuffledValues[i] = i;
-                }
-
-                Shuffle(shuffledValues);
-
-                if (numSpells - numCantrips > 0)
-                {
-                    for (int a = 0; a < numSpells - numCantrips; a++)
-                    {
-                        int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                        int spellID = spells[shuffledValues[a]][col];
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
-                    }
-                }
-
-                if (numCantrips > 0)
-                {
-                    shuffledValues = new int[cantrips.Length];
-                    for (int i = 0; i < cantrips.Length; i++)
-                    {
-                        shuffledValues[i] = i;
-                    }
-                    Shuffle(shuffledValues);
-                    int shuffledPlace = 0;
-
-                    //minor cantripps
-                    for (int a = 0; a < minorCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][0];
-                        shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
-                    }
-                    //major cantrips
-                    for (int a = 0; a < majorCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][1];
-                        shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
-                    }
-                    // epic cantrips
-                    for (int a = 0; a < epicCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][2];
-                        shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
-                    }
-                    //legendary cantrips
-                    for (int a = 0; a < legendaryCantrips; a++)
-                    {
-                        int spellID = cantrips[shuffledValues[shuffledPlace]][3];
-                        shuffledPlace++;
-                        var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
-                        wo.Biota.BiotaPropertiesSpellBook.Add(result);
-                    }
-                }
-            }
+                wo = AssignMagic(wo, tier);
             else
             {
-                wo.RemoveProperty(PropertyInt.ItemManaCost);
-                wo.RemoveProperty(PropertyInt.ItemMaxMana);
-                wo.RemoveProperty(PropertyInt.ItemCurMana);
-                wo.RemoveProperty(PropertyInt.ItemSpellcraft);
-                wo.RemoveProperty(PropertyInt.ItemDifficulty);
+                wo.ItemManaCost = null;
+                wo.ItemMaxMana = null;
+                wo.ItemCurMana = null;
+                wo.ItemSpellcraft = null;
+                wo.ItemDifficulty = null;
             }
 
+            wo = RandomizeColor(wo);
+
             return wo;
+        }
+        private static double DetermineElementMod(int wield)
+        {
+            double elementBonus = 0;
+
+           int chance = ThreadSafeRandom.Next(1, 100);
+            switch (wield)
+            {
+                case 290:
+                    if (chance > 95)
+                        elementBonus = 0.03;
+                    else if (chance > 65)
+                        elementBonus = 0.02;
+                    else
+                        elementBonus = 0.01;
+                    break;
+                case 310:
+                    if (chance > 95)
+                        elementBonus = 0.06;
+                    else if (chance > 65)
+                        elementBonus = 0.05;
+                    else
+                        elementBonus = 0.04;
+                    break;
+
+                case 330:
+                    if (chance > 95)
+                        elementBonus = 0.09;
+                    else if (chance > 65)
+                        elementBonus = 0.08;
+                    else
+                        elementBonus = 0.07;
+                    break;
+
+                case 355:
+                    if (chance > 95)
+                        elementBonus = 0.13;
+                    else if (chance > 80)
+                        elementBonus = 0.12;
+                    else if (chance > 55)
+                        elementBonus = 0.11;
+                    else if (chance > 20)
+                        elementBonus = 0.10;
+                    else
+                        elementBonus = 0.09;
+                    break;
+
+                case 375:
+                    if (chance > 95)
+                        elementBonus = 0.16;
+                    else if (chance > 85)
+                        elementBonus = 0.15;
+                    else if (chance > 60)
+                        elementBonus = 0.14;
+                    else if (chance > 30)
+                        elementBonus = 0.13;
+                    else if (chance > 10)
+                        elementBonus = 0.12;
+                    else
+                        elementBonus = 0.11;
+                    break;
+
+                default:
+                    // 385
+                    if (chance > 95)
+                        elementBonus = 0.18;
+                    else if (chance > 65)
+                        elementBonus = 0.17;
+                    else
+                        elementBonus = 0.16;
+                    break;
+            }
+
+            elementBonus = elementBonus + 1;
+
+            return elementBonus;
         }
     }
 }

@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -54,6 +54,8 @@ namespace ACE.Server.WorldObjects
             ChangesDetected = false;
 
             if (enqueueSave)
+            {
+                CheckpointTimestamp = Time.GetUnixTime();
                 //DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
                 DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, result =>
                 {
@@ -66,6 +68,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 });
+            }
         }
 
         /// <summary>
@@ -148,6 +151,9 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             if (WeenieType == WeenieType.Corpse && this is Corpse corpse && corpse.IsMonster)
+                return false;
+
+            if (WeenieType == WeenieType.Portal && this is Portal portal && portal.IsGateway)
                 return false;
 
             // Missiles are unique. The only missiles that are persistable are ones that already exist in the database.

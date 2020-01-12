@@ -11,6 +11,6 @@ namespace ACE.Database.Models.Shard
         public ushort Offset { get; set; }
         public ushort Length { get; set; }
 
-        public Biota Object { get; set; }
+        public virtual Biota Object { get; set; }
     }
 }

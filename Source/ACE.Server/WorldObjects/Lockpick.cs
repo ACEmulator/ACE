@@ -25,7 +25,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            BaseDescriptionFlags |= ObjectDescriptionFlag.Lockpick;
+            ObjectDescriptionFlags |= ObjectDescriptionFlag.Lockpick;
         }
 
         public override void HandleActionUseOnTarget(Player player, WorldObject target)

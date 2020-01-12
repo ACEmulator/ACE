@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using ACE.Common;
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Hooks;
+using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
 
 using log4net;
@@ -61,8 +64,8 @@ namespace ACE.Server.Physics
         public Vector3 Velocity;
         public Vector3 Acceleration;
         public Vector3 Omega;
-        public LinkedList<PhysicsObjHook> Hooks;
-        public LinkedList<AnimHook> AnimHooks;
+        public List<PhysicsObjHook> Hooks;
+        public List<AnimHook> AnimHooks;
         public float Scale;
         public float AttackRadius;
         public DetectionManager DetectionManager;
@@ -87,6 +90,10 @@ namespace ACE.Server.Physics
         /// </summary>
         public bool IsAnimating;
 
+        // this is used by the 1991 branch to determine when physics updates need to be run
+        public bool IsMovingOrAnimating => !PartArray.Sequence.is_first_cyclic() || CachedVelocity != Vector3.Zero || Velocity != Vector3.Zero ||
+            MovementManager.MotionInterpreter.InterpretedState.HasCommands();
+
         // server
         public Position RequestPos;
 
@@ -103,15 +110,9 @@ namespace ACE.Server.Physics
 
         public CellArray CellArray;
         public ObjectMaint ObjMaint;
-        public static List<PhysicsObj> Players;
-        public bool IsPlayer;
+        public bool IsPlayer => ID >= 0x50000001 && ID <= 0x5FFFFFFF;
 
         public static readonly int UpdateTimeLength = 9;
-
-        static PhysicsObj()
-        {
-            Players = new List<PhysicsObj>();
-        }
 
         public PhysicsObj()
         {
@@ -131,8 +132,8 @@ namespace ACE.Server.Physics
             Scale = PhysicsGlobals.DefaultScale;
             SlidingNormal = Vector3.Zero;
             CachedVelocity = Vector3.Zero;
-            Hooks = new LinkedList<PhysicsObjHook>();
-            AnimHooks = new LinkedList<AnimHook>();
+            Hooks = new List<PhysicsObjHook>();
+            AnimHooks = new List<AnimHook>();
             Children = new ChildList();
             ShadowObjects = new Dictionary<uint, ShadowObj>();
             CollisionTable = new Dictionary<uint, CollisionRecord>();
@@ -234,7 +235,7 @@ namespace ACE.Server.Physics
                 return ObjCell.GetVisible(position.ObjCellID);
             }
 
-            var visibleCell = (Common.EnvCell)ObjCell.GetVisible(position.ObjCellID);
+            var visibleCell = (EnvCell)ObjCell.GetVisible(position.ObjCellID);
             if (visibleCell == null) return null;
 
             var point = position.LocalToGlobal(low_pt);
@@ -274,9 +275,9 @@ namespace ACE.Server.Physics
                 return;
             }
             var upperBound = (float)delta;
-            var randp = ACE.ThreadSafeRandom.Next(0.0f, upperBound);
+            var randp = ThreadSafeRandom.Next(0.0f, upperBound);
             var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, randp, 0.0f, 1.0f, pes);
-            Hooks.AddLast(hook);
+            Hooks.Add(hook);
         }
 
         public void CallPESInternal(uint pes, float curValue)
@@ -389,11 +390,15 @@ namespace ACE.Server.Physics
             transition.SpherePath.ObstructionEthereal = ethereal;
 
             var state = transition.ObjectInfo.State;
-            var exemption = (WeenieObj == null || !WeenieObj.IsPlayer() || !state.HasFlag(ObjectInfoState.IsPlayer) ||
-                state.HasFlag(ObjectInfoState.IsImpenetrable) || WeenieObj.IsImpenetable() ||
+
+            // TODO: reverse this check to make it more readable
+            // TODO: investigate not initting WeenieObj for DatObjects
+            var exemption = !( /*WeenieObj == null*/ DatObject || !WeenieObj.IsPlayer() || !state.HasFlag(ObjectInfoState.IsPlayer) ||
+                state.HasFlag(ObjectInfoState.IsImpenetrable) || WeenieObj.IsImpenetrable() ||
                 state.HasFlag(ObjectInfoState.IsPK) && WeenieObj.IsPK() || state.HasFlag(ObjectInfoState.IsPKLite) && WeenieObj.IsPKLite());
 
             var missileIgnore = transition.ObjectInfo.MissileIgnore(this);
+
             var isCreature = State.HasFlag(PhysicsState.Missile) || WeenieObj != null && WeenieObj.IsCreature();
             //isCreature = false; // hack?
 
@@ -463,11 +468,66 @@ namespace ACE.Server.Physics
             return result;
         }
 
+        public bool is_touching(PhysicsObj obj)
+        {
+            // custom for hotspots
+
+            // possible collision detection object types:
+            // - bsp
+            // - sphere
+            // - cylsphere
+
+            // player has 2 spheres
+            // hotspots appear to sphere or cylsphere?
+
+            // ensure same landblock
+            // no cross-landblock collision detection here,
+            // although it could be added if needed
+
+            if (CurLandblock != obj.CurLandblock)
+                return false;
+
+            var pSpheres = PartArray.GetSphere();
+
+            var spheres = obj.PartArray.GetSphere();
+            var cylspheres = obj.PartArray.GetCylSphere();
+
+            if (pSpheres.Count == 0 || (spheres.Count == 0 && cylspheres.Count == 0))
+                return false;
+
+            foreach (var pSphere in pSpheres)
+            {
+                foreach (var sphere in spheres)
+                {
+                    // convert to landblock coordinates
+                    var playerSphere = new Sphere(Position.Frame.LocalToGlobal(pSphere.Center), pSphere.Radius);
+                    var globSphere = new Sphere(obj.Position.Frame.LocalToGlobal(sphere.Center), sphere.Radius);
+
+                    if (playerSphere.Intersects(globSphere))
+                        return true;
+                }
+
+                foreach (var cylsphere in cylspheres)
+                {
+                    // convert to landblock coordinates
+                    var center = Position.Frame.LocalToGlobal(pSphere.Center);
+                    var lowpoint = obj.Position.Frame.LocalToGlobal(cylsphere.LowPoint);
+
+                    var disp = center - lowpoint;
+                    var radsum = pSphere.Radius + cylsphere.Radius - PhysicsGlobals.EPSILON;
+
+                    if (cylsphere.CollidesWithSphere(pSphere, disp, radsum))
+                        return true;
+                }
+            }
+            return false;
+        }
+
         public SetPositionError ForceIntoCell(ObjCell newCell, Position pos)
         {
             if (newCell == null) return SetPositionError.NoCell;
             set_frame(pos.Frame);
-            if (!CurCell.Equals(newCell))
+            if (CurCell != newCell)
             {
                 change_cell(newCell);
                 calc_cross_cells();
@@ -479,7 +539,7 @@ namespace ACE.Server.Physics
         {
             if ((Position.ObjCellID & 0xFFFF) < 0x100) return 100.0f;
 
-            return Players.Contains(this) ? 25.0f : 20.0f;
+            return IsPlayer ? 25.0f : 20.0f;
         }
 
         public BBox GetBoundingBox()
@@ -507,7 +567,7 @@ namespace ACE.Server.Physics
 
         public PhysicsObj GetObjectA(uint objectID)
         {
-            return ObjectMaint.GetObjectA(objectID);
+            return ServerObjectManager.GetObjectA(objectID);
         }
 
         public float GetRadius()
@@ -990,7 +1050,7 @@ namespace ACE.Server.Physics
                 return;
             }
             var hook = new FPHook(PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, start, end, 0);
-            Hooks.AddLast(hook);
+            Hooks.Add(hook);
         }
 
         public bool SetMotionTableID(uint mtableID)
@@ -1024,7 +1084,7 @@ namespace ACE.Server.Physics
                 return;
             }
             var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable, PhysicsTimer_CurrentTime, delta, start, end, part);
-            Hooks.AddLast(hook);
+            Hooks.Add(hook);
         }
 
         public bool SetPartLighting(int partIdx, float luminosity, float diffuse)
@@ -1044,7 +1104,7 @@ namespace ACE.Server.Physics
                 return;
             }
             var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, start, end, part);
-            Hooks.AddLast(hook);
+            Hooks.Add(hook);
         }
 
         public void SetPartTextureVelocity(int partIdx, float du, float dv)
@@ -1062,7 +1122,7 @@ namespace ACE.Server.Physics
                 return;
             }
             var hook = new FPHook(PhysicsHookType.MotionTable, PhysicsTimer_CurrentTime, delta, startTrans, endTrans, partIdx);
-            Hooks.AddLast(hook);
+            Hooks.Add(hook);
         }
 
         public bool SetPlacementFrame(int frameID, bool sendEvent)
@@ -1080,14 +1140,6 @@ namespace ACE.Server.Physics
                     PartArray.SetFrame(Position.Frame);
             }
             return result;
-        }
-
-        public void SetPlayer()
-        {
-            if (Players.Contains(this))
-                Players.Add(this);
-
-            IsPlayer = true;
         }
 
         public SetPositionError SetPosition(SetPosition setPos)
@@ -1127,6 +1179,9 @@ namespace ACE.Server.Physics
                 return true;
             }
 
+            // modified: maintain consistency for Position.Frame in change_cell
+            set_frame(curPos.Frame);
+
             if (transitCell.Equals(CurCell))
             {
                 Position.ObjCellID = curPos.ObjCellID;
@@ -1148,7 +1203,7 @@ namespace ACE.Server.Physics
                 change_cell(transitCell);
             }
 
-            set_frame(curPos.Frame);
+            //set_frame(curPos.Frame);
 
             var collisions = transition.CollisionInfo;
 
@@ -1247,12 +1302,17 @@ namespace ACE.Server.Physics
 
         public SetPositionError SetPositionInternal(SetPosition setPos, Transition transition)
         {
+            var wo = WeenieObj.WorldObject;
+
+            if (wo == null)
+                return SetPositionError.GeneralFailure;
+
             //if (setPos.Flags.HasFlag(SetPositionFlags.RandomScatter))
             //return SetScatterPositionInternal(setPos, transition);
-            if (WeenieObj.WorldObject.ScatterPos != null)
+            if (wo.ScatterPos != null)
             {
-                WeenieObj.WorldObject.ScatterPos.Flags |= setPos.Flags;
-                return SetScatterPositionInternal(WeenieObj.WorldObject.ScatterPos, transition);
+                wo.ScatterPos.Flags |= setPos.Flags;
+                return SetScatterPositionInternal(wo.ScatterPos, transition);
             }
 
             // frame ref?
@@ -1283,7 +1343,7 @@ namespace ACE.Server.Physics
                 return;
             }
             var hook = new FPHook((PhysicsHookType)0, PhysicsTimer_CurrentTime, delta, Scale, scale, 0);
-            Hooks.AddLast(hook);
+            Hooks.Add(hook);
         }
 
         public void SetScaleStatic(float scale)
@@ -1292,6 +1352,8 @@ namespace ACE.Server.Physics
             if (PartArray != null)
                 PartArray.SetScaleInternal(new Vector3(scale, scale, scale));
         }
+
+        public static float ScatterThreshold_Z = 10.0f;
 
         public SetPositionError SetScatterPositionInternal(SetPosition setPos, Transition transition)
         {
@@ -1334,7 +1396,13 @@ namespace ACE.Server.Physics
                     {
                         // set to ground pos
                         var landblock = LScape.get_landblock(newPos.ObjCellID);
-                        newPos.Frame.Origin.Z = landblock.GetZ(newPos.Frame.Origin) + 0.05f;
+                        var groundZ = landblock.GetZ(newPos.Frame.Origin) + 0.05f;
+
+                        if (Math.Abs(newPos.Frame.Origin.Z - groundZ) > ScatterThreshold_Z)
+                            log.Debug($"{Name} ({ID:X8}).SetScatterPositionInternal() - tried to spawn outdoor object @ {newPos} ground Z {groundZ}, investigate ScatterThreshold_Z");
+                        else
+                            newPos.Frame.Origin.Z = groundZ;
+
                     }
                     //else
                         //indoors = true;
@@ -1395,7 +1463,7 @@ namespace ACE.Server.Physics
                 return;
             }
             var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, 0.0f, translucency, 0);
-            Hooks.AddLast(hook);
+            Hooks.Add(hook);
         }
 
         public void SetTranslucency2(float startTrans, float endTrans, double delta)
@@ -1408,7 +1476,7 @@ namespace ACE.Server.Physics
                 return;
             }
             var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, startTrans, endTrans, 0);
-            Hooks.AddLast(hook);
+            Hooks.Add(hook);
         }
 
         public void SetTranslucencyHierarchial(float translucency)
@@ -1493,14 +1561,15 @@ namespace ACE.Server.Physics
             MovementManager.PerformMovement(mvs);
         }
 
-        public void TurnToObject(uint objectID, MovementParameters movementParams)
+        public bool TurnToObject(PhysicsObj obj, MovementParameters movementParams)
         {
-            if (ObjMaint == null) return;
-            var obj = ObjectMaint.GetObjectA(objectID);
-            if (obj == null) return;
+            if (obj == null) return false;
+
             var parent = obj.Parent != null ? obj.Parent : obj;
 
-            TurnToObject_Internal(objectID, parent.ID, movementParams);
+            TurnToObject_Internal(obj.ID, parent.ID, movementParams);
+
+            return true;
         }
 
         public void TurnToObject_Internal(uint objectID, uint topLevelID, MovementParameters movementParams)
@@ -1577,6 +1646,12 @@ namespace ACE.Server.Physics
                         newPos.Frame.set_vector_heading(Vector3.Normalize(Velocity));
                 }
 
+                if (GetBlockDist(Position, newPos) > 1)
+                {
+                    log.Warn($"WARNING: failed transition for {Name} from {Position} to {newPos}");
+                    return;
+                }
+
                 var transit = transition(Position, newPos, false);
 
                 if (transit != null)
@@ -1587,6 +1662,9 @@ namespace ACE.Server.Physics
                 }
                 else
                 {
+                    if (IsPlayer)
+                        log.Debug($"{Name}.UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
+
                     newPos.Frame.Origin = Position.Frame.Origin;
                     set_initial_frame(newPos.Frame);
                     CachedVelocity = Vector3.Zero;
@@ -1618,10 +1696,43 @@ namespace ACE.Server.Physics
             if (ScriptManager != null) ScriptManager.UpdateScripts();
         }
 
-        public void UpdateObjectInternalServer(double quantum)
+        public static int GetBlockDist(Position a, Position b)
+        {
+            // protection, figure out FastTeleport state
+            if (a == null || b == null)
+                return 0;
+
+            return GetBlockDist(a.ObjCellID, b.ObjCellID);
+        }
+
+        public static int GetBlockDist(uint a, uint b)
+        {
+            var lbx_a = a >> 24;
+            var lby_a = (a >> 16) & 0xFF;
+
+            var lbx_b = b >> 24;
+            var lby_b = (b >> 16) & 0xFF;
+
+            var dx = (int)Math.Abs((int)lbx_a - lbx_b);
+            var dy = (int)Math.Abs((int)lby_a - lby_b);
+
+            return Math.Max(dx, dy);
+        }
+
+        /// <summary>
+        /// This is for legacy movement system
+        /// </summary>
+        public bool UpdateObjectInternalServer(double quantum)
         {
             //var offsetFrame = new AFrame();
             //UpdatePhysicsInternal((float)quantum, ref offsetFrame);
+            if (GetBlockDist(Position, RequestPos) > 1)
+            {
+                log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}");
+                return false;
+            }
+
+            var requestCell = RequestPos.ObjCellID;
 
             var transit = transition(Position, RequestPos, false);
             if (transit != null)
@@ -1629,6 +1740,8 @@ namespace ACE.Server.Physics
                 CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
                 SetPositionInternal(transit);
             }
+            else
+                log.Debug($"{Name}.UpdateObjectInternalServer({quantum}) - failed transition from {Position} to {RequestPos}");
 
             if (DetectionManager != null) DetectionManager.CheckDetection();
 
@@ -1643,6 +1756,8 @@ namespace ACE.Server.Physics
             if (ParticleManager != null) ParticleManager.UpdateParticles();
 
             if (ScriptManager != null) ScriptManager.UpdateScripts();
+
+            return requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
         }
 
         public void UpdateAnimationInternal(double quantum)
@@ -1727,11 +1842,6 @@ namespace ACE.Server.Physics
             process_hooks();
         }
 
-        public void UpdatePositionInternalServer(double quantum, ref AFrame offsetFrame)
-        {
-            UpdatePositionInternal(quantum, ref offsetFrame);
-        }
-
         public void UpdateViewerDistance(float cypt, Vector3 heading)
         {
             if (PartArray != null) PartArray.UpdateViewerDistance(cypt, heading);
@@ -1765,7 +1875,7 @@ namespace ACE.Server.Physics
 
         public void add_anim_hook(AnimHook hook)
         {
-            AnimHooks.AddLast(hook);
+            AnimHooks.Add(hook);
         }
 
         public bool add_child(PhysicsObj obj, int where)
@@ -1919,37 +2029,6 @@ namespace ACE.Server.Physics
                 report_attacks(attackInfo);
         }
 
-        public AtkCollisionProfile build_collision_profile(PhysicsObj obj, bool prev_has_contact, Vector3 velocityCollide)
-        {
-            AtkCollisionProfile profile = null;
-
-            if (!State.HasFlag(PhysicsState.Missile))
-                profile = (AtkCollisionProfile)build_collision_profile(obj, velocityCollide, prev_has_contact,
-                    obj.State.HasFlag(PhysicsState.Missile), obj.TransientState.HasFlag(TransientStateFlags.Contact));
-            else
-            {
-                profile = new AtkCollisionProfile();
-                profile.ID = obj.ID;
-                profile.Part = -1;
-                profile.Location = obj.Position.DetermineQuadrant(obj.GetHeight(), Position);
-            }
-            return profile;
-        }
-
-        public static ObjCollisionProfile build_collision_profile(PhysicsObj obj, Vector3 velocity, bool amIInContact, bool objIsMissile, bool objHasContact)
-        {
-            if (obj.WeenieObj != null /* && vfptr */) return null;
-            var prof = new ObjCollisionProfile();
-            prof.Velocity = velocity;
-            if (objIsMissile)
-                prof.Flags |= ObjCollisionProfileFlags.Missile;
-            if (objHasContact)
-                prof.Flags |= ObjCollisionProfileFlags.Contact;
-            if (amIInContact)
-                prof.Flags |= ObjCollisionProfileFlags.MyContact;
-            return prof;
-        }
-
         public void calc_acceleration()
         {
             if (TransientState.HasFlag(TransientStateFlags.Contact) && TransientState.HasFlag(TransientStateFlags.OnWalkable))
@@ -2062,7 +2141,7 @@ namespace ACE.Server.Physics
                 enter_cell_server(newCell);
         }
 
-        public int check_attack(Position attackerPos, float attackerScale, AttackCone attackCone, float attackerAttackRadius)
+        public Quadrant check_attack(Position attackerPos, float attackerScale, AttackCone attackCone, float attackerAttackRadius)
         {
             if (Parent != null || State.HasFlag(PhysicsState.IgnoreCollisions) || State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
                 return 0;
@@ -2151,13 +2230,63 @@ namespace ACE.Server.Physics
             ParticleManager = null;
         }
 
+        /// <summary>
+        /// This is to mitigate possible decal crashes w/ CO messages being sent
+        /// for objects when the client landblock is very early in the loading state
+        /// </summary>
+        public static TimeSpan TeleportCreateObjectDelay = TimeSpan.FromSeconds(1);
+
         public void enqueue_objs(IEnumerable<PhysicsObj> newlyVisible)
         {
-            var player = WeenieObj.WorldObject as Player;
-            if (player == null) return;
+            if (!IsPlayer || !(WeenieObj.WorldObject is Player player))
+                return;
 
-            foreach (var obj in newlyVisible)
-                player.TrackObject(obj.WeenieObj.WorldObject);
+            if (DateTime.UtcNow - player.LastTeleportTime < TeleportCreateObjectDelay)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(TeleportCreateObjectDelay.TotalSeconds);
+                actionChain.AddAction(player, () =>
+                {
+                    foreach (var obj in newlyVisible)
+                    {
+                        var wo = obj.WeenieObj.WorldObject;
+                        if (wo != null)
+                            player.TrackObject(wo, true);
+                    }
+                });
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                foreach (var obj in newlyVisible)
+                {
+                    var wo = obj.WeenieObj.WorldObject;
+                    if (wo != null)
+                        player.TrackObject(wo);
+                }
+            }
+        }
+
+        public void enqueue_obj(PhysicsObj newlyVisible)
+        {
+            if (!IsPlayer || !(WeenieObj.WorldObject is Player player))
+                return;
+
+            var wo = newlyVisible.WeenieObj.WorldObject;
+            if (wo == null)
+                return;
+
+            if (DateTime.UtcNow - player.LastTeleportTime < TeleportCreateObjectDelay)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(TeleportCreateObjectDelay.TotalSeconds);
+                actionChain.AddAction(player, () => player.TrackObject(wo, true));
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                player.TrackObject(wo);
+            }
         }
 
         public void enter_cell(ObjCell newCell)
@@ -2168,7 +2297,7 @@ namespace ACE.Server.Physics
                 child.enter_cell(newCell);
 
             CurCell = newCell;
-            Position.ObjCellID = newCell.ID;
+            Position.ObjCellID = newCell.ID;        // warning: Position will be in an inconsistent state here, until set_frame() is run!
             if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
                 PartArray.SetCellID(newCell.ID);
 
@@ -2182,30 +2311,48 @@ namespace ACE.Server.Physics
 
         public void enter_cell_server(ObjCell newCell)
         {
+            //Console.WriteLine($"{Name}.enter_cell_server({newCell.ID:X8})");
+
             enter_cell(newCell);
             RequestPos.ObjCellID = newCell.ID;
 
+            // sync location for initial CO
+            if (entering_world)
+                WeenieObj.WorldObject.SyncLocation();
+
+            // handle self
             if (IsPlayer)
             {
-                // handle object visibility
                 var newlyVisible = handle_visible_cells();
                 enqueue_objs(newlyVisible);
+            }
+            else
+            {
+                handle_visible_cells_non_player();
+            }
 
-                // handle object visibility for nearby players
-                foreach (var player in ObjMaint.ObjectTable.Values.Where(i => i.IsPlayer))
-                {
-                    newlyVisible = player.handle_visible_cells();
-                    player.enqueue_objs(newlyVisible);
+            // handle known players
+            foreach (var player in ObjMaint.GetKnownPlayersValues())
+            {
+                var added = player.handle_visible_obj(this);
 
-                    player.ObjMaint.AddVoyeur(this);
-                }
+                if (added)
+                    player.enqueue_obj(this);
             }
         }
 
+        public bool entering_world;
+
         public bool enter_world(Position pos)
         {
+            entering_world = true;
+
             store_position(pos);
-            return enter_world(true);
+            bool slide = ProjectileTarget == null || WeenieObj.WorldObject is SpellProjectile;
+            var result = enter_world(slide);
+
+            entering_world = false;
+            return result;
         }
 
         public bool enter_world(bool slide)
@@ -2521,8 +2668,8 @@ namespace ACE.Server.Physics
                 //Console.WriteLine(visibleObject.Name);
 
             // get the difference between current and previous visible
-            //var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjectTable.Values).ToList();
-            var newlyOccluded = ObjMaint.VisibleObjectTable.Values.Except(visibleObjects).ToList();
+            //var newlyVisible = visibleObjects.Except(ObjMaint.VisibleObjects.Values).ToList();
+            var newlyOccluded = ObjMaint.GetVisibleObjectsValues().Except(visibleObjects).ToList();
             //Console.WriteLine("Newly visible objects: " + newlyVisible.Count);
             //Console.WriteLine("Newly occluded objects: " + newlyOccluded.Count);
             //foreach (var obj in newlyOccluded)
@@ -2546,6 +2693,70 @@ namespace ACE.Server.Physics
             ObjMaint.AddObjectsToBeDestroyed(newlyOccluded);
 
             return createObjs;
+        }
+
+        public void handle_visible_cells_non_player()
+        {
+            if (WeenieObj.IsMonster)
+            {
+                // players and combat pets
+                var visibleTargets = ObjMaint.GetVisibleObjects(CurCell, ObjectMaint.VisibleObjectType.AttackTargets);
+
+                var newTargets = ObjMaint.AddVisibleTargets(visibleTargets);
+            }
+            else
+            {
+                // everything except monsters
+                // usually these are server objects whose position never changes
+                var knownPlayers = ObjectMaint.InitialClamp ? ObjMaint.GetVisibleObjectsDist(CurCell, ObjectMaint.VisibleObjectType.Players)
+                    : ObjMaint.GetVisibleObjects(CurCell, ObjectMaint.VisibleObjectType.Players);
+
+                ObjMaint.AddKnownPlayers(knownPlayers);
+            }
+
+            if (WeenieObj.IsCombatPet)
+            {
+                var visibleMonsters = ObjMaint.GetVisibleObjects(CurCell, ObjectMaint.VisibleObjectType.AttackTargets);
+
+                var newTargets = ObjMaint.AddVisibleTargets(visibleMonsters);
+            }
+        }
+
+        public bool handle_visible_obj(PhysicsObj obj)
+        {
+            if (CurCell == null || obj.CurCell == null)
+            {
+                if (CurCell == null)
+                    log.Error($"{Name}.handle_visible_obj({obj.Name}): CurCell null");
+                else
+                    log.Error($"{Name}.handle_visible_obj({obj.Name}): obj.CurCell null");
+
+                return false;
+            }
+
+            var isVisible = CurCell.IsVisible(obj.CurCell);
+
+            if (isVisible)
+            {
+                var newlyVisible = ObjMaint.AddVisibleObject(obj);
+
+                if (newlyVisible)
+                {
+                    ObjMaint.AddKnownObject(obj);
+                    ObjMaint.RemoveObjectToBeDestroyed(obj);
+                }
+
+                return newlyVisible;
+            }
+            else
+            {
+                var newlyOccluded = ObjMaint.VisibleObjectsContainsKey(obj.ID);
+
+                if (newlyOccluded)
+                    ObjMaint.AddObjectToBeDestroyed(obj);
+
+                return false;
+            }
         }
 
         public bool is_completely_visible()
@@ -2869,13 +3080,19 @@ namespace ACE.Server.Physics
 
         public void process_hooks()
         {
-            foreach (var hook in Hooks)
+            for (var i = 0; i < Hooks.Count; i++)
+            {
+                var hook = Hooks[i];
                 hook.Execute(this);
+            }
 
             Hooks.Clear();
 
-            foreach (var animHook in AnimHooks)
+            for (var i = 0; i < AnimHooks.Count; i++)
+            {
+                var animHook = AnimHooks[i];
                 animHook.Execute(this);
+            }
 
             AnimHooks.Clear();
         }
@@ -3012,7 +3229,7 @@ namespace ACE.Server.Physics
 
             foreach (var objectID in CollisionTable.Keys)
             {
-                var obj = ObjectMaint.GetObjectA(objectID);
+                var obj = ServerObjectManager.GetObjectA(objectID);
                 if (obj != null)
                     report_object_collision(obj, TransientState.HasFlag(TransientStateFlags.Contact));
             }
@@ -3049,35 +3266,33 @@ namespace ACE.Server.Physics
             var velocityCollide = Velocity - obj.Velocity;
 
             bool collided = false;
+
             if (!obj.State.HasFlag(PhysicsState.IgnoreCollisions))
             {
                 if (State.HasFlag(PhysicsState.ReportCollisions) && WeenieObj != null)
                 {
                     var profile = build_collision_profile(obj, prev_has_contact, velocityCollide);
-                    WeenieObj.DoCollision(profile, ObjID, obj);
-                    collided = true;
 
-                    if (!CollisionTable.ContainsKey(obj.ID))
-                        CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime });
-                    else
-                        CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime };
+                    WeenieObj.DoCollision(profile, ObjID, obj);
+
+                    collided = true;
                 }
 
                 if (State.HasFlag(PhysicsState.Missile))
                     State &= ~(PhysicsState.Missile | PhysicsState.AlignPath | PhysicsState.PathClipped);
             }
 
-            if (obj.State.HasFlag(PhysicsState.ReportCollisions) && !State.HasFlag(PhysicsState.IgnoreCollisions) && WeenieObj != null)
+            if (obj.State.HasFlag(PhysicsState.ReportCollisions) && !State.HasFlag(PhysicsState.IgnoreCollisions) && obj.WeenieObj != null)
             {
-                var profile = obj.build_collision_profile(this, prev_has_contact, velocityCollide);
-                obj.WeenieObj.DoCollision(profile, ObjID, obj);
-                collided = true;
+                // acclient might have a bug here,
+                // prev_has_contact and missie state params swapped?
+                var profile = obj.build_collision_profile(this, obj.TransientState.HasFlag(TransientStateFlags.Contact), velocityCollide);
 
-                if (!CollisionTable.ContainsKey(obj.ID))
-                    CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime });
-                else
-                    CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime };
+                obj.WeenieObj.DoCollision(profile, ObjID, obj);
+
+                collided = true;
             }
+
             return collided;
         }
 
@@ -3085,7 +3300,7 @@ namespace ACE.Server.Physics
         {
             if (ObjMaint != null)
             {
-                var collision = ObjectMaint.GetObjectA(objectID);
+                var collision = ServerObjectManager.GetObjectA(objectID);
                 if (collision != null)
                 {
                     if (!collision.State.HasFlag(PhysicsState.ReportCollisionsAsEnvironment))
@@ -3103,6 +3318,30 @@ namespace ACE.Server.Physics
                 WeenieObj.DoCollisionEnd(new ObjectGuid(objectID));
 
             return false;
+        }
+
+        public ObjCollisionProfile build_collision_profile(PhysicsObj obj, bool amIInContact, Vector3 velocityCollide)
+        {
+            if (State.HasFlag(PhysicsState.Missile))
+            {
+                return new AtkCollisionProfile(obj.ID, -1, obj.Position.DetermineQuadrant(obj.GetHeight(), Position));
+            }
+            else
+            {
+                return build_collision_profile(obj, velocityCollide, amIInContact, obj.State.HasFlag(PhysicsState.Missile), obj.TransientState.HasFlag(TransientStateFlags.Contact));
+            }
+        }
+
+        public ObjCollisionProfile build_collision_profile(PhysicsObj obj, Vector3 velocity, bool amIInContact, bool objIsMissile, bool objHasContact)
+        {
+            if (WeenieObj == null)
+                return null;
+
+            var profile = new ObjCollisionProfile(obj.ID, velocity, objIsMissile, objHasContact, amIInContact);
+
+            WeenieObj.InqCollisionProfile(profile);
+
+            return profile;
         }
 
         public void rotate(Vector3 offset)
@@ -3124,7 +3363,7 @@ namespace ACE.Server.Physics
                 if (State.HasFlag(PhysicsState.Static))
                     return false;
 
-                if (TransientState.HasFlag(TransientStateFlags.Active))
+                if (!TransientState.HasFlag(TransientStateFlags.Active))
                     UpdateTime = PhysicsTimer.CurrentTime;
 
                 TransientState |= TransientStateFlags.Active;
@@ -3438,7 +3677,7 @@ namespace ACE.Server.Physics
             ObjID = guid;
             ID = guid.Full;
 
-            ObjectMaint.AddServerObject(this);
+            ServerObjectManager.AddServerObject(this);
         }
 
         /// <summary>
@@ -3663,7 +3902,7 @@ namespace ACE.Server.Physics
             MakePositionManager();
             if (ObjMaint == null) return;
 
-            var objectA = ObjectMaint.GetObjectA(objectID);
+            var objectA = ServerObjectManager.GetObjectA(objectID);
             if (objectA == null) return;
             if (objectA.Parent != null)
                 objectA = Parent;
@@ -3720,11 +3959,8 @@ namespace ACE.Server.Physics
             if (CollisionTable == null)
                 CollisionTable = new Dictionary<uint, CollisionRecord>();
 
-            //if (!CollisionTable.ContainsKey(obj.ID))
-            //    CollisionTable.Add(obj.ID, null);
+            CollisionTable[obj.ID] = new CollisionRecord(PhysicsTimer.CurrentTime, obj.State.HasFlag(PhysicsState.Ethereal));
 
-            //if (!CollisionTable.ContainsKey(obj.ID)) return false;
-            //CollisionTable.Remove(obj.ID);
             return report_object_collision(obj, prev_has_contact);
         }
 
@@ -3906,14 +4142,19 @@ namespace ACE.Server.Physics
                 Console.WriteLine($"{(MotionCommand)motion.Motion}");
         }
 
-        public void update_object_server(bool forcePos = true)
+        /// <summary>
+        /// This is for legacy movement system
+        /// </summary>
+        public bool update_object_server(bool forcePos = true)
         {
             var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
 
-            if (!WeenieObj.WorldObject.Teleporting)
-                UpdateObjectInternalServer(deltaTime);
+            var wo = WeenieObj.WorldObject;
+            var success = true;
+            if (wo != null && !wo.Teleporting)
+                success = UpdateObjectInternalServer(deltaTime);
 
-            if (forcePos)
+            if (forcePos && success)
                 set_current_pos(RequestPos);
 
             // temp for players
@@ -3921,6 +4162,82 @@ namespace ACE.Server.Physics
                 CachedVelocity = Vector3.Zero;
 
             UpdateTime = PhysicsTimer.CurrentTime;
+
+            return success;
+        }
+
+        /// <summary>
+        /// This is for full / updated movement system
+        /// </summary>
+        public bool update_object_server_new(bool forcePos = true)
+        {
+            if (Parent != null || CurCell == null || State.HasFlag(PhysicsState.Frozen))
+            {
+                TransientState &= ~TransientStateFlags.Active;
+                return false;
+            }
+
+            PhysicsTimer_CurrentTime = UpdateTime;
+
+            var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
+
+            //Console.WriteLine($"{Name}.update_object_server({forcePos}) - deltaTime: {deltaTime}");
+
+            var isTeleport = WeenieObj.WorldObject?.Teleporting ?? false;
+
+            // commented out for debugging
+            if (deltaTime > PhysicsGlobals.HugeQuantum && !isTeleport)
+            {
+                UpdateTime = PhysicsTimer.CurrentTime;   // consume time?
+                return false;
+            }
+
+            var requestCell = RequestPos.ObjCellID;
+
+            var success = true;
+
+            if (!isTeleport)
+            {
+                if (GetBlockDist(Position, RequestPos) > 1)
+                {
+                    log.Warn($"WARNING: failed transition for {Name} from {Position} to {RequestPos}");
+                    success = false;
+                }
+
+                while (deltaTime > PhysicsGlobals.MaxQuantum)
+                {
+                    PhysicsTimer_CurrentTime += PhysicsGlobals.MaxQuantum;
+                    UpdateObjectInternal(PhysicsGlobals.MaxQuantum);
+                    deltaTime -= PhysicsGlobals.MaxQuantum;
+                }
+
+                if (deltaTime > PhysicsGlobals.MinQuantum)
+                {
+                    PhysicsTimer_CurrentTime += deltaTime;
+                    UpdateObjectInternal(deltaTime);
+                }
+
+                success &= requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
+            }
+
+            if (forcePos && success)
+                set_current_pos(RequestPos);
+
+            // for teleport, use SetPosition?
+            if (isTeleport)
+            {
+                //Console.WriteLine($"*** SETTING TELEPORT ***");
+
+                var setPosition = new SetPosition();
+                setPosition.Pos = RequestPos;
+                setPosition.Flags = SetPositionFlags.SendPositionEvent | SetPositionFlags.Slide | SetPositionFlags.Placement | SetPositionFlags.Teleport;
+
+                SetPosition(setPosition);
+            }
+
+            UpdateTime = PhysicsTimer_CurrentTime;
+
+            return success;
         }
 
         public void update_position()
@@ -3949,44 +4266,6 @@ namespace ACE.Server.Physics
                 UpdateTime = PhysicsTimer.CurrentTime;
         }
 
-        public void get_voyeurs()
-        {
-            ObjMaint.get_voyeurs();
-        }
-
-        public void add_moveto_listener(Action<WeenieError> listener)
-        {
-            MovementManager.MoveToManager.add_listener(listener);
-        }
-
-        public void remove_moveto_listener(Action<WeenieError> listener)
-        {
-            MovementManager.MoveToManager.remove_listener(listener);
-        }
-
-        public void add_sticky_listener(Action listener)
-        {
-            MakePositionManager();
-            PositionManager.MakeStickyManager();
-
-            PositionManager.StickyManager.add_sticky_listener(listener);
-        }
-
-        public void remove_sticky_listener(Action listener)
-        {
-            PositionManager.StickyManager.remove_sticky_listener(listener);
-        }
-
-        public void add_unsticky_listener(Action listener)
-        {
-            PositionManager.StickyManager.add_unsticky_listener(listener);
-        }
-
-        public void remove_unsticky_listener(Action listener)
-        {
-            PositionManager.StickyManager.remove_unsticky_listener(listener);
-        }
-
         public bool IsGrounded { get => TransientState.HasFlag(TransientStateFlags.OnWalkable) && CachedVelocity.Equals(Vector3.Zero); }
 
         public bool Equals(PhysicsObj obj)
@@ -3998,6 +4277,11 @@ namespace ACE.Server.Physics
         public override int GetHashCode()
         {
             return ID.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return $"{Name} ({ID:X8})";
         }
     }
 }

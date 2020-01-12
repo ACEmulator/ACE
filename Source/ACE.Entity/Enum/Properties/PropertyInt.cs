@@ -88,6 +88,11 @@ namespace ACE.Entity.Enum.Properties
         CombatUse                                = 51,
         [ServerOnly]
         ParentLocation                           = 52,
+        /// <summary>
+        /// TODO: Migrate inventory order away from this and instead use the new InventoryOrder property
+        /// TODO: PlacementPosition is used (very sparingly) in cache.bin, so it has (or had) a meaning at one point before we hijacked it
+        /// TODO: and used it for our own inventory order
+        /// </summary>
         [ServerOnly]
         PlacementPosition                        = 53,
         WeaponEncumbrance                        = 54,
@@ -259,7 +264,7 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         HousePurchaseTimestamp                   = 199,
         RedirectableEquippedArmorCount           = 200,
-        MeleedefenseImbuedEffectTypeCache        = 201,
+        MeleeDefenseImbuedEffectTypeCache        = 201,
         MissileDefenseImbuedEffectTypeCache      = 202,
         MagicDefenseImbuedEffectTypeCache        = 203,
         ElementalDamageBonus                     = 204,
@@ -358,6 +363,7 @@ namespace ACE.Entity.Enum.Properties
         EquipmentSetId                           = 265,
         PetClass                                 = 266,
         Lifespan                                 = 267,
+        [Ephemeral]
         RemainingLifespan                        = 268,
         UseCreateQuantity                        = 269,
         WieldRequirements2                       = 270,
@@ -500,6 +506,7 @@ namespace ACE.Entity.Enum.Properties
         WeaponAuraDamage                         = 360,
         [SendOnLogin]
         WeaponAuraSpeed                          = 361,
+        [SendOnLogin]
         SummoningMastery                         = 362,
         HeartbeatLifespan                        = 363,
         UseLevelRequirement                      = 364,
@@ -558,6 +565,14 @@ namespace ACE.Entity.Enum.Properties
 
         [ServerOnly]
         PCAPRecordedAutonomousMovement           = 8007,
+        [ServerOnly]
+        PCAPRecordedMaxVelocityEstimated         = 8030,
+        [ServerOnly]
+        PCAPRecordedPlacement                    = 8041,
+        [ServerOnly]
+        PCAPRecordedAppraisalPages               = 8042,
+        [ServerOnly]
+        PCAPRecordedAppraisalMaxPages            = 8043,
 
         //[ServerOnly]
         //TotalLogins                              = 9001,
@@ -585,7 +600,21 @@ namespace ACE.Entity.Enum.Properties
         ///  Stores the player's selected hairstyle at creation or after a barber use. This is used only for Gear Knights and Olthoi characters who have more than a single part/texture for a "hairstyle" (BodyStyle)
         /// </summary>
         [ServerOnly]
-        Hairstyle = 9012,
+        Hairstyle                               = 9012,
+        /// <summary>
+        /// Used to store the calculated Clothing Priority for use with armor reduced items and items like Over-Robes.
+        /// </summary>
+        [Ephemeral][ServerOnly]
+        VisualClothingPriority                  = 9013,
+        [ServerOnly]
+        SquelchGlobal                           = 9014,
+
+        /// <summary>
+        /// TODO: This is a place holder for future use. See PlacementPosition
+        /// This is the sort order for items in a container
+        /// </summary>
+        [ServerOnly]
+        InventoryOrder                          = 9015,
     }
 
     public static class PropertyIntExtensions
@@ -674,6 +703,7 @@ namespace ACE.Entity.Enum.Properties
                     return System.Enum.GetName(typeof(PhysicsState), value);
                 case PropertyInt.HookPlacement:
                 case PropertyInt.Placement:
+                case PropertyInt.PCAPRecordedPlacement:
                     return System.Enum.GetName(typeof(Placement), value);
                 case PropertyInt.PortalBitmask:
                     return System.Enum.GetName(typeof(PortalBitmask), value);
@@ -719,6 +749,9 @@ namespace ACE.Entity.Enum.Properties
                     return System.Enum.GetName(typeof(Placement), value);
                 case PropertyInt.HouseStatus:
                     return System.Enum.GetName(typeof(HouseStatus), value);
+
+                case PropertyInt.UseCreatesContractId:
+                    return System.Enum.GetName(typeof(ContractId), value);
             }
 
             return null;

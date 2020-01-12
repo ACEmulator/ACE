@@ -12,12 +12,12 @@ namespace ACE.Server.Network.Structure
     {
         public uint DwellingID;         // The house ID
         public ObjectGuid OwnerID;      // The object ID of the current owner
-        public uint Bitmask;
+        public HouseBitfield Bitmask;
         public int MinLevel;            // The minimum level requirement to purchase this dwelling (-1 if no requirement)
         public int MaxLevel;            // The maximum level requirement to purchase this dewlling (-1 if no requirement)
         public int MinAllegRank;        // The minimum allegiance rank requirement to purchase this dwelling (-1 if no requirement)
         public int MaxAllegRank;        // The maximum allegiance rank requirement to purchase this dwelling (-1 if no requirement)
-        public bool MaintenanceFee;     // Indicates maintenance is free this period, admin flag
+        public bool MaintenanceFree;    // Indicates maintenance is free this period, admin flag
         public HouseType Type;          // The type of dwelling (1=cottage, 2=villa, 3=mansion, 4=apartment)
         public string OwnerName;        // The name of the current owner
         public List<HousePayment> Buy;  // The list of items required for purchasing a house
@@ -30,6 +30,7 @@ namespace ACE.Server.Network.Structure
             MaxLevel = -1;
             MinAllegRank = -1;
             MaxAllegRank = -1;
+            Bitmask = HouseBitfield.Active;
         }
 
         /// <summary>
@@ -60,11 +61,11 @@ namespace ACE.Server.Network.Structure
             foreach (var item in slumlord.Inventory.Values)
             {
                 var wcid = item.WeenieClassId;
-                var value = (uint)(item.StackSize ?? 1);
+                var value = item.StackSize ?? 1;
                 if (item.WeenieClassName.StartsWith("tradenote"))
                 {
                     wcid = 273;
-                    value = (uint)item.Value;
+                    value = item.Value.Value;
                 }
                 var rentItem = Rent.FirstOrDefault(i => i.WeenieID == wcid);
                 if (rentItem == null)
@@ -83,12 +84,12 @@ namespace ACE.Server.Network.Structure
         {
             writer.Write(profile.DwellingID);
             writer.Write(profile.OwnerID.Full);
-            writer.Write(profile.Bitmask);
+            writer.Write((uint)profile.Bitmask);
             writer.Write(profile.MinLevel);
             writer.Write(profile.MaxLevel);
             writer.Write(profile.MinAllegRank);
             writer.Write(profile.MaxAllegRank);
-            writer.Write(Convert.ToUInt32(profile.MaintenanceFee));
+            writer.Write(Convert.ToUInt32(profile.MaintenanceFree));
             writer.Write((uint)profile.Type);
             writer.WriteString16L(profile.OwnerName);
             writer.Write(profile.Buy);

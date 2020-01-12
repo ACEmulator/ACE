@@ -1,5 +1,6 @@
-using ACE.Server.Managers;
+
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects.Managers;
 
 namespace ACE.Server.Entity
 {
@@ -11,6 +12,7 @@ namespace ACE.Server.Entity
         public Spell Spell;
         public StackType StackType;
         public GameMessageSystemChat Message;
+        public bool Broadcast;
         public bool Success;
 
         public EnchantmentStatus(Spell spell)

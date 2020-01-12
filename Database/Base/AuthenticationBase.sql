@@ -52,8 +52,20 @@ CREATE TABLE `account` (
   `accountId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `accountName` varchar(50) NOT NULL,
   `passwordHash` varchar(88) NOT NULL COMMENT 'base64 encoded version of the hashed passwords.  88 characters are needed to base64 encode SHA512 output.',
-  `passwordSalt` varchar(88) NOT NULL COMMENT 'base64 encoded version of the password salt.  512 byte salts (88 characters when base64 encoded) are recommend for SHA512.',
+  `passwordSalt` varchar(88) NOT NULL DEFAULT 'use bcrypt' COMMENT 'This is no longer used, except to indicate if bcrypt is being employed for migration purposes. Previously: base64 encoded version of the password salt.  512 byte salts (88 characters when base64 encoded) are recommend for SHA512.',
   `accessLevel` int(10) unsigned NOT NULL DEFAULT '0',
+  `email_Address` varchar(320) DEFAULT NULL,
+  `create_Time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `create_I_P` varbinary(16) DEFAULT NULL,
+  `create_I_P_ntoa` varchar(45) GENERATED ALWAYS AS (inet6_ntoa(`create_I_P`)) VIRTUAL,
+  `last_Login_Time` datetime DEFAULT NULL,
+  `last_Login_I_P` varbinary(16) DEFAULT NULL,
+  `last_Login_I_P_ntoa` varchar(45) GENERATED ALWAYS AS (inet6_ntoa(`last_Login_I_P`)) VIRTUAL,
+  `total_Times_Logged_In` int(10) unsigned NOT NULL DEFAULT '0',
+  `banned_Time` datetime DEFAULT NULL,
+  `banned_By_Account_Id` int(10) unsigned DEFAULT NULL,
+  `ban_Expire_Time` datetime DEFAULT NULL,
+  `ban_Reason` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`accountId`),
   UNIQUE KEY `accountName_uidx` (`accountName`),
   KEY `accesslevel_idx` (`accessLevel`),
@@ -70,7 +82,7 @@ CREATE TABLE `account` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-09-23 14:43:29
+-- Dump completed on 2019-09-14 12:35:23
  
 /*
 -- Query: SELECT * FROM ace_auth.accesslevel

@@ -55,7 +55,7 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].Unknown10}, " +
                     $"{input[i].Unknown11}, " +
                     $"{input[i].Unknown12}, " +
-                    $"'{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'" +
+                    $"'{input[i].LastModified:yyyy-MM-dd HH:mm:ss}'" +
                     $") /* {weenieLabel} */";
             });
 

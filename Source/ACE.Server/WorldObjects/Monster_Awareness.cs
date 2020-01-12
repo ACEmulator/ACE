@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -47,12 +49,22 @@ namespace ACE.Server.WorldObjects
         public virtual void Sleep()
         {
             if (DebugMove)
-                Console.WriteLine($"{Name}.Sleep()");
+                Console.WriteLine($"{Name} ({Guid}).Sleep()");
 
+            SetCombatMode(CombatMode.NonCombat);
+
+            CurrentAttack = null;
+            firstUpdate = true;
             AttackTarget = null;
             IsAwake = false;
             IsMoving = false;
             MonsterState = State.Idle;
+        }
+
+        public Tolerance Tolerance
+        {
+            get => (Tolerance)(GetProperty(PropertyInt.Tolerance) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.Tolerance); else SetProperty(PropertyInt.Tolerance, (int)value); }
         }
 
         /// <summary>
@@ -121,121 +133,123 @@ namespace ACE.Server.WorldObjects
 
         public virtual bool FindNextTarget()
         {
-            // rebuild visible objects (handle this better for monsters)
-            GetVisibleObjects();
+            stopwatch.Restart();
 
-            var players = GetAttackablePlayers();
-            if (players.Count == 0)
-                return false;
-
-            // Generally, a creature chooses whom to attack based on:
-            //  - who it was last attacking,
-            //  - who attacked it last,
-            //  - or who caused it damage last.
-
-            // When players first enter the creature's detection radius, however, none of these things are useful yet,
-            // so the creature chooses a target randomly, weighted by distance.
-
-            // Players within the creature's detection sphere are weighted by how close they are to the creature --
-            // the closer you are, the more chance you have to be selected to be attacked.
-
-            SelectTargetingTactic();
-            SetNextTargetTime();
-
-            switch (CurrentTargetingTactic)
+            try
             {
-                case TargetingTactic.None:
+                SelectTargetingTactic();
+                SetNextTargetTime();
 
-                    Console.WriteLine($"{Name}.FindNextTarget(): TargetingTactic.None");
-                    break;  // same as focused?
+                var visibleTargets = GetAttackTargets();
+                if (visibleTargets.Count == 0)
+                {
+                    if (MonsterState != State.Return)
+                    {
+                        AttackTarget = null;
+                        MoveToHome();
+                    }
+                    return false;
+                }
 
-                case TargetingTactic.Random:
+                // Generally, a creature chooses whom to attack based on:
+                //  - who it was last attacking,
+                //  - who attacked it last,
+                //  - or who caused it damage last.
 
-                    // this is a very common tactic with monsters,
-                    // although it is not truly random, it is weighted by distance
-                    var targetDistances = BuildTargetDistance(players);
-                    AttackTarget = SelectWeightedDistance(targetDistances);
-                    break;
+                // When players first enter the creature's detection radius, however, none of these things are useful yet,
+                // so the creature chooses a target randomly, weighted by distance.
 
-                case TargetingTactic.Focused:
+                // Players within the creature's detection sphere are weighted by how close they are to the creature --
+                // the closer you are, the more chance you have to be selected to be attacked.
 
-                    break;  // always stick with original target?
+                switch (CurrentTargetingTactic)
+                {
+                    case TargetingTactic.None:
 
-                case TargetingTactic.LastDamager:
+                        Console.WriteLine($"{Name}.FindNextTarget(): TargetingTactic.None");
+                        break; // same as focused?
 
-                    var lastDamager = DamageHistory.LastDamager;
-                    if (lastDamager != null)
-                        AttackTarget = lastDamager;
-                    break;
+                    case TargetingTactic.Random:
 
-                case TargetingTactic.TopDamager:
+                        // this is a very common tactic with monsters,
+                        // although it is not truly random, it is weighted by distance
+                        var targetDistances = BuildTargetDistance(visibleTargets);
+                        AttackTarget = SelectWeightedDistance(targetDistances);
+                        break;
 
-                    var topDamager = DamageHistory.TopDamager;
-                    if (topDamager != null)
-                        AttackTarget = topDamager;
-                    break;
+                    case TargetingTactic.Focused:
 
-                // these below don't seem to be used in PY16 yet...
+                        break; // always stick with original target?
 
-                case TargetingTactic.Weakest:
+                    case TargetingTactic.LastDamager:
 
-                    // should probably shuffle the list beforehand,
-                    // in case a bunch of levels of same level are in a group,
-                    // so the same player isn't always selected
-                    var lowestLevel = players.OrderBy(p => p.Level).FirstOrDefault();
-                    AttackTarget = lowestLevel;
-                    break;
+                        var lastDamager = DamageHistory.LastDamager?.TryGetAttacker() as Creature;
+                        if (lastDamager != null)
+                            AttackTarget = lastDamager;
+                        break;
 
-                case TargetingTactic.Strongest:
+                    case TargetingTactic.TopDamager:
 
-                    var highestLevel = players.OrderByDescending(p => p.Level).FirstOrDefault();
-                    AttackTarget = highestLevel;
-                    break;
+                        var topDamager = DamageHistory.TopDamager?.TryGetAttacker() as Creature;
+                        if (topDamager != null)
+                            AttackTarget = topDamager;
+                        break;
 
-                case TargetingTactic.Nearest:
+                    // these below don't seem to be used in PY16 yet...
 
-                    var nearest = BuildTargetDistance(players);
-                    AttackTarget = nearest[0].Target;
-                    break;
+                    case TargetingTactic.Weakest:
+
+                        // should probably shuffle the list beforehand,
+                        // in case a bunch of levels of same level are in a group,
+                        // so the same player isn't always selected
+                        var lowestLevel = visibleTargets.OrderBy(p => p.Level).FirstOrDefault();
+                        AttackTarget = lowestLevel;
+                        break;
+
+                    case TargetingTactic.Strongest:
+
+                        var highestLevel = visibleTargets.OrderByDescending(p => p.Level).FirstOrDefault();
+                        AttackTarget = highestLevel;
+                        break;
+
+                    case TargetingTactic.Nearest:
+
+                        var nearest = BuildTargetDistance(visibleTargets);
+                        AttackTarget = nearest[0].Target;
+                        break;
+                }
+
+                //Console.WriteLine($"{Name}.FindNextTarget = {AttackTarget.Name}");
+
+                return AttackTarget != null;
             }
-
-            //Console.WriteLine($"{Name}.FindNextTarget = {AttackTarget.Name}");
-
-            return AttackTarget != null;
+            finally
+            {
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Monster_Awareness_FindNextTarget, stopwatch.Elapsed.TotalSeconds);
+            }
         }
 
         /// <summary>
-        /// Returns a list of attackable players in this monster's visible objects table
+        /// Returns a list of attackable targets currently visible to this monster
         /// </summary>
-        public List<Creature> GetAttackablePlayers()
+        public List<Creature> GetAttackTargets()
         {
-            // TODO: this might need refreshed
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
+            var visibleTargets = new List<Creature>();
 
-            var players = new List<Creature>();
-
-            foreach (var obj in visibleObjs)
+            foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
-                // exclude self (should hopefully not be in this list)
-                if (PhysicsObj == obj) continue;
-
-                // ensure player or player's pet
-                var wo = obj.WeenieObj.WorldObject;
-                if (!(wo is Player) && !(wo is CombatPet)) continue;
-                var creature = wo as Creature;
-
                 // ensure attackable
-                var attackable = creature.GetProperty(PropertyBool.Attackable) ?? false;
-                if (!attackable) continue;
+                if (!creature.Attackable || creature.Teleporting) continue;
 
                 // ensure within 'detection radius' ?
-                if (Location.SquaredDistanceTo(creature.Location) >= RadiusAwarenessSquared)
+                var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : RadiusAwarenessSquared;
+                if (Location.SquaredDistanceTo(creature.Location) >= chaseDistSq)
                     continue;
 
-                players.Add(creature);
-
+                visibleTargets.Add(creature);
             }
-            return players;
+
+            return visibleTargets;
         }
 
         /// <summary>
@@ -285,54 +299,40 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Rebuilds the visible objects tables for this monster
-        /// </summary>
-        public void GetVisibleObjects()
-        {
-            PhysicsObj.ObjMaint.RemoveAllObjects();
-            PhysicsObj.handle_visible_cells();
-        }
-
-        /// <summary>
         /// Called when a monster is first spawning in
         /// </summary>
-        public void CheckPlayers()
+        public void CheckTargets()
         {
-            var attackable = Attackable ?? false;
-            var tolerance = (Tolerance)(GetProperty(PropertyInt.Tolerance) ?? 0);
-
-            if (!attackable && TargetingTactic == 0 || tolerance != Tolerance.None)
+            if (!Attackable && TargetingTactic == TargetingTactic.None || Tolerance != Tolerance.None)
                 return;
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(0.75f);
-            actionChain.AddAction(this, CheckPlayers_Inner);
+            actionChain.AddAction(this, CheckTargets_Inner);
             actionChain.EnqueueChain();
         }
 
-        public void CheckPlayers_Inner()
-        { 
-            var visiblePlayers = PhysicsObj.ObjMaint.VoyeurTable.Values;
-
-            Player closestPlayer = null;
+        public void CheckTargets_Inner()
+        {
+            Creature closestTarget = null;
             var closestDistSq = float.MaxValue;
 
-            foreach (var visiblePlayer in visiblePlayers)
+            foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
-                var player = visiblePlayer.WeenieObj.WorldObject as Player;
-                if (player == null || !player.IsAttackable || (player.Hidden ?? false)) continue;
+                if (creature is Player player && (!player.Attackable || player.Teleporting || (player.Hidden ?? false)))
+                    continue;
 
-                var distSq = Location.SquaredDistanceTo(player.Location);
+                var distSq = Location.SquaredDistanceTo(creature.Location);
                 if (distSq < closestDistSq)
                 {
                     closestDistSq = distSq;
-                    closestPlayer = player;
+                    closestTarget = creature;
                 }
             }
-            if (closestPlayer == null || closestDistSq > RadiusAwarenessSquared)
+            if (closestTarget == null || closestDistSq > RadiusAwarenessSquared)
                 return;
 
-            closestPlayer.AlertMonster(this);
+            closestTarget.AlertMonster(this);
         }
 
         public double? VisualAwarenessRange
@@ -364,7 +364,7 @@ namespace ACE.Server.WorldObjects
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
-                if (nearbyCreature == null || nearbyCreature.IsAwake/* || nearbyCreature.IsAlerted*/ || !(nearbyCreature.GetProperty(PropertyBool.Attackable) ?? false))
+                if (nearbyCreature == null || nearbyCreature.IsAwake/* || nearbyCreature.IsAlerted*/ || !nearbyCreature.Attackable)
                     continue;
 
                 if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||

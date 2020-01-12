@@ -89,9 +89,15 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistNether); else SetProperty(PropertyFloat.ResistNether, value.Value); }
         }
 
-        public float GetResistanceMod(DamageType damageType, WorldObject damageSource, float weaponResistanceMod = 1.0f)
+        public bool NonProjectileMagicImmune
         {
-            var ignoreMagicResist = damageSource != null && damageSource.IgnoreMagicResist;
+            get => GetProperty(PropertyBool.NonProjectileMagicImmune) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.NonProjectileMagicImmune); else SetProperty(PropertyBool.NonProjectileMagicImmune, value); }
+        }
+
+        public float GetResistanceMod(DamageType damageType, WorldObject weapon, float weaponResistanceMod = 1.0f)
+        {
+            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
 
             // hollow weapons also ignore player natural resistances
             if (ignoreMagicResist)
@@ -100,7 +106,7 @@ namespace ACE.Server.WorldObjects
             var protMod = EnchantmentManager.GetProtectionResistanceMod(damageType);
             var vulnMod = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
 
-            var naturalResistMod = GetNaturalResistance(damageType);
+            var naturalResistMod = GetNaturalResistance();
 
             // protection mod becomes either life protection or natural resistance,
             // whichever is more powerful (more powerful = lower value here)
@@ -115,7 +121,7 @@ namespace ACE.Server.WorldObjects
             return protMod * vulnMod;
         }
 
-        public virtual float GetNaturalResistance(DamageType damageType)
+        public virtual float GetNaturalResistance()
         {
             // overridden for players
             return 1.0f;
@@ -146,38 +152,38 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public double GetResistanceMod(ResistanceType resistance, WorldObject damageSource, float weaponResistanceMod = 1.0f)
+        public double GetResistanceMod(ResistanceType resistance, WorldObject weapon = null, float weaponResistanceMod = 1.0f)
         {
             switch (resistance)
             {
                 case ResistanceType.Slash:
-                    return (ResistSlash ?? 1.0) * GetResistanceMod(DamageType.Slash, damageSource, weaponResistanceMod);
+                    return (ResistSlash ?? 1.0) * GetResistanceMod(DamageType.Slash, weapon, weaponResistanceMod);
                 case ResistanceType.Pierce:
-                    return (ResistPierce ?? 1.0) * GetResistanceMod(DamageType.Pierce, damageSource, weaponResistanceMod);
+                    return (ResistPierce ?? 1.0) * GetResistanceMod(DamageType.Pierce, weapon, weaponResistanceMod);
                 case ResistanceType.Bludgeon:
-                    return (ResistBludgeon ?? 1.0) * GetResistanceMod(DamageType.Bludgeon, damageSource, weaponResistanceMod);
+                    return (ResistBludgeon ?? 1.0) * GetResistanceMod(DamageType.Bludgeon, weapon, weaponResistanceMod);
                 case ResistanceType.Fire:
-                    return (ResistFire ?? 1.0) * GetResistanceMod(DamageType.Fire, damageSource, weaponResistanceMod);
+                    return (ResistFire ?? 1.0) * GetResistanceMod(DamageType.Fire, weapon, weaponResistanceMod);
                 case ResistanceType.Cold:
-                    return (ResistCold ?? 1.0) * GetResistanceMod(DamageType.Cold, damageSource, weaponResistanceMod);
+                    return (ResistCold ?? 1.0) * GetResistanceMod(DamageType.Cold, weapon, weaponResistanceMod);
                 case ResistanceType.Acid:
-                    return (ResistAcid ?? 1.0) * GetResistanceMod(DamageType.Acid, damageSource, weaponResistanceMod);
+                    return (ResistAcid ?? 1.0) * GetResistanceMod(DamageType.Acid, weapon, weaponResistanceMod);
                 case ResistanceType.Electric:
-                    return (ResistElectric ?? 1.0) * GetResistanceMod(DamageType.Electric, damageSource, weaponResistanceMod);
+                    return (ResistElectric ?? 1.0) * GetResistanceMod(DamageType.Electric, weapon, weaponResistanceMod);
                 case ResistanceType.Nether:
-                    return (ResistNether ?? 1.0) * GetResistanceMod(DamageType.Nether, damageSource, weaponResistanceMod);
+                    return (ResistNether ?? 1.0) * GetResistanceMod(DamageType.Nether, weapon, weaponResistanceMod);
                 case ResistanceType.HealthBoost:
-                    return ResistHealthBoostMod;    // probably some other boost modifiers that should be factored in here...
+                    return (ResistHealthBoost ?? 1.0) * GetHealingRatingMod();
                 case ResistanceType.HealthDrain:
-                    return (ResistHealthDrain ?? 1.0) * GetResistanceMod(DamageType.Health, damageSource, weaponResistanceMod);
+                    return (ResistHealthDrain ?? 1.0) * GetNaturalResistance() * GetLifeResistRatingMod();
                 case ResistanceType.StaminaBoost:
-                    return ResistStaminaBoostMod;
+                    return (ResistStaminaBoost ?? 1.0) * GetHealingRatingMod();     // does healing rating affect these?
                 case ResistanceType.StaminaDrain:
-                    return (ResistStaminaDrain ?? 1.0) * GetResistanceMod(DamageType.Stamina, damageSource, weaponResistanceMod);
+                    return (ResistStaminaDrain ?? 1.0) * GetNaturalResistance();
                 case ResistanceType.ManaBoost:
-                    return ResistManaBoostMod;
+                    return (ResistManaBoost ?? 1.0) * GetHealingRatingMod();
                 case ResistanceType.ManaDrain:
-                    return (ResistManaDrain ?? 1.0) * GetResistanceMod(DamageType.Mana, damageSource, weaponResistanceMod);
+                    return (ResistManaDrain ?? 1.0) * GetNaturalResistance();
                 default:
                     return 1.0;
             }
@@ -195,7 +201,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.StaminaRate); else SetProperty(PropertyFloat.StaminaRate, value.Value); }
         }
 
-        public int ArmorLevelMod => (ArmorLevel ?? 0) + EnchantmentManager.GetBodyArmorMod();
         public double ResistSlashMod => (ResistSlash ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Slash);
         public double ResistPierceMod => (ResistPierce ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Pierce);
         public double ResistBludgeonMod => (ResistBludgeon ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Bludgeon);
@@ -204,12 +209,6 @@ namespace ACE.Server.WorldObjects
         public double ResistAcidMod => (ResistAcid ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Acid);
         public double ResistElectricMod => (ResistElectric ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Electric);
         public double ResistNetherMod => (ResistNether ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Nether);
-        public double ResistHealthDrainMod => (ResistHealthDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Health);
-        public double ResistHealthBoostMod => (ResistHealthBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Health);
-        public double ResistStaminaDrainMod => (ResistStaminaDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Stamina);
-        public double ResistStaminaBoostMod => (ResistStaminaBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Stamina);
-        public double ResistManaDrainMod => (ResistManaDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Mana);
-        public double ResistManaBoostMod => (ResistManaBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Mana);
 
         public bool NoCorpse
         {
@@ -227,6 +226,30 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyDataId.DeathTreasureType);
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.DeathTreasureType); else SetProperty(PropertyDataId.DeathTreasureType, value.Value); }
+        }
+
+        public int? LuminanceAward
+        {
+            get => GetProperty(PropertyInt.LuminanceAward);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LuminanceAward); else SetProperty(PropertyInt.LuminanceAward, value.Value); }
+        }
+
+        public bool AiImmobile
+        {
+            get => GetProperty(PropertyBool.AiImmobile) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AiImmobile); else SetProperty(PropertyBool.AiImmobile, value); }
+        }
+
+        public int? Overpower
+        {
+            get => GetProperty(PropertyInt.Overpower);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Overpower); else SetProperty(PropertyInt.Overpower, value.Value); }
+        }
+
+        public int? OverpowerResist
+        {
+            get => GetProperty(PropertyInt.OverpowerResist);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.OverpowerResist); else SetProperty(PropertyInt.OverpowerResist, value.Value); }
         }
     }
 }

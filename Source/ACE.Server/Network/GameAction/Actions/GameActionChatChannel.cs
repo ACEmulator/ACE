@@ -28,16 +28,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in PlayerManager.GetAllOnline())
-                            if (recipient.Session != session)
-                            {
-                                if (recipient.Session.AccessLevel >= AccessLevel.Advocate && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
-                            }
-                            else
-                            {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
-                            }
+                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
                     }
                     break;
                 case Channel.Admin:
@@ -49,16 +40,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in PlayerManager.GetAllOnline())
-                            if (recipient.Session != session)
-                            {
-                                if (recipient.Session.AccessLevel == AccessLevel.Admin && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
-                            }
-                            else
-                            {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
-                            }
+                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
                     }
                     break;
                 case Channel.Audit:
@@ -70,16 +52,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in PlayerManager.GetAllOnline())
-                            if (recipient.Session != session)
-                            {
-                                if (recipient.Session.AccessLevel >= AccessLevel.Sentinel && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
-                            }
-                            else
-                            {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
-                            }
+                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
                     }
                     break;
                 case Channel.Advocate1:
@@ -93,16 +66,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in PlayerManager.GetAllOnline())
-                            if (recipient.Session != session)
-                            {
-                                if (recipient.Session.AccessLevel >= AccessLevel.Advocate && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
-                            }
-                            else
-                            {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
-                            }
+                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
                     }
                     break;
                 case Channel.Sentinel:
@@ -114,46 +78,14 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in PlayerManager.GetAllOnline())
-                            if (recipient.Session != session)
-                            {
-                                if (recipient.Session.AccessLevel >= AccessLevel.Sentinel && !recipient.Squelches.Contains(session.Player))
-                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
-                            }
-                            else
-                            {
-                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
-                            }
+                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
                     }
                     break;
                 case Channel.Help:
                     {
                         ChatPacket.SendServerMessage(session, "GameActionChatChannel TellHelp Needs work.", ChatMessageType.Broadcast);
-                        // TODO: I don't remember exactly how this was triggered. I don't think it sent back a "You say" message to the person who triggered it
-                        // TODO: Proper permissions check. Requesting urgent help should work for any character but only displays the "says" mesage for those subscribed to the Help channel
-                        //      which would be Advocates and above.
-                        // if (!session.Player.IsAdmin)
-                        //    break;
-                        string onTheWhatChannel = "on the " + System.Enum.GetName(typeof(Channel), groupChatType).Replace("Tell", "") + " channel";
-                        string whoSays = session.Player.Name + " says ";
 
-                        // ChatPacket.SendServerMessage(session, $"You say {onTheWhatChannel}, \"{message}\"", ChatMessageType.OutgoingHelpSay);
-
-                        var gameMessageSystemChat = new GameMessages.Messages.GameMessageSystemChat(whoSays + onTheWhatChannel + ", \"" + message + "\"", ChatMessageType.Help);
-
-                        // TODO This should check if the recipient is subscribed to the channel
-                        foreach (var recipient in PlayerManager.GetAllOnline())
-                            if (recipient.Session != session && !recipient.Squelches.Contains(session.Player))
-                                recipient.Session.Network.EnqueueSend(gameMessageSystemChat);
-
-                        // again not sure what way to go with this.. the code below was added after I realized I should be handling things differently
-                        // and by handling differently I mean letting the client do all of the work it was already designed to do.
-
-                        // foreach (var recipient in WorldManager.GetAll())
-                        //    if (recipient != session)
-                        //        NetworkManager.SendWorldMessage(recipient, new GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
-                        //    else
-                        //        NetworkManager.SendWorldMessage(recipient, new GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
                     }
                     break;
                 case Channel.Fellow:
@@ -165,8 +97,10 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var fellowmember in session.Player.Fellowship.FellowshipMembers)
-                            if (fellowmember.Session != session && !fellowmember.Squelches.Contains(session.Player))
+                        var fellowshipMembers = session.Player.Fellowship.GetFellowshipMembers();
+
+                        foreach (var fellowmember in fellowshipMembers.Values)
+                            if (fellowmember.Session != session && !fellowmember.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Fellowship))
                                 fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, groupChatType, session.Player.Name, message));
                             else
                                 session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
@@ -192,7 +126,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         {
                             var vassalPlayer = PlayerManager.GetOnlinePlayer(vassalGuid);
 
-                            if (vassalPlayer != null && !vassalPlayer.Squelches.Contains(session.Player))
+                            if (vassalPlayer != null && !vassalPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                                 vassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(vassalPlayer.Session, groupChatType, session.Player.Name, message));
                         }
                         session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
@@ -216,7 +150,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         var patronPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Patron.PlayerGuid);
 
-                        if (patronPlayer != null && !patronPlayer.Squelches.Contains(session.Player))
+                        if (patronPlayer != null && !patronPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                             patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, groupChatType, session.Player.Name, message));
 
                         session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
@@ -240,7 +174,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         var monarchPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Monarch.PlayerGuid);
 
-                        if (monarchPlayer != null && !monarchPlayer.Squelches.Contains(session.Player))
+                        if (monarchPlayer != null && !monarchPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                             monarchPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Monarch, session.Player.Name, message));
 
                         session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
@@ -264,7 +198,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         var patronPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Patron.PlayerGuid);
 
-                        if (patronPlayer != null && !patronPlayer.Squelches.Contains(session.Player))
+                        if (patronPlayer != null && !patronPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                             patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, Channel.Patron, session.Player.Name, message));
 
                         foreach (var covassalGuid in session.Player.AllegianceNode.Patron.Vassals.Keys)
@@ -277,7 +211,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             {
                                 var covassalPlayer = PlayerManager.GetOnlinePlayer(covassalGuid);
 
-                                if (covassalPlayer != null && !covassalPlayer.Squelches.Contains(session.Player))
+                                if (covassalPlayer != null && !covassalPlayer.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                                     covassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(covassalPlayer.Session, groupChatType, session.Player.Name, message));
                             }
                         }
@@ -305,7 +239,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         {
                             // is this allegiance member online?
                             var online = PlayerManager.GetOnlinePlayer(member);
-                            if (online == null || online.Squelches.Contains(session.Player))
+                            if (online == null || online.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance))
                                 continue;
 
                             online.Session.Network.EnqueueSend(new GameEventChannelBroadcast(online.Session, groupChatType, session.Player.Name, message));
