@@ -1054,17 +1054,17 @@ namespace ACE.Server.WorldObjects.Managers
                     if (player != null)
                     {
                         var weenieItemToTake = emote.WeenieClassId ?? 0;
-                        var amountToTake = emote.StackSize ?? 0;
+                        var amountToTake = emote.StackSize ?? 1;
 
                         if (weenieItemToTake == 0)
                         {
-                            log.Warn($"EmoteManager.Excute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.WeenieClassId: {weenieItemToTake}");
+                            log.Warn($"EmoteManager.Execute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.WeenieClassId: {weenieItemToTake}");
                             break;
                         }
 
                         if (amountToTake < -1 || amountToTake == 0)
                         {
-                            log.Warn($"EmoteManager.Excute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.StackSize: {amountToTake}");
+                            log.Warn($"EmoteManager.Execute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.StackSize: {amountToTake}");
                             break;
                         }
 
