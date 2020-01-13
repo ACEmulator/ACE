@@ -244,7 +244,7 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         var intProperty = (PropertyInt)emote.Stat;
                         var current = targetObject.GetProperty(intProperty) ?? 0;
-                        current -= emote.Amount ?? 0;
+                        current -= emote.Amount ?? 1;
                         targetObject.SetProperty(intProperty, current);
 
                         if (player != null)
@@ -349,7 +349,7 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         var intProperty = (PropertyInt)emote.Stat;
                         var current = targetObject.GetProperty(intProperty) ?? 0;
-                        current += emote.Amount ?? 0;
+                        current += emote.Amount ?? 1;
                         targetObject.SetProperty(intProperty, current);
 
                         if (player != null)
@@ -377,7 +377,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var attr = targetCreature.Attributes[(PropertyAttribute)emote.Stat];
-                        success = attr != null && attr.Current >= emote.Min && attr.Current <= emote.Max;
+                        success = attr != null && attr.Current >= (emote.Min ?? int.MinValue) && attr.Current <= (emote.Max ?? int.MaxValue);
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -430,7 +430,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetObject != null)
                     {
                         var stat = targetObject.GetProperty((PropertyFloat)emote.Stat) ?? 0.0f;
-                        success = stat >= emote.MinDbl && stat <= emote.MaxDbl;
+                        success = stat >= (emote.MinDbl ?? double.MinValue) && stat <= (emote.MaxDbl ?? double.MaxValue);
 
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
 
@@ -442,7 +442,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetObject != null)
                     {
                         var stat = targetObject.GetProperty((PropertyInt64)emote.Stat) ?? 0;
-                        success = stat >= emote.Min64 && stat <= emote.Max64;
+                        success = stat >= (emote.Min64 ?? long.MinValue) && stat <= (emote.Max64 ?? long.MaxValue);
 
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
@@ -453,7 +453,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetObject != null)
                     {
                         var stat = targetObject.GetProperty((PropertyInt)emote.Stat) ?? 0;
-                        success = stat >= emote.Min && stat <= emote.Max;
+                        success = stat >= (emote.Min ?? int.MinValue) && stat <= (emote.Max ?? int.MaxValue);
 
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
@@ -533,7 +533,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var attr = targetCreature.Attributes[(PropertyAttribute)emote.Stat];
-                        success = attr != null && attr.Base >= emote.Min && attr.Base <= emote.Max;
+                        success = attr != null && attr.Base >= (emote.Min ?? int.MinValue) && attr.Base <= (emote.Max ?? int.MaxValue);
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -543,7 +543,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var vital = targetCreature.Vitals[(PropertyAttribute2nd)emote.Stat];
-                        success = vital != null && vital.Base >= emote.Min && vital.Base <= emote.Max;
+                        success = vital != null && vital.Base >= (emote.Min ?? int.MinValue) && vital.Base <= (emote.Max ?? int.MaxValue);
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -553,7 +553,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emote.Stat);
-                        success = skill != null && skill.Base >= emote.Min && skill.Base <= emote.Max;
+                        success = skill != null && skill.Base >= (emote.Min ?? int.MinValue) && skill.Base <= (emote.Max ?? int.MaxValue);
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -563,7 +563,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var vital = targetCreature.Vitals[(PropertyAttribute2nd)emote.Stat];
-                        success = vital != null && vital.Current >= emote.Min && vital.Current <= emote.Max;
+                        success = vital != null && vital.Current >= (emote.Min ?? int.MinValue) && vital.Current <= (emote.Max ?? int.MaxValue);
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -584,7 +584,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emote.Stat);
-                        success = skill != null && skill.Current >= emote.Min && skill.Current <= emote.Max;
+                        success = skill != null && skill.Current >= (emote.Min ?? int.MinValue) && skill.Current <= (emote.Max ?? int.MaxValue);
 
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
