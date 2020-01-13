@@ -556,6 +556,12 @@ namespace ACE.Server.Managers
                 player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "CONSOLE", message));
         }
 
+        public static void BroadcastToChannelFromEmote(Channel channel, string message)
+        {
+            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "EMOTE", message));
+        }
+
         public static bool GagPlayer(Player issuer, string playerName)
         {
             var player = FindByName(playerName);
