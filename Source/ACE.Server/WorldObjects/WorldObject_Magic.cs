@@ -1288,10 +1288,10 @@ namespace ACE.Server.WorldObjects
 
             var spellProjectiles = new List<SpellProjectile>();
 
-            var useTarget = origins.Count == 1;
-
-            foreach (var origin in origins)
+            for (var i = 0; i < origins.Count; i++)
             {
+                var origin = origins[i];
+
                 var sp = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
 
                 if (sp == null)
@@ -1318,7 +1318,8 @@ namespace ACE.Server.WorldObjects
                 sp.ProjectileSource = this;
                 sp.Caster = caster;
 
-                if (useTarget)
+                // side projectiles always untargeted?
+                if (i == 0)     
                     sp.ProjectileTarget = target;
 
                 sp.SetProjectilePhysicsState(target, useGravity);
