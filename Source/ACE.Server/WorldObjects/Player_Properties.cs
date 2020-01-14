@@ -753,7 +753,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Aura of Mana Flow
-        /// Reduces the mana consumption of your items equal to 1 rating point per level (max 5 stacks)
+        /// Reduces the mana consumption of your items equal to 5 rating points per level (max 5 stacks)
         /// This is expressed as a rating, where the mana consumption is multiplied by the following: 100 / (100 + Mana Consumption Reduction Rating)
         /// </summary>
         public int LumAugItemManaUsage
@@ -765,7 +765,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Aura of Mana Infusion
         /// Increases the mana provided by Mana Stones to your items (max 5 stacks)
-        /// The mana is increased by a rating of 1 per level.
+        /// The mana is increased by a rating of 5 per level.
         /// </summary>
         public int LumAugItemManaGain
         {
