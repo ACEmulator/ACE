@@ -1001,7 +1001,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.SpendLuminance:
                     if (player != null)
-                        player.SpendLuminance((long)emote.Amount);
+                        player.SpendLuminance(emote.HeroXP64 ?? 0);
                     break;
 
                 case EmoteType.StampFellowQuest:
