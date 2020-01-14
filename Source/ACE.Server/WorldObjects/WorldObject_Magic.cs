@@ -1288,6 +1288,8 @@ namespace ACE.Server.WorldObjects
 
             var spellProjectiles = new List<SpellProjectile>();
 
+            var useTarget = origins.Count == 1;
+
             foreach (var origin in origins)
             {
                 var sp = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
@@ -1315,7 +1317,9 @@ namespace ACE.Server.WorldObjects
 
                 sp.ProjectileSource = this;
                 sp.Caster = caster;
-                sp.ProjectileTarget = target;
+
+                if (useTarget)
+                    sp.ProjectileTarget = target;
 
                 sp.SetProjectilePhysicsState(target, useGravity);
                 sp.SpawnPos = new Position(sp.Location);
