@@ -183,7 +183,7 @@ namespace ACE.Server.Managers
             double successChance;
             bool incItemTinkered = true;
 
-            Console.WriteLine($"{player.Name}.HandleTinkering({tool.Name}, {target.Name})");
+            Console.WriteLine($"{player.Name}.HandleTinkering({tool.NameWithMaterial}, {target.NameWithMaterial})");
 
             // calculate % success chance
 
